@@ -23,13 +23,14 @@ struct ToolContext {
 
 ///|
 struct Model {
+  name : String
   api_key : String
   base_url : String
 }
 
 ///|
-fn Model::new(api_key~ : String, base_url~ : String) -> Model {
-  Model::{ api_key, base_url }
+fn Model::new(api_key~ : String, base_url~ : String, name~ : String) -> Model {
+  Model::{ api_key, base_url, name }
 }
 
 ///|
@@ -70,7 +71,7 @@ async fn Agent::call(
   }
   let body : Json = {
     "messages": [..agent.conversation, ..messages].to_json(),
-    "model": "anthropic/claude-sonnet-4",
+    "model": agent.model.name,
     "stream": false,
     "tools": tools,
   }
@@ -167,7 +168,11 @@ fn main {
     guard env.get("OPENAI_API_KEY") is Some(api_key) else {
       println("Error: OPENAI_API_KEY environment variable not set")
     }
-    let model = Model::new(api_key~, base_url="https://openrouter.ai/api/v1")
+    let model = Model::new(
+      api_key~,
+      base_url="https://openrouter.ai/api/v1",
+      name="anthropic/claude-sonnet-4",
+    )
     let agent = Agent::new(model, cwd~)
     agent.add_tool(
       Tool::new(
