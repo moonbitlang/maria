@@ -6,6 +6,6 @@ MoonBit Agent Rewritten in [moonbitlang/async](https://github.com/moonbitlang/as
 
 ```bash
 $ export OPENAI_API_KEY=<your_api_key>
-$ moon run --target native . -v --debug -- Hello
+$ moon run . -- Hello
 Hello! How are you doing today? Is there anything I can help you with?
 ```
