@@ -2,7 +2,7 @@
 struct Tool {
   description : String
   name : String
-  parameters : Json
+  parameters : Map[String, Json]
   f : async (Json, ToolContext) -> String noraise
 }
 
@@ -10,7 +10,7 @@ struct Tool {
 fn Tool::new(
   description~ : String,
   name~ : String,
-  parameters~ : Json,
+  parameters~ : Map[String, Json],
   f : async (Json, ToolContext) -> String noraise,
 ) -> Tool {
   Tool::{ description, name, parameters, f }
@@ -59,6 +59,16 @@ async fn Agent::call(
   agent : Agent,
   messages : Array[@openai.ChatCompletionMessageParam],
 ) -> @openai.ChatCompletionMessage raise {
+  let tools = []
+  for name, tool in agent.tools {
+    tools.push(
+      @openai.tool(
+        name~,
+        description=tool.description,
+        parameters=tool.parameters,
+      ),
+    )
+  }
   let body : Json = {
     "messages": messages.to_json(),
     "model": "anthropic/claude-sonnet-4",
