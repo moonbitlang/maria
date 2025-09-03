@@ -34,11 +34,9 @@ fn Model::new(api_key~ : String, base_url~ : String) -> Model {
 
 ///|
 struct Agent {
-  mut client : @http.Client?
-  mut base_path : Bytes
   cwd : String
   model : Model
-  conversation : Array[@openai.ChatCompletionMessage]
+  conversation : Array[@openai.ChatCompletionMessageParam]
   tools : Map[String, Tool]
 }
 
@@ -49,16 +47,17 @@ suberror HttpError Int
 suberror EmptyChoices
 
 ///|
-suberror InvalidUrl String
-
-///|
-suberror InvalidSchema @string.View
-
-///|
 async fn Agent::call(
   agent : Agent,
   messages : Array[@openai.ChatCompletionMessageParam],
 ) -> @openai.ChatCompletionMessage raise {
+  for message in messages {
+    match message {
+      User(user) => println("< (user)\n\{user.content}")
+      Tool(tool) => println("< (tool)\n\{tool.content}")
+      _ => ()
+    }
+  }
   let tools = []
   for name, tool in agent.tools {
     tools.push(
@@ -70,62 +69,34 @@ async fn Agent::call(
     )
   }
   let body : Json = {
-    "messages": messages.to_json(),
+    "messages": [..agent.conversation, ..messages].to_json(),
     "model": "anthropic/claude-sonnet-4",
     "stream": false,
+    "tools": tools,
   }
   let body = body.stringify()
   let body = @encoding.encode(body, encoding=UTF8)
-  let client = match agent.client {
-    Some(client) => client
-    None => {
-      guard agent.model.base_url.split("://").collect() is [schema, host_path] else {
-        raise InvalidUrl(agent.model.base_url)
-      }
-      let protocol = match schema {
-        "https" => @http.Protocol::Https
-        "http" => @http.Protocol::Http
-        schema => raise InvalidSchema(schema)
-      }
-      let host = match host_path.split("/").collect() {
-        [] => raise InvalidUrl(agent.model.base_url)
-        [host] => {
-          agent.base_path = "/"
-          host
-        }
-        [host, .. path] => {
-          agent.base_path = [
-              '/',
-              ..@encoding.encode(path.join("/"), encoding=UTF8),
-            ]
-          host
-        }
-      }
-      let host = @encoding.encode(host, encoding=UTF8)
-      let client = @http.Client::connect(
-        host,
-        headers=[
-          @http.Header(
-            "Authorization",
-            @encoding.encode("Bearer \{agent.model.api_key}", encoding=UTF8),
-          ),
-          @http.Header("Content-Type", "application/json"),
-        ],
-        protocol~,
-      )
-      agent.client = Some(client)
-      client
-    }
-  }
-  let base_path = agent.base_path
-  let response = client.post(base_path + "/chat/completions", Fixed(body))
-  let body = client.read_all()
+  let (response, body) = @http.post(
+    @encoding.encode("\{agent.model.base_url}/chat/completions", encoding=UTF8),
+    body,
+    headers=[
+      @http.Header(
+        "Authorization",
+        @encoding.encode("Bearer \{agent.model.api_key}", encoding=UTF8),
+      ),
+      @http.Header("Content-Type", "application/json"),
+      @http.Header("Connection", "close"),
+    ],
+  )
   let body = @encoding.decode(body)
   let json = @json.parse(body)
   guard response.code is (200..=299) else { raise HttpError(response.code) }
   let completion : @openai.ChatCompletion = @json.from_json(json)
   guard completion.choices is [choice, ..] else { raise EmptyChoices }
-  choice.message
+  let message = choice.message
+  let content = message.content.unwrap_or("")
+  println("> \{content}")
+  message
 }
 
 ///|
@@ -164,7 +135,7 @@ async fn Agent::loop_call(
   while true {
     let response = agent.call(messages)
     messages.clear()
-    agent.conversation.push(response)
+    agent.conversation.push(response.to_param())
     if response.tool_calls is [] {
       break
     }
@@ -177,14 +148,7 @@ async fn Agent::loop_call(
 
 ///|
 fn Agent::new(model : Model, cwd~ : String) -> Agent {
-  Agent::{
-    client: None,
-    base_path: "/",
-    conversation: [],
-    cwd,
-    model,
-    tools: {},
-  }
+  Agent::{ conversation: [], cwd, model, tools: {} }
 }
 
 ///|
