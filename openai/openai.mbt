@@ -1093,7 +1093,7 @@ pub enum ChatCompletionMessageParam {
 }
 
 ///|
-impl ToJson for ChatCompletionMessageParam with to_json(
+pub impl ToJson for ChatCompletionMessageParam with to_json(
   self : ChatCompletionMessageParam,
 ) {
   match self {
