@@ -1,0 +1,10 @@
+{
+  "is-main": true,
+  "import": [
+    "moonbitlang/async/http",
+    "moonbitlang/async",
+    "moonbitlang/x/sys",
+    "moonbitlang/maria/openai",
+    "tonyfettes/encoding"
+  ]
+}
