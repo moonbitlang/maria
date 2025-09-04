@@ -7,8 +7,6 @@ let execute_command : Tool
 let list_files : Tool
 
 // Errors
-type TimeoutError
-fn TimeoutError::new(command~ : String, arguments~ : Array[String], timeout~ : Int) -> Self
 
 // Types and methods
 pub struct Tool {

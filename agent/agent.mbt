@@ -1,4 +1,5 @@
 ///|
+/// Event type that occurs during agent conversation lifecycle.
 pub(all) enum Event {
   ConversationStart
   ConversationEnd
@@ -47,6 +48,20 @@ pub fn Agent::add_message(
 }
 
 ///|
+/// Sends a chat completion request to the OpenAI API and processes the
+/// response.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance containing the model configuration,
+///   conversation history, and available tools.
+///
+/// Returns a `@openai.ChatCompletionMessage` containing the AI model's
+/// response.
+///
+/// Throws an error of type `HttpError` if the HTTP request fails or returns a
+/// non-2xx status code, or an error of type `EmptyChoices` if the API response
+/// contains no choices.
 async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let tools = []
   for name, tool in agent.tools {
@@ -124,6 +139,13 @@ async fn Agent::execute_tool(
 }
 
 ///|
+/// Adds a tool to the agent's available tools collection.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to add the tool to.
+/// * `tool` : The tool to be added, which will be indexed by its name for
+///   future tool calls.
 pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
   agent.tools[tool.name] = tool
 }
@@ -145,6 +167,18 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 }
 
 ///|
+/// Creates a new agent instance with the specified AI model and working
+/// directory.
+///
+/// Parameters:
+///
+/// * `model` : The AI model to use for generating responses and handling tool
+///   calls.
+/// * `cwd` : The current working directory that will be used as the base path
+///   for tool operations.
+///
+/// Returns a new `Agent` instance initialized with empty conversation history,
+/// no tools, and a fresh event target for handling agent lifecycle events.
 pub fn new(model : @model.Model, cwd~ : String) -> Agent {
   Agent::{
     history: [],
@@ -166,6 +200,15 @@ async fn Agent::emit(
 }
 
 ///|
+/// Registers an event listener for the specified event type on the agent.
+///
+/// Parameters:
+///
+/// * `agent` : The agent to add the event listener to.
+/// * `kind` : The type of event to listen for.
+/// * `f` : The asynchronous callback function to execute when the event is
+///   triggered. The function receives an `EventContext` containing relevant
+///   event data.
 pub fn Agent::add_listener(
   agent : Agent,
   kind : Event,

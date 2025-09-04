@@ -1,15 +1,6 @@
 ///|
-suberror TimeoutError {
+priv suberror TimeoutError {
   TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
-}
-
-///|
-pub fn TimeoutError::new(
-  command~ : String,
-  arguments~ : Array[String],
-  timeout~ : Int,
-) -> TimeoutError {
-  TimeoutError(command~, arguments~, timeout~)
 }
 
 ///|
