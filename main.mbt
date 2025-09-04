@@ -268,7 +268,16 @@ fn main {
     let agent = Agent::new(model, cwd~)
     agent.register(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
-      println("About to call tool: \{tool_call.function.name}")
+      println("Calling tool: \{tool_call.function.name}")
+      try {
+        let args = @json.parse(tool_call.function.arguments)
+        println(args.stringify(indent=2))
+      } catch {
+        error => {
+          println("Error parsing tool arguments: \{error}")
+          println(tool_call.function.arguments)
+        }
+      }
     })
     agent.register(PostToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
@@ -348,7 +357,7 @@ fn main {
               "default": 10,
             },
           },
-          "required": ["command", "timeout"],
+          "required": ["command", "arguments", "timeout"],
         },
         (args, context) => {
           guard args
@@ -359,7 +368,7 @@ fn main {
               ..
             } else {
             return ToolResult::error(
-              "Error: 'command' and 'timeout' parameters are required",
+              "Error: 'command', 'arguments' and 'timeout' parameters are required",
             )
           }
           let arguments : Array[String] = @json.from_json(arguments) catch {
