@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tool"
+
+// Values
+let execute_command : Tool
+
+let list_files : Tool
+
+// Errors
+type TimeoutError
+fn TimeoutError::new(command~ : String, arguments~ : Array[String], timeout~ : Int) -> Self
+
+// Types and methods
+pub struct Tool {
+  description : String
+  name : String
+  parameters : Map[String, Json]
+  f : async (Json, ToolContext) -> ToolResult noraise
+}
+fn Tool::new(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, ToolContext) -> ToolResult noraise) -> Self
+
+pub struct ToolContext {
+  cwd : String
+}
+fn ToolContext::new(cwd~ : String) -> Self
+
+pub struct ToolResult {
+  output : String
+  error : Error?
+}
+fn ToolResult::error(String) -> Self
+fn ToolResult::new(String, error? : Error) -> Self
+fn ToolResult::ok(String) -> Self
+
+// Type aliases
+
+// Traits
+

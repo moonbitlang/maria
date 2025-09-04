@@ -1,48 +1,4 @@
 ///|
-struct Tool {
-  description : String
-  name : String
-  parameters : Map[String, Json]
-  f : async (Json, ToolContext) -> ToolResult noraise
-}
-
-///|
-struct ToolResult {
-  output : String
-  error : Error?
-}
-
-///|
-fn ToolResult::ok(output : String) -> ToolResult {
-  ToolResult::{ output, error: None }
-}
-
-///|
-fn ToolResult::error(output : String) -> ToolResult {
-  ToolResult::{ output, error: Some(Failure(output)) }
-}
-
-///|
-fn ToolResult::new(output : String, error? : Error) -> ToolResult {
-  ToolResult::{ output, error }
-}
-
-///|
-fn Tool::new(
-  description~ : String,
-  name~ : String,
-  parameters~ : Map[String, Json],
-  f : async (Json, ToolContext) -> ToolResult noraise,
-) -> Tool {
-  Tool::{ description, name, parameters, f }
-}
-
-///|
-struct ToolContext {
-  agent : Agent
-}
-
-///|
 struct Model {
   name : String
   api_key : String
@@ -58,7 +14,7 @@ fn Model::new(api_key~ : String, base_url~ : String, name~ : String) -> Model {
 struct Agent {
   cwd : String
   model : Model
-  tools : Map[String, Tool]
+  tools : Map[String, @tool.Tool]
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
   listeners : Map[EventKind, Array[async (EventContext) -> Unit noraise]]
@@ -140,7 +96,7 @@ async fn Agent::execute_tool(
       tool_call_id=tool_call.id,
     )
   }
-  let context = ToolContext::{ agent, }
+  let context = @tool.ToolContext::new(cwd=agent.cwd)
   agent.emit(PreToolCall, EventContext::new(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
@@ -158,7 +114,7 @@ async fn Agent::execute_tool(
 }
 
 ///|
-fn Agent::add_tool(agent : Agent, tool : Tool) -> Unit noraise {
+fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
   agent.tools[tool.name] = tool
 }
 
@@ -219,33 +175,19 @@ enum EventKind {
 ///|
 struct EventContext {
   tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : ToolResult?
+  tool_call_result : @tool.ToolResult?
 }
 
 ///|
 fn EventContext::new(
   tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : ToolResult,
+  tool_call_result? : @tool.ToolResult,
 ) -> EventContext {
   EventContext::{ tool_call, tool_call_result }
 }
 
 ///|
 suberror UnknownCurrentDirectory
-
-///|
-suberror TimeoutError {
-  TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
-}
-
-///|
-pub fn TimeoutError::new(
-  command~ : String,
-  arguments~ : Array[String],
-  timeout~ : Int,
-) -> TimeoutError {
-  TimeoutError(command~, arguments~, timeout~)
-}
 
 ///|
 fn main {
@@ -290,123 +232,8 @@ fn main {
     })
     agent.register(ConversationStart, _ => println("Conversation started"))
     agent.register(ConversationEnd, _ => println("Conversation ended"))
-    agent.add_tool(
-      Tool::new(
-        description="List files in a directory",
-        name="list_files",
-        parameters={
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "The path to list files from, relative to the current working directory",
-            },
-          },
-          "required": ["path"],
-        },
-        (args, context) => {
-          guard args is { "path": String(path), .. } else {
-            return ToolResult::error("Error: 'path' parameter is required")
-          }
-          try {
-            let path = @encoding.encode(
-              context.agent.cwd + "/" + path,
-              encoding=UTF8,
-            )
-            let dir = @fs.opendir(path)
-            defer dir.close()
-            let entries = []
-            for
-              entry in dir.read_all(include_special=false, include_hidden=false) {
-              let entry = path + "/" + entry
-              let file = @fs.open(entry, mode=ReadOnly)
-              defer file.close()
-              let entry = match file.kind() {
-                Directory => entry + "/"
-                _ => entry
-              }
-              entries.push(@encoding.decode(entry))
-            }
-            ToolResult::ok(entries.join("\n"))
-          } catch {
-            error => ToolResult::new("Error listing files: \{error}", error~)
-          }
-        },
-      ),
-    )
-    agent.add_tool(
-      Tool::new(
-        description="Execute a shell command",
-        name="execute_command",
-        parameters={
-          "type": "object",
-          "properties": {
-            "command": {
-              "type": "string",
-              "description": "The shell command to execute",
-            },
-            "arguments": {
-              "type": "array",
-              "items": { "type": "string" },
-              "description": "The arguments to pass to the command",
-              "default": [],
-            },
-            "timeout": {
-              "type": "number",
-              "description": "The timeout in seconds for the command to execute",
-              "default": 10,
-            },
-          },
-          "required": ["command", "arguments", "timeout"],
-        },
-        (args, context) => {
-          guard args
-            is {
-              "command": String(command),
-              "arguments": arguments,
-              "timeout": Number(timeout, ..),
-              ..
-            } else {
-            return ToolResult::error(
-              "Error: 'command', 'arguments' and 'timeout' parameters are required",
-            )
-          }
-          let arguments : Array[String] = @json.from_json(arguments) catch {
-            error =>
-              return ToolResult::error("Error parsing 'arguments': \{error}")
-          }
-          let timeout = (timeout * 1000).to_int()
-          try {
-            let result = @async.with_timeout_opt(timeout, () => {
-              let cmd = @encoding.encode(command, encoding=UTF8)
-              let args = arguments.map(arg => @encoding.encode(
-                arg,
-                encoding=UTF8,
-              ))
-              let output = @pipe.pipe()
-              let cwd = @encoding.encode(context.agent.cwd, encoding=UTF8)
-              let status = @process.run(
-                cmd,
-                args,
-                stdout=output.1,
-                stderr=output.1,
-                cwd~,
-              )
-              let output = output.0.read_all()
-                |> @encoding.decode(encoding=UTF8)
-              return "Exit code: \{status}\nOutput:\n\{output}"
-            })
-            match result {
-              Some(result) => ToolResult::ok(result)
-              None => raise TimeoutError(command~, arguments~, timeout~)
-            }
-          } catch {
-            error =>
-              ToolResult::new("Error executing command: \{error}", error~)
-          }
-        },
-      ),
-    )
+    agent.add_tool(@tool.list_files)
+    agent.add_tool(@tool.execute_command)
     let content = args[1:].join(" ")
     let message = @openai.user_message(content~)
     agent.submit(message)

@@ -1,0 +1,314 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/openai"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+fn assistant_message(content? : String, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
+
+fn audio_content_part(String, String) -> ChatCompletionContentPart
+
+fn file_content_part(String) -> ChatCompletionContentPart
+
+fn image_content_part(String, detail? : String) -> ChatCompletionContentPart
+
+fn system_message(content~ : String, name? : String) -> ChatCompletionMessageParam
+
+fn text_content_part(String) -> ChatCompletionContentPart
+
+fn tool(name~ : String, description~ : String, parameters~ : Map[String, Json], strict? : Bool) -> ChatCompletionToolParam
+
+fn tool_message(content~ : String, tool_call_id~ : String) -> ChatCompletionMessageParam
+
+fn user_message(content~ : String, name? : String) -> ChatCompletionMessageParam
+
+// Errors
+
+// Types and methods
+pub struct ChatCompletion {
+  id : String
+  choices : Array[ChatCompletionChoice]
+  created : Int
+  model : String
+  usage : CompletionUsage?
+  system_fingerprint : String?
+  service_tier : ChatCompletionServiceTier?
+}
+impl Show for ChatCompletion
+impl @json.FromJson for ChatCompletion
+
+pub struct ChatCompletionAssistantMessageParam {
+  content : String?
+  name : String?
+  tool_calls : Array[ChatCompletionMessageToolCall]
+  function_call : ChatCompletionMessageFunctionCall?
+}
+
+pub struct ChatCompletionAudio {
+  id : String?
+}
+impl Show for ChatCompletionAudio
+
+pub struct ChatCompletionAudioParam {
+  voice : String
+  format : String
+}
+
+pub struct ChatCompletionChoice {
+  finish_reason : ChatCompletionChoiceFinishReason
+  index : Int
+  message : ChatCompletionMessage
+  logprobs : ChatCompletionChoiceLogprobs?
+}
+impl Show for ChatCompletionChoice
+
+pub enum ChatCompletionChoiceFinishReason {
+  Stop
+  Length
+  ToolCalls
+  ContentFilter
+  FunctionCall
+}
+impl Show for ChatCompletionChoiceFinishReason
+
+pub struct ChatCompletionChoiceLogprobs {
+  content : Array[ChatCompletionTokenLogprob]?
+  refusal : Array[ChatCompletionTokenLogprob]?
+}
+impl Show for ChatCompletionChoiceLogprobs
+
+pub struct ChatCompletionChunk {
+  id : String
+  choices : Array[ChatCompletionChunkChoice]
+  created : Int
+  model : String
+  usage : CompletionUsage?
+  system_fingerprint : String?
+  service_tier : ChatCompletionServiceTier?
+}
+
+pub struct ChatCompletionChunkChoice {
+  index : Int
+  delta : ChatCompletionChunkChoiceDelta
+  finish_reason : ChatCompletionChoiceFinishReason?
+}
+
+pub struct ChatCompletionChunkChoiceDelta {
+  content : String?
+  role : ChatCompletionRole?
+  tool_calls : Array[ChatCompletionChunkChoiceDeltaToolCall]?
+}
+
+pub struct ChatCompletionChunkChoiceDeltaToolCall {
+  index : Int
+  id : String?
+  function : ChatCompletionChunkChoiceDeltaToolCallFunction
+}
+
+pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
+  arguments : String?
+  name : String?
+}
+
+pub enum ChatCompletionContentPart {
+  Text(ChatCompletionContentPartText)
+  ImageURL(ChatCompletionContentPartImage)
+  InputAudio(ChatCompletionContentPartInputAudio)
+  File(ChatCompletionContentPartFile)
+}
+
+pub struct ChatCompletionContentPartFile {
+  file : ChatCompletionContentPartFileFile
+}
+
+pub struct ChatCompletionContentPartFileFile {
+  file_id : String
+}
+
+pub struct ChatCompletionContentPartImage {
+  image_url : ChatCompletionContentPartImageImageURL
+}
+
+pub struct ChatCompletionContentPartImageImageURL {
+  url : String
+  detail : String?
+}
+
+pub struct ChatCompletionContentPartInputAudio {
+  input_audio : ChatCompletionContentPartInputAudioInputAudio
+}
+
+pub struct ChatCompletionContentPartInputAudioInputAudio {
+  data : String
+  format : String
+}
+
+pub struct ChatCompletionContentPartText {
+  text : String
+}
+
+pub struct ChatCompletionMessage {
+  content : String?
+  refusal : String?
+  tool_calls : Array[ChatCompletionMessageToolCall]
+  annotations : Array[ChatCompletionMessageAnnotation]
+  audio : ChatCompletionAudio?
+  function_call : ChatCompletionMessageFunctionCall?
+}
+fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
+impl Show for ChatCompletionMessage
+
+pub struct ChatCompletionMessageAnnotation {
+  type_ : String
+  text : String
+  file_citation : ChatCompletionMessageAnnotationFileCitation?
+  file_path : ChatCompletionMessageAnnotationFilePath?
+  start_index : Int
+  end_index : Int
+}
+impl Show for ChatCompletionMessageAnnotation
+
+pub struct ChatCompletionMessageAnnotationFileCitation {
+  file_id : String
+  quote : String
+}
+impl Show for ChatCompletionMessageAnnotationFileCitation
+
+pub struct ChatCompletionMessageAnnotationFilePath {
+  file_id : String
+}
+impl Show for ChatCompletionMessageAnnotationFilePath
+
+pub struct ChatCompletionMessageFunctionCall {
+  arguments : String
+  name : String
+}
+impl Show for ChatCompletionMessageFunctionCall
+
+pub enum ChatCompletionMessageParam {
+  System(ChatCompletionSystemMessageParam)
+  User(ChatCompletionUserMessageParam)
+  Assistant(ChatCompletionAssistantMessageParam)
+  Tool(ChatCompletionToolMessageParam)
+}
+impl ToJson for ChatCompletionMessageParam
+
+pub struct ChatCompletionMessageToolCall {
+  id : String
+  function : Function
+}
+impl Show for ChatCompletionMessageToolCall
+
+pub struct ChatCompletionPredictionContent {
+  type_ : String
+  content : String
+}
+
+pub enum ChatCompletionResponseFormat {
+  JsonObject
+  JsonSchema(ChatCompletionResponseFormatJsonSchema)
+  Text
+}
+
+pub struct ChatCompletionResponseFormatJsonSchema {
+  name : String
+  description : String?
+  schema : Map[String, Json]
+  strict : Bool?
+}
+
+pub enum ChatCompletionRole {
+  Developer
+  System
+  User
+  Assistant
+  Tool
+}
+
+pub enum ChatCompletionServiceTier {
+  Auto
+  Default
+  Flex
+  Scale
+  Priority
+}
+impl Show for ChatCompletionServiceTier
+
+pub enum ChatCompletionStopParam {
+  String(String)
+  Array(Array[String])
+}
+
+pub struct ChatCompletionStreamOptions {
+  include_usage : Bool?
+}
+
+pub struct ChatCompletionSystemMessageParam {
+  content : String
+  name : String?
+}
+
+pub struct ChatCompletionTokenLogprob {
+  token : String
+  logprob : Double
+  bytes : Array[Int]?
+  top_logprobs : Array[ChatCompletionTopLogprob]
+}
+impl Show for ChatCompletionTokenLogprob
+
+pub struct ChatCompletionToolMessageParam {
+  content : String
+  tool_call_id : String
+}
+
+type ChatCompletionToolParam
+impl ToJson for ChatCompletionToolParam
+
+pub struct ChatCompletionTopLogprob {
+  token : String
+  logprob : Double
+  bytes : Array[Int]?
+}
+impl Show for ChatCompletionTopLogprob
+
+pub struct ChatCompletionUserMessageParam {
+  content : String
+  name : String?
+}
+
+pub struct ChatCompletionWebSearchOptions {
+  max_results : Int?
+}
+
+pub struct CompletionUsage {
+  completion_tokens : Int
+  prompt_tokens : Int
+  total_tokens : Int
+}
+impl Show for CompletionUsage
+
+pub struct Function {
+  arguments : String
+  name : String
+}
+impl Show for Function
+
+pub enum ReasoningEffort {
+  Minimal
+  Low
+  Medium
+  High
+}
+
+pub enum Verbosity {
+  Low
+  Medium
+  High
+}
+
+// Type aliases
+
+// Traits
+

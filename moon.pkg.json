@@ -6,8 +6,6 @@
     "moonbitlang/x/sys",
     "moonbitlang/maria/openai",
     "tonyfettes/encoding",
-    "moonbitlang/async/fs",
-    "moonbitlang/async/pipe",
-    "moonbitlang/async/process"
+    "moonbitlang/maria/tool"
   ]
 }

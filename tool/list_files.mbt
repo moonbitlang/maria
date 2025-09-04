@@ -1,0 +1,39 @@
+///|
+pub let list_files : Tool = Tool::new(
+  description="List files in a directory",
+  name="list_files",
+  parameters={
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The path to list files from, relative to the current working directory",
+      },
+    },
+    "required": ["path"],
+  },
+  (args, context) => {
+    guard args is { "path": String(path), .. } else {
+      return ToolResult::error("Error: 'path' parameter is required")
+    }
+    try {
+      let path = @encoding.encode(context.cwd + "/" + path, encoding=UTF8)
+      let dir = @fs.opendir(path)
+      defer dir.close()
+      let entries = []
+      for entry in dir.read_all(include_special=false, include_hidden=false) {
+        let entry = path + "/" + entry
+        let file = @fs.open(entry, mode=ReadOnly)
+        defer file.close()
+        let entry = match file.kind() {
+          Directory => entry + "/"
+          _ => entry
+        }
+        entries.push(@encoding.decode(entry))
+      }
+      ToolResult::ok(entries.join("\n"))
+    } catch {
+      error => ToolResult::new("Error listing files: \{error}", error~)
+    }
+  },
+)
