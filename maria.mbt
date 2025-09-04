@@ -3,7 +3,7 @@ struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, ToolContext) -> String noraise
+  f : async (Json, ToolContext) -> String raise
 }
 
 ///|
@@ -11,7 +11,7 @@ fn Tool::new(
   description~ : String,
   name~ : String,
   parameters~ : Map[String, Json],
-  f : async (Json, ToolContext) -> String noraise,
+  f : async (Json, ToolContext) -> String raise,
 ) -> Tool {
   Tool::{ description, name, parameters, f }
 }
@@ -37,8 +37,10 @@ fn Model::new(api_key~ : String, base_url~ : String, name~ : String) -> Model {
 struct Agent {
   cwd : String
   model : Model
-  conversation : Array[@openai.ChatCompletionMessageParam]
   tools : Map[String, Tool]
+  history : Array[@openai.ChatCompletionMessageParam]
+  queue : Array[@openai.ChatCompletionMessageParam]
+  events : @aqueue.Queue[Event]
 }
 
 ///|
@@ -48,11 +50,16 @@ suberror HttpError Int
 suberror EmptyChoices
 
 ///|
-async fn Agent::call(
+fn Agent::submit(
   agent : Agent,
-  messages : Array[@openai.ChatCompletionMessageParam],
-) -> @openai.ChatCompletionMessage raise {
-  for message in messages {
+  message : @openai.ChatCompletionMessageParam,
+) -> Unit {
+  agent.queue.push(message)
+}
+
+///|
+async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
+  for message in agent.queue {
     match message {
       User(user) => println("< (user)\n\{user.content}")
       Tool(tool) => println("< (tool)\n\{tool.content}")
@@ -70,7 +77,7 @@ async fn Agent::call(
     )
   }
   let body : Json = {
-    "messages": [..agent.conversation, ..messages].to_json(),
+    "messages": [..agent.history, ..agent.queue].to_json(),
     "model": agent.model.name,
     "stream": false,
     "tools": tools,
@@ -95,6 +102,9 @@ async fn Agent::call(
   let completion : @openai.ChatCompletion = @json.from_json(json)
   guard completion.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
+  agent.history.append(agent.queue)
+  agent.queue.clear()
+  agent.history.push(message.to_param())
   let content = message.content.unwrap_or("")
   println("> \{content}")
   message
@@ -112,6 +122,7 @@ async fn Agent::execute_tool(
     )
   }
   let context = ToolContext::{ agent, }
+  agent.events.put(PreToolCall(tool_call))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
       return @openai.tool_message(
@@ -119,7 +130,12 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = (tool.f)(arguments, context)
+  let result = try? (tool.f)(arguments, context)
+  agent.events.put(PostToolCall(tool_call, result))
+  let result = match result {
+    Ok(output) => output
+    Err(error) => "Error executing tool: \{error}"
+  }
   @openai.tool_message(content=result, tool_call_id=tool_call.id)
 }
 
@@ -129,27 +145,35 @@ fn Agent::add_tool(agent : Agent, tool : Tool) -> Unit noraise {
 }
 
 ///|
-async fn Agent::loop_call(
-  agent : Agent,
-  messages : Array[@openai.ChatCompletionMessageParam],
-) -> Unit raise {
+async fn Agent::start(agent : Agent) -> Unit raise {
   while true {
-    let response = agent.call(messages)
-    messages.clear()
-    agent.conversation.push(response.to_param())
+    let response = agent.call()
     if response.tool_calls is [] {
       break
     }
     for i in 0..<response.tool_calls.length() {
       let call = response.tool_calls[i]
-      messages.push(agent.execute_tool(call))
+      agent.submit(agent.execute_tool(call))
     }
   }
 }
 
 ///|
 fn Agent::new(model : Model, cwd~ : String) -> Agent {
-  Agent::{ conversation: [], cwd, model, tools: {} }
+  Agent::{
+    history: [],
+    cwd,
+    model,
+    tools: {},
+    queue: [],
+    events: @aqueue.Queue::new(),
+  }
+}
+
+///|
+enum Event {
+  PreToolCall(@openai.ChatCompletionMessageToolCall)
+  PostToolCall(@openai.ChatCompletionMessageToolCall, Result[String, Error])
 }
 
 ///|
@@ -157,7 +181,7 @@ suberror UnknownCurrentDirectory
 
 ///|
 fn main {
-  @async.with_event_loop(_ => {
+  @async.with_event_loop(group => {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let args = @sys.get_cli_args()
@@ -174,6 +198,11 @@ fn main {
       name="anthropic/claude-sonnet-4",
     )
     let agent = Agent::new(model, cwd~)
+    group.spawn_bg(() => match agent.events.get() {
+      PreToolCall(tool_call) => println("PreToolCall: \{tool_call.id}")
+      PostToolCall(tool_call, result) =>
+        println("PostToolCall: \{tool_call.id}, Result: \{result}")
+    })
     agent.add_tool(
       Tool::new(
         description="List files in a directory",
@@ -220,7 +249,8 @@ fn main {
     )
     let content = args[1:].join(" ")
     let message = @openai.user_message(content~)
-    agent.loop_call([message])
+    agent.submit(message)
+    agent.start()
   }) catch {
     error => println("Error: \{error}")
   }
