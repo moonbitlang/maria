@@ -1,0 +1,43 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/agent"
+
+import(
+  "moonbitlang/maria/model"
+  "moonbitlang/maria/openai"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+
+// Errors
+type EmptyChoices
+
+type HttpError
+impl Show for HttpError
+
+// Types and methods
+type Agent
+fn Agent::add_tool(Self, @tool.Tool) -> Unit
+fn Agent::new(@model.Model, cwd~ : String) -> Self
+fn Agent::register(Self, EventKind, async (EventContext) -> Unit noraise) -> Unit
+async fn Agent::start(Self) -> Unit
+fn Agent::submit(Self, @openai.ChatCompletionMessageParam) -> Unit
+
+pub struct EventContext {
+  tool_call : @openai.ChatCompletionMessageToolCall?
+  tool_call_result : @tool.ToolResult?
+}
+
+pub(all) enum EventKind {
+  ConversationStart
+  ConversationEnd
+  PreToolCall
+  PostToolCall
+}
+impl Eq for EventKind
+impl Hash for EventKind
+
+// Type aliases
+
+// Traits
+

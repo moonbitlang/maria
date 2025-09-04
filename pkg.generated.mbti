@@ -4,21 +4,9 @@ package "moonbitlang/maria"
 // Values
 
 // Errors
-type EmptyChoices
-
-type HttpError
-impl Show for HttpError
-
 type UnknownCurrentDirectory
 
 // Types and methods
-type Agent
-
-type EventContext
-
-type EventKind
-impl Eq for EventKind
-impl Hash for EventKind
 
 // Type aliases
 

@@ -1,0 +1,9 @@
+{
+  "import": [
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/openai",
+    "tonyfettes/encoding",
+    "moonbitlang/async/http"
+  ]
+}
