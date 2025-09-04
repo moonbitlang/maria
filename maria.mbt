@@ -40,7 +40,7 @@ struct Agent {
   tools : Map[String, Tool]
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
-  events : @aqueue.Queue[Event]
+  listeners : Map[EventKind, Array[(EventContext) -> Unit]]
 }
 
 ///|
@@ -59,13 +59,6 @@ fn Agent::submit(
 
 ///|
 async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
-  for message in agent.queue {
-    match message {
-      User(user) => println("< (user)\n\{user.content}")
-      Tool(tool) => println("< (tool)\n\{tool.content}")
-      _ => ()
-    }
-  }
   let tools = []
   for name, tool in agent.tools {
     tools.push(
@@ -105,8 +98,6 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   agent.history.append(agent.queue)
   agent.queue.clear()
   agent.history.push(message.to_param())
-  let content = message.content.unwrap_or("")
-  println("> \{content}")
   message
 }
 
@@ -122,7 +113,7 @@ async fn Agent::execute_tool(
     )
   }
   let context = ToolContext::{ agent, }
-  agent.events.put(PreToolCall(tool_call))
+  agent.emit(PreToolCall, EventContext::new(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
       return @openai.tool_message(
@@ -131,7 +122,10 @@ async fn Agent::execute_tool(
       )
   }
   let result = try? (tool.f)(arguments, context)
-  agent.events.put(PostToolCall(tool_call, result))
+  agent.emit(
+    PostToolCall,
+    EventContext::new(tool_call~, tool_call_result=result),
+  )
   let result = match result {
     Ok(output) => output
     Err(error) => "Error executing tool: \{error}"
@@ -146,6 +140,8 @@ fn Agent::add_tool(agent : Agent, tool : Tool) -> Unit noraise {
 
 ///|
 async fn Agent::start(agent : Agent) -> Unit raise {
+  agent.emit(ConversationStart, EventContext::new())
+  defer agent.emit(ConversationEnd, EventContext::new())
   while true {
     let response = agent.call()
     if response.tool_calls is [] {
@@ -160,28 +156,61 @@ async fn Agent::start(agent : Agent) -> Unit raise {
 
 ///|
 fn Agent::new(model : Model, cwd~ : String) -> Agent {
-  Agent::{
-    history: [],
-    cwd,
-    model,
-    tools: {},
-    queue: [],
-    events: @aqueue.Queue::new(),
+  Agent::{ history: [], cwd, model, tools: {}, queue: [], listeners: {} }
+}
+
+///|
+fn Agent::emit(agent : Agent, kind : EventKind, context : EventContext) -> Unit {
+  guard agent.listeners.get(kind) is Some(listeners) else { return }
+  for listener in listeners {
+    listener(context)
   }
 }
 
 ///|
-enum Event {
-  PreToolCall(@openai.ChatCompletionMessageToolCall)
-  PostToolCall(@openai.ChatCompletionMessageToolCall, Result[String, Error])
+fn Agent::register(
+  agent : Agent,
+  kind : EventKind,
+  f : (EventContext) -> Unit,
+) -> Unit {
+  if agent.listeners.get(kind) is Some(listeners) {
+    listeners.push(f)
+  } else {
+    agent.listeners[kind] = [f]
+  }
 }
+
+///|
+enum EventKind {
+  ConversationStart
+  ConversationEnd
+  PreToolCall
+  PostToolCall
+} derive(Eq, Hash)
+
+///|
+struct EventContext {
+  tool_call : @openai.ChatCompletionMessageToolCall?
+  tool_call_result : Result[String, Error]?
+}
+
+///|
+fn EventContext::new(
+  tool_call? : @openai.ChatCompletionMessageToolCall,
+  tool_call_result? : Result[String, Error],
+) -> EventContext {
+  EventContext::{ tool_call, tool_call_result }
+}
+
+///|
+struct Event(EventKind,EventContext)
 
 ///|
 suberror UnknownCurrentDirectory
 
 ///|
 fn main {
-  @async.with_event_loop(group => {
+  @async.with_event_loop(_ => {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let args = @sys.get_cli_args()
@@ -198,11 +227,21 @@ fn main {
       name="anthropic/claude-sonnet-4",
     )
     let agent = Agent::new(model, cwd~)
-    group.spawn_bg(() => match agent.events.get() {
-      PreToolCall(tool_call) => println("PreToolCall: \{tool_call.id}")
-      PostToolCall(tool_call, result) =>
-        println("PostToolCall: \{tool_call.id}, Result: \{result}")
+    agent.register(PreToolCall, context => {
+      guard context.tool_call is Some(tool_call) else { return }
+      println("About to call tool: \{tool_call.function.name}")
     })
+    agent.register(PostToolCall, context => {
+      guard context.tool_call is Some(tool_call) else { return }
+      println("Finished calling tool: \{tool_call.function.name}")
+      guard context.tool_call_result is Some(result) else { return }
+      match result {
+        Ok(result) => println("Tool result: \{result}")
+        Err(error) => println("Tool error: \{error}")
+      }
+    })
+    agent.register(ConversationStart, _ => println("Conversation started"))
+    agent.register(ConversationEnd, _ => println("Conversation ended"))
     agent.add_tool(
       Tool::new(
         description="List files in a directory",
