@@ -203,9 +203,6 @@ fn EventContext::new(
 }
 
 ///|
-struct Event(EventKind,EventContext)
-
-///|
 suberror UnknownCurrentDirectory
 
 ///|
