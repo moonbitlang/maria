@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/event"
+
+// Values
+
+// Errors
+
+// Types and methods
+type Target[K, C]
+fn[Kind : Eq + Hash, Context] Target::add_listener(Self[Kind, Context], Kind, async (Context) -> Unit noraise) -> Unit
+async fn[Kind : Eq + Hash, Context] Target::emit(Self[Kind, Context], Kind, Context) -> Unit noraise
+fn[Kind : Eq + Hash, Context] Target::new() -> Self[Kind, Context]
+
+// Type aliases
+
+// Traits
+
