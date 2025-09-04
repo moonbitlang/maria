@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/model"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Model {
+  name : String
+  api_key : String
+  base_url : String
+}
+fn Model::new(api_key~ : String, base_url~ : String, name~ : String) -> Self
+
+// Type aliases
+
+// Traits
+

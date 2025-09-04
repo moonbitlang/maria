@@ -6,6 +6,7 @@
     "moonbitlang/x/sys",
     "moonbitlang/maria/openai",
     "tonyfettes/encoding",
-    "moonbitlang/maria/tool"
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/model"
   ]
 }

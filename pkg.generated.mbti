@@ -20,8 +20,6 @@ type EventKind
 impl Eq for EventKind
 impl Hash for EventKind
 
-type Model
-
 // Type aliases
 
 // Traits

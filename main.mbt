@@ -1,19 +1,7 @@
 ///|
-struct Model {
-  name : String
-  api_key : String
-  base_url : String
-}
-
-///|
-fn Model::new(api_key~ : String, base_url~ : String, name~ : String) -> Model {
-  Model::{ api_key, base_url, name }
-}
-
-///|
 struct Agent {
   cwd : String
-  model : Model
+  model : @model.Model
   tools : Map[String, @tool.Tool]
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
@@ -135,7 +123,7 @@ async fn Agent::start(agent : Agent) -> Unit raise {
 }
 
 ///|
-fn Agent::new(model : Model, cwd~ : String) -> Agent {
+fn Agent::new(model : @model.Model, cwd~ : String) -> Agent {
   Agent::{ history: [], cwd, model, tools: {}, queue: [], listeners: {} }
 }
 
@@ -202,7 +190,7 @@ fn main {
     guard env.get("OPENAI_API_KEY") is Some(api_key) else {
       println("Error: OPENAI_API_KEY environment variable not set")
     }
-    let model = Model::new(
+    let model = @model.Model::new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
       name="anthropic/claude-sonnet-4",
