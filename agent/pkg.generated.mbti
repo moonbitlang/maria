@@ -14,24 +14,24 @@ fn new(@model.Model, cwd~ : String) -> Agent
 
 // Types and methods
 type Agent
-fn Agent::add_listener(Self, EventKind, async (EventContext) -> Unit noraise) -> Unit
+fn Agent::add_listener(Self, Event, async (EventContext) -> Unit noraise) -> Unit
 fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 fn Agent::add_tool(Self, @tool.Tool) -> Unit
 async fn Agent::start(Self) -> Unit
 
-pub struct EventContext {
-  tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.ToolResult?
-}
-
-pub(all) enum EventKind {
+pub(all) enum Event {
   ConversationStart
   ConversationEnd
   PreToolCall
   PostToolCall
 }
-impl Eq for EventKind
-impl Hash for EventKind
+impl Eq for Event
+impl Hash for Event
+
+pub struct EventContext {
+  tool_call : @openai.ChatCompletionMessageToolCall?
+  tool_call_result : @tool.ToolResult?
+}
 
 // Type aliases
 

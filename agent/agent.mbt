@@ -1,11 +1,33 @@
 ///|
+pub(all) enum Event {
+  ConversationStart
+  ConversationEnd
+  PreToolCall
+  PostToolCall
+} derive(Eq, Hash)
+
+///|
+pub struct EventContext {
+  tool_call : @openai.ChatCompletionMessageToolCall?
+  tool_call_result : @tool.ToolResult?
+}
+
+///|
+fn EventContext::new(
+  tool_call? : @openai.ChatCompletionMessageToolCall,
+  tool_call_result? : @tool.ToolResult,
+) -> EventContext {
+  EventContext::{ tool_call, tool_call_result }
+}
+
+///|
 struct Agent {
   cwd : String
   model : @model.Model
   tools : Map[String, @tool.Tool]
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
-  listeners : Map[EventKind, Array[async (EventContext) -> Unit noraise]]
+  event_target : @event.Target[Event, EventContext]
 }
 
 ///|
@@ -124,52 +146,30 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 
 ///|
 pub fn new(model : @model.Model, cwd~ : String) -> Agent {
-  Agent::{ history: [], cwd, model, tools: {}, queue: [], listeners: {} }
+  Agent::{
+    history: [],
+    cwd,
+    model,
+    tools: {},
+    queue: [],
+    event_target: @event.Target::new(),
+  }
 }
 
 ///|
 async fn Agent::emit(
   agent : Agent,
-  kind : EventKind,
+  kind : Event,
   context : EventContext,
 ) -> Unit noraise {
-  guard agent.listeners.get(kind) is Some(listeners) else { return }
-  for listener in listeners {
-    listener(context)
-  }
+  agent.event_target.emit(kind, context)
 }
 
 ///|
 pub fn Agent::add_listener(
   agent : Agent,
-  kind : EventKind,
+  kind : Event,
   f : async (EventContext) -> Unit noraise,
 ) -> Unit {
-  if agent.listeners.get(kind) is Some(listeners) {
-    listeners.push(f)
-  } else {
-    agent.listeners[kind] = [f]
-  }
-}
-
-///|
-pub(all) enum EventKind {
-  ConversationStart
-  ConversationEnd
-  PreToolCall
-  PostToolCall
-} derive(Eq, Hash)
-
-///|
-pub struct EventContext {
-  tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.ToolResult?
-}
-
-///|
-fn EventContext::new(
-  tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : @tool.ToolResult,
-) -> EventContext {
-  EventContext::{ tool_call, tool_call_result }
+  agent.event_target.add_listener(kind, f)
 }
