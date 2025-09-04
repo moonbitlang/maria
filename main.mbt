@@ -3,7 +3,28 @@ struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, ToolContext) -> String raise
+  f : async (Json, ToolContext) -> ToolResult noraise
+}
+
+///|
+struct ToolResult {
+  output : String
+  error : Error?
+}
+
+///|
+fn ToolResult::ok(output : String) -> ToolResult {
+  ToolResult::{ output, error: None }
+}
+
+///|
+fn ToolResult::error(output : String) -> ToolResult {
+  ToolResult::{ output, error: Some(Failure(output)) }
+}
+
+///|
+fn ToolResult::new(output : String, error? : Error) -> ToolResult {
+  ToolResult::{ output, error }
 }
 
 ///|
@@ -11,7 +32,7 @@ fn Tool::new(
   description~ : String,
   name~ : String,
   parameters~ : Map[String, Json],
-  f : async (Json, ToolContext) -> String raise,
+  f : async (Json, ToolContext) -> ToolResult noraise,
 ) -> Tool {
   Tool::{ description, name, parameters, f }
 }
@@ -40,11 +61,13 @@ struct Agent {
   tools : Map[String, Tool]
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
-  listeners : Map[EventKind, Array[(EventContext) -> Unit]]
+  listeners : Map[EventKind, Array[async (EventContext) -> Unit noraise]]
 }
 
 ///|
-suberror HttpError Int
+suberror HttpError {
+  HttpError(code~ : Int, body~ : String)
+} derive(Show)
 
 ///|
 suberror EmptyChoices
@@ -89,9 +112,14 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
       @http.Header("Connection", "close"),
     ],
   )
+  guard response.code is (200..=299) else {
+    raise HttpError(
+      code=response.code,
+      body=@encoding.decode_lossy(body, encoding=UTF8),
+    )
+  }
   let body = @encoding.decode(body)
   let json = @json.parse(body)
-  guard response.code is (200..=299) else { raise HttpError(response.code) }
   let completion : @openai.ChatCompletion = @json.from_json(json)
   guard completion.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
@@ -121,16 +149,12 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = try? (tool.f)(arguments, context)
+  let result = (tool.f)(arguments, context)
   agent.emit(
     PostToolCall,
     EventContext::new(tool_call~, tool_call_result=result),
   )
-  let result = match result {
-    Ok(output) => output
-    Err(error) => "Error executing tool: \{error}"
-  }
-  @openai.tool_message(content=result, tool_call_id=tool_call.id)
+  @openai.tool_message(content=result.output, tool_call_id=tool_call.id)
 }
 
 ///|
@@ -141,7 +165,6 @@ fn Agent::add_tool(agent : Agent, tool : Tool) -> Unit noraise {
 ///|
 async fn Agent::start(agent : Agent) -> Unit raise {
   agent.emit(ConversationStart, EventContext::new())
-  defer agent.emit(ConversationEnd, EventContext::new())
   while true {
     let response = agent.call()
     if response.tool_calls is [] {
@@ -152,6 +175,7 @@ async fn Agent::start(agent : Agent) -> Unit raise {
       agent.submit(agent.execute_tool(call))
     }
   }
+  agent.emit(ConversationEnd, EventContext::new())
 }
 
 ///|
@@ -160,7 +184,11 @@ fn Agent::new(model : Model, cwd~ : String) -> Agent {
 }
 
 ///|
-fn Agent::emit(agent : Agent, kind : EventKind, context : EventContext) -> Unit {
+async fn Agent::emit(
+  agent : Agent,
+  kind : EventKind,
+  context : EventContext,
+) -> Unit noraise {
   guard agent.listeners.get(kind) is Some(listeners) else { return }
   for listener in listeners {
     listener(context)
@@ -171,7 +199,7 @@ fn Agent::emit(agent : Agent, kind : EventKind, context : EventContext) -> Unit 
 fn Agent::register(
   agent : Agent,
   kind : EventKind,
-  f : (EventContext) -> Unit,
+  f : async (EventContext) -> Unit noraise,
 ) -> Unit {
   if agent.listeners.get(kind) is Some(listeners) {
     listeners.push(f)
@@ -191,19 +219,33 @@ enum EventKind {
 ///|
 struct EventContext {
   tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : Result[String, Error]?
+  tool_call_result : ToolResult?
 }
 
 ///|
 fn EventContext::new(
   tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : Result[String, Error],
+  tool_call_result? : ToolResult,
 ) -> EventContext {
   EventContext::{ tool_call, tool_call_result }
 }
 
 ///|
 suberror UnknownCurrentDirectory
+
+///|
+suberror TimeoutError {
+  TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
+}
+
+///|
+pub fn TimeoutError::new(
+  command~ : String,
+  arguments~ : Array[String],
+  timeout~ : Int,
+) -> TimeoutError {
+  TimeoutError(command~, arguments~, timeout~)
+}
 
 ///|
 fn main {
@@ -232,9 +274,9 @@ fn main {
       guard context.tool_call is Some(tool_call) else { return }
       println("Finished calling tool: \{tool_call.function.name}")
       guard context.tool_call_result is Some(result) else { return }
-      match result {
-        Ok(result) => println("Tool result: \{result}")
-        Err(error) => println("Tool error: \{error}")
+      println("Tool result: \{result.output}")
+      if result.error is Some(error) {
+        println("Tool error: \{error}")
       }
     })
     agent.register(ConversationStart, _ => println("Conversation started"))
@@ -255,7 +297,7 @@ fn main {
         },
         (args, context) => {
           guard args is { "path": String(path), .. } else {
-            return "Error: 'path' parameter is required"
+            return ToolResult::error("Error: 'path' parameter is required")
           }
           try {
             let path = @encoding.encode(
@@ -276,9 +318,82 @@ fn main {
               }
               entries.push(@encoding.decode(entry))
             }
-            entries.join("\n")
+            ToolResult::ok(entries.join("\n"))
           } catch {
-            error => "Error: \{error}"
+            error => ToolResult::new("Error listing files: \{error}", error~)
+          }
+        },
+      ),
+    )
+    agent.add_tool(
+      Tool::new(
+        description="Execute a shell command",
+        name="execute_command",
+        parameters={
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The shell command to execute",
+            },
+            "arguments": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "The arguments to pass to the command",
+              "default": [],
+            },
+            "timeout": {
+              "type": "number",
+              "description": "The timeout in seconds for the command to execute",
+              "default": 10,
+            },
+          },
+          "required": ["command", "timeout"],
+        },
+        (args, context) => {
+          guard args
+            is {
+              "command": String(command),
+              "arguments": arguments,
+              "timeout": Number(timeout, ..),
+              ..
+            } else {
+            return ToolResult::error(
+              "Error: 'command' and 'timeout' parameters are required",
+            )
+          }
+          let arguments : Array[String] = @json.from_json(arguments) catch {
+            error =>
+              return ToolResult::error("Error parsing 'arguments': \{error}")
+          }
+          let timeout = (timeout * 1000).to_int()
+          try {
+            let result = @async.with_timeout_opt(timeout, () => {
+              let cmd = @encoding.encode(command, encoding=UTF8)
+              let args = arguments.map(arg => @encoding.encode(
+                arg,
+                encoding=UTF8,
+              ))
+              let output = @pipe.pipe()
+              let cwd = @encoding.encode(context.agent.cwd, encoding=UTF8)
+              let status = @process.run(
+                cmd,
+                args,
+                stdout=output.1,
+                stderr=output.1,
+                cwd~,
+              )
+              let output = output.0.read_all()
+                |> @encoding.decode(encoding=UTF8)
+              return "Exit code: \{status}\nOutput:\n\{output}"
+            })
+            match result {
+              Some(result) => ToolResult::ok(result)
+              None => raise TimeoutError(command~, arguments~, timeout~)
+            }
+          } catch {
+            error =>
+              ToolResult::new("Error executing command: \{error}", error~)
           }
         },
       ),

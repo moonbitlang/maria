@@ -8,6 +8,6 @@
     "tonyfettes/encoding",
     "moonbitlang/async/fs",
     "moonbitlang/async/pipe",
-    "moonbitlang/async/aqueue"
+    "moonbitlang/async/process"
   ]
 }
