@@ -14,13 +14,13 @@ fn main {
     guard env.get("OPENAI_API_KEY") is Some(api_key) else {
       println("Error: OPENAI_API_KEY environment variable not set")
     }
-    let model = @model.Model::new(
+    let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
       name="anthropic/claude-sonnet-4",
     )
-    let agent = @agent.Agent::new(model, cwd~)
-    agent.register(PreToolCall, context => {
+    let agent = @agent.new(model, cwd~)
+    agent.add_listener(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
       println("Calling tool: \{tool_call.function.name}")
       try {
@@ -33,7 +33,7 @@ fn main {
         }
       }
     })
-    agent.register(PostToolCall, context => {
+    agent.add_listener(PostToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
       println("Finished calling tool: \{tool_call.function.name}")
       guard context.tool_call_result is Some(result) else { return }
@@ -42,13 +42,13 @@ fn main {
         println("Tool error: \{error}")
       }
     })
-    agent.register(ConversationStart, _ => println("Conversation started"))
-    agent.register(ConversationEnd, _ => println("Conversation ended"))
+    agent.add_listener(ConversationStart, _ => println("Conversation started"))
+    agent.add_listener(ConversationEnd, _ => println("Conversation ended"))
     agent.add_tool(@tool.list_files)
     agent.add_tool(@tool.execute_command)
     let content = args[1:].join(" ")
     let message = @openai.user_message(content~)
-    agent.submit(message)
+    agent.add_message(message)
     agent.start()
   }) catch {
     error => println("Error: \{error}")

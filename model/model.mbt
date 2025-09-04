@@ -6,10 +6,6 @@ pub struct Model {
 }
 
 ///|
-pub fn Model::new(
-  api_key~ : String,
-  base_url~ : String,
-  name~ : String,
-) -> Model {
+pub fn new(api_key~ : String, base_url~ : String, name~ : String) -> Model {
   Model::{ api_key, base_url, name }
 }

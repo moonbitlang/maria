@@ -17,7 +17,7 @@ priv suberror HttpError {
 priv suberror EmptyChoices
 
 ///|
-pub fn Agent::submit(
+pub fn Agent::add_message(
   agent : Agent,
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
@@ -116,14 +116,14 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
     }
     for i in 0..<response.tool_calls.length() {
       let call = response.tool_calls[i]
-      agent.submit(agent.execute_tool(call))
+      agent.add_message(agent.execute_tool(call))
     }
   }
   agent.emit(ConversationEnd, EventContext::new())
 }
 
 ///|
-pub fn Agent::new(model : @model.Model, cwd~ : String) -> Agent {
+pub fn new(model : @model.Model, cwd~ : String) -> Agent {
   Agent::{ history: [], cwd, model, tools: {}, queue: [], listeners: {} }
 }
 
@@ -140,7 +140,7 @@ async fn Agent::emit(
 }
 
 ///|
-pub fn Agent::register(
+pub fn Agent::add_listener(
   agent : Agent,
   kind : EventKind,
   f : async (EventContext) -> Unit noraise,

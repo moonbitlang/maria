@@ -8,16 +8,16 @@ import(
 )
 
 // Values
+fn new(@model.Model, cwd~ : String) -> Agent
 
 // Errors
 
 // Types and methods
 type Agent
+fn Agent::add_listener(Self, EventKind, async (EventContext) -> Unit noraise) -> Unit
+fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 fn Agent::add_tool(Self, @tool.Tool) -> Unit
-fn Agent::new(@model.Model, cwd~ : String) -> Self
-fn Agent::register(Self, EventKind, async (EventContext) -> Unit noraise) -> Unit
 async fn Agent::start(Self) -> Unit
-fn Agent::submit(Self, @openai.ChatCompletionMessageParam) -> Unit
 
 pub struct EventContext {
   tool_call : @openai.ChatCompletionMessageToolCall?
@@ -36,3 +36,4 @@ impl Hash for EventKind
 // Type aliases
 
 // Traits
+
