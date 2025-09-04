@@ -10,10 +10,6 @@ import(
 // Values
 
 // Errors
-type EmptyChoices
-
-type HttpError
-impl Show for HttpError
 
 // Types and methods
 type Agent
@@ -40,4 +36,3 @@ impl Hash for EventKind
 // Type aliases
 
 // Traits
-

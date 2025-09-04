@@ -9,12 +9,12 @@ struct Agent {
 }
 
 ///|
-suberror HttpError {
+priv suberror HttpError {
   HttpError(code~ : Int, body~ : String)
 } derive(Show)
 
 ///|
-suberror EmptyChoices
+priv suberror EmptyChoices
 
 ///|
 pub fn Agent::submit(
