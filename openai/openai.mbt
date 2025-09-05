@@ -603,22 +603,30 @@ pub enum ChatCompletionMessageParam {
 pub impl ToJson for ChatCompletionMessageParam with to_json(
   self : ChatCompletionMessageParam,
 ) {
+  fn content_parts_to_json(
+    content_parts : Array[ChatCompletionContentPartParam],
+    json : Map[String, Json],
+  ) -> Unit {
+    match content_parts {
+      [] => ()
+      [Text(text)] if text.cache_control is None =>
+        json["content"] = text.text.to_json()
+      [.. parts] => json["content"] = parts.to_json()
+    }
+  }
+
   match self {
     System(param) => {
-      let json : Map[String, Json] = {
-        "role": "system",
-        "content": param.content.to_json(),
-      }
+      let json : Map[String, Json] = { "role": "system" }
+      content_parts_to_json(param.content, json)
       if param.name is Some(name) {
         json["name"] = Json::string(name)
       }
       Json::object(json)
     }
     User(param) => {
-      let json : Map[String, Json] = {
-        "role": "user",
-        "content": param.content.to_json(),
-      }
+      let json : Map[String, Json] = { "role": "user" }
+      content_parts_to_json(param.content, json)
       if param.name is Some(name) {
         json["name"] = Json::string(name)
       }
@@ -629,9 +637,7 @@ pub impl ToJson for ChatCompletionMessageParam with to_json(
         "role": "assistant",
         "tool_calls": param.tool_calls.to_json(),
       }
-      if !param.content.is_empty() {
-        json["content"] = param.content.to_json()
-      }
+      content_parts_to_json(param.content, json)
       if param.name is Some(name) {
         json["name"] = Json::string(name)
       }
@@ -706,7 +712,7 @@ pub fn[T : ToChatCompletionMessageParamContent] tool_message(
 }
 
 ///|
-priv struct FunctionDefinition {
+pub struct FunctionDefinition {
   name : String
   description : String
   parameters : Map[String, Json]
@@ -737,7 +743,7 @@ pub fn tool(
 }
 
 ///|
-enum ChatCompletionToolParam {
+pub enum ChatCompletionToolParam {
   Function(FunctionDefinition)
 }
 

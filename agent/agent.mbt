@@ -72,25 +72,30 @@ pub fn Agent::add_message(
 async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let tools = []
   for name, tool in agent.tools {
-    tools.push(
-      @openai.tool(
-        name~,
-        description=tool.description,
-        parameters=tool.parameters,
-      ),
+    let tool = @openai.tool(
+      name~,
+      description=tool.description,
+      parameters=tool.parameters,
     )
+    agent.token_counter.add_tool(tool)
+    tools.push(tool)
   }
   let messages = [..agent.history, ..agent.queue]
+  agent.token_counter.add_messages(messages)
   let messages = @cache.cache_messages(messages)
-  let token_count = agent.token_counter.count_messages(messages)
-  agent.emit(TokenCounted, EventContext::new(token_count~))
-  let body : Json = {
-    "messages": messages,
-    "model": agent.model.name,
+  agent.emit(
+    TokenCounted,
+    EventContext::new(token_count=agent.token_counter.count()),
+  )
+  let body : Map[String, Json] = {
+    "messages": messages.to_json(),
+    "model": agent.model.name.to_json(),
     "stream": false,
-    "tools": tools,
   }
-  let body = body.stringify()
+  if !tools.is_empty() {
+    body["tools"] = tools.to_json()
+  }
+  let body = body.to_json().stringify()
   let body = @encoding.encode(body, encoding=UTF8)
   let (response, body) = @http.post(
     @encoding.encode("\{agent.model.base_url}/chat/completions", encoding=UTF8),
