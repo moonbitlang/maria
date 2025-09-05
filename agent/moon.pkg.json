@@ -9,7 +9,6 @@
     "moonbitlang/maria/token",
     "moonbitlang/maria/cache",
     "moonbitlang/maria/log",
-    "moonbitlang/async",
     "moonbitlang/maria/context"
   ]
 }
