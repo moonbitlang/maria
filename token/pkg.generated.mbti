@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/token"
+
+import(
+  "moonbitlang/maria/openai"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Counter
+fn Counter::count_messages(Self, Array[@openai.ChatCompletionMessageParam]) -> Int raise
+fn Counter::new() -> Self raise
+
+// Type aliases
+
+// Traits
+

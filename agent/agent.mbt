@@ -5,20 +5,26 @@ pub(all) enum Event {
   ConversationEnd
   PreToolCall
   PostToolCall
+  TokenCounted
+  RequestCompleted
 } derive(Eq, Hash)
 
 ///|
 pub struct EventContext {
+  usage : @openai.CompletionUsage?
+  token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.ToolResult?
 }
 
 ///|
 fn EventContext::new(
+  usage? : @openai.CompletionUsage,
+  token_count? : Int,
   tool_call? : @openai.ChatCompletionMessageToolCall,
   tool_call_result? : @tool.ToolResult,
 ) -> EventContext {
-  EventContext::{ tool_call, tool_call_result }
+  EventContext::{ usage, token_count, tool_call, tool_call_result }
 }
 
 ///|
@@ -29,6 +35,7 @@ struct Agent {
   history : Array[@openai.ChatCompletionMessageParam]
   queue : Array[@openai.ChatCompletionMessageParam]
   event_target : @event.Target[Event, EventContext]
+  token_counter : @token.Counter
 }
 
 ///|
@@ -73,8 +80,11 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
       ),
     )
   }
+  let messages = [..agent.history, ..agent.queue]
+  let token_count = agent.token_counter.count_messages(messages)
+  agent.emit(TokenCounted, EventContext::new(token_count~))
   let body : Json = {
-    "messages": [..agent.history, ..agent.queue].to_json(),
+    "messages": messages,
     "model": agent.model.name,
     "stream": false,
     "tools": tools,
@@ -102,6 +112,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let body = @encoding.decode(body, encoding=UTF8)
   let json = @json.parse(body)
   let completion : @openai.ChatCompletion = @json.from_json(json)
+  agent.emit(RequestCompleted, EventContext::new(usage?=completion.usage))
   guard completion.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
   agent.history.append(agent.queue)
@@ -179,7 +190,7 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
-pub fn new(model : @model.Model, cwd~ : String) -> Agent {
+pub fn new(model : @model.Model, cwd~ : String) -> Agent raise {
   Agent::{
     history: [],
     cwd,
@@ -187,6 +198,7 @@ pub fn new(model : @model.Model, cwd~ : String) -> Agent {
     tools: {},
     queue: [],
     event_target: @event.Target::new(),
+    token_counter: @token.Counter::new(),
   }
 }
 

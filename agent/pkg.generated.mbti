@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@model.Model, cwd~ : String) -> Agent
+fn new(@model.Model, cwd~ : String) -> Agent raise
 
 // Errors
 
@@ -24,11 +24,13 @@ pub(all) enum Event {
   ConversationEnd
   PreToolCall
   PostToolCall
+  TokenCounted
 }
 impl Eq for Event
 impl Hash for Event
 
 pub struct EventContext {
+  token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.ToolResult?
 }

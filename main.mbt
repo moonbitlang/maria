@@ -20,6 +20,14 @@ fn main {
       name="anthropic/claude-sonnet-4",
     )
     let agent = @agent.new(model, cwd~)
+    agent.add_listener(TokenCounted, context => {
+      guard context.token_count is Some(count) else { return }
+      println("Token count: \{count}")
+    })
+    agent.add_listener(RequestCompleted, context => {
+      guard context.usage is Some(usage) else { return }
+      println("Request completed. Usage: \{usage}")
+    })
     agent.add_listener(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
       println("Calling tool: \{tool_call.function.name}")

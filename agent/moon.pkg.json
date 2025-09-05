@@ -5,6 +5,7 @@
     "moonbitlang/maria/openai",
     "tonyfettes/encoding",
     "moonbitlang/async/http",
-    "moonbitlang/maria/event"
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/token"
   ]
 }
