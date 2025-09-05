@@ -88,6 +88,7 @@ pub struct ChatCompletionChunk {
   system_fingerprint : String?
   service_tier : ChatCompletionServiceTier?
 }
+impl @json.FromJson for ChatCompletionChunk
 
 pub struct ChatCompletionChunkChoice {
   index : Int

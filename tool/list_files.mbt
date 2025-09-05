@@ -29,7 +29,7 @@ pub let list_files : Tool = Tool::new(
           Directory => entry + "/"
           _ => entry
         }
-        entries.push(@encoding.decode(entry))
+        entries.push(@encoding.decode(entry, encoding=UTF8))
       }
       ToolResult::ok(entries.join("\n"))
     } catch {

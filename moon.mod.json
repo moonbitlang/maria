@@ -4,7 +4,8 @@
   "deps": {
     "moonbitlang/async": "0.5.1",
     "moonbitlang/x": "0.4.32",
-    "tonyfettes/encoding": "0.3.6"
+    "tonyfettes/encoding": "0.3.7",
+    "tonyfettes/tiktoken": "0.1.1"
   },
   "readme": "README.md",
   "repository": "",

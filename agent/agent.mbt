@@ -99,7 +99,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
       body=@encoding.decode_lossy(body, encoding=UTF8),
     )
   }
-  let body = @encoding.decode(body)
+  let body = @encoding.decode(body, encoding=UTF8)
   let json = @json.parse(body)
   let completion : @openai.ChatCompletion = @json.from_json(json)
   guard completion.choices is [choice, ..] else { raise EmptyChoices }

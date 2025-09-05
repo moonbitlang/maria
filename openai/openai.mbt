@@ -1538,7 +1538,7 @@ pub struct ChatCompletionChunk {
 }
 
 ///|
-impl @json.FromJson for ChatCompletionChunk with from_json(
+pub impl @json.FromJson for ChatCompletionChunk with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunk {
