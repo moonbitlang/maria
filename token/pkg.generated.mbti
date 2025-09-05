@@ -11,7 +11,9 @@ import(
 
 // Types and methods
 type Counter
-fn Counter::count_messages(Self, Array[@openai.ChatCompletionMessageParam]) -> Int raise
+fn Counter::add_messages(Self, Array[@openai.ChatCompletionMessageParam]) -> Unit raise
+fn Counter::add_tool(Self, @openai.ChatCompletionToolParam) -> Unit raise
+fn Counter::count(Self) -> Int
 fn Counter::new() -> Self raise
 
 // Type aliases

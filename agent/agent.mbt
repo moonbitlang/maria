@@ -87,15 +87,8 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     TokenCounted,
     EventContext::new(token_count=agent.token_counter.count()),
   )
-  let body : Map[String, Json] = {
-    "messages": messages.to_json(),
-    "model": agent.model.name.to_json(),
-    "stream": false,
-  }
-  if !tools.is_empty() {
-    body["tools"] = tools.to_json()
-  }
-  let body = body.to_json().stringify()
+  let param = @openai.param(messages~, model=agent.model.name, tools~)
+  let body = param.to_json().stringify()
   let body = @encoding.encode(body, encoding=UTF8)
   let (response, body) = @http.post(
     @encoding.encode("\{agent.model.base_url}/chat/completions", encoding=UTF8),

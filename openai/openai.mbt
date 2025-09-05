@@ -435,6 +435,34 @@ impl @json.FromJson for CompletionUsage with from_json(
 }
 
 ///|
+pub struct ChatCompletionParam {
+  model : String
+  messages : Array[ChatCompletionMessageParam]
+  tools : Array[ChatCompletionToolParam]
+}
+
+///|
+pub fn param(
+  model~ : String,
+  messages~ : Array[ChatCompletionMessageParam],
+  tools~ : Array[ChatCompletionToolParam],
+) -> ChatCompletionParam {
+  ChatCompletionParam::{ model, messages, tools }
+}
+
+///|
+pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam) -> Json {
+  let json : Map[String, Json] = {
+    "model": Json::string(self.model),
+    "messages": self.messages.to_json(),
+  }
+  if !self.tools.is_empty() {
+    json["tools"] = self.tools.to_json()
+  }
+  Json::object(json)
+}
+
+///|
 pub struct ChatCompletion {
   id : String
   choices : Array[ChatCompletionChoice]
