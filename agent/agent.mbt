@@ -81,6 +81,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     )
   }
   let messages = [..agent.history, ..agent.queue]
+  let messages = @cache.cache_messages(messages)
   let token_count = agent.token_counter.count_messages(messages)
   agent.emit(TokenCounted, EventContext::new(token_count~))
   let body : Json = {

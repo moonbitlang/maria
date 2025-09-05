@@ -6,7 +6,7 @@ test "no-system" {
     @openai.user_message(content="What's the weather like?"),
     @openai.assistant_message(content="The weather is sunny."),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "user",
@@ -41,7 +41,7 @@ test "single-system" {
   let messages = [
     @openai.system_message(content="You are a helpful assistant."),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "system",
@@ -62,7 +62,7 @@ test "multi-system" {
     @openai.system_message(content="You are a helpful assistant."),
     @openai.system_message(content="You are also a funny assistant."),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "system",
@@ -90,7 +90,7 @@ test "multi-system" {
 ///|
 test "single-user" {
   let messages = [@openai.user_message(content="Hello")]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "user",
@@ -110,7 +110,7 @@ test "single-tool" {
   let messages = [
     @openai.tool_message(content="Tool response", tool_call_id="tool_call_1"),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "tool",
@@ -132,7 +132,7 @@ test "system-single-user" {
     @openai.system_message(content="You are a helpful assistant."),
     @openai.user_message(content="Hello"),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "system",
@@ -173,7 +173,7 @@ test "last-two" {
     @openai.assistant_message(content="I need to call a tool."),
     @openai.tool_message(content="Tool response", tool_call_id="tool_call_1"),
   ]
-  let cached = @cache.messages(messages)
+  let cached = @cache.cache_messages(messages)
   @json.inspect(cached, content=[
     {
       "role": "system",

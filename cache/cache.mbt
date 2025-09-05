@@ -1,5 +1,5 @@
 ///|
-fn content_parts(
+fn cache_content_parts(
   parts : Array[@openai.ChatCompletionContentPartParam],
 ) -> Array[@openai.ChatCompletionContentPartParam] {
   // find the last text content part
@@ -24,32 +24,35 @@ fn content_parts(
 }
 
 ///|
-fn message(
+fn cache_message(
   message : @openai.ChatCompletionMessageParam,
 ) -> @openai.ChatCompletionMessageParam {
   match message {
     System(system) =>
-      @openai.system_message(content=content_parts(system.content))
-    User(user) => @openai.user_message(content=content_parts(user.content))
+      @openai.system_message(content=cache_content_parts(system.content))
+    User(user) =>
+      @openai.user_message(content=cache_content_parts(user.content))
     Assistant(assistant) =>
-      @openai.assistant_message(content=content_parts(assistant.content))
+      @openai.assistant_message(content=cache_content_parts(assistant.content))
     Tool(tool) =>
       @openai.tool_message(
-        content=content_parts(tool.content),
+        content=cache_content_parts(tool.content),
         tool_call_id=tool.tool_call_id,
       )
   }
 }
 
 ///|
-pub fn messages(
+pub fn cache_messages(
   messages : Array[@openai.ChatCompletionMessageParam],
 ) -> Array[@openai.ChatCompletionMessageParam] {
   let mut last_system : @openai.ChatCompletionSystemMessageParam? = None
   let cached = []
   let messages = for messages = messages[:] {
     if last_system is Some(system) {
-      cached.push(@openai.system_message(content=content_parts(system.content)))
+      cached.push(
+        @openai.system_message(content=cache_content_parts(system.content)),
+      )
     }
     match messages {
       [System(system), .. messages] => {
@@ -76,17 +79,17 @@ pub fn messages(
       for i in 0..<last {
         cached.push(messages[i])
       }
-      cached.push(message(messages[last]))
+      cached.push(cache_message(messages[last]))
     }
     [.., second_last, last] => {
       for i in 0..<second_last {
         cached.push(messages[i])
       }
-      cached.push(message(messages[second_last]))
+      cached.push(cache_message(messages[second_last]))
       for i in (second_last + 1)..<last {
         cached.push(messages[i])
       }
-      cached.push(message(messages[last]))
+      cached.push(cache_message(messages[last]))
     }
   }
   cached

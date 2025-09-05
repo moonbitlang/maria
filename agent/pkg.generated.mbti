@@ -25,11 +25,13 @@ pub(all) enum Event {
   PreToolCall
   PostToolCall
   TokenCounted
+  RequestCompleted
 }
 impl Eq for Event
 impl Hash for Event
 
 pub struct EventContext {
+  usage : @openai.CompletionUsage?
   token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.ToolResult?
