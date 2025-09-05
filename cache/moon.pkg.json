@@ -1,0 +1,5 @@
+{
+  "import": [
+    "moonbitlang/maria/openai"
+  ]
+}

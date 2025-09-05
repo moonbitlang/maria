@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/cache"
+
+import(
+  "moonbitlang/maria/openai"
+)
+
+// Values
+fn messages(Array[@openai.ChatCompletionMessageParam]) -> Array[@openai.ChatCompletionMessageParam]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
