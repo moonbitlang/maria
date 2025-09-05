@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/log"
+
+import(
+  "moonbitlang/core/string"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum Level {
+  Debug
+  Info
+  Warn
+  Error
+}
+impl ToJson for Level
+
+type Logger
+async fn Logger::debug(Self, @string.View, Json) -> Unit
+async fn Logger::error(Self, @string.View, Json) -> Unit
+async fn Logger::info(Self, @string.View, Json) -> Unit
+fn Logger::new(String, Transport) -> Self
+async fn Logger::warn(Self, @string.View, Json) -> Unit
+
+type Transport
+async fn Transport::file(@string.View) -> Self
+
+// Type aliases
+
+// Traits
+

@@ -29,6 +29,7 @@ fn EventContext::new(
 
 ///|
 struct Agent {
+  log : @log.Logger
   cwd : String
   model : @model.Model
   tools : Map[String, @tool.Tool]
@@ -88,7 +89,10 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     EventContext::new(token_count=agent.token_counter.count()),
   )
   let param = @openai.param(messages~, model=agent.model.name, tools~)
-  let body = param.to_json().stringify()
+  let json = param.to_json()
+  // FIXME: Not working, ask guest0x0
+  // agent.log.info("sending request", json)
+  let body = json.stringify()
   let body = @encoding.encode(body, encoding=UTF8)
   let (response, body) = @http.post(
     @encoding.encode("\{agent.model.base_url}/chat/completions", encoding=UTF8),
@@ -189,8 +193,9 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
-pub fn new(model : @model.Model, cwd~ : String) -> Agent raise {
+pub async fn new(model : @model.Model, cwd~ : String) -> Agent raise {
   Agent::{
+    log: @log.Logger::new("agent", @log.Transport::file(".moonagent/log")),
     history: [],
     cwd,
     model,

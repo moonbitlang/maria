@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/async/fs",
+    "tonyfettes/encoding"
+  ]
+}
