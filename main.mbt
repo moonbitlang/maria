@@ -18,11 +18,23 @@ fn main {
       api_key~,
       base_url="https://openrouter.ai/api/v1",
       name="anthropic/claude-sonnet-4",
+      context_window=200000,
     )
     let agent = @agent.new(model, cwd~)
     agent.add_listener(TokenCounted, context => {
-      guard context.token_count is Some(count) else { return }
-      println("Token count: \{count}")
+      guard context.origin_token_count is Some(origin_token_count) else {
+        return
+      }
+      guard context.pruned_token_count is Some(pruned_token_count) else {
+        return
+      }
+      if origin_token_count != pruned_token_count {
+        println(
+          "Context pruned from \{origin_token_count} to \{pruned_token_count} tokens",
+        )
+      } else {
+        println("Token count: \{origin_token_count}")
+      }
     })
     agent.add_listener(RequestCompleted, context => {
       guard context.usage is Some(usage) else { return }

@@ -12,7 +12,8 @@ pub(all) enum Event {
 ///|
 pub struct EventContext {
   usage : @openai.CompletionUsage?
-  token_count : Int?
+  origin_token_count : Int?
+  pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.ToolResult?
 }
@@ -20,11 +21,18 @@ pub struct EventContext {
 ///|
 fn EventContext::new(
   usage? : @openai.CompletionUsage,
-  token_count? : Int,
+  origin_token_count? : Int,
+  pruned_token_count? : Int,
   tool_call? : @openai.ChatCompletionMessageToolCall,
   tool_call_result? : @tool.ToolResult,
 ) -> EventContext {
-  EventContext::{ usage, token_count, tool_call, tool_call_result }
+  EventContext::{
+    usage,
+    origin_token_count,
+    pruned_token_count,
+    tool_call,
+    tool_call_result,
+  }
 }
 
 ///|
@@ -37,6 +45,7 @@ struct Agent {
   queue : Array[@openai.ChatCompletionMessageParam]
   event_target : @event.Target[Event, EventContext]
   token_counter : @token.Counter
+  context_pruner : @context.Pruner
 }
 
 ///|
@@ -78,33 +87,48 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
       description=tool.description,
       parameters=tool.parameters,
     )
-    agent.token_counter.add_tool(tool)
     tools.push(tool)
   }
   let messages = [..agent.history, ..agent.queue]
-  agent.token_counter.add_messages(messages)
-  let messages = @cache.cache_messages(messages)
+  let origin_token_count = agent.token_counter.count_param(
+    @openai.param(messages~, model=agent.model.name, tools~),
+  )
+  let messages = agent.context_pruner.prune_messages(messages)
+  let pruned_token_count = agent.token_counter.count_param(
+    @openai.param(messages~, model=agent.model.name, tools~),
+  )
   agent.emit(
     TokenCounted,
-    EventContext::new(token_count=agent.token_counter.count()),
+    EventContext::new(origin_token_count~, pruned_token_count~),
   )
+  let messages = @cache.cache_messages(messages)
   let param = @openai.param(messages~, model=agent.model.name, tools~)
   let json = param.to_json()
   // FIXME: Not working, ask guest0x0
   // agent.log.info("sending request", json)
   let body = json.stringify()
   let body = @encoding.encode(body, encoding=UTF8)
-  let (response, body) = @http.post(
-    @encoding.encode("\{agent.model.base_url}/chat/completions", encoding=UTF8),
-    body,
-    headers=[
-      @http.Header(
-        "Authorization",
-        @encoding.encode("Bearer \{agent.model.api_key}", encoding=UTF8),
+  let (response, body) = with_retry(
+    logger=agent.log,
+    backoff_multiplier=2,
+    delay_ms=1000,
+    max_delay_ms=16000,
+    max_retries=5,
+    () => @http.post(
+      @encoding.encode(
+        "\{agent.model.base_url}/chat/completions",
+        encoding=UTF8,
       ),
-      @http.Header("Content-Type", "application/json"),
-      @http.Header("Connection", "close"),
-    ],
+      body,
+      headers=[
+        @http.Header(
+          "Authorization",
+          @encoding.encode("Bearer \{agent.model.api_key}", encoding=UTF8),
+        ),
+        @http.Header("Content-Type", "application/json"),
+        @http.Header("Connection", "close"),
+      ],
+    ),
   )
   guard response.code is (200..=299) else {
     raise HttpError(
@@ -181,6 +205,36 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 }
 
 ///|
+async fn[T] with_retry(
+  logger~ : @log.Logger,
+  backoff_multiplier~ : Int,
+  delay_ms~ : Int,
+  max_delay_ms~ : Int,
+  max_retries~ : Int,
+  f : async () -> T raise,
+) -> T raise {
+  guard max_retries > 0
+  let errors : Array[Error] = []
+  let mut delay_ms = delay_ms
+  for attempt in 0..<max_retries {
+    try {
+      return f()
+    } catch {
+      (error : Error) => {
+        logger.error(
+          "attempt \{attempt}/\{max_retries} failed",
+          error.to_json(),
+        )
+        errors.push(error)
+        continue
+      }
+    }
+    delay_ms = @cmp.minimum(delay_ms * backoff_multiplier, max_delay_ms)
+  }
+  raise errors.last().unwrap()
+}
+
+///|
 /// Creates a new agent instance with the specified AI model and working
 /// directory.
 ///
@@ -203,6 +257,7 @@ pub async fn new(model : @model.Model, cwd~ : String) -> Agent raise {
     queue: [],
     event_target: @event.Target::new(),
     token_counter: @token.Counter::new(),
+    context_pruner: @context.Pruner::new(safe_zone_tokens=model.context_window),
   }
 }
 

@@ -5,8 +5,7 @@ test "messages" {
     @openai.assistant_message(content="Hi there!"),
   ]
   let counter = @token.Counter::new()
-  counter.add_messages(messages)
-  @json.inspect(counter.count(), content=11)
+  @json.inspect(counter.count_messages(messages), content=4)
 }
 
 ///|
@@ -26,6 +25,5 @@ test "tool" {
     },
   )
   let counter = @token.Counter::new()
-  counter.add_tool(tool)
-  @json.inspect(counter.count(), content=397)
+  @json.inspect(counter.count_tool(tool), content=70)
 }

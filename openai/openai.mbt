@@ -445,7 +445,7 @@ pub struct ChatCompletionParam {
 pub fn param(
   model~ : String,
   messages~ : Array[ChatCompletionMessageParam],
-  tools~ : Array[ChatCompletionToolParam],
+  tools? : Array[ChatCompletionToolParam] = [],
 ) -> ChatCompletionParam {
   ChatCompletionParam::{ model, messages, tools }
 }

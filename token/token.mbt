@@ -1,8 +1,6 @@
 ///|
 struct Counter {
   encoding : @tiktoken.Encoding
-  mut has_tool : Bool
-  mut count : Int
 }
 
 ///|
@@ -16,12 +14,7 @@ const ToolOverhead : Int = 20
 
 ///|
 pub fn Counter::new() -> Counter raise {
-  { encoding: @tiktoken.cl100k_base(), count: SystemOverhead, has_tool: false }
-}
-
-///|
-fn Counter::add_string(self : Counter, text : String) -> Unit raise {
-  self.count += self.count_string(text)
+  { encoding: @tiktoken.cl100k_base() }
 }
 
 ///|
@@ -30,77 +23,90 @@ fn Counter::count_string(self : Counter, text : String) -> Int raise {
 }
 
 ///|
-fn Counter::add_content_parts(
+fn Counter::count_content_parts(
   self : Counter,
   parts : Array[@openai.ChatCompletionContentPartParam],
-) -> Unit raise {
+) -> Int raise {
+  let mut count = 0
   for part in parts {
     match part {
-      Text(text) => self.add_string(text.text)
+      Text(text) => count += self.count_string(text.text)
     }
   }
+  count
 }
 
 ///|
-fn Counter::add_function(
+fn Counter::count_function(
   self : Counter,
   function : @openai.Function,
-) -> Unit raise {
-  self.add_string(function.name)
-  self.add_string(function.arguments)
+) -> Int raise {
+  self.count_string(function.name) + self.count_string(function.arguments)
 }
 
 ///|
-fn Counter::add_message(
+fn Counter::count_message(
   self : Counter,
   message : @openai.ChatCompletionMessageParam,
-) -> Unit raise {
+) -> Int raise {
   match message {
     Assistant(assistant) => {
-      self.add_content_parts(assistant.content)
+      let mut count = 0
+      count += self.count_content_parts(assistant.content)
       for tool_call in assistant.tool_calls {
-        self.add_string(tool_call.id)
-        self.add_function(tool_call.function)
+        count += self.count_string(tool_call.id)
+        count += self.count_function(tool_call.function)
       }
+      count
     }
-    User(user) => self.add_content_parts(user.content)
-    System(system) => self.add_content_parts(system.content)
-    Tool(tool) => self.add_content_parts(tool.content)
+    User(user) => self.count_content_parts(user.content)
+    System(system) => self.count_content_parts(system.content)
+    Tool(tool) => self.count_content_parts(tool.content)
   }
 }
 
 ///|
-pub fn Counter::add_messages(
+pub fn Counter::count_messages(
   self : Counter,
   messages : Array[@openai.ChatCompletionMessageParam],
-) -> Unit raise {
+) -> Int raise {
+  let mut count = 0
   for message in messages {
-    self.add_message(message)
+    count += self.count_message(message)
   }
+  count
 }
 
 ///|
-pub fn Counter::add_tool(
+pub fn Counter::count_tool(
   self : Counter,
-  tool_call : @openai.ChatCompletionToolParam,
-) -> Unit raise {
-  if !self.has_tool {
-    self.has_tool = true
-    self.count += ToolsOverhead
-  }
-  self.count += ToolOverhead
-  guard tool_call is @openai.Function(function)
-  self.add_string(function.name)
-  self.count += 2 * self.count_string(function.description)
+  tool : @openai.ChatCompletionToolParam,
+) -> Int raise {
+  let mut count = 0
+  count += ToolOverhead
+  guard tool is @openai.Function(function)
+  count += self.count_string(function.name)
+  count += 2 * self.count_string(function.description)
   let parameters = function.parameters.to_json().stringify(indent=2)
   let parameters = self.count_string(parameters)
-  self.count += (parameters.to_double() / 2.0.sqrt()).to_int()
+  count += (parameters.to_double() / 2.0.sqrt()).to_int()
+  count
 }
 
 ///|
-pub fn Counter::count(self : Counter) -> Int {
-  let count = self.count
-  self.has_tool = false
-  self.count = SystemOverhead
-  return count
+pub fn Counter::count_param(
+  self : Counter,
+  param : @openai.ChatCompletionParam,
+) -> Int raise {
+  let mut count = SystemOverhead
+  if !param.tools.is_empty() {
+    count += ToolsOverhead
+  }
+  for tool in param.tools {
+    count += self.count_tool(tool)
+  }
+  for message in param.messages {
+    count += self.count_message(message)
+  }
+  count
 }

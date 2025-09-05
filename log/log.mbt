@@ -58,10 +58,10 @@ async fn Logger::write(self : Self, content : Json) -> Unit raise {
 }
 
 ///|
-pub async fn Logger::error(
+pub async fn[T : ToJson] Logger::error(
   self : Self,
   message : @string.View,
-  content : Json,
+  content : T,
 ) -> Unit raise {
   self.write({
     "timestamp": @env.now().to_json(),
@@ -73,10 +73,10 @@ pub async fn Logger::error(
 }
 
 ///|
-pub async fn Logger::warn(
+pub async fn[T : ToJson] Logger::warn(
   self : Self,
   message : @string.View,
-  content : Json,
+  content : T,
 ) -> Unit raise {
   self.write({
     "timestamp": @env.now().to_json(),
@@ -88,10 +88,10 @@ pub async fn Logger::warn(
 }
 
 ///|
-pub async fn Logger::info(
+pub async fn[T : ToJson] Logger::info(
   self : Self,
   message : @string.View,
-  content : Json,
+  content : T,
 ) -> Unit raise {
   self.write({
     "timestamp": @env.now(),
@@ -103,10 +103,10 @@ pub async fn Logger::info(
 }
 
 ///|
-pub async fn Logger::debug(
+pub async fn[T : ToJson] Logger::debug(
   self : Self,
   message : @string.View,
-  content : Json,
+  content : T,
 ) -> Unit raise {
   self.write({
     "timestamp": @env.now().to_json(),
