@@ -6,27 +6,26 @@ import(
 )
 
 // Values
-fn assistant_message(content? : String, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
+fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-fn audio_content_part(String, String) -> ChatCompletionContentPart
+fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
-fn file_content_part(String) -> ChatCompletionContentPart
-
-fn image_content_part(String, detail? : String) -> ChatCompletionContentPart
-
-fn system_message(content~ : String, name? : String) -> ChatCompletionMessageParam
-
-fn text_content_part(String) -> ChatCompletionContentPart
+fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionContentPartParam
 
 fn tool(name~ : String, description~ : String, parameters~ : Map[String, Json], strict? : Bool) -> ChatCompletionToolParam
 
-fn tool_message(content~ : String, tool_call_id~ : String) -> ChatCompletionMessageParam
+fn[T : ToChatCompletionMessageParamContent] tool_message(content~ : T, tool_call_id~ : String) -> ChatCompletionMessageParam
 
-fn user_message(content~ : String, name? : String) -> ChatCompletionMessageParam
+fn[T : ToChatCompletionMessageParamContent] user_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
 // Errors
 
 // Types and methods
+pub(all) enum CacheControl {
+  Ephemeral
+}
+impl ToJson for CacheControl
+
 pub struct ChatCompletion {
   id : String
   choices : Array[ChatCompletionChoice]
@@ -40,20 +39,10 @@ impl Show for ChatCompletion
 impl @json.FromJson for ChatCompletion
 
 pub struct ChatCompletionAssistantMessageParam {
-  content : String?
+  content : Array[ChatCompletionContentPartParam]
   name : String?
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
-}
-
-pub struct ChatCompletionAudio {
-  id : String?
-}
-impl Show for ChatCompletionAudio
-
-pub struct ChatCompletionAudioParam {
-  voice : String
-  format : String
 }
 
 pub struct ChatCompletionChoice {
@@ -113,74 +102,25 @@ pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
   name : String?
 }
 
-pub enum ChatCompletionContentPart {
-  Text(ChatCompletionContentPartText)
-  ImageURL(ChatCompletionContentPartImage)
-  InputAudio(ChatCompletionContentPartInputAudio)
-  File(ChatCompletionContentPartFile)
+pub enum ChatCompletionContentPartParam {
+  Text(ChatCompletionContentPartTextParam)
 }
+impl ToJson for ChatCompletionContentPartParam
 
-pub struct ChatCompletionContentPartFile {
-  file : ChatCompletionContentPartFileFile
-}
-
-pub struct ChatCompletionContentPartFileFile {
-  file_id : String
-}
-
-pub struct ChatCompletionContentPartImage {
-  image_url : ChatCompletionContentPartImageImageURL
-}
-
-pub struct ChatCompletionContentPartImageImageURL {
-  url : String
-  detail : String?
-}
-
-pub struct ChatCompletionContentPartInputAudio {
-  input_audio : ChatCompletionContentPartInputAudioInputAudio
-}
-
-pub struct ChatCompletionContentPartInputAudioInputAudio {
-  data : String
-  format : String
-}
-
-pub struct ChatCompletionContentPartText {
+pub(all) struct ChatCompletionContentPartTextParam {
   text : String
+  cache_control : CacheControl?
 }
+impl ToJson for ChatCompletionContentPartTextParam
 
 pub struct ChatCompletionMessage {
   content : String?
   refusal : String?
   tool_calls : Array[ChatCompletionMessageToolCall]
-  annotations : Array[ChatCompletionMessageAnnotation]
-  audio : ChatCompletionAudio?
   function_call : ChatCompletionMessageFunctionCall?
 }
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 impl Show for ChatCompletionMessage
-
-pub struct ChatCompletionMessageAnnotation {
-  type_ : String
-  text : String
-  file_citation : ChatCompletionMessageAnnotationFileCitation?
-  file_path : ChatCompletionMessageAnnotationFilePath?
-  start_index : Int
-  end_index : Int
-}
-impl Show for ChatCompletionMessageAnnotation
-
-pub struct ChatCompletionMessageAnnotationFileCitation {
-  file_id : String
-  quote : String
-}
-impl Show for ChatCompletionMessageAnnotationFileCitation
-
-pub struct ChatCompletionMessageAnnotationFilePath {
-  file_id : String
-}
-impl Show for ChatCompletionMessageAnnotationFilePath
 
 pub struct ChatCompletionMessageFunctionCall {
   arguments : String
@@ -202,24 +142,6 @@ pub struct ChatCompletionMessageToolCall {
 }
 impl Show for ChatCompletionMessageToolCall
 
-pub struct ChatCompletionPredictionContent {
-  type_ : String
-  content : String
-}
-
-pub enum ChatCompletionResponseFormat {
-  JsonObject
-  JsonSchema(ChatCompletionResponseFormatJsonSchema)
-  Text
-}
-
-pub struct ChatCompletionResponseFormatJsonSchema {
-  name : String
-  description : String?
-  schema : Map[String, Json]
-  strict : Bool?
-}
-
 pub enum ChatCompletionRole {
   Developer
   System
@@ -237,17 +159,8 @@ pub enum ChatCompletionServiceTier {
 }
 impl Show for ChatCompletionServiceTier
 
-pub enum ChatCompletionStopParam {
-  String(String)
-  Array(Array[String])
-}
-
-pub struct ChatCompletionStreamOptions {
-  include_usage : Bool?
-}
-
 pub struct ChatCompletionSystemMessageParam {
-  content : String
+  content : Array[ChatCompletionContentPartParam]
   name : String?
 }
 
@@ -260,7 +173,7 @@ pub struct ChatCompletionTokenLogprob {
 impl Show for ChatCompletionTokenLogprob
 
 pub struct ChatCompletionToolMessageParam {
-  content : String
+  content : Array[ChatCompletionContentPartParam]
   tool_call_id : String
 }
 
@@ -275,12 +188,8 @@ pub struct ChatCompletionTopLogprob {
 impl Show for ChatCompletionTopLogprob
 
 pub struct ChatCompletionUserMessageParam {
-  content : String
+  content : Array[ChatCompletionContentPartParam]
   name : String?
-}
-
-pub struct ChatCompletionWebSearchOptions {
-  max_results : Int?
 }
 
 pub struct CompletionUsage {
@@ -296,20 +205,10 @@ pub struct Function {
 }
 impl Show for Function
 
-pub enum ReasoningEffort {
-  Minimal
-  Low
-  Medium
-  High
-}
-
-pub enum Verbosity {
-  Low
-  Medium
-  High
-}
-
 // Type aliases
 
 // Traits
+trait ToChatCompletionMessageParamContent
+impl ToChatCompletionMessageParamContent for String
+impl ToChatCompletionMessageParamContent for Array[ChatCompletionContentPartParam]
 
