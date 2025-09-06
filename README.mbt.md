@@ -1,6 +1,6 @@
 # moonbitlang/maria
 
-MoonBit Agent Rewritten in [moonbitlang/async](https://github.com/moonbitlang/async)
+**maria** is an initialism for **m**oon **a**gent **r**ewritten **i**n **a**sync, which utilizes [moonbitlang/async](https://github.com/moonbitlang/async).
 
 ## Usage
 
