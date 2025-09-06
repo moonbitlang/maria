@@ -91,18 +91,28 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   }
   let messages = [..agent.history, ..agent.queue]
   let origin_token_count = agent.token_counter.count_param(
-    @openai.param(messages~, model=agent.model.name, tools~),
+    @openai.chat_completion(
+      messages~,
+      model=agent.model.name,
+      tools~,
+      usage=@openai.usage(include_=true),
+    ),
   )
   let messages = agent.context_pruner.prune_messages(messages)
   let pruned_token_count = agent.token_counter.count_param(
-    @openai.param(messages~, model=agent.model.name, tools~),
+    @openai.chat_completion(
+      messages~,
+      model=agent.model.name,
+      tools~,
+      usage=@openai.usage(include_=true),
+    ),
   )
   agent.emit(
     TokenCounted,
     EventContext::new(origin_token_count~, pruned_token_count~),
   )
   let messages = @cache.cache_messages(messages)
-  let param = @openai.param(messages~, model=agent.model.name, tools~)
+  let param = @openai.chat_completion(messages~, model=agent.model.name, tools~)
   let json = param.to_json()
   // FIXME: Not working, ask guest0x0
   // agent.log.info("sending request", json)

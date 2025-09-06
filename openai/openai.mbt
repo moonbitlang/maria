@@ -402,9 +402,98 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
 }
 
 ///|
+pub struct CompletionTokensDetails {
+  reasoning_tokens : Int?
+} derive(Show)
+
+///|
+impl @json.FromJson for CompletionTokensDetails with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> CompletionTokensDetails {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  let reasoning_tokens = match json.get("reasoning_tokens") {
+    Some(Null) => None
+    Some(Number(reasoning_tokens, ..)) => Some(reasoning_tokens.to_int())
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path, "Expected 'reasoning_tokens' to be a number"),
+      )
+    None => None
+  }
+  CompletionTokensDetails::{ reasoning_tokens, }
+}
+
+///|
+pub struct CostDetails {
+  upstream_inference_cost : Double?
+} derive(Show)
+
+///|
+impl @json.FromJson for CostDetails with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> CostDetails {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  let upstream_inference_cost = match json.get("upstream_inference_cost") {
+    Some(Null) => None
+    Some(Number(upstream_inference_cost, ..)) => Some(upstream_inference_cost)
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path, "Expected 'upstream_inference_cost' to be a number"),
+      )
+    None => None
+  }
+  CostDetails::{ upstream_inference_cost, }
+}
+
+///|
+pub struct PromptTokensDetails {
+  cached_tokens : Int?
+  audio_tokens : Int?
+} derive(Show)
+
+///|
+impl @json.FromJson for PromptTokensDetails with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> PromptTokensDetails {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  let cached_tokens = match json.get("cached_tokens") {
+    Some(Null) => None
+    Some(Number(cached_tokens, ..)) => Some(cached_tokens.to_int())
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path, "Expected 'cached_tokens' to be a number"),
+      )
+    None => None
+  }
+  let audio_tokens = match json.get("audio_tokens") {
+    Some(Null) => None
+    Some(Number(audio_tokens, ..)) => Some(audio_tokens.to_int())
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path, "Expected 'audio_tokens' to be a number"),
+      )
+    None => None
+  }
+  PromptTokensDetails::{ cached_tokens, audio_tokens }
+}
+
+///|
 pub struct CompletionUsage {
   completion_tokens : Int
+  completion_tokens_details : CompletionTokensDetails?
+  cost : Double?
+  cost_details : CostDetails?
   prompt_tokens : Int
+  prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 } derive(Show)
 
@@ -421,17 +510,76 @@ impl @json.FromJson for CompletionUsage with from_json(
       (json_path, "Missing 'completion_tokens' field"),
     )
   }
+  let completion_tokens_details = match json.get("completion_tokens_details") {
+    Some(Null) => None
+    Some(details) => {
+      let details : CompletionTokensDetails = @json.from_json(
+        details,
+        path=json_path.add_key("completion_tokens_details"),
+      )
+      Some(details)
+    }
+    None => None
+  }
+  let cost = match json.get("cost") {
+    Some(Null) => None
+    Some(Number(cost, ..)) => Some(cost)
+    Some(_) =>
+      raise @json.JsonDecodeError((json_path, "Expected 'cost' to be a number"))
+    None => None
+  }
+  let cost_details = match json.get("cost_details") {
+    Some(Null) => None
+    Some(details) => {
+      let details : CostDetails = @json.from_json(
+        details,
+        path=json_path.add_key("cost_details"),
+      )
+      Some(details)
+    }
+    None => None
+  }
   guard json.get("prompt_tokens") is Some(Number(prompt_tokens, ..)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'prompt_tokens' field"))
+  }
+  let prompt_tokens_details = match json.get("prompt_tokens_details") {
+    Some(Null) => None
+    Some(details) => {
+      let details : PromptTokensDetails = @json.from_json(
+        details,
+        path=json_path.add_key("prompt_tokens_details"),
+      )
+      Some(details)
+    }
+    None => None
   }
   guard json.get("total_tokens") is Some(Number(total_tokens, ..)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'total_tokens' field"))
   }
   CompletionUsage::{
     completion_tokens: completion_tokens.to_int(),
+    completion_tokens_details,
+    cost,
+    cost_details,
     prompt_tokens: prompt_tokens.to_int(),
+    prompt_tokens_details,
     total_tokens: total_tokens.to_int(),
   }
+}
+
+///|
+pub struct CompletionUsageParam {
+  include_ : Bool
+}
+
+///|
+pub fn usage(include_~ : Bool) -> CompletionUsageParam {
+  CompletionUsageParam::{ include_, }
+}
+
+///|
+impl ToJson for CompletionUsageParam with to_json(self : CompletionUsageParam) -> Json {
+  { "include": Json::boolean(self.include_) }
 }
 
 ///|
@@ -439,15 +587,19 @@ pub struct ChatCompletionParam {
   model : String
   messages : Array[ChatCompletionMessageParam]
   tools : Array[ChatCompletionToolParam]
+  usage : CompletionUsageParam?
+  user : String?
 }
 
 ///|
-pub fn param(
+pub fn chat_completion(
   model~ : String,
   messages~ : Array[ChatCompletionMessageParam],
   tools? : Array[ChatCompletionToolParam] = [],
+  usage? : CompletionUsageParam,
+  user? : String,
 ) -> ChatCompletionParam {
-  ChatCompletionParam::{ model, messages, tools }
+  ChatCompletionParam::{ model, messages, tools, usage, user }
 }
 
 ///|
@@ -458,6 +610,9 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
   }
   if !self.tools.is_empty() {
     json["tools"] = self.tools.to_json()
+  }
+  if self.usage is Some(usage) {
+    json["usage"] = usage.to_json()
   }
   Json::object(json)
 }

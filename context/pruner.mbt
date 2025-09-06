@@ -16,7 +16,7 @@ pub fn Pruner::prune_messages(
   tools? : Array[@openai.ChatCompletionToolParam] = [],
 ) -> Array[@openai.ChatCompletionMessageParam] raise {
   let tokens = pruner.token_counter.count_param(
-    @openai.param(messages~, model="gpt-4o", tools~),
+    @openai.chat_completion(messages~, model="gpt-4o", tools~),
   )
   if tokens <= pruner.safe_zone_tokens {
     return messages
@@ -30,7 +30,7 @@ pub fn Pruner::prune_messages(
           tool_call_id=tool.tool_call_id,
         )
         let tokens = pruner.token_counter.count_param(
-          @openai.param(messages~, model="gpt-4o", tools~),
+          @openai.chat_completion(messages~, model="gpt-4o", tools~),
         )
         if tokens <= pruner.safe_zone_tokens {
           return messages
