@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/context"
+
+import(
+  "moonbitlang/maria/openai"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Pruner
+fn Pruner::new(safe_zone_tokens~ : Int) -> Self raise
+fn Pruner::prune_messages(Self, Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Array[@openai.ChatCompletionMessageParam] raise
+
+// Type aliases
+
+// Traits
+

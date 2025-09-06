@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@model.Model, cwd~ : String) -> Agent raise
+async fn new(@model.Model, cwd~ : String) -> Agent
 
 // Errors
 
@@ -32,7 +32,8 @@ impl Hash for Event
 
 pub struct EventContext {
   usage : @openai.CompletionUsage?
-  token_count : Int?
+  origin_token_count : Int?
+  pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.ToolResult?
 }

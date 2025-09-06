@@ -2,7 +2,7 @@
 package "moonbitlang/maria/model"
 
 // Values
-fn new(api_key~ : String, base_url~ : String, name~ : String) -> Model
+fn new(api_key~ : String, base_url~ : String, name~ : String, context_window~ : Int) -> Model
 
 // Errors
 
@@ -11,6 +11,7 @@ pub struct Model {
   name : String
   api_key : String
   base_url : String
+  context_window : Int
 }
 
 // Type aliases

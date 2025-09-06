@@ -8,7 +8,7 @@ import(
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-fn param(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools~ : Array[ChatCompletionToolParam]) -> ChatCompletionParam
+fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String) -> ChatCompletionParam
 
 fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
@@ -17,6 +17,8 @@ fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionCon
 fn tool(name~ : String, description~ : String, parameters~ : Map[String, Json], strict? : Bool) -> ChatCompletionToolParam
 
 fn[T : ToChatCompletionMessageParamContent] tool_message(content~ : T, tool_call_id~ : String) -> ChatCompletionMessageParam
+
+fn usage(include_~ : Bool) -> CompletionUsageParam
 
 fn[T : ToChatCompletionMessageParamContent] user_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
@@ -148,6 +150,8 @@ pub struct ChatCompletionParam {
   model : String
   messages : Array[ChatCompletionMessageParam]
   tools : Array[ChatCompletionToolParam]
+  usage : CompletionUsageParam?
+  user : String?
 }
 impl ToJson for ChatCompletionParam
 
@@ -203,12 +207,30 @@ pub struct ChatCompletionUserMessageParam {
   name : String?
 }
 
+pub struct CompletionTokensDetails {
+  reasoning_tokens : Int?
+}
+impl Show for CompletionTokensDetails
+
 pub struct CompletionUsage {
   completion_tokens : Int
+  completion_tokens_details : CompletionTokensDetails?
+  cost : Double?
+  cost_details : CostDetails?
   prompt_tokens : Int
+  prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 }
 impl Show for CompletionUsage
+
+pub struct CompletionUsageParam {
+  include_ : Bool
+}
+
+pub struct CostDetails {
+  upstream_inference_cost : Double?
+}
+impl Show for CostDetails
 
 pub struct Function {
   arguments : String
@@ -222,6 +244,12 @@ pub struct FunctionDefinition {
   parameters : Map[String, Json]
   strict : Bool?
 }
+
+pub struct PromptTokensDetails {
+  cached_tokens : Int?
+  audio_tokens : Int?
+}
+impl Show for PromptTokensDetails
 
 // Type aliases
 
