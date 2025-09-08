@@ -21,7 +21,7 @@ pub let list_files : Tool = Tool::new(
       let dir = @fs.opendir(path)
       defer dir.close()
       let entries = []
-      for entry in dir.read_all(include_special=false, include_hidden=false) {
+      for entry in dir.read_all(include_special=true, include_hidden=true) {
         let entry = path + "/" + entry
         let file = @fs.open(entry, mode=ReadOnly)
         defer file.close()

@@ -211,6 +211,7 @@ pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
 }
 impl Show for CompletionTokensDetails
+impl ToJson for CompletionTokensDetails
 
 pub struct CompletionUsage {
   completion_tokens : Int
@@ -222,6 +223,7 @@ pub struct CompletionUsage {
   total_tokens : Int
 }
 impl Show for CompletionUsage
+impl ToJson for CompletionUsage
 
 pub struct CompletionUsageParam {
   include_ : Bool
@@ -231,6 +233,7 @@ pub struct CostDetails {
   upstream_inference_cost : Double?
 }
 impl Show for CostDetails
+impl ToJson for CostDetails
 
 pub struct Function {
   arguments : String
@@ -250,6 +253,7 @@ pub struct PromptTokensDetails {
   audio_tokens : Int?
 }
 impl Show for PromptTokensDetails
+impl ToJson for PromptTokensDetails
 
 // Type aliases
 

@@ -8,7 +8,7 @@
     "moonbitlang/maria/event",
     "moonbitlang/maria/token",
     "moonbitlang/maria/cache",
-    "moonbitlang/maria/log",
+    "moonbitlang/maria/pino",
     "moonbitlang/maria/context"
   ]
 }

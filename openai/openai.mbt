@@ -404,7 +404,7 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
 ///|
 pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
-} derive(Show)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for CompletionTokensDetails with from_json(
@@ -429,7 +429,7 @@ impl @json.FromJson for CompletionTokensDetails with from_json(
 ///|
 pub struct CostDetails {
   upstream_inference_cost : Double?
-} derive(Show)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for CostDetails with from_json(
@@ -455,7 +455,7 @@ impl @json.FromJson for CostDetails with from_json(
 pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
-} derive(Show)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for PromptTokensDetails with from_json(
@@ -495,7 +495,7 @@ pub struct CompletionUsage {
   prompt_tokens : Int
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
-} derive(Show)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for CompletionUsage with from_json(

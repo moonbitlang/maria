@@ -20,7 +20,9 @@ fn main {
       name="anthropic/claude-sonnet-4",
       context_window=200000,
     )
+    let logger = @pino.logger(@pino.transport("console"))
     let agent = @agent.new(model, cwd~)
+    defer agent.close()
     agent.add_listener(TokenCounted, context => {
       guard context.origin_token_count is Some(origin_token_count) else {
         return
@@ -29,41 +31,50 @@ fn main {
         return
       }
       if origin_token_count != pruned_token_count {
-        println(
-          "Context pruned from \{origin_token_count} to \{pruned_token_count} tokens",
-        )
+        logger.info("Context pruned", {
+          "origin_token_count": origin_token_count.to_json(),
+          "pruned_token_count": pruned_token_count.to_json(),
+        })
       } else {
-        println("Token count: \{origin_token_count}")
+        logger.info("Token count", {
+          "token_count": origin_token_count.to_json(),
+        })
       }
     })
     agent.add_listener(RequestCompleted, context => {
       guard context.usage is Some(usage) else { return }
-      println("Request completed. Usage: \{usage}")
+      logger.info("Request completed: Usage", { "usage": usage.to_json() })
     })
     agent.add_listener(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
-      println("Calling tool: \{tool_call.function.name}")
+      logger.info("Calling tool", { "name": tool_call.function.name.to_json() })
       try {
         let args = @json.parse(tool_call.function.arguments)
-        println(args.stringify(indent=2))
+        logger.info("Tool arguments", { "args": args })
       } catch {
-        error => {
-          println("Error parsing tool arguments: \{error}")
-          println(tool_call.function.arguments)
-        }
+        error =>
+          logger.error("Error parsing tool arguments", {
+            "error": error.to_json(),
+            "arguments": tool_call.function.arguments.to_json(),
+          })
       }
     })
     agent.add_listener(PostToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
-      println("Finished calling tool: \{tool_call.function.name}")
+      logger.info("Finished calling tool", {
+        "name": tool_call.function.name.to_json(),
+      })
       guard context.tool_call_result is Some(result) else { return }
-      println("Tool result: \{result.output}")
+      logger.info("Tool result", { "output": result.output.to_json() })
       if result.error is Some(error) {
-        println("Tool error: \{error}")
+        logger.error("Tool error", { "error": error.to_json() })
       }
     })
-    agent.add_listener(ConversationStart, _ => println("Conversation started"))
-    agent.add_listener(ConversationEnd, _ => println("Conversation ended"))
+    agent.add_listener(ConversationStart, _ => logger.info(
+      "Conversation started",
+      {},
+    ))
+    agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
     agent.add_tool(@tool.list_files)
     agent.add_tool(@tool.execute_command)
     let content = args[1:].join(" ")
