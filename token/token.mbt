@@ -13,6 +13,12 @@ const ToolsOverhead : Int = 320
 const ToolOverhead : Int = 20
 
 ///|
+/// Creates a new token counter with the cl100k\_base encoding.
+///
+/// Returns a new `Counter` instance configured with the tiktoken cl100k\_base
+/// encoding, which is commonly used for OpenAI's GPT models.
+///
+/// Throws an error if the cl100k\_base encoding cannot be initialized.
 pub fn Counter::new() -> Counter raise {
   { encoding: @tiktoken.cl100k_base() }
 }
@@ -66,7 +72,7 @@ fn Counter::count_message(
 }
 
 ///|
-pub fn Counter::count_messages(
+fn Counter::count_messages(
   self : Counter,
   messages : Array[@openai.ChatCompletionMessageParam],
 ) -> Int raise {
@@ -78,7 +84,17 @@ pub fn Counter::count_messages(
 }
 
 ///|
-pub fn Counter::count_tool(
+test "messages" {
+  let messages = [
+    @openai.user_message(content="Hello"),
+    @openai.assistant_message(content="Hi there!"),
+  ]
+  let counter = Counter::new()
+  @json.inspect(counter.count_messages(messages), content=4)
+}
+
+///|
+fn Counter::count_tool(
   self : Counter,
   tool : @openai.ChatCompletionToolParam,
 ) -> Int raise {
@@ -94,6 +110,40 @@ pub fn Counter::count_tool(
 }
 
 ///|
+test "tool" {
+  let tool = @openai.tool(
+    name="list_files",
+    description="List files in a directory",
+    parameters={
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The directory path to list files from",
+        },
+      },
+      "required": ["path"],
+    },
+  )
+  let counter = Counter::new()
+  @json.inspect(counter.count_tool(tool), content=70)
+}
+
+///|
+/// Counts the total number of tokens required for a complete chat completion
+/// request.
+///
+/// Parameters:
+///
+/// * `self` : The token counter instance.
+/// * `param` : The chat completion parameters containing messages, tools, and
+///   other configuration.
+///
+/// Returns the total token count including system overhead, tools overhead,
+/// individual tool costs, and message content.
+///
+/// Throws an error if token encoding fails for any text content in the
+/// parameters.
 pub fn Counter::count_param(
   self : Counter,
   param : @openai.ChatCompletionParam,
@@ -105,8 +155,6 @@ pub fn Counter::count_param(
   for tool in param.tools {
     count += self.count_tool(tool)
   }
-  for message in param.messages {
-    count += self.count_message(message)
-  }
+  count += self.count_messages(param.messages)
   count
 }
