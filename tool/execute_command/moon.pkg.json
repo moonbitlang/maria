@@ -1,0 +1,9 @@
+{
+  "import": [
+    "moonbitlang/maria/tool",
+    "moonbitlang/async/process",
+    "moonbitlang/async/pipe",
+    "moonbitlang/async",
+    "tonyfettes/encoding"
+  ]
+}

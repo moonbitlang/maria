@@ -1,0 +1,7 @@
+{
+  "import": [
+    "moonbitlang/maria/tool",
+    "tonyfettes/encoding",
+    "moonbitlang/async/fs"
+  ]
+}

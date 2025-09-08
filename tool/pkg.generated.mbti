@@ -2,9 +2,9 @@
 package "moonbitlang/maria/tool"
 
 // Values
-let execute_command : Tool
+fn error(String, error? : Error) -> ToolResult
 
-let list_files : Tool
+fn ok(String) -> ToolResult
 
 // Errors
 
@@ -26,9 +26,6 @@ pub struct ToolResult {
   output : String
   error : Error?
 }
-fn ToolResult::error(String) -> Self
-fn ToolResult::new(String, error? : Error) -> Self
-fn ToolResult::ok(String) -> Self
 
 // Type aliases
 

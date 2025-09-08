@@ -4,7 +4,7 @@ priv suberror TimeoutError {
 }
 
 ///|
-pub let execute_command : Tool = Tool::new(
+pub let execute_command : @tool.Tool = @tool.Tool::new(
   description="Execute a shell command",
   name="execute_command",
   parameters={
@@ -36,12 +36,12 @@ pub let execute_command : Tool = Tool::new(
         "timeout": Number(timeout, ..),
         ..
       } else {
-      return ToolResult::error(
+      return @tool.error(
         "Error: 'command', 'arguments' and 'timeout' parameters are required",
       )
     }
     let arguments : Array[String] = @json.from_json(arguments) catch {
-      error => return ToolResult::error("Error parsing 'arguments': \{error}")
+      error => return @tool.error("Error parsing 'arguments': \{error}")
     }
     let timeout = (timeout * 1000).to_int()
     try {
@@ -61,11 +61,11 @@ pub let execute_command : Tool = Tool::new(
         return "Exit code: \{status}\nOutput:\n\{output}"
       })
       match result {
-        Some(result) => ToolResult::ok(result)
+        Some(result) => @tool.ok(result)
         None => raise TimeoutError(command~, arguments~, timeout~)
       }
     } catch {
-      error => ToolResult::new("Error executing command: \{error}", error~)
+      error => @tool.error("Error executing command: \{error}", error~)
     }
   },
 )

@@ -1,5 +1,5 @@
 ///|
-pub let list_files : Tool = Tool::new(
+pub let list_files : @tool.Tool = @tool.Tool::new(
   description="List files in a directory",
   name="list_files",
   parameters={
@@ -14,7 +14,7 @@ pub let list_files : Tool = Tool::new(
   },
   (args, context) => {
     guard args is { "path": String(path), .. } else {
-      return ToolResult::error("Error: 'path' parameter is required")
+      return @tool.error("Error: 'path' parameter is required")
     }
     try {
       let path = @encoding.encode(context.cwd + "/" + path, encoding=UTF8)
@@ -31,9 +31,9 @@ pub let list_files : Tool = Tool::new(
         }
         entries.push(@encoding.decode(entry, encoding=UTF8))
       }
-      ToolResult::ok(entries.join("\n"))
+      @tool.ok(entries.join("\n"))
     } catch {
-      error => ToolResult::new("Error listing files: \{error}", error~)
+      error => @tool.error("Error listing files: \{error}", error~)
     }
   },
 )

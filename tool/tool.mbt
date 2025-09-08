@@ -13,18 +13,16 @@ pub struct ToolResult {
 }
 
 ///|
-pub fn ToolResult::ok(output : String) -> ToolResult {
+pub fn ok(output : String) -> ToolResult {
   ToolResult::{ output, error: None }
 }
 
 ///|
-pub fn ToolResult::error(output : String) -> ToolResult {
-  ToolResult::{ output, error: Some(Failure(output)) }
-}
-
-///|
-pub fn ToolResult::new(output : String, error? : Error) -> ToolResult {
-  ToolResult::{ output, error }
+pub fn error(
+  output : String,
+  error? : Error = Failure(output),
+) -> ToolResult {
+  ToolResult::{ output, error: Some(error) }
 }
 
 ///|
