@@ -114,8 +114,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let messages = @cache.cache_messages(messages)
   let param = @openai.chat_completion(messages~, model=agent.model.name, tools~)
   let json = param.to_json()
-  // FIXME: Not working, ask guest0x0
-  // agent.log.info("sending request", json)
+  agent.log.info("sending request", json)
   let body = json.stringify()
   let body = @encoding.encode(body, encoding=UTF8)
   let (response, body) = with_retry(
