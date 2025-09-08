@@ -4,5 +4,8 @@
     "tonyfettes/encoding",
     "tonyfettes/path",
     "tonyfettes/uv"
+  ],
+  "test-import": [
+    "moonbitlang/async"
   ]
 }

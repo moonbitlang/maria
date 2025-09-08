@@ -1,0 +1,43 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/pino"
+
+import(
+  "moonbitlang/core/builtin"
+  "moonbitlang/core/string"
+)
+
+// Values
+fn logger(tag? : String, level? : Level, Transport) -> Logger
+
+async fn transport(@string.View) -> Transport
+
+// Errors
+pub suberror InvalidTransport @string.View
+impl Show for InvalidTransport
+
+// Types and methods
+pub(all) enum Level {
+  Trace
+  Debug
+  Info
+  Warn
+  Error
+  Fatal
+}
+
+type Logger
+fn Logger::child(Self, tag? : String) -> Self
+fn Logger::close(Self) -> Unit
+async fn Logger::debug(Self, @string.View, Map[String, Json]) -> Unit
+async fn Logger::error(Self, @string.View, Map[String, Json]) -> Unit
+async fn Logger::info(Self, @string.View, Map[String, Json]) -> Unit
+async fn Logger::log(Self, Level, @string.View, Map[String, Json]) -> Unit
+async fn Logger::warn(Self, @string.View, Map[String, Json]) -> Unit
+
+type Transport
+async fn Transport::file(@string.View) -> Self
+
+// Type aliases
+
+// Traits
+

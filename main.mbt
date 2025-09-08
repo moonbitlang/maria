@@ -20,10 +20,7 @@ fn main {
       name="anthropic/claude-sonnet-4",
       context_window=200000,
     )
-    let logger = @log.Logger::new(
-      tag="main",
-      @log.Transport::file(".moonagent/log"),
-    )
+    let logger = @pino.logger(@pino.transport("console"))
     let agent = @agent.new(model, cwd~)
     defer agent.close()
     agent.add_listener(TokenCounted, context => {
@@ -35,23 +32,25 @@ fn main {
       }
       if origin_token_count != pruned_token_count {
         logger.info("Context pruned", {
-          "origin_token_count": origin_token_count,
-          "pruned_token_count": pruned_token_count,
+          "origin_token_count": origin_token_count.to_json(),
+          "pruned_token_count": pruned_token_count.to_json(),
         })
       } else {
-        logger.info("Token count", origin_token_count.to_json())
+        logger.info("Token count", {
+          "token_count": origin_token_count.to_json(),
+        })
       }
     })
     agent.add_listener(RequestCompleted, context => {
       guard context.usage is Some(usage) else { return }
-      logger.info("Request completed: Usage", usage.to_json())
+      logger.info("Request completed: Usage", { "usage": usage.to_json() })
     })
     agent.add_listener(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
-      logger.info("Calling tool", tool_call.function.name.to_json())
+      logger.info("Calling tool", { "name": tool_call.function.name.to_json() })
       try {
         let args = @json.parse(tool_call.function.arguments)
-        logger.info("Tool arguments", args)
+        logger.info("Tool arguments", { "args": args })
       } catch {
         error =>
           logger.error("Error parsing tool arguments", {
@@ -62,11 +61,13 @@ fn main {
     })
     agent.add_listener(PostToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
-      logger.info("Finished calling tool", tool_call.function.name.to_json())
+      logger.info("Finished calling tool", {
+        "name": tool_call.function.name.to_json(),
+      })
       guard context.tool_call_result is Some(result) else { return }
-      logger.info("Tool result", result.output.to_json())
+      logger.info("Tool result", { "output": result.output.to_json() })
       if result.error is Some(error) {
-        logger.error("Tool error", error.to_json())
+        logger.error("Tool error", { "error": error.to_json() })
       }
     })
     agent.add_listener(ConversationStart, _ => logger.info(

@@ -7,6 +7,6 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/model",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/log"
+    "moonbitlang/maria/pino"
   ]
 }

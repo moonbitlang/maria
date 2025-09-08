@@ -6,7 +6,7 @@
     "moonbitlang/x": "0.4.32",
     "tonyfettes/encoding": "0.3.7",
     "tonyfettes/tiktoken": "0.1.1",
-    "tonyfettes/uv": "0.12.3",
+    "tonyfettes/uv": "0.12.6",
     "tonyfettes/path": "0.2.1"
   },
   "readme": "README.md",
