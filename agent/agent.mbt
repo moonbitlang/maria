@@ -37,7 +37,7 @@ fn EventContext::new(
 
 ///|
 struct Agent {
-  log : @log.Logger
+  logger : @log.Logger
   cwd : String
   model : @model.Model
   tools : Map[String, @tool.Tool]
@@ -62,6 +62,11 @@ pub fn Agent::add_message(
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
   agent.queue.push(message)
+}
+
+///|
+pub fn Agent::close(agent : Agent) -> Unit {
+  agent.logger.close()
 }
 
 ///|
@@ -114,11 +119,11 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let messages = @cache.cache_messages(messages)
   let param = @openai.chat_completion(messages~, model=agent.model.name, tools~)
   let json = param.to_json()
-  agent.log.info("sending request", json)
+  agent.logger.info("sending request", json)
   let body = json.stringify()
   let body = @encoding.encode(body, encoding=UTF8)
   let (response, body) = with_retry(
-    logger=agent.log,
+    logger=agent.logger,
     backoff_multiplier=2,
     delay_ms=1000,
     max_delay_ms=16000,
@@ -161,7 +166,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
 async fn Agent::execute_tool(
   agent : Agent,
   tool_call : @openai.ChatCompletionMessageToolCall,
-) -> @openai.ChatCompletionMessageParam noraise {
+) -> @openai.ChatCompletionMessageParam raise {
   guard agent.tools.get(tool_call.function.name) is Some(tool) else {
     @openai.tool_message(
       content="Unknown tool: \{tool_call.function.name}",
@@ -258,7 +263,10 @@ async fn[T] with_retry(
 /// no tools, and a fresh event target for handling agent lifecycle events.
 pub async fn new(model : @model.Model, cwd~ : String) -> Agent raise {
   Agent::{
-    log: @log.Logger::new("agent", @log.Transport::file(".moonagent/log")),
+    logger: @log.Logger::new(
+      tag="agent",
+      @log.Transport::file(".moonagent/log"),
+    ),
     history: [],
     cwd,
     model,
@@ -275,7 +283,7 @@ async fn Agent::emit(
   agent : Agent,
   kind : Event,
   context : EventContext,
-) -> Unit noraise {
+) -> Unit raise {
   agent.event_target.emit(kind, context)
 }
 
@@ -292,7 +300,7 @@ async fn Agent::emit(
 pub fn Agent::add_listener(
   agent : Agent,
   kind : Event,
-  f : async (EventContext) -> Unit noraise,
+  f : async (EventContext) -> Unit raise,
 ) -> Unit {
   agent.event_target.add_listener(kind, f)
 }

@@ -17,6 +17,7 @@ type Agent
 fn Agent::add_listener(Self, Event, async (EventContext) -> Unit noraise) -> Unit
 fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 fn Agent::add_tool(Self, @tool.Tool) -> Unit
+fn Agent::close(Self) -> Unit
 async fn Agent::start(Self) -> Unit
 
 pub(all) enum Event {

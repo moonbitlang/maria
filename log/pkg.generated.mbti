@@ -19,10 +19,12 @@ pub(all) enum Level {
 impl ToJson for Level
 
 type Logger
+fn Logger::close(Self) -> Unit
 async fn[T : ToJson] Logger::debug(Self, @string.View, T) -> Unit
 async fn[T : ToJson] Logger::error(Self, @string.View, T) -> Unit
 async fn[T : ToJson] Logger::info(Self, @string.View, T) -> Unit
-fn Logger::new(String, Transport) -> Self
+async fn Logger::log(Self, Level, @string.View, Json) -> Unit
+fn Logger::new(tag? : String, Transport) -> Self
 async fn[T : ToJson] Logger::warn(Self, @string.View, T) -> Unit
 
 type Transport

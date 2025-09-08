@@ -1,5 +1,5 @@
 ///|
-struct Target[K, C](Map[K, Array[async (C) -> Unit noraise]])
+struct Target[K, C](Map[K, Array[async (C) -> Unit raise]])
 
 ///|
 pub fn[Kind : Eq + Hash, Context] Target::new() -> Target[Kind, Context] {
@@ -11,7 +11,7 @@ pub async fn[Kind : Eq + Hash, Context] Target::emit(
   target : Target[Kind, Context],
   kind : Kind,
   context : Context,
-) -> Unit noraise {
+) -> Unit raise {
   guard target.0.get(kind) is Some(listeners) else { return }
   for listener in listeners {
     listener(context)
@@ -22,7 +22,7 @@ pub async fn[Kind : Eq + Hash, Context] Target::emit(
 pub fn[Kind : Eq + Hash, Context] Target::add_listener(
   target : Target[Kind, Context],
   kind : Kind,
-  f : async (Context) -> Unit noraise,
+  f : async (Context) -> Unit raise,
 ) -> Unit noraise {
   if target.0.get(kind) is Some(listeners) {
     listeners.push(f)

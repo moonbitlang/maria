@@ -35,6 +35,13 @@ async fn Transport::write(self : Transport, content : Json) -> Unit raise {
 }
 
 ///|
+fn Transport::close(self : Transport) -> Unit {
+  match self {
+    File(file) => file.close()
+  }
+}
+
+///|
 let uv : Result[@uv.Loop, @uv.Errno] = try? @uv.Loop::new()
 
 ///|
@@ -68,71 +75,67 @@ struct Logger {
 }
 
 ///|
-pub fn Logger::new(tag : String, transport : Transport) -> Logger {
+pub fn Logger::new(tag? : String = "", transport : Transport) -> Logger {
   Logger::{ tag, transport }
 }
 
 ///|
-async fn Logger::write(self : Self, content : Json) -> Unit raise {
-  self.transport.write(content)
+pub fn Logger::close(self : Logger) -> Unit {
+  self.transport.close()
 }
 
 ///|
-pub async fn[T : ToJson] Logger::error(
+pub async fn Logger::log(
   self : Self,
+  level : Level,
   message : @string.View,
-  content : T,
+  content : Json,
 ) -> Unit raise {
-  self.write({
+  let object : Map[String, Json] = {
     "timestamp": @env.now().to_json(),
     "tag": self.tag.to_json(),
-    "level": Level::Error.to_json(),
+    "level": level.to_json(),
     "message": message.to_json(),
     "content": content.to_json(),
-  })
+  }
+  if self.tag != "" {
+    object["tag"] = self.tag.to_json()
+  }
+  self.transport.write(object.to_json())
 }
 
 ///|
-pub async fn[T : ToJson] Logger::warn(
+pub async fn Logger::error(
   self : Self,
   message : @string.View,
-  content : T,
+  content : Json,
 ) -> Unit raise {
-  self.write({
-    "timestamp": @env.now().to_json(),
-    "tag": self.tag.to_json(),
-    "level": Level::Warn.to_json(),
-    "message": message.to_json(),
-    "content": content.to_json(),
-  })
+  self.log(Level::Error, message, content.to_json())
 }
 
 ///|
-pub async fn[T : ToJson] Logger::info(
+pub async fn Logger::warn(
   self : Self,
   message : @string.View,
-  content : T,
+  content : Json,
 ) -> Unit raise {
-  self.write({
-    "timestamp": @env.now(),
-    "tag": self.tag.to_json(),
-    "level": Level::Info.to_json(),
-    "message": message,
-    "content": content,
-  })
+  self.log(Level::Warn, message, content.to_json())
 }
 
 ///|
-pub async fn[T : ToJson] Logger::debug(
+pub async fn Logger::info(
   self : Self,
   message : @string.View,
-  content : T,
+  content : Json,
 ) -> Unit raise {
-  self.write({
-    "timestamp": @env.now().to_json(),
-    "tag": self.tag.to_json(),
-    "level": Level::Debug.to_json(),
-    "message": message.to_json(),
-    "content": content.to_json(),
-  })
+  self.log(Level::Info, message, content.to_json())
+}
+
+///|
+pub async fn Logger::debug(
+  self : Self,
+  message : @string.View,
+  content : Json,
+) -> Unit raise {
+  self.log(Level::Debug, message, content.to_json())
 }
