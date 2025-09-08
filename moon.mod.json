@@ -7,12 +7,14 @@
     "tonyfettes/encoding": "0.3.7",
     "tonyfettes/tiktoken": "0.1.1",
     "tonyfettes/uv": "0.12.6",
-    "tonyfettes/path": "0.2.1"
+    "tonyfettes/path": "0.2.1",
+    "tonyfettes/c": "0.5.3"
   },
   "readme": "README.md",
   "repository": "",
   "license": "Apache-2.0",
   "keywords": [],
   "description": "",
-  "preferred-target": "native"
+  "preferred-target": "native",
+  "--moonbit-unstable-prebuild": "build.py"
 }

@@ -33,6 +33,7 @@ impl Hash for Event
 
 pub struct EventContext {
   usage : @openai.CompletionUsage?
+  message : @openai.ChatCompletionMessage?
   origin_token_count : Int?
   pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?

@@ -1,15 +1,11 @@
 ///|
-suberror UnknownCurrentDirectory
+priv suberror UnknownCurrentDirectory
 
 ///|
 fn main {
   @async.with_event_loop(_ => {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
-    let args = @sys.get_cli_args()
-    if args.length() <= 1 {
-      println("Usage: moonagent <prompt>")
-    }
     let env = @sys.get_env_vars()
     guard env.get("OPENAI_API_KEY") is Some(api_key) else {
       println("Error: OPENAI_API_KEY environment variable not set")
@@ -20,7 +16,7 @@ fn main {
       name="anthropic/claude-sonnet-4",
       context_window=200000,
     )
-    let logger = @pino.logger(@pino.transport("console"))
+    let logger = @pino.logger(@pino.transport("file:.moonagent/log"))
     let agent = @agent.new(model, cwd~)
     defer agent.close()
     agent.add_listener(TokenCounted, context => {
@@ -44,6 +40,10 @@ fn main {
     agent.add_listener(RequestCompleted, context => {
       guard context.usage is Some(usage) else { return }
       logger.info("Request completed: Usage", { "usage": usage.to_json() })
+      guard context.message is Some(message) && message.content is Some(content) else {
+        return
+      }
+      println("> \{content}")
     })
     agent.add_listener(PreToolCall, context => {
       guard context.tool_call is Some(tool_call) else { return }
@@ -77,10 +77,12 @@ fn main {
     agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
     agent.add_tool(@tool.list_files)
     agent.add_tool(@tool.execute_command)
-    let content = args[1:].join(" ")
-    let message = @openai.user_message(content~)
-    agent.add_message(message)
-    agent.start()
+    while true {
+      let content = @readline.readline("< ")
+      let message = @openai.user_message(content~)
+      agent.add_message(message)
+      agent.start()
+    }
   }) catch {
     error => println("Error: \{error}")
   }

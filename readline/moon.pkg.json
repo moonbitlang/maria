@@ -1,0 +1,18 @@
+{
+  "native-stub": ["readline.c"],
+  "link": {
+    "native": {
+      "stub-cc": "${build.CC}",
+      "stub-cc-flags": "${build.CC_FLAGS}"
+    }
+  },
+  "test-import": [
+    "tonyfettes/encoding",
+    "tonyfettes/c"
+  ],
+  "import": [
+    "tonyfettes/c",
+    "tonyfettes/encoding",
+    "tonyfettes/c/stdlib"
+  ]
+}

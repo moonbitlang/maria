@@ -12,6 +12,7 @@ pub(all) enum Event {
 ///|
 pub struct EventContext {
   usage : @openai.CompletionUsage?
+  message : @openai.ChatCompletionMessage?
   origin_token_count : Int?
   pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
@@ -21,6 +22,7 @@ pub struct EventContext {
 ///|
 fn EventContext::new(
   usage? : @openai.CompletionUsage,
+  message? : @openai.ChatCompletionMessage,
   origin_token_count? : Int,
   pruned_token_count? : Int,
   tool_call? : @openai.ChatCompletionMessageToolCall,
@@ -28,6 +30,7 @@ fn EventContext::new(
 ) -> EventContext {
   EventContext::{
     usage,
+    message,
     origin_token_count,
     pruned_token_count,
     tool_call,
@@ -42,7 +45,7 @@ struct Agent {
   model : @model.Model
   tools : Map[String, @tool.Tool]
   history : Array[@openai.ChatCompletionMessageParam]
-  queue : Array[@openai.ChatCompletionMessageParam]
+  mut queue : Array[@openai.ChatCompletionMessageParam]
   event_target : @event.Target[Event, EventContext]
   token_counter : @token.Counter
   context_pruner : @context.Pruner
@@ -94,7 +97,9 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     )
     tools.push(tool)
   }
-  let messages = [..agent.history, ..agent.queue]
+  let staged = agent.queue
+  agent.queue = []
+  let messages = [..agent.history, ..staged]
   let origin_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
       messages~,
@@ -153,11 +158,13 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   let body = @encoding.decode(body, encoding=UTF8)
   let json = @json.parse(body)
   let completion : @openai.ChatCompletion = @json.from_json(json)
-  agent.emit(RequestCompleted, EventContext::new(usage?=completion.usage))
   guard completion.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
-  agent.history.append(agent.queue)
-  agent.queue.clear()
+  agent.emit(
+    RequestCompleted,
+    EventContext::new(usage?=completion.usage, message~),
+  )
+  agent.history.append(staged)
   agent.history.push(message.to_param())
   message
 }
@@ -205,7 +212,7 @@ pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit raise {
   agent.emit(ConversationStart, EventContext::new())
-  while true {
+  while !agent.queue.is_empty() {
     let response = agent.call()
     if response.tool_calls is [] {
       break

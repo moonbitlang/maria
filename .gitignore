@@ -2,3 +2,5 @@
 target/
 .mooncakes/
 .moonagent/
+vendor/
+compile_Flags.txt
