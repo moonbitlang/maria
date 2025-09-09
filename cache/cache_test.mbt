@@ -21,7 +21,7 @@ test "no-system" {
     {
       "role": "assistant",
       "tool_calls": [],
-      "content": [{ "type": "text", "text": "Hi, how can I help you?" }],
+      "content": "Hi, how can I help you?",
     },
     {
       "role": "user",
@@ -185,22 +185,17 @@ test "last-two" {
         },
       ],
     },
-    { "role": "user", "content": [{ "type": "text", "text": "Hello" }] },
+    { "role": "user", "content": "Hello" },
     {
       "role": "assistant",
       "tool_calls": [],
-      "content": [{ "type": "text", "text": "Hi, how can I help you?" }],
+      "content": "Hi, how can I help you?",
     },
-    {
-      "role": "user",
-      "content": [{ "type": "text", "text": "Can you tell me a joke?" }],
-    },
+    { "role": "user", "content": "Can you tell me a joke?" },
     {
       "role": "assistant",
       "tool_calls": [],
-      "content": [
-        { "type": "text", "text": "Sure! Why did the chicken cross the road?" },
-      ],
+      "content": "Sure! Why did the chicken cross the road?",
     },
     {
       "role": "user",
@@ -215,7 +210,7 @@ test "last-two" {
     {
       "role": "assistant",
       "tool_calls": [],
-      "content": [{ "type": "text", "text": "I need to call a tool." }],
+      "content": "I need to call a tool.",
     },
     {
       "role": "tool",

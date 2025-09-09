@@ -53,23 +53,16 @@ fn Transport::close(self : Transport) -> Unit {
 }
 
 ///|
-let uv : Result[@uv.Loop, @uv.Errno] = try? @uv.Loop::new()
+pub fn Transport::console() -> Transport {
+  Transport::Console
+}
 
 ///|
 pub async fn Transport::file(path : @string.View) -> Transport raise {
-  let path = @encoding.encode(path, encoding=UTF8)
-  if @uv.os_uname().sysname() == "Windows_NT" {
-    if @path.windows(path).parent() is Some(dir) {
-      let dir = dir.to_bytes()
-      if !@fs.exists(dir) {
-        uv.unwrap_or_error().fs_mkdir_sync(dir, 0o755)
-      }
-    }
-  } else if @path.posix(path).parent() is Some(dir) {
-    let dir = dir.to_bytes()
-    if !@fs.exists(dir) {
-      uv.unwrap_or_error().fs_mkdir_sync(dir, 0o755)
-    }
+  let path = @utf8.encode(path)
+  let dir : Bytes = [..@path.dirname(path)]
+  if !@fs.exists(dir) {
+    @fs.mkdir(dir, permission=0o755)
   }
   let file = if @fs.exists(path) {
     @fs.open(path, mode=WriteOnly, append=true, create=0o644)

@@ -35,6 +35,7 @@ async fn Logger::log(Self, Level, @string.View, Map[String, Json]) -> Unit
 async fn Logger::warn(Self, @string.View, Map[String, Json]) -> Unit
 
 type Transport
+fn Transport::console() -> Self
 async fn Transport::file(@string.View) -> Self
 
 // Type aliases

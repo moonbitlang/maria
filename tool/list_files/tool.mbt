@@ -17,16 +17,18 @@ pub let list_files : @tool.Tool = @tool.tool(
       return @tool.error("Error: 'path' parameter is required")
     }
     try {
-      let path = @encoding.encode(context.cwd + "/" + path, encoding=UTF8)
+      let cwd = @utf8.encode(context.cwd)
+      let path = @utf8.encode(path)
+      let path = @path.join(cwd, path)
       let dir = @fs.opendir(path)
       defer dir.close()
       let entries = []
       for entry in dir.read_all(include_special=true, include_hidden=true) {
-        let entry = path + "/" + entry
+        let entry = @path.join(path, entry)
         let file = @fs.open(entry, mode=ReadOnly)
         defer file.close()
-        let entry = match file.kind() {
-          Directory => entry + "/"
+        let entry : Bytes = match file.kind() {
+          Directory => [..entry, @path.sep]
           _ => entry
         }
         entries.push(@encoding.decode(entry, encoding=UTF8))

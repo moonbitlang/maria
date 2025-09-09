@@ -10,7 +10,7 @@ pub struct Tool {
 pub struct Result {
   output : String
   error : Error?
-}
+} derive(ToJson)
 
 ///|
 pub fn ok(output : String) -> Result {

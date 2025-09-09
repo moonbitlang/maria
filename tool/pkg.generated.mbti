@@ -2,29 +2,32 @@
 package "moonbitlang/maria/tool"
 
 // Values
-fn error(String, error? : Error) -> ToolResult
+fn context(cwd~ : String) -> Context
 
-fn ok(String) -> ToolResult
+fn error(String, error? : Error) -> Result
+
+fn ok(String) -> Result
+
+fn tool(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, Context) -> Result noraise) -> Tool
 
 // Errors
 
 // Types and methods
+pub struct Context {
+  cwd : String
+}
+
+pub struct Result {
+  output : String
+  error : Error?
+}
+impl ToJson for Result
+
 pub struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, ToolContext) -> ToolResult noraise
-}
-fn Tool::new(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, ToolContext) -> ToolResult noraise) -> Self
-
-pub struct ToolContext {
-  cwd : String
-}
-fn ToolContext::new(cwd~ : String) -> Self
-
-pub struct ToolResult {
-  output : String
-  error : Error?
+  f : async (Json, Context) -> Result noraise
 }
 
 // Type aliases
