@@ -4,6 +4,9 @@
     "moonbitlang/async/process",
     "moonbitlang/async/pipe",
     "moonbitlang/async",
-    "tonyfettes/encoding"
-  ]
+    "tonyfettes/encoding",
+    "tonyfettes/uv",
+    "tonyfettes/utf8"
+  ],
+  "is-main": true
 }
