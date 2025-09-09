@@ -1,14 +1,14 @@
 ///|
 enum Transport {
   Console
-  File(@fs.File)
+  File(path~ : Bytes, mut file~ : @fs.File?)
 }
 
 ///|
 pub suberror InvalidTransport @string.View derive(Show)
 
 ///|
-pub async fn transport(transport : @string.View) -> Transport raise {
+pub fn transport(transport : @string.View) -> Transport raise {
   let schema = StringBuilder::new()
   let path : @string.View = loop transport {
     [] as path => break path
@@ -34,7 +34,23 @@ pub async fn transport(transport : @string.View) -> Transport raise {
 async fn Transport::write(self : Transport, content : Json) -> Unit raise {
   match self {
     Console => println(content.stringify())
-    File(file) => {
+    File(path~, file~) as transport => {
+      let file = match file {
+        Some(file) => file
+        None => {
+          let dir : Bytes = [..@path.dirname(path)]
+          if !@fs.exists(dir) {
+            @fs.mkdir(dir, permission=0o755)
+          }
+          let file = if @fs.exists(path) {
+            @fs.open(path, mode=WriteOnly, append=true, create=0o644)
+          } else {
+            @fs.create(path, permission=0o644)
+          }
+          transport.file = Some(file)
+          file
+        }
+      }
       let content = content.to_json().stringify()
       let buffer = @buffer.new()
       @encoding.encode_to(content, buffer, encoding=UTF8)
@@ -48,7 +64,8 @@ async fn Transport::write(self : Transport, content : Json) -> Unit raise {
 fn Transport::close(self : Transport) -> Unit {
   match self {
     Console => ()
-    File(file) => file.close()
+    File(file=Some(file), ..) => file.close()
+    File(..) => ()
   }
 }
 
@@ -58,16 +75,6 @@ pub fn Transport::console() -> Transport {
 }
 
 ///|
-pub async fn Transport::file(path : @string.View) -> Transport raise {
-  let path = @utf8.encode(path)
-  let dir : Bytes = [..@path.dirname(path)]
-  if !@fs.exists(dir) {
-    @fs.mkdir(dir, permission=0o755)
-  }
-  let file = if @fs.exists(path) {
-    @fs.open(path, mode=WriteOnly, append=true, create=0o644)
-  } else {
-    @fs.create(path, permission=0o644)
-  }
-  Transport::File(file)
+pub fn Transport::file(path : @string.View) -> Transport {
+  Transport::File(path=@utf8.encode(path), file=None)
 }

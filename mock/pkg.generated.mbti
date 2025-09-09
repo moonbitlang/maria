@@ -2,13 +2,15 @@
 package "moonbitlang/maria/mock"
 
 // Values
-async fn directory(name? : String) -> Directory
+async fn directory(String) -> Directory
 
 // Errors
 
 // Types and methods
 type Directory
 async fn Directory::add_file(Self, String, String) -> Unit
+async fn Directory::close(Self) -> Unit
+fn Directory::path(Self) -> String raise
 async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit) -> Unit
 
 // Type aliases

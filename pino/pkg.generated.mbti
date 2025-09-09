@@ -7,9 +7,9 @@ import(
 )
 
 // Values
-fn logger(tag? : String, level? : Level, Transport) -> Logger
+fn logger(String, level? : Level, Transport) -> Logger
 
-async fn transport(@string.View) -> Transport
+fn transport(@string.View) -> Transport raise
 
 // Errors
 pub suberror InvalidTransport @string.View
@@ -26,17 +26,18 @@ pub(all) enum Level {
 }
 
 type Logger
-fn Logger::child(Self, tag? : String) -> Self
+fn Logger::child(Self, String) -> Self
 fn Logger::close(Self) -> Unit
-async fn Logger::debug(Self, @string.View, Map[String, Json]) -> Unit
-async fn Logger::error(Self, @string.View, Map[String, Json]) -> Unit
-async fn Logger::info(Self, @string.View, Map[String, Json]) -> Unit
-async fn Logger::log(Self, Level, @string.View, Map[String, Json]) -> Unit
-async fn Logger::warn(Self, @string.View, Map[String, Json]) -> Unit
+fn Logger::debug(Self, @string.View, Map[String, Json]) -> Unit
+fn Logger::error(Self, @string.View, Map[String, Json]) -> Unit
+fn Logger::info(Self, @string.View, Map[String, Json]) -> Unit
+fn Logger::log(Self, Level, @string.View, Map[String, Json]) -> Unit
+async fn Logger::start(Self) -> Unit
+fn Logger::warn(Self, @string.View, Map[String, Json]) -> Unit
 
 type Transport
 fn Transport::console() -> Self
-async fn Transport::file(@string.View) -> Self
+fn Transport::file(@string.View) -> Self
 
 // Type aliases
 

@@ -3,7 +3,7 @@ priv suberror UnknownCurrentDirectory
 
 ///|
 fn main {
-  @async.with_event_loop(_ => {
+  @async.with_event_loop(group => {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let env = @sys.get_env_vars()
@@ -16,7 +16,7 @@ fn main {
       name="anthropic/claude-sonnet-4",
       context_window=200000,
     )
-    let logger = @pino.logger(@pino.transport("file:.moonagent/log"))
+    let logger = @pino.logger("main", @pino.transport("file:.moonagent/log"))
     let agent = @agent.new(model, cwd~)
     defer agent.close()
     agent.add_listener(TokenCounted, context => {
@@ -77,8 +77,12 @@ fn main {
     agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
     agent.add_tool(@list_files.list_files)
     agent.add_tool(@execute_command.execute_command)
+    let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
+    rl.set_prompt("< ")
+    group.spawn_bg(() => rl.start())
     while true {
-      let content = @readline.readline("< ")
+      rl.prompt()
+      let content : String = rl.read_line()
       let message = @openai.user_message(content~)
       agent.add_message(message)
       agent.start()
