@@ -74,7 +74,31 @@ pub fn stem(path : @bytes.View) -> @bytes.View {
 }
 
 ///|
+fn trim_sep(p : @bytes.View) -> @bytes.View {
+  if sep == '\\' {
+    loop p {
+      [.. p, '\\' | '/'] => continue p
+      _ => break
+    }
+  } else {
+    loop p {
+      [.. p, '/'] => continue p
+      _ => break
+    }
+  }
+  return p
+}
+
+///|
 pub fn join(p : @bytes.View, q : @bytes.View) -> Bytes {
+  let p = trim_sep(p)
+  let q = trim_sep(q)
+  if p is ("" | ".") {
+    return q.to_bytes()
+  }
+  if q is ("" | ".") {
+    return p.to_bytes()
+  }
   let buffer = @buffer.new()
   buffer.write_bytesview(p)
   buffer.write_byte(sep)

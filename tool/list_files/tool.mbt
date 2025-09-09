@@ -19,20 +19,21 @@ pub let list_files : @tool.Tool = @tool.tool(
     try {
       let cwd = @utf8.encode(context.cwd)
       let path = @utf8.encode(path)
-      let path = @path.join(cwd, path)
-      let dir = @fs.opendir(path)
+      let dirname = @path.join(cwd, path)
+      let dir = @fs.opendir(dirname)
       defer dir.close()
       let entries = []
-      for entry in dir.read_all(include_special=true, include_hidden=true) {
-        let entry = @path.join(path, entry)
-        let file = @fs.open(entry, mode=ReadOnly)
+      for basename in dir.read_all() {
+        let filename = @path.join(dirname, basename)
+        let file = @fs.open(filename, mode=ReadOnly)
         defer file.close()
-        let entry : Bytes = match file.kind() {
-          Directory => [..entry, @path.sep]
-          _ => entry
+        let basename : Bytes = match file.kind() {
+          Directory => [..basename, @path.sep]
+          _ => basename
         }
-        entries.push(@encoding.decode(entry, encoding=UTF8))
+        entries.push(@utf8.decode(@path.join(path, basename)))
       }
+      entries.sort()
       @tool.ok(entries.join("\n"))
     } catch {
       error => @tool.error("Error listing files: \{error}", error~)
