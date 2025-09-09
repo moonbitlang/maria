@@ -1,0 +1,8 @@
+{
+  "import": [
+    "moonbitlang/async/fs",
+    "tonyfettes/uv",
+    "moonbitlang/maria/path",
+    "tonyfettes/utf8"
+  ]
+}

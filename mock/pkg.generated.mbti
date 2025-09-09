@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/mock"
+
+// Values
+async fn directory(name? : String) -> Directory
+
+// Errors
+
+// Types and methods
+type Directory
+async fn Directory::add_file(Self, String, String) -> Unit
+async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit) -> Unit
+
+// Type aliases
+
+// Traits
+
