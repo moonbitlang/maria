@@ -77,8 +77,7 @@ fn main {
     agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
     agent.add_tool(@list_files.list_files)
     agent.add_tool(@execute_command.execute_command)
-    while true {
-      let content = @readline.readline("< ")
+    while @readline.readline("< ") is Some(content) {
       let message = @openai.user_message(content~)
       agent.add_message(message)
       agent.start()

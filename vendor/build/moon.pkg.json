@@ -1,0 +1,12 @@
+{
+  "is-main": true,
+  "import": [
+    "moonbitlang/async",
+    "tonyfettes/uv",
+    "moonbitlang/maria/vendor/build/path",
+    "moonbitlang/async/fs",
+    "tonyfettes/utf8",
+    "moonbitlang/async/process",
+    "moonbitlang/async/pipe"
+  ]
+}

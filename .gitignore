@@ -2,5 +2,8 @@
 target/
 .mooncakes/
 .moonagent/
-vendor/
+.local/
 compile_Flags.txt
+
+# Mocked directory for testing
+.tmp/

@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/path"
+
+import(
+  "moonbitlang/core/bytes"
+)
+
+// Values
+fn basename(@bytes.View) -> @bytes.View
+
+fn dirname(@bytes.View) -> @bytes.View
+
+fn ext(@bytes.View) -> @bytes.View
+
+fn join(@bytes.View, @bytes.View) -> Bytes
+
+let sep : Byte
+
+fn stem(@bytes.View) -> @bytes.View
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

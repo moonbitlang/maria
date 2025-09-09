@@ -1,0 +1,31 @@
+{
+  "source": [
+    {
+      "type": "archive",
+      "url": "https://thrysoee.dk/editline/libedit-20250104-3.1.tar.gz"
+    }
+  ],
+  "build": {
+    "steps": [
+      {
+        "type": "autotools",
+        "working-directory": "libedit-20250104-3.1",
+        "configure-flags": ["--disable-shared"]
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "lib/libedit.a"
+    }
+  ],
+  "configs": [
+    {
+      "package": "moonbitlang/maria/readline",
+      "libraries": ["edit", "ncurses"]
+    }
+  ],
+  "moon": {
+    "--moonbit-unstable-prebuild": "build.py"
+  }
+}
