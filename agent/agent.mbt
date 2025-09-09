@@ -16,7 +16,7 @@ pub struct EventContext {
   origin_token_count : Int?
   pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.ToolResult?
+  tool_call_result : @tool.Result?
 }
 
 ///|
@@ -26,7 +26,7 @@ fn EventContext::new(
   origin_token_count? : Int,
   pruned_token_count? : Int,
   tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : @tool.ToolResult,
+  tool_call_result? : @tool.Result,
 ) -> EventContext {
   EventContext::{
     usage,
@@ -180,7 +180,7 @@ async fn Agent::execute_tool(
       tool_call_id=tool_call.id,
     )
   }
-  let context = @tool.ToolContext::new(cwd=agent.cwd)
+  let context = @tool.context(cwd=agent.cwd)
   agent.emit(PreToolCall, EventContext::new(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>

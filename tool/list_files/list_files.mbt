@@ -1,5 +1,5 @@
 ///|
-pub let list_files : @tool.Tool = @tool.Tool::new(
+pub let list_files : @tool.Tool = @tool.tool(
   description="List files in a directory",
   name="list_files",
   parameters={

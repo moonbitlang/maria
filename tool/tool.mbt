@@ -3,44 +3,44 @@ pub struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, ToolContext) -> ToolResult noraise
+  f : async (Json, Context) -> Result noraise
 }
 
 ///|
-pub struct ToolResult {
+pub struct Result {
   output : String
   error : Error?
 }
 
 ///|
-pub fn ok(output : String) -> ToolResult {
-  ToolResult::{ output, error: None }
+pub fn ok(output : String) -> Result {
+  Result::{ output, error: None }
 }
 
 ///|
 pub fn error(
   output : String,
   error? : Error = Failure(output),
-) -> ToolResult {
-  ToolResult::{ output, error: Some(error) }
+) -> Result {
+  Result::{ output, error: Some(error) }
 }
 
 ///|
-pub fn Tool::new(
+pub fn tool(
   description~ : String,
   name~ : String,
   parameters~ : Map[String, Json],
-  f : async (Json, ToolContext) -> ToolResult noraise,
+  f : async (Json, Context) -> Result noraise,
 ) -> Tool {
   Tool::{ description, name, parameters, f }
 }
 
 ///|
-pub struct ToolContext {
+pub struct Context {
   cwd : String
 }
 
 ///|
-pub fn ToolContext::new(cwd~ : String) -> ToolContext {
-  ToolContext::{ cwd, }
+pub fn context(cwd~ : String) -> Context {
+  Context::{ cwd, }
 }

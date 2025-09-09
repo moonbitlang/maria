@@ -4,7 +4,7 @@ priv suberror TimeoutError {
 }
 
 ///|
-pub let execute_command : @tool.Tool = @tool.Tool::new(
+pub let execute_command : @tool.Tool = @tool.tool(
   description="Execute a shell command",
   name="execute_command",
   parameters={

@@ -24,7 +24,7 @@ fn main {
       }
       break
     }
-    [arg, ..rest] => {
+    [arg, .. rest] => {
       command.push(arg)
       for arg in rest {
         command.push(arg)
@@ -32,7 +32,7 @@ fn main {
       break
     }
   }
-  guard command is [command, ..arguments] else {
+  guard command is [command, .. arguments] else {
     println("Error: command should not be empty")
     return
   }
@@ -48,7 +48,7 @@ fn main {
       return
     }
   }
-  let context = @tool.ToolContext::new(cwd~)
+  let context = @tool.context(cwd~)
   @async.with_event_loop(_ => println((execute_command.f)(json, context).output)) catch {
     error => println("Error executing command: \{error}")
   }
