@@ -21,8 +21,38 @@ def extract(tar_path: str, extract_path: str):
         tar.extractall(path=extract_path)
 
 
-def gpg_verify(key_path: Path, sig_path: Path, tar_path: Path):
+GPG_KEY = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.2.4 (Darwin)
+
+mQGiBEEOsGwRBACFa0A1oa71HSZLWxAx0svXzhOZNQZOzqHmSuGOG92jIpQpr8Dp
+vgRh40YpAwdcXb8QG1J5yGAKeevNE1zCFaA725vGSdHUyypHouV0xoWwukYO6qly
+yX+2BZU+okBUqoWQkoWxiYaCSfzB2Ln7pmdys1fJhcgBKf3VjWCjd2XJTwCgoFJO
+wyBFJdugjfwjSoRSwDOIMf0D/iQKqlWhIO1LGpMrGX0il0/x4zj0NAcSwAk7LaPZ
+bN4UPjn5pqGEHBlf1+xDDQCkAoZ/VqESGZragl4VqJfxBr29Ag0UDvNbUbXoxQsA
+Rdero1M8GiAIRc50hj7HXFoERwenbNDJL86GPLAQOTGOCa4W2o29nFfFjQrsrrYH
+zVtyA/9oyKvTeEMJ7NA3VJdWcmn7gOu0FxEmSNhSoV1T4vP21Wf7f5niCCRKQLNy
+Uy0wEApQi4tSysdz+AbgAc0b/bHYVzIf2uO2lIEZQNNt+3g2bmXgloWmW5fsm/di
+50Gm1l1Na63d3RZ00SeFQos6WEwLUHEB0yp6KXluXLLIZitEJLQaQ2hldCBSYW1l
+eSA8Y2hldEBjd3J1LmVkdT6IXgQTEQIAHgUCQQ6wbAIbAwYLCQgHAwIDFQIDAxYC
+AQIeAQIXgAAKCRC7WGnwZOp0q87NAJ99FEzFvDdYzqCczXF6KKXi7YN5OACfacDY
+soZcnnsy7EjBZL0zwGwb/sG5AQ0EQQ6wbxAEAJCukwDigRDPhAuI+lf+6P64lWan
+IFOXIndqhvU13cDbQ/Wt5LwPzm2QTvd7F+fcHOgZ8KOFScbDpjJaRqwIybMTcIN0
+B2pBLX/C10W1aY+cUrXZgXUGVISEMmpaP9v02auToo7XXVEHC+XLO9IU7/xaU98F
+L69l6/K4xeNSBRM/AAMHA/wNAmRBpcyK0+VggZ5esQaIP/LyolAm2qwcmrd3dZi+
+g24s7yjV0EUwvRP7xHRDQFgkAo6++QbuecU/J90lxrVnQwucZmfz9zgWDkT/MpfB
+/CNRSKLFjhYq2yHmHWT6vEjw9Ry/hF6Pc0oh1a62USdfaKAiim0nVxxQmPmiRvtC
+mYhJBBgRAgAJBQJBDrBvAhsMAAoJELtYafBk6nSr43AAn2ZZFQg8Gs/zUzvXMt7e
+vaFqVTzcAJ0cHtKpP1i/4H4R9+OsYeQdxxWxTQ==
+=2MjR
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+
+
+def gpg_verify(sig_path: Path, tar_path: Path):
     with tempfile.TemporaryDirectory() as tempdir:
+        key_path = Path(tempdir) / "gpgkey.asc"
+        with open(key_path, "w") as f:
+            f.write(GPG_KEY)
         subprocess.run(
             [
                 "gpg",
@@ -88,10 +118,8 @@ def main():
         env = data
     tar_url = "ftp://ftp.gnu.org/gnu/readline/readline-8.3.tar.gz"
     sig_url = tar_url + ".sig"
-    key_url = "http://tiswww.cwru.edu/~chet/gpgkey.asc"
     tar = VENDOR / "src" / "readline-8.3.tar.gz"
     sig = VENDOR / "src" / "readline-8.3.tar.gz.sig"
-    key = VENDOR / "src" / "chet.ramey.asc"
     dst = VENDOR / "src"
     if not is_readline_built():
         if not dst.exists():
@@ -100,9 +128,7 @@ def main():
             download(tar_url, tar)
         if not sig.exists():
             download(sig_url, sig)
-        if not key.exists():
-            download(key_url, key)
-        gpg_verify(key, sig, tar)
+        gpg_verify(sig, tar)
         shutil.rmtree(dst / "readline-8.3", ignore_errors=True)
         extract(tar, dst)
         build_readline(dst / "readline-8.3")
