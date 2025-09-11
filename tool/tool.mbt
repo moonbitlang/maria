@@ -18,10 +18,7 @@ pub fn ok(output : String) -> Result {
 }
 
 ///|
-pub fn error(
-  output : String,
-  error? : Error = Failure(output),
-) -> Result {
+pub fn error(output : String, error? : Error = Failure(output)) -> Result {
   Result::{ output, error: Some(error) }
 }
 
@@ -43,4 +40,13 @@ pub struct Context {
 ///|
 pub fn context(cwd~ : String) -> Context {
   Context::{ cwd, }
+}
+
+///|
+pub async fn Tool::call(
+  self : Tool,
+  args : Json,
+  context : Context,
+) -> Result noraise {
+  (self.f)(args, context)
 }
