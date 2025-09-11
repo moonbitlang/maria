@@ -269,7 +269,7 @@ async fn[T] with_retry(
 /// no tools, and a fresh event target for handling agent lifecycle events.
 pub async fn new(model : @model.Model, cwd~ : String) -> Agent raise {
   Agent::{
-    logger: @pino.logger(@pino.transport("file:.moonagent/log")),
+    logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     history: [],
     cwd,
     model,

@@ -8,8 +8,9 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/pino",
-    "moonbitlang/maria/readline",
     "moonbitlang/maria/tool/list_files",
-    "moonbitlang/maria/tool/execute_command"
+    "moonbitlang/maria/tool/execute_command",
+    "moonbitlang/maria/readline",
+    "moonbitlang/async/pipe"
   ]
 }

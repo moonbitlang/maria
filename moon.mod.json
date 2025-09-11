@@ -5,15 +5,14 @@
     "moonbitlang/async": "0.5.3",
     "moonbitlang/x": "0.4.32",
     "tonyfettes/tiktoken": "0.1.1",
-    "tonyfettes/uv": "0.12.6",
-    "tonyfettes/c": "0.5.3",
-    "tonyfettes/utf8": "0.1.3"
+    "tonyfettes/uv": "0.12.8",
+    "tonyfettes/utf8": "0.1.3",
+    "rami3l/unicodewidth": "0.2.0"
   },
   "readme": "README.md",
   "repository": "",
   "license": "Apache-2.0",
   "keywords": [],
   "description": "",
-  "preferred-target": "native",
-  "--moonbit-unstable-prebuild": "build.py"
+  "preferred-target": "native"
 }

@@ -2,16 +2,17 @@
 struct Logger {
   tag : String
   level : Level
+  queue : @aqueue.Queue[Json]
   transport : Transport
 }
 
 ///|
 pub fn logger(
-  tag? : String = "",
+  tag : String,
   level? : Level = Info,
   transport : Transport,
 ) -> Logger {
-  Logger::{ tag, level, transport }
+  Logger::{ tag, level, queue: @aqueue.Queue::new(), transport }
 }
 
 ///|
@@ -20,70 +21,93 @@ pub fn Logger::close(self : Logger) -> Unit {
 }
 
 ///|
-pub async fn Logger::log(
+pub fn Logger::log(
   self : Self,
   level : Level,
   message : @string.View,
   content : Map[String, Json],
-) -> Unit raise {
+) -> Unit {
   if self.level.to_int() < level.to_int() {
     return
   }
-  let time = @uv.gettimeofday()
-  let time_ms = time.sec() * 1000 + time.usec().to_int64() / 1000
   let object : Map[String, Json] = {
     "level": level.to_int().to_json(),
-    "time": Json::number(time_ms.to_double(), repr=time_ms.to_string()),
-    "pid": @uv.os_getpid().to_json(),
-    "hostname": @encoding.decode(@uv.os_gethostname(), encoding=UTF8).to_json(),
+    "pid": @uv.os_getpid().to_int().to_json(),
     "msg": message.to_json(),
   }
-  if self.tag != "" {
-    object["tag"] = self.tag.to_json()
+  try {
+    object["hostname"] = @encoding.decode(@uv.os_gethostname(), encoding=UTF8).to_json()
+  } catch {
+    _ => ()
+  }
+  try {
+    let time = @uv.gettimeofday()
+    let time_ms = time.sec() * 1000 + time.usec().to_int64() / 1000
+    object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
+    if self.tag != "" {
+      object["tag"] = self.tag.to_json()
+    }
+  } catch {
+    _ => ()
   }
   for k, v in content {
     object[k] = v
   }
-  self.transport.write(object.to_json())
+  self.queue.put(object.to_json())
 }
 
 ///|
-pub async fn Logger::error(
+pub fn Logger::error(
   self : Self,
   message : @string.View,
   content : Map[String, Json],
-) -> Unit raise {
+) -> Unit {
   self.log(Level::Error, message, content)
 }
 
 ///|
-pub async fn Logger::warn(
+pub fn Logger::warn(
   self : Self,
   message : @string.View,
   content : Map[String, Json],
-) -> Unit raise {
+) -> Unit {
   self.log(Level::Warn, message, content)
 }
 
 ///|
-pub async fn Logger::info(
+pub fn Logger::info(
   self : Self,
   message : @string.View,
   content : Map[String, Json],
-) -> Unit raise {
+) -> Unit {
   self.log(Level::Info, message, content)
 }
 
 ///|
-pub async fn Logger::debug(
+pub fn Logger::debug(
   self : Self,
   message : @string.View,
   content : Map[String, Json],
-) -> Unit raise {
+) -> Unit {
   self.log(Level::Debug, message, content)
 }
 
 ///|
-pub fn Logger::child(self : Logger, tag? : String = self.tag) -> Logger {
-  Logger::{ tag, level: self.level, transport: self.transport }
+pub fn Logger::child(self : Logger, tag : String) -> Logger {
+  Logger::{
+    tag,
+    level: self.level,
+    queue: @aqueue.Queue::new(),
+    transport: self.transport,
+  }
+}
+
+///|
+pub async fn Logger::start(self : Logger) -> Unit raise {
+  loop self.queue.get() {
+    json => {
+      self.transport.write(json)
+      continue self.queue.get()
+    }
+  }
 }

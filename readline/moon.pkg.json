@@ -1,18 +1,13 @@
 {
-  "native-stub": ["readline.c"],
-  "link": {
-    "native": {
-      "stub-cc": "${build.CC}",
-      "stub-cc-flags": "${build.CC_FLAGS}"
-    }
-  },
-  "test-import": [
-    "tonyfettes/encoding",
-    "tonyfettes/c"
-  ],
   "import": [
-    "tonyfettes/c",
-    "tonyfettes/encoding",
-    "tonyfettes/c/stdlib"
+    "tonyfettes/uv",
+    "moonbitlang/async/pipe",
+    "tonyfettes/utf8",
+    "moonbitlang/maria/readline/csi",
+    "moonbitlang/async/aqueue",
+    "rami3l/unicodewidth",
+    "moonbitlang/async",
+    "moonbitlang/maria/readline/unicode",
+    "moonbitlang/maria/pino"
   ]
 }

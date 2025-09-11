@@ -4,6 +4,7 @@
     "tonyfettes/encoding",
     "tonyfettes/uv",
     "tonyfettes/utf8",
-    "moonbitlang/maria/path"
+    "moonbitlang/maria/path",
+    "moonbitlang/async/aqueue"
   ]
 }
