@@ -22,7 +22,7 @@ pub let execute_command : @tool.Tool = @tool.tool(
       },
       "timeout": {
         "type": "number",
-        "description": "The timeout in seconds for the command to execute",
+        "description": "The timeout in milliseconds for the command to execute",
         "default": 10,
       },
     },
@@ -43,7 +43,7 @@ pub let execute_command : @tool.Tool = @tool.tool(
     let arguments : Array[String] = @json.from_json(arguments) catch {
       error => return @tool.error("Error parsing 'arguments': \{error}")
     }
-    let timeout = (timeout * 1000).to_int()
+    let timeout = timeout.to_int()
     try {
       let result = @async.with_timeout_opt(timeout, () => {
         let cmd = @encoding.encode(command, encoding=UTF8)

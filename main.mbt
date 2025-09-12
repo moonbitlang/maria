@@ -65,8 +65,10 @@ fn main {
         "name": tool_call.function.name.to_json(),
       })
       guard context.tool_call_result is Some(result) else { return }
+      println("> Tool result: \{result.output}")
       logger.info("Tool result", { "output": result.output.to_json() })
       if result.error is Some(error) {
+        println("> Tool error: \{error}")
         logger.error("Tool error", { "error": error.to_json() })
       }
     })
