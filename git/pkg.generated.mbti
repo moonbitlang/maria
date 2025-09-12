@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/git"
+
+// Values
+async fn clone(url~ : String, destination~ : String) -> StringView
+
+async fn commit(message~ : String, Array[String], cwd? : String) -> String
+
+async fn create_branch(branch_name~ : String, cwd? : String) -> String
+
+async fn generate_git_diff(original~ : String, modified~ : String) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

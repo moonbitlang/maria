@@ -3,8 +3,6 @@ package "moonbitlang/maria/readline"
 
 import(
   "moonbitlang/async/pipe"
-  "moonbitlang/core/bytes"
-  "moonbitlang/core/string"
 )
 
 // Values
@@ -17,18 +15,18 @@ pub suberror Aborted {
 
 // Types and methods
 pub(all) struct CompletionResult {
-  completions : Array[@string.View]
-  complete_on : @string.View
+  completions : Array[StringView]
+  complete_on : StringView
 }
 
 type Interface
 fn Interface::add_new_line_on_tty(Self) -> Unit
 fn Interface::close(Self) -> Unit
 async fn Interface::prompt(Self, preserve_cursor? : Bool) -> Unit
-async fn Interface::question(Self, @string.View) -> String
+async fn Interface::question(Self, StringView) -> String
 async fn Interface::read_key(Self) -> Key
 async fn Interface::read_line(Self) -> String
-fn Interface::set_line(Self, @bytes.View) -> Unit
+fn Interface::set_line(Self, BytesView) -> Unit
 fn Interface::set_prompt(Self, Bytes) -> Unit
 async fn Interface::start(Self) -> Unit
 

@@ -3,16 +3,15 @@ package "moonbitlang/maria/pino"
 
 import(
   "moonbitlang/core/builtin"
-  "moonbitlang/core/string"
 )
 
 // Values
 fn logger(String, level? : Level, Transport) -> Logger
 
-fn transport(@string.View) -> Transport raise
+fn transport(StringView) -> Transport raise
 
 // Errors
-pub suberror InvalidTransport @string.View
+pub suberror InvalidTransport StringView
 impl Show for InvalidTransport
 
 // Types and methods
@@ -28,16 +27,16 @@ pub(all) enum Level {
 type Logger
 fn Logger::child(Self, String) -> Self
 fn Logger::close(Self) -> Unit
-fn Logger::debug(Self, @string.View, Map[String, Json]) -> Unit
-fn Logger::error(Self, @string.View, Map[String, Json]) -> Unit
-fn Logger::info(Self, @string.View, Map[String, Json]) -> Unit
-fn Logger::log(Self, Level, @string.View, Map[String, Json]) -> Unit
+fn Logger::debug(Self, StringView, Map[String, Json]) -> Unit
+fn Logger::error(Self, StringView, Map[String, Json]) -> Unit
+fn Logger::info(Self, StringView, Map[String, Json]) -> Unit
+fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
 async fn Logger::start(Self) -> Unit
-fn Logger::warn(Self, @string.View, Map[String, Json]) -> Unit
+fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
 
 type Transport
 fn Transport::console() -> Self
-fn Transport::file(@string.View) -> Self
+fn Transport::file(StringView) -> Self
 
 // Type aliases
 

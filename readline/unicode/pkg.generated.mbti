@@ -1,18 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/readline/unicode"
 
-import(
-  "moonbitlang/core/bytes"
-)
-
 // Values
-fn char_size_left(@bytes.View, Int) -> Int
+fn char_size_left(BytesView, Int) -> Int
 
-fn char_size_right(@bytes.View, Int) -> Int
+fn char_size_right(BytesView, Int) -> Int
 
-fn char_width_left(@bytes.View, Int) -> Int
+fn char_width_left(BytesView, Int) -> Int
 
-fn char_width_right(@bytes.View, Int) -> Int
+fn char_width_right(BytesView, Int) -> Int
 
 // Errors
 

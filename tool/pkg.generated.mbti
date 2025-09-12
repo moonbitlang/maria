@@ -29,6 +29,7 @@ pub struct Tool {
   parameters : Map[String, Json]
   f : async (Json, Context) -> Result noraise
 }
+async fn Tool::call(Self, Json, Context) -> Result noraise
 
 // Type aliases
 

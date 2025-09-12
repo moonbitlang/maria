@@ -1,22 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/path"
 
-import(
-  "moonbitlang/core/bytes"
-)
-
 // Values
-fn basename(@bytes.View) -> @bytes.View
+fn basename(BytesView) -> BytesView
 
-fn dirname(@bytes.View) -> @bytes.View
+fn dirname(BytesView) -> BytesView
 
-fn ext(@bytes.View) -> @bytes.View
+fn ext(BytesView) -> BytesView
 
-fn join(@bytes.View, @bytes.View) -> Bytes
+fn join(BytesView, BytesView) -> Bytes
 
 let sep : Byte
 
-fn stem(@bytes.View) -> @bytes.View
+fn stem(BytesView) -> BytesView
 
 // Errors
 
