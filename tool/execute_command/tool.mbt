@@ -1,7 +1,7 @@
 ///|
 pub suberror TimeoutError {
   TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
-} derive(ToJson(style="flat"), Show)
+} derive(ToJson, Show)
 
 ///|
 pub let execute_command : @tool.Tool = @tool.tool(

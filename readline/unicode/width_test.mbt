@@ -9,6 +9,7 @@ test "char_width_left" {
   @json.inspect(@unicode.char_width_left(string, string.length()), content=1)
 }
 
+///|
 test "char_width_right" {
   let string : Bytes = "aあ𠮷👋🌍🙂‍↕️"
   @json.inspect(@unicode.char_width_right(string, 0), content=1)
