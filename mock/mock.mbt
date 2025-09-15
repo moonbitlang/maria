@@ -7,7 +7,7 @@ pub async fn directory(name : String) -> Directory raise {
   if !@fs.exists(".tmp") {
     @fs.mkdir(".tmp", permission=0o755)
   }
-  let tmpdir = @g.uv().fs_mkdtemp_sync(@path.join(".tmp", template))
+  let tmpdir = @global.uv().fs_mkdtemp_sync(@path.join(".tmp", template))
   return Directory(tmpdir)
 }
 

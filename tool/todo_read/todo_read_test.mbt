@@ -1,6 +1,6 @@
 ///|
 test "todo_read" {
-  @g.set_seed()
+  @global.set_seed()
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-todo_read")
     g.add_defer(() => cwd.close())

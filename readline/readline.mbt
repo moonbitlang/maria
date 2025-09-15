@@ -105,7 +105,7 @@ pub fn interface(
   input~ : @pipe.PipeRead,
   output? : @pipe.PipeWrite = @pipe.stdout,
 ) -> Interface raise {
-  let uv = @g.uv()
+  let uv = @global.uv()
   let tty = @uv.Tty::new(uv, @uv.File::of_int(input.fd()))
   tty.set_mode(@uv.TtyMode::raw())
   Interface::{

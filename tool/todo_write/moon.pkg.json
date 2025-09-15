@@ -6,6 +6,6 @@
   "test-import": [
     "moonbitlang/async",
     "moonbitlang/maria/mock",
-    "moonbitlang/maria/internal/g"
+    "moonbitlang/maria/internal/global"
   ]
 }

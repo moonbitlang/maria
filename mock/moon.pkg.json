@@ -4,6 +4,6 @@
     "tonyfettes/uv",
     "moonbitlang/maria/internal/path",
     "tonyfettes/utf8",
-    "moonbitlang/maria/internal/g"
+    "moonbitlang/maria/internal/global"
   ]
 }

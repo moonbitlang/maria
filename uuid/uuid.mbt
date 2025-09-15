@@ -9,7 +9,7 @@ pub fn Uuid::to_string(self : Uuid) -> String {
 ///|
 pub fn uuid() -> Uuid raise {
   let buffer = @buffer.new()
-  buffer.write_uint64_le(@g.rand().uint64())
-  buffer.write_uint64_le(@g.rand().uint64())
+  buffer.write_uint64_le(@global.rand().uint64())
+  buffer.write_uint64_le(@global.rand().uint64())
   @uuid.from_bytes(buffer.to_bytes())
 }

@@ -1,6 +1,6 @@
 ///|
 test "todo_write create" {
-  @g.set_seed()
+  @global.set_seed()
   @async.with_event_loop(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
