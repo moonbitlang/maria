@@ -103,7 +103,6 @@ fn Manager::todo_file_path(self : Manager) -> @string.View {
 ///|
 pub async fn Manager::load(self : Manager) -> Unit {
   let path = self.todo_file_path()
-  println("Manager::load: \{path.to_string()}")
   if !@fs.exists(path) {
     return
   }
@@ -278,9 +277,7 @@ pub fn Manager::get(self : Manager, index : Index) -> Item {
 ///|
 pub async fn save(self : Manager) -> Unit raise {
   let todo_file_path = self.todo_file_path()
-  println("todo_file_path: \{todo_file_path.to_string()}")
   @fs.make_directory(@path.dirname(todo_file_path))
-  println("Saving todos to \{todo_file_path.to_string()}")
   self.updated_at = get_current_timestamp()
   let json : Json = {
     "created_at": self.created_at,

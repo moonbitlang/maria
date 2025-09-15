@@ -65,7 +65,6 @@ pub async fn generate_git_diff(
       @fs.write_to_file(original_path, original)
       let modified_path = @path.join(tmpdir, "modified.txt")
       @fs.write_to_file(modified_path, modified)
-      let buffer = @buffer.new()
       group.add_defer(() => @fs.remove(original_path))
       group.add_defer(() => @fs.remove(modified_path))
       let output = StringBuilder::new()
@@ -78,7 +77,7 @@ pub async fn generate_git_diff(
         output~,
       )
       |> ignore()
-      @utf8.decode(buffer.contents())
+      output.to_string()
     },
   ))
 }

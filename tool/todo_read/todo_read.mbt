@@ -4,7 +4,6 @@ async fn execute(_ : Json, context : @tool.Context) -> @tool.Result noraise {
   try {
     let manager = @todo.Manager::new(cwd=context.cwd)
     manager.load()
-    println("Loaded todos: \{manager.todos.length()}")
     @tool.ok(manager.display())
   } catch {
     error => @tool.error("Error reading todo list: \{error}", error~)

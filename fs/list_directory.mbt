@@ -12,7 +12,7 @@ pub async fn list_directory(path : @string.View) -> Array[String] raise {
       Directory => [..basename, @path.sep]
       _ => basename
     }
-    entries.push(@utf8.decode(@path.join(dirname, basename)))
+    entries.push(@utf8.decode(basename))
   }
   entries.sort()
   entries

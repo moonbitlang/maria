@@ -209,7 +209,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
     let resolved_path = @path.join(context.cwd, path)
 
     // Create directory if it doesn't exist
-    @fs.make_directory(resolved_path)
+    @fs.make_directory(@path.dirname(resolved_path))
 
     // Check if file exists
     guard @fs.exists(resolved_path) else {
