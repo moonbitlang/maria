@@ -3,7 +3,8 @@
     "tonyfettes/utf8",
     "moonbitlang/async/fs",
     "tonyfettes/uv",
-    "moonbitlang/maria/internal/path"
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/g"
   ],
   "test-import": [
     "moonbitlang/async",

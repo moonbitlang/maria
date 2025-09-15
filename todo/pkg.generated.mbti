@@ -1,0 +1,46 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/todo"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Item
+fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Unit raise
+impl ToJson for Item
+impl @json.FromJson for Item
+
+type Manager
+fn Manager::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Unit raise
+fn Manager::display(Self) -> String
+fn Manager::find(Self, String) -> Item?
+async fn Manager::load(Self) -> Unit
+fn Manager::new(cwd~ : StringView) -> Self raise
+fn Manager::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
+async fn Manager::save(Self) -> Unit
+
+pub(all) enum Priority {
+  High
+  Medium
+  Low
+}
+impl ToJson for Priority
+impl @json.FromJson for Priority
+
+pub(all) enum Status {
+  Pending
+  InProgress
+  Completed
+}
+impl ToJson for Status
+impl @json.FromJson for Status
+
+// Type aliases
+
+// Traits
+

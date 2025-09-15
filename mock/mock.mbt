@@ -2,17 +2,12 @@
 struct Directory(Bytes)
 
 ///|
-let uv : Result[@uv.Loop, @uv.Errno] = try? @uv.Loop::new()
-
-///|
 pub async fn directory(name : String) -> Directory raise {
   let template = @utf8.encode("maria-mock-\{name}-XXXXXX")
   if !@fs.exists(".tmp") {
     @fs.mkdir(".tmp", permission=0o755)
   }
-  let tmpdir = uv
-    .unwrap_or_error()
-    .fs_mkdtemp_sync(@path.join(".tmp", template))
+  let tmpdir = @g.uv().fs_mkdtemp_sync(@path.join(".tmp", template))
   return Directory(tmpdir)
 }
 

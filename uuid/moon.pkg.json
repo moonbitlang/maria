@@ -1,0 +1,4 @@
+{
+  "import": ["moonbitlang/x/uuid", "moonbitlang/maria/internal/g"],
+  "test-import": [{ "path": "moonbitlang/maria/uuid", "alias": "self" }]
+}

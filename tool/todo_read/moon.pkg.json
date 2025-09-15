@@ -2,10 +2,12 @@
   "import": [
     "moonbitlang/maria/tool",
     "moonbitlang/maria/fs",
-    "moonbitlang/maria/path"
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/todo"
   ],
   "test-import": [
     "moonbitlang/async",
-    "moonbitlang/maria/mock"
+    "moonbitlang/maria/mock",
+    "moonbitlang/maria/internal/g"
   ]
 }

@@ -1,7 +1,4 @@
 ///|
-let uv : Result[@uv.Loop, @uv.Errno] = try? @uv.Loop::new()
-
-///|
 priv struct Edit {
   text : @bytes.View
   cursor : Int
@@ -108,7 +105,7 @@ pub fn interface(
   input~ : @pipe.PipeRead,
   output? : @pipe.PipeWrite = @pipe.stdout,
 ) -> Interface raise {
-  let uv = uv.unwrap_or_error()
+  let uv = @g.uv()
   let tty = @uv.Tty::new(uv, @uv.File::of_int(input.fd()))
   tty.set_mode(@uv.TtyMode::raw())
   Interface::{

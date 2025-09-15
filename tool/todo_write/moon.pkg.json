@@ -3,10 +3,13 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/path",
     "tonyfettes/uv",
-    "moonbitlang/maria/fs"
+    "moonbitlang/maria/fs",
+    "moonbitlang/x/time",
+    "moonbitlang/maria/todo"
   ],
   "test-import": [
     "moonbitlang/async",
-    "moonbitlang/maria/mock"
+    "moonbitlang/maria/mock",
+    "moonbitlang/maria/internal/g"
   ]
 }

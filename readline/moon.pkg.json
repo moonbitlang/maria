@@ -7,6 +7,7 @@
     "moonbitlang/async/aqueue",
     "rami3l/unicodewidth",
     "moonbitlang/async",
-    "moonbitlang/maria/readline/unicode"
+    "moonbitlang/maria/readline/unicode",
+    "moonbitlang/maria/internal/g"
   ]
 }

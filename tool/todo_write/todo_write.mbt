@@ -1,318 +1,9 @@
 ///|
-/// MoonBit implementation of the todo_write tool
-///
-/// Migrated from TypeScript (todo_write.ts) to MoonBit with the following functionality:
-/// - Create new todo lists
-/// - Add single tasks
-/// - Update existing tasks
-/// - Mark tasks as in progress or completed
-/// - Task parsing with <task> tags and line-by-line fallback
-/// - Compatible with the existing tool interface
-
-///|
-/// TodoItem represents a single todo task
-priv struct TodoItem {
-  content : String
-  created_at : String
-  id : String
-  notes : String?
-  priority : String // "high" | "medium" | "low"
-  status : String // "pending" | "in_progress" | "completed"
-  updated_at : String
-} derive(ToJson, FromJson)
-
-///|
-/// TodoData represents the entire todo file structure
-priv struct TodoData {
-  created_at : String
-  todos : Array[TodoItem]
-  updated_at : String
-} derive(ToJson, FromJson)
-
-///|
-/// Generate a unique ID for a todo item (simplified version)
-fn generate_todo_id() -> String raise {
-  let time = @uv.gettimeofday()
-  let timestamp = time.sec() * 1000 + time.usec().to_int64() / 1000
-  let random_part = timestamp % 100000
-  "\{random_part}"
-}
-
-///|
-/// Get current ISO timestamp
-fn get_current_timestamp() -> String raise {
-  let _time = @uv.gettimeofday()
-  // Simple ISO format - basic implementation
-  "2024-01-01T00:00:00.000Z" // Placeholder - in real implementation we'd format properly
-}
-
-///|
-/// Get the path to the todo file for this session
-fn get_todo_file_path(cwd : @string.View) -> @string.View {
-  let todo_dir = @path.join(cwd, ".moonagent")
-  let todo_subdir = @path.join(todo_dir, "todos")
-  @path.join(todo_subdir, "current_session.json")
-}
-
-///|
-/// Create parent directories if they don't exist
-async fn ensure_todo_directory(todo_file : @string.View) -> Unit raise {
-  let todo_dir = @path.dirname(todo_file)
-  let todo_subdir = @path.dirname(todo_dir)
-  if !@fs.exists(todo_subdir) {
-    @fs.make_directory(todo_subdir)
-  }
-  if !@fs.exists(todo_dir) {
-    @fs.make_directory(todo_dir)
-  }
-}
-
-///|
-/// Load todos from the session file
-async fn load_todos(cwd : String) -> TodoData raise {
-  let todo_file = get_todo_file_path(cwd)
-  if !@fs.exists(todo_file) {
-    return TodoData::{
-      created_at: get_current_timestamp(),
-      todos: [],
-      updated_at: get_current_timestamp(),
-    }
-  }
-  try {
-    let content = @fs.read_file(todo_file)
-    let json = @json.parse(content)
-    @json.from_json(json)
-  } catch {
-    _ =>
-      TodoData::{
-        created_at: get_current_timestamp(),
-        todos: [],
-        updated_at: get_current_timestamp(),
-      }
-  }
-}
-
-///|
-/// Save todos to the session file
-async fn save_todos(data : TodoData, cwd : String) -> Bool noraise {
-  try {
-    let todo_file = get_todo_file_path(cwd)
-    ensure_todo_directory(todo_file)
-    let updated_data = TodoData::{
-      created_at: data.created_at,
-      todos: data.todos,
-      updated_at: get_current_timestamp(),
-    }
-    let json = updated_data.to_json()
-    let content = json.stringify()
-    @fs.write_to_file(todo_file, content)
-    true
-  } catch {
-    _ => false
-  }
-}
-
-///|
-/// Create a new todo list from content
-fn create_todo_list(
-  content : String,
-  priority : String,
-  notes : String?,
-) -> Array[TodoItem] raise {
-  let todos = []
-
-  // First, try to parse <task> tags
-  let task_matches = extract_task_tags(content)
-  if task_matches.length() > 0 {
-    // Found <task> tags, use them
-    for task_content in task_matches {
-      let trimmed = task_content.trim(" \t\r\n").to_string()
-      if trimmed.length() > 0 {
-        let todo = TodoItem::{
-          content: trimmed,
-          created_at: get_current_timestamp(),
-          id: generate_todo_id(),
-          notes,
-          priority,
-          status: "pending",
-          updated_at: get_current_timestamp(),
-        }
-        todos.push(todo)
-      }
-    }
-  } else {
-    // Fallback to line-by-line parsing
-    let lines = content.trim(" \t\r\n").to_string().split("\n")
-    for line in lines {
-      let trimmed_line = line.trim(" \t\r\n").to_string()
-      if trimmed_line.length() == 0 {
-        continue
-      }
-
-      // Remove common prefixes like "1.", "- ", "* ", etc.
-      let clean_line = remove_list_prefixes(trimmed_line)
-      if clean_line.length() > 0 {
-        let todo = TodoItem::{
-          content: clean_line,
-          created_at: get_current_timestamp(),
-          id: generate_todo_id(),
-          notes,
-          priority,
-          status: "pending",
-          updated_at: get_current_timestamp(),
-        }
-        todos.push(todo)
-      }
-    }
-  }
-  todos
-}
-
-///|
-/// Extract content from <task> tags (simplified implementation)
-fn extract_task_tags(content : String) -> Array[String] {
-  let results = []
-
-  // Simple implementation that finds first <task>...</task> pair
-  match content.find("<task>") {
-    None => ()
-    Some(start_tag) => {
-      let content_start = start_tag + 6 // length of "<task>"
-      match content.find("</task>") {
-        None => ()
-        Some(end_tag) =>
-          if end_tag > content_start {
-            try {
-              let task_content = content[content_start:end_tag].to_string()
-              results.push(task_content)
-            } catch {
-              _ => () // ignore slicing errors
-            }
-          }
-      }
-    }
-  }
-  results
-}
-
-///|
-/// Remove common list prefixes from a line
-fn remove_list_prefixes(line : String) -> String {
-  let mut result = line
-
-  // Remove numbered list prefixes like "1. ", "2. ", etc.
-  if result.has_prefix("1.") ||
-    result.has_prefix("2.") ||
-    result.has_prefix("3.") ||
-    result.has_prefix("4.") ||
-    result.has_prefix("5.") ||
-    result.has_prefix("6.") ||
-    result.has_prefix("7.") ||
-    result.has_prefix("8.") ||
-    result.has_prefix("9.") {
-    let mut i = 0
-    while i < result.length() && result[i] >= '0' && result[i] <= '9' {
-      i = i + 1
-    }
-    if i < result.length() && result[i] == '.' {
-      i = i + 1
-      while i < result.length() && result[i] == ' ' {
-        i = i + 1
-      }
-      try {
-        result = result[i:].to_string()
-      } catch {
-        _ => result = result
-      }
-    }
-  }
-
-  // Remove bullet prefixes like "- " and "* "
-  if result.has_prefix("- ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  } else if result.has_prefix("* ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  }
-  result.trim(" \t\r\n").to_string()
-}
-
-///|
-/// Add a single task to the existing todo list
-fn add_single_task(
-  todos : Array[TodoItem],
-  content : String,
-  status : String,
-  priority : String,
-  notes : String?,
-) -> TodoItem raise {
-  // Check if content contains <task> tags
-  let task_matches = extract_task_tags(content)
-  let task_content = if task_matches.length() > 0 {
-    task_matches[0].trim(" \t\r\n").to_string()
-  } else {
-    content.trim(" \t\r\n").to_string()
-  }
-  let todo = TodoItem::{
-    content: task_content,
-    created_at: get_current_timestamp(),
-    id: generate_todo_id(),
-    notes,
-    priority,
-    status,
-    updated_at: get_current_timestamp(),
-  }
-  todos.push(todo)
-  todo
-}
-
-///|
-/// Find a todo item by ID
-fn find_todo_by_id(todos : Array[TodoItem], task_id : String) -> TodoItem? {
-  for todo in todos {
-    if todo.id == task_id {
-      return Some(todo)
-    }
-  }
-  None
-}
-
-///|
-/// Update an existing task
-fn update_task(
-  todo : TodoItem,
-  content : String?,
-  status : String?,
-  priority : String?,
-  notes : String?,
-) -> TodoItem raise {
-  TodoItem::{
-    content: content.unwrap_or_else(fn() { todo.content }),
-    created_at: todo.created_at,
-    id: todo.id,
-    notes: match notes {
-      Some(n) => Some(n)
-      None => todo.notes
-    },
-    priority: priority.unwrap_or_else(fn() { todo.priority }),
-    status: status.unwrap_or_else(fn() { todo.status }),
-    updated_at: get_current_timestamp(),
-  }
-}
-
-///|
 /// Format the response message after todo operations
 fn format_todo_response(
-  todos : Array[TodoItem],
+  todos : Array[@todo.Item],
   action_performed : String,
-  updated_todos : Array[TodoItem]?,
+  updated_todos : Array[@todo.Item]?,
   is_new_creation : Bool,
 ) -> String {
   if todos.length() == 0 {
@@ -322,21 +13,19 @@ fn format_todo_response(
   output.push("✅ Operation completed: \{action_performed}\n")
 
   // Status and priority icon helpers
-  fn get_status_icon(status : String) -> String {
+  fn get_status_icon(status : @todo.Status) -> String {
     match status {
-      "completed" => "✅"
-      "in_progress" => "🔄"
-      "pending" => "⏳"
-      _ => "⏳"
+      Completed => "✅"
+      InProgress => "🔄"
+      Pending => "⏳"
     }
   }
 
-  fn get_priority_icon(priority : String) -> String {
+  fn get_priority_icon(priority : @todo.Priority) -> String {
     match priority {
-      "high" => "🔴"
-      "medium" => "🟡"
-      "low" => "🟢"
-      _ => "⚪"
+      High => "🔴"
+      Medium => "🟡"
+      Low => "🟢"
     }
   }
 
@@ -387,9 +76,9 @@ fn format_todo_response(
   let mut completed_count = 0
   for todo in todos {
     match todo.status {
-      "pending" => pending_count = pending_count + 1
-      "in_progress" => in_progress_count = in_progress_count + 1
-      "completed" => completed_count = completed_count + 1
+      Pending => pending_count = pending_count + 1
+      InProgress => in_progress_count = in_progress_count + 1
+      Completed => completed_count = completed_count + 1
       _ => ()
     }
   }
@@ -402,11 +91,29 @@ fn format_todo_response(
 ///|
 /// Main execution function for the todo_write tool
 async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
+  enum Action {
+    Create
+    AddTask
+    Update
+    MarkProgress
+    MarkCompleted
+  }
   // Parse required action parameter
   guard args is { "action": String(action), .. } else {
     return @tool.error("Error: 'action' parameter is required")
   }
   let action = action.to_lower()
+  let action = match action {
+    "create" => Create
+    "add_task" => AddTask
+    "update" => Update
+    "mark_progress" => MarkProgress
+    "mark_completed" => MarkCompleted
+    _ =>
+      return @tool.error(
+        "Error: Invalid action '\{action}'. Supported actions: create, add_task, update, mark_progress, mark_completed.",
+      )
+  }
 
   // Parse optional parameters
   let content : String? = match args {
@@ -417,147 +124,128 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
     { "task_id": String(t), .. } => Some(t)
     _ => None
   }
-  let priority : String = match args {
-    { "priority": String(p), .. } => p
-    _ => "medium"
+  let priority = match args {
+    { "priority": p, .. } =>
+      match p {
+        "high" => @todo.High
+        "medium" => @todo.Medium
+        "low" => @todo.Low
+        _ =>
+          return @tool.error(
+            "Error: Invalid priority '\{p}'. Must be 'high', 'medium', or 'low'.",
+          )
+      }
+    _ => @todo.Medium
   }
-  let status : String = match args {
-    { "status": String(s), .. } => s
-    _ => "pending"
+  let status : @todo.Status = match args {
+    { "status": s, .. } =>
+      match s {
+        "pending" => @todo.Pending
+        "in_progress" => @todo.InProgress
+        "completed" => @todo.Completed
+        _ =>
+          return @tool.error(
+            "Error: Invalid status '\{s}'. Must be 'pending', 'in_progress', or 'completed'.",
+          )
+      }
+    _ => Pending
   }
   let notes : String? = match args {
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
   try {
-    // Load existing todos
-    let data = load_todos(context.cwd)
-    let todos = data.todos
-    if action == "create" {
-      match content {
-        None =>
-          return @tool.error("Error: Content is required for creating todos.")
-        Some(content) => {
-          // Clear existing todos and create new ones
-          let new_todos = create_todo_list(content, priority, notes)
-          let new_data = TodoData::{
-            created_at: data.created_at,
-            todos: new_todos,
-            updated_at: get_current_timestamp(),
-          }
-          if save_todos(new_data, context.cwd) {
-            let response = format_todo_response(
-              new_todos,
-              "Created \{new_todos.length()} new todo items",
-              Some(new_todos),
-              true,
-            )
-            return @tool.ok(response)
-          } else {
-            return @tool.error("Failed to save todo list.")
+    let manager = @todo.Manager::new(cwd=context.cwd)
+    manager.load()
+    match action {
+      Create =>
+        match content {
+          None =>
+            return @tool.error("Error: Content is required for creating todos.")
+          Some(content) => {
+            // Clear existing todos and create new ones
+            manager.parse(content, priority~, notes?)
+            try {
+              manager.save()
+              let response = format_todo_response(
+                manager.todos,
+                "Created \{manager.todos.length()} new todo items",
+                Some(manager.todos),
+                true,
+              )
+              return @tool.ok(response)
+            } catch {
+              error =>
+                return @tool.error("Failed to save todo list: \{error}", error~)
+            }
           }
         }
-      }
-    } else if action == "add_task" {
-      match content {
-        None =>
+      AddTask => {
+        guard content is Some(content) else {
           return @tool.error("Error: Content is required for adding a task.")
-        Some(content) => {
-          let new_todo = add_single_task(
-            todos, content, status, priority, notes,
+        }
+        let item = manager.add_task(content, status~, priority~, notes~)
+        try {
+          manager.save()
+          let response = format_todo_response(
+            manager.todos,
+            "Added new task: \{item.content}",
+            Some([item]),
+            false,
           )
-          let new_data = TodoData::{
-            created_at: data.created_at,
-            todos,
-            updated_at: get_current_timestamp(),
-          }
-          if save_todos(new_data, context.cwd) {
-            let response = format_todo_response(
-              todos,
-              "Added new task: \{new_todo.content}",
-              Some([new_todo]),
-              false,
-            )
-            return @tool.ok(response)
-          } else {
-            return @tool.error("Failed to save new task.")
-          }
+          return @tool.ok(response)
+        } catch {
+          error =>
+            return @tool.error("Failed to save new task: \{error}", error~)
         }
       }
-    } else if action == "update" ||
-      action == "mark_progress" ||
-      action == "mark_completed" {
-      match task_id {
-        None =>
+      Update | MarkProgress | MarkCompleted => {
+        guard task_id is Some(task_id) else {
           return @tool.error(
             "Error: Task ID is required for update operations.",
           )
-        Some(task_id) =>
-          match find_todo_by_id(todos, task_id) {
-            None =>
-              return @tool.error("Error: Task with ID '\{task_id}' not found.")
-            Some(todo) => {
-              // Apply specific action
-              let (updated_todo, action_msg) = if action == "mark_progress" {
-                let updated = update_task(
-                  todo,
-                  None,
-                  Some("in_progress"),
-                  None,
-                  None,
-                )
-                (updated, "Marked task as in progress: \{todo.content}")
-              } else if action == "mark_completed" {
-                let updated = update_task(
-                  todo,
-                  None,
-                  Some("completed"),
-                  None,
-                  None,
-                )
-                (updated, "Marked task as completed: \{todo.content}")
-              } else {
-                // update
-                let updated = update_task(
-                  todo,
-                  content,
-                  Some(status),
-                  Some(priority),
-                  notes,
-                )
-                (updated, "Updated task: \{todo.content}")
-              }
-
-              // Update the todo in the array
-              for i = 0; i < todos.length(); i = i + 1 {
-                if todos[i].id == task_id {
-                  todos[i] = updated_todo
-                  break
-                }
-              }
-              let new_data = TodoData::{
-                created_at: data.created_at,
-                todos,
-                updated_at: get_current_timestamp(),
-              }
-              if save_todos(new_data, context.cwd) {
-                let response = format_todo_response(
-                  todos,
-                  action_msg,
-                  Some([updated_todo]),
-                  false,
-                )
-                return @tool.ok(response)
-              } else {
-                return @tool.error("Failed to save task update.")
-              }
-            }
+        }
+        guard manager.find(task_id) is Some(task_index) else {
+          return @tool.error("Error: Task with ID '\{task_id}' not found.")
+        }
+        let todo = manager.get(task_index)
+        // Apply specific action
+        let updated_todos = []
+        let action_message = match action {
+          MarkProgress => {
+            let updated_todo = todo.update(status=InProgress)
+            updated_todos.push(updated_todo)
+            manager.update_task(task_index, updated_todo)
+            "Marked task as in progress: \{updated_todo.content}"
           }
+          MarkCompleted => {
+            let updated_todo = todo.update(status=Completed)
+            updated_todos.push(updated_todo)
+            manager.update_task(task_index, updated_todo)
+            "Marked task as completed: \{updated_todo.content}"
+          }
+          Update => {
+            let updated_todo = todo.update(content?, status~, priority~, notes~)
+            updated_todos.push(updated_todo)
+            "Updated task: \{updated_todo.content}"
+          }
+          _ => abort("unreachable")
+        }
+        try {
+          manager.save()
+          @tool.ok(
+            format_todo_response(
+              manager.todos,
+              action_message,
+              Some(updated_todos),
+              false,
+            ),
+          )
+        } catch {
+          error =>
+            return @tool.error("Failed to save task update: \{error}", error~)
+        }
       }
-    } else {
-      return @tool.error(
-        "Error: Unknown action '\{action}'. Supported actions: create, add_task, update, mark_progress, mark_completed.",
-      )
     }
   } catch {
     error => @tool.error("Error in todo write operation: \{error}", error~)

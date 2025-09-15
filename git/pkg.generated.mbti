@@ -2,13 +2,15 @@
 package "moonbitlang/maria/git"
 
 // Values
-async fn clone(url~ : String, destination~ : String) -> StringView
+async fn clone(String, to~ : String) -> Unit
 
-async fn commit(message~ : String, Array[String], cwd? : String) -> String
+async fn commit(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Unit
 
 async fn create_branch(branch_name~ : String, cwd? : String) -> String
 
 async fn generate_git_diff(original~ : String, modified~ : String) -> String
+
+async fn init_(String, output? : &Logger) -> Unit
 
 // Errors
 

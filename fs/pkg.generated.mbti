@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/fs"
+
+// Values
+fn cwd() -> String raise
+
+async fn exists(StringView) -> Bool
+
+async fn list_directory(StringView) -> Array[String]
+
+async fn make_directory(StringView) -> Unit
+
+async fn read_file(StringView) -> String
+
+async fn read_file_to_bytes(StringView) -> Bytes
+
+async fn remove(StringView) -> Unit
+
+async fn[T] with_temporary_directory(String, async (String) -> T) -> T
+
+async fn write_bytes_to_file(StringView, Bytes) -> Unit
+
+async fn write_to_file(StringView, StringView) -> Unit
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/g"
+
+import(
+  "moonbitlang/core/random"
+  "tonyfettes/uv"
+)
+
+// Values
+fn rand() -> @random.Rand raise @uv.Errno
+
+fn uv() -> @uv.Loop raise @uv.Errno
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

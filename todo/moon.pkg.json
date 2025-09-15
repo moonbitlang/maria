@@ -1,0 +1,9 @@
+{
+  "import": [
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/fs",
+    "moonbitlang/maria/uuid",
+    "tonyfettes/uv",
+    "moonbitlang/x/time"
+  ]
+}

@@ -1,0 +1,14 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/spawn"
+
+// Values
+async fn spawn(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Int
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

@@ -8,10 +8,14 @@ async fn directory(String) -> Directory
 
 // Types and methods
 type Directory
-async fn Directory::add_file(Self, String, String) -> Unit
+async fn Directory::add_file(Self, String, String) -> File
 async fn Directory::close(Self) -> Unit
+async fn Directory::list(Self) -> Array[String]
 fn Directory::path(Self) -> String raise
 async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit) -> Unit
+
+type File
+fn File::path(Self) -> String raise
 
 // Type aliases
 
