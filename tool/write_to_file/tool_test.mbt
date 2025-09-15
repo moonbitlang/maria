@@ -19,7 +19,7 @@ test "write_to_file/replace" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    cwd.add_file("file.txt", "Old content")
+    let _ = cwd.add_file("file.txt", "Old content")
     let args : Json = {
       "path": "file.txt",
       "search": "Old content",
@@ -38,7 +38,7 @@ test "write_to_file/fail-to-match" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    cwd.add_file("file.txt", "Old content")
+    let _ = cwd.add_file("file.txt", "Old content")
     let args : Json = {
       "path": "file.txt",
       "search": "Non-matching content",

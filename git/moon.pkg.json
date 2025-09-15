@@ -6,6 +6,11 @@
     "tonyfettes/uv",
     "moonbitlang/maria/path",
     "moonbitlang/async/fs",
-    "moonbitlang/async/pipe"
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/spawn"
+  ],
+  "test-import": [
+    "moonbitlang/maria/mock",
+    "moonbitlang/maria/fs"
   ]
 }

@@ -16,7 +16,7 @@ test "read_file/content" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-content-test")
     g.add_defer(() => cwd.close())
-    cwd.add_file(
+    let _ = cwd.add_file(
       "test.txt",
       (
         #|line 1
@@ -45,7 +45,7 @@ test "read_file/line_range" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-range-test")
     g.add_defer(() => cwd.close())
-    cwd.add_file(
+    let _ = cwd.add_file(
       "lines.txt",
       (
         #|line 1

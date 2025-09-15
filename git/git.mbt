@@ -1,35 +1,42 @@
 ///|
-pub async fn clone(url~ : String, destination~ : String) -> @string.View raise {
+pub async fn clone(url : String, to~ : String) -> Unit raise {
   let status = @process.run("git", [
     "clone",
     @utf8.encode(url),
-    @utf8.encode(destination),
+    @utf8.encode(to),
   ])
   if status != 0 {
     fail("git clone failed with status code \{status}")
   }
-  let repo_name : @string.View = match url.split("/").last() {
-    None => "repository"
-    Some(name) => name.replace(old=".git", new="")
+}
+
+///|
+pub async fn init_(path : String, output? : &Logger) -> Unit raise {
+  let status = @spawn.to("git", ["init", path], output?)
+  if status != 0 {
+    fail("git init failed with status code \{status}")
   }
-  repo_name
 }
 
 ///|
 pub async fn commit(
-  message~ : String,
+  message : String,
   files : Array[String],
+  output? : &Logger,
   cwd? : String,
-) -> String {
-  let cwd = cwd.map(@utf8.encode(_))
-  let files = files.map(file => @utf8.encode(file))
-  guard @process.run("git", ["add", ..files], cwd?) is 0 else {
-    fail("git add failed")
+) -> Unit {
+  let buffer = StringBuilder::new()
+  let status = @spawn.to("git", ["add", ..files], output=buffer, cwd?)
+  guard status is 0 else {
+    fail("git add failed with \{status}: \{buffer.to_string()}")
   }
-  guard @process.run("git", ["commit", "-m", @utf8.encode(message)], cwd?) is 0 else {
-    fail("git commit failed")
+  let status = @spawn.to("git", ["commit", "-m", message], output=buffer, cwd?)
+  guard status is 0 else {
+    fail("git commit failed with \{status}: \{buffer.to_string()}")
   }
-  return "Committed changes with message: \{message}"
+  if output is Some(output) {
+    output.write_string(buffer.to_string())
+  }
 }
 
 ///|

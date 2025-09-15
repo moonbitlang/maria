@@ -1,4 +1,26 @@
 ///|
+test "clone" {
+  @async.with_event_loop(g => {
+    let repo = @mock.directory("git-clone")
+    g.add_defer(() => repo.close())
+    @git.clone("https://github.com/moonbitlang/maria.git", to=repo.path())
+    let entries = repo.list()
+    @json.inspect(entries.contains("moon.mod.json"), content=true)
+  })
+}
+
+///|
+test "commit" {
+  @async.with_event_loop(g => {
+    let repo = @mock.directory("git-commit")
+    g.add_defer(() => repo.close())
+    @git.init_(repo.path())
+    let _ = repo.add_file("file.txt", "Hello, Moonbit!")
+    @git.commit("Initial commit", ["file.txt"], cwd=repo.path())
+  })
+}
+
+///|
 test "generate_git_diff" {
   @async.with_event_loop(_ => {
     let original =

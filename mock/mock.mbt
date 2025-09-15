@@ -41,15 +41,24 @@ pub fn Directory::path(self : Directory) -> String raise {
 }
 
 ///|
+struct File(Bytes)
+
+///|
+pub fn File::path(self : File) -> String raise {
+  @utf8.decode(self.0)
+}
+
+///|
 pub async fn Directory::add_file(
   self : Directory,
   name : String,
   content : String,
-) -> Unit raise {
+) -> File raise {
   let name = @utf8.encode(name)
   let file = @fs.open(@path.join(self.0, name), mode=WriteOnly, create=0o644)
   defer file.close()
   file.write(@utf8.encode(content))
+  @path.join(self.0, name)
 }
 
 ///|
@@ -62,4 +71,22 @@ pub async fn Directory::with_subdirectory(
   let dir = @path.join(self.0, name)
   @fs.mkdir(dir, permission=0o755)
   f(Directory(dir))
+}
+
+///|
+pub async fn Directory::list(self : Directory) -> Array[String] raise {
+  let dir = @fs.opendir(self.0)
+  let entries = []
+  for basename in dir.read_all() {
+    let filename = @path.join(self.0, basename)
+    let file = @fs.open(filename, mode=ReadOnly)
+    defer file.close()
+    let basename : Bytes = match file.kind() {
+      Directory => [..basename, @path.sep]
+      _ => basename
+    }
+    entries.push(@utf8.decode(basename))
+  }
+  entries.sort()
+  return entries
 }

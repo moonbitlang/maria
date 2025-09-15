@@ -6,7 +6,7 @@ test "char_width_left" {
   @json.inspect(@unicode.char_width_left(string, 8), content=2)
   @json.inspect(@unicode.char_width_left(string, 12), content=2)
   @json.inspect(@unicode.char_width_left(string, 16), content=2)
-  @json.inspect(@unicode.char_width_left(string, string.length()), content=1)
+  @json.inspect(@unicode.char_width_left(string, string.length()), content=0)
 }
 
 ///|
