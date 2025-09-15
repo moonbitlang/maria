@@ -79,7 +79,6 @@ fn format_todo_response(
       Pending => pending_count = pending_count + 1
       InProgress => in_progress_count = in_progress_count + 1
       Completed => completed_count = completed_count + 1
-      _ => ()
     }
   }
   output.push(

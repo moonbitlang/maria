@@ -10,19 +10,36 @@ import(
 // Errors
 
 // Types and methods
-type Item
-fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Unit raise
+type Index
+
+pub struct Item {
+  content : String
+  created_at : String
+  id : String
+  notes : String?
+  priority : Priority
+  status : Status
+  updated_at : String
+}
+fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Self raise
 impl ToJson for Item
 impl @json.FromJson for Item
 
-type Manager
-fn Manager::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Unit raise
+pub struct Manager {
+  cwd : StringView
+  todos : Array[Item]
+  mut created_at : String
+  mut updated_at : String
+}
+fn Manager::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item raise
 fn Manager::display(Self) -> String
-fn Manager::find(Self, String) -> Item?
+fn Manager::find(Self, String) -> Index?
+fn Manager::get(Self, Index) -> Item
 async fn Manager::load(Self) -> Unit
 fn Manager::new(cwd~ : StringView) -> Self raise
 fn Manager::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
 async fn Manager::save(Self) -> Unit
+fn Manager::update_task(Self, Index, Item) -> Unit raise
 
 pub(all) enum Priority {
   High

@@ -9,6 +9,8 @@ import(
 // Values
 fn rand() -> @random.Rand raise @uv.Errno
 
+fn set_seed(seed? : Bytes) -> Unit
+
 fn uv() -> @uv.Loop raise @uv.Errno
 
 // Errors

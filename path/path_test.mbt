@@ -20,5 +20,5 @@ test "stem" {
 
 ///|
 test "join" {
-  @json.inspect(@path.join("a", "b"), content=("a/b"))
+  @json.inspect(@path.join("a", "b"), content="a/b")
 }
