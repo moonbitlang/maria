@@ -1,10 +1,10 @@
 ///|
-fn @string.View::end_offset(self : @string.View) -> Int {
+fn @bytes.View::end_offset(self : @bytes.View) -> Int {
   self.start_offset() + self.length()
 }
 
 ///|
-pub let sep : Char = try {
+pub let sep : Byte = try {
   if @uv.os_uname().sysname() == "Windows_NT" {
     '\\'
   } else {
@@ -21,7 +21,7 @@ pub let sep : Char = try {
 }
 
 ///|
-pub fn dirname(path : @string.View) -> @string.View {
+pub fn dirname(path : @bytes.View) -> @bytes.View {
   if sep == '\\' {
     loop path {
       [] => "."
@@ -38,43 +38,35 @@ pub fn dirname(path : @string.View) -> @string.View {
 }
 
 ///|
-pub fn basename(path : @string.View) -> @string.View {
+pub fn basename(path : @bytes.View) -> @bytes.View {
   if sep == '\\' {
-    let path = match path {
-      [.. path, '\\' | '/'] => path
-      path => path
-    }
-    loop path.view() {
+    loop path[:] {
       [] => "."
-      [.., '\\' | '/'] as view => path.view(start_offset=view.end_offset())
+      [.., '\\' | '/'] as view => path[view.end_offset():]
       [.. view, _] => continue view
     }
   } else {
-    let path = match path {
-      [.. path, '/'] => path
-      path => path
-    }
-    loop path.view() {
+    loop path[:] {
       [] => "."
-      [.., '/'] as view => path.view(start_offset=view.end_offset())
+      [.., '/'] as view => path[view.end_offset():]
       [.. view, _] => continue view
     }
   }
 }
 
 ///|
-pub fn ext(path : @string.View) -> @string.View {
-  loop path.view() {
+pub fn ext(path : @bytes.View) -> @bytes.View {
+  loop path[:] {
     [] => ""
-    [.. view, '.'] => path.view(start_offset=view.end_offset())
+    [.. view, '.'] => path[view.end_offset():]
     [.. view, _] => continue view
   }
 }
 
 ///|
-pub fn stem(path : @string.View) -> @string.View {
+pub fn stem(path : @bytes.View) -> @bytes.View {
   let base = basename(path)
-  loop base.view() {
+  loop base[:] {
     [] => base
     [.. view, '.'] => view
     [.. view, _] => continue view
@@ -82,7 +74,7 @@ pub fn stem(path : @string.View) -> @string.View {
 }
 
 ///|
-fn trim_sep(p : @string.View) -> @string.View {
+fn trim_sep(p : @bytes.View) -> @bytes.View {
   if sep == '\\' {
     loop p {
       [.. p, '\\' | '/'] => continue p
@@ -98,18 +90,18 @@ fn trim_sep(p : @string.View) -> @string.View {
 }
 
 ///|
-pub fn join(p : @string.View, q : @string.View) -> @string.View {
+pub fn join(p : @bytes.View, q : @bytes.View) -> Bytes {
   let p = trim_sep(p)
   let q = trim_sep(q)
   if p is ("" | ".") {
-    return q
+    return q.to_bytes()
   }
   if q is ("" | ".") {
-    return p
+    return p.to_bytes()
   }
-  let buffer = StringBuilder::new()
-  buffer.write_substring(p.data(), p.start_offset(), p.length())
-  buffer.write_char(sep)
-  buffer.write_substring(q.data(), q.start_offset(), q.length())
-  buffer.to_string()
+  let buffer = @buffer.new()
+  buffer.write_bytesview(p)
+  buffer.write_byte(sep)
+  buffer.write_bytesview(q)
+  buffer.to_bytes()
 }

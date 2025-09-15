@@ -1,19 +1,24 @@
 ///|
 test "dirname" {
-  @json.inspect(@path.dirname("a/b/c") == "a/b", content=true)
+  @json.inspect(@path.dirname("a/b/c"), content="a/b")
 }
 
 ///|
 test "basename" {
-  @json.inspect(@utf8.decode(@path.basename("a/b/c.jpg")), content="c.jpg")
+  @json.inspect(@path.basename("a/b/c.jpg"), content="c.jpg")
 }
 
 ///|
 test "ext" {
-  @json.inspect(@utf8.decode(@path.ext("a/b/c.jpg")), content=".jpg")
+  @json.inspect(@path.ext("a/b/c.jpg"), content=".jpg")
 }
 
 ///|
 test "stem" {
-  @json.inspect(@utf8.decode(@path.stem("a/b/c.jpg")), content="c")
+  @json.inspect(@path.stem("a/b/c.jpg"), content="c")
+}
+
+///|
+test "join" {
+  @json.inspect(@path.join("a", "b"), content=("a/b"))
 }

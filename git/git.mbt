@@ -12,7 +12,7 @@ pub async fn clone(url : String, to~ : String) -> Unit raise {
 
 ///|
 pub async fn init_(path : String, output? : &Logger) -> Unit raise {
-  let status = @spawn.to("git", ["init", path], output?)
+  let status = @spawn.spawn("git", ["init", path], output?)
   if status != 0 {
     fail("git init failed with status code \{status}")
   }
@@ -20,17 +20,22 @@ pub async fn init_(path : String, output? : &Logger) -> Unit raise {
 
 ///|
 pub async fn commit(
-  message : String,
-  files : Array[String],
+  message : @string.View,
+  files : Array[@string.View],
   output? : &Logger,
-  cwd? : String,
+  cwd? : @string.View,
 ) -> Unit {
   let buffer = StringBuilder::new()
-  let status = @spawn.to("git", ["add", ..files], output=buffer, cwd?)
+  let status = @spawn.spawn("git", ["add", ..files], output=buffer, cwd?)
   guard status is 0 else {
     fail("git add failed with \{status}: \{buffer.to_string()}")
   }
-  let status = @spawn.to("git", ["commit", "-m", message], output=buffer, cwd?)
+  let status = @spawn.spawn(
+    "git",
+    ["commit", "-m", message],
+    output=buffer,
+    cwd?,
+  )
   guard status is 0 else {
     fail("git commit failed with \{status}: \{buffer.to_string()}")
   }
@@ -49,61 +54,31 @@ pub async fn create_branch(branch_name~ : String, cwd? : String) -> String {
 }
 
 ///|
-let uv : Result[@uv.Loop, @uv.Errno] = try? @uv.Loop::new()
-
-///|
 pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
 ) -> String raise {
-  let template = @path.join(
-    @uv.os_tmpdir(),
-    @utf8.encode("maria-git-diff-XXXXXX"),
-  )
-  println("template: \{@utf8.decode(template)}")
-  let tmpdir = uv.unwrap_or_error().fs_mkdtemp_sync(template)
-  println("tmpdir: \{@utf8.decode(tmpdir)}")
-  if !@fs.exists(tmpdir) {
-    @fs.mkdir(tmpdir, permission=0o755) catch {
-      err => fail("failed to create temporary directory: \{err}")
-    }
-    println("created temporary directory")
-  } else {
-    println("temporary directory already exists")
-  }
-  @async.with_task_group(group => {
-    let original_path = @path.join(tmpdir, @utf8.encode("original.txt"))
-    println("original_path: \{@utf8.decode(original_path)}")
-    @fs.write_file(original_path, @utf8.encode(original), create=0o644)
-    println("written original")
-    let modified_path = @path.join(tmpdir, @utf8.encode("modified.txt"))
-    println("modified_path: \{@utf8.decode(modified_path)}")
-    @fs.write_file(modified_path, @utf8.encode(modified), create=0o644)
-    println("written modified")
-    let buffer = @buffer.new()
-    group.add_defer(() => @fs.remove(original_path))
-    group.add_defer(() => @fs.remove(modified_path))
-    let (reader, writer) = @process.read_from_process()
-    group.spawn_bg(() => {
-      let buf : FixedArray[Byte] = FixedArray::make(4096, 0)
-      loop reader.read(buf) {
-        0 => break
-        n => {
-          buffer.write_bytesview(buf.unsafe_reinterpret_as_bytes()[0:n])
-          continue reader.read(buf)
-        }
-      }
-    })
-    @process.run(
-      "git",
-      [
-        "diff", "--no-index", "--no-index", "--no-prefix", "--unified=3", original_path,
-        modified_path,
-      ],
-      stdout=writer,
-      stderr=writer,
-    )
-    |> ignore()
-    @utf8.decode(buffer.contents())
-  })
+  @async.with_task_group(group => @fs.with_temporary_directory(
+    "maria-git-diff-XXXXXXX",
+    tmpdir => {
+      let original_path = @path.join(tmpdir, "original.txt")
+      @fs.write_to_file(original_path, original)
+      let modified_path = @path.join(tmpdir, "modified.txt")
+      @fs.write_to_file(modified_path, modified)
+      let buffer = @buffer.new()
+      group.add_defer(() => @fs.remove(original_path))
+      group.add_defer(() => @fs.remove(modified_path))
+      let output = StringBuilder::new()
+      @spawn.spawn(
+        "git",
+        [
+          "diff", "--no-index", "--no-index", "--no-prefix", "--unified=3", original_path,
+          modified_path,
+        ],
+        output~,
+      )
+      |> ignore()
+      @utf8.decode(buffer.contents())
+    },
+  ))
 }

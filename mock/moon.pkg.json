@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/async/fs",
     "tonyfettes/uv",
-    "moonbitlang/maria/path",
+    "moonbitlang/maria/internal/path",
     "tonyfettes/utf8"
   ]
 }

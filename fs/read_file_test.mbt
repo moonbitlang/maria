@@ -4,7 +4,7 @@ test "read_file_to_bytes" {
     let dir = @mock.directory("fs-read_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "Hello, Moonbit!")
-    let content = @fs.read_file_to_bytes(file.path())
+    let content = @this.read_file_to_bytes(file.path())
     @json.inspect(content, content="Hello, Moonbit!")
   })
 }
@@ -15,7 +15,7 @@ test "read_file" {
     let dir = @mock.directory("fs-read_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "Hello, Moonbit!")
-    let content = @fs.read_file(file.path())
+    let content = @this.read_file(file.path())
     @json.inspect(content, content="Hello, Moonbit!")
   })
 }

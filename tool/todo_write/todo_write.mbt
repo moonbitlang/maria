@@ -48,25 +48,22 @@ fn get_current_timestamp() -> String raise {
 
 ///|
 /// Get the path to the todo file for this session
-fn get_todo_file_path(cwd : String) -> Bytes {
-  let cwd_bytes = @utf8.encode(cwd)
-  let todo_dir = @path.join(cwd_bytes, @utf8.encode(".moonagent"))
-  let todo_subdir = @path.join(todo_dir, @utf8.encode("todos"))
-  [..@path.join(todo_subdir, @utf8.encode("current_session.json"))]
+fn get_todo_file_path(cwd : @string.View) -> @string.View {
+  let todo_dir = @path.join(cwd, ".moonagent")
+  let todo_subdir = @path.join(todo_dir, "todos")
+  @path.join(todo_subdir, "current_session.json")
 }
 
 ///|
 /// Create parent directories if they don't exist
-async fn ensure_todo_directory(todo_file : Bytes) -> Unit raise {
+async fn ensure_todo_directory(todo_file : @string.View) -> Unit raise {
   let todo_dir = @path.dirname(todo_file)
   let todo_subdir = @path.dirname(todo_dir)
-  let todo_dir_bytes = todo_dir.to_bytes()
-  let todo_subdir_bytes = todo_subdir.to_bytes()
-  if !@fs.exists(todo_subdir_bytes) {
-    @fs.mkdir(todo_subdir_bytes, permission=0o755)
+  if !@fs.exists(todo_subdir) {
+    @fs.make_directory(todo_subdir)
   }
-  if !@fs.exists(todo_dir_bytes) {
-    @fs.mkdir(todo_dir_bytes, permission=0o755)
+  if !@fs.exists(todo_dir) {
+    @fs.make_directory(todo_dir)
   }
 }
 
@@ -82,7 +79,7 @@ async fn load_todos(cwd : String) -> TodoData raise {
     }
   }
   try {
-    let content = @utf8.decode(@fs.read_file(todo_file))
+    let content = @fs.read_file(todo_file)
     let json = @json.parse(content)
     @json.from_json(json)
   } catch {
@@ -108,7 +105,7 @@ async fn save_todos(data : TodoData, cwd : String) -> Bool noraise {
     }
     let json = updated_data.to_json()
     let content = json.stringify()
-    @fs.write_file(todo_file, @utf8.encode(content), create=0o644)
+    @fs.write_to_file(todo_file, content)
     true
   } catch {
     _ => false

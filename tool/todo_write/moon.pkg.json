@@ -1,10 +1,9 @@
 {
   "import": [
     "moonbitlang/maria/tool",
-    "moonbitlang/async/fs",
     "moonbitlang/maria/path",
-    "tonyfettes/utf8",
-    "tonyfettes/uv"
+    "tonyfettes/uv",
+    "moonbitlang/maria/fs"
   ],
   "test-import": [
     "moonbitlang/async",

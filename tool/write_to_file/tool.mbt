@@ -188,23 +188,6 @@ test "find_match with fuzzy disabled works for exact substring" {
 }
 
 ///|
-async fn make_parent_directories(path : @bytes.View) -> Unit raise {
-  let dirs = []
-  for dir = @path.dirname(path) {
-    let dir = dir.to_bytes()
-    if dir == "." || dir == "" || @fs.exists(dir) {
-      break
-    }
-    dirs.push(dir)
-    continue @path.dirname(dir)
-  }
-  for i in 0..<dirs.length() {
-    let dir = dirs[dirs.length() - 1 - i]
-    @fs.mkdir(dir, permission=0o755)
-  }
-}
-
-///|
 /// Main execution function for the write_to_file tool
 async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
   // Parse required path parameter
@@ -223,26 +206,19 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
   }
   try {
     // Resolve file path relative to current working directory
-    let cwd = @utf8.encode(context.cwd)
-    let file_path = @utf8.encode(path)
-    let resolved_path = @path.join(cwd, file_path)
+    let resolved_path = @path.join(context.cwd, path)
 
     // Create directory if it doesn't exist
-    make_parent_directories(resolved_path)
+    @fs.make_directory(resolved_path)
 
     // Check if file exists
     guard @fs.exists(resolved_path) else {
       // File doesn't exist, create new file with replace content
-      let new_file = @fs.open(resolved_path, mode=WriteOnly, create=0o644)
-      new_file.write(@utf8.encode(replace))
-      new_file.close()
+      @fs.write_to_file(resolved_path, replace)
       @tool.ok("New file created and content written to \{path}")
     }
     // Read existing file content
-    let file = @fs.open(resolved_path, mode=ReadOnly)
-    let content_bytes = file.read_all()
-    file.close()
-    let mut content = @utf8.decode(content_bytes)
+    let mut content = @fs.read_file(resolved_path)
     match search {
       None =>
         // No search provided, replace entire file content
@@ -264,9 +240,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
     }
 
     // Write the modified content back to file
-    let output_file = @fs.open(resolved_path, mode=WriteOnly)
-    output_file.write(@utf8.encode(content))
-    output_file.close()
+    @fs.write_to_file(resolved_path, content)
     @tool.ok("Changes applied to \{path}")
   } catch {
     error => @tool.error("Error writing to file: \{error}", error~)

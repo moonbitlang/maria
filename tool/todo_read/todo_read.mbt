@@ -29,11 +29,10 @@ priv struct TodoData {
 
 ///|
 /// Get the path to the todo file for this session
-fn get_todo_file_path(cwd : String) -> Bytes {
-  let cwd_bytes = @utf8.encode(cwd)
-  let todo_dir = @path.join(cwd_bytes, @utf8.encode(".moonagent"))
-  let todo_subdir = @path.join(todo_dir, @utf8.encode("todos"))
-  [..@path.join(todo_subdir, @utf8.encode("current_session.json"))]
+fn get_todo_file_path(cwd : @string.View) -> @string.View {
+  let todo_dir = @path.join(cwd, ".moonagent")
+  let todo_subdir = @path.join(todo_dir, "todos")
+  @path.join(todo_subdir, "current_session.json")
 }
 
 ///|
@@ -44,7 +43,7 @@ async fn load_todos(cwd : String) -> Array[TodoItem] raise {
     return []
   }
   try {
-    let content = @utf8.decode(@fs.read_file(todo_file))
+    let content = @fs.read_file(todo_file)
     let json = @json.parse(content)
     let data : TodoData = @json.from_json(json)
     data.todos

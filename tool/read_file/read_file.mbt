@@ -14,9 +14,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
   }
   try {
     // Resolve file path
-    let cwd = @utf8.encode(context.cwd)
-    let file_path = @utf8.encode(path)
-    let resolved_path = @path.join(cwd, file_path)
+    let resolved_path = @path.join(context.cwd, path)
 
     // Check if file exists
     if !@fs.exists(resolved_path) {
@@ -24,7 +22,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
     }
 
     // Open and read the file
-    let content = @utf8.decode(@fs.read_file(resolved_path))
+    let content = @fs.read_file(resolved_path)
     let lines = content.split("\n").to_array()
     let start_line = match start_line {
       Some(n) if n >= 1 => n
