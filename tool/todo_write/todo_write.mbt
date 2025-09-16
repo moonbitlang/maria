@@ -3,8 +3,8 @@
 fn format_todo_response(
   todos : Array[@todo.Item],
   action_performed : String,
-  updated_todos : Array[@todo.Item]?,
-  is_new_creation : Bool,
+  updated_todos? : Array[@todo.Item],
+  is_new_creation~ : Bool,
 ) -> String {
   if todos.length() == 0 {
     return "Operation completed: \{action_performed}"
@@ -140,7 +140,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
     { "status": s, .. } =>
       match s {
         "pending" => @todo.Pending
-        "in_progress" => @todo.InProgress
+        "in_progress" | "in-progress" => @todo.InProgress
         "completed" => @todo.Completed
         _ =>
           return @tool.error(
@@ -169,8 +169,8 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
               let response = format_todo_response(
                 manager.todos,
                 "Created \{manager.todos.length()} new todo items",
-                Some(manager.todos),
-                true,
+                updated_todos=manager.todos,
+                is_new_creation=true,
               )
               return @tool.ok(response)
             } catch {
@@ -189,8 +189,8 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
           let response = format_todo_response(
             manager.todos,
             "Added new task: \{item.content}",
-            Some([item]),
-            false,
+            updated_todos=[item],
+            is_new_creation=false,
           )
           return @tool.ok(response)
         } catch {
@@ -226,6 +226,7 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
           Update => {
             let updated_todo = todo.update(content?, status~, priority~, notes~)
             updated_todos.push(updated_todo)
+            manager.update_task(task_index, updated_todo)
             "Updated task: \{updated_todo.content}"
           }
           _ => abort("unreachable")
@@ -236,8 +237,8 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
             format_todo_response(
               manager.todos,
               action_message,
-              Some(updated_todos),
-              false,
+              updated_todos~,
+              is_new_creation=false,
             ),
           )
         } catch {
