@@ -1,6 +1,6 @@
 ///|
 test "todo_write/create" {
-  @global.set_seed()
+  @global.seed()
   @async.with_event_loop(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
@@ -29,9 +29,9 @@ test "todo_write/create" {
 
 ///|
 test "todo_write/update" {
-  @global.set_seed()
+  @global.seed()
   @async.with_event_loop(group => {
-    let cwd = @mock.directory("tool-todo_write")
+    let cwd = @mock.directory("togol-todo_write")
     group.add_defer(() => cwd.close())
     let manager = @todo.Manager::new(cwd=cwd.path())
     manager.load()

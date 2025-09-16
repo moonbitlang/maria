@@ -277,7 +277,7 @@ pub fn Manager::get(self : Manager, index : Index) -> Item {
 ///|
 pub async fn save(self : Manager) -> Unit raise {
   let todo_file_path = self.todo_file_path()
-  @fs.make_directory(@path.dirname(todo_file_path))
+  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.updated_at = get_current_timestamp()
   let json : Json = {
     "created_at": self.created_at,

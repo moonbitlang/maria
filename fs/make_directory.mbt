@@ -1,5 +1,8 @@
 ///|
-pub async fn make_directory(path : @string.View) -> Unit raise {
+pub async fn make_directory(
+  path : @string.View,
+  recursive? : Bool = false,
+) -> Unit raise {
   let dirs = []
   for dir = @utf8.encode(path) {
     let dir = dir
@@ -7,7 +10,11 @@ pub async fn make_directory(path : @string.View) -> Unit raise {
       break
     }
     dirs.push(dir)
-    continue @path.dirname(dir).to_bytes()
+    if recursive {
+      continue @path.dirname(dir).to_bytes()
+    } else {
+      break
+    }
   }
   for i in 0..<dirs.length() {
     let dir = dirs[dirs.length() - 1 - i]

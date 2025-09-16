@@ -211,15 +211,21 @@ impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
 }
 
 ///|
+pub enum ChatCompletionMessageRole {
+  Assistant
+} derive(Show)
+
+///|
 pub struct ChatCompletionMessage {
   content : String?
   refusal : String?
+  role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
 } derive(Show)
 
 ///|
-/// Deprecated function call format (replaced by tool_calls)
+#deprecated("Use ChatCompletionMessageToolCall instead")
 pub struct ChatCompletionMessageFunctionCall {
   arguments : String
   name : String
@@ -316,7 +322,13 @@ impl @json.FromJson for ChatCompletionMessage with from_json(
     }
     None => None
   }
-  ChatCompletionMessage::{ content, refusal, tool_calls, function_call }
+  ChatCompletionMessage::{
+    content,
+    refusal,
+    role: Assistant,
+    tool_calls,
+    function_call,
+  }
 }
 
 ///|
@@ -498,7 +510,7 @@ pub struct CompletionUsage {
 } derive(Show, ToJson)
 
 ///|
-impl @json.FromJson for CompletionUsage with from_json(
+pub impl @json.FromJson for CompletionUsage with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CompletionUsage {
@@ -704,7 +716,54 @@ pub impl ToJson for ChatCompletionContentPartParam with to_json(
   self : ChatCompletionContentPartParam,
 ) -> Json {
   match self {
-    Text(param) => param.to_json()
+    Text(param) => {
+      let json : Map[String, Json] = {
+        "type": "text",
+        "text": param.text.to_json(),
+      }
+      if param.cache_control is Some(cache_control) {
+        json["cache_control"] = cache_control.to_json()
+      }
+      Json::object(json)
+    }
+  }
+}
+
+///|
+impl @json.FromJson for ChatCompletionContentPartParam with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> ChatCompletionContentPartParam raise {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("type") is Some(String(type_)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'type' field"))
+  }
+  match type_ {
+    "text" => {
+      guard json.get("text") is Some(String(text)) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'text' field"))
+      }
+      let cache_control = match json.get("cache_control") {
+        None | Some(Null) => None
+        Some(cache_control) => {
+          let cache_control : CacheControl = @json.from_json(
+            cache_control,
+            path=json_path.add_key("cache_control"),
+          )
+          Some(cache_control)
+        }
+      }
+      ChatCompletionContentPartParam::Text(ChatCompletionContentPartTextParam::{
+        text,
+        cache_control,
+      })
+    }
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Unknown content part type: \{type_}"),
+      )
   }
 }
 
@@ -729,20 +788,29 @@ pub impl ToJson for CacheControl with to_json(self : CacheControl) -> Json {
 }
 
 ///|
-pub(all) struct ChatCompletionContentPartTextParam {
-  text : String
-  cache_control : CacheControl?
+impl @json.FromJson for CacheControl with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> CacheControl {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("type") is Some(String(type_)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'type' field"))
+  }
+  match type_ {
+    "ephemeral" => CacheControl::Ephemeral
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Unknown cache control type: \{type_}"),
+      )
+  }
 }
 
 ///|
-pub impl ToJson for ChatCompletionContentPartTextParam with to_json(
-  self : ChatCompletionContentPartTextParam,
-) -> Json {
-  let json : Map[String, Json] = { "type": "text", "text": self.text.to_json() }
-  if self.cache_control is Some(cache_control) {
-    json["cache_control"] = cache_control.to_json()
-  }
-  Json::object(json)
+pub struct ChatCompletionContentPartTextParam {
+  text : String
+  cache_control : CacheControl?
 }
 
 ///|
@@ -835,6 +903,131 @@ pub impl ToJson for ChatCompletionMessageParam with to_json(
         "content": param.content,
         "tool_call_id": param.tool_call_id,
       }
+  }
+}
+
+///|
+pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> ChatCompletionMessageParam {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("role") is Some(String(role)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'role' field"))
+  }
+  match role {
+    "user" => {
+      guard json.get("content") is Some(content) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
+      }
+      let content : Array[ChatCompletionContentPartParam] = match content {
+        String(text) => [text_content_part(text)]
+        Array(_) as parts =>
+          @json.from_json(parts, path=json_path.add_key("content"))
+        _ =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'content' to be a string or array"),
+          )
+      }
+      let name = match json.get("name") {
+        None | Some(Null) => None
+        Some(String(name)) => Some(name)
+        Some(_) =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'name' to be a string"),
+          )
+      }
+      ChatCompletionMessageParam::User({ content, name })
+    }
+    "assistant" => {
+      guard json.get("content") is Some(content) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
+      }
+      let content : Array[ChatCompletionContentPartParam] = match content {
+        String(text) => [text_content_part(text)]
+        Array(_) as parts =>
+          @json.from_json(parts, path=json_path.add_key("content"))
+        _ =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'content' to be a string or array"),
+          )
+      }
+      let name = match json.get("name") {
+        None | Some(Null) => None
+        Some(String(name)) => Some(name)
+        Some(_) =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'name' to be a string"),
+          )
+      }
+      guard json.get("tool_calls") is Some(tool_calls) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'tool_calls' field"))
+      }
+      let tool_calls : Array[ChatCompletionMessageToolCallParam] = @json.from_json(
+        tool_calls,
+        path=json_path.add_key("tool_calls"),
+      )
+      let function_call = match json.get("function_call") {
+        None | Some(Null) => None
+        Some(function_call) => {
+          let function_call : ChatCompletionMessageFunctionCall = @json.from_json(
+            function_call,
+            path=json_path.add_key("function_call"),
+          )
+          Some(function_call)
+        }
+      }
+      ChatCompletionMessageParam::Assistant({
+        content,
+        name,
+        tool_calls,
+        function_call,
+      })
+    }
+    "system" => {
+      guard json.get("content") is Some(content) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
+      }
+      let content : Array[ChatCompletionContentPartParam] = match content {
+        String(text) => [text_content_part(text)]
+        Array(_) as parts =>
+          @json.from_json(parts, path=json_path.add_key("content"))
+        _ =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'content' to be a string or array"),
+          )
+      }
+      let name = match json.get("name") {
+        None | Some(Null) => None
+        Some(String(name)) => Some(name)
+        Some(_) =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'name' to be a string"),
+          )
+      }
+      ChatCompletionMessageParam::System({ content, name })
+    }
+    "tool" => {
+      guard json.get("content") is Some(content) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
+      }
+      let content : Array[ChatCompletionContentPartParam] = match content {
+        String(text) => [text_content_part(text)]
+        Array(_) as parts =>
+          @json.from_json(parts, path=json_path.add_key("content"))
+        _ =>
+          raise @json.JsonDecodeError(
+            (json_path, "Expected 'content' to be a string or array"),
+          )
+      }
+      guard json.get("tool_call_id") is Some(String(tool_call_id)) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'tool_call_id' field"))
+      }
+      ChatCompletionMessageParam::Tool({ content, tool_call_id })
+    }
+    _ => raise @json.JsonDecodeError((json_path, "Unknown role: \{role}"))
   }
 }
 

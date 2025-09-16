@@ -7,9 +7,9 @@ import(
 )
 
 // Values
-fn rand() -> @random.Rand raise @uv.Errno
+fn rand() -> @random.Rand
 
-fn set_seed(seed? : Bytes) -> Unit
+fn seed(seed? : Bytes) -> Unit
 
 fn uv() -> @uv.Loop raise @uv.Errno
 

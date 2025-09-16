@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/conversation"
+
+import(
+  "moonbitlang/maria/openai"
+)
+
+// Values
+async fn create(name~ : String, description? : String) -> Conversation
+
+async fn initialize() -> Unit
+
+async fn list(limit? : Int, sort_by? : (Conversation, Conversation) -> Int) -> Array[Conversation]
+
+fn switch_to(Conversation) -> Unit
+
+// Errors
+
+// Types and methods
+type Conversation
+async fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
+
+// Type aliases
+
+// Traits
+

@@ -8,7 +8,7 @@ async fn exists(StringView) -> Bool
 
 async fn list_directory(StringView) -> Array[String]
 
-async fn make_directory(StringView) -> Unit
+async fn make_directory(StringView, recursive? : Bool) -> Unit
 
 async fn read_file(StringView) -> String
 

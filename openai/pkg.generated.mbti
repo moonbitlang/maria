@@ -111,15 +111,15 @@ pub enum ChatCompletionContentPartParam {
 }
 impl ToJson for ChatCompletionContentPartParam
 
-pub(all) struct ChatCompletionContentPartTextParam {
+pub struct ChatCompletionContentPartTextParam {
   text : String
   cache_control : CacheControl?
 }
-impl ToJson for ChatCompletionContentPartTextParam
 
 pub struct ChatCompletionMessage {
   content : String?
   refusal : String?
+  role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
 }
@@ -139,6 +139,12 @@ pub enum ChatCompletionMessageParam {
   Tool(ChatCompletionToolMessageParam)
 }
 impl ToJson for ChatCompletionMessageParam
+impl @json.FromJson for ChatCompletionMessageParam
+
+pub enum ChatCompletionMessageRole {
+  Assistant
+}
+impl Show for ChatCompletionMessageRole
 
 pub struct ChatCompletionMessageToolCall {
   id : String
@@ -224,6 +230,7 @@ pub struct CompletionUsage {
 }
 impl Show for CompletionUsage
 impl ToJson for CompletionUsage
+impl @json.FromJson for CompletionUsage
 
 pub struct CompletionUsageParam {
   include_ : Bool

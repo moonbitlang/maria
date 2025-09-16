@@ -1,0 +1,10 @@
+{
+  "import": [
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/uuid",
+    "tonyfettes/uv",
+    "moonbitlang/maria/lru",
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/fs"
+  ]
+}

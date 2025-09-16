@@ -212,7 +212,7 @@ pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit raise {
   agent.emit(ConversationStart, EventContext::new())
-  while !agent.queue.is_empty() {
+  while true {
     let response = agent.call()
     if response.tool_calls is [] {
       break

@@ -2,13 +2,13 @@
 package "moonbitlang/maria/uuid"
 
 // Values
-fn uuid() -> Uuid raise
+fn uuid() -> UUID
 
 // Errors
 
 // Types and methods
-type Uuid
-fn Uuid::to_string(Self) -> String
+type UUID
+fn UUID::to_string(Self) -> String
 
 // Type aliases
 
