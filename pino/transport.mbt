@@ -5,12 +5,12 @@ enum Transport {
 }
 
 ///|
-pub suberror InvalidTransport @string.View derive(Show)
+pub suberror InvalidTransport StringView derive(Show)
 
 ///|
-pub fn transport(transport : @string.View) -> Transport raise {
+pub fn transport(transport : StringView) -> Transport raise {
   let schema = StringBuilder::new()
-  let path : @string.View = loop transport {
+  let path : StringView = loop transport {
     [] as path => break path
     [':', .. rest] => break rest
     [c, .. rest] => {
@@ -75,6 +75,6 @@ pub fn Transport::console() -> Transport {
 }
 
 ///|
-pub fn Transport::file(path : @string.View) -> Transport {
+pub fn Transport::file(path : StringView) -> Transport {
   Transport::File(path=@utf8.encode(path), file=None)
 }

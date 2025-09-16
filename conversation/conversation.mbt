@@ -155,7 +155,7 @@ fn Conversation::new(
   Conversation::{
     name,
     description,
-    id: @uuid.uuid().to_string(),
+    id: @uuid.v4().to_string(),
     messages: [],
     created_at: @uv.clock_gettime(Realtime).sec(),
     updated_at: @uv.clock_gettime(Realtime).sec(),

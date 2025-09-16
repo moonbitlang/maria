@@ -24,7 +24,7 @@ pub fn Logger::close(self : Logger) -> Unit {
 pub fn Logger::log(
   self : Self,
   level : Level,
-  message : @string.View,
+  message : StringView,
   content : Map[String, Json],
 ) -> Unit {
   if self.level.to_int() < level.to_int() {
@@ -59,7 +59,7 @@ pub fn Logger::log(
 ///|
 pub fn Logger::error(
   self : Self,
-  message : @string.View,
+  message : StringView,
   content : Map[String, Json],
 ) -> Unit {
   self.log(Level::Error, message, content)
@@ -68,7 +68,7 @@ pub fn Logger::error(
 ///|
 pub fn Logger::warn(
   self : Self,
-  message : @string.View,
+  message : StringView,
   content : Map[String, Json],
 ) -> Unit {
   self.log(Level::Warn, message, content)
@@ -77,7 +77,7 @@ pub fn Logger::warn(
 ///|
 pub fn Logger::info(
   self : Self,
-  message : @string.View,
+  message : StringView,
   content : Map[String, Json],
 ) -> Unit {
   self.log(Level::Info, message, content)
@@ -86,7 +86,7 @@ pub fn Logger::info(
 ///|
 pub fn Logger::debug(
   self : Self,
-  message : @string.View,
+  message : StringView,
   content : Map[String, Json],
 ) -> Unit {
   self.log(Level::Debug, message, content)

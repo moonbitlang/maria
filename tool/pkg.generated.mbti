@@ -27,7 +27,7 @@ pub struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, Context) -> Result noraise
+  // private fields
 }
 async fn Tool::call(Self, Json, Context) -> Result noraise
 

@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria"
+package "moonbitlang/maria/moon"
 
 // Values
+async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
 // Errors
 
 // Types and methods
-type Migrator
 
 // Type aliases
 

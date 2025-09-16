@@ -1,5 +1,5 @@
 ///|
-fn @string.View::end_offset(self : @string.View) -> Int {
+fn StringView::end_offset(self : StringView) -> Int {
   self.start_offset() + self.length()
 }
 
@@ -21,7 +21,7 @@ pub let sep : Char = try {
 }
 
 ///|
-pub fn dirname(path : @string.View) -> @string.View {
+pub fn dirname(path : StringView) -> StringView {
   if sep == '\\' {
     loop path {
       [] => "."
@@ -38,7 +38,7 @@ pub fn dirname(path : @string.View) -> @string.View {
 }
 
 ///|
-pub fn basename(path : @string.View) -> @string.View {
+pub fn basename(path : StringView) -> StringView {
   if sep == '\\' {
     let path = match path {
       [.. path, '\\' | '/'] => path
@@ -63,7 +63,7 @@ pub fn basename(path : @string.View) -> @string.View {
 }
 
 ///|
-pub fn ext(path : @string.View) -> @string.View {
+pub fn ext(path : StringView) -> StringView {
   loop path.view() {
     [] => ""
     [.. view, '.'] => path.view(start_offset=view.end_offset())
@@ -72,7 +72,7 @@ pub fn ext(path : @string.View) -> @string.View {
 }
 
 ///|
-pub fn stem(path : @string.View) -> @string.View {
+pub fn stem(path : StringView) -> StringView {
   let base = basename(path)
   loop base.view() {
     [] => base
@@ -82,7 +82,7 @@ pub fn stem(path : @string.View) -> @string.View {
 }
 
 ///|
-fn trim_sep(p : @string.View) -> @string.View {
+fn trim_sep(p : StringView) -> StringView {
   if sep == '\\' {
     loop p {
       [.. p, '\\' | '/'] => continue p
@@ -98,7 +98,7 @@ fn trim_sep(p : @string.View) -> @string.View {
 }
 
 ///|
-pub fn join(p : @string.View, q : @string.View) -> @string.View {
+pub fn join(p : StringView, q : StringView) -> StringView {
   let p = trim_sep(p)
   let q = trim_sep(q)
   if p is ("" | ".") {
@@ -115,7 +115,7 @@ pub fn join(p : @string.View, q : @string.View) -> @string.View {
 }
 
 ///|
-pub fn is_absolute(path : @string.View) -> Bool {
+pub fn is_absolute(path : StringView) -> Bool {
   if sep == '\\' {
     path.length() >= 2 &&
     path[1] == ':' &&

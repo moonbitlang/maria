@@ -8,7 +8,7 @@ fn get_current_timestamp() -> String raise {
 
 ///|
 pub struct Manager {
-  cwd : @string.View
+  cwd : StringView
   todos : Array[Item]
   mut created_at : String
   mut updated_at : String
@@ -83,7 +83,7 @@ pub fn Item::update(
 }
 
 ///|
-pub fn Manager::new(cwd~ : @string.View) -> Manager raise {
+pub fn Manager::new(cwd~ : StringView) -> Manager raise {
   Manager::{
     cwd,
     todos: [],
@@ -93,7 +93,7 @@ pub fn Manager::new(cwd~ : @string.View) -> Manager raise {
 }
 
 ///|
-fn Manager::todo_file_path(self : Manager) -> @string.View {
+fn Manager::todo_file_path(self : Manager) -> StringView {
   return self.cwd
     |> @path.join(".moonagent")
     |> @path.join("todos")
@@ -264,7 +264,7 @@ pub fn Manager::update_task(
 
 ///|
 fn generate_todo_id() -> String raise {
-  @uuid.uuid().to_string()[0:8].to_string()
+  @uuid.v4().to_string()[0:8].to_string()
 }
 
 ///|

@@ -2,7 +2,7 @@
 pub async fn clone(
   url : String,
   to~ : StringView,
-  cwd? : @string.View,
+  cwd? : StringView,
 ) -> Unit raise {
   let arguments : Array[StringView] = ["clone", url, to]
   let status = @spawn.spawn("git", arguments, cwd?)
@@ -21,10 +21,10 @@ pub async fn init_(path : String, output? : &Logger) -> Unit raise {
 
 ///|
 pub async fn commit(
-  message : @string.View,
-  files : Array[@string.View],
+  message : StringView,
+  files : Array[StringView],
   output? : &Logger,
-  cwd? : @string.View,
+  cwd? : StringView,
 ) -> Unit {
   let buffer = StringBuilder::new()
   let status = @spawn.spawn("git", ["add", ..files], output=buffer, cwd?)

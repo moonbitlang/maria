@@ -19,8 +19,17 @@ fn switch_to(Conversation) -> Unit
 // Errors
 
 // Types and methods
-type Conversation
+pub struct Conversation {
+  name : String
+  description : String?
+  id : String
+  messages : Array[Message]
+  created_at : Int64
+  mut updated_at : Int64
+}
 async fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
+
+type Message
 
 // Type aliases
 

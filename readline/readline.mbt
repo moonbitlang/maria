@@ -97,7 +97,7 @@ struct Interface {
   last_command_errored : Bool
   crlf_delay : UInt64
   is_completion_enabled : Bool
-  completer : (async (@string.View) -> CompletionResult raise)?
+  completer : (async (StringView) -> CompletionResult raise)?
 }
 
 ///|
@@ -1145,8 +1145,8 @@ async fn Interface::emit_keypress(self : Interface) -> Unit raise {
 
 ///|
 pub(all) struct CompletionResult {
-  completions : Array[@string.View]
-  complete_on : @string.View
+  completions : Array[StringView]
+  complete_on : StringView
 }
 
 ///|
@@ -1165,7 +1165,7 @@ async fn Interface::tab_complete(
 }
 
 ///|
-fn common_prefix(array : Array[@string.View]) -> @string.View {
+fn common_prefix(array : Array[StringView]) -> StringView {
   array.sort()
   match array {
     [] => ""
@@ -1405,7 +1405,7 @@ pub async fn Interface::read_key(self : Interface) -> Key raise {
 ///|
 pub async fn Interface::question(
   self : Interface,
-  query : @string.View,
+  query : StringView,
 ) -> String raise {
   let query = @utf8.encode(query)
   self.old_prompt = self.prompt

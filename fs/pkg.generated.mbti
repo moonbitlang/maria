@@ -16,6 +16,8 @@ async fn read_file_to_bytes(StringView) -> Bytes
 
 async fn remove(StringView) -> Unit
 
+fn resolve(StringView) -> String raise
+
 async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
 async fn write_bytes_to_file(StringView, Bytes) -> Unit

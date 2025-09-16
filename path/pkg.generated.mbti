@@ -8,6 +8,8 @@ fn dirname(StringView) -> StringView
 
 fn ext(StringView) -> StringView
 
+fn is_absolute(StringView) -> Bool
+
 fn join(StringView, StringView) -> StringView
 
 let sep : Char

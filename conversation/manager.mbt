@@ -10,7 +10,7 @@ let manager : Manager = {
   let cache = @lru.cache(max_size=100)
   Manager::{
     storage_path: ".moonagent/conversations",
-    id: @uuid.uuid().to_string(),
+    id: @uuid.v4().to_string(),
     cache,
   }
 }

@@ -1,9 +1,9 @@
 ///|
 pub async fn spawn(
-  command : @string.View,
-  arguments : Array[@string.View],
+  command : StringView,
+  arguments : Array[StringView],
   output? : &Logger,
-  cwd? : @string.View,
+  cwd? : StringView,
 ) -> Int raise {
   let command = @utf8.encode(command)
   let arguments = arguments.map(arg => @utf8.encode(arg))

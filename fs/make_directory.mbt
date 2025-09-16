@@ -1,6 +1,6 @@
 ///|
 pub async fn make_directory(
-  path : @string.View,
+  path : StringView,
   recursive? : Bool = false,
 ) -> Unit raise {
   let dirs = []

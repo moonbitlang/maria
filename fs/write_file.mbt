@@ -1,6 +1,6 @@
 ///|
 pub async fn write_bytes_to_file(
-  path : @string.View,
+  path : StringView,
   content : Bytes,
 ) -> Unit raise {
   @fs.write_file(@utf8.encode(path), content, create=0o644)
@@ -8,8 +8,8 @@ pub async fn write_bytes_to_file(
 
 ///|
 pub async fn write_to_file(
-  path : @string.View,
-  content : @string.View,
+  path : StringView,
+  content : StringView,
 ) -> Unit raise {
   write_bytes_to_file(path, @utf8.encode(content))
 }

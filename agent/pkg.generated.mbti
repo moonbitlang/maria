@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-async fn new(@model.Model, cwd~ : String) -> Agent
+async fn new(@model.Model, cwd~ : StringView) -> Agent
 
 // Errors
 

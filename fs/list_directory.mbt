@@ -1,5 +1,5 @@
 ///|
-pub async fn list_directory(path : @string.View) -> Array[String] raise {
+pub async fn list_directory(path : StringView) -> Array[String] raise {
   let dirname = @utf8.encode(path)
   let dir = @fs.opendir(dirname)
   defer dir.close()

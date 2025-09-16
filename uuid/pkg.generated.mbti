@@ -2,13 +2,60 @@
 package "moonbitlang/maria/uuid"
 
 // Values
-fn uuid() -> UUID
+let max : Uuid
+
+let nil : Uuid
+
+fn parse(String) -> Uuid raise ParseError
+
+fn v4() -> Uuid
 
 // Errors
+type ParseError
+impl Show for ParseError
+impl ToJson for ParseError
 
 // Types and methods
-type UUID
-fn UUID::to_string(Self) -> String
+type Uuid
+fn Uuid::to_bytes(Self) -> Bytes
+fn Uuid::to_string(Self) -> String
+fn Uuid::variant(Self) -> Variant
+fn Uuid::version(Self) -> Version?
+impl Compare for Uuid
+impl Eq for Uuid
+impl Hash for Uuid
+impl Show for Uuid
+impl ToJson for Uuid
+
+pub enum Variant {
+  ReservedNCS
+  RFC9562(Version)
+  ReservedMicrosoft
+  ReservedFuture
+}
+impl Show for Variant
+impl ToJson for Variant
+
+pub(all) enum Version {
+  V0
+  V1
+  V2
+  V3
+  V4
+  V5
+  V6
+  V7
+  V8
+  V9
+  V10
+  V11
+  V12
+  V13
+  V14
+  V15
+}
+impl Show for Version
+impl ToJson for Version
 
 // Type aliases
 
