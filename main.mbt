@@ -6,7 +6,9 @@ priv suberror ApiKeyNotSet
 
 ///|
 impl Show for ApiKeyNotSet with output(_ : ApiKeyNotSet, logger : &Logger) -> Unit {
-  logger.write_string("API key not set in environment variable OPENROUTER_API_KEY")
+  logger.write_string(
+    "API key not set in environment variable OPENROUTER_API_KEY",
+  )
 }
 
 ///|
@@ -105,6 +107,8 @@ async fn Migrator::execute(self : Migrator, model : @model.Model) -> Unit raise 
     agent.add_message(@openai.user_message(content=prompt))
     agent.add_tool(@list_files.list_files)
     agent.add_tool(@execute_command.execute_command)
+    agent.add_tool(@read_file.read_file)
+    agent.add_tool(@write_to_file.write_to_file)
     agent.add_tool(@todo_read.todo_read)
     agent.add_tool(@todo_write.todo_write)
     agent.add_listener(RequestCompleted, context => {
@@ -144,7 +148,9 @@ fn main {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let env = @sys.get_env_vars()
-    guard env.get("OPENROUTER_API_KEY") is Some(api_key) else { raise ApiKeyNotSet }
+    guard env.get("OPENROUTER_API_KEY") is Some(api_key) else {
+      raise ApiKeyNotSet
+    }
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
