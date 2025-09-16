@@ -8,6 +8,8 @@ import(
 // Values
 async fn create(name~ : String, description? : String) -> Conversation
 
+async fn current() -> Conversation?
+
 async fn initialize() -> Unit
 
 async fn list(limit? : Int, sort_by? : (Conversation, Conversation) -> Int) -> Array[Conversation]

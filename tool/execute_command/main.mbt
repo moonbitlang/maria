@@ -49,7 +49,7 @@ fn main {
     }
   }
   let context = @tool.context(cwd~)
-  @async.with_event_loop(_ => println((execute_command.f)(json, context).output)) catch {
+  @async.with_event_loop(_ => println(execute_command.call(json, context).output)) catch {
     error => println("Error executing command: \{error}")
   }
 }

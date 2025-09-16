@@ -113,3 +113,14 @@ pub fn join(p : @string.View, q : @string.View) -> @string.View {
   buffer.write_substring(q.data(), q.start_offset(), q.length())
   buffer.to_string()
 }
+
+///|
+pub fn is_absolute(path : @string.View) -> Bool {
+  if sep == '\\' {
+    path.length() >= 2 &&
+    path[1] == ':' &&
+    ((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z'))
+  } else {
+    path.length() >= 1 && path[0] == '/'
+  }
+}

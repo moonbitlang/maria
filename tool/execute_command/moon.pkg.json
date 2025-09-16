@@ -1,12 +1,13 @@
 {
   "import": [
     "moonbitlang/maria/tool",
-    "moonbitlang/async/process",
-    "moonbitlang/async/pipe",
     "moonbitlang/async",
-    "tonyfettes/encoding",
     "tonyfettes/uv",
-    "tonyfettes/utf8"
+    "tonyfettes/utf8",
+    "moonbitlang/maria/spawn"
   ],
-  "is-main": true
+  "is-main": true,
+  "test-import": [
+    "moonbitlang/maria/mock"
+  ]
 }

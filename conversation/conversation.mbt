@@ -1,5 +1,5 @@
 ///|
-struct Conversation {
+pub struct Conversation {
   name : String
   description : String?
   id : String
@@ -83,7 +83,7 @@ impl @json.FromJson for Conversation with from_json(
 }
 
 ///|
-priv struct Message {
+struct Message {
   /// The Unix timestamp (in seconds) of when the message was created.
   timestamp : Int64
   /// Usage statistics for the completion request.

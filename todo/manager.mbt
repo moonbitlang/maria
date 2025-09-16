@@ -199,28 +199,39 @@ pub fn Manager::display(self : Manager) -> String {
 ///|
 /// Extract content from <task> tags (simplified implementation)
 fn extract_task_tags(content : String) -> Array[String] {
-  let results = []
-
-  // Simple implementation that finds first <task>...</task> pair
-  match content.find("<task>") {
-    None => ()
-    Some(start_tag) => {
-      let content_start = start_tag + 6 // length of "<task>"
-      match content.find("</task>") {
-        None => ()
-        Some(end_tag) =>
-          if end_tag > content_start {
-            try {
-              let task_content = content[content_start:end_tag].to_string()
-              results.push(task_content)
-            } catch {
-              _ => () // ignore slicing errors
-            }
-          }
-      }
+  let tasks = []
+  let mut task = None
+  loop content.view() {
+    [.. "<task>", .. rest] => {
+      task = Some(StringBuilder::new())
+      continue rest
     }
+    [.. "</task>", .. rest] => {
+      if task is Some(t) {
+        tasks.push(t.to_string())
+        task = None
+      }
+      continue rest
+    }
+    [c, .. rest] => {
+      if task is Some(t) {
+        t.write_char(c)
+      }
+      continue rest
+    }
+    [] => break
   }
-  results
+  tasks
+}
+
+///|
+test "extract_task_tags" {
+  @json.inspect(
+    extract_task_tags(
+      "This is a test.\n<task>First task</task>\nSome text.\n<task>Second task</task>\nEnd.",
+    ),
+    content=["First task", "Second task"],
+  )
 }
 
 ///|

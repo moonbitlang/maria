@@ -23,7 +23,7 @@ pub let execute_command : @tool.Tool = @tool.tool(
       "timeout": {
         "type": "number",
         "description": "The timeout in milliseconds for the command to execute",
-        "default": 10,
+        "default": 1000,
       },
     },
     "required": ["command", "arguments", "timeout"],
@@ -46,18 +46,10 @@ pub let execute_command : @tool.Tool = @tool.tool(
     let timeout = timeout.to_int()
     try {
       let result = @async.with_timeout_opt(timeout, () => {
-        let cmd = @encoding.encode(command, encoding=UTF8)
-        let args = arguments.map(arg => @encoding.encode(arg, encoding=UTF8))
-        let output = @pipe.pipe()
-        let cwd = @encoding.encode(context.cwd, encoding=UTF8)
-        let status = @process.run(
-          cmd,
-          args,
-          stdout=output.1,
-          stderr=output.1,
-          cwd~,
-        )
-        let output = output.0.read_all() |> @encoding.decode(encoding=UTF8)
+        let output = StringBuilder::new()
+        let arguments = arguments.map(arg => arg.view())
+        let status = @spawn.spawn(command, arguments, output~, cwd=context.cwd)
+        let output = output.to_string()
         return "Exit code: \{status}\nOutput:\n\{output}"
       })
       match result {

@@ -3,7 +3,7 @@ pub struct Tool {
   description : String
   name : String
   parameters : Map[String, Json]
-  f : async (Json, Context) -> Result noraise
+  priv f : async (Json, Context) -> Result noraise
 }
 
 ///|

@@ -1,10 +1,11 @@
 ///|
-pub async fn clone(url : String, to~ : String) -> Unit raise {
-  let status = @process.run("git", [
-    "clone",
-    @utf8.encode(url),
-    @utf8.encode(to),
-  ])
+pub async fn clone(
+  url : String,
+  to~ : StringView,
+  cwd? : @string.View,
+) -> Unit raise {
+  let arguments : Array[StringView] = ["clone", url, to]
+  let status = @spawn.spawn("git", arguments, cwd?)
   if status != 0 {
     fail("git clone failed with status code \{status}")
   }

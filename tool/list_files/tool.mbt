@@ -17,8 +17,12 @@ pub let list_files : @tool.Tool = @tool.tool(
       return @tool.error("Error: 'path' parameter is required")
     }
     try {
-      let dirname = @path.join(context.cwd, path)
-      let entries = @fs.list_directory(dirname)
+      let path = if @path.is_absolute(path) {
+        path.view()
+      } else {
+        @path.join(context.cwd, path)
+      }
+      let entries = @fs.list_directory(path)
       @tool.ok(entries.join("\n"))
     } catch {
       error => @tool.error("Error listing files: \{error}", error~)

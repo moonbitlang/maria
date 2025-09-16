@@ -102,6 +102,11 @@ pub fn switch_to(conversation : Conversation) -> Unit {
 }
 
 ///|
+pub async fn current() -> Conversation? raise {
+  manager.load_conversation()
+}
+
+///|
 pub async fn Conversation::add_message(
   self : Conversation,
   message : @openai.ChatCompletionMessageParam,

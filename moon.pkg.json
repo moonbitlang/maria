@@ -11,6 +11,12 @@
     "moonbitlang/maria/tool/list_files",
     "moonbitlang/maria/tool/execute_command",
     "moonbitlang/maria/readline",
-    "moonbitlang/async/pipe"
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/fs",
+    "moonbitlang/maria/git",
+    "moonbitlang/maria/moon",
+    "moonbitlang/maria/tool/todo_read",
+    "moonbitlang/maria/tool/todo_write"
   ]
 }

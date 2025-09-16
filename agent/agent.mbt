@@ -134,15 +134,12 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     max_delay_ms=16000,
     max_retries=5,
     () => @http.post(
-      @encoding.encode(
-        "\{agent.model.base_url}/chat/completions",
-        encoding=UTF8,
-      ),
+      @utf8.encode("\{agent.model.base_url}/chat/completions"),
       body,
       headers=[
         @http.Header(
           "Authorization",
-          @encoding.encode("Bearer \{agent.model.api_key}", encoding=UTF8),
+          @utf8.encode("Bearer \{agent.model.api_key}"),
         ),
         @http.Header("Content-Type", "application/json"),
         @http.Header("Connection", "close"),
@@ -166,6 +163,13 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
   )
   agent.history.append(staged)
   agent.history.push(message.to_param())
+  if message.content is Some(content) {
+    println("\{content}")
+  }
+  // if @conversation.current() is Some(conversation) {
+  //   println("Saving message to conversation \{conversation.id}")
+  //   conversation.add_message(message.to_param())
+  // }
   message
 }
 
@@ -189,7 +193,7 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = (tool.f)(arguments, context)
+  let result = tool.call(arguments, context)
   agent.emit(
     PostToolCall,
     EventContext::new(tool_call~, tool_call_result=result),
@@ -242,9 +246,6 @@ async fn[T] with_retry(
       return f()
     } catch {
       (error : Error) => {
-        logger.error("attempt \{attempt}/\{max_retries} failed", {
-          "error": error.to_json(),
-        })
         errors.push(error)
         continue
       }
@@ -267,11 +268,11 @@ async fn[T] with_retry(
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
-pub async fn new(model : @model.Model, cwd~ : String) -> Agent raise {
+pub async fn new(model : @model.Model, cwd~ : StringView) -> Agent raise {
   Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     history: [],
-    cwd,
+    cwd: cwd.to_string(),
     model,
     tools: {},
     queue: [],

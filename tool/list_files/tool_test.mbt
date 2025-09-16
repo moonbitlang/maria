@@ -7,7 +7,10 @@ test "list_files" {
     let _ = cwd.add_file("tool.mbt", "// tool")
     let _ = cwd.add_file("tool_test.mbt", "// test")
     inspect(
-      (list_files.f)({ "path": "." }, @tool.context(cwd=cwd.path())).output,
+      @list_files.list_files.call(
+        { "path": "." },
+        @tool.context(cwd=cwd.path()),
+      ).output,
       content=(
         #|tool.mbt
         #|moon.pkg.json
