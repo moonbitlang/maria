@@ -80,24 +80,28 @@ fn get_repo_name(url : String) -> String {
 }
 
 ///|
-async fn Migrator::execute(self : Migrator, model : @model.Model) -> Unit raise {
-  let repos = @fs.cwd() |> @path.join(".moonagent") |> @path.join("repos")
-  if !@fs.exists(repos) {
-    @fs.make_directory(repos, recursive=true)
-  }
+async fn Migrator::execute(
+  self : Migrator,
+  model : @model.Model,
+  cwd? : String,
+) -> Unit raise {
+  let cwd = cwd.unwrap_or_else(@fs.cwd)
   let src_name = get_repo_name(self.repo)
-  let src_path = @path.join(repos, src_name)
-  if !@fs.exists(src_path) {
-    println("cloning repository \{self.repo} into \{src_path}...")
-    @git.clone(self.repo, to=src_path, cwd=repos)
-  }
-  println("cloned into \{src_path}")
   let dst_name = normalize_repo_name(src_name)
-  let dst_path = @path.join(@fs.cwd(), dst_name)
+  let dst_path = @path.join(cwd, dst_name)
+  let src_path = dst_path
+    |> @path.join(".moonagent")
+    |> @path.join("repos")
+    |> @path.join(src_name)
   for loop_index in 1..=self.max_while_loop {
     if !@fs.exists(dst_path) {
       @moon.new(name=dst_name, dst_name)
     }
+    if !@fs.exists(src_path) {
+      println("cloning repository \{self.repo} into \{src_path}...")
+      @git.clone(self.repo, to=src_path, cwd=dst_path)
+    }
+    println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
     defer agent.close()
     let prompt =
