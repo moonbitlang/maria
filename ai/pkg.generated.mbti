@@ -2,10 +2,17 @@
 package "moonbitlang/maria/ai"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/model"
+  "moonbitlang/maria/openai"
+  "moonbitlang/maria/schema"
 )
 
 // Values
+async fn chat(model~ : @model.Model, @openai.ChatCompletionParam) -> @openai.ChatCompletion
+
+async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T
+
 async fn json(model~ : @model.Model, prompt~ : String) -> Json
 
 async fn text(model~ : @model.Model, prompt~ : String) -> String
@@ -17,4 +24,9 @@ async fn text(model~ : @model.Model, prompt~ : String) -> String
 // Type aliases
 
 // Traits
+pub(open) trait Structural : @json.FromJson {
+  name() -> String
+  description() -> String
+  schema() -> @schema.Schema
+}
 

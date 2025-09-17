@@ -1439,15 +1439,49 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
 ///|
 pub(all) enum ResponseFormat {
   Text
-  JsonSchema
+  JsonSchema(JsonSchema)
   JsonObject
+}
+
+///|
+struct JsonSchema {
+  name : String
+  description : String?
+  schema : Map[String, Json]
+  strict : Bool?
+}
+
+///|
+pub fn json_schema(
+  name~ : String,
+  schema~ : Map[String, Json],
+  description? : String,
+  strict? : Bool,
+) -> ResponseFormat {
+  JsonSchema(JsonSchema::{ name, description, schema, strict })
 }
 
 ///|
 pub impl ToJson for ResponseFormat with to_json(self : ResponseFormat) -> Json {
   match self {
-    Text => "text"
-    JsonSchema => "json_schema"
-    JsonObject => "json_object"
+    Text => { "type": "text" }
+    JsonSchema(json_schema) =>
+      {
+        "type": "json_schema",
+        "json_schema": {
+          let object : Map[String, Json] = {
+            "name": Json::string(json_schema.name),
+            "schema": json_schema.schema.to_json(),
+          }
+          if json_schema.description is Some(description) {
+            object["description"] = Json::string(description)
+          }
+          if json_schema.strict is Some(strict) {
+            object["strict"] = Json::boolean(strict)
+          }
+          Json::object(object)
+        },
+      }
+    JsonObject => { "type": "json_object" }
   }
 }

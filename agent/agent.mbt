@@ -52,11 +52,6 @@ struct Agent {
 }
 
 ///|
-priv suberror HttpError {
-  HttpError(code~ : Int, body~ : String)
-} derive(Show)
-
-///|
 priv suberror EmptyChoices
 
 ///|
@@ -122,44 +117,17 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
     EventContext::new(origin_token_count~, pruned_token_count~),
   )
   let messages = @cache.cache_messages(messages)
-  let param = @openai.chat_completion(messages~, model=agent.model.name, tools~)
-  let json = param.to_json()
-  agent.logger.info("http-request", { "request": json })
-  let body = json.stringify()
-  let body = @encoding.encode(body, encoding=UTF8)
-  let (response, body) = with_retry(
-    logger=agent.logger,
-    backoff_multiplier=2,
-    delay_ms=1000,
-    max_delay_ms=16000,
-    max_retries=5,
-    () => @http.post(
-      @utf8.encode("\{agent.model.base_url}/chat/completions"),
-      body,
-      headers=[
-        @http.Header(
-          "Authorization",
-          @utf8.encode("Bearer \{agent.model.api_key}"),
-        ),
-        @http.Header("Content-Type", "application/json"),
-        @http.Header("Connection", "close"),
-      ],
-    ),
+  let request = @openai.chat_completion(
+    messages~,
+    model=agent.model.name,
+    tools~,
   )
-  guard response.code is (200..=299) else {
-    raise HttpError(
-      code=response.code,
-      body=@encoding.decode_lossy(body, encoding=UTF8),
-    )
-  }
-  let body = @encoding.decode(body, encoding=UTF8)
-  let json = @json.parse(body)
-  let completion : @openai.ChatCompletion = @json.from_json(json)
-  guard completion.choices is [choice, ..] else { raise EmptyChoices }
+  let response = @ai.chat(model=agent.model, request)
+  guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
   agent.emit(
     RequestCompleted,
-    EventContext::new(usage?=completion.usage, message~),
+    EventContext::new(usage?=response.usage, message~),
   )
   agent.history.append(staged)
   agent.history.push(message.to_param())
@@ -227,32 +195,6 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
     }
   }
   agent.emit(ConversationEnd, EventContext::new())
-}
-
-///|
-async fn[T] with_retry(
-  logger~ : @pino.Logger,
-  backoff_multiplier~ : Int,
-  delay_ms~ : Int,
-  max_delay_ms~ : Int,
-  max_retries~ : Int,
-  f : async () -> T raise,
-) -> T raise {
-  guard max_retries > 0
-  let errors : Array[Error] = []
-  let mut delay_ms = delay_ms
-  for attempt in 0..<max_retries {
-    try {
-      return f()
-    } catch {
-      (error : Error) => {
-        errors.push(error)
-        continue
-      }
-    }
-    delay_ms = @cmp.minimum(delay_ms * backoff_multiplier, max_delay_ms)
-  }
-  raise errors.last().unwrap()
 }
 
 ///|

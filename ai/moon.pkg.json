@@ -2,6 +2,7 @@
   "import": [
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
-    "moonbitlang/async/http"
+    "moonbitlang/async/http",
+    "moonbitlang/maria/schema"
   ]
 }

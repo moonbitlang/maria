@@ -29,16 +29,10 @@ priv suberror HttpError {
 } derive(Show)
 
 ///|
-pub async fn text(model~ : @model.Model, prompt~ : String) -> String raise {
-  let request = @openai.chat_completion(
-    model=model.name,
-    messages=[
-      @openai.system_message(content="You are a helpful assistant."),
-      @openai.user_message(content=prompt),
-    ],
-    max_tokens=150,
-    temperature=0.7,
-  )
+pub async fn chat(
+  model~ : @model.Model,
+  request : @openai.ChatCompletionParam,
+) -> @openai.ChatCompletion raise {
   let request_body = request.to_json().stringify()
   let (response, response_body) = with_retry(
     backoff_multiplier=2,
@@ -64,10 +58,23 @@ pub async fn text(model~ : @model.Model, prompt~ : String) -> String raise {
       body=@encoding/utf8.decode_lossy(response_body),
     )
   }
-  let completion : @openai.ChatCompletion = response_body
-    |> @encoding/utf8.decode()
-    |> @json.parse()
-    |> @json.from_json()
+  response_body |> @encoding/utf8.decode() |> @json.parse() |> @json.from_json()
+}
+
+///|
+pub async fn text(model~ : @model.Model, prompt~ : String) -> String raise {
+  let completion = chat(
+    model~,
+    @openai.chat_completion(
+      model=model.name,
+      messages=[
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
+      ],
+      max_tokens=150,
+      temperature=0.7,
+    ),
+  )
   guard completion.choices[0].message.content is Some(content) else {
     fail("No content in completion message")
   }
@@ -110,11 +117,58 @@ test "extract_first_json_block" {
 
 ///|
 pub async fn json(model~ : @model.Model, prompt~ : String) -> Json raise {
-  let text = text(model~, prompt~)
-  let text = if extract_first_json_block(text) is Some(text) {
-    text
-  } else {
-    text
+  let completion = chat(
+    model~,
+    @openai.chat_completion(
+      model=model.name,
+      messages=[
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
+      ],
+      max_tokens=150,
+      temperature=0.7,
+    ),
+  )
+  guard completion.choices[0].message.content is Some(content) else {
+    fail("No content in completion message")
   }
-  @json.parse(text)
+  guard extract_first_json_block(content) is Some(content) else {
+    fail("No JSON block found in completion message")
+  }
+  content |> @json.parse()
+}
+
+///|
+pub(open) trait Structural: @json.FromJson {
+  name() -> String
+  description() -> String
+  schema() -> @schema.Schema
+}
+
+///|
+pub async fn[T : Structural] data(
+  model~ : @model.Model,
+  prompt~ : String,
+) -> T raise {
+  let completion = chat(
+    model~,
+    @openai.chat_completion(
+      model=model.name,
+      messages=[
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
+      ],
+      max_tokens=150,
+      temperature=0.7,
+      response_format=@openai.json_schema(
+        name=T::name(),
+        schema=T::schema().to_json(),
+        description=T::description(),
+      ),
+    ),
+  )
+  guard completion.choices[0].message.content is Some(content) else {
+    fail("No content in completion message")
+  }
+  content |> @json.parse() |> @json.from_json()
 }

@@ -10,6 +10,8 @@ fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool
 
 fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat) -> ChatCompletionParam
 
+fn json_schema(name~ : String, schema~ : Map[String, Json], description? : String, strict? : Bool) -> ResponseFormat
+
 fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
 fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionContentPartParam
@@ -258,6 +260,8 @@ pub struct FunctionDefinition {
   strict : Bool?
 }
 
+type JsonSchema
+
 pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
@@ -267,7 +271,7 @@ impl ToJson for PromptTokensDetails
 
 pub(all) enum ResponseFormat {
   Text
-  JsonSchema
+  JsonSchema(JsonSchema)
   JsonObject
 }
 impl ToJson for ResponseFormat

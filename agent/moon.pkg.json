@@ -3,14 +3,12 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/openai",
-    "tonyfettes/encoding",
-    "moonbitlang/async/http",
     "moonbitlang/maria/event",
     "moonbitlang/maria/token",
     "moonbitlang/maria/cache",
     "moonbitlang/maria/pino",
     "moonbitlang/maria/context",
-    "tonyfettes/utf8",
-    "moonbitlang/maria/conversation"
+    "moonbitlang/maria/conversation",
+    "moonbitlang/maria/ai"
   ]
 }
