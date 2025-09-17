@@ -354,6 +354,9 @@ pub fn Manager::parse(
   priority~ : Priority,
   notes? : String,
 ) -> Unit raise {
+  self.todos.clear()
+  self.created_at = get_current_timestamp()
+  self.updated_at = self.created_at
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
