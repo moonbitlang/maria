@@ -2,6 +2,8 @@
 package "moonbitlang/maria/rand"
 
 // Values
+fn seed(seed? : Bytes) -> Unit
+
 fn uint64() -> UInt64
 
 // Errors

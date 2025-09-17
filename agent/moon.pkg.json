@@ -10,6 +10,7 @@
     "moonbitlang/maria/cache",
     "moonbitlang/maria/pino",
     "moonbitlang/maria/context",
-    "tonyfettes/utf8"
+    "tonyfettes/utf8",
+    "moonbitlang/maria/conversation"
   ]
 }

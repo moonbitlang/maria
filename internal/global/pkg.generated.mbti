@@ -2,15 +2,10 @@
 package "moonbitlang/maria/internal/global"
 
 import(
-  "moonbitlang/core/random"
   "tonyfettes/uv"
 )
 
 // Values
-fn rand() -> @random.Rand
-
-fn seed(seed? : Bytes) -> Unit
-
 fn uv() -> @uv.Loop raise @uv.Errno
 
 // Errors
