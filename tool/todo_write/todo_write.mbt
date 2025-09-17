@@ -155,7 +155,10 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
   }
   try {
     let manager = @todo.Manager::new(cwd=context.cwd)
-    manager.load()
+    manager.load() catch {
+      error =>
+        return @tool.error("Error loading existing todo list: \{error}", error~)
+    }
     match action {
       Create =>
         match content {
@@ -163,7 +166,10 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
             return @tool.error("Error: Content is required for creating todos.")
           Some(content) => {
             // Clear existing todos and create new ones
-            manager.parse(content, priority~, notes?)
+            manager.parse(content, priority~, notes?) catch {
+              error =>
+                return @tool.error("Error parsing content: \{error}", error~)
+            }
             try {
               manager.save()
               let response = format_todo_response(

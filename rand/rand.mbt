@@ -1,5 +1,5 @@
 ///|
-let rand : @random.Rand = {
+let rand : Ref[@random.Rand] = {
   let seed = Bytes::make(32, 0)
   let mut error = None
   try {
@@ -12,10 +12,16 @@ let rand : @random.Rand = {
   } catch {
     error => abort("uv.random: \{@utf8.decode_lossy(error.to_bytes())}")
   }
-  @random.Rand::chacha8(seed~)
+  Ref::new(@random.Rand::chacha8(seed~))
 }
 
 ///|
 pub fn uint64() -> UInt64 {
-  rand.uint64()
+  rand.val.uint64()
+}
+
+///|
+pub fn seed(seed? : Bytes) -> Unit {
+  let new_rand = @random.Rand::chacha8(seed?)
+  rand.val = new_rand
 }

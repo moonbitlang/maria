@@ -1,6 +1,5 @@
 {
   "import": [
-    "tonyfettes/uv",
-    "tonyfettes/utf8"
+    "tonyfettes/uv"
   ]
 }
