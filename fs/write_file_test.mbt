@@ -1,7 +1,7 @@
 ///|
 test "write_bytes_to_file" {
   @async.with_event_loop(g => {
-    let dir = @mock.directory("fs-write_file")
+    let dir = @mock.directory("fs-write_bytes_to_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "")
     @this.write_bytes_to_file(file.path(), "Hello, Moonbit!")

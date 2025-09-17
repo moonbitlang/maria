@@ -1,5 +1,7 @@
 ///|
 struct Counter {
+  mut overhead : Int
+  mut tools : Bool
   encoding : @tiktoken.Encoding
 }
 
@@ -20,12 +22,17 @@ const ToolOverhead : Int = 20
 ///
 /// Throws an error if the cl100k\_base encoding cannot be initialized.
 pub fn Counter::new() -> Counter raise {
-  { encoding: @tiktoken.cl100k_base() }
+  { overhead: SystemOverhead, tools: false, encoding: @tiktoken.cl100k_base() }
 }
 
 ///|
-fn Counter::count_string(self : Counter, text : String) -> Int raise {
+fn Counter::_count_string(self : Counter, text : String) -> Int raise {
   self.encoding.encode(text).length()
+}
+
+///|
+pub fn Counter::count_string(self : Counter, text : String) -> Int raise {
+  self.overhead + self._count_string(text)
 }
 
 ///|
@@ -36,7 +43,7 @@ fn Counter::count_content_parts(
   let mut count = 0
   for part in parts {
     match part {
-      Text(text) => count += self.count_string(text.text)
+      Text(text) => count += self._count_string(text.text)
     }
   }
   count
@@ -47,7 +54,7 @@ fn Counter::count_function(
   self : Counter,
   function : @openai.Function,
 ) -> Int raise {
-  self.count_string(function.name) + self.count_string(function.arguments)
+  self._count_string(function.name) + self._count_string(function.arguments)
 }
 
 ///|
@@ -60,7 +67,7 @@ fn Counter::count_message(
       let mut count = 0
       count += self.count_content_parts(assistant.content)
       for tool_call in assistant.tool_calls {
-        count += self.count_string(tool_call.id)
+        count += self._count_string(tool_call.id)
         count += self.count_function(tool_call.function)
       }
       count
@@ -101,10 +108,10 @@ fn Counter::count_tool(
   let mut count = 0
   count += ToolOverhead
   guard tool is @openai.Function(function)
-  count += self.count_string(function.name)
-  count += 2 * self.count_string(function.description)
+  count += self._count_string(function.name)
+  count += 2 * self._count_string(function.description)
   let parameters = function.parameters.to_json().stringify(indent=2)
-  let parameters = self.count_string(parameters)
+  let parameters = self._count_string(parameters)
   count += (parameters.to_double() / 2.0.sqrt()).to_int()
   count
 }
@@ -127,6 +134,18 @@ test "tool" {
   )
   let counter = Counter::new()
   @json.inspect(counter.count_tool(tool), content=70)
+}
+
+///|
+pub fn Counter::add_tool(
+  self : Counter,
+  tool : @openai.ChatCompletionToolParam,
+) -> Unit raise {
+  if !self.tools {
+    self.overhead += ToolsOverhead
+    self.tools = true
+  }
+  self.overhead += self.count_tool(tool)
 }
 
 ///|

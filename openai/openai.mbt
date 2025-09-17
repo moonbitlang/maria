@@ -601,6 +601,9 @@ pub struct ChatCompletionParam {
   tools : Array[ChatCompletionToolParam]
   usage : CompletionUsageParam?
   user : String?
+  max_tokens : Int?
+  temperature : Double?
+  response_format : ResponseFormat?
 }
 
 ///|
@@ -610,8 +613,20 @@ pub fn chat_completion(
   tools? : Array[ChatCompletionToolParam] = [],
   usage? : CompletionUsageParam,
   user? : String,
+  max_tokens? : Int,
+  temperature? : Double,
+  response_format? : ResponseFormat,
 ) -> ChatCompletionParam {
-  ChatCompletionParam::{ model, messages, tools, usage, user }
+  ChatCompletionParam::{
+    model,
+    messages,
+    tools,
+    usage,
+    user,
+    max_tokens,
+    temperature,
+    response_format,
+  }
 }
 
 ///|
@@ -625,6 +640,15 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
   }
   if self.usage is Some(usage) {
     json["usage"] = usage.to_json()
+  }
+  if self.user is Some(user) {
+    json["user"] = Json::string(user)
+  }
+  if self.max_tokens is Some(max_tokens) {
+    json["max_tokens"] = max_tokens.to_json()
+  }
+  if self.temperature is Some(temperature) {
+    json["temperature"] = temperature.to_json()
   }
   Json::object(json)
 }
@@ -1410,4 +1434,20 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
     tool_calls,
     function_call: None,
   })
+}
+
+///|
+pub(all) enum ResponseFormat {
+  Text
+  JsonSchema
+  JsonObject
+}
+
+///|
+pub impl ToJson for ResponseFormat with to_json(self : ResponseFormat) -> Json {
+  match self {
+    Text => "text"
+    JsonSchema => "json_schema"
+    JsonObject => "json_object"
+  }
 }

@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/ai"
+
+import(
+  "moonbitlang/maria/model"
+)
+
+// Values
+async fn json(model~ : @model.Model, prompt~ : String) -> Json
+
+async fn text(model~ : @model.Model, prompt~ : String) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

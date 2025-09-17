@@ -8,7 +8,7 @@ import(
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String) -> ChatCompletionParam
+fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat) -> ChatCompletionParam
 
 fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
@@ -158,6 +158,9 @@ pub struct ChatCompletionParam {
   tools : Array[ChatCompletionToolParam]
   usage : CompletionUsageParam?
   user : String?
+  max_tokens : Int?
+  temperature : Double?
+  response_format : ResponseFormat?
 }
 impl ToJson for ChatCompletionParam
 
@@ -261,6 +264,13 @@ pub struct PromptTokensDetails {
 }
 impl Show for PromptTokensDetails
 impl ToJson for PromptTokensDetails
+
+pub(all) enum ResponseFormat {
+  Text
+  JsonSchema
+  JsonObject
+}
+impl ToJson for ResponseFormat
 
 // Type aliases
 
