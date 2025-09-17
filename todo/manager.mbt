@@ -19,14 +19,44 @@ pub(all) enum Priority {
   High
   Medium
   Low
-} derive(ToJson, @json.FromJson)
+} derive(ToJson)
+
+///|
+pub impl @json.FromJson for Priority with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Priority raise @json.JsonDecodeError {
+  match json {
+    "High" | "high" => High
+    "Medium" | "medium" => Medium
+    "Low" | "low" => Low
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Invalid Priority value: \{json}"),
+      )
+  }
+}
 
 ///|
 pub(all) enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson, @json.FromJson)
+} derive(ToJson)
+
+///|
+pub impl @json.FromJson for Status with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Status raise @json.JsonDecodeError {
+  match json {
+    "pending" | "Pending" => Pending
+    "in_progress" | "InProgress" => InProgress
+    "completed" | "Completed" => Completed
+    _ =>
+      raise @json.JsonDecodeError((json_path, "Invalid Status value: \{json}"))
+  }
+}
 
 ///|
 pub struct Item {
