@@ -14,15 +14,20 @@ async fn execute(args : Json, context : @tool.Context) -> @tool.Result noraise {
   }
   try {
     // Resolve file path
-    let resolved_path = @path.join(context.cwd, path)
+    let path = if @path.is_absolute(path) {
+      path.view()
+    } else {
+      @path.join(context.cwd, path)
+    }
+    let path = @fs.resolve(path)
 
     // Check if file exists
-    if !@fs.exists(resolved_path) {
+    if !@fs.exists(path) {
       return @tool.error("Error reading file: File not found: \{path}")
     }
 
     // Open and read the file
-    let content = @fs.read_file(resolved_path)
+    let content = @fs.read_file(path)
     let lines = content.split("\n").to_array()
     let start_line = match start_line {
       Some(n) if n >= 1 => n
