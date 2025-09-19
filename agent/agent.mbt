@@ -50,6 +50,7 @@ struct Agent {
   token_counter : @token.Counter
   context_pruner : @context.Pruner
   session_manager : @conversation.Manager
+  todo_list : @todo.Manager
 }
 
 ///|
@@ -223,7 +224,8 @@ pub async fn new(
       @conversation.Manager::new(path~)
     }
   }
-  Agent::{
+  let todo = @todo.Manager::new(cwd~)
+  let agent = Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     history: @conversation.Conversation::new(name=""),
     cwd: cwd.to_string(),
@@ -234,7 +236,11 @@ pub async fn new(
     token_counter: @token.Counter::new(),
     context_pruner: @context.Pruner::new(safe_zone_tokens=model.context_window),
     session_manager,
+    todo_list: todo,
   }
+  agent.add_tool(todo.get_todo_read_tool())
+  agent.add_tool(todo.get_todo_write_tool())
+  agent
 }
 
 ///|

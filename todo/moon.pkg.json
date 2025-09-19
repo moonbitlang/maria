@@ -4,6 +4,7 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/uuid",
     "tonyfettes/uv",
-    "moonbitlang/x/time"
+    "moonbitlang/x/time",
+    "moonbitlang/maria/tool"
   ]
 }
