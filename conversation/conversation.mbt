@@ -1,8 +1,8 @@
 ///|
-pub struct Conversation {
+struct Conversation {
   name : String
   description : String?
-  id : String
+  id : Id
   messages : Array[Message]
   created_at : Int64
   mut updated_at : Int64
@@ -83,7 +83,7 @@ impl @json.FromJson for Conversation with from_json(
 }
 
 ///|
-struct Message {
+priv struct Message {
   /// The Unix timestamp (in seconds) of when the message was created.
   timestamp : Int64
   /// Usage statistics for the completion request.
@@ -148,16 +148,71 @@ impl @json.FromJson for Message with from_json(
 }
 
 ///|
-fn Conversation::new(
+pub fn Conversation::new(
   name~ : String,
   description? : String,
+  id? : Id = @uuid.v4().to_string(),
 ) -> Conversation raise {
   Conversation::{
     name,
     description,
-    id: @uuid.v4().to_string(),
+    id,
     messages: [],
     created_at: @uv.clock_gettime(Realtime).sec(),
     updated_at: @uv.clock_gettime(Realtime).sec(),
   }
+}
+
+///|
+pub async fn Conversation::add_message(
+  self : Conversation,
+  message : @openai.ChatCompletionMessageParam,
+  usage? : @openai.CompletionUsage,
+  created? : Int64,
+) -> Unit {
+  let timestamp = match created {
+    None => @uv.clock_gettime(Realtime).sec()
+    Some(created) => created
+  }
+  let message = Message::{ timestamp, usage, message }
+  self.messages.push(message)
+  self.updated_at = @uv.clock_gettime(Realtime).sec()
+}
+
+///|
+struct Id(String)
+
+///|
+impl Show for Id with output(self : Id, logger : &Logger) -> Unit {
+  logger.write_string(self.0)
+}
+
+///|
+impl ToJson for Id with to_json(self : Id) -> Json {
+  self.0.to_json()
+}
+
+///|
+impl @json.FromJson for Id with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Id raise @json.JsonDecodeError {
+  let id : String = @json.from_json(json, path=json_path)
+  id
+}
+
+///|
+pub fn Conversation::id(self : Conversation) -> Id {
+  self.id
+}
+
+///|
+pub fn Conversation::to_param(
+  self : Conversation,
+) -> Array[@openai.ChatCompletionMessageParam] {
+  let messages = []
+  for m in self.messages {
+    messages.push(m.message)
+  }
+  messages
 }

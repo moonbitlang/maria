@@ -6,30 +6,22 @@ import(
 )
 
 // Values
-async fn create(name~ : String, description? : String) -> Conversation
-
-async fn current() -> Conversation?
-
-async fn initialize() -> Unit
-
-async fn list(limit? : Int, sort_by? : (Conversation, Conversation) -> Int) -> Array[Conversation]
-
-fn switch_to(Conversation) -> Unit
 
 // Errors
 
 // Types and methods
-pub struct Conversation {
-  name : String
-  description : String?
-  id : String
-  messages : Array[Message]
-  created_at : Int64
-  mut updated_at : Int64
-}
+type Conversation
 async fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
+fn Conversation::id(Self) -> Id
+fn Conversation::new(name~ : String, description? : String, id? : Id) -> Self raise
+fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
 
-type Message
+type Id
+
+type Manager
+async fn Manager::load(Self, Id) -> Conversation?
+async fn Manager::new(path~ : String) -> Self
+async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases
 

@@ -44,11 +44,12 @@ struct Agent {
   cwd : String
   model : @model.Model
   tools : Map[String, @tool.Tool]
-  history : Array[@openai.ChatCompletionMessageParam]
+  history : @conversation.Conversation
   mut queue : Array[@openai.ChatCompletionMessageParam]
   event_target : @event.Target[Event, EventContext]
   token_counter : @token.Counter
   context_pruner : @context.Pruner
+  session_manager : @conversation.Manager
 }
 
 ///|
@@ -94,7 +95,8 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   }
   let staged = agent.queue
   agent.queue = []
-  let messages = [..agent.history, ..staged]
+  let messages = agent.history.to_param()
+  messages.append(staged)
   let origin_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
       messages~,
@@ -129,14 +131,14 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     RequestCompleted,
     EventContext::new(usage?=response.usage, message~),
   )
-  agent.history.append(staged)
-  agent.history.push(message.to_param())
+  for message in staged {
+    agent.history.add_message(message)
+  }
+  agent.history.add_message(message.to_param())
   if message.content is Some(content) {
     println("\{content}")
   }
-  if @conversation.current() is Some(conversation) {
-    conversation.add_message(message.to_param())
-  }
+  agent.session_manager.save(agent.history)
   message
 }
 
@@ -209,10 +211,21 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
-pub async fn new(model : @model.Model, cwd~ : StringView) -> Agent {
+pub async fn new(
+  model : @model.Model,
+  cwd~ : StringView,
+  session_manager? : @conversation.Manager,
+) -> Agent {
+  let session_manager = match session_manager {
+    Some(session_manager) => session_manager
+    None => {
+      let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
+      @conversation.Manager::new(path~)
+    }
+  }
   Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
-    history: [],
+    history: @conversation.Conversation::new(name=""),
     cwd: cwd.to_string(),
     model,
     tools: {},
@@ -220,6 +233,7 @@ pub async fn new(model : @model.Model, cwd~ : StringView) -> Agent {
     event_target: @event.Target::new(),
     token_counter: @token.Counter::new(),
     context_pruner: @context.Pruner::new(safe_zone_tokens=model.context_window),
+    session_manager,
   }
 }
 
