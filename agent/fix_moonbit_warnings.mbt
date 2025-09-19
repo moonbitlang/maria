@@ -301,35 +301,49 @@ pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
       error =>
         return @tool.error("Failed to load module files: \{error}", error~)
     }
-    moon.check() catch {
+    @async.with_timeout(
+      120_000 * 4,
+      () => moon.check(),
+      error=Failure("Timeout after 4 minutes"),
+    ) catch {
       error => return @tool.error("Failed to check module: \{error}", error~)
     }
-    for file in files {
-      for segment in file.segments() {
-        let updated = process_segment(
-          model=ctx.model,
-          cwd=ctx.cwd,
-          moon~,
-          segment~,
-          description~,
-        ) catch {
-          error =>
-            return @tool.error(
-              "Failed to process segment \{segment.index()} in file \{file.path()}: \{error}",
-              error~,
-            )
-        }
-        if updated is Some(updated) {
-          segment.replace(updated) catch {
+    let mut files_updated = 0
+    let mut segments_updated = 0
+    @async.with_timeout_opt(60_000 * 10 * 8, () => @async.with_task_group(group => {
+      for file in files {
+        for segment in file.segments() {
+          group.spawn_bg(() => {
+            let updated = if @async.with_timeout_opt(120_000 * 4, () => process_segment(
+                model=ctx.model,
+                cwd=ctx.cwd,
+                moon~,
+                segment~,
+                description~,
+              ))
+              is Some(updated) {
+              updated
+            } else {
+              fail("Timeout after 4 minutes")
+            }
+            if updated is Some(updated) {
+              segment.replace(updated)
+              segments_updated += 1
+            }
+          }) catch {
             error =>
-              return @tool.error(
-                "Failed to update segment \{segment.index()} in file \{file.path()}: \{error}",
-                error~,
+              println(
+                "Warning: Failed to process segment in file \{file.path()}: \{error}",
               )
           }
         }
+        files_updated += 1
       }
+      @tool.ok(
+        "Processed \{files_updated} files and updated \{segments_updated} segments.",
+      )
+    })).or_error(Failure("Takes too long processing all the segments")) catch {
+      error => return @tool.error("Failed to process files: \{error}", error~)
     }
-    @tool.ok("Finished processing all files in the module.")
   },
 )
