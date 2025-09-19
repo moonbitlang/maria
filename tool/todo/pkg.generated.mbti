@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tool/todo"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
@@ -11,54 +10,11 @@ import(
 // Errors
 
 // Types and methods
-type Index
-
-pub struct Item {
-  content : String
-  created_at : String
-  id : String
-  notes : String?
-  priority : Priority
-  status : Status
-  updated_at : String
-}
-fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Self raise
-impl ToJson for Item
-impl @json.FromJson for Item
-
-pub struct Manager {
-  cwd : StringView
-  todos : Array[Item]
-  mut created_at : String
-  mut updated_at : String
-}
-fn Manager::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item raise
-fn Manager::display(Self) -> String
-fn Manager::find(Self, String) -> Index?
-fn Manager::get(Self, Index) -> Item
-fn Manager::get_todo_read_tool(Self) -> @tool.Tool
-fn Manager::get_todo_write_tool(Self) -> @tool.Tool
+type Manager
 async fn Manager::load(Self) -> Unit
 fn Manager::new(cwd~ : StringView) -> Self raise
-fn Manager::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
-async fn Manager::save(Self) -> Unit
-fn Manager::update_task(Self, Index, Item) -> Unit raise
-
-pub(all) enum Priority {
-  High
-  Medium
-  Low
-}
-impl ToJson for Priority
-impl @json.FromJson for Priority
-
-pub(all) enum Status {
-  Pending
-  InProgress
-  Completed
-}
-impl ToJson for Status
-impl @json.FromJson for Status
+fn Manager::todo_read(Self) -> @tool.Tool
+fn Manager::todo_write(Self) -> @tool.Tool
 
 // Type aliases
 

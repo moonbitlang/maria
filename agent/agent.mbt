@@ -238,8 +238,8 @@ pub async fn new(
     session_manager,
     todo_list: todo,
   }
-  agent.add_tool(todo.get_todo_read_tool())
-  agent.add_tool(todo.get_todo_write_tool())
+  agent.add_tool(todo.todo_read())
+  agent.add_tool(todo.todo_write())
   agent
 }
 
