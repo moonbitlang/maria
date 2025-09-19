@@ -6,7 +6,7 @@ test "write_to_file/create" {
     let args : Json = { "path": "nonexistent.txt" }
     let result = @write_to_file.write_to_file.call(
       args,
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     @json.inspect(result, content={
       "output": "New file created and content written to nonexistent.txt",
@@ -27,7 +27,7 @@ test "write_to_file/replace" {
     }
     let result = @write_to_file.write_to_file.call(
       args,
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     @json.inspect(result, content={ "output": "Changes applied to file.txt" })
   })
@@ -46,7 +46,7 @@ test "write_to_file/fail-to-match" {
     }
     let result = @write_to_file.write_to_file.call(
       args,
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     @json.inspect(result, content={
       "output": "Search content not found in file (tried all matching strategies): Non-matching content",

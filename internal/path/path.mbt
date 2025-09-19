@@ -12,7 +12,7 @@ pub let sep : Byte = try {
   }
 } catch {
   error => {
-    let message = @utf8.decode_lossy(error.to_bytes())
+    let message = @encoding/utf8.decode_lossy(error.to_bytes())
     println(
       "Warning: failed to set default path implementation, defaulting to posix. Error: \{message}",
     )

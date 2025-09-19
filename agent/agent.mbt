@@ -82,7 +82,7 @@ pub fn Agent::close(agent : Agent) -> Unit {
 /// Throws an error of type `HttpError` if the HTTP request fails or returns a
 /// non-2xx status code, or an error of type `EmptyChoices` if the API response
 /// contains no choices.
-async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
+async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let tools = []
   for name, tool in agent.tools {
     let tool = @openai.tool(
@@ -145,14 +145,14 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage raise {
 async fn Agent::execute_tool(
   agent : Agent,
   tool_call : @openai.ChatCompletionMessageToolCall,
-) -> @openai.ChatCompletionMessageParam raise {
+) -> @openai.ChatCompletionMessageParam {
   guard agent.tools.get(tool_call.function.name) is Some(tool) else {
     @openai.tool_message(
       content="Unknown tool: \{tool_call.function.name}",
       tool_call_id=tool_call.id,
     )
   }
-  let context = @tool.context(cwd=agent.cwd)
+  let context = @tool.context(model=agent.model, cwd=agent.cwd)
   agent.emit(PreToolCall, EventContext::new(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
@@ -182,7 +182,7 @@ pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
 }
 
 ///|
-pub async fn Agent::start(agent : Agent) -> Unit raise {
+pub async fn Agent::start(agent : Agent) -> Unit {
   agent.emit(ConversationStart, EventContext::new())
   while true {
     let response = agent.call()
@@ -210,7 +210,7 @@ pub async fn Agent::start(agent : Agent) -> Unit raise {
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
-pub async fn new(model : @model.Model, cwd~ : StringView) -> Agent raise {
+pub async fn new(model : @model.Model, cwd~ : StringView) -> Agent {
   Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     history: [],
@@ -229,7 +229,7 @@ async fn Agent::emit(
   agent : Agent,
   kind : Event,
   context : EventContext,
-) -> Unit raise {
+) -> Unit {
   agent.event_target.emit(kind, context)
 }
 
@@ -246,7 +246,7 @@ async fn Agent::emit(
 pub fn Agent::add_listener(
   agent : Agent,
   kind : Event,
-  f : async (EventContext) -> Unit raise,
+  f : async (EventContext) -> Unit,
 ) -> Unit {
   agent.event_target.add_listener(kind, f)
 }

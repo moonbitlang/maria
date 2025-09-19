@@ -2,7 +2,6 @@
   "import": [
     "tonyfettes/uv",
     "moonbitlang/async/pipe",
-    "tonyfettes/utf8",
     "moonbitlang/maria/readline/csi",
     "moonbitlang/async/aqueue",
     "rami3l/unicodewidth",

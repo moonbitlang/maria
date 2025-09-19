@@ -4,7 +4,7 @@ test "read_file/nonexistent" {
     let cwd = @mock.directory("tool-read-file-test")
     g.add_defer(() => cwd.close())
     let args : Json = { "path": "nonexistent.txt" }
-    let result = @read_file.read_file.call(args, @tool.context(cwd=cwd.path()))
+    let result = @read_file.read_file.call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
     @json.inspect(result.error, content=[
       ["Failure", "Error reading file: File not found: nonexistent.txt"],
     ])
@@ -26,7 +26,7 @@ test "read_file/content" {
       ),
     )
     let args : Json = { "path": "test.txt" }
-    let result = @read_file.read_file.call(args, @tool.context(cwd=cwd.path()))
+    let result = @read_file.read_file.call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
     inspect(
       result.output,
       content=(
@@ -56,7 +56,7 @@ test "read_file/line_range" {
       ),
     )
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
-    let result = @read_file.read_file.call(args, @tool.context(cwd=cwd.path()))
+    let result = @read_file.read_file.call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
     inspect(
       result.output,
       content=(

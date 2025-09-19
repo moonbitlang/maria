@@ -2,7 +2,6 @@
   "import": [
     "moonbitlang/async",
     "moonbitlang/async/process",
-    "tonyfettes/utf8",
     "moonbitlang/maria/path",
     "moonbitlang/maria/spawn",
     "moonbitlang/maria/fs"

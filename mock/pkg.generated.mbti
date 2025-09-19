@@ -1,8 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/mock"
 
+import(
+  "moonbitlang/maria/model"
+)
+
 // Values
 async fn directory(String) -> Directory
+
+fn model() -> @model.Model
 
 // Errors
 

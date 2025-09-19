@@ -1,6 +1,5 @@
 {
   "import": [
-    "tonyfettes/utf8",
     "moonbitlang/maria/internal/global",
     "tonyfettes/uv"
   ]

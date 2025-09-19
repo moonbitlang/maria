@@ -5,15 +5,15 @@ test "dirname" {
 
 ///|
 test "basename" {
-  @json.inspect(@utf8.decode(@path.basename("a/b/c.jpg")), content="c.jpg")
+  @json.inspect(@encoding/utf8.decode(@path.basename("a/b/c.jpg")), content="c.jpg")
 }
 
 ///|
 test "ext" {
-  @json.inspect(@utf8.decode(@path.ext("a/b/c.jpg")), content=".jpg")
+  @json.inspect(@encoding/utf8.decode(@path.ext("a/b/c.jpg")), content=".jpg")
 }
 
 ///|
 test "stem" {
-  @json.inspect(@utf8.decode(@path.stem("a/b/c.jpg")), content="c")
+  @json.inspect(@encoding/utf8.decode(@path.stem("a/b/c.jpg")), content="c")
 }

@@ -3,7 +3,7 @@ test "timeout" {
   @async.with_event_loop(_ => @json.inspect(
     @execute_command.execute_command.call(
       { "command": "sleep", "arguments": ["5"], "timeout": 1 },
-      @tool.context(cwd="."),
+      @tool.context(model=@mock.model(), cwd="."),
     ),
     content={
       "output": "Timeout when executing command",
@@ -23,7 +23,7 @@ test "cat" {
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat", "arguments": ["file.txt"], "timeout": 5000 },
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     @json.inspect(
       result.output,

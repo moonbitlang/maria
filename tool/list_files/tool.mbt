@@ -22,7 +22,7 @@ pub let list_files : @tool.Tool = @tool.tool(
       } else {
         @path.join(context.cwd, path)
       }
-      let entries = @fs.list_directory(path)
+      let entries = @fs.list_directory(path).map(entry => entry.path)
       @tool.ok(entries.join("\n"))
     } catch {
       error => @tool.error("Error listing files: \{error}", error~)

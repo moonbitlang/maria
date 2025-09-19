@@ -9,7 +9,7 @@ test "list_files" {
     inspect(
       @list_files.list_files.call(
         { "path": "." },
-        @tool.context(cwd=cwd.path()),
+        @tool.context(model=@mock.model(), cwd=cwd.path()),
       ).output,
       content=(
         #|tool.mbt

@@ -1,6 +1,6 @@
 ///|
-test "list_directory" {
-  @async.with_event_loop(g => {
+async test "list_directory" {
+  @async.with_task_group(g => {
     let dir = @mock.directory("fs-list_directory")
     g.add_defer(() => dir.close())
     let _ = dir.add_file("file1.txt", "content1")
@@ -9,6 +9,10 @@ test "list_directory" {
         "file3.txt", "content3",
       )
       |> ignore())
-    @json.inspect(dir.list(), content=["subdir/", "file1.txt", "file2.txt"])
+    @json.inspect(@this.list_directory(dir.path()), content=[
+      { "path": "subdir", "kind": "Directory" },
+      { "path": "file1.txt", "kind": "Regular" },
+      { "path": "file2.txt", "kind": "Regular" },
+    ])
   })
 }

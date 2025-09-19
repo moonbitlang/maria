@@ -6,7 +6,7 @@ fn cwd() -> String raise
 
 async fn exists(StringView) -> Bool
 
-async fn list_directory(StringView) -> Array[String]
+async fn list_directory(StringView) -> Array[DirectoryEntry]
 
 async fn make_directory(StringView, recursive? : Bool) -> Unit
 
@@ -18,6 +18,8 @@ async fn remove(StringView) -> Unit
 
 fn resolve(StringView) -> String raise
 
+fn stat(StringView) -> Stat raise
+
 async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
 async fn write_bytes_to_file(StringView, Bytes) -> Unit
@@ -27,6 +29,33 @@ async fn write_to_file(StringView, StringView) -> Unit
 // Errors
 
 // Types and methods
+pub struct DirectoryEntry {
+  path : String
+  name : String
+  kind : FileKind
+}
+impl Compare for DirectoryEntry
+impl Eq for DirectoryEntry
+impl Hash for DirectoryEntry
+impl ToJson for DirectoryEntry
+
+pub enum FileKind {
+  Unknown
+  Regular
+  Directory
+  SymLink
+  Socket
+  Pipe
+  BlockDevice
+  CharDevice
+}
+impl Compare for FileKind
+impl Eq for FileKind
+impl Hash for FileKind
+impl ToJson for FileKind
+
+type Stat
+fn Stat::mtime(Self) -> Int64
 
 // Type aliases
 

@@ -47,8 +47,8 @@ pub async fn commit(
 
 ///|
 pub async fn create_branch(branch_name~ : String, cwd? : String) -> String {
-  let cwd = cwd.map(@utf8.encode(_))
-  guard @process.run("git", ["branch", @utf8.encode(branch_name)], cwd?) is 0 else {
+  let cwd = cwd.map(@encoding/utf8.encode(_))
+  guard @process.run("git", ["branch", @encoding/utf8.encode(branch_name)], cwd?) is 0 else {
     fail("git branch creation failed")
   }
   return "Branch '\{branch_name}' created successfully"

@@ -8,6 +8,8 @@ import(
 )
 
 // Values
+let fix_moonbit_warnings : @tool.Tool
+
 async fn new(@model.Model, cwd~ : StringView) -> Agent
 
 // Errors

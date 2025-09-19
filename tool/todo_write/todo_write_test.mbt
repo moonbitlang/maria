@@ -13,7 +13,7 @@ test "todo_write/create/plain" {
         ),
         "priority": "high",
       },
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     inspect(
       result.output,
@@ -49,7 +49,7 @@ test "todo_write/create/<task>" {
           #|<task>Test migrated functionality</task>
         ),
       },
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     inspect(
       result.output,
@@ -90,7 +90,7 @@ test "todo_write/update" {
         "priority": "high",
         "content": "Updated first item",
       },
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     inspect(
       result.output,
@@ -123,7 +123,7 @@ test "todo_write/mark_completed" {
     manager.save()
     let result = @todo_write.todo_write.call(
       { "action": "mark_completed", "task_id": todo1.id },
-      @tool.context(cwd=cwd.path()),
+      @tool.context(model=@mock.model(), cwd=cwd.path()),
     )
     inspect(
       result.output,

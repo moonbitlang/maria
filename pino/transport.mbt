@@ -76,5 +76,5 @@ pub fn Transport::console() -> Transport {
 
 ///|
 pub fn Transport::file(path : StringView) -> Transport {
-  Transport::File(path=@utf8.encode(path), file=None)
+  Transport::File(path=@encoding/utf8.encode(path), file=None)
 }

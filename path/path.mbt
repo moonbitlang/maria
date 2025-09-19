@@ -6,13 +6,13 @@ fn StringView::end_offset(self : StringView) -> Int {
 ///|
 pub let sep : Char = try {
   if @uv.os_uname().sysname() == "Windows_NT" {
-    '\\'
+    abort("Windows is not supported yet")
   } else {
     '/'
   }
 } catch {
   error => {
-    let message = @utf8.decode_lossy(error.to_bytes())
+    let message = @encoding/utf8.decode_lossy(error.to_bytes())
     println(
       "Warning: failed to set default path implementation, defaulting to posix. Error: \{message}",
     )
@@ -22,43 +22,33 @@ pub let sep : Char = try {
 
 ///|
 pub fn dirname(path : StringView) -> StringView {
-  if sep == '\\' {
-    loop path {
-      [] => "."
-      [.. view, '\\' | '/'] => return view
-      [.. view, _] => continue view
-    }
-  } else {
-    loop path {
-      [] => "."
-      [.. view, '/'] => return view
-      [.. view, _] => continue view
-    }
+  loop path {
+    [] => "."
+    "/" => "/"
+    "//" => "//"
+    "///" => "/"
+    [.. view, '/'] =>
+      skip~: loop view {
+        "/" => "/"
+        "//" => "//"
+        "///" => "/"
+        [.. view, '/'] => continue skip~ view
+        view => view
+      }
+    [.. view, _] => continue view
   }
 }
 
 ///|
 pub fn basename(path : StringView) -> StringView {
-  if sep == '\\' {
-    let path = match path {
-      [.. path, '\\' | '/'] => path
-      path => path
-    }
-    loop path.view() {
-      [] => "."
-      [.., '\\' | '/'] as view => path.view(start_offset=view.end_offset())
-      [.. view, _] => continue view
-    }
-  } else {
-    let path = match path {
-      [.. path, '/'] => path
-      path => path
-    }
-    loop path.view() {
-      [] => "."
-      [.., '/'] as view => path.view(start_offset=view.end_offset())
-      [.. view, _] => continue view
-    }
+  let path = match path {
+    [.. path, '/'] => path
+    path => path
+  }
+  loop path.view() {
+    [] => "."
+    [.., '/'] as view => path.view(start_offset=view.end_offset())
+    [.. view, _] => continue view
   }
 }
 
@@ -73,54 +63,175 @@ pub fn ext(path : StringView) -> StringView {
 
 ///|
 pub fn stem(path : StringView) -> StringView {
-  let base = basename(path)
-  loop base.view() {
-    [] => base
-    [.. view, '.'] => view
-    [.. view, _] => continue view
+  loop path.view() {
+    [] => path
+    [.. path, '.'] => path
+    [.. path, _] => continue path
   }
 }
 
 ///|
-fn trim_sep(p : StringView) -> StringView {
-  if sep == '\\' {
-    loop p {
-      [.. p, '\\' | '/'] => continue p
-      _ => break
+pub fn split(view : StringView) -> Iter[StringView] {
+  Iter::new(each => {
+    let view = match view {
+      [.. "///", .. rest] =>
+        match each("/") {
+          IterContinue =>
+            skip~: loop rest {
+              ['/', .. rest] => continue skip~ rest
+              rest => rest
+            }
+          IterEnd => return IterEnd
+        }
+      [.. "//", .. rest] =>
+        match each("//") {
+          IterContinue => rest
+          IterEnd => return IterEnd
+        }
+      ['/', .. rest] =>
+        match each("/") {
+          IterContinue => rest
+          IterEnd => return IterEnd
+        }
+      rest => rest
     }
+    let mut last = view
+    loop view {
+      ['/', .. rest] as view => {
+        let part = last
+          .data()
+          .view(start_offset=last.start, end_offset=view.start)
+        match each(part) {
+          IterContinue => {
+            let rest = skip~: loop rest {
+              ['/', .. rest] => continue skip~ rest
+              rest => rest
+            }
+            last = rest
+            continue rest
+          }
+          IterEnd => break IterEnd
+        }
+      }
+      [_, .. rest] => continue rest
+      [] => {
+        if last.is_empty() {
+          break IterContinue
+        }
+        match each(last) {
+          IterContinue => break IterEnd
+          IterEnd => break IterEnd
+        }
+      }
+    }
+  })
+}
+
+///|
+fn join_parts(parts : Array[StringView]) -> String {
+  guard parts is [part, .. parts] else { return "." }
+  let path = StringBuilder::new()
+  if part is ("/" | "//") {
+    path.write_substring(part.data(), part.start_offset(), part.length())
+    path.write_string(parts.join("/"))
   } else {
-    loop p {
-      [.. p, '/'] => continue p
-      _ => break
+    path.write_substring(part.data(), part.start_offset(), part.length())
+    for part in parts {
+      path.write_char(sep)
+      path.write_substring(part.data(), part.start_offset(), part.length())
     }
   }
-  return p
+  path.to_string()
 }
 
 ///|
-pub fn join(p : StringView, q : StringView) -> StringView {
-  let p = trim_sep(p)
-  let q = trim_sep(q)
-  if p is ("" | ".") {
+fn push_normalized_part(parts : Array[StringView], part : StringView) -> Unit {
+  if part is ("" | ".") {
+    return
+  }
+  if part is ".." {
+    match parts {
+      ["/"] | ["//"] | [] | [.., ".."] => parts.push("..")
+      parts => ignore(parts.pop())
+    }
+    return
+  }
+  parts.push(part)
+}
+
+///|
+pub fn normalize(view : StringView) -> String {
+  let parts = []
+  for part in split(view) {
+    push_normalized_part(parts, part)
+  }
+  join_parts(parts)
+}
+
+///|
+pub fn join(p : StringView, q : StringView) -> String {
+  let p = normalize(p)
+  let q = normalize(q)
+  if p is "." {
     return q
   }
-  if q is ("" | ".") {
+  if q is "." {
     return p
   }
-  let buffer = StringBuilder::new()
-  buffer.write_substring(p.data(), p.start_offset(), p.length())
-  buffer.write_char(sep)
-  buffer.write_substring(q.data(), q.start_offset(), q.length())
-  buffer.to_string()
+  if is_absolute(q) {
+    return q
+  }
+  let path = StringBuilder::new()
+  path.write_string(p)
+  path.write_char(sep)
+  path.write_string(q)
+  normalize(path.to_string())
 }
 
 ///|
 pub fn is_absolute(path : StringView) -> Bool {
-  if sep == '\\' {
-    path.length() >= 2 &&
-    path[1] == ':' &&
-    ((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z'))
+  path.length() >= 1 && path[0] == '/'
+}
+
+///|
+pub fn is_relative(path : StringView) -> Bool {
+  !is_absolute(path)
+}
+
+///|
+pub fn relative(from : StringView, to : StringView) -> String raise {
+  let from = resolve(from)
+  let to = resolve(to)
+  println("from: \{from}, to: \{to}")
+  if from == to {
+    return "."
+  }
+  let from_parts = split(from).collect()
+  let to_parts = split(to).collect()
+  let mut i = 0
+  while i < from_parts.length() && i < to_parts.length() {
+    if from_parts[i] != to_parts[i] {
+      break
+    }
+    i += 1
+  }
+  let relative_parts : Array[StringView] = []
+  for _ in i..<from_parts.length() {
+    relative_parts.push("..")
+  }
+  for j in i..<to_parts.length() {
+    push_normalized_part(relative_parts, to_parts[j])
+    println("relative_parts: \{relative_parts}")
+  }
+  join_parts(relative_parts)
+}
+
+///|
+pub fn resolve(view : StringView) -> String raise {
+  if is_absolute(view) {
+    return normalize(view)
   } else {
-    path.length() >= 1 && path[0] == '/'
+    let cwd = @encoding/utf8.decode(@uv.cwd())
+    normalize(join(cwd, view))
   }
 }

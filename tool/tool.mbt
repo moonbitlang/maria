@@ -34,12 +34,13 @@ pub fn tool(
 
 ///|
 pub struct Context {
+  model : @model.Model
   cwd : String
 }
 
 ///|
-pub fn context(cwd~ : String) -> Context {
-  Context::{ cwd, }
+pub fn context(model~ : @model.Model, cwd~ : String) -> Context {
+  Context::{ model, cwd }
 }
 
 ///|

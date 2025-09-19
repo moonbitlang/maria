@@ -4,7 +4,7 @@ test "todo_read" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-todo_read")
     g.add_defer(() => cwd.close())
-    let context = @tool.context(cwd=cwd.path())
+    let context = @tool.context(model=@mock.model(), cwd=cwd.path())
     let manager = @todo.Manager::new(cwd=cwd.path())
     @json.inspect(@todo_read.todo_read.call({}, context), content={
       "output": "No todos found for this session.",

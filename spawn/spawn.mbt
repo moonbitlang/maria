@@ -5,9 +5,9 @@ pub async fn spawn(
   output? : &Logger,
   cwd? : StringView,
 ) -> Int raise {
-  let command = @utf8.encode(command)
-  let arguments = arguments.map(arg => @utf8.encode(arg))
-  let cwd = cwd.map(@utf8.encode(_))
+  let command = @encoding/utf8.encode(command)
+  let arguments = arguments.map(arg => @encoding/utf8.encode(arg))
+  let cwd = cwd.map(@encoding/utf8.encode(_))
   match output {
     Some(output) => {
       let pipe = @process.read_from_process()
@@ -18,7 +18,7 @@ pub async fn spawn(
             0 => break
             n => {
               output.write_string(
-                @utf8.decode_lossy(buf.unsafe_reinterpret_as_bytes()[0:n]),
+                @encoding/utf8.decode_lossy(buf.unsafe_reinterpret_as_bytes()[0:n]),
               )
               continue pipe.0.read(buf)
             }

@@ -39,7 +39,7 @@ async fn Manager::list_conversation_ids(self : Manager) -> Array[String] raise {
   let path = self.storage_path |> @path.join("conversations")
   let ids = []
   for entry in @fs.list_directory(path) {
-    if entry is [.. id, .. ".json"] {
+    if entry.path is [.. id, .. ".json"] {
       ids.push(id.to_string())
     }
   }

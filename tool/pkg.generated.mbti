@@ -1,8 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tool"
 
+import(
+  "moonbitlang/maria/model"
+)
+
 // Values
-fn context(cwd~ : String) -> Context
+fn context(model~ : @model.Model, cwd~ : String) -> Context
 
 fn error(String, error? : Error) -> Result
 
@@ -14,6 +18,7 @@ fn tool(description~ : String, name~ : String, parameters~ : Map[String, Json], 
 
 // Types and methods
 pub struct Context {
+  model : @model.Model
   cwd : String
 }
 

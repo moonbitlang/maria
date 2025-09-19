@@ -42,13 +42,13 @@ fn main {
     "timeout": timeout,
   }
   println(json.stringify(indent=2))
-  let cwd = (@uv.cwd() |> @utf8.decode()) catch {
+  let cwd = (@uv.cwd() |> @encoding/utf8.decode()) catch {
     error => {
       println("Error getting current working directory: \{error}")
       return
     }
   }
-  let context = @tool.context(cwd~)
+  let context = @tool.context(model=@mock.model(), cwd~)
   @async.with_event_loop(_ => println(
     execute_command.call(json, context).output,
   )) catch {

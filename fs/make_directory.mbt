@@ -4,7 +4,7 @@ pub async fn make_directory(
   recursive? : Bool = false,
 ) -> Unit raise {
   let dirs = []
-  for dir = @utf8.encode(path) {
+  for dir = @encoding/utf8.encode(path) {
     let dir = dir
     if dir == "." || dir == "" || @fs.exists(dir) {
       break

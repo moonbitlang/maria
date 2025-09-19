@@ -3,8 +3,8 @@
     "moonbitlang/maria/tool",
     "moonbitlang/async",
     "tonyfettes/uv",
-    "tonyfettes/utf8",
-    "moonbitlang/maria/spawn"
+    "moonbitlang/maria/spawn",
+    "moonbitlang/maria/mock"
   ],
   "is-main": true,
   "test-import": [

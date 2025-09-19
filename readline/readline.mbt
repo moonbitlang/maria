@@ -170,23 +170,23 @@ async fn Interface::write_move_cursor(
   if dx < 0 {
     buffer.write_byte(@csi.Escape)
     buffer.write_byte('[')
-    buffer.write_bytes(@utf8.encode((-dx).to_string()))
+    buffer.write_bytes(@encoding/utf8.encode((-dx).to_string()))
     buffer.write_byte('D')
   } else if dx > 0 {
     buffer.write_byte(@csi.Escape)
     buffer.write_byte('[')
-    buffer.write_bytes(@utf8.encode(dx.to_string()))
+    buffer.write_bytes(@encoding/utf8.encode(dx.to_string()))
     buffer.write_byte('C')
   }
   if dy < 0 {
     buffer.write_byte(@csi.Escape)
     buffer.write_byte('[')
-    buffer.write_bytes(@utf8.encode((-dy).to_string()))
+    buffer.write_bytes(@encoding/utf8.encode((-dy).to_string()))
     buffer.write_byte('A')
   } else if dy > 0 {
     buffer.write_byte(@csi.Escape)
     buffer.write_byte('[')
-    buffer.write_bytes(@utf8.encode(dy.to_string()))
+    buffer.write_bytes(@encoding/utf8.encode(dy.to_string()))
     buffer.write_byte('B')
   }
   self.output.write(buffer.to_bytes())
@@ -203,7 +203,7 @@ async fn @pipe.PipeWrite::cursor_to(
       let buffer = @buffer.new()
       buffer.write_byte(@csi.Escape)
       buffer.write_byte('[')
-      buffer.write_bytes(@utf8.encode((col + 1).to_string()))
+      buffer.write_bytes(@encoding/utf8.encode((col + 1).to_string()))
       buffer.write_byte('G')
       self.write(buffer.to_bytes())
     }
@@ -211,9 +211,9 @@ async fn @pipe.PipeWrite::cursor_to(
       let buffer = @buffer.new()
       buffer.write_byte(@csi.Escape)
       buffer.write_byte('[')
-      buffer.write_bytes(@utf8.encode((row + 1).to_string()))
+      buffer.write_bytes(@encoding/utf8.encode((row + 1).to_string()))
       buffer.write_byte(';')
-      buffer.write_bytes(@utf8.encode((col + 1).to_string()))
+      buffer.write_bytes(@encoding/utf8.encode((col + 1).to_string()))
       buffer.write_byte('H')
       self.write(buffer.to_bytes())
     }
@@ -1157,10 +1157,10 @@ async fn Interface::tab_complete(
   guard self.completer is Some(completer) else { return }
   let string = self.line[:self.cursor]
   try {
-    let value = completer(@utf8.decode(string))
+    let value = completer(@encoding/utf8.decode(string))
     self.tab_completer(last_keypress_was_tab~, value)
   } catch {
-    error => self.output.write(@utf8.encode("Tab completion error: \{error}"))
+    error => self.output.write(@encoding/utf8.encode("Tab completion error: \{error}"))
   }
 }
 
@@ -1190,12 +1190,12 @@ async fn Interface::tab_completer(
   completion_result : CompletionResult,
 ) -> Unit raise {
   let completions = completion_result.completions
-  let complete_on = @utf8.encode(completion_result.complete_on)
+  let complete_on = @encoding/utf8.encode(completion_result.complete_on)
   if completions.length() == 0 {
     return
   }
   if completions.length() == 1 {
-    let completion = @utf8.encode(completions[0])
+    let completion = @encoding/utf8.encode(completions[0])
     let suffix = completion[complete_on.length():]
     self.insert_string(suffix)
     return
@@ -1203,7 +1203,7 @@ async fn Interface::tab_completer(
   let prefix = common_prefix(completions.filter(c => c.length() > 0))
   if prefix.length() > complete_on.length() {
     let suffix = prefix[complete_on.length():]
-    self.insert_string(@utf8.encode(suffix))
+    self.insert_string(@encoding/utf8.encode(suffix))
     return
   }
   if !last_keypress_was_tab {
@@ -1230,7 +1230,7 @@ async fn Interface::tab_completer(
       output.write_bytesview(Bytes::make(whitespace, ' '))
     }
     if completion.length() > 0 {
-      output.write_bytes(@utf8.encode(completion))
+      output.write_bytes(@encoding/utf8.encode(completion))
       whitespace = width - completion_widths[i]
       line_index += 1
     } else {
@@ -1393,7 +1393,7 @@ pub async fn Interface::start(self : Interface) -> Unit raise {
 ///|
 pub async fn Interface::read_line(self : Interface) -> String raise {
   match self.events.line.get() {
-    line => @utf8.decode(line)
+    line => @encoding/utf8.decode(line)
   }
 }
 
@@ -1407,11 +1407,11 @@ pub async fn Interface::question(
   self : Interface,
   query : StringView,
 ) -> String raise {
-  let query = @utf8.encode(query)
+  let query = @encoding/utf8.encode(query)
   self.old_prompt = self.prompt
   self.set_prompt(query)
   self.prompt()
-  let line = @utf8.decode(self.events.line.get())
+  let line = @encoding/utf8.decode(self.events.line.get())
   self.set_prompt(self.old_prompt)
   line
 }

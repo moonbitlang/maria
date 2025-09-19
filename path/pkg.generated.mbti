@@ -10,9 +10,19 @@ fn ext(StringView) -> StringView
 
 fn is_absolute(StringView) -> Bool
 
-fn join(StringView, StringView) -> StringView
+fn is_relative(StringView) -> Bool
+
+fn join(StringView, StringView) -> String
+
+fn normalize(StringView) -> String
+
+fn relative(StringView, StringView) -> String raise
+
+fn resolve(StringView) -> String raise
 
 let sep : Char
+
+fn split(StringView) -> Iter[StringView]
 
 fn stem(StringView) -> StringView
 
