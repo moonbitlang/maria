@@ -113,8 +113,6 @@ async fn Migrator::execute(
     agent.add_tool(@execute_command.execute_command)
     agent.add_tool(@read_file.read_file)
     agent.add_tool(@write_to_file.write_to_file)
-    agent.add_tool(@todo_read.todo_read)
-    agent.add_tool(@todo_write.todo_write)
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
         return

@@ -14,6 +14,6 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/path",
     "moonbitlang/async",
-    "moonbitlang/maria/todo"
+    "moonbitlang/maria/tool/todo"
   ]
 }

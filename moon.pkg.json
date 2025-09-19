@@ -16,8 +16,6 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/git",
     "moonbitlang/maria/moon",
-    "moonbitlang/maria/tool/todo_read",
-    "moonbitlang/maria/tool/todo_write",
     "moonbitlang/maria/tool/read_file",
     "moonbitlang/maria/tool/write_to_file"
   ]

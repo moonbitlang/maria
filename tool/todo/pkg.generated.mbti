@@ -1,8 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/todo"
+package "moonbitlang/maria/tool/todo"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -35,6 +36,8 @@ fn Manager::add_task(Self, String, status? : Status, priority? : Priority, notes
 fn Manager::display(Self) -> String
 fn Manager::find(Self, String) -> Index?
 fn Manager::get(Self, Index) -> Item
+fn Manager::get_todo_read_tool(Self) -> @tool.Tool
+fn Manager::get_todo_write_tool(Self) -> @tool.Tool
 async fn Manager::load(Self) -> Unit
 fn Manager::new(cwd~ : StringView) -> Self raise
 fn Manager::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
