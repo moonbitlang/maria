@@ -1,23 +1,10 @@
 ///|
 struct Module {
-  mut parent : Module?
   path : String
   name : String
   source : String?
   packages : Map[String, Package]
   mut mtime : Int64
-}
-
-///|
-fn Module::child(self : Module) -> Module {
-  Module::{
-    parent: Some(self),
-    path: self.path,
-    name: self.name,
-    source: self.source,
-    packages: {},
-    mtime: 0,
-  }
 }
 
 ///|
@@ -34,7 +21,7 @@ impl @json.FromJson for Module with from_json(
   } else {
     None
   }
-  Module::{ parent: None, path: "", name, source, packages: {}, mtime: 0 }
+  Module::{ path: "", name, source, packages: {}, mtime: 0 }
 }
 
 ///|
@@ -176,4 +163,17 @@ pub async fn Module::diagnostics(self : Module) -> Iter[Diagnostic] {
     diags = diags.concat(pkg.diagnostics())
   }
   diags
+}
+
+///|
+pub fn Module::package_(self : Module, name : String) -> PackageView? {
+  match self.packages.get(name) {
+    None => None
+    Some(_) => Some(PackageView::{ module_: self, name })
+  }
+}
+
+///|
+async fn Module::info(self : Module, package_~ : String) -> Unit {
+  info(package_~, cwd=self.path)
 }

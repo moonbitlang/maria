@@ -4,7 +4,16 @@ struct Package {
   path : String
   files : Map[String, File]
   mtime : Int64
-} derive(Show, ToJson)
+} derive(Show)
+
+///|
+pub impl ToJson for Package with to_json(self : Package) -> Json {
+  {
+    "name": self.name.to_json(),
+    "path": self.path.to_json(),
+    "files": self.files,
+  }
+}
 
 ///|
 fn Package::new(path~ : String, name~ : String) -> Package raise {
@@ -67,18 +76,18 @@ pub async fn Package::check(
 }
 
 ///|
-pub async fn Package::interface(self : Package) -> String {
+async fn Package::interface(self : Package) -> String? {
   let mbti_path = @path.join(self.path, "pkg.generated.mbti")
-  if !@fs.exists(mbti_path) {
-    @fs.read_file(mbti_path)
+  if @fs.exists(mbti_path) {
+    Some(@fs.read_file(mbti_path))
   } else {
-    let files = self.files().collect()
-    for file in files {
-      if file.path.has_suffix(".mbti") {
-        return @fs.read_file(file.path)
+    let entries = @fs.list_directory(self.path)
+    for entry in entries {
+      if entry.kind is Regular && entry.name.has_suffix(".mbti") {
+        return Some(@fs.read_file(@path.join(self.path, entry.name)))
       }
     } else {
-      ""
+      None
     }
   }
 }
@@ -90,4 +99,46 @@ fn Package::diagnostics(self : Package) -> Iter[Diagnostic] {
     diagnostics = diagnostics.concat(file.diagnostics())
   }
   diagnostics
+}
+
+///|
+pub struct PackageView {
+  module_ : Module
+  name : String
+}
+
+///|
+pub impl ToJson for PackageView with to_json(self : PackageView) -> Json {
+  self.package_().to_json()
+}
+
+///|
+pub fn PackageView::package_(self : PackageView) -> Package {
+  self.module_.packages[self.name]
+}
+
+///|
+pub async fn PackageView::info(self : PackageView) -> Unit {
+  self.module_.info(package_=self.name)
+}
+
+///|
+pub async fn PackageView::interface(self : PackageView) -> String {
+  let pkg = self.package_()
+  match pkg.interface() {
+    Some(interface) => interface
+    None => {
+      self.info() catch {
+        error =>
+          match pkg.interface() {
+            None => raise error
+            Some(interface) => return interface
+          }
+      }
+      match pkg.interface() {
+        Some(interface) => interface
+        None => fail("Failed to load interface for package \{self.name}")
+      }
+    }
+  }
 }

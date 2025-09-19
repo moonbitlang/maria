@@ -114,7 +114,7 @@ pub fn[T : ToJson] Directory::strip_cwd(
       Object(old_object) => {
         let new_object = {}
         for k, v in old_object {
-          new_object[k] = strip_cwd_from_json(v, cwd)
+          new_object[k.replace(old=cwd, new=".")] = strip_cwd_from_json(v, cwd)
         }
         Json::object(new_object)
       }
