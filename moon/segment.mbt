@@ -1,52 +1,47 @@
 ///|
-struct Segment {
-  file : File
+priv struct Segment {
   offset : Int
   length : Int
-  index : Int
   diagnostics : Array[Diagnostic]
+} derive(Show)
+
+///|
+fn Segment::new(offset~ : Int, length~ : Int) -> Segment {
+  Segment::{ offset, length, diagnostics: [] }
 }
 
 ///|
-fn Segment::new(
-  file : File,
-  index~ : Int,
-  offset~ : Int,
-  length~ : Int,
-) -> Segment {
-  Segment::{ file, offset, length, index, diagnostics: [] }
-}
-
-///|
-pub fn Segment::lines(self : Segment) -> ArrayView[StringView] {
-  self.file.lines[self.offset:self.offset + self.length]
-}
-
-///|
-pub impl ToJson for Segment with to_json(self : Segment) -> Json {
+impl ToJson for Segment with to_json(self : Segment) -> Json {
   {
     "start": self.offset,
     "end": self.offset + self.length,
-    "content": self.file.lines[self.offset:self.offset + self.length].join("\n"),
+    "diagnostics": self.diagnostics,
   }
 }
 
 ///|
-pub fn Segment::index(self : Segment) -> Int {
-  self.index
+struct SegmentView {
+  file : File
+  index : Int
 }
 
 ///|
-pub fn Segment::content(self : Segment) -> String {
-  self.lines().join("\n")
+pub fn SegmentView::content(self : SegmentView) -> String {
+  let segment = self.file.segments[self.index]
+  self.file.lines[segment.offset:segment.offset + segment.length].join("\n")
 }
 
 ///|
-pub fn Segment::diagnostics(self : Segment) -> Array[Diagnostic] {
-  self.diagnostics
+pub impl ToJson for SegmentView with to_json(self : SegmentView) -> Json {
+  { "file": self.file.path, "index": self.index, "content": self.content() }
 }
 
 ///|
-pub async fn Segment::replace(self : Segment, content : String) -> Unit {
+pub fn SegmentView::diagnostics(self : SegmentView) -> Array[Diagnostic] {
+  self.file.segments[self.index].diagnostics
+}
+
+///|
+pub async fn SegmentView::replace(self : SegmentView, content : String) -> Unit {
   self.file.replace_segment(self.index, content)
 }

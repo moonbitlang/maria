@@ -2,8 +2,6 @@
 package "moonbitlang/maria/moon"
 
 // Values
-async fn check(package_? : Package, patch_file? : StringView, target_dir? : StringView, cwd? : StringView) -> Array[Diagnostic]
-
 async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
 // Errors
@@ -19,11 +17,13 @@ impl Show for Diagnostic
 impl ToJson for Diagnostic
 
 type File
-fn File::header(Self) -> Segment
+fn File::header(Self) -> SegmentView
 fn File::lines(Self) -> Array[StringView]
 fn File::path(Self) -> String
-fn File::segment(Self, Int) -> Segment
-fn File::segments(Self) -> ArrayView[Segment]
+async fn File::replace_segment(Self, Int, String) -> Unit
+fn File::segment(Self, Int) -> SegmentView
+fn File::segments(Self) -> ArrayView[SegmentView]
+impl Show for File
 impl ToJson for File
 
 pub enum Level {
@@ -43,8 +43,9 @@ impl ToJson for Loc
 
 type Module
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
-async fn Module::check_patch(Self, Segment, String) -> Array[Diagnostic]
-async fn Module::files(Self) -> Iter[File]
+async fn Module::check_patch(Self, SegmentView, String) -> Array[Diagnostic]
+async fn Module::diagnostics(Self) -> Iter[Diagnostic]
+fn Module::files(Self) -> Iter[File]
 async fn Module::load(String) -> Self
 fn Module::name(Self) -> String
 fn Module::source(Self) -> String
@@ -52,8 +53,11 @@ fn Module::source(Self) -> String
 type Package
 fn Package::add_diagnostic(Self, Diagnostic) -> Unit
 async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd? : StringView) -> Array[Diagnostic]
+async fn Package::interface(Self) -> String
 fn Package::name(Self) -> String
 fn Package::path(Self) -> String
+impl Show for Package
+impl ToJson for Package
 
 pub struct Pos {
   col : Int
@@ -62,13 +66,11 @@ pub struct Pos {
 impl Show for Pos
 impl ToJson for Pos
 
-type Segment
-fn Segment::content(Self) -> String
-fn Segment::diagnostics(Self) -> Array[Diagnostic]
-fn Segment::index(Self) -> Int
-fn Segment::lines(Self) -> ArrayView[StringView]
-async fn Segment::replace(Self, String) -> Unit
-impl ToJson for Segment
+type SegmentView
+fn SegmentView::content(Self) -> String
+fn SegmentView::diagnostics(Self) -> Array[Diagnostic]
+async fn SegmentView::replace(Self, String) -> Unit
+impl ToJson for SegmentView
 
 // Type aliases
 

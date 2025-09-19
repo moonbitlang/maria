@@ -19,7 +19,7 @@ priv struct Patch {
 ///|
 pub async fn Module::check_patch(
   self : Module,
-  segment : Segment,
+  segment : SegmentView,
   content : String,
 ) -> Array[Diagnostic] {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
@@ -37,9 +37,9 @@ pub async fn Module::check_patch(
     let patch_name_index = patch_name_index.to_string()
     let mangled_file_stem = file_stem.replace(old="/", new="-")
     let patch_path = @path.join(target_dir, "patch.\{patch_name_index}.json")
-    let patch_name = "patch-\{mangled_file_stem}-segment-\{segment.index()}.\{patch_name_index}.json"
+    let patch_name = "patch-\{mangled_file_stem}-segment-\{segment.index}.\{patch_name_index}.json"
     let patch = {
-      drops: [Drop::{ file: segment.file.path(), index: segment.index() }],
+      drops: [Drop::{ file: segment.file.path(), index: segment.index }],
       patches: [Patched::{ content, name: patch_name }],
     }
     @fs.write_to_file(patch_path, patch.to_json().stringify())

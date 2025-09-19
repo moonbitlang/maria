@@ -129,7 +129,7 @@ async fn render_diagnostics(
 ///|
 fn create_submit_moonbit_segment_tool(
   moon : @moon.Module,
-  segment : @moon.Segment,
+  segment : @moon.SegmentView,
   result : Ref[String?],
 ) -> @tool.Tool {
   @tool.tool(
@@ -181,7 +181,7 @@ async fn process_segment(
   model~ : @model.Model,
   cwd~ : String,
   moon~ : @moon.Module,
-  segment~ : @moon.Segment,
+  segment~ : @moon.SegmentView,
   description~ : String,
 ) -> String? {
   let result = Ref::new(None)
@@ -237,7 +237,7 @@ async fn process_segment(
       $|
       $|**Original Segment:**
       $|```moonbit
-      $|\{segment.index()}
+      $|\{segment.content()}
       $|```
       $|
     ),
@@ -297,10 +297,7 @@ pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
     let moon = @moon.Module::load(project_path) catch {
       error => return @tool.error("Failed to load module: \{error}", error~)
     }
-    let files = moon.files().collect() catch {
-      error =>
-        return @tool.error("Failed to load module files: \{error}", error~)
-    }
+    let files = moon.files().collect()
     @async.with_timeout(
       120_000 * 4,
       () => moon.check(),

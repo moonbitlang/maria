@@ -5,7 +5,7 @@ struct File {
   mut lines : Array[StringView]
   segments : Array[Segment]
   mut mtime : Int64
-}
+} derive(Show)
 
 ///|
 pub fn File::path(self : File) -> String {
@@ -16,8 +16,8 @@ pub fn File::path(self : File) -> String {
 pub impl ToJson for File with to_json(self : File) -> Json {
   {
     "content": self.content,
-    "header": self.header(),
-    "segments": self.segments(),
+    "header": self.segments[0],
+    "segments": self.segments[1:],
     "diagnostics": self.diagnostics().collect(),
   }
 }
@@ -41,25 +41,13 @@ async fn File::parse(self : File, content : String) -> Unit {
   for i in 0..<self.lines.length() {
     let line = self.lines[i]
     if line.has_prefix("///|") {
-      self.segments.push(
-        Segment::new(
-          self,
-          offset~,
-          length=i - offset,
-          index=self.segments.length() + 1,
-        ),
-      )
+      self.segments.push(Segment::new(offset~, length=i - offset))
       offset = i
     }
   }
   if offset < self.lines.length() {
     self.segments.push(
-      Segment::new(
-        self,
-        offset~,
-        length=self.lines.length() - offset,
-        index=self.segments.length() + 1,
-      ),
+      Segment::new(offset~, length=self.lines.length() - offset),
     )
   }
 }
@@ -75,18 +63,22 @@ async fn File::load(self : File) -> Unit {
 }
 
 ///|
-pub fn File::header(self : File) -> Segment {
-  self.segments[0]
+pub fn File::header(self : File) -> SegmentView {
+  SegmentView::{ file: self, index: 0 }
 }
 
 ///|
-pub fn File::segments(self : File) -> ArrayView[Segment] {
-  self.segments[1:]
+pub fn File::segments(self : File) -> ArrayView[SegmentView] {
+  let views = []
+  for i in 1..<self.segments.length() {
+    views.push(SegmentView::{ file: self, index: i })
+  }
+  views
 }
 
 ///|
-pub fn File::segment(self : File, index : Int) -> Segment {
-  self.segments[index + 1]
+pub fn File::segment(self : File, index : Int) -> SegmentView {
+  SegmentView::{ file: self, index }
 }
 
 ///|
@@ -125,19 +117,26 @@ fn File::add_diagnostic(self : File, diagnostic : Diagnostic) -> Unit {
 }
 
 ///|
-async fn File::replace_segment(
+pub async fn File::replace_segment(
   self : File,
   index : Int,
   content : String,
 ) -> Unit {
+  println("self.segments: \{self.segments}")
+  println("index: \{index}")
   let replaced = StringBuilder::new()
-  for i in 0..<self.lines.length() {
-    if i == self.segments[index].offset {
-      replaced.write_string(content)
+  for segment in self.segments[:index + 1] {
+    for i in 0..<segment.length {
+      let line = self.lines[segment.offset + i]
+      replaced.write_substring(line.data(), line.start_offset(), line.length())
       replaced.write_string("\n")
-      continue i + self.segments[index].length - 1
-    } else {
-      let line = self.lines[i]
+    }
+  }
+  replaced.write_string(content)
+  replaced.write_string("\n")
+  for segment in self.segments[index + 2:] {
+    for i in 0..<segment.length {
+      let line = self.lines[segment.offset + i]
       replaced.write_substring(line.data(), line.start_offset(), line.length())
       replaced.write_string("\n")
     }

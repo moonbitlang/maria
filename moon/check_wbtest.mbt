@@ -9,8 +9,8 @@ async test {
     )
     let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
     let _ = cwd.add_file("example.mbt", "let x : Int = \"string\"")
-    let diagnostics = @moon.check(cwd=cwd.path())
-    @json.inspect(diagnostics, content=[
+    let diagnostics = check(cwd=cwd.path())
+    @json.inspect(cwd.strip_cwd(diagnostics), content=[
       {
         "error_code": 2,
         "level": "Warning",

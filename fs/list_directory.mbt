@@ -8,14 +8,14 @@ pub enum FileKind {
   Pipe
   BlockDevice
   CharDevice
-} derive(Hash, Eq, Compare, ToJson)
+} derive(Show, Hash, Eq, Compare, ToJson)
 
 ///|
 pub struct DirectoryEntry {
   path : String
   name : String
   kind : FileKind
-} derive(Hash, Eq, Compare, ToJson)
+} derive(Show, Hash, Eq, Compare, ToJson)
 
 ///|
 pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {

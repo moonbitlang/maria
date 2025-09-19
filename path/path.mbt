@@ -202,7 +202,6 @@ pub fn is_relative(path : StringView) -> Bool {
 pub fn relative(from : StringView, to : StringView) -> String raise {
   let from = resolve(from)
   let to = resolve(to)
-  println("from: \{from}, to: \{to}")
   if from == to {
     return "."
   }
@@ -221,7 +220,6 @@ pub fn relative(from : StringView, to : StringView) -> String raise {
   }
   for j in i..<to_parts.length() {
     push_normalized_part(relative_parts, to_parts[j])
-    println("relative_parts: \{relative_parts}")
   }
   join_parts(relative_parts)
 }

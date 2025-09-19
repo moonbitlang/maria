@@ -4,13 +4,10 @@ struct Package {
   path : String
   files : Map[String, File]
   mtime : Int64
-}
+} derive(Show, ToJson)
 
 ///|
-fn Package::new(
-  path~ : String,
-  name~ : String,
-) -> Package raise {
+fn Package::new(path~ : String, name~ : String) -> Package raise {
   let mtime = @fs.stat(path).mtime()
   Package::{ name, path, files: {}, mtime }
 }
@@ -45,7 +42,7 @@ async fn Package::add_file(self : Package, file : String) -> Unit {
 }
 
 ///|
-async fn Package::files(self : Package) -> Iter[File] {
+fn Package::files(self : Package) -> Iter[File] {
   self.files.values()
 }
 
@@ -67,4 +64,30 @@ pub async fn Package::check(
   cwd? : StringView,
 ) -> Array[Diagnostic] {
   check(package_=self, patch_file?, target_dir?, cwd?)
+}
+
+///|
+pub async fn Package::interface(self : Package) -> String {
+  let mbti_path = @path.join(self.path, "pkg.generated.mbti")
+  if !@fs.exists(mbti_path) {
+    @fs.read_file(mbti_path)
+  } else {
+    let files = self.files().collect()
+    for file in files {
+      if file.path.has_suffix(".mbti") {
+        return @fs.read_file(file.path)
+      }
+    } else {
+      ""
+    }
+  }
+}
+
+///|
+fn Package::diagnostics(self : Package) -> Iter[Diagnostic] {
+  let mut diagnostics = Iter::empty()
+  for file in self.files.values() {
+    diagnostics = diagnostics.concat(file.diagnostics())
+  }
+  diagnostics
 }

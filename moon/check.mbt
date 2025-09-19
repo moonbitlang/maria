@@ -100,7 +100,7 @@ impl @json.FromJson for Diagnostic with from_json(
 }
 
 ///|
-pub async fn check(
+async fn check(
   package_? : Package,
   patch_file? : StringView,
   target_dir? : StringView,
@@ -136,17 +136,7 @@ pub async fn check(
     try {
       let json = @json.parse(line.to_string())
       let diagnostic : Diagnostic = @json.from_json(json)
-      if diagnostic.loc.path.has_prefix(cwd) {
-        diagnostics.push({
-          ..diagnostic,
-          loc: {
-            ..diagnostic.loc,
-            path: diagnostic.loc.path.replace(old=cwd, new="."),
-          },
-        })
-      } else {
-        diagnostics.push(diagnostic)
-      }
+      diagnostics.push(diagnostic)
     } catch {
       _ => continue
     }

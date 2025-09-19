@@ -1,10 +1,23 @@
 ///|
 struct Module {
+  mut parent : Module?
   path : String
   name : String
   source : String?
   packages : Map[String, Package]
   mut mtime : Int64
+}
+
+///|
+fn Module::child(self : Module) -> Module {
+  Module::{
+    parent: Some(self),
+    path: self.path,
+    name: self.name,
+    source: self.source,
+    packages: {},
+    mtime: 0,
+  }
 }
 
 ///|
@@ -17,11 +30,11 @@ impl @json.FromJson for Module with from_json(
   }
   let name : String = @json.from_json(name, path=json_path.add_key("name"))
   let source : String? = if json is { "source": source, .. } {
-    @json.from_json(source, path=json_path.add_key("source"))
+    Some(@json.from_json(source, path=json_path.add_key("source")))
   } else {
     None
   }
-  Module::{ path: "", name, source, packages: {}, mtime: 0 }
+  Module::{ parent: None, path: "", name, source, packages: {}, mtime: 0 }
 }
 
 ///|
@@ -31,7 +44,9 @@ pub async fn Module::load(path : String) -> Module {
     |> @fs.read_file()
     |> @json.parse()
     |> @json.from_json()
-  { ..mod, path, }
+  let mod = { ..mod, path, }
+  mod.discover()
+  mod
 }
 
 ///|
@@ -50,7 +65,7 @@ pub fn Module::source(self : Module) -> String {
 ///|
 async fn Module::discover(self : Module) -> Unit {
   let mod_name = self.name()
-  let src = self.source()
+  let src = @path.join(self.path, self.source())
   async fn walk_directories(dir : String) -> Unit {
     let moon_pkg_path = @path.join(dir, "moon.pkg.json")
     if !@fs.exists(moon_pkg_path) {
@@ -70,7 +85,7 @@ async fn Module::discover(self : Module) -> Unit {
     }
     let pkg = Package::new(name=pkg_name, path=dir.to_string())
     self.packages[pkg_name] = pkg
-    let entries = @fs.list_directory(self.source())
+    let entries = @fs.list_directory(dir)
     for entry in entries {
       if entry.kind is Directory {
         walk_directories(entry.path)
@@ -98,13 +113,12 @@ async fn Module::discover(self : Module) -> Unit {
 }
 
 ///|
-async fn Module::packages(self : Module) -> Iter[Package] {
-  self.discover()
+fn Module::packages(self : Module) -> Iter[Package] {
   self.packages.values()
 }
 
 ///|
-pub async fn Module::files(self : Module) -> Iter[File] {
+pub fn Module::files(self : Module) -> Iter[File] {
   let pkgs = self.packages().collect()
   let mut files = Iter::empty()
   for i in 0..<pkgs.length() {
@@ -118,7 +132,10 @@ pub async fn Module::files(self : Module) -> Iter[File] {
 fn Module::locate_package(self : Module, file : String) -> Package raise {
   let dir = @path.dirname(file)
   let src = self.source()
-  let pkg_name = @path.relative(src, dir)
+  let pkg_name = match @path.relative(src, dir) {
+    "" | "." => self.name()
+    rel => "\{self.name()}/\{rel}"
+  }
   match self.packages.get(pkg_name) {
     Some(pkg) => pkg
     None => {
@@ -135,7 +152,6 @@ pub async fn Module::check(
   patch_file? : StringView,
   target_dir? : StringView,
 ) -> Unit {
-  self.discover()
   self.clear_diagnostics()
   let diagnostics = check(patch_file?, target_dir?, cwd=self.path)
   for d in diagnostics {
@@ -149,4 +165,15 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
   for _, pkg in self.packages {
     pkg.clear_diagnostics()
   }
+}
+
+///|
+pub async fn Module::diagnostics(self : Module) -> Iter[Diagnostic] {
+  let pkgs = self.packages.values().collect()
+  let mut diags = Iter::empty()
+  for i in 0..<pkgs.length() {
+    let pkg = pkgs[i]
+    diags = diags.concat(pkg.diagnostics())
+  }
+  diags
 }

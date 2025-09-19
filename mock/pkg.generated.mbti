@@ -18,6 +18,7 @@ async fn Directory::add_file(Self, String, String) -> File
 async fn Directory::close(Self) -> Unit
 async fn Directory::list(Self) -> Array[String]
 fn Directory::path(Self) -> String raise
+fn[T : ToJson] Directory::strip_cwd(Self, T) -> Json raise
 async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit) -> Unit
 
 type File

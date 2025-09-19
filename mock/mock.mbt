@@ -14,6 +14,15 @@ pub async fn directory(name : String) -> Directory {
 }
 
 ///|
+async fn make_directory(path : Bytes) -> Unit {
+  if !@fs.exists(path) {
+    let parent = @path.dirname(path).to_bytes()
+    make_directory(parent)
+    @fs.mkdir(path, permission=0o755)
+  }
+}
+
+///|
 async fn remove_directory(path : Bytes) -> Unit {
   let dir = @fs.opendir(path)
   defer dir.close()
@@ -52,10 +61,13 @@ pub async fn Directory::add_file(
   content : String,
 ) -> File {
   let name = @encoding/utf8.encode(name)
-  let file = @fs.open(@path.join(self.0, name), mode=WriteOnly, create=0o644)
+  let name = @path.join(self.0, name)
+  let dir = @path.dirname(name)
+  make_directory(dir.to_bytes())
+  let file = @fs.open(name, mode=WriteOnly, create=0o644)
   defer file.close()
   file.write(@encoding/utf8.encode(content))
-  @path.join(self.0, name)
+  name
 }
 
 ///|
@@ -86,6 +98,31 @@ pub async fn Directory::list(self : Directory) -> Array[String] {
   }
   entries.sort()
   return entries
+}
+
+///|
+pub fn[T : ToJson] Directory::strip_cwd(
+  self : Directory,
+  value : T,
+) -> Json raise {
+  let cwd = self.path()
+  let json = value.to_json()
+  fn strip_cwd_from_json(json : Json, cwd : String) -> Json {
+    match json {
+      String(string) => Json::string(string.replace(old=cwd, new="."))
+      Array(array) => Json::array(array.map(e => strip_cwd_from_json(e, cwd)))
+      Object(old_object) => {
+        let new_object = {}
+        for k, v in old_object {
+          new_object[k] = strip_cwd_from_json(v, cwd)
+        }
+        Json::object(new_object)
+      }
+      _ => json
+    }
+  }
+
+  strip_cwd_from_json(json, cwd)
 }
 
 ///|

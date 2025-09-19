@@ -135,7 +135,6 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     println("\{content}")
   }
   if @conversation.current() is Some(conversation) {
-    println("Saving message to conversation \{conversation.id}")
     conversation.add_message(message.to_param())
   }
   message

@@ -37,6 +37,7 @@ pub struct DirectoryEntry {
 impl Compare for DirectoryEntry
 impl Eq for DirectoryEntry
 impl Hash for DirectoryEntry
+impl Show for DirectoryEntry
 impl ToJson for DirectoryEntry
 
 pub enum FileKind {
@@ -52,6 +53,7 @@ pub enum FileKind {
 impl Compare for FileKind
 impl Eq for FileKind
 impl Hash for FileKind
+impl Show for FileKind
 impl ToJson for FileKind
 
 type Stat
