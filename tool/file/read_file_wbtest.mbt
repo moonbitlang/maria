@@ -81,3 +81,31 @@ test "read_file/line_range" {
     )
   })
 }
+
+///|
+test "read_file/directory" {
+  @async.with_event_loop(g => {
+    let cwd = @mock.directory("tool-read-file-directory-test")
+    g.add_defer(() => cwd.close())
+    let manager = manager(cwd.path())
+    let _ = cwd.add_file("file1.txt", "content1")
+    let _ = cwd.add_file("file2.txt", "content2")
+    let subdir = cwd.add_subdirectory("subdir")
+    g.add_defer(() => subdir.close())
+    let _ = subdir.add_file("file3.txt", "content3")
+    let args : Json = { "path": "." }
+    let result = manager
+      .get_read_file_tool()
+      .call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
+    inspect(
+      result.output,
+      content=(
+        #|Directory: .
+        #|Entries:
+        #|subdir/
+        #|file1.txt
+        #|file2.txt
+      ),
+    )
+  })
+}

@@ -71,6 +71,17 @@ pub async fn Directory::add_file(
 }
 
 ///|
+pub async fn Directory::add_subdirectory(
+  self : Directory,
+  name : String,
+) -> Directory {
+  let name = @encoding/utf8.encode(name)
+  let dir = @path.join(self.0, name)
+  @fs.mkdir(dir, permission=0o755)
+  Directory(dir)
+}
+
+///|
 pub async fn Directory::with_subdirectory(
   self : Directory,
   name : String,

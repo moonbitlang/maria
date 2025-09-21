@@ -1,16 +1,8 @@
 {
   "import": [
-    "moonbitlang/maria/tool/todo",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/path",
     "moonbitlang/maria/fs"
   ],
-  "test-import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/mock"
-  ],
-  "wbtest-import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/mock"
-  ]
+  "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/mock"]
 }

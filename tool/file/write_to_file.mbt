@@ -190,9 +190,8 @@ test "find_match with fuzzy disabled works for exact substring" {
 ///|
 /// Main execution function for the write_to_file tool
 async fn Manager::execute_write_to_file(
-  _ : Manager,
+  self : Manager,
   args : Json,
-  context : @tool.Context,
 ) -> @tool.Result noraise {
   // Parse required path parameter
   guard args is { "path": String(path), .. } else {
@@ -210,24 +209,46 @@ async fn Manager::execute_write_to_file(
   }
   try {
     // Resolve file path relative to current working directory
-    let resolved_path = @path.join(context.cwd, path)
-
-    // Create directory if it doesn't exist
-    @fs.make_directory(@path.dirname(resolved_path), recursive=true)
+    let resolved_path = if @path.is_absolute(path) {
+      path
+    } else {
+      @path.join(self.path, path)
+    }
+    let resolved_path = @path.resolve(resolved_path)
 
     // Check if file exists
     guard @fs.exists(resolved_path) else {
+      // Create directory if it doesn't exist
+      @fs.make_directory(@path.dirname(resolved_path), recursive=true)
+
       // File doesn't exist, create new file with replace content
       @fs.write_to_file(resolved_path, replace)
       @tool.ok("New file created and content written to \{path}")
     }
+
     // Read existing file content
-    let mut content = @fs.read_file(resolved_path)
-    match search {
-      None =>
+    let content = match search {
+      None => {
+        // Ensure the file has been read before writing
+        guard self.access.get(resolved_path) is Some(access) else {
+          return @tool.error(
+            "Error: File must be read before writing to ensure consistency",
+          )
+        }
+
+        // Check if file has been modified since last read
+        let stat = @fs.stat(resolved_path)
+        if stat.mtime() > access {
+          return @tool.error(
+            "Error: File has been modified since last read, please read it again before writing",
+          )
+        }
+
         // No search provided, replace entire file content
-        content = replace
-      Some(search_content) =>
+        replace
+      }
+      Some(search_content) => {
+        let content = @fs.read_file(resolved_path)
         // Search and replace operation
         match find_match(content, search_content) {
           None =>
@@ -238,9 +259,10 @@ async fn Manager::execute_write_to_file(
             // Replace at the exact position to maintain formatting
             let before = content[0:match_result.position].to_string()
             let after = content[match_result.position + match_result.length:].to_string()
-            content = before + replace + after
+            before + replace + after
           }
         }
+      }
     }
 
     // Write the modified content back to file
@@ -274,6 +296,6 @@ fn Manager::get_write_to_file_tool(self : Manager) -> @tool.Tool {
       },
       "required": ["path"],
     },
-    (args, ctx) => self.execute_write_to_file(args, ctx),
+    (args, _) => self.execute_write_to_file(args),
   )
 }

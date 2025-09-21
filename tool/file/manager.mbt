@@ -11,5 +11,9 @@ pub fn manager(path : String) -> Manager {
 
 ///|
 pub fn Manager::tools(self : Manager) -> Iter[@tool.Tool] {
-  return [self.get_read_file_tool(), self.get_write_to_file_tool()].iter()
+  return [
+    self.get_read_file_tool(),
+    self.get_write_to_file_tool(),
+    self.get_list_files_tool(),
+  ].iter()
 }

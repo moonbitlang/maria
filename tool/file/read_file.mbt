@@ -1,8 +1,8 @@
 ///|
 async fn Manager::execute_read_file_tool(
-  _ : Manager,
+  self : Manager,
   args : Json,
-  context : @tool.Context,
+  _ : @tool.Context,
 ) -> @tool.Result noraise {
   // Parse required path parameter
   guard args is { "path": String(path), .. } else {
@@ -21,18 +21,34 @@ async fn Manager::execute_read_file_tool(
     let resolved_path = if @path.is_absolute(path) {
       path.view()
     } else {
-      @path.join(context.cwd, path)
+      @path.join(self.path, path)
     }
     let resolved_path = @path.resolve(resolved_path)
-    println("resolved_path: \{resolved_path}")
 
     // Check if file exists
     if !@fs.exists(resolved_path) {
       return @tool.error("Error reading file: File not found: \{path}")
     }
+    let stat = @fs.stat(resolved_path)
+    if stat.kind() is Directory {
+      let entries = @fs.list_directory(resolved_path).map(entry => match
+        entry.kind {
+        Directory => "\{entry.name}\{@path.sep}"
+        Regular => entry.name
+        _ => entry.name
+      })
+      let display = entries.join("\n")
+      return @tool.ok("Directory: \{path}\nEntries:\n\{display}")
+    }
 
     // Open and read the file
     let content = @fs.read_file(resolved_path)
+
+    // Update access time
+    let stat = @fs.stat(resolved_path)
+    self.access[resolved_path] = stat.atime()
+
+    // Process line range parameters
     let lines = content.split("\n").to_array()
     let start_line = match start_line {
       Some(n) if n >= 1 => n
