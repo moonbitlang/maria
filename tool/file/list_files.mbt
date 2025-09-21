@@ -21,7 +21,7 @@ fn Manager::get_list_files_tool(self : Manager) -> @tool.Tool {
         let path = if @path.is_absolute(path) {
           path.view()
         } else {
-          @path.join(self.path, path)
+          @path.join(self.cwd, path)
         }
         let entries = @fs.list_directory(path).map(entry => entry.name)
         @tool.ok(entries.join("\n"))

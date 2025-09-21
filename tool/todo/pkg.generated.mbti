@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-fn list(path~ : StringView) -> List raise
+fn list(cwd~ : StringView) -> List raise
 
 // Errors
 

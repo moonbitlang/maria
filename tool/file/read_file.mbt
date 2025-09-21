@@ -21,7 +21,7 @@ async fn Manager::execute_read_file_tool(
     let resolved_path = if @path.is_absolute(path) {
       path.view()
     } else {
-      @path.join(self.path, path)
+      @path.join(self.cwd, path)
     }
     let resolved_path = @path.resolve(resolved_path)
 

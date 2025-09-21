@@ -84,7 +84,7 @@ async fn Migrator::execute(
   self : Migrator,
   model : @model.Model,
   cwd? : String,
-) -> Unit raise {
+) -> Unit {
   let cwd = cwd.unwrap_or_else(@fs.cwd)
   let src_name = get_repo_name(self.repo)
   let dst_name = normalize_repo_name(src_name)
@@ -103,16 +103,21 @@ async fn Migrator::execute(
     }
     println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
+    let todo_list = @todo.list(cwd=dst_path)
+    let file_manager = @file.manager(cwd=dst_path)
     defer agent.close()
     let prompt =
       $|Using the reference at \{src_path}, migrate the target repository into
       $|the current MoonBit project. Translate file-by-file and preserve original
       $|structure; avoid freeform rewrites.
     agent.add_message(@openai.user_message(content=prompt))
-    agent.add_tool(@list_files.list_files)
     agent.add_tool(@execute_command.execute_command)
-    agent.add_tool(@read_file.read_file)
-    agent.add_tool(@write_to_file.write_to_file)
+    for tools in file_manager.tools() {
+      agent.add_tool(tools)
+    }
+    for tools in todo_list.tools() {
+      agent.add_tool(tools)
+    }
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
         return
@@ -239,8 +244,15 @@ fn main {
         "Conversation ended",
         {},
       ))
-      agent.add_tool(@list_files.list_files)
       agent.add_tool(@execute_command.execute_command)
+      let file_manager = @file.manager(cwd~)
+      for tools in file_manager.tools() {
+        agent.add_tool(tools)
+      }
+      let todo_list = @todo.list(cwd~)
+      for tools in todo_list.tools() {
+        agent.add_tool(tools)
+      }
       let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
       rl.set_prompt("< ")
       group.spawn_bg(() => rl.start())

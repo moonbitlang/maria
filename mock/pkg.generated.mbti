@@ -15,6 +15,7 @@ fn model() -> @model.Model
 // Types and methods
 type Directory
 async fn Directory::add_file(Self, String, String) -> File
+async fn Directory::add_subdirectory(Self, String) -> Self
 async fn Directory::close(Self) -> Unit
 async fn Directory::list(Self) -> Array[String]
 fn Directory::path(Self) -> String raise

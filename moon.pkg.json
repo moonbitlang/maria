@@ -8,7 +8,6 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/pino",
-    "moonbitlang/maria/tool/list_files",
     "moonbitlang/maria/tool/execute_command",
     "moonbitlang/maria/readline",
     "moonbitlang/async/pipe",
@@ -16,7 +15,7 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/git",
     "moonbitlang/maria/moon",
-    "moonbitlang/maria/tool/read_file",
-    "moonbitlang/maria/tool/write_to_file"
+    "moonbitlang/maria/tool/todo",
+    "moonbitlang/maria/tool/file"
   ]
 }

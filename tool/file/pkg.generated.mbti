@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-fn manager(String) -> Manager
+fn manager(cwd~ : String) -> Manager
 
 // Errors
 

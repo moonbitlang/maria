@@ -58,6 +58,7 @@ impl ToJson for FileKind
 
 type Stat
 fn Stat::atime(Self) -> Int64
+fn Stat::kind(Self) -> FileKind
 fn Stat::mtime(Self) -> Int64
 
 // Type aliases

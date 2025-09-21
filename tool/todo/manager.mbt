@@ -8,7 +8,7 @@ fn get_current_timestamp() -> String raise {
 
 ///|
 struct List {
-  path : String
+  cwd : String
   todos : Array[Item]
   mut created_at : String
   mut updated_at : String
@@ -113,9 +113,9 @@ fn Item::update(
 }
 
 ///|
-pub fn list(path~ : StringView) -> List raise {
+pub fn list(cwd~ : StringView) -> List raise {
   List::{
-    path: path.to_string(),
+    cwd: cwd.to_string(),
     todos: [],
     created_at: get_current_timestamp(),
     updated_at: get_current_timestamp(),
@@ -124,7 +124,10 @@ pub fn list(path~ : StringView) -> List raise {
 
 ///|
 fn List::todo_file_path(self : List) -> String {
-  return self.path |> @path.join("current_session.json")
+  return self.cwd
+    |> @path.join(".moonagent")
+    |> @path.join("todos")
+    |> @path.join("current_session.json")
 }
 
 ///|

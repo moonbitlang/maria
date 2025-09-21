@@ -212,7 +212,7 @@ async fn Manager::execute_write_to_file(
     let resolved_path = if @path.is_absolute(path) {
       path
     } else {
-      @path.join(self.path, path)
+      @path.join(self.cwd, path)
     }
     let resolved_path = @path.resolve(resolved_path)
 

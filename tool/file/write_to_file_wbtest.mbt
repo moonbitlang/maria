@@ -3,7 +3,7 @@ test "write_to_file/create" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = manager
       .get_write_to_file_tool()
@@ -19,7 +19,7 @@ test "write_to_file/replace" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file("file.txt", "Old content")
     let write_to_file = manager.get_write_to_file_tool()
     let read_file = manager.get_read_file_tool()
@@ -53,7 +53,7 @@ test "write_to_file/fail-to-match" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file("file.txt", "Old content")
     let args : Json = {
       "path": "file.txt",
@@ -77,7 +77,7 @@ test "write_to_file/search-replace" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file(
       "file.txt",
       (

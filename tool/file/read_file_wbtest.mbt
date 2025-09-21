@@ -3,7 +3,7 @@ test "read_file/nonexistent" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = manager
       .get_read_file_tool()
@@ -23,7 +23,7 @@ test "read_file/content" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-content-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file(
       "test.txt",
       (
@@ -55,7 +55,7 @@ test "read_file/line_range" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-range-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file(
       "lines.txt",
       (
@@ -87,7 +87,7 @@ test "read_file/directory" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-directory-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd.path())
+    let manager = manager(cwd=cwd.path())
     let _ = cwd.add_file("file1.txt", "content1")
     let _ = cwd.add_file("file2.txt", "content2")
     let subdir = cwd.add_subdirectory("subdir")

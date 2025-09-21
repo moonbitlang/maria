@@ -1,12 +1,12 @@
 ///|
 struct Manager {
-  path : String
+  cwd : String
   access : Map[String, Int64]
 }
 
 ///|
-pub fn manager(path : String) -> Manager {
-  Manager::{ path, access: {} }
+pub fn manager(cwd~ : String) -> Manager {
+  Manager::{ cwd, access: {} }
 }
 
 ///|
