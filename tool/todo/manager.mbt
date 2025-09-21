@@ -7,8 +7,8 @@ fn get_current_timestamp() -> String raise {
 }
 
 ///|
-struct Manager {
-  cwd : StringView
+struct List {
+  path : String
   todos : Array[Item]
   mut created_at : String
   mut updated_at : String
@@ -113,9 +113,9 @@ fn Item::update(
 }
 
 ///|
-pub fn Manager::new(cwd~ : StringView) -> Manager raise {
-  Manager::{
-    cwd,
+pub fn list(path~ : StringView) -> List raise {
+  List::{
+    path: path.to_string(),
     todos: [],
     created_at: get_current_timestamp(),
     updated_at: get_current_timestamp(),
@@ -123,15 +123,12 @@ pub fn Manager::new(cwd~ : StringView) -> Manager raise {
 }
 
 ///|
-fn Manager::todo_file_path(self : Manager) -> StringView {
-  return self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("todos")
-    |> @path.join("current_session.json")
+fn List::todo_file_path(self : List) -> String {
+  return self.path |> @path.join("current_session.json")
 }
 
 ///|
-pub async fn Manager::load(self : Manager) -> Unit {
+async fn List::load(self : List) -> Unit {
   let path = self.todo_file_path()
   if !@fs.exists(path) {
     return
@@ -156,7 +153,7 @@ pub async fn Manager::load(self : Manager) -> Unit {
 
 ///|
 /// Format todos for display with emojis and structure
-fn Manager::display(self : Manager) -> String {
+fn List::display(self : List) -> String {
   if self.todos.length() == 0 {
     return "No todos found for this session."
   }
@@ -265,8 +262,8 @@ test "extract_task_tags" {
 }
 
 ///|
-fn Manager::add_task(
-  self : Manager,
+fn List::add_task(
+  self : List,
   content : String,
   status? : Status = Pending,
   priority? : Priority = Medium,
@@ -283,11 +280,7 @@ fn Manager::add_task(
 }
 
 ///|
-fn Manager::update_task(
-  self : Manager,
-  index : Index,
-  item : Item,
-) -> Unit raise {
+fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.todos[index.0] = item
   self.updated_at = get_current_timestamp()
 }
@@ -301,7 +294,7 @@ fn generate_todo_id() -> String raise {
 priv struct Index(Int)
 
 ///|
-fn Manager::find(self : Manager, id : String) -> Index? {
+fn List::find(self : List, id : String) -> Index? {
   for i, todo in self.todos {
     if todo.id == id {
       return Some(Index(i))
@@ -311,12 +304,12 @@ fn Manager::find(self : Manager, id : String) -> Index? {
 }
 
 ///|
-fn Manager::get(self : Manager, index : Index) -> Item {
+fn List::get(self : List, index : Index) -> Item {
   self.todos[index.0]
 }
 
 ///|
-async fn save(self : Manager) -> Unit raise {
+async fn save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.updated_at = get_current_timestamp()
@@ -378,8 +371,8 @@ fn remove_list_prefixes(line : String) -> String {
 }
 
 ///|
-fn Manager::parse(
-  self : Manager,
+fn List::parse(
+  self : List,
   content : String,
   priority~ : Priority,
   notes? : String,
@@ -415,4 +408,9 @@ fn Manager::parse(
       }
     }
   }
+}
+
+///|
+pub fn List::tools(self : List) -> Iter[@tool.Tool] {
+  [self.todo_read(), self.todo_write()].iter()
 }

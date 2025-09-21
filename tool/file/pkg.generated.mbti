@@ -1,18 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/tool/todo"
+package "moonbitlang/maria/tool/file"
 
 import(
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn list(path~ : StringView) -> List raise
+fn manager(String) -> Manager
 
 // Errors
 
 // Types and methods
-type List
-fn List::tools(Self) -> Iter[@tool.Tool]
+type Manager
+fn Manager::tools(Self) -> Iter[@tool.Tool]
 
 // Type aliases
 
