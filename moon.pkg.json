@@ -16,6 +16,7 @@
     "moonbitlang/maria/git",
     "moonbitlang/maria/moon",
     "moonbitlang/maria/tool/todo",
-    "moonbitlang/maria/tool/file"
+    "moonbitlang/maria/tool/file",
+    "moonbitlang/maria/tool/fix_moonbit_warnings"
   ]
 }

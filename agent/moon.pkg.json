@@ -10,9 +10,6 @@
     "moonbitlang/maria/context",
     "moonbitlang/maria/conversation",
     "moonbitlang/maria/ai",
-    "moonbitlang/maria/moon",
-    "moonbitlang/maria/fs",
-    "moonbitlang/maria/path",
-    "moonbitlang/async"
+    "moonbitlang/maria/path"
   ]
 }

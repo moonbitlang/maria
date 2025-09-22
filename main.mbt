@@ -118,6 +118,7 @@ async fn Migrator::execute(
     for tools in todo_list.tools() {
       agent.add_tool(tools)
     }
+    agent.add_tool(@fix_moonbit_warnings.fix_moonbit_warnings)
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
         return
