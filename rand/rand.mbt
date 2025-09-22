@@ -10,7 +10,8 @@ let rand : Ref[@random.Rand] = {
       raise error
     }
   } catch {
-    error => abort("uv.random: \{@encoding/utf8.decode_lossy(error.to_bytes())}")
+    error =>
+      abort("uv.random: \{@encoding/utf8.decode_lossy(error.to_bytes())}")
   }
   Ref::new(@random.Rand::chacha8(seed~))
 }

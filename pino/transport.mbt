@@ -31,7 +31,7 @@ pub fn transport(transport : StringView) -> Transport raise {
 }
 
 ///|
-async fn Transport::write(self : Transport, content : Json) -> Unit raise {
+async fn Transport::write(self : Transport, content : Json) -> Unit {
   match self {
     Console => println(content.stringify())
     File(path~, file~) as transport => {

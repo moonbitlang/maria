@@ -5,7 +5,10 @@ test "dirname" {
 
 ///|
 test "basename" {
-  @json.inspect(@encoding/utf8.decode(@path.basename("a/b/c.jpg")), content="c.jpg")
+  @json.inspect(
+    @encoding/utf8.decode(@path.basename("a/b/c.jpg")),
+    content="c.jpg",
+  )
 }
 
 ///|

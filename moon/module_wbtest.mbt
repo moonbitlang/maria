@@ -42,6 +42,27 @@ async test "diagnostics" {
     let moon = Module::load(cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics().collect()
-    @json.inspect(cwd.strip_cwd(diagnostics), content=([{"error_code":2,"level":"Warning","loc":{"end":{"col":6,"line":1},"path":"./example.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable 'x'"},{"error_code":4014,"level":"Error","loc":{"end":{"col":23,"line":1},"path":"./example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch\n        has type : String\n        wanted   : Int"}]))
+    @json.inspect(cwd.strip_cwd(diagnostics), content=[
+      {
+        "error_code": 2,
+        "level": "Warning",
+        "loc": {
+          "end": { "col": 6, "line": 1 },
+          "path": "./example.mbt",
+          "start": { "col": 5, "line": 1 },
+        },
+        "message": "Warning: Unused variable 'x'",
+      },
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "./example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
+      },
+    ])
   })
 }

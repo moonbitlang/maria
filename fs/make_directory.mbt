@@ -2,7 +2,7 @@
 pub async fn make_directory(
   path : StringView,
   recursive? : Bool = false,
-) -> Unit raise {
+) -> Unit {
   let dirs = []
   for dir = @encoding/utf8.encode(path) {
     let dir = dir

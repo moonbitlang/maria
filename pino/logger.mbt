@@ -103,7 +103,7 @@ pub fn Logger::child(self : Logger, tag : String) -> Logger {
 }
 
 ///|
-pub async fn Logger::start(self : Logger) -> Unit raise {
+pub async fn Logger::start(self : Logger) -> Unit {
   loop self.queue.get() {
     json => {
       self.transport.write(json)

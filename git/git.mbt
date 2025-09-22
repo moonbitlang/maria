@@ -1,9 +1,5 @@
 ///|
-pub async fn clone(
-  url : String,
-  to~ : StringView,
-  cwd? : StringView,
-) -> Unit raise {
+pub async fn clone(url : String, to~ : StringView, cwd? : StringView) -> Unit {
   let arguments : Array[StringView] = ["clone", url, to]
   let status = @spawn.spawn("git", arguments, cwd?)
   if status != 0 {
@@ -12,7 +8,7 @@ pub async fn clone(
 }
 
 ///|
-pub async fn init_(path : String, output? : &Logger) -> Unit raise {
+pub async fn init_(path : String, output? : &Logger) -> Unit {
   let status = @spawn.spawn("git", ["init", path], output?)
   if status != 0 {
     fail("git init failed with status code \{status}")
@@ -48,7 +44,12 @@ pub async fn commit(
 ///|
 pub async fn create_branch(branch_name~ : String, cwd? : String) -> String {
   let cwd = cwd.map(@encoding/utf8.encode(_))
-  guard @process.run("git", ["branch", @encoding/utf8.encode(branch_name)], cwd?) is 0 else {
+  guard @process.run(
+      "git",
+      ["branch", @encoding/utf8.encode(branch_name)],
+      cwd?,
+    )
+    is 0 else {
     fail("git branch creation failed")
   }
   return "Branch '\{branch_name}' created successfully"
@@ -58,7 +59,7 @@ pub async fn create_branch(branch_name~ : String, cwd? : String) -> String {
 pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
-) -> String raise {
+) -> String {
   @async.with_task_group(group => @fs.with_temporary_directory(
     "maria-git-diff-XXXXXXX",
     tmpdir => {

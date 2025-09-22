@@ -51,7 +51,7 @@ fn Arguments::parse(self : Arguments, args : ArrayView[String]) -> Unit raise {
 }
 
 ///|
-struct Migrator {
+priv struct Migrator {
   repo : String
   max_while_loop : Int
 }
@@ -103,8 +103,11 @@ async fn Migrator::execute(
     }
     println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
+    println("created agent")
     let todo_list = @todo.list(cwd=dst_path)
+    println("created todo list")
     let file_manager = @file.manager(cwd=dst_path)
+    println("created file manager")
     defer agent.close()
     let prompt =
       $|Using the reference at \{src_path}, migrate the target repository into
@@ -115,8 +118,8 @@ async fn Migrator::execute(
     agent.add_tool(@file.list_files, file_manager)
     agent.add_tool(@file.read_file, file_manager)
     agent.add_tool(@file.write_to_file, file_manager)
-    agent.add_tool(@todo.todo_read, todo_list)
-    agent.add_tool(@todo.todo_write, todo_list)
+    agent.add_tool(@todo.read, todo_list)
+    agent.add_tool(@todo.write, todo_list)
     agent.add_tool(@fix_moonbit_warnings.fix_moonbit_warnings, agent)
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
@@ -250,8 +253,8 @@ fn main {
       agent.add_tool(@file.read_file, file_manager)
       agent.add_tool(@file.write_to_file, file_manager)
       let todo_list = @todo.list(cwd~)
-      agent.add_tool(@todo.todo_read, todo_list)
-      agent.add_tool(@todo.todo_write, todo_list)
+      agent.add_tool(@todo.read, todo_list)
+      agent.add_tool(@todo.write, todo_list)
       let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
       rl.set_prompt("< ")
       group.spawn_bg(() => rl.start())

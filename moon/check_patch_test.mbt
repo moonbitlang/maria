@@ -8,9 +8,7 @@ async test "check_patch" {
       { "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
     let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
-      "example.mbt", "///|\nlet x : Int = \"string\"",
-    )
+    let _ = cwd.add_file("example.mbt", "///|\nlet x : Int = \"string\"")
     let moon = Module::load(cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[

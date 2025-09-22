@@ -97,7 +97,7 @@ struct Interface {
   last_command_errored : Bool
   crlf_delay : UInt64
   is_completion_enabled : Bool
-  completer : (async (StringView) -> CompletionResult raise)?
+  completer : (async (StringView) -> CompletionResult)?
 }
 
 ///|
@@ -165,7 +165,7 @@ async fn Interface::write_move_cursor(
   self : Interface,
   dx : Int,
   dy : Int,
-) -> Unit raise {
+) -> Unit {
   let buffer = @buffer.new()
   if dx < 0 {
     buffer.write_byte(@csi.Escape)
@@ -197,7 +197,7 @@ async fn @pipe.PipeWrite::cursor_to(
   self : @pipe.PipeWrite,
   col~ : Int,
   row? : Int,
-) -> Unit raise {
+) -> Unit {
   match row {
     None => {
       let buffer = @buffer.new()
@@ -221,14 +221,12 @@ async fn @pipe.PipeWrite::cursor_to(
 }
 
 ///|
-async fn @pipe.PipeWrite::clear_screen_down(
-  self : @pipe.PipeWrite,
-) -> Unit raise {
+async fn @pipe.PipeWrite::clear_screen_down(self : @pipe.PipeWrite) -> Unit {
   self.write(@csi.ClearScreenDown)
 }
 
 ///|
-async fn Interface::refresh_line(self : Interface) -> Unit raise {
+async fn Interface::refresh_line(self : Interface) -> Unit {
   let line : Bytes = [..self.prompt, ..self.line]
   let display_pos = self.get_display_position(line)
   let line_cols = display_pos.cols
@@ -296,7 +294,7 @@ fn get_cursor_pos(self : Interface) -> Position raise {
 }
 
 ///|
-async fn Interface::move_cursor(self : Interface, dx : Int) -> Unit raise {
+async fn Interface::move_cursor(self : Interface, dx : Int) -> Unit {
   if dx == 0 {
     return
   }
@@ -370,7 +368,7 @@ fn Interface::before_edit(
 async fn Interface::insert_string(
   self : Interface,
   string : @bytes.View,
-) -> Unit raise {
+) -> Unit {
   self.before_edit(self.line, self.cursor)
   if self.cursor < self.line.length() {
     let begin = self.line[:self.cursor]
@@ -396,7 +394,7 @@ async fn Interface::insert_string(
 }
 
 ///|
-async fn Interface::delete_line_left(self : Interface) -> Unit raise {
+async fn Interface::delete_line_left(self : Interface) -> Unit {
   self.before_edit(self.line, self.cursor)
   let del = self.line[:self.cursor]
   self.set_line(self.line[self.cursor:])
@@ -406,7 +404,7 @@ async fn Interface::delete_line_left(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::delete_line_right(self : Interface) -> Unit raise {
+async fn Interface::delete_line_right(self : Interface) -> Unit {
   self.before_edit(self.line, self.cursor)
   let del = self.line[self.cursor:]
   self.set_line(self.line[:self.cursor])
@@ -433,7 +431,7 @@ async fn Interface::push_to_kill_ring(
 }
 
 ///|
-async fn Interface::delete_left(self : Interface) -> Unit raise {
+async fn Interface::delete_left(self : Interface) -> Unit {
   if self.cursor > 0 && self.line.length() > 0 {
     self.before_edit(self.line, self.cursor)
     let char_size = @unicode.char_size_left(self.line, self.cursor)
@@ -447,7 +445,7 @@ async fn Interface::delete_left(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::delete_right(self : Interface) -> Unit raise {
+async fn Interface::delete_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     self.before_edit(self.line, self.cursor)
     let char_size = @unicode.char_size_left(self.line, self.cursor + 1)
@@ -465,7 +463,7 @@ pub suberror Aborted {
 }
 
 ///|
-async fn Interface::history_next(self : Interface) -> Unit raise {
+async fn Interface::history_next(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_next() {
     return
   }
@@ -480,7 +478,7 @@ async fn Interface::history_next(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::history_prev(self : Interface) -> Unit raise {
+async fn Interface::history_prev(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_prev() {
     return
   }
@@ -495,7 +493,7 @@ async fn Interface::history_prev(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::yank(self : Interface) -> Unit raise {
+async fn Interface::yank(self : Interface) -> Unit {
   if self.kill_ring.length() > 0 {
     self.yanking = true
     self.insert_string(self.kill_ring[self.kill_ring_cursor])
@@ -503,7 +501,7 @@ async fn Interface::yank(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::yank_pop(self : Interface) -> Unit raise {
+async fn Interface::yank_pop(self : Interface) -> Unit {
   if self.yanking && self.kill_ring.length() > 1 {
     self.before_edit(self.line, self.cursor)
     let current = self.kill_ring[self.kill_ring_cursor]
@@ -552,7 +550,7 @@ fn word_right_left(string : @bytes.View, index : Int) -> Int {
 }
 
 ///|
-async fn Interface::delete_word_left(self : Interface) -> Unit raise {
+async fn Interface::delete_word_left(self : Interface) -> Unit {
   if self.cursor > 0 {
     self.before_edit(self.line, self.cursor)
     let leading = self.line[:self.cursor]
@@ -575,7 +573,7 @@ async fn Interface::delete_word_left(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::delete_word_right(self : Interface) -> Unit raise {
+async fn Interface::delete_word_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     self.before_edit(self.line, self.cursor)
     let trailing = self.line[self.cursor:]
@@ -592,7 +590,7 @@ async fn Interface::delete_word_right(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::word_left(self : Interface) -> Unit raise {
+async fn Interface::word_left(self : Interface) -> Unit {
   if self.cursor > 0 {
     let size = word_size_left(self.line, self.cursor)
     self.move_cursor(-size)
@@ -600,7 +598,7 @@ async fn Interface::word_left(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::word_right(self : Interface) -> Unit raise {
+async fn Interface::word_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     let size = word_right_left(self.line, self.cursor)
     self.move_cursor(size)
@@ -613,7 +611,7 @@ pub fn Interface::set_prompt(self : Interface, prompt : Bytes) -> Unit {
 }
 
 ///|
-async fn Interface::undo(self : Interface) -> Unit raise {
+async fn Interface::undo(self : Interface) -> Unit {
   guard self.undo_stack.pop_back() is Some(edit) else { return }
   self.set_line(edit.text)
   self.cursor = edit.cursor
@@ -621,7 +619,7 @@ async fn Interface::undo(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::redo(self : Interface) -> Unit raise {
+async fn Interface::redo(self : Interface) -> Unit {
   guard self.redo_stack.pop_back() is Some(edit) else { return }
   self.set_line(edit.text)
   self.cursor = edit.cursor
@@ -661,7 +659,7 @@ fn Interface::add_history(self : Interface) -> @bytes.View {
 }
 
 ///|
-async fn Interface::clear_line(self : Interface) -> Unit raise {
+async fn Interface::clear_line(self : Interface) -> Unit {
   self.move_cursor(self.line.length() - self.cursor)
   self.output.write("\r\n")
   self.set_line("")
@@ -670,7 +668,7 @@ async fn Interface::clear_line(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::line(self : Interface) -> Unit raise {
+async fn Interface::line(self : Interface) -> Unit {
   self.save_previous_state()
   let line = self.add_history()
   self.undo_stack.clear()
@@ -704,7 +702,7 @@ async fn Interface::multiline_move(
   direction : Int,
   split_lines : Array[@bytes.View],
   cursor_pos : Position,
-) -> Unit raise {
+) -> Unit {
   let rows = cursor_pos.rows
   let cols = cursor_pos.cols
   let curr = split_lines[rows]
@@ -742,7 +740,7 @@ async fn Interface::multiline_move(
 }
 
 ///|
-async fn Interface::move_up_or_history_prev(self : Interface) -> Unit raise {
+async fn Interface::move_up_or_history_prev(self : Interface) -> Unit {
   let cursor_pos = self.get_cursor_pos()
   if self.is_multiline && cursor_pos.rows > 0 {
     let split_lines = self.line.split('\n')
@@ -754,7 +752,7 @@ async fn Interface::move_up_or_history_prev(self : Interface) -> Unit raise {
 }
 
 ///|
-async fn Interface::move_down_or_history_next(self : Interface) -> Unit raise {
+async fn Interface::move_down_or_history_next(self : Interface) -> Unit {
   let cursor_pos = self.get_cursor_pos()
   let split_lines = self.line.split('\n')
   if self.is_multiline && cursor_pos.rows + 1 < split_lines.length() {
@@ -769,7 +767,7 @@ async fn Interface::move_down_or_history_next(self : Interface) -> Unit raise {
 priv suberror EOF
 
 ///|
-async fn Interface::read_byte(self : Interface) -> Byte raise {
+async fn Interface::read_byte(self : Interface) -> Byte {
   match self.input.read_exactly(1) {
     [] => raise EOF
     [b] => return b
@@ -784,7 +782,7 @@ priv struct KeyPress {
 }
 
 ///|
-async fn Interface::emit_keypress(self : Interface) -> Unit raise {
+async fn Interface::emit_keypress(self : Interface) -> Unit {
   let mut ch = self.read_byte()
   let s = @buffer.new()
   s.write_byte(ch)
@@ -1153,14 +1151,15 @@ pub(all) struct CompletionResult {
 async fn Interface::tab_complete(
   self : Interface,
   last_keypress_was_tab~ : Bool,
-) -> Unit raise {
+) -> Unit {
   guard self.completer is Some(completer) else { return }
   let string = self.line[:self.cursor]
   try {
     let value = completer(@encoding/utf8.decode(string))
     self.tab_completer(last_keypress_was_tab~, value)
   } catch {
-    error => self.output.write(@encoding/utf8.encode("Tab completion error: \{error}"))
+    error =>
+      self.output.write(@encoding/utf8.encode("Tab completion error: \{error}"))
   }
 }
 
@@ -1188,7 +1187,7 @@ async fn Interface::tab_completer(
   self : Interface,
   last_keypress_was_tab~ : Bool,
   completion_result : CompletionResult,
-) -> Unit raise {
+) -> Unit {
   let completions = completion_result.completions
   let complete_on = @encoding/utf8.encode(completion_result.complete_on)
   if completions.length() == 0 {
@@ -1248,7 +1247,7 @@ async fn Interface::tab_completer(
 async fn Interface::handle_keypress(
   self : Interface,
   keypress : KeyPress,
-) -> Unit raise {
+) -> Unit {
   let key = keypress.key
   // FIXME: used for autocomplete
   let previous_key = self.previous_key
@@ -1377,7 +1376,7 @@ async fn Interface::handle_keypress(
 }
 
 ///|
-pub async fn Interface::start(self : Interface) -> Unit raise {
+pub async fn Interface::start(self : Interface) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => while true {
       self.emit_keypress()
@@ -1391,14 +1390,14 @@ pub async fn Interface::start(self : Interface) -> Unit raise {
 }
 
 ///|
-pub async fn Interface::read_line(self : Interface) -> String raise {
+pub async fn Interface::read_line(self : Interface) -> String {
   match self.events.line.get() {
     line => @encoding/utf8.decode(line)
   }
 }
 
 ///|
-pub async fn Interface::read_key(self : Interface) -> Key raise {
+pub async fn Interface::read_key(self : Interface) -> Key {
   self.events.key.get()
 }
 
@@ -1406,7 +1405,7 @@ pub async fn Interface::read_key(self : Interface) -> Key raise {
 pub async fn Interface::question(
   self : Interface,
   query : StringView,
-) -> String raise {
+) -> String {
   let query = @encoding/utf8.encode(query)
   self.old_prompt = self.prompt
   self.set_prompt(query)
@@ -1420,7 +1419,7 @@ pub async fn Interface::question(
 pub async fn Interface::prompt(
   self : Interface,
   preserve_cursor? : Bool = false,
-) -> Unit raise {
+) -> Unit {
   if !preserve_cursor {
     self.cursor = 0
   }

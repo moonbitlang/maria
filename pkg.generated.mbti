@@ -6,7 +6,6 @@ package "moonbitlang/maria"
 // Errors
 
 // Types and methods
-type Migrator
 
 // Type aliases
 

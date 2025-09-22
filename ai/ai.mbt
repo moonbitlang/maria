@@ -4,8 +4,8 @@ async fn[T] with_retry(
   delay_ms~ : Int,
   max_delay_ms~ : Int,
   max_retries~ : Int,
-  f : async () -> T raise,
-) -> T raise {
+  f : async () -> T,
+) -> T {
   guard max_retries > 0
   let errors : Array[Error] = []
   let mut delay_ms = delay_ms
@@ -32,7 +32,7 @@ priv suberror HttpError {
 pub async fn chat(
   model~ : @model.Model,
   request : @openai.ChatCompletionParam,
-) -> @openai.ChatCompletion raise {
+) -> @openai.ChatCompletion {
   let request_body = request.to_json().stringify()
   let (response, response_body) = with_retry(
     backoff_multiplier=2,
@@ -62,7 +62,7 @@ pub async fn chat(
 }
 
 ///|
-pub async fn text(model~ : @model.Model, prompt~ : String) -> String raise {
+pub async fn text(model~ : @model.Model, prompt~ : String) -> String {
   let completion = chat(
     model~,
     @openai.chat_completion(
@@ -116,7 +116,7 @@ test "extract_first_json_block" {
 }
 
 ///|
-pub async fn json(model~ : @model.Model, prompt~ : String) -> Json raise {
+pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
   let completion = chat(
     model~,
     @openai.chat_completion(
@@ -146,10 +146,7 @@ pub(open) trait Structural: @json.FromJson {
 }
 
 ///|
-pub async fn[T : Structural] data(
-  model~ : @model.Model,
-  prompt~ : String,
-) -> T raise {
+pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T {
   let completion = chat(
     model~,
     @openai.chat_completion(

@@ -4,7 +4,7 @@ pub async fn spawn(
   arguments : Array[StringView],
   output? : &Logger,
   cwd? : StringView,
-) -> Int raise {
+) -> Int {
   let command = @encoding/utf8.encode(command)
   let arguments = arguments.map(arg => @encoding/utf8.encode(arg))
   let cwd = cwd.map(@encoding/utf8.encode(_))
@@ -18,7 +18,9 @@ pub async fn spawn(
             0 => break
             n => {
               output.write_string(
-                @encoding/utf8.decode_lossy(buf.unsafe_reinterpret_as_bytes()[0:n]),
+                @encoding/utf8.decode_lossy(
+                  buf.unsafe_reinterpret_as_bytes()[0:n],
+                ),
               )
               continue pipe.0.read(buf)
             }

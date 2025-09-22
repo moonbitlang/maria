@@ -85,7 +85,7 @@ async fn Extractor::extract_code_snippets_from_chunk(
   content : String,
   history~ : Array[@openai.ChatCompletionMessageParam],
   partial? : Bool = false,
-) -> Json raise {
+) -> Json {
   let prompts = [ExtractorRolePrompt]
   if partial {
     prompts.push(PartialNotice)
@@ -196,7 +196,7 @@ pub async fn Extractor::extract_code_snippets(
   self : Extractor,
   content : String,
   history~ : Array[@openai.ChatCompletionMessageParam],
-) -> String? raise {
+) -> String? {
   let token_count = self.token_counter.count_string(content)
   if token_count > self.safe_zone_tokens {
     let chunks = split_content_with_sliding_window(

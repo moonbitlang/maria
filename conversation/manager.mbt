@@ -8,8 +8,9 @@ struct Manager {
 pub async fn Manager::new(path~ : String) -> Manager {
   let cache = @lru.cache(max_size=100)
   let conversations = @path.join(path, "conversations")
+  println("Conversation path: \{conversations}")
   if !@fs.exists(conversations) {
-    @fs.make_directory(conversations)
+    @fs.make_directory(conversations, recursive=true)
   }
   Manager::{ path, cache }
 }
