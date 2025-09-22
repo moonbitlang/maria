@@ -6,13 +6,18 @@ import(
 )
 
 // Values
+let list_files : @tool.Tool[Manager]
+
 fn manager(cwd~ : String) -> Manager
+
+let read_file : @tool.Tool[Manager]
+
+let write_to_file : @tool.Tool[Manager]
 
 // Errors
 
 // Types and methods
 type Manager
-fn Manager::tools(Self) -> Iter[@tool.Tool]
 
 // Type aliases
 

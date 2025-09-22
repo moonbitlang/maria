@@ -2,11 +2,12 @@
 package "moonbitlang/maria/tool/fix_moonbit_warnings"
 
 import(
+  "moonbitlang/maria/agent"
   "moonbitlang/maria/tool"
 )
 
 // Values
-let fix_moonbit_warnings : @tool.Tool
+let fix_moonbit_warnings : @tool.Tool[@agent.Agent]
 
 // Errors
 

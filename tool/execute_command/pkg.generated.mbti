@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-let execute_command : @tool.Tool
+let execute_command : @tool.Tool[String]
 
 // Errors
 pub suberror TimeoutError {

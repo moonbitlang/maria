@@ -1,40 +1,29 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tool"
 
-import(
-  "moonbitlang/maria/model"
-)
-
 // Values
-fn context(model~ : @model.Model, cwd~ : String) -> Context
-
 fn error(String, error? : Error) -> Result
 
 fn ok(String) -> Result
 
-fn tool(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, Context) -> Result noraise) -> Tool
+fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, T) -> Result noraise) -> Tool[T]
 
 // Errors
 
 // Types and methods
-pub struct Context {
-  model : @model.Model
-  cwd : String
-}
-
 pub struct Result {
   output : String
   error : Error?
 }
 impl ToJson for Result
 
-pub struct Tool {
+pub struct Tool[T] {
   description : String
   name : String
   parameters : Map[String, Json]
   // private fields
 }
-async fn Tool::call(Self, Json, Context) -> Result noraise
+async fn[T] Tool::call(Self[T], Json, T) -> Result noraise
 
 // Type aliases
 

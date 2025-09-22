@@ -8,11 +8,14 @@ import(
 // Values
 fn list(cwd~ : StringView) -> List raise
 
+let todo_read : @tool.Tool[List]
+
+let todo_write : @tool.Tool[List]
+
 // Errors
 
 // Types and methods
 type List
-fn List::tools(Self) -> Iter[@tool.Tool]
 
 // Type aliases
 
