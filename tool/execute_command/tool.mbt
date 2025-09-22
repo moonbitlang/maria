@@ -29,6 +29,7 @@ pub let execute_command : @tool.Tool[String] = @tool.tool(
     "required": ["command", "arguments", "timeout"],
   },
   (args, cwd) => {
+    let id = @uuid.v4()
     guard args
       is {
         "command": String(command),
@@ -50,10 +51,48 @@ pub let execute_command : @tool.Tool[String] = @tool.tool(
         let arguments = arguments.map(arg => arg.view())
         let status = @spawn.spawn(command, arguments, output~, cwd~)
         let output = output.to_string()
-        return "Exit code: \{status}\nOutput:\n\{output}"
+        let lines = output.split("\n").collect()
+        if lines.length() >= 100 {
+          let path = cwd
+            |> @path.join(".moonagent")
+            |> @path.join("processes")
+            |> @path.join("\{id}")
+            |> @path.join("output.txt")
+          @fs.make_directory(@path.dirname(path)) catch {
+            error =>
+              return @tool.error(
+                "Error creating directory for output file: \{error}",
+                error~,
+              )
+          }
+          @fs.write_to_file(path, output) catch {
+            error =>
+              return @tool.error(
+                "Error writing output to file: \{error}",
+                error~,
+              )
+          }
+          let output = lines[0:100].join("\n")
+          return @tool.ok(
+            (
+              $|Exit code: \{status}
+              $|Output: (first 100 lines)
+              $|\{output}
+              $|... (truncated, total \{lines.length()} lines, use <read_file> tool to read full output at \{path}) ...
+            ),
+          )
+        } else {
+          return @tool.ok(
+            (
+              $|Exit code: \{status}
+              $|Output:
+              $|\{output}
+            ),
+          )
+        }
       })
       match result {
-        Some(result) => @tool.ok(result)
+        Some(result) => result
         None => {
           let error = TimeoutError(command~, arguments~, timeout~)
           @tool.error("Timeout when executing command", error~)
