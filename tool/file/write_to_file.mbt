@@ -274,28 +274,26 @@ async fn Manager::execute_write_to_file(
 }
 
 ///|
-fn Manager::get_write_to_file_tool(self : Manager) -> @tool.Tool {
-  return @tool.tool(
-    description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
-    name="write_to_file",
-    parameters={
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "The path of the file to write to, relative to the current working directory.",
-        },
-        "replace": {
-          "type": "string",
-          "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
-        },
-        "search": {
-          "type": "string",
-          "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
-        },
+pub let write_to_file : @tool.Tool[Manager] = @tool.tool(
+  description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
+  name="write_to_file",
+  parameters={
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The path of the file to write to, relative to the current working directory.",
       },
-      "required": ["path"],
+      "replace": {
+        "type": "string",
+        "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
+      },
+      "search": {
+        "type": "string",
+        "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
+      },
     },
-    (args, _) => self.execute_write_to_file(args),
-  )
-}
+    "required": ["path"],
+  },
+  (args, self) => self.execute_write_to_file(args),
+)

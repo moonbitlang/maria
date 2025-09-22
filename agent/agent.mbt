@@ -39,11 +39,11 @@ fn EventContext::new(
 }
 
 ///|
-struct Agent {
+pub struct Agent {
   logger : @pino.Logger
   cwd : String
   model : @model.Model
-  tools : Map[String, @tool.Tool]
+  tools : Map[String, @tool.Tool[Unit]]
   history : @conversation.Conversation
   mut queue : Array[@openai.ChatCompletionMessageParam]
   event_target : @event.Target[Event, EventContext]
@@ -153,7 +153,6 @@ async fn Agent::execute_tool(
       tool_call_id=tool_call.id,
     )
   }
-  let context = @tool.context(model=agent.model, cwd=agent.cwd)
   agent.emit(PreToolCall, EventContext::new(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
@@ -162,7 +161,7 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = tool.call(arguments, context)
+  let result = tool.call(arguments, ())
   agent.emit(
     PostToolCall,
     EventContext::new(tool_call~, tool_call_result=result),
@@ -178,8 +177,17 @@ async fn Agent::execute_tool(
 /// * `agent` : The agent instance to add the tool to.
 /// * `tool` : The tool to be added, which will be indexed by its name for
 ///   future tool calls.
-pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
-  agent.tools[tool.name] = tool
+pub fn[T] Agent::add_tool(
+  agent : Agent,
+  tool : @tool.Tool[T],
+  state : T,
+) -> Unit noraise {
+  agent.tools[tool.name] = @tool.tool(
+    description=tool.description,
+    name=tool.name,
+    parameters=tool.parameters,
+    (args : Json, _ : Unit) => tool.call(args, state),
+  )
 }
 
 ///|

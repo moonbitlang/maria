@@ -4,7 +4,7 @@ pub suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-pub let execute_command : @tool.Tool = @tool.tool(
+pub let execute_command : @tool.Tool[String] = @tool.tool(
   description="Execute a shell command",
   name="execute_command",
   parameters={
@@ -28,7 +28,7 @@ pub let execute_command : @tool.Tool = @tool.tool(
     },
     "required": ["command", "arguments", "timeout"],
   },
-  (args, context) => {
+  (args, cwd) => {
     guard args
       is {
         "command": String(command),
@@ -48,7 +48,7 @@ pub let execute_command : @tool.Tool = @tool.tool(
       let result = @async.with_timeout_opt(timeout, () => {
         let output = StringBuilder::new()
         let arguments = arguments.map(arg => arg.view())
-        let status = @spawn.spawn(command, arguments, output~, cwd=context.cwd)
+        let status = @spawn.spawn(command, arguments, output~, cwd~)
         let output = output.to_string()
         return "Exit code: \{status}\nOutput:\n\{output}"
       })

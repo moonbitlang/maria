@@ -9,8 +9,6 @@ import(
 )
 
 // Values
-let fix_moonbit_warnings : @tool.Tool
-
 async fn new(@model.Model, cwd~ : StringView, session_manager? : @conversation.Manager) -> Agent
 
 // Errors

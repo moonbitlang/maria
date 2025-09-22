@@ -412,8 +412,3 @@ fn List::parse(
     }
   }
 }
-
-///|
-pub fn List::tools(self : List) -> Iter[@tool.Tool] {
-  [self.todo_read(), self.todo_write()].iter()
-}

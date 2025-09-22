@@ -111,14 +111,13 @@ async fn Migrator::execute(
       $|the current MoonBit project. Translate file-by-file and preserve original
       $|structure; avoid freeform rewrites.
     agent.add_message(@openai.user_message(content=prompt))
-    agent.add_tool(@execute_command.execute_command)
-    for tools in file_manager.tools() {
-      agent.add_tool(tools)
-    }
-    for tools in todo_list.tools() {
-      agent.add_tool(tools)
-    }
-    agent.add_tool(@fix_moonbit_warnings.fix_moonbit_warnings)
+    agent.add_tool(@execute_command.execute_command, dst_path)
+    agent.add_tool(@file.list_files, file_manager)
+    agent.add_tool(@file.read_file, file_manager)
+    agent.add_tool(@file.write_to_file, file_manager)
+    agent.add_tool(@todo.todo_read, todo_list)
+    agent.add_tool(@todo.todo_write, todo_list)
+    agent.add_tool(@fix_moonbit_warnings.fix_moonbit_warnings, agent)
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
         return
@@ -245,15 +244,14 @@ fn main {
         "Conversation ended",
         {},
       ))
-      agent.add_tool(@execute_command.execute_command)
+      agent.add_tool(@execute_command.execute_command, agent.cwd)
       let file_manager = @file.manager(cwd~)
-      for tools in file_manager.tools() {
-        agent.add_tool(tools)
-      }
+      agent.add_tool(@file.list_files, file_manager)
+      agent.add_tool(@file.read_file, file_manager)
+      agent.add_tool(@file.write_to_file, file_manager)
       let todo_list = @todo.list(cwd~)
-      for tools in todo_list.tools() {
-        agent.add_tool(tools)
-      }
+      agent.add_tool(@todo.todo_read, todo_list)
+      agent.add_tool(@todo.todo_write, todo_list)
       let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
       rl.set_prompt("< ")
       group.spawn_bg(() => rl.start())

@@ -1,9 +1,9 @@
 ///|
-pub struct Tool {
+pub struct Tool[T] {
   description : String
   name : String
   parameters : Map[String, Json]
-  priv f : async (Json, Context) -> Result noraise
+  priv f : async (Json, T) -> Result noraise
 }
 
 ///|
@@ -23,31 +23,20 @@ pub fn error(output : String, error? : Error = Failure(output)) -> Result {
 }
 
 ///|
-pub fn tool(
+pub fn[T] tool(
   description~ : String,
   name~ : String,
   parameters~ : Map[String, Json],
-  f : async (Json, Context) -> Result noraise,
-) -> Tool {
+  f : async (Json, T) -> Result noraise,
+) -> Tool[T] {
   Tool::{ description, name, parameters, f }
 }
 
 ///|
-pub struct Context {
-  model : @model.Model
-  cwd : String
-}
-
-///|
-pub fn context(model~ : @model.Model, cwd~ : String) -> Context {
-  Context::{ model, cwd }
-}
-
-///|
-pub async fn Tool::call(
-  self : Tool,
+pub async fn[T] Tool::call(
+  tool : Tool[T],
   args : Json,
-  context : Context,
+  state : T,
 ) -> Result noraise {
-  (self.f)(args, context)
+  (tool.f)(args, state)
 }

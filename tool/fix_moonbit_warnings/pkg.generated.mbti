@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tool/fix_moonbit_warnings"
+
+import(
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let fix_moonbit_warnings : @tool.Tool
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

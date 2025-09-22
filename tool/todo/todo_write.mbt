@@ -91,7 +91,6 @@ fn format_todo_response(
 async fn List::execute_todo_write(
   self : List,
   args : Json,
-  _ : @tool.Context,
 ) -> @tool.Result noraise {
   enum Action {
     Create
@@ -261,40 +260,38 @@ async fn List::execute_todo_write(
 }
 
 ///|
-fn List::todo_write(self : List) -> @tool.Tool {
-  @tool.tool(
-    description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
-    name="todo_write",
-    parameters={
-      "type": "object",
-      "properties": {
-        "action": {
-          "type": "string",
-          "description": "The action to perform: 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
-        },
-        "content": {
-          "type": "string",
-          "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
-        },
-        "task_id": {
-          "type": "string",
-          "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
-        },
-        "priority": {
-          "type": "string",
-          "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-        },
-        "status": {
-          "type": "string",
-          "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-        },
-        "notes": {
-          "type": "string",
-          "description": "Additional notes or details about the task",
-        },
+pub let todo_write : @tool.Tool[List] = @tool.tool(
+  description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
+  name="todo_write",
+  parameters={
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "description": "The action to perform: 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
       },
-      "required": ["action"],
+      "content": {
+        "type": "string",
+        "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
+      },
+      "task_id": {
+        "type": "string",
+        "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
+      },
+      "priority": {
+        "type": "string",
+        "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
+      },
+      "status": {
+        "type": "string",
+        "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
+      },
+      "notes": {
+        "type": "string",
+        "description": "Additional notes or details about the task",
+      },
     },
-    (args, ctx) => self.execute_todo_write(args, ctx),
-  )
-}
+    "required": ["action"],
+  },
+  (args, self) => self.execute_todo_write(args),
+)

@@ -48,10 +48,7 @@ fn main {
       return
     }
   }
-  let context = @tool.context(model=@mock.model(), cwd~)
-  @async.with_event_loop(_ => println(
-    execute_command.call(json, context).output,
-  )) catch {
+  @async.with_event_loop(_ => println(execute_command.call(json, cwd).output)) catch {
     error => println("Error executing command: \{error}")
   }
 }

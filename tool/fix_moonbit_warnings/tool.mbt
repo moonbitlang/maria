@@ -127,53 +127,55 @@ async fn render_diagnostics(
 }
 
 ///|
-fn create_submit_moonbit_segment_tool(
-  moon : @moon.Module,
-  segment : @moon.SegmentView,
-  result : Ref[String?],
-) -> @tool.Tool {
-  @tool.tool(
-    name="submit_moonbit_segment",
-    description="Submit a fixed MoonBit code segment for verification",
-    parameters={
-      "properties": {
-        "segment": {
-          "description": "The fixed MoonBit code segment",
-          "type": "string",
-        },
+let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
+  name="submit_moonbit_segment",
+  description="Submit a fixed MoonBit code segment for verification",
+  parameters={
+    "properties": {
+      "segment": {
+        "description": "The fixed MoonBit code segment",
+        "type": "string",
       },
-      "required": ["segment"],
-      "type": "object",
     },
-    (args, _) => {
-      guard args is { "segment": patched, .. } else {
-        return @tool.error("Missing 'segment' argument")
-      }
-      let patched : String = @json.from_json(patched) catch {
-        error =>
-          return @tool.error("Invalid 'segment' argument: \{error}", error~)
-      }
-      let diagnostics = moon.check_patch(segment, patched) catch {
-        error => return @tool.error("Failed to check patch: \{error}", error~)
-      }
-      guard diagnostics is [diagnostic, ..] else {
-        result.val = Some(patched)
-        @tool.ok(
-          "Segment verification successful! The code compiles without errors.",
-        )
-      }
-      let overlay = {}
-      overlay[diagnostic.loc.path] = patched
-      let rendered_diagnostics = render_diagnostics(
-        diagnostics,
-        limit=10,
-        overlay~,
+    "required": ["segment"],
+    "type": "object",
+  },
+  (args, task) => {
+    let { moon, segment, result } = task
+    guard args is { "segment": patched, .. } else {
+      return @tool.error("Missing 'segment' argument")
+    }
+    let patched : String = @json.from_json(patched) catch {
+      error =>
+        return @tool.error("Invalid 'segment' argument: \{error}", error~)
+    }
+    let diagnostics = moon.check_patch(segment, patched) catch {
+      error => return @tool.error("Failed to check patch: \{error}", error~)
+    }
+    guard diagnostics is [diagnostic, ..] else {
+      result.val = Some(patched)
+      @tool.ok(
+        "Segment verification successful! The code compiles without errors.",
       )
-      return @tool.error(
-        "Segment verification failed with errors:\n\{rendered_diagnostics}",
-      )
-    },
-  )
+    }
+    let overlay = {}
+    overlay[diagnostic.loc.path] = patched
+    let rendered_diagnostics = render_diagnostics(
+      diagnostics,
+      limit=10,
+      overlay~,
+    )
+    return @tool.error(
+      "Segment verification failed with errors:\n\{rendered_diagnostics}",
+    )
+  },
+)
+
+///|
+priv struct Task {
+  moon : @moon.Module
+  segment : @moon.SegmentView
+  result : Ref[String?]
 }
 
 ///|
@@ -185,9 +187,8 @@ async fn process_segment(
   description~ : String,
 ) -> String? {
   let result = Ref::new(None)
-  let submit_tool = create_submit_moonbit_segment_tool(moon, segment, result)
   let subagent = @agent.new(model, cwd~)
-  subagent.add_tool(submit_tool)
+  subagent.add_tool(submit_moonbit_segment, Task::{ moon, segment, result })
   subagent.add_message(
     @openai.system_message(
       content=(
@@ -263,7 +264,7 @@ async fn process_segment(
 }
 
 ///|
-pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
+pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
   name="fix_moonbit_warnings",
   description="Fix all MoonBit warnings/errors in the given project directory by applying a batch suggestion to all relevant MoonBit top-level constructs.",
   parameters={
@@ -279,7 +280,7 @@ pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
     },
     "required": ["description", "project_path"],
   },
-  (args, ctx : @tool.Context) => {
+  (args : Json, agent : @agent.Agent) => {
     guard args
       is {
         "description": String(description),
@@ -288,7 +289,7 @@ pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
       } else {
       return @tool.error("Missing 'description' or 'project_path' argument")
     }
-    let cwd = ctx.cwd
+    let cwd = agent.cwd
     let project_path : String = if @path.is_absolute(project_path) {
       project_path
     } else {
@@ -312,8 +313,8 @@ pub let fix_moonbit_warnings : @tool.Tool = @tool.tool(
         for segment in file.segments() {
           group.spawn_bg(() => {
             let updated = if @async.with_timeout_opt(120_000 * 4, () => process_segment(
-                model=ctx.model,
-                cwd=ctx.cwd,
+                model=agent.model,
+                cwd=agent.cwd,
                 moon~,
                 segment~,
                 description~,

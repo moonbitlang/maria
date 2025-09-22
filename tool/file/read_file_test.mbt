@@ -3,11 +3,9 @@ test "read_file/nonexistent" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd=cwd.path())
+    let manager = @file.manager(cwd=cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
-    let result = manager
-      .get_read_file_tool()
-      .call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
+    let result = @file.read_file.call(args, manager)
     @json.inspect(
       result.output,
       content="Error reading file: File not found: nonexistent.txt",
@@ -23,7 +21,7 @@ test "read_file/content" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-content-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd=cwd.path())
+    let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file(
       "test.txt",
       (
@@ -34,9 +32,7 @@ test "read_file/content" {
       ),
     )
     let args : Json = { "path": "test.txt" }
-    let result = manager
-      .get_read_file_tool()
-      .call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
+    let result = @file.read_file.call(args, manager)
     inspect(
       result.output,
       content=(
@@ -55,7 +51,7 @@ test "read_file/line_range" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-range-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd=cwd.path())
+    let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file(
       "lines.txt",
       (
@@ -67,9 +63,7 @@ test "read_file/line_range" {
       ),
     )
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
-    let result = manager
-      .get_read_file_tool()
-      .call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
+    let result = @file.read_file.call(args, manager)
     inspect(
       result.output,
       content=(
@@ -87,16 +81,14 @@ test "read_file/directory" {
   @async.with_event_loop(g => {
     let cwd = @mock.directory("tool-read-file-directory-test")
     g.add_defer(() => cwd.close())
-    let manager = manager(cwd=cwd.path())
+    let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file("file1.txt", "content1")
     let _ = cwd.add_file("file2.txt", "content2")
     let subdir = cwd.add_subdirectory("subdir")
     g.add_defer(() => subdir.close())
     let _ = subdir.add_file("file3.txt", "content3")
     let args : Json = { "path": "." }
-    let result = manager
-      .get_read_file_tool()
-      .call(args, @tool.context(model=@mock.model(), cwd=cwd.path()))
+    let result = @file.read_file.call(args, manager)
     inspect(
       result.output,
       content=(
