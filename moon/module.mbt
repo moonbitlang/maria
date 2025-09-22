@@ -1,10 +1,11 @@
 ///|
-struct Module {
+pub struct Module {
   path : String
   name : String
-  source : String?
-  packages : Map[String, Package]
-  mut mtime : Int64
+  priv source : String?
+  priv packages : Map[String, Package]
+  priv mut mtime : Int64
+  coverage : Coverage
 }
 
 ///|
@@ -21,7 +22,14 @@ impl @json.FromJson for Module with from_json(
   } else {
     None
   }
-  Module::{ path: "", name, source, packages: {}, mtime: 0 }
+  Module::{
+    path: "",
+    name,
+    source,
+    packages: {},
+    mtime: 0,
+    coverage: { path: "" },
+  }
 }
 
 ///|
@@ -31,7 +39,7 @@ pub async fn Module::load(path : String) -> Module {
     |> @fs.read_file()
     |> @json.parse()
     |> @json.from_json()
-  let mod = { ..mod, path, }
+  let mod = { ..mod, path, coverage: { ..mod.coverage, path, } }
   mod.discover()
   mod
 }
