@@ -40,16 +40,16 @@ fn EventContext::new(
 
 ///|
 pub struct Agent {
-  logger : @pino.Logger
+  priv logger : @pino.Logger
   cwd : String
   model : @model.Model
-  tools : Map[String, @tool.Tool[Unit]]
-  history : @conversation.Conversation
-  mut queue : Array[@openai.ChatCompletionMessageParam]
-  event_target : @event.Target[Event, EventContext]
-  token_counter : @token.Counter
-  context_pruner : @context.Pruner
-  session_manager : @conversation.Manager
+  priv tools : Map[String, @tool.Tool[Unit]]
+  priv history : @conversation.Conversation
+  priv mut queue : Array[@openai.ChatCompletionMessageParam]
+  priv event_target : @event.Target[Event, EventContext]
+  priv token_counter : @token.Counter
+  priv context_pruner : @context.Pruner
+  priv session_manager : @conversation.Manager
 }
 
 ///|

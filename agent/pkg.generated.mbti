@@ -2,13 +2,9 @@
 package "moonbitlang/maria/agent"
 
 import(
-  "moonbitlang/maria/context"
   "moonbitlang/maria/conversation"
-  "moonbitlang/maria/event"
   "moonbitlang/maria/model"
   "moonbitlang/maria/openai"
-  "moonbitlang/maria/pino"
-  "moonbitlang/maria/token"
   "moonbitlang/maria/tool"
 )
 
@@ -19,16 +15,9 @@ async fn new(@model.Model, cwd~ : StringView, session_manager? : @conversation.M
 
 // Types and methods
 pub struct Agent {
-  logger : @pino.Logger
   cwd : String
   model : @model.Model
-  tools : Map[String, @tool.Tool[Unit]]
-  history : @conversation.Conversation
-  mut queue : Array[@openai.ChatCompletionMessageParam]
-  event_target : @event.Target[Event, EventContext]
-  token_counter : @token.Counter
-  context_pruner : @context.Pruner
-  session_manager : @conversation.Manager
+  // private fields
 }
 fn Agent::add_listener(Self, Event, async (EventContext) -> Unit) -> Unit
 fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
