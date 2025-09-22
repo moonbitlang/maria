@@ -8,14 +8,15 @@ import(
 // Values
 fn list(cwd~ : StringView) -> List raise
 
-let todo_read : @tool.Tool[List]
+let read : @tool.Tool[List]
 
-let todo_write : @tool.Tool[List]
+let write : @tool.Tool[List]
 
 // Errors
 
 // Types and methods
 type List
+impl Show for List
 
 // Type aliases
 

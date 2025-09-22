@@ -260,7 +260,7 @@ async fn List::execute_todo_write(
 }
 
 ///|
-pub let todo_write : @tool.Tool[List] = @tool.tool(
+pub let write : @tool.Tool[List] = @tool.tool(
   description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
   name="todo_write",
   parameters={

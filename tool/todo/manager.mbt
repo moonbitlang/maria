@@ -9,17 +9,17 @@ fn get_current_timestamp() -> String raise {
 ///|
 struct List {
   cwd : String
-  todos : Array[Item]
+  mut todos : Array[Item]
   mut created_at : String
   mut updated_at : String
-}
+} derive(Show)
 
 ///|
 priv enum Priority {
   High
   Medium
   Low
-} derive(ToJson)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for Priority with from_json(
@@ -42,7 +42,7 @@ priv enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson)
+} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for Status with from_json(
@@ -67,7 +67,7 @@ priv struct Item {
   priority : Priority
   status : Status
   updated_at : String
-} derive(ToJson, @json.FromJson)
+} derive(Show, ToJson, @json.FromJson)
 
 ///|
 fn Item::new(
@@ -147,7 +147,7 @@ async fn List::load(self : List) -> Unit {
     } => {
       self.created_at = created_at
       let todos : Array[Item] = @json.from_json(todos)
-      self.todos.append(todos)
+      self.todos = todos
       self.updated_at = updated_at
     }
     _ => println("Invalid todo file format at \{path.to_string()}")

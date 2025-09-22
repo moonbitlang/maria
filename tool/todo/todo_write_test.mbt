@@ -1,0 +1,175 @@
+///|
+test "todo_write/create/plain" {
+  @rand.seed()
+  @async.with_event_loop(group => {
+    let cwd = @mock.directory("tool-todo_write")
+    group.add_defer(() => cwd.close())
+    let todo_list = @todo.list(cwd=cwd.path())
+    let result = @todo.write.call(
+      {
+        "action": "create",
+        "content": (
+          #|Test todo item
+          #|Another test item
+        ),
+        "priority": "high",
+      },
+      todo_list,
+    )
+    inspect(
+      result.output,
+      content=(
+        #|✅ Operation completed: Created 2 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🔴 ⏳ [a516463d] Test todo item
+        #|  🔴 ⏳ [7c288d41] Another test item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
+      ),
+    )
+  })
+}
+
+///|
+test "todo_write/create/<task>" {
+  @rand.seed()
+  @async.with_event_loop(group => {
+    let cwd = @mock.directory("tool-todo_write")
+    group.add_defer(() => cwd.close())
+    let todo_list = @todo.list(cwd=cwd.path())
+    let result = @todo.write.call(
+      {
+        "action": "create",
+        "content": (
+          #|<task>Examine reference repository structure at .moonagent/repos/inih</task>
+          #|<task>Examine current MoonBit project structure</task>
+          #|<task>Analyze source files in inih repository</task>
+          #|<task>Plan migration strategy preserving original structure</task>
+          #|<task>Translate C/C++ files to MoonBit file-by-file</task>
+          #|<task>Create appropriate MoonBit module structure</task>
+          #|<task>Test migrated functionality</task>
+        ),
+      },
+      todo_list,
+    )
+    inspect(
+      result.output,
+      content=(
+        #|✅ Operation completed: Created 7 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🟡 ⏳ [b773b606] Examine reference repository structure at /Users/haoxiang/Workspace/moonbit/maria/.moonagent/repos/inih
+        #|  🟡 ⏳ [8c2599d9] Examine current MoonBit project structure
+        #|  🟡 ⏳ [cfaa9ee0] Analyze source files in inih repository
+        #|  🟡 ⏳ [3c82d271] Plan migration strategy preserving original structure
+        #|  🟡 ⏳ [df79bb61] Translate C/C++ files to MoonBit file-by-file
+        #|  🟡 ⏳ [eef0d14e] Create appropriate MoonBit module structure
+        #|  🟡 ⏳ [d9e52b59] Test migrated functionality
+        #|
+        #|📊 Current summary: Total 7 items | Pending 7 | In Progress 0 | Completed 0
+      ),
+    )
+  })
+}
+
+///|
+test "todo_write/update" {
+  @rand.seed()
+  @async.with_event_loop(group => {
+    let cwd = @mock.directory("togol-todo_write")
+    group.add_defer(() => cwd.close())
+    let todo_list = @todo.list(cwd=cwd.path())
+    let result = @todo.write.call(
+      {
+        "action": "create",
+        "content": (
+          #|First item
+          #|Second item
+        ),
+        "priority": "medium",
+      },
+      todo_list,
+    )
+    @json.inspect(result, content={
+      "output": "✅ Operation completed: Created 2 new todo items\n\n📝 Newly created todos:\n  🟡 ⏳ [b773b606] First item\n  🟡 ⏳ [8c2599d9] Second item\n\n📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0",
+    })
+    let result = @todo.write.call(
+      {
+        "action": "update",
+        "task_id": "b773b606",
+        "status": "in-progress",
+        "priority": "high",
+        "content": "Updated first item",
+      },
+      todo_list,
+    )
+    inspect(
+      result.output,
+      content=(
+        #|✅ Operation completed: Updated task: Updated first item
+        #|
+        #|📝 Current todo list:
+        #|  🔴 🔄 [b773b606] Updated first item
+        #|  🟡 ⏳ [8c2599d9] Second item
+        #|
+        #|✨ Updated items:
+        #|  🔴 🔄 [b773b606] Updated first item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 1 | In Progress 1 | Completed 0
+      ),
+    )
+  })
+}
+
+///|
+test "todo_write/mark_completed" {
+  @rand.seed()
+  @async.with_event_loop(group => {
+    let cwd = @mock.directory("tool-todo_write")
+    group.add_defer(() => cwd.close())
+    let todo_list = @todo.list(cwd=cwd.path())
+    let result = @todo.write.call(
+      {
+        "action": "create",
+        "content": (
+          #|First item
+          #|Second item
+        ),
+        "priority": "medium",
+      },
+      todo_list,
+    )
+    inspect(
+      result.output,
+      content=(
+        #|✅ Operation completed: Created 2 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🟡 ⏳ [b773b606] First item
+        #|  🟡 ⏳ [8c2599d9] Second item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
+      ),
+    )
+    let result = @todo.write.call(
+      { "action": "mark_completed", "task_id": "b773b606" },
+      todo_list,
+    )
+    inspect(
+      result.output,
+      content=(
+        #|✅ Operation completed: Marked task as completed: First item
+        #|
+        #|📝 Current todo list:
+        #|  🟡 ✅ [b773b606] First item
+        #|  🟡 ⏳ [8c2599d9] Second item
+        #|
+        #|✨ Updated items:
+        #|  🟡 ✅ [b773b606] First item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 1 | In Progress 0 | Completed 1
+      ),
+    )
+  })
+}
