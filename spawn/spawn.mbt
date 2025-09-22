@@ -11,21 +11,10 @@ pub async fn spawn(
   match output {
     Some(output) => {
       let pipe = @process.read_from_process()
-      @async.with_task_group(g => {
-        g.spawn_bg(() => {
-          let buf : FixedArray[Byte] = FixedArray::make(4096, 0)
-          loop pipe.0.read(buf) {
-            0 => break
-            n => {
-              output.write_string(
-                @encoding/utf8.decode_lossy(
-                  buf.unsafe_reinterpret_as_bytes()[0:n],
-                ),
-              )
-              continue pipe.0.read(buf)
-            }
-          }
-        })
+      @async.with_task_group(group => {
+        group.spawn_bg(() => output.write_string(
+          @encoding/utf8.decode(pipe.0.read_all()),
+        ))
         @process.run(command, arguments, stdout=pipe.1, stderr=pipe.1, cwd?)
       })
     }

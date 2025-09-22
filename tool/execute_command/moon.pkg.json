@@ -7,5 +7,5 @@
     "moonbitlang/maria/uuid",
     "moonbitlang/maria/fs"
   ],
-  "test-import": ["moonbitlang/maria/mock"]
+  "test-import": ["moonbitlang/maria/mock", "moonbitlang/maria/rand"]
 }
