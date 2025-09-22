@@ -1,8 +1,0 @@
-{
-  "is-main": true,
-  "import": [
-    "moonbitlang/maria/readline",
-    "moonbitlang/async/pipe",
-    "moonbitlang/async"
-  ]
-}
