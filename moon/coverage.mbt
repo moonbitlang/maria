@@ -16,7 +16,11 @@ async fn coverage_analyze(package_? : String, cwd? : StringView) -> String {
 }
 
 ///|
-pub async fn Coverage::analyze(self : Coverage, package_? : String) -> String {
+pub async fn Coverage::analyze(self : Coverage, package_? : Package) -> String {
+  let package_ = match package_ {
+    Some(package_) => Some(package_.name)
+    None => None
+  }
   coverage_analyze(package_?, cwd=self.path)
 }
 

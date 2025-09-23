@@ -124,7 +124,7 @@ pub fn Module::files(self : Module) -> Iter[File] {
 }
 
 ///|
-fn Module::locate_package(self : Module, file : String) -> Package raise {
+pub fn Module::locate_package(self : Module, file : String) -> Package raise {
   let dir = @path.dirname(file)
   let src = self.source()
   let pkg_name = match @path.relative(src, dir) {

@@ -76,7 +76,7 @@ pub async fn Package::check(
 }
 
 ///|
-async fn Package::interface(self : Package) -> String? {
+pub async fn Package::interface(self : Package) -> String? {
   let mbti_path = @path.join(self.path, "pkg.generated.mbti")
   if @fs.exists(mbti_path) {
     Some(@fs.read_file(mbti_path))
