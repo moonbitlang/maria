@@ -1,0 +1,13 @@
+{
+  "import": [
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/moon",
+    "moonbitlang/regexp",
+    "moonbitlang/maria/fs",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/ai",
+    "moonbitlang/async"
+  ]
+}

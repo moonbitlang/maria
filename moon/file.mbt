@@ -5,6 +5,7 @@ struct File {
   mut lines : Array[StringView]
   segments : Array[Segment]
   mut mtime : Int64
+  coverage : String?
 } derive(Show)
 
 ///|
@@ -29,7 +30,7 @@ fn File::new(
   lines? : Array[StringView] = [],
   segments? : Array[Segment] = [],
 ) -> File {
-  File::{ path, content, lines, segments, mtime: 0 }
+  File::{ path, content, lines, segments, mtime: 0, coverage: None }
 }
 
 ///|

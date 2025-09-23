@@ -1,0 +1,4 @@
+///|
+struct Toplevel {
+  coverage : String?
+}
