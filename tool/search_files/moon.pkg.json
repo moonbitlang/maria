@@ -1,7 +1,7 @@
 {
   "import": [
     "moonbitlang/maria/tool",
-    "moonbitlang/maria/fs", 
+    "moonbitlang/maria/fs",
     "moonbitlang/maria/path",
     "moonbitlang/maria/spawn",
     "moonbitlang/regexp"

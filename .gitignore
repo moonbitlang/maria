@@ -3,4 +3,5 @@ target/
 .mooncakes/
 .moonagent/
 vendor/
-compile_Flags.txt
+compile_flags.txt
+.tmp/
