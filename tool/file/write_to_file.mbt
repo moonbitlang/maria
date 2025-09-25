@@ -23,6 +23,16 @@ priv struct MatchResult {
 }
 
 ///|
+/// Write operation result for structured JSON output
+priv struct WriteResult {
+  path : String
+  operation : String // "created", "updated", "replaced"
+  bytes_written : Int
+  search_used : Bool
+  message : String
+} derive(ToJson, FromJson)
+
+///|
 /// Find a match in the haystack string using various matching strategies
 ///
 /// Implements three matching strategies in order:
@@ -223,7 +233,14 @@ async fn Manager::execute_write_to_file(
 
       // File doesn't exist, create new file with replace content
       @fs.write_to_file(resolved_path, replace)
-      @tool.ok("New file created and content written to \{path}")
+      let result = WriteResult::{
+        path,
+        operation: "created",
+        bytes_written: replace.length(),
+        search_used: false,
+        message: "New file created and content written to \{path}",
+      }
+      @tool.ok(result.to_json())
     }
 
     // Read existing file content
@@ -267,7 +284,18 @@ async fn Manager::execute_write_to_file(
 
     // Write the modified content back to file
     @fs.write_to_file(resolved_path, content)
-    @tool.ok(path.to_json())
+    let operation = match search {
+      None => "replaced"
+      Some(_) => "updated"
+    }
+    let result = WriteResult::{
+      path,
+      operation,
+      bytes_written: content.length(),
+      search_used: search is Some(_),
+      message: "Changes applied to \{path}",
+    }
+    @tool.ok(result.to_json())
   } catch {
     error => @tool.error("Error writing to file: \{error}", error~)
   }
@@ -297,9 +325,9 @@ pub let write_to_file : @tool.Tool[Manager] = @tool.tool(
   },
   (args, self) => self.execute_write_to_file(args),
   render=result => {
-    guard result.output is String(path) else {
-      return "Error: Unexpected output format"
+    let write_result : WriteResult = @json.from_json(result.output) catch {
+      error => return "Error: Unexpected output format: \{error}"
     }
-    "Changes applied to \{path}"
+    write_result.message
   },
 )

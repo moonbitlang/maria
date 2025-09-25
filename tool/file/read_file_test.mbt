@@ -11,7 +11,7 @@ async test "read_file/nonexistent" {
       content="Error reading file: File not found: nonexistent.txt",
     )
     @json.inspect(result.error, content=[
-      ["Failure", "Error reading file: File not found: nonexistent.txt"],
+      "moonbitlang/maria/tool.Failure.Failure",
     ])
   })
 }
@@ -36,11 +36,7 @@ async test "read_file/content" {
     inspect(
       result.output,
       content=(
-        #|File: test.txt (lines 1-4 (4 lines))
-        #|line 1
-        #|line 2
-        #|line 3
-        #|line 4
+        #|Object({"path": String("test.txt"), "content": String("line 1\nline 2\nline 3\nline 4"), "start_line": Number(1), "end_line": Number(4)})
       ),
     )
   })
@@ -67,10 +63,7 @@ async test "read_file/line_range" {
     inspect(
       result.output,
       content=(
-        #|File: lines.txt (lines 2-4 (3 lines))
-        #|line 2
-        #|line 3
-        #|line 4
+        #|Object({"path": String("lines.txt"), "content": String("line 1\nline 2\nline 3\nline 4\nline 5"), "start_line": Number(2), "end_line": Number(4)})
       ),
     )
   })
@@ -89,15 +82,11 @@ async test "read_file/directory" {
     let _ = subdir.add_file("file3.txt", "content3")
     let args : Json = { "path": "." }
     let result = @file.read_file.call(args, manager)
-    inspect(
-      result.output,
-      content=(
-        #|Directory: .
-        #|Entries:
-        #|subdir/
-        #|file1.txt
-        #|file2.txt
-      ),
-    )
+    @json.inspect(result.output, content={
+      "type": "directory",
+      "path": ".",
+      "entries": ["subdir/", "file1.txt", "file2.txt"],
+      "display": "subdir/\nfile1.txt\nfile2.txt",
+    })
   })
 }

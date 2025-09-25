@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/moon"
 
+import(
+  "moonbitlang/core/json"
+)
+
 // Values
 async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
@@ -33,6 +37,7 @@ pub struct Diagnostic {
 }
 impl Show for Diagnostic
 impl ToJson for Diagnostic
+impl @json.FromJson for Diagnostic
 
 type File
 fn File::header(Self) -> SegmentView
