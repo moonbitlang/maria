@@ -1,93 +1,4 @@
 ///|
-/// Format the response message after todo operations
-fn format_todo_response(
-  todos : Array[Item],
-  action_performed : String,
-  updated_todos? : Array[Item],
-  is_new_creation~ : Bool,
-) -> String {
-  if todos.length() == 0 {
-    return "Operation completed: \{action_performed}"
-  }
-  let output = []
-  output.push("✅ Operation completed: \{action_performed}\n")
-
-  // Status and priority icon helpers
-  fn get_status_icon(status : Status) -> String {
-    match status {
-      Completed => "✅"
-      InProgress => "🔄"
-      Pending => "⏳"
-    }
-  }
-
-  fn get_priority_icon(priority : Priority) -> String {
-    match priority {
-      High => "🔴"
-      Medium => "🟡"
-      Low => "🟢"
-    }
-  }
-
-  // Show newly created todos specifically for create action
-  if is_new_creation {
-    match updated_todos {
-      Some(new_todos) if new_todos.length() > 0 => {
-        output.push("📝 Newly created todos:")
-        for todo in new_todos {
-          let priority_icon = get_priority_icon(todo.priority)
-          let status_icon = get_status_icon(todo.status)
-          output.push(
-            "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-          )
-        }
-      }
-      _ => ()
-    }
-  } else {
-    // Always show all todos
-    output.push("📝 Current todo list:")
-    for todo in todos {
-      let priority_icon = get_priority_icon(todo.priority)
-      let status_icon = get_status_icon(todo.status)
-      output.push(
-        "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-      )
-    }
-
-    // Highlight updated todos if provided
-    match updated_todos {
-      Some(updated) if updated.length() > 0 => {
-        output.push("\n✨ Updated items:")
-        for todo in updated {
-          let priority_icon = get_priority_icon(todo.priority)
-          let status_icon = get_status_icon(todo.status)
-          output.push(
-            "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-          )
-        }
-      }
-      _ => ()
-    }
-  }
-  let total_todos = todos.length()
-  let mut pending_count = 0
-  let mut in_progress_count = 0
-  let mut completed_count = 0
-  for todo in todos {
-    match todo.status {
-      Pending => pending_count = pending_count + 1
-      InProgress => in_progress_count = in_progress_count + 1
-      Completed => completed_count = completed_count + 1
-    }
-  }
-  output.push(
-    "\n📊 Current summary: Total \{total_todos} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
-  )
-  output.join("\n")
-}
-
-///|
 async fn List::execute_todo_write(
   self : List,
   args : Json,
@@ -173,13 +84,12 @@ async fn List::execute_todo_write(
             }
             try {
               self.save()
-              let response = format_todo_response(
-                self.todos,
-                "Created \{self.todos.length()} new todo items",
-                updated_todos=self.todos,
-                is_new_creation=true,
-              )
-              return @tool.ok(response)
+              return @tool.ok({
+                "todos": self.todos.map(t => t.to_json()),
+                "message": "Created \{self.todos.length()} new todo items",
+                "updated_todos": self.todos.map(t => t.to_json()),
+                "is_new_creation": true,
+              })
             } catch {
               error =>
                 return @tool.error("Failed to save todo list: \{error}", error~)
@@ -193,13 +103,12 @@ async fn List::execute_todo_write(
         let item = self.add_task(content, status~, priority~, notes~)
         try {
           self.save()
-          let response = format_todo_response(
-            self.todos,
-            "Added new task: \{item.content}",
-            updated_todos=[item],
-            is_new_creation=false,
-          )
-          return @tool.ok(response)
+          return @tool.ok({
+            "todos": self.todos.map(t => t.to_json()),
+            "message": "Added new task: \{item.content}",
+            "updated_todos": [item.to_json()],
+            "is_new_creation": false,
+          })
         } catch {
           error =>
             return @tool.error("Failed to save new task: \{error}", error~)
@@ -240,14 +149,12 @@ async fn List::execute_todo_write(
         }
         try {
           self.save()
-          @tool.ok(
-            format_todo_response(
-              self.todos,
-              action_message,
-              updated_todos~,
-              is_new_creation=false,
-            ),
-          )
+          @tool.ok({
+            "todos": self.todos,
+            "message": action_message,
+            "updated_todos": updated_todos,
+            "is_new_creation": false,
+          })
         } catch {
           error =>
             return @tool.error("Failed to save task update: \{error}", error~)
@@ -294,4 +201,98 @@ pub let write : @tool.Tool[List] = @tool.tool(
     "required": ["action"],
   },
   (args, self) => self.execute_todo_write(args),
+  render=result => {
+    guard result.output
+      is {
+        "todos": todos,
+        "message": String(action_performed),
+        "updated_todos": updated_todos,
+        "is_new_creation": is_new_creation,
+        ..
+      } else {
+      return "Error: Unexpected output format"
+    }
+    let todos : Array[Item] = @json.from_json(todos) catch {
+      error => return "Error: Failed to parse todos: \{error}"
+    }
+    let updated_todos : Array[Item] = @json.from_json(updated_todos) catch {
+      error => return "Error: Failed to parse updated_todos: \{error}"
+    }
+    let is_new_creation : Bool = @json.from_json(is_new_creation) catch {
+      error => return "Error: Failed to parse is_new_creation: \{error}"
+    }
+    if todos.length() == 0 {
+      return "Operation completed: \{action_performed}"
+    }
+    let output = []
+    output.push("✅ Operation completed: \{action_performed}\n")
+
+    // Status and priority icon helpers
+    fn get_status_icon(status : Status) -> String {
+      match status {
+        Completed => "✅"
+        InProgress => "🔄"
+        Pending => "⏳"
+      }
+    }
+
+    fn get_priority_icon(priority : Priority) -> String {
+      match priority {
+        High => "🔴"
+        Medium => "🟡"
+        Low => "🟢"
+      }
+    }
+
+    // Show newly created todos specifically for create action
+    if is_new_creation {
+      if updated_todos.length() > 0 {
+        output.push("📝 Newly created todos:")
+        for todo in updated_todos {
+          let priority_icon = get_priority_icon(todo.priority)
+          let status_icon = get_status_icon(todo.status)
+          output.push(
+            "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+          )
+        }
+      }
+    } else {
+      // Always show all todos
+      output.push("📝 Current todo list:")
+      for todo in todos {
+        let priority_icon = get_priority_icon(todo.priority)
+        let status_icon = get_status_icon(todo.status)
+        output.push(
+          "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+        )
+      }
+
+      // Highlight updated todos if provided
+      if updated_todos.length() > 0 {
+        output.push("\n✨ Updated items:")
+        for todo in updated_todos {
+          let priority_icon = get_priority_icon(todo.priority)
+          let status_icon = get_status_icon(todo.status)
+          output.push(
+            "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+          )
+        }
+      }
+    }
+    let total_todos = todos.length()
+    let mut pending_count = 0
+    let mut in_progress_count = 0
+    let mut completed_count = 0
+    for todo in todos {
+      match todo.status {
+        Pending => pending_count = pending_count + 1
+        InProgress => in_progress_count = in_progress_count + 1
+        Completed => completed_count = completed_count + 1
+      }
+    }
+    output.push(
+      "\n📊 Current summary: Total \{total_todos} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
+    )
+    output.join("\n")
+  },
 )

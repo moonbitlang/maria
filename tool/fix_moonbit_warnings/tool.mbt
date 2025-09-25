@@ -154,10 +154,24 @@ let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
     }
     guard diagnostics is [diagnostic, ..] else {
       result.val = Some(patched)
-      @tool.ok(
-        "Segment verification successful! The code compiles without errors.",
-      )
+      @tool.ok({})
     }
+    let overlay = {}
+    overlay[diagnostic.loc.path] = patched
+    return @tool.error({
+      "diagnostics": diagnostics.map(d => d.to_json()),
+      "patched": patched,
+    })
+  },
+  render=result => if result.error is Some(_) {
+    guard result.output
+      is { "diagnostics": Array(diagnostics), "patched": String(patched), .. } else {
+      return "Error: Unexpected error format"
+    }
+    let diagnostics = diagnostics.map(d => @json.from_json(d)) catch {
+      error => return "Error parsing diagnostics from tool output: \{error}"
+    }
+    let diagnostic : @moon.Diagnostic = diagnostics[0]
     let overlay = {}
     overlay[diagnostic.loc.path] = patched
     let rendered_diagnostics = render_diagnostics(
@@ -165,9 +179,11 @@ let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
       limit=10,
       overlay~,
     )
-    return @tool.error(
-      "Segment verification failed with errors:\n\{rendered_diagnostics}",
-    )
+    "The submitted code segment has the following issues:\n\n" +
+    "\{rendered_diagnostics}\n\n" +
+    "Please fix these issues and resubmit the corrected code segment."
+  } else {
+    "The submitted code segment has been verified to compile without errors."
   },
 )
 
@@ -343,5 +359,11 @@ pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
     })).or_error(Failure("Takes too long processing all the segments")) catch {
       error => return @tool.error("Failed to process files: \{error}", error~)
     }
+  },
+  render=result => {
+    guard result.output is String(formatted) else {
+      return "Error: Unexpected output format"
+    }
+    formatted
   },
 )

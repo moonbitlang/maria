@@ -261,7 +261,7 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                   let result = goto_definition(
                     search_pattern, absolute_search_path,
                   )
-                  @tool.ok(result)
+                  @tool.ok(result.to_json())
                 }
               }
               MoonbitReferences => {
@@ -278,7 +278,7 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                   let result = find_references(
                     search_pattern, absolute_search_path,
                   )
-                  @tool.ok(result)
+                  @tool.ok(result.to_json())
                 }
               }
               Regex => {
@@ -327,7 +327,7 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                     limited_results,
                     all_results.length(),
                   )
-                  @tool.ok(formatted)
+                  @tool.ok(formatted.to_json())
                 }
               }
             }
@@ -387,4 +387,10 @@ pub let search_files : @tool.Tool[String] = @tool.tool(
     "required": ["path", "regex", "kind"],
   },
   search_files_impl,
+  render=result => {
+    guard result.output is String(formatted) else {
+      return "Error: Unexpected output format"
+    }
+    formatted
+  },
 )

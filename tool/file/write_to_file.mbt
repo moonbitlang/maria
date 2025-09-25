@@ -267,7 +267,7 @@ async fn Manager::execute_write_to_file(
 
     // Write the modified content back to file
     @fs.write_to_file(resolved_path, content)
-    @tool.ok("Changes applied to \{path}")
+    @tool.ok(path.to_json())
   } catch {
     error => @tool.error("Error writing to file: \{error}", error~)
   }
@@ -296,4 +296,10 @@ pub let write_to_file : @tool.Tool[Manager] = @tool.tool(
     "required": ["path"],
   },
   (args, self) => self.execute_write_to_file(args),
+  render=result => {
+    guard result.output is String(path) else {
+      return "Error: Unexpected output format"
+    }
+    "Changes applied to \{path}"
+  },
 )
