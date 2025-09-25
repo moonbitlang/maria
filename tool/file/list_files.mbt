@@ -22,10 +22,23 @@ pub let list_files : @tool.Tool[Manager] = @tool.tool(
       } else {
         @path.join(self.cwd, path)
       }
-      let entries = @fs.list_directory(path).map(entry => entry.name)
-      @tool.ok(entries.join("\n"))
+      @tool.ok(@fs.list_directory(path).map(entry => entry.name).to_json())
     } catch {
       error => @tool.error("Error listing files: \{error}", error~)
     }
+  },
+  render=result => {
+    guard result.output is Array(files) else {
+      return "Error: Unexpected output format"
+    }
+    if files.length() == 0 {
+      return "No files found."
+    }
+    let output = ["Files:"]
+    for file in files {
+      guard file is String(name) else { continue }
+      output.push("- \{name}")
+    }
+    output.join("\n")
   },
 )

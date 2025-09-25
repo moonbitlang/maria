@@ -127,4 +127,10 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       error => @tool.error("Error executing command: \{error}", error~)
     }
   },
+  render=result => {
+    guard result.output is String(output) else {
+      return "Error: Unexpected output format"
+    }
+    output
+  },
 )
