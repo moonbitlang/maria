@@ -70,7 +70,7 @@ pub struct Diagnostic {
 } derive(Show, ToJson)
 
 ///|
-impl @json.FromJson for Diagnostic with from_json(
+pub impl @json.FromJson for Diagnostic with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Diagnostic raise @json.JsonDecodeError {

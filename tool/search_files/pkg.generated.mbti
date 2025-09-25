@@ -9,30 +9,8 @@ import(
 let search_files : @tool.Tool[String]
 
 // Errors
-pub suberror SearchError {
-  FileReadError(path~ : String, error~ : String)
-  MoonAnalysisError(query~ : String, error~ : String)
-}
-impl Show for SearchError
-impl ToJson for SearchError
 
 // Types and methods
-pub enum SearchKind {
-  Regex
-  MoonbitDefinition
-  MoonbitReferences
-}
-impl Show for SearchKind
-impl ToJson for SearchKind
-
-pub struct SearchResult {
-  context : String
-  line_number : Int
-  match_line : String
-  path : String
-}
-impl Show for SearchResult
-impl ToJson for SearchResult
 
 // Type aliases
 

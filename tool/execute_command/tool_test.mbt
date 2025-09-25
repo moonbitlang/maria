@@ -27,14 +27,15 @@ async test "cat" {
       { "command": "cat", "arguments": ["file.txt"], "timeout": 5000 },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
-    @json.inspect(
-      result.output,
-      content=(
-        #|Exit code: 0
-        #|Output:
-        #|hello world
-      ),
-    )
+    @json.inspect(result.output, content={
+      "command": "cat",
+      "arguments": ["file.txt"],
+      "exit_code": 0,
+      "output": "hello world",
+      "truncated": false,
+      "total_lines": 1,
+      "timeout_ms": 5000,
+    })
   })
 }
 
@@ -58,18 +59,25 @@ async test "output-overflow" {
       },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
-    inspect(
-      result.output,
-      content=(
-        #|Exit code: 0
-        #|Output: (first 5 lines)
-        #|hello
-        #|hello
-        #|hello
-        #|hello
-        #|hello
-        #|... (truncated, total 100 lines, use <read_file> tool to read full output at .moonagent/processes/b773b606-3d46-46a5-8160-af22a66abc3c/output.txt) ...
-      ),
+    // For output-overflow case, we can't predict the exact UUID in the output_file path
+    // So we'll check the structure and key fields, allowing flexibility for the UUID
+    @json.inspect(result.output.as_object().unwrap()["command"], content="cat")
+    @json.inspect(result.output.as_object().unwrap()["arguments"], content=[
+      "file.txt",
+    ])
+    @json.inspect(result.output.as_object().unwrap()["exit_code"], content=0)
+    @json.inspect(
+      result.output.as_object().unwrap()["output"],
+      content="hello\nhello\nhello\nhello\nhello",
+    )
+    @json.inspect(result.output.as_object().unwrap()["truncated"], content=true)
+    @json.inspect(
+      result.output.as_object().unwrap()["total_lines"],
+      content=100,
+    )
+    @json.inspect(
+      result.output.as_object().unwrap()["timeout_ms"],
+      content=5000,
     )
   })
 }

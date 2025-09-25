@@ -37,7 +37,12 @@ async fn Manager::execute_read_file_tool(
         _ => entry.name
       })
       let display = entries.join("\n")
-      return @tool.ok("Directory: \{path}\nEntries:\n\{display}")
+      return @tool.ok({
+        "type": "directory",
+        "path": path,
+        "entries": entries.to_json(),
+        "display": display,
+      })
     }
 
     // Open and read the file
@@ -66,12 +71,12 @@ async fn Manager::execute_read_file_tool(
       Some(n) => return @tool.error("Error: end_line must be >= 1, got \{n}")
       None => lines.length()
     }
-
-    // Natural indexing: 1-based and inclusive start, exclusive end
-    let selected_lines = lines[start_line - 1:end_line]
-    let selected_content = selected_lines.join("\n")
-    let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
-    return @tool.ok("File: \{path} (\{range_info})\n\{selected_content}")
+    return @tool.ok({
+      "path": path,
+      "content": content,
+      "start_line": start_line,
+      "end_line": end_line,
+    })
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
   }
@@ -100,4 +105,33 @@ pub let read_file : @tool.Tool[Manager] = @tool.tool(
     "required": ["path"],
   },
   (args, self) => self.execute_read_file_tool(args),
+  // Check if this is a directory listing
+  render=result => match result.output {
+    {
+      "type": String("directory"),
+      "path": String(path),
+      "display": String(display),
+      ..
+    } => "Directory: \{path}\nEntries:\n\{display}"
+    {
+      "path": String(path),
+      "content": String(content),
+      "start_line": start_line,
+      "end_line": end_line,
+      ..
+    } => {
+      let start_line : Int = @json.from_json(start_line) catch {
+        error => return "Error parsing start_line from tool output: \{error}"
+      }
+      let end_line : Int = @json.from_json(end_line) catch {
+        error => return "Error parsing end_line from tool output: \{error}"
+      }
+      let lines = content.split("\n").to_array()
+      let selected_lines = lines[start_line - 1:end_line]
+      let selected_content = selected_lines.join("\n")
+      let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
+      "File: \{path} (\{range_info})\n\{selected_content}"
+    }
+    _ => "Error: Unexpected output format"
+  },
 )

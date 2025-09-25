@@ -1,24 +1,36 @@
 ///|
-pub struct Tool[T] {
+pub struct ToolDesc {
   description : String
   name : String
   parameters : Map[String, Json]
-  priv f : async (Json, T) -> Result noraise
 }
 
 ///|
+pub struct Tool[T] {
+  desc : ToolDesc
+  priv f : ToolFn[T]
+  render : async (Result) -> String noraise
+}
+
+///|
+typealias async (Json, T) -> Result noraise as ToolFn[T]
+
+///|
 pub struct Result {
-  output : String
+  output : Json
   error : Error?
 } derive(ToJson)
 
 ///|
-pub fn ok(output : String) -> Result {
+pub fn ok(output : Json) -> Result {
   Result::{ output, error: None }
 }
 
 ///|
-pub fn error(output : String, error? : Error = Failure(output)) -> Result {
+priv suberror Failure Json
+
+///|
+pub fn error(output : Json, error? : Error = Failure(output)) -> Result {
   Result::{ output, error: Some(error) }
 }
 
@@ -27,9 +39,10 @@ pub fn[T] tool(
   description~ : String,
   name~ : String,
   parameters~ : Map[String, Json],
-  f : async (Json, T) -> Result noraise,
+  f : ToolFn[T],
+  render~ : async (Result) -> String noraise,
 ) -> Tool[T] {
-  Tool::{ description, name, parameters, f }
+  Tool::{ desc: { description, name, parameters }, f, render }
 }
 
 ///|
