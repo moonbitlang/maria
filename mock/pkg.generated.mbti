@@ -10,6 +10,8 @@ async fn directory(String) -> Directory
 
 fn model() -> @model.Model
 
+async fn with_temporary_directory(name~ : String, async (Directory) -> Unit) -> Unit
+
 // Errors
 
 // Types and methods

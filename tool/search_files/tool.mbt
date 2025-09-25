@@ -151,7 +151,7 @@ async fn goto_definition(
 }
 
 ///|
-/// Execute MoonBit IDE find-references command  
+/// Execute MoonBit IDE find-references command
 async fn find_references(
   query : String,
   working_dir : String,
