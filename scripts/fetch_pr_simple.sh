@@ -18,7 +18,8 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 fi
 
 PR_NUMBER=${1:-10}
-BRANCH_NAME="hailin/pr_$PR_NUMBER"
+CURRENT_USER=$(git config user.name 2>/dev/null || whoami)
+BRANCH_NAME="$CURRENT_USER/pr_$PR_NUMBER"
 
 echo "Fetching PR #$PR_NUMBER to branch '$BRANCH_NAME'..."
 
