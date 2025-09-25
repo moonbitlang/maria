@@ -38,6 +38,11 @@ jobs:
         run: |
           moon version --all
 
+      - name: Setup Git
+        run: |
+          git config --global user.name "maria-ci"
+          git config --global user.email "maria-ci@example.com"
+
       - name: Run tests
         run: |
           moon test
