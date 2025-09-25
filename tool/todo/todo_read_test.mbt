@@ -5,9 +5,13 @@ async test "todo_read" {
     let cwd = @mock.directory("tool-todo_read")
     g.add_defer(() => cwd.close())
     let todo_list = @todo.list(rand~, cwd=cwd.path())
+<<<<<<< HEAD
     @json.inspect(@todo.read.call({}, todo_list), content={
       "output": { "todos": [] },
     })
+=======
+    @json.inspect(@todo.read.call({}, todo_list), content={ "output": [] })
+>>>>>>> 1bbeab9 (fix: update tests)
     let _ = @todo.write.call(
       { "action": "create", "content": "A sample task", "priority": "medium" },
       todo_list,
