@@ -145,3 +145,18 @@ pub fn model() -> @model.Model {
     context_window=8192,
   )
 }
+
+///|
+pub async fn with_temporary_directory(
+  name~ : String,
+  f : async (Directory) -> Unit,
+) -> Unit {
+  let dir = directory(name)
+  f(dir) catch {
+    error => {
+      dir.close()
+      raise error
+    }
+  }
+  dir.close()
+}
