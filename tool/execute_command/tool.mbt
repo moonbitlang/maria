@@ -1,5 +1,5 @@
 ///|
-pub suberror TimeoutError {
+priv suberror TimeoutError {
   TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
 } derive(ToJson, Show)
 
@@ -13,6 +13,19 @@ struct Context {
 pub fn context(rand~ : @random.Rand, cwd~ : String) -> Context {
   Context::{ rand, cwd }
 }
+
+///|
+/// Command execution result structure for structured JSON output
+priv struct CommandResult {
+  command : String
+  arguments : Array[String]
+  exit_code : Int
+  output : String
+  truncated : Bool
+  total_lines : Int
+  timeout_ms : Int
+  output_file : String?
+} derive(ToJson, FromJson)
 
 ///|
 pub let execute_command : @tool.Tool[Context] = @tool.tool(
@@ -73,11 +86,12 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     try {
       let result = @async.with_timeout_opt(timeout, () => {
         let output = StringBuilder::new()
-        let arguments = arguments.map(arg => arg.view())
-        let status = @spawn.spawn(command, arguments, output~, cwd=ctx.cwd)
-        let output = output.to_string()
-        let lines = output.split("\n").collect()
-        if lines.length() >= max_output_lines {
+        let arguments_view = arguments.map(arg => arg.view())
+        let status = @spawn.spawn(command, arguments_view, output~, cwd=ctx.cwd)
+        let output_text = output.to_string()
+        let lines = output_text.split("\n").collect()
+        let (final_output, truncated, output_file) = if lines.length() >=
+          max_output_lines {
           let relative_path = ".moonagent"
             |> @path.join("processes")
             |> @path.join("\{id}")
@@ -90,31 +104,29 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
                 error~,
               )
           }
-          @fs.write_to_file(absolute_path, output) catch {
+          @fs.write_to_file(absolute_path, output_text) catch {
             error =>
               return @tool.error(
                 "Error writing output to file: \{error}",
                 error~,
               )
           }
-          let output = lines[:max_output_lines].join("\n")
-          return @tool.ok(
-            (
-              $|Exit code: \{status}
-              $|Output: (first \{max_output_lines} lines)
-              $|\{output}
-              $|... (truncated, total \{lines.length()} lines, use <read_file> tool to read full output at \{relative_path}) ...
-            ),
-          )
+          let truncated_output = lines[:max_output_lines].join("\n")
+          (truncated_output, true, Some(relative_path))
         } else {
-          return @tool.ok(
-            (
-              $|Exit code: \{status}
-              $|Output:
-              $|\{output}
-            ),
-          )
+          (output_text, false, None)
         }
+        let result = CommandResult::{
+          command,
+          arguments,
+          exit_code: status,
+          output: final_output,
+          truncated,
+          total_lines: lines.length(),
+          timeout_ms: timeout,
+          output_file,
+        }
+        return @tool.ok(result.to_json())
       })
       match result {
         Some(result) => result
@@ -128,9 +140,31 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     }
   },
   render=result => {
-    guard result.output is String(output) else {
-      return "Error: Unexpected output format"
+    let cmd_result : CommandResult = @json.from_json(result.output) catch {
+      error => return "Error: Unexpected output format: \{error}"
     }
-    output
+    let formatted = []
+    let args_joined = cmd_result.arguments.join(" ")
+    formatted.push("Command: \{cmd_result.command} \{args_joined}")
+    formatted.push("Exit code: \{cmd_result.exit_code}")
+    if cmd_result.truncated {
+      let newline_split = cmd_result.output.split("\n")
+      let output_lines_count = newline_split.collect().length()
+      formatted.push(
+        "Output: (first \{output_lines_count} of \{cmd_result.total_lines} lines)",
+      )
+      formatted.push(cmd_result.output)
+      match cmd_result.output_file {
+        Some(file_path) =>
+          formatted.push(
+            "... (truncated, use <read_file> tool to read full output at \{file_path}) ...",
+          )
+        None => ()
+      }
+    } else {
+      formatted.push("Output:")
+      formatted.push(cmd_result.output)
+    }
+    formatted.join("\n")
   },
 )
