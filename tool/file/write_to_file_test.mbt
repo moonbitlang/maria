@@ -1,6 +1,6 @@
 ///|
-test "write_to_file/create" {
-  @async.with_event_loop(g => {
+async test "write_to_file/create" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -13,8 +13,8 @@ test "write_to_file/create" {
 }
 
 ///|
-test "write_to_file/replace" {
-  @async.with_event_loop(g => {
+async test "write_to_file/replace" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -36,8 +36,8 @@ test "write_to_file/replace" {
 }
 
 ///|
-test "write_to_file/fail-to-match" {
-  @async.with_event_loop(g => {
+async test "write_to_file/fail-to-match" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -58,8 +58,8 @@ test "write_to_file/fail-to-match" {
 }
 
 ///|
-test "write_to_file/search-replace" {
-  @async.with_event_loop(g => {
+async test "write_to_file/search-replace" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-write-file-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())

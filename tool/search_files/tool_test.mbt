@@ -1,6 +1,6 @@
 ///|
-test "search_files - regex search in single file" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - regex search in single file" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(name="search-files-regex-single-file", fn(
       cwd,
     ) {
@@ -25,8 +25,8 @@ test "search_files - regex search in single file" {
 }
 
 ///|
-test "search_files - invalid regex pattern" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - invalid regex pattern" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(name="search-files-invalid-regex-pattern", fn(
       cwd,
     ) {
@@ -45,8 +45,8 @@ test "search_files - invalid regex pattern" {
 }
 
 ///|
-test "search_files - file not found" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - file not found" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(name="search-files-file-not-found", fn(cwd) {
       let args : Json = {
         "path": "nonexistent.txt",
@@ -62,8 +62,8 @@ test "search_files - file not found" {
 }
 
 ///|
-test "search_files - directory search with file pattern" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - directory search with file pattern" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(
       name="search-files-directory-search-with-file-pattern",
       fn(cwd) {
@@ -93,8 +93,8 @@ test "search_files - directory search with file pattern" {
 }
 
 ///|
-test "search_files - missing required parameters" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - missing required parameters" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(
       name="search-files-missing-required-parameters",
       fn(cwd) {
@@ -116,8 +116,8 @@ test "search_files - missing required parameters" {
 }
 
 ///|
-test "search_files - invalid search kind" {
-  @async.with_event_loop(fn(_) {
+async test "search_files - invalid search kind" {
+  @async.with_task_group(fn(_) {
     @mock.with_temporary_directory(name="search-files-invalid-search-kind", fn(
       cwd,
     ) {

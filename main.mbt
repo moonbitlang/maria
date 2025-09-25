@@ -156,8 +156,8 @@ async fn Migrator::execute(
 }
 
 ///|
-fn main {
-  @async.with_event_loop(group => {
+async fn main {
+  @async.with_task_group(group => {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let env = @sys.get_env_vars()
