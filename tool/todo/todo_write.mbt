@@ -1,4 +1,12 @@
 ///|
+pub(all) struct TodoWriteResult {
+  todos : Array[Item]
+  message : String
+  updated_todos : Array[Item]
+  is_new_creation : Bool
+} derive(ToJson, FromJson)
+
+///|
 async fn List::execute_todo_write(
   self : List,
   args : Json,
@@ -103,12 +111,12 @@ async fn List::execute_todo_write(
         let item = self.add_task(content, status~, priority~, notes~)
         try {
           self.save()
-          return @tool.ok({
-            "todos": self.todos.map(t => t.to_json()),
-            "message": "Added new task: \{item.content}",
-            "updated_todos": [item.to_json()],
-            "is_new_creation": false,
-          })
+          return @tool.ok(TodoWriteResult::{
+            todos: self.todos.map(t => t),
+            message: "Added new task: \{item.content}",
+            updated_todos: [item],
+            is_new_creation: false,
+          }.to_json())
         } catch {
           error =>
             return @tool.error("Failed to save new task: \{error}", error~)
@@ -149,12 +157,12 @@ async fn List::execute_todo_write(
         }
         try {
           self.save()
-          @tool.ok({
-            "todos": self.todos,
-            "message": action_message,
-            "updated_todos": updated_todos,
-            "is_new_creation": false,
-          })
+          @tool.ok(TodoWriteResult::{
+            todos: self.todos,
+            message: action_message,
+            updated_todos,
+            is_new_creation: false,
+          }.to_json())
         } catch {
           error =>
             return @tool.error("Failed to save task update: \{error}", error~)

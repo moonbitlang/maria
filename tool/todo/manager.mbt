@@ -14,7 +14,7 @@ struct List {
 }
 
 ///|
-priv enum Priority {
+pub(all) enum Priority {
   High
   Medium
   Low
@@ -37,7 +37,7 @@ impl @json.FromJson for Priority with from_json(
 }
 
 ///|
-priv enum Status {
+pub(all) enum Status {
   Pending
   InProgress
   Completed
@@ -58,7 +58,7 @@ impl @json.FromJson for Status with from_json(
 }
 
 ///|
-priv struct Item {
+pub(all) struct Item {
   content : String
   created_at : String
   id : String

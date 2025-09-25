@@ -1,9 +1,13 @@
 ///|
+pub(all) struct TodoReadResult {
+  todos : Array[Item]
+} derive(ToJson, FromJson)
+///|
 pub let read : @tool.Tool[List] = @tool.tool(
   description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
   name="todo_read",
   parameters={ "type": "object", "properties": {}, "required": [] },
-  (_, self) => @tool.ok(self.todos.to_json()),
+  (_, self) => @tool.ok(TodoReadResult::{ todos: self.todos }.to_json()),
   render=result => {
     let todos : Array[Item] = @json.from_json(result.output) catch {
       error => return "Error: Unexpected output format: \{error}"

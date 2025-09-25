@@ -1,4 +1,19 @@
 ///|
+pub(all) struct ReadFileResult {
+  path : String
+  content : String
+  start_line : Int
+  end_line : Int
+} derive(ToJson, FromJson)
+
+///|
+pub(all) struct ReadDirectoryResult {
+  path : String
+  entries : Array[String]
+  display : String
+} derive(ToJson, FromJson)
+
+///|
 async fn Manager::execute_read_file_tool(
   self : Manager,
   args : Json,
@@ -37,12 +52,7 @@ async fn Manager::execute_read_file_tool(
         _ => entry.name
       })
       let display = entries.join("\n")
-      return @tool.ok({
-        "type": "directory",
-        "path": path,
-        "entries": entries.to_json(),
-        "display": display,
-      })
+      return @tool.ok(ReadDirectoryResult::{ path, entries, display }.to_json())
     }
 
     // Open and read the file
@@ -71,12 +81,9 @@ async fn Manager::execute_read_file_tool(
       Some(n) => return @tool.error("Error: end_line must be >= 1, got \{n}")
       None => lines.length()
     }
-    return @tool.ok({
-      "path": path,
-      "content": content,
-      "start_line": start_line,
-      "end_line": end_line,
-    })
+    return @tool.ok(
+      ReadFileResult::{ path, content, start_line, end_line }.to_json(),
+    )
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
   }
@@ -107,12 +114,8 @@ pub let read_file : @tool.Tool[Manager] = @tool.tool(
   (args, self) => self.execute_read_file_tool(args),
   // Check if this is a directory listing
   render=result => match result.output {
-    {
-      "type": String("directory"),
-      "path": String(path),
-      "display": String(display),
-      ..
-    } => "Directory: \{path}\nEntries:\n\{display}"
+    { "path": String(path), "display": String(display), .. } =>
+      "Directory: \{path}\nEntries:\n\{display}"
     {
       "path": String(path),
       "content": String(content),

@@ -1,6 +1,6 @@
 ///|
 /// Search result structure matching Python version
-priv struct SearchResult {
+pub(all) struct SearchResult {
   context : String
   line_number : Int
   match_line : String

@@ -16,7 +16,7 @@ pub fn context(rand~ : @random.Rand, cwd~ : String) -> Context {
 
 ///|
 /// Command execution result structure for structured JSON output
-priv struct CommandResult {
+pub(all) struct CommandResult {
   command : String
   arguments : Array[String]
   exit_code : Int
