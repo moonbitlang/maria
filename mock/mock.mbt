@@ -38,7 +38,14 @@ async fn remove_directory(path : Bytes) -> Unit {
 
 ///|
 pub async fn Directory::close(self : Directory) -> Unit {
-  remove_directory(self.0)
+  remove_directory(self.0) catch {
+    error => {
+      println(
+        "Warning: failed to remove temporary directory: \{self.path()}: \{error}",
+      )
+      raise error
+    }
+  }
 }
 
 ///|
