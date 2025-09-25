@@ -1,6 +1,6 @@
 ///|
-test "write_bytes_to_file" {
-  @async.with_event_loop(g => {
+async test "write_bytes_to_file" {
+  @async.with_task_group(g => {
     let dir = @mock.directory("fs-write_bytes_to_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "")
@@ -11,8 +11,8 @@ test "write_bytes_to_file" {
 }
 
 ///|
-test "write_to_file" {
-  @async.with_event_loop(g => {
+async test "write_to_file" {
+  @async.with_task_group(g => {
     let dir = @mock.directory("fs-write_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "")

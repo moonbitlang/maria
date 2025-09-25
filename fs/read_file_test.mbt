@@ -1,6 +1,6 @@
 ///|
-test "read_file_to_bytes" {
-  @async.with_event_loop(g => {
+async test "read_file_to_bytes" {
+  @async.with_task_group(g => {
     let dir = @mock.directory("fs-read_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "Hello, Moonbit!")
@@ -10,8 +10,8 @@ test "read_file_to_bytes" {
 }
 
 ///|
-test "read_file" {
-  @async.with_event_loop(g => {
+async test "read_file" {
+  @async.with_task_group(g => {
     let dir = @mock.directory("fs-read_file")
     g.add_defer(() => dir.close())
     let file = dir.add_file("example.txt", "Hello, Moonbit!")

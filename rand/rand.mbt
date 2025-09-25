@@ -1,28 +1,17 @@
 ///|
-let rand : Ref[@random.Rand] = {
-  let seed = Bytes::make(32, 0)
+pub fn bytes(n : Int) -> Bytes raise {
+  let seed = Bytes::make(n, 0)
+  let uv = @global.uv()
   let mut error = None
-  try {
-    let uv = @global.uv()
-    let _ = uv.random(seed, 0, _ => (), e => error = Some(e))
-    uv.run(Default)
-    if error is Some(error) {
-      raise error
-    }
-  } catch {
-    error =>
-      abort("uv.random: \{@encoding/utf8.decode_lossy(error.to_bytes())}")
+  let _ = uv.random(seed, 0, _ => (), e => error = Some(e))
+  uv.run(Default)
+  if error is Some(error) {
+    raise error
   }
-  Ref::new(@random.Rand::chacha8(seed~))
+  seed
 }
 
 ///|
-pub fn uint64() -> UInt64 {
-  rand.val.uint64()
-}
-
-///|
-pub fn seed(seed? : Bytes) -> Unit {
-  let new_rand = @random.Rand::chacha8(seed?)
-  rand.val = new_rand
+pub fn chacha8(seed? : Bytes) -> @random.Rand {
+  @random.Rand::chacha8(seed?)
 }

@@ -8,8 +8,8 @@
     "moonbitlang/maria/tool"
   ],
   "test-import": [
-    "moonbitlang/maria/rand",
     "moonbitlang/async",
-    "moonbitlang/maria/mock"
+    "moonbitlang/maria/mock",
+    "moonbitlang/maria/rand"
   ]
 }

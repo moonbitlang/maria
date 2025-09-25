@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/uuid"
 
+import(
+  "moonbitlang/core/random"
+)
+
 // Values
 let max : Uuid
 
@@ -8,7 +12,7 @@ let nil : Uuid
 
 fn parse(String) -> Uuid raise ParseError
 
-fn v4() -> Uuid
+fn v4(rand~ : @random.Rand) -> Uuid
 
 // Errors
 type ParseError

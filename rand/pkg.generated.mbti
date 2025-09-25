@@ -1,10 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/rand"
 
-// Values
-fn seed(seed? : Bytes) -> Unit
+import(
+  "moonbitlang/core/random"
+)
 
-fn uint64() -> UInt64
+// Values
+fn bytes(Int) -> Bytes raise
+
+fn chacha8(seed? : Bytes) -> @random.Rand
 
 // Errors
 

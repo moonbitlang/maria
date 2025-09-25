@@ -1,9 +1,10 @@
 ///|
-test "timeout" {
-  @async.with_event_loop(_ => @json.inspect(
+async test "timeout" {
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
+  @async.with_task_group(_ => @json.inspect(
     @execute_command.execute_command.call(
       { "command": "sleep", "arguments": ["5"], "timeout": 1 },
-      ".",
+      @execute_command.context(rand~, cwd="."),
     ),
     content={
       "output": "Timeout when executing command",
@@ -16,14 +17,15 @@ test "timeout" {
 }
 
 ///|
-test "cat" {
-  @async.with_event_loop(g => {
+async test "cat" {
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-execute-command-test")
     g.add_defer(() => cwd.close())
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat", "arguments": ["file.txt"], "timeout": 5000 },
-      cwd.path(),
+      @execute_command.context(rand~, cwd=cwd.path()),
     )
     @json.inspect(
       result.output,
@@ -38,7 +40,7 @@ test "cat" {
 
 ///|
 async test "output-overflow" {
-  @rand.seed()
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(group => {
     let cwd = @mock.directory("tool-execute-command-output-overflow-test")
     group.add_defer(() => cwd.close())
@@ -54,7 +56,7 @@ async test "output-overflow" {
         "timeout": 5000,
         "max_output_lines": 5,
       },
-      cwd.path(),
+      @execute_command.context(rand~, cwd=cwd.path()),
     )
     inspect(
       result.output,

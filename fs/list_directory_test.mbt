@@ -9,10 +9,10 @@ async test "list_directory" {
         "file3.txt", "content3",
       )
       |> ignore())
-    @json.inspect(@this.list_directory(dir.path()), content=[
-      { "path": "subdir", "kind": "Directory" },
-      { "path": "file1.txt", "kind": "Regular" },
-      { "path": "file2.txt", "kind": "Regular" },
+    @json.inspect(dir.strip_cwd(@this.list_directory(dir.path())), content=[
+      { "path": "./subdir", "name": "subdir", "kind": "Directory" },
+      { "path": "./file1.txt", "name": "file1.txt", "kind": "Regular" },
+      { "path": "./file2.txt", "name": "file2.txt", "kind": "Regular" },
     ])
   })
 }

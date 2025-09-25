@@ -2,11 +2,14 @@
 package "moonbitlang/maria/tool/execute_command"
 
 import(
+  "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
 
 // Values
-let execute_command : @tool.Tool[String]
+fn context(rand~ : @random.Rand, cwd~ : String) -> Context
+
+let execute_command : @tool.Tool[Context]
 
 // Errors
 pub suberror TimeoutError {
@@ -16,6 +19,7 @@ impl Show for TimeoutError
 impl ToJson for TimeoutError
 
 // Types and methods
+type Context
 
 // Type aliases
 
