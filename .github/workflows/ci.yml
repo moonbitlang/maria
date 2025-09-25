@@ -80,5 +80,6 @@ jobs:
 
       - name: Check code format
         run: |
+          moon install
           moon fmt
           git diff --exit-code
