@@ -158,8 +158,8 @@ pub fn Conversation::new(
     description,
     id,
     messages: [],
-    created_at: @uv.clock_gettime(Realtime).sec(),
-    updated_at: @uv.clock_gettime(Realtime).sec(),
+    created_at: @os.now().to_unix_second(),
+    updated_at: @os.now().to_unix_second(),
   }
 }
 
@@ -171,12 +171,12 @@ pub async fn Conversation::add_message(
   created? : Int64,
 ) -> Unit {
   let timestamp = match created {
-    None => @uv.clock_gettime(Realtime).sec()
+    None => @os.now().to_unix_second()
     Some(created) => created
   }
   let message = Message::{ timestamp, usage, message }
   self.messages.push(message)
-  self.updated_at = @uv.clock_gettime(Realtime).sec()
+  self.updated_at = @os.now().to_unix_second()
 }
 
 ///|

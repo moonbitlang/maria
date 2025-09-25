@@ -2,7 +2,8 @@
   "import": [
     "moonbitlang/maria/spawn",
     "moonbitlang/maria/fs",
-    "moonbitlang/maria/path"
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/os"
   ],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/mock"],
   "wbtest-import": ["moonbitlang/maria/mock", "moonbitlang/async"]

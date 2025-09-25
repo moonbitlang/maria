@@ -107,12 +107,12 @@ async fn check(
   cwd? : StringView,
 ) -> Array[Diagnostic] {
   let cwd : StringView = match cwd {
-    None => @fs.cwd()
+    None => @os.cwd()
     Some(cwd) =>
       if @path.is_absolute(cwd) {
         cwd
       } else {
-        @path.join(@fs.cwd(), cwd)
+        @path.join(@os.cwd(), cwd)
       }
   }
   let arguments : Array[StringView] = ["check", "--output-json"]
