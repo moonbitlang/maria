@@ -158,7 +158,11 @@ fn main {
     let cwd = @env.current_dir()
     guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
     let env = @sys.get_env_vars()
-    guard env.get("OPENROUTER_API_KEY") is Some(api_key) else {
+    let api_key = if env.get("OPENROUTER_API_KEY") is Some(key) {
+      key
+    } else if env.get("OPENAI_API_KEY") is Some(key) {
+      key
+    } else {
       raise ApiKeyNotSet
     }
     let model = @model.new(
