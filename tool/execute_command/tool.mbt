@@ -4,7 +4,18 @@ pub suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-pub let execute_command : @tool.Tool[String] = @tool.tool(
+struct Context {
+  rand : @random.Rand
+  cwd : String
+}
+
+///|
+pub fn context(rand~ : @random.Rand, cwd~ : String) -> Context {
+  Context::{ rand, cwd }
+}
+
+///|
+pub let execute_command : @tool.Tool[Context] = @tool.tool(
   description="Execute a shell command",
   name="execute_command",
   parameters={
@@ -33,8 +44,8 @@ pub let execute_command : @tool.Tool[String] = @tool.tool(
     },
     "required": ["command", "arguments", "timeout"],
   },
-  (args, cwd) => {
-    let id = @uuid.v4()
+  (args, ctx) => {
+    let id = @uuid.v4(rand=ctx.rand)
     guard args
       is {
         "command": String(command),
@@ -63,7 +74,7 @@ pub let execute_command : @tool.Tool[String] = @tool.tool(
       let result = @async.with_timeout_opt(timeout, () => {
         let output = StringBuilder::new()
         let arguments = arguments.map(arg => arg.view())
-        let status = @spawn.spawn(command, arguments, output~, cwd~)
+        let status = @spawn.spawn(command, arguments, output~, cwd=ctx.cwd)
         let output = output.to_string()
         let lines = output.split("\n").collect()
         if lines.length() >= max_output_lines {
@@ -71,7 +82,7 @@ pub let execute_command : @tool.Tool[String] = @tool.tool(
             |> @path.join("processes")
             |> @path.join("\{id}")
             |> @path.join("output.txt")
-          let absolute_path = cwd |> @path.join(relative_path)
+          let absolute_path = ctx.cwd |> @path.join(relative_path)
           @fs.make_directory(@path.dirname(absolute_path), recursive=true) catch {
             error =>
               return @tool.error(

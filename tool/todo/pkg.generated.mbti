@@ -2,11 +2,12 @@
 package "moonbitlang/maria/tool/todo"
 
 import(
+  "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn list(cwd~ : StringView) -> List raise
+fn list(rand~ : @random.Rand, cwd~ : StringView) -> List raise
 
 let read : @tool.Tool[List]
 
@@ -16,7 +17,6 @@ let write : @tool.Tool[List]
 
 // Types and methods
 type List
-impl Show for List
 
 // Type aliases
 

@@ -8,18 +8,19 @@ fn get_current_timestamp() -> String raise {
 
 ///|
 struct List {
+  rand : @random.Rand
   cwd : String
   mut todos : Array[Item]
   mut created_at : String
   mut updated_at : String
-} derive(Show)
+}
 
 ///|
 priv enum Priority {
   High
   Medium
   Low
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 impl @json.FromJson for Priority with from_json(
@@ -42,7 +43,7 @@ priv enum Status {
   Pending
   InProgress
   Completed
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 impl @json.FromJson for Status with from_json(
@@ -67,10 +68,11 @@ priv struct Item {
   priority : Priority
   status : Status
   updated_at : String
-} derive(Show, ToJson, @json.FromJson)
+} derive(ToJson, @json.FromJson)
 
 ///|
 fn Item::new(
+  id~ : String,
   content : String,
   status~ : Status,
   priority~ : Priority,
@@ -80,7 +82,7 @@ fn Item::new(
   Item::{
     content,
     created_at: now,
-    id: generate_todo_id(),
+    id,
     notes,
     priority,
     status,
@@ -113,8 +115,9 @@ fn Item::update(
 }
 
 ///|
-pub fn list(cwd~ : StringView) -> List raise {
+pub fn list(rand~ : @random.Rand, cwd~ : StringView) -> List raise {
   List::{
+    rand,
     cwd: cwd.to_string(),
     todos: [],
     created_at: get_current_timestamp(),
@@ -276,7 +279,13 @@ fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = Item::new(content, status~, priority~, notes?)
+  let item = Item::new(
+    id=self.generate_todo_id(),
+    content,
+    status~,
+    priority~,
+    notes?,
+  )
   self.todos.push(item)
   self.updated_at = get_current_timestamp()
   item
@@ -289,8 +298,8 @@ fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
 }
 
 ///|
-fn generate_todo_id() -> String raise {
-  @uuid.v4().to_string()[0:8].to_string()
+fn List::generate_todo_id(self : List) -> String raise {
+  @uuid.v4(rand=self.rand).to_string()[0:8].to_string()
 }
 
 ///|
@@ -390,7 +399,13 @@ fn List::parse(
     for task_content in task_matches {
       let trimmed = task_content.trim(" \t\r\n").to_string()
       if trimmed.length() > 0 {
-        let todo = Item::new(trimmed, notes?, priority~, status=Pending)
+        let todo = Item::new(
+          id=self.generate_todo_id(),
+          trimmed,
+          notes?,
+          priority~,
+          status=Pending,
+        )
         self.todos.push(todo)
       }
     }
@@ -406,7 +421,13 @@ fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = Item::new(clean_line, notes?, priority~, status=Pending)
+        let todo = Item::new(
+          id=self.generate_todo_id(),
+          clean_line,
+          notes?,
+          priority~,
+          status=Pending,
+        )
         self.todos.push(todo)
       }
     }

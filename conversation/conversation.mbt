@@ -151,7 +151,7 @@ impl @json.FromJson for Message with from_json(
 pub fn Conversation::new(
   name~ : String,
   description? : String,
-  id? : Id = @uuid.v4().to_string(),
+  id~ : Id,
 ) -> Conversation raise {
   Conversation::{
     name,
@@ -181,6 +181,11 @@ pub async fn Conversation::add_message(
 
 ///|
 struct Id(String)
+
+///|
+pub fn Id::new(rand~ : @random.Rand) -> Id {
+  Id(@uuid.v4(rand~).to_string())
+}
 
 ///|
 impl Show for Id with output(self : Id, logger : &Logger) -> Unit {

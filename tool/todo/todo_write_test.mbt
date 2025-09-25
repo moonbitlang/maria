@@ -1,10 +1,10 @@
 ///|
 test "todo_write/create/plain" {
-  @rand.seed()
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_event_loop(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+    let todo_list = @todo.list(rand~, cwd=cwd.path())
     let result = @todo.write.call(
       {
         "action": "create",
@@ -22,8 +22,8 @@ test "todo_write/create/plain" {
         #|✅ Operation completed: Created 2 new todo items
         #|
         #|📝 Newly created todos:
-        #|  🔴 ⏳ [a516463d] Test todo item
-        #|  🔴 ⏳ [7c288d41] Another test item
+        #|  🔴 ⏳ [b773b606] Test todo item
+        #|  🔴 ⏳ [8c2599d9] Another test item
         #|
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
@@ -33,11 +33,11 @@ test "todo_write/create/plain" {
 
 ///|
 test "todo_write/create/<task>" {
-  @rand.seed()
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_event_loop(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+    let todo_list = @todo.list(rand~, cwd=cwd.path())
     let result = @todo.write.call(
       {
         "action": "create",
@@ -59,7 +59,7 @@ test "todo_write/create/<task>" {
         #|✅ Operation completed: Created 7 new todo items
         #|
         #|📝 Newly created todos:
-        #|  🟡 ⏳ [b773b606] Examine reference repository structure at /Users/haoxiang/Workspace/moonbit/maria/.moonagent/repos/inih
+        #|  🟡 ⏳ [b773b606] Examine reference repository structure at .moonagent/repos/inih
         #|  🟡 ⏳ [8c2599d9] Examine current MoonBit project structure
         #|  🟡 ⏳ [cfaa9ee0] Analyze source files in inih repository
         #|  🟡 ⏳ [3c82d271] Plan migration strategy preserving original structure
@@ -75,11 +75,11 @@ test "todo_write/create/<task>" {
 
 ///|
 test "todo_write/update" {
-  @rand.seed()
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_event_loop(group => {
     let cwd = @mock.directory("togol-todo_write")
     group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+    let todo_list = @todo.list(rand~, cwd=cwd.path())
     let result = @todo.write.call(
       {
         "action": "create",
@@ -124,11 +124,11 @@ test "todo_write/update" {
 
 ///|
 test "todo_write/mark_completed" {
-  @rand.seed()
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_event_loop(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+    let todo_list = @todo.list(rand~, cwd=cwd.path())
     let result = @todo.write.call(
       {
         "action": "create",

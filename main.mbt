@@ -104,7 +104,7 @@ async fn Migrator::execute(
     println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
     println("created agent")
-    let todo_list = @todo.list(cwd=dst_path)
+    let todo_list = @todo.list(rand=agent.rand, cwd=dst_path)
     println("created todo list")
     let file_manager = @file.manager(cwd=dst_path)
     println("created file manager")
@@ -114,7 +114,10 @@ async fn Migrator::execute(
       $|the current MoonBit project. Translate file-by-file and preserve original
       $|structure; avoid freeform rewrites.
     agent.add_message(@openai.user_message(content=prompt))
-    agent.add_tool(@execute_command.execute_command, dst_path)
+    agent.add_tool(
+      @execute_command.execute_command,
+      @execute_command.context(rand=agent.rand, cwd=dst_path),
+    )
     agent.add_tool(@file.list_files, file_manager)
     agent.add_tool(@file.read_file, file_manager)
     agent.add_tool(@file.write_to_file, file_manager)
@@ -251,12 +254,15 @@ fn main {
         "Conversation ended",
         {},
       ))
-      agent.add_tool(@execute_command.execute_command, agent.cwd)
+      agent.add_tool(
+        @execute_command.execute_command,
+        @execute_command.context(rand=agent.rand, cwd=agent.cwd),
+      )
       let file_manager = @file.manager(cwd~)
       agent.add_tool(@file.list_files, file_manager)
       agent.add_tool(@file.read_file, file_manager)
       agent.add_tool(@file.write_to_file, file_manager)
-      let todo_list = @todo.list(cwd~)
+      let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
       agent.add_tool(@todo.read, todo_list)
       agent.add_tool(@todo.write, todo_list)
       let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)

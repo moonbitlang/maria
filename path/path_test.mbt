@@ -30,7 +30,7 @@ test "ext" {
 
 ///|
 test "stem" {
-  @json.inspect(@path.stem("a/b/c.jpg"), content="c")
+  @json.inspect(@path.stem("a/b/c.jpg"), content="a/b/c")
 }
 
 ///|

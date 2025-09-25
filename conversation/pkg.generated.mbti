@@ -2,6 +2,7 @@
 package "moonbitlang/maria/conversation"
 
 import(
+  "moonbitlang/core/random"
   "moonbitlang/maria/openai"
 )
 
@@ -13,10 +14,11 @@ import(
 type Conversation
 async fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
 fn Conversation::id(Self) -> Id
-fn Conversation::new(name~ : String, description? : String, id? : Id) -> Self raise
+fn Conversation::new(name~ : String, description? : String, id~ : Id) -> Self raise
 fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
 
 type Id
+fn Id::new(rand~ : @random.Rand) -> Self
 
 type Manager
 async fn Manager::load(Self, Id) -> Conversation?

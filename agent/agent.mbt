@@ -41,6 +41,7 @@ fn EventContext::new(
 ///|
 pub struct Agent {
   priv logger : @pino.Logger
+  rand : @random.Rand
   cwd : String
   model : @model.Model
   priv tools : Map[String, @tool.Tool[Unit]]
@@ -224,6 +225,7 @@ pub async fn new(
   cwd~ : StringView,
   session_manager? : @conversation.Manager,
 ) -> Agent {
+  let rand = @rand.chacha8(seed=@rand.bytes(32))
   let session_manager = match session_manager {
     Some(session_manager) => session_manager
     None => {
@@ -233,7 +235,11 @@ pub async fn new(
   }
   let agent = Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
-    history: @conversation.Conversation::new(name=""),
+    rand,
+    history: @conversation.Conversation::new(
+      id=@conversation.Id::new(rand~),
+      name="",
+    ),
     cwd: cwd.to_string(),
     model,
     tools: {},
