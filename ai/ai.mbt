@@ -33,32 +33,21 @@ pub async fn chat(
   model~ : @model.Model,
   request : @openai.ChatCompletionParam,
 ) -> @openai.ChatCompletion {
-  let request_body = request.to_json().stringify()
   let (response, response_body) = with_retry(
     backoff_multiplier=2,
     delay_ms=1000,
     max_delay_ms=16000,
     max_retries=5,
-    () => @http.post(
-      @encoding/utf8.encode("\{model.base_url}/chat/completions"),
-      @encoding/utf8.encode(request_body),
-      headers=[
-        @http.Header(
-          "Authorization",
-          @encoding/utf8.encode("Bearer \{model.api_key}"),
-        ),
-        @http.Header("Content-Type", "application/json"),
-        @http.Header("Connection", "close"),
-      ],
-    ),
+    () => @http.post("\{model.base_url}/chat/completions", request.to_json(), headers={
+      "Authorization": "Bearer \{model.api_key}",
+      "Content-Type": "application/json",
+      "Connection": "close",
+    }),
   )
   guard response.code is (200..=299) else {
-    raise HttpError(
-      code=response.code,
-      body=@encoding/utf8.decode_lossy(response_body),
-    )
+    raise HttpError(code=response.code, body=response_body.text())
   }
-  response_body |> @encoding/utf8.decode() |> @json.parse() |> @json.from_json()
+  response_body.json() |> @json.from_json()
 }
 
 ///|

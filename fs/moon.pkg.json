@@ -2,13 +2,13 @@
   "import": [
     "moonbitlang/async/fs",
     "tonyfettes/uv",
-    "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/global"
+    "moonbitlang/maria/path",
+    "moonbitlang/maria/internal/global",
+    "moonbitlang/async/io"
   ],
   "test-import": [
     "moonbitlang/async",
     "moonbitlang/maria/mock",
-    "moonbitlang/maria/path",
     {
       "path": "moonbitlang/maria/fs",
       "alias": "this"

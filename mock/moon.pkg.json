@@ -2,8 +2,9 @@
   "import": [
     "moonbitlang/async/fs",
     "tonyfettes/uv",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/path",
     "moonbitlang/maria/internal/global",
-    "moonbitlang/maria/model"
+    "moonbitlang/maria/model",
+    "moonbitlang/async/io"
   ]
 }

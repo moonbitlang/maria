@@ -1,7 +1,7 @@
 ///|
 enum Transport {
   Console
-  File(path~ : Bytes, mut file~ : @fs.File?)
+  File(path~ : String, mut file~ : @fs.File?)
 }
 
 ///|
@@ -38,7 +38,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       let file = match file {
         Some(file) => file
         None => {
-          let dir : Bytes = [..@path.dirname(path)]
+          let dir : String = [..@path.dirname(path)]
           if !@fs.exists(dir) {
             @fs.mkdir(dir, permission=0o755)
           }
@@ -76,5 +76,5 @@ pub fn Transport::console() -> Transport {
 
 ///|
 pub fn Transport::file(path : StringView) -> Transport {
-  Transport::File(path=@encoding/utf8.encode(path), file=None)
+  Transport::File(path=path.to_string(), file=None)
 }

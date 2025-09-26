@@ -4,14 +4,14 @@ pub async fn make_directory(
   recursive? : Bool = false,
 ) -> Unit {
   let dirs = []
-  for dir = @encoding/utf8.encode(path) {
-    let dir = dir
+  for dir = path {
+    let dir = dir.to_string()
     if dir == "." || dir == "" || @fs.exists(dir) {
       break
     }
     dirs.push(dir)
     if recursive {
-      continue @path.dirname(dir).to_bytes()
+      continue @path.dirname(dir)
     } else {
       break
     }

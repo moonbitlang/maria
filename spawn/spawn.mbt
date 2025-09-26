@@ -5,16 +5,14 @@ pub async fn spawn(
   output? : &Logger,
   cwd? : StringView,
 ) -> Int {
-  let command = @encoding/utf8.encode(command)
-  let arguments = arguments.map(arg => @encoding/utf8.encode(arg))
-  let cwd = cwd.map(@encoding/utf8.encode(_))
+  let command = command.to_string()
+  let arguments = arguments.map(arg => arg.to_string())
+  let cwd = cwd.map(_.to_string())
   match output {
     Some(output) => {
       let pipe = @process.read_from_process()
       @async.with_task_group(group => {
-        group.spawn_bg(() => output.write_string(
-          @encoding/utf8.decode(pipe.0.read_all()),
-        ))
+        group.spawn_bg(() => output.write_string(pipe.0.read_all().text()))
         @process.run(command, arguments, stdout=pipe.1, stderr=pipe.1, cwd?)
       })
     }

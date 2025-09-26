@@ -19,17 +19,16 @@ pub struct DirectoryEntry {
 
 ///|
 pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
-  let dirname = @encoding/utf8.encode(path)
-  let dir : @fs.Directory = @fs.opendir(dirname)
+  let dir : @fs.Directory = @fs.opendir(path.to_string())
   defer dir.close()
   let entries = []
   for basename in dir.read_all() {
-    let filename = @path.join(dirname, basename)
+    let filename = @path.join(path, basename)
     let file = @fs.open(filename, mode=ReadOnly)
     defer file.close()
     entries.push(DirectoryEntry::{
-      path: @encoding/utf8.decode(filename),
-      name: @encoding/utf8.decode(basename),
+      path: filename,
+      name: basename,
       kind: match file.kind() {
         Unknown => Unknown
         Regular => Regular
