@@ -66,12 +66,10 @@ async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
 #callsite(autofill(loc))
 async fn remove_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
   @fs.rmdir(path, recursive=true) catch {
-    error => {
+    error =>
       println(
         "[ERROR] \{loc}: failed to remove directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
       )
-      raise error
-    }
   }
 }
 
