@@ -260,6 +260,7 @@ async fn main {
       let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
       agent.add_tool(@todo.read, todo_list)
       agent.add_tool(@todo.write, todo_list)
+      agent.add_message(@openai.system_message(content=@prompt.system))
       let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
       rl.set_prompt("< ")
       group.spawn_bg(() => rl.start())
