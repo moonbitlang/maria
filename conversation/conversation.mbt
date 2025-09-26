@@ -164,12 +164,12 @@ pub fn Conversation::new(
 }
 
 ///|
-pub async fn Conversation::add_message(
+pub fn Conversation::add_message(
   self : Conversation,
   message : @openai.ChatCompletionMessageParam,
   usage? : @openai.CompletionUsage,
   created? : Int64,
-) -> Unit {
+) -> Unit raise {
   let timestamp = match created {
     None => @os.now().to_unix_second()
     Some(created) => created

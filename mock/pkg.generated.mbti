@@ -6,26 +6,33 @@ import(
 )
 
 // Values
-async fn directory(String) -> Directory
+#callsite(autofill(loc))
+async fn directory(String, loc~ : SourceLoc) -> Directory
 
 fn model() -> @model.Model
 
-async fn with_temporary_directory(name~ : String, async (Directory) -> Unit) -> Unit
+#callsite(autofill(loc))
+async fn with_temporary_directory(name~ : String, async (Directory) -> Unit, loc~ : SourceLoc) -> Unit
 
 // Errors
 
 // Types and methods
 type Directory
-async fn Directory::add_file(Self, String, String) -> File
-async fn Directory::add_subdirectory(Self, String) -> Self
-async fn Directory::close(Self) -> Unit
-async fn Directory::list(Self) -> Array[String]
-fn Directory::path(Self) -> String raise
-fn[T : ToJson] Directory::strip_cwd(Self, T) -> Json raise
-async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit) -> Unit
+#callsite(autofill(loc))
+async fn Directory::add_file(Self, String, String, loc~ : SourceLoc) -> File
+#callsite(autofill(loc))
+async fn Directory::add_subdirectory(Self, String, loc~ : SourceLoc) -> Self
+#callsite(autofill(loc))
+async fn Directory::close(Self, loc~ : SourceLoc) -> Unit
+#callsite(autofill(loc))
+async fn Directory::list(Self, loc~ : SourceLoc) -> Array[String]
+fn Directory::path(Self) -> String
+fn[T : ToJson] Directory::strip_cwd(Self, T) -> Json
+#callsite(autofill(loc))
+async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit, loc~ : SourceLoc) -> Unit
 
 type File
-fn File::path(Self) -> String raise
+fn File::path(Self) -> String
 
 // Type aliases
 

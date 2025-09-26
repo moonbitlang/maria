@@ -12,7 +12,8 @@ import(
 
 // Types and methods
 type Conversation
-async fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
+fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit raise
+fn Conversation::export_to_markdown(Self) -> String
 fn Conversation::id(Self) -> Id
 fn Conversation::new(name~ : String, description? : String, id~ : Id) -> Self raise
 fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
