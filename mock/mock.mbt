@@ -68,55 +68,7 @@ async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
 ///|
 #callsite(autofill(loc))
 async fn remove_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
-  let dir = @fs.opendir(path) catch {
-    error => {
-      println(
-        "[ERROR] \{loc}: failed to open directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
-      )
-      raise error
-    }
-  }
-  defer dir.close()
-  for
-    entry in (dir.read_all() catch {
-      error => {
-        println(
-          "[ERROR] \{loc}: failed to read directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
-        )
-        raise error
-      }
-    }) {
-    let entry = @path.join(path, entry)
-    match
-      (@fs.kind(entry) catch {
-        error => {
-          println(
-            "[ERROR] \{loc}: failed to get file kind of \{@encoding/utf8.decode_lossy(entry)}: \{error}",
-          )
-          raise error
-        }
-      }) {
-      Directory =>
-        remove_directory(entry) catch {
-          error => {
-            println(
-              "[ERROR] \{loc}: failed to remove subdirectory \{@encoding/utf8.decode_lossy(entry)}: \{error}",
-            )
-            raise error
-          }
-        }
-      _ =>
-        @fs.remove(entry) catch {
-          error => {
-            println(
-              "[ERROR] \{loc}: failed to remove file \{@encoding/utf8.decode_lossy(entry)}: \{error}",
-            )
-            raise error
-          }
-        }
-    }
-  }
-  @fs.rmdir(path) catch {
+  @fs.rmdir(path, recursive=true) catch {
     error => {
       println(
         "[ERROR] \{loc}: failed to remove directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
