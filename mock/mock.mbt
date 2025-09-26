@@ -125,7 +125,7 @@ pub async fn Directory::add_file(
     }
   }
   defer file.close()
-  file.write(@encoding/utf8.encode(content)) catch {
+  file.write(content) catch {
     error => {
       println("[ERROR] \{loc}: failed to write to file \{(name)}: \{error}")
       raise error

@@ -3,7 +3,8 @@
     "moonbitlang/async/fs",
     "tonyfettes/uv",
     "moonbitlang/maria/path",
-    "moonbitlang/maria/internal/global"
+    "moonbitlang/maria/internal/global",
+    "moonbitlang/async/io"
   ],
   "test-import": [
     "moonbitlang/async",
