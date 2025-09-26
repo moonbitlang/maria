@@ -1,7 +1,4 @@
 ///|
-priv suberror UnknownCurrentDirectory
-
-///|
 priv suberror ApiKeyNotSet
 
 ///|
@@ -85,7 +82,7 @@ async fn Migrator::execute(
   model : @model.Model,
   cwd? : String,
 ) -> Unit {
-  let cwd = cwd.unwrap_or_else(@fs.cwd)
+  let cwd = cwd.unwrap_or_else(@os.cwd)
   let src_name = get_repo_name(self.repo)
   let dst_name = normalize_repo_name(src_name)
   let dst_path = @path.join(cwd, dst_name)
@@ -158,12 +155,10 @@ async fn Migrator::execute(
 ///|
 async fn main {
   @async.with_task_group(group => {
-    let cwd = @env.current_dir()
-    guard cwd is Some(cwd) else { raise UnknownCurrentDirectory }
-    let env = @sys.get_env_vars()
-    let api_key = if env.get("OPENROUTER_API_KEY") is Some(key) {
+    let cwd = @os.cwd()
+    let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(key) {
       key
-    } else if env.get("OPENAI_API_KEY") is Some(key) {
+    } else if @os.getenv("OPENAI_API_KEY") is Some(key) {
       key
     } else {
       raise ApiKeyNotSet
@@ -174,7 +169,7 @@ async fn main {
       name="anthropic/claude-sonnet-4",
       context_window=200000,
     )
-    let args = @sys.get_cli_args()
+    let args = @os.args()
     let arguments = Arguments::new()
     arguments.parse(args[1:])
     if arguments.repo is Some(repo) {

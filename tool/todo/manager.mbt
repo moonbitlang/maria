@@ -1,9 +1,7 @@
 ///|
 /// Get current ISO timestamp
 fn get_current_timestamp() -> String raise {
-  let tm = @uv.clock_gettime(Realtime)
-  let zdt = @time.unix(tm.sec(), nanosecond=tm.nsec())
-  zdt.to_string()
+  @os.now().to_string()
 }
 
 ///|

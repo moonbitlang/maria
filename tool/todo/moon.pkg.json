@@ -3,9 +3,9 @@
     "moonbitlang/maria/path",
     "moonbitlang/maria/fs",
     "moonbitlang/maria/uuid",
-    "tonyfettes/uv",
     "moonbitlang/x/time",
-    "moonbitlang/maria/tool"
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/os"
   ],
   "test-import": [
     "moonbitlang/async",

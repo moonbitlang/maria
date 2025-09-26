@@ -1,0 +1,6 @@
+{
+  "import": [
+    "tonyfettes/uv",
+    "moonbitlang/x/time"
+  ]
+}
