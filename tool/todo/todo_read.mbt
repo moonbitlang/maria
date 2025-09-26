@@ -2,6 +2,7 @@
 pub(all) struct TodoReadResult {
   todos : Array[Item]
 } derive(ToJson, FromJson)
+
 ///|
 pub let read : @tool.Tool[List] = @tool.tool(
   description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
