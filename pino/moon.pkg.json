@@ -3,7 +3,7 @@
     "moonbitlang/async/fs",
     "tonyfettes/encoding",
     "tonyfettes/uv",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/path",
     "moonbitlang/async/aqueue"
   ]
 }

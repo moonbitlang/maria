@@ -5,8 +5,8 @@ pub async fn spawn(
   output? : &Logger,
   cwd? : StringView,
 ) -> Int {
-  let command = @encoding/utf8.encode(command)
-  let arguments = arguments.map(arg => @encoding/utf8.encode(arg))
+  let command = command.to_string()
+  let arguments = arguments.map(arg => arg.to_string())
   let cwd = cwd.map(@encoding/utf8.encode(_))
   match output {
     Some(output) => {

@@ -1,11 +1,6 @@
 ///|
 pub async fn write_bytes_to_file(path : StringView, content : Bytes) -> Unit {
-  @fs.write_file(
-    @encoding/utf8.encode(path),
-    content,
-    create=0o644,
-    truncate=true,
-  )
+  @fs.write_file(path.to_string(), content, create=0o644, truncate=true)
 }
 
 ///|

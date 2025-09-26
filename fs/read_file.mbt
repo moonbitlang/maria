@@ -1,6 +1,6 @@
 ///|
 pub async fn read_file_to_bytes(path : StringView) -> Bytes {
-  @fs.read_file(@encoding/utf8.encode(path))
+  @fs.read_file(path.to_string())
 }
 
 ///|

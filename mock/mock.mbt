@@ -1,18 +1,18 @@
 ///|
-struct Directory(Bytes)
+struct Directory(String)
 
 ///|
 #callsite(autofill(loc))
 pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
-  let cwd = @uv.cwd() catch {
+  let cwd = @encoding/utf8.decode(@uv.cwd()) catch {
     error => {
       println(
-        "[ERROR] \{loc}: failed to get current working directory: \{@encoding/utf8.decode_lossy(error.to_bytes())}",
+        "[ERROR] \{loc}: failed to get current working directory: \{error}",
       )
       raise error
     }
   }
-  let template = @encoding/utf8.encode("maria-mock-\{name}-XXXXXX")
+  let template = "maria-mock-\{name}-XXXXXX"
   let dot_tmp = @path.join(cwd, ".tmp")
   if !(@fs.exists(dot_tmp) catch {
       error => {
@@ -24,7 +24,9 @@ pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
       error => println("[ERROR] \{loc}: failed to create .tmp: \{error}")
     }
   }
-  let tmpdir = @global.uv().fs_mkdtemp_sync(@path.join(dot_tmp, template)) catch {
+  let tmpdir = @global.uv().fs_mkdtemp_sync(
+    @encoding/utf8.encode(@path.join(dot_tmp, template)),
+  ) catch {
     error => {
       println(
         "[ERROR] \{loc}: failed to create temporary directory: \{@encoding/utf8.decode_lossy(error.to_bytes())}",
@@ -32,12 +34,13 @@ pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
       raise error
     }
   }
-  return Directory(tmpdir)
+  return Directory(@encoding/utf8.decode(tmpdir))
 }
 
 ///|
 #callsite(autofill(loc))
-async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
+async fn make_directory(path : StringView, loc~ : SourceLoc) -> Unit {
+  let path = path.to_string()
   if !(@fs.exists(path) catch {
       error => {
         println(
@@ -46,7 +49,7 @@ async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
         raise error
       }
     }) {
-    let parent = @path.dirname(path).to_bytes()
+    let parent = @path.dirname(path).to_string()
     make_directory(parent) catch {
       error => {
         println("[ERROR] \{loc}: failed to create parent directory: \{error}")
@@ -64,12 +67,10 @@ async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
 
 ///|
 #callsite(autofill(loc))
-async fn remove_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
+async fn remove_directory(path : String, loc~ : SourceLoc) -> Unit {
   @fs.rmdir(path, recursive=true) catch {
     error =>
-      println(
-        "[ERROR] \{loc}: failed to remove directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to remove directory \{path}: \{error}")
   }
 }
 
@@ -87,16 +88,16 @@ pub async fn Directory::close(self : Directory, loc~ : SourceLoc) -> Unit {
 }
 
 ///|
-pub fn Directory::path(self : Directory) -> String raise {
-  @encoding/utf8.decode(self.0)
+pub fn Directory::path(self : Directory) -> String {
+  self.0
 }
 
 ///|
-struct File(Bytes)
+struct File(String)
 
 ///|
-pub fn File::path(self : File) -> String raise {
-  @encoding/utf8.decode(self.0)
+pub fn File::path(self : File) -> String {
+  self.0
 }
 
 ///|
@@ -107,31 +108,26 @@ pub async fn Directory::add_file(
   content : String,
   loc~ : SourceLoc,
 ) -> File {
-  let name = @encoding/utf8.encode(name)
   let name = @path.join(self.0, name)
   let dir = @path.dirname(name)
-  make_directory(dir.to_bytes()) catch {
+  make_directory(dir) catch {
     error => {
       println(
-        "[ERROR] \{loc}: failed to create parent directory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
+        "[ERROR] \{loc}: failed to create parent directory \{dir}: \{error}",
       )
       raise error
     }
   }
   let file = @fs.open(name, mode=WriteOnly, create=0o644) catch {
     error => {
-      println(
-        "[ERROR] \{loc}: failed to create file \{@encoding/utf8.decode_lossy(name)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to create file \{(name)}: \{error}")
       raise error
     }
   }
   defer file.close()
   file.write(@encoding/utf8.encode(content)) catch {
     error => {
-      println(
-        "[ERROR] \{loc}: failed to write to file \{@encoding/utf8.decode_lossy(name)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to write to file \{(name)}: \{error}")
       raise error
     }
   }
@@ -145,13 +141,10 @@ pub async fn Directory::add_subdirectory(
   name : String,
   loc~ : SourceLoc,
 ) -> Directory {
-  let name = @encoding/utf8.encode(name)
   let dir = @path.join(self.0, name)
   @fs.mkdir(dir, permission=0o755) catch {
     error => {
-      println(
-        "[ERROR] \{loc}: failed to create subdirectory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to create subdirectory \{dir}: \{error}")
       raise error
     }
   }
@@ -166,13 +159,10 @@ pub async fn Directory::with_subdirectory(
   f : async (Directory) -> Unit,
   loc~ : SourceLoc,
 ) -> Unit {
-  let name = @encoding/utf8.encode(name)
   let dir = @path.join(self.0, name)
   @fs.mkdir(dir, permission=0o755) catch {
     error => {
-      println(
-        "[ERROR] \{loc}: failed to create subdirectory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to create subdirectory \{dir}: \{error}")
       raise error
     }
   }
@@ -187,9 +177,7 @@ pub async fn Directory::list(
 ) -> Array[String] {
   let dir = @fs.opendir(self.0) catch {
     error => {
-      println(
-        "[ERROR] \{loc}: failed to open directory \{@encoding/utf8.decode_lossy(self.0)}: \{error}",
-      )
+      println("[ERROR] \{loc}: failed to open directory \{self.0}: \{error}")
       raise error
     }
   }
@@ -197,37 +185,30 @@ pub async fn Directory::list(
   for
     basename in (dir.read_all() catch {
       error => {
-        println(
-          "[ERROR] \{loc}: failed to read directory \{@encoding/utf8.decode_lossy(self.0)}: \{error}",
-        )
+        println("[ERROR] \{loc}: failed to read directory \{self.0}: \{error}")
         raise error
       }
     }) {
     let filename = @path.join(self.0, basename)
     let file = @fs.open(filename, mode=ReadOnly) catch {
       error => {
-        println(
-          "[ERROR] \{loc}: failed to open file \{@encoding/utf8.decode_lossy(filename)}: \{error}",
-        )
+        println("[ERROR] \{loc}: failed to open file \{filename}: \{error}")
         raise error
       }
     }
     defer file.close()
-    let basename : Bytes = match file.kind() {
+    let basename : String = match file.kind() {
       Directory => [..basename, @path.sep]
       _ => basename
     }
-    entries.push(@encoding/utf8.decode(basename))
+    entries.push(basename)
   }
   entries.sort()
   return entries
 }
 
 ///|
-pub fn[T : ToJson] Directory::strip_cwd(
-  self : Directory,
-  value : T,
-) -> Json raise {
+pub fn[T : ToJson] Directory::strip_cwd(self : Directory, value : T) -> Json {
   let cwd = self.path()
   let json = value.to_json()
   fn strip_cwd_from_json(json : Json, cwd : String) -> Json {
