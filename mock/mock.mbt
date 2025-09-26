@@ -2,43 +2,88 @@
 struct Directory(Bytes)
 
 ///|
-pub async fn directory(name : String) -> Directory {
-  let cwd = @uv.cwd()
+#callsite(autofill(loc))
+pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
+  let cwd = @uv.cwd() catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to get current working directory: \{@encoding/utf8.decode_lossy(error.to_bytes())}",
+      )
+      raise error
+    }
+  }
   let template = @encoding/utf8.encode("maria-mock-\{name}-XXXXXX")
   let dot_tmp = @path.join(cwd, ".tmp")
-  if !@fs.exists(dot_tmp) {
-    @fs.mkdir(dot_tmp, permission=0o755)
+  if !(@fs.exists(dot_tmp) catch {
+      error => {
+        println("[ERROR] \{loc}: failed to check existence of .tmp: \{error}")
+        raise error
+      }
+    }) {
+    @fs.mkdir(dot_tmp, permission=0o755) catch {
+      error => println("[ERROR] \{loc}: failed to create .tmp: \{error}")
+    }
   }
-  let tmpdir = @global.uv().fs_mkdtemp_sync(@path.join(dot_tmp, template))
+  let tmpdir = @global.uv().fs_mkdtemp_sync(@path.join(dot_tmp, template)) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create temporary directory: \{@encoding/utf8.decode_lossy(error.to_bytes())}",
+      )
+      raise error
+    }
+  }
   return Directory(tmpdir)
 }
 
 ///|
-async fn make_directory(path : Bytes) -> Unit {
-  if !@fs.exists(path) {
+#callsite(autofill(loc))
+async fn make_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
+  if !(@fs.exists(path) catch {
+      error => {
+        println(
+          "[ERROR] \{loc}: failed to check existence of directory: \{error}",
+        )
+        raise error
+      }
+    }) {
     let parent = @path.dirname(path).to_bytes()
-    make_directory(parent)
-    @fs.mkdir(path, permission=0o755)
-  }
-}
-
-///|
-async fn remove_directory(path : Bytes) -> Unit {
-  let dir = @fs.opendir(path)
-  defer dir.close()
-  for entry in dir.read_all() {
-    let entry = @path.join(path, entry)
-    match @fs.kind(entry) {
-      Directory => remove_directory(entry)
-      _ => @fs.remove(entry)
+    make_directory(parent) catch {
+      error => {
+        println("[ERROR] \{loc}: failed to create parent directory: \{error}")
+        raise error
+      }
+    }
+    @fs.mkdir(path, permission=0o755) catch {
+      error => {
+        println("[ERROR] \{loc}: failed to create directory: \{error}")
+        raise error
+      }
     }
   }
-  @fs.rmdir(path)
 }
 
 ///|
-pub async fn Directory::close(self : Directory) -> Unit {
-  remove_directory(self.0)
+#callsite(autofill(loc))
+async fn remove_directory(path : Bytes, loc~ : SourceLoc) -> Unit {
+  @fs.rmdir(path, recursive=true) catch {
+    error =>
+      println(
+        "[ERROR] \{loc}: failed to remove directory \{@encoding/utf8.decode_lossy(path)}: \{error}",
+      )
+  }
+}
+
+///|
+#callsite(autofill(loc))
+pub async fn Directory::close(self : Directory, loc~ : SourceLoc) -> Unit {
+  remove_directory(self.0) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to remove temporary directory: \{self.path()}: \{error}",
+      )
+      raise error
+    }
+  }
 }
 
 ///|
@@ -55,51 +100,118 @@ pub fn File::path(self : File) -> String raise {
 }
 
 ///|
+#callsite(autofill(loc))
 pub async fn Directory::add_file(
   self : Directory,
   name : String,
   content : String,
+  loc~ : SourceLoc,
 ) -> File {
   let name = @encoding/utf8.encode(name)
   let name = @path.join(self.0, name)
   let dir = @path.dirname(name)
-  make_directory(dir.to_bytes())
-  let file = @fs.open(name, mode=WriteOnly, create=0o644)
+  make_directory(dir.to_bytes()) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create parent directory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
+      )
+      raise error
+    }
+  }
+  let file = @fs.open(name, mode=WriteOnly, create=0o644) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create file \{@encoding/utf8.decode_lossy(name)}: \{error}",
+      )
+      raise error
+    }
+  }
   defer file.close()
-  file.write(@encoding/utf8.encode(content))
+  file.write(@encoding/utf8.encode(content)) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to write to file \{@encoding/utf8.decode_lossy(name)}: \{error}",
+      )
+      raise error
+    }
+  }
   name
 }
 
 ///|
+#callsite(autofill(loc))
 pub async fn Directory::add_subdirectory(
   self : Directory,
   name : String,
+  loc~ : SourceLoc,
 ) -> Directory {
   let name = @encoding/utf8.encode(name)
   let dir = @path.join(self.0, name)
-  @fs.mkdir(dir, permission=0o755)
+  @fs.mkdir(dir, permission=0o755) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create subdirectory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
+      )
+      raise error
+    }
+  }
   Directory(dir)
 }
 
 ///|
+#callsite(autofill(loc))
 pub async fn Directory::with_subdirectory(
   self : Directory,
   name : String,
   f : async (Directory) -> Unit,
+  loc~ : SourceLoc,
 ) -> Unit {
   let name = @encoding/utf8.encode(name)
   let dir = @path.join(self.0, name)
-  @fs.mkdir(dir, permission=0o755)
+  @fs.mkdir(dir, permission=0o755) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create subdirectory \{@encoding/utf8.decode_lossy(dir)}: \{error}",
+      )
+      raise error
+    }
+  }
   f(Directory(dir))
 }
 
 ///|
-pub async fn Directory::list(self : Directory) -> Array[String] {
-  let dir = @fs.opendir(self.0)
+#callsite(autofill(loc))
+pub async fn Directory::list(
+  self : Directory,
+  loc~ : SourceLoc,
+) -> Array[String] {
+  let dir = @fs.opendir(self.0) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to open directory \{@encoding/utf8.decode_lossy(self.0)}: \{error}",
+      )
+      raise error
+    }
+  }
   let entries = []
-  for basename in dir.read_all() {
+  for
+    basename in (dir.read_all() catch {
+      error => {
+        println(
+          "[ERROR] \{loc}: failed to read directory \{@encoding/utf8.decode_lossy(self.0)}: \{error}",
+        )
+        raise error
+      }
+    }) {
     let filename = @path.join(self.0, basename)
-    let file = @fs.open(filename, mode=ReadOnly)
+    let file = @fs.open(filename, mode=ReadOnly) catch {
+      error => {
+        println(
+          "[ERROR] \{loc}: failed to open file \{@encoding/utf8.decode_lossy(filename)}: \{error}",
+        )
+        raise error
+      }
+    }
     defer file.close()
     let basename : Bytes = match file.kind() {
       Directory => [..basename, @path.sep]
@@ -147,16 +259,35 @@ pub fn model() -> @model.Model {
 }
 
 ///|
+#callsite(autofill(loc))
 pub async fn with_temporary_directory(
   name~ : String,
   f : async (Directory) -> Unit,
+  loc~ : SourceLoc,
 ) -> Unit {
-  let dir = directory(name)
-  f(dir) catch {
+  let dir = directory(name) catch {
     error => {
-      dir.close()
+      println("[ERROR] \{loc}: failed to create temporary directory: \{error}")
       raise error
     }
   }
-  dir.close()
+  f(dir) catch {
+    error => {
+      dir.close() catch {
+        err =>
+          println(
+            "[ERROR] \{loc}: failed to remove temporary directory: \{dir.path()}: \{err}",
+          )
+      }
+      raise error
+    }
+  }
+  dir.close() catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to remove temporary directory: \{dir.path()}: \{error}",
+      )
+      raise error
+    }
+  }
 }

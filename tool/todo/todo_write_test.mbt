@@ -1,7 +1,7 @@
 ///|
-test "todo_write/create/plain" {
+async test "todo_write/create/plain" {
   let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @async.with_event_loop(group => {
+  @async.with_task_group(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(rand~, cwd=cwd.path())
@@ -32,9 +32,9 @@ test "todo_write/create/plain" {
 }
 
 ///|
-test "todo_write/create/<task>" {
+async test "todo_write/create/<task>" {
   let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @async.with_event_loop(group => {
+  @async.with_task_group(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(rand~, cwd=cwd.path())
@@ -74,9 +74,9 @@ test "todo_write/create/<task>" {
 }
 
 ///|
-test "todo_write/update" {
+async test "todo_write/update" {
   let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @async.with_event_loop(group => {
+  @async.with_task_group(group => {
     let cwd = @mock.directory("togol-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(rand~, cwd=cwd.path())
@@ -123,9 +123,9 @@ test "todo_write/update" {
 }
 
 ///|
-test "todo_write/mark_completed" {
+async test "todo_write/mark_completed" {
   let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @async.with_event_loop(group => {
+  @async.with_task_group(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(rand~, cwd=cwd.path())

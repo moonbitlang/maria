@@ -1,6 +1,6 @@
 ///|
-test "list_files" {
-  @async.with_event_loop(g => {
+async test "list_files" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-list-files-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())

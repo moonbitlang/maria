@@ -116,14 +116,6 @@ test "relative" {
     @path.relative("a/b/c", "/a/b/c"),
     content="../../../../../../../../a/b/c",
   )
-  @json.inspect(
-    @path.relative(@path.relative("a/b/c", "/a/b/c"), "a/b/c"),
-    content="../../../../../../Users/haoxiang/Workspace/moonbit/maria/a/b/c",
-  )
-  @json.inspect(
-    @path.relative("/a/b/c", "a/b/c"),
-    content="../../../Users/haoxiang/Workspace/moonbit/maria/a/b/c",
-  )
 }
 
 ///|

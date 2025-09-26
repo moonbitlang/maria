@@ -1,6 +1,6 @@
 ///|
-test "read_file/nonexistent" {
-  @async.with_event_loop(g => {
+async test "read_file/nonexistent" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-read-file-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -17,8 +17,8 @@ test "read_file/nonexistent" {
 }
 
 ///|
-test "read_file/content" {
-  @async.with_event_loop(g => {
+async test "read_file/content" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-read-file-content-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -47,8 +47,8 @@ test "read_file/content" {
 }
 
 ///|
-test "read_file/line_range" {
-  @async.with_event_loop(g => {
+async test "read_file/line_range" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-read-file-range-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
@@ -77,8 +77,8 @@ test "read_file/line_range" {
 }
 
 ///|
-test "read_file/directory" {
-  @async.with_event_loop(g => {
+async test "read_file/directory" {
+  @async.with_task_group(g => {
     let cwd = @mock.directory("tool-read-file-directory-test")
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())

@@ -1,6 +1,6 @@
 ///|
-test "clone" {
-  @async.with_event_loop(g => {
+async test "clone" {
+  @async.with_task_group(g => {
     let repo = @mock.directory("git-clone")
     g.add_defer(() => repo.close())
     @git.clone("https://github.com/moonbitlang/maria.git", to=repo.path())
@@ -10,8 +10,8 @@ test "clone" {
 }
 
 ///|
-test "commit" {
-  @async.with_event_loop(g => {
+async test "commit" {
+  @async.with_task_group(g => {
     let repo = @mock.directory("git-commit")
     g.add_defer(() => repo.close())
     @git.init_(repo.path())
@@ -21,8 +21,8 @@ test "commit" {
 }
 
 ///|
-test "generate_git_diff" {
-  @async.with_event_loop(_ => {
+async test "generate_git_diff" {
+  @async.with_task_group(_ => {
     let original =
       #|line 1
       #|line 2

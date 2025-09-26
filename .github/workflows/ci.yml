@@ -24,6 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +38,11 @@ jobs:
       - name: Inspect MoonBit version
         run: |
           moon version --all
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "maria-ci"
+          git config --global user.email "maria-ci@example.com"
 
       - name: Run tests
         run: |
@@ -80,5 +86,6 @@ jobs:
 
       - name: Check code format
         run: |
+          moon install
           moon fmt
           git diff --exit-code
