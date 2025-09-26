@@ -21,10 +21,7 @@ pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
       }
     }) {
     @fs.mkdir(dot_tmp, permission=0o755) catch {
-      error => {
-        println("[ERROR] \{loc}: failed to create .tmp: \{error}")
-        raise error
-      }
+      error => println("[ERROR] \{loc}: failed to create .tmp: \{error}")
     }
   }
   let tmpdir = @global.uv().fs_mkdtemp_sync(@path.join(dot_tmp, template)) catch {
