@@ -18,6 +18,7 @@
     "moonbitlang/maria/tool/file",
     "moonbitlang/maria/tool/fix_moonbit_warnings",
     "moonbitlang/maria/os",
-    "moonbitlang/maria/prompt"
+    "moonbitlang/maria/prompt",
+    "moonbitlang/maria/conversation"
   ]
 }
