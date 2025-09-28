@@ -1,19 +1,4 @@
 ///|
-/// MoonBit implementation of the write_file tool
-///
-/// Migrated from TypeScript (write_to_file.ts) to MoonBit with the following functionality:
-/// - Search and replace operations in files
-/// - Create new files with content
-/// - Automatic directory creation
-/// - Fuzzy matching strategies for search content
-/// - Compatible with the existing tool interface
-///
-/// TODO: Missing advanced features from the original TypeScript implementation:
-/// - @sinclair/typebox parameter validation (using manual validation for now)
-/// - Advanced error formatting with youch.toANSI (using basic error messages)
-/// - Complex path joining utilities (using basic @path.join)
-
-///|
 /// Result of a successful match operation, containing position and length information
 priv struct MatchResult {
   /// The starting position of the match in the original content
