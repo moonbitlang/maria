@@ -9,13 +9,17 @@ struct Conversation {
 }
 
 ///|
-impl ToJson for Conversation with to_json(self) {
+pub impl ToJson for Conversation with to_json(self) {
+  fn int64_to_json(value : Int64) -> Json {
+    Json::number(value.to_double(), repr=value.to_string())
+  }
+
   let object : Map[String, Json] = {
     "name": self.name.to_json(),
     "id": self.id.to_json(),
     "messages": self.messages.to_json(),
-    "created_at": self.created_at.to_json(),
-    "updated_at": self.updated_at.to_json(),
+    "created_at": int64_to_json(self.created_at),
+    "updated_at": int64_to_json(self.updated_at),
   }
   if self.description is Some(description) {
     object["description"] = description.to_json()
@@ -24,7 +28,7 @@ impl ToJson for Conversation with to_json(self) {
 }
 
 ///|
-impl @json.FromJson for Conversation with from_json(
+pub impl @json.FromJson for Conversation with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Conversation raise @json.JsonDecodeError {
@@ -153,13 +157,14 @@ pub fn Conversation::new(
   description? : String,
   id~ : Id,
 ) -> Conversation raise {
+  let now_ms = @os.now_ms()
   Conversation::{
     name,
     description,
     id,
     messages: [],
-    created_at: @os.now().to_unix_second(),
-    updated_at: @os.now().to_unix_second(),
+    created_at: now_ms,
+    updated_at: now_ms,
   }
 }
 
@@ -171,12 +176,12 @@ pub fn Conversation::add_message(
   created? : Int64,
 ) -> Unit raise {
   let timestamp = match created {
-    None => @os.now().to_unix_second()
+    None => @os.now_ms()
     Some(created) => created
   }
   let message = Message::{ timestamp, usage, message }
   self.messages.push(message)
-  self.updated_at = @os.now().to_unix_second()
+  self.updated_at = @os.now_ms()
 }
 
 ///|

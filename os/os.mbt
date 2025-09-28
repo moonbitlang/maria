@@ -18,3 +18,9 @@ pub fn now() -> @time.ZonedDateTime raise {
   let ts = @uv.clock_gettime(Realtime)
   @time.unix(ts.sec(), nanosecond=ts.nsec())
 }
+
+///|
+pub fn now_ms() -> Int64 raise {
+  let tv = @uv.gettimeofday()
+  tv.sec() * 1000 + (tv.usec() / 1000).to_int64()
+}

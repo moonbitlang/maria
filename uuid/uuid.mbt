@@ -73,7 +73,7 @@ suberror ParseError {
 } derive(Show, ToJson)
 
 ///|
-pub fn parse(hex : String) -> Uuid raise ParseError {
+pub fn parse(hex : StringView) -> Uuid raise ParseError {
   let mut view = hex.view()
   fn parse_hex_octet(count : Int, value : UInt64) -> UInt64 raise ParseError {
     let mut value = value

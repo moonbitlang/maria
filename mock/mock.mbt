@@ -272,3 +272,38 @@ pub async fn with_temporary_directory(
     }
   }
 }
+
+///|
+pub fn[T : ToJson] strip_uuid(value : T) -> Json {
+  match value.to_json() {
+    Object(object_) =>
+      object_
+      .map((key, value) => if key is ("id" | "uuid") &&
+        value is String(value) &&
+        (try? @uuid.parse(value)) is Ok(_) {
+        String("...")
+      } else {
+        strip_uuid(value)
+      })
+      .to_json()
+    Array(array) => Json::array(array.map(item => strip_uuid(item)))
+    other => other
+  }
+}
+
+///|
+pub fn[T : ToJson] strip_timestamp(value : T) -> Json {
+  match value.to_json() {
+    Object(object_) =>
+      object_
+      .map((key, value) => if key is ("created_at" | "updated_at" | "timestamp") &&
+        (value is String(_) || value is Number(_)) {
+        String("...")
+      } else {
+        strip_timestamp(value)
+      })
+      .to_json()
+    Array(array) => Json::array(array.map(item => strip_timestamp(item)))
+    other => other
+  }
+}
