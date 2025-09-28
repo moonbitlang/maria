@@ -14,13 +14,13 @@ async test "clone" {
 
 ///|
 async test "commit" {
-  @async.with_task_group(g => {
+  @async.with_timeout(10_000, () => @async.with_task_group(g => {
     let repo = @mock.directory("git-commit")
     g.add_defer(() => repo.close())
     @git.init_(repo.path())
     let _ = repo.add_file("file.txt", "Hello, Moonbit!")
     @git.commit("Initial commit", ["file.txt"], cwd=repo.path())
-  })
+  }))
 }
 
 ///|
