@@ -86,7 +86,7 @@ async fn main {
   agent.add_message(@openai.system_message(content=@prompt.system))
   agent.add_message(
     @openai.user_message(
-      content="Can you please implement an INI parser in MoonBit?",
+      content="Can you please implement an TOML parser in MoonBit?",
     ),
   )
   agent.start()
