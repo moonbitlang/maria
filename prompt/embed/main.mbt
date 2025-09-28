@@ -98,6 +98,7 @@ async fn main {
     for line in text.split("\n") {
       lines.push("  #|\{line}")
     }
+    lines.push("")
     @fs.write_file(
       destination,
       @encoding/utf8.encode(lines.join("\n")),
