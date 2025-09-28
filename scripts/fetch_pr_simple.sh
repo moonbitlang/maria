@@ -18,7 +18,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 fi
 
 PR_NUMBER=${1:-10}
-BRANCH_NAME="pr_$PR_NUMBER"
+BRANCH_NAME="hailin/pr_$PR_NUMBER"
 
 echo "Fetching PR #$PR_NUMBER to branch '$BRANCH_NAME'..."
 
