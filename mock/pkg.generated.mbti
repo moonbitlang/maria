@@ -11,6 +11,10 @@ async fn directory(String, loc~ : SourceLoc) -> Directory
 
 fn model() -> @model.Model
 
+fn[T : ToJson] strip_timestamp(T) -> Json
+
+fn[T : ToJson] strip_uuid(T) -> Json
+
 #callsite(autofill(loc))
 async fn with_temporary_directory(name~ : String, async (Directory) -> Unit, loc~ : SourceLoc) -> Unit
 
