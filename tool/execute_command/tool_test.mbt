@@ -81,3 +81,20 @@ async test "output-overflow" {
     )
   })
 }
+
+///|
+async test "cd" {
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
+  @async.with_task_group(group => {
+    let cwd = @mock.directory("tool-execute-command-output-overflow-test")
+    group.add_defer(() => cwd.close())
+    let result = @execute_command.execute_command.call(
+      { "command": "cd", "arguments": [".."], "timeout": 5000 },
+      @execute_command.context(rand~, cwd=cwd.path()),
+    )
+    @json.inspect(result, content={
+      "output": "Error: 'cd' command is not allowed. It makes no sense to change directory in a subprocess, as the working directory of parent process remains unchanged.",
+      "error": "moonbitlang/maria/tool.Failure.Failure",
+    })
+  })
+}
