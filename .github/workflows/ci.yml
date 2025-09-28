@@ -46,7 +46,7 @@ jobs:
 
       - name: Run tests
         run: |
-          moon test
+          moon test -v
 
   info:
     runs-on: ubuntu-latest
