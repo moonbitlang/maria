@@ -1,0 +1,16 @@
+{
+  "is-main": true,
+  "import": [
+    "moonbitlang/maria/pino",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/prompt",
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/tool/todo",
+    "moonbitlang/maria/tool/file",
+    "moonbitlang/async",
+    "moonbitlang/maria/os",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/tool/execute_command",
+    "moonbitlang/maria/tool"
+  ]
+}
