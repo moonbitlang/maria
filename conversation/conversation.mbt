@@ -10,12 +10,16 @@ struct Conversation {
 
 ///|
 impl ToJson for Conversation with to_json(self) {
+  fn int64_to_json(value : Int64) -> Json {
+    Json::number(value.to_double(), repr=value.to_string())
+  }
+
   let object : Map[String, Json] = {
     "name": self.name.to_json(),
     "id": self.id.to_json(),
     "messages": self.messages.to_json(),
-    "created_at": self.created_at.to_json(),
-    "updated_at": self.updated_at.to_json(),
+    "created_at": int64_to_json(self.created_at),
+    "updated_at": int64_to_json(self.updated_at),
   }
   if self.description is Some(description) {
     object["description"] = description.to_json()
@@ -153,13 +157,14 @@ pub fn Conversation::new(
   description? : String,
   id~ : Id,
 ) -> Conversation raise {
+  let now_ms = @os.now_ms()
   Conversation::{
     name,
     description,
     id,
     messages: [],
-    created_at: @os.now().to_unix_second(),
-    updated_at: @os.now().to_unix_second(),
+    created_at: now_ms,
+    updated_at: now_ms,
   }
 }
 
