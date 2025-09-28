@@ -20,13 +20,20 @@ priv struct MatchResult {
   position : Int
   /// The length of the matched content
   length : Int
-}
+} derive(ToJson)
+
+///|
+pub enum WriteResultOperation {
+  Created
+  Updated
+  Replaced
+} derive(ToJson, FromJson)
 
 ///|
 /// Write operation result for structured JSON output
 pub(all) struct WriteResult {
   path : String
-  operation : String // "created", "updated", "replaced"
+  operation : WriteResultOperation
   bytes_written : Int
   search_used : Bool
   message : String
@@ -109,21 +116,6 @@ fn find_match(
       return Some(fuzzy_match_from_line(i))
     }
   }
-
-  // Strategy 3: First/last line match for blocks ≥3 lines
-  if needle_lines.length() >= 3 {
-    for i = 0; i <= haystack_lines.length() - needle_lines.length(); i = i + 1 {
-      let first_line_matches = trimmed_haystack_lines[i] ==
-        trimmed_needle_lines[0]
-      let last_line_matches = trimmed_haystack_lines[i +
-        needle_lines.length() -
-        1] ==
-        trimmed_needle_lines[needle_lines.length() - 1]
-      if first_line_matches && last_line_matches {
-        return Some(fuzzy_match_from_line(i))
-      }
-    }
-  }
   None
 }
 
@@ -131,70 +123,34 @@ fn find_match(
 test "find_match exact match" {
   let haystack = "Hello world\nThis is a test\nEnd of file"
   let needle = "This is a test"
-  match find_match(haystack, needle) {
-    Some(result) => {
-      inspect(result.position, content="12") // Position after "Hello world\n"
-      inspect(result.length, content="14") // Length of "This is a test"
-    }
-    None => fail("Expected to find exact match")
-  }
+  @json.inspect(find_match(haystack, needle), content=[
+    { "position": 12, "length": 14 },
+  ])
 }
 
 ///|
 test "find_match line-by-line with whitespace" {
   let haystack = "  line 1  \n  line 2  \n  line 3  "
   let needle = "line 1\nline 2"
-  match find_match(haystack, needle) {
-    Some(result) => {
-      // Should find the match despite whitespace differences
-      inspect(result.position, content="0")
-      inspect(result.length, content="21") // Length of "  line 1  \n  line 2  "
-    }
-    None => fail("Expected to find fuzzy match")
-  }
-}
-
-///|
-test "find_match first/last line anchor corrected" {
-  let haystack = "start\nmiddle content\nsome other stuff\nend"
-  let needle = "start\nwhatever\nend"
-  match find_match(haystack, needle) {
-    Some(result) => {
-      // Based on the algorithm, this should work since first and last lines match
-      // but apparently it doesn't - the algorithm might need debugging
-      inspect(result.position)
-      inspect(result.length)
-    }
-    None =>
-      // For now, expect no match since the algorithm seems to have issues
-      inspect("No match found", content="No match found")
-  }
+  @json.inspect(find_match(haystack, needle), content=[
+    { "position": 0, "length": 21 },
+  ])
 }
 
 ///|
 test "find_match no match found" {
   let haystack = "Hello world"
   let needle = "Not found"
-  match find_match(haystack, needle) {
-    Some(_) => fail("Should not find match")
-    None => inspect(true, content="true") // Expected result
-  }
+  @json.inspect(find_match(haystack, needle), content=null)
 }
 
 ///|
 test "find_match with fuzzy disabled works for exact substring" {
   let haystack = "  Hello world  "
   let needle = "Hello world"
-
-  // Actually this SHOULD find a match since "Hello world" is a substring of "  Hello world  "
-  // The test was wrong - exact string matching should work here
-  match find_match(haystack, needle, fuzzy_match=false) {
-    Some(result) => {
-      inspect(result.position, content="2") // Position where "Hello world" starts
-      inspect(result.length, content="11") // Length of "Hello world"
-    }
-    None => fail("Should find exact substring match")
-  }
+  @json.inspect(find_match(haystack, needle, fuzzy_match=false), content=[
+    { "position": 2, "length": 11 },
+  ])
 }
 
 ///|
@@ -235,7 +191,7 @@ async fn Manager::execute_write_to_file(
       @fs.write_to_file(resolved_path, replace)
       let result = WriteResult::{
         path,
-        operation: "created",
+        operation: Created,
         bytes_written: replace.length(),
         search_used: false,
         message: "New file created and content written to \{path}",
@@ -285,8 +241,8 @@ async fn Manager::execute_write_to_file(
     // Write the modified content back to file
     @fs.write_to_file(resolved_path, content)
     let operation = match search {
-      None => "replaced"
-      Some(_) => "updated"
+      None => Replaced
+      Some(_) => Updated
     }
     let result = WriteResult::{
       path,
