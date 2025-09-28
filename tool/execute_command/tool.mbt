@@ -29,24 +29,21 @@ pub(all) struct CommandResult {
 
 ///|
 pub let execute_command : @tool.Tool[Context] = @tool.tool(
-  description="Execute a shell command",
+  description="Execute an external program",
   name="execute_command",
   parameters={
     "type": "object",
     "properties": {
-      "command": {
-        "type": "string",
-        "description": "The shell command to execute",
-      },
+      "command": { "type": "string", "description": "The program to execute" },
       "arguments": {
         "type": "array",
         "items": { "type": "string" },
-        "description": "The arguments to pass to the command",
+        "description": "The arguments to pass to the program",
         "default": [],
       },
       "timeout": {
         "type": "number",
-        "description": "The timeout in milliseconds for the command to execute",
+        "description": "The timeout in milliseconds for the program to execute",
         "default": 1000,
       },
       "max_output_lines": {
@@ -68,6 +65,11 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       } else {
       return @tool.error(
         "Error: 'command', 'arguments' and 'timeout' parameters are required",
+      )
+    }
+    if command is "cd" {
+      return @tool.error(
+        "Error: 'cd' command is not allowed. It makes no sense to change directory in a subprocess, as the working directory of parent process remains unchanged.",
       )
     }
     let max_output_lines = if args
