@@ -27,7 +27,39 @@ pub enum WriteResultOperation {
   Created
   Updated
   Replaced
-} derive(ToJson, FromJson)
+}
+
+///|
+pub impl ToJson for WriteResultOperation with to_json(
+  self : WriteResultOperation,
+) -> Json {
+  match self {
+    Created => "created"
+    Updated => "updated"
+    Replaced => "replaced"
+  }
+}
+
+///|
+pub impl @json.FromJson for WriteResultOperation with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> WriteResultOperation raise {
+  guard json is String(op) else {
+    raise @json.JsonDecodeError(
+      (json_path, "Invalid WriteResultOperation value: expected string"),
+    )
+  }
+  match op {
+    "created" => Created
+    "updated" => Updated
+    "replaced" => Replaced
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Invalid WriteResultOperation value: \{op}"),
+      )
+  }
+}
 
 ///|
 /// Write operation result for structured JSON output
