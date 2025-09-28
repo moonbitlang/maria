@@ -12,6 +12,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool/execute_command",
     "moonbitlang/maria/tool",
-    "moonbitlang/maria/tool/get_moonbit_mbti"
+    "moonbitlang/maria/tool/get_moonbit_mbti",
+    "moonbitlang/maria/tool/search_files"
   ]
 }
