@@ -5,10 +5,7 @@
     "moonbitlang/maria/lru",
     "moonbitlang/maria/path",
     "moonbitlang/maria/fs",
-    "moonbitlang/maria/os",
-    "moonbitlang/x/time"
+    "moonbitlang/maria/os"
   ],
-  "test-import": [
-    "moonbitlang/maria/rand"
-  ]
+  "test-import": ["moonbitlang/maria/rand", "moonbitlang/maria/mock"]
 }

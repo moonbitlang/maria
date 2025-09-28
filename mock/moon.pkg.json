@@ -5,6 +5,7 @@
     "moonbitlang/maria/path",
     "moonbitlang/maria/internal/global",
     "moonbitlang/maria/model",
-    "moonbitlang/async/io"
+    "moonbitlang/async/io",
+    "moonbitlang/maria/uuid"
   ]
 }

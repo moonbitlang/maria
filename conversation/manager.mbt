@@ -42,3 +42,21 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
   let json = conversation.to_json()
   @fs.write_to_file(path, json.stringify(indent=2))
 }
+
+///|
+pub async fn Manager::list(self : Manager) -> Array[Id] {
+  let path = self.path |> @path.join("conversations")
+  let entries = @fs.list_directory(path)
+  let ids = []
+  for entry in entries {
+    if !(entry.kind is Regular) {
+      continue
+    }
+    if !entry.name.has_suffix(".json") {
+      continue
+    }
+    let id = @uuid.parse(@path.stem(entry.name)) catch { _ => continue }
+    ids.push(Id(id.to_string()))
+  }
+  ids
+}
