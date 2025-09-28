@@ -1,12 +1,12 @@
 {
   "import": [
-    "moonbitlang/async",
     "moonbitlang/async/process",
     "moonbitlang/maria/path",
     "moonbitlang/maria/spawn",
     "moonbitlang/maria/fs"
   ],
   "test-import": [
+    "moonbitlang/async",
     "moonbitlang/maria/mock",
     "moonbitlang/maria/os"
   ]
