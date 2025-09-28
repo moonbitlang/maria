@@ -9,14 +9,21 @@ impl Show for ApiKeyNotSet with output(_ : ApiKeyNotSet, logger : &Logger) -> Un
 }
 
 ///|
+priv enum Conversation {
+  List
+  Show(id~ : String, mut output~ : String?)
+}
+
+///|
 priv struct Arguments {
   mut repo : String?
   mut max_while_loop : Int?
+  mut conversation : Conversation?
 }
 
 ///|
 fn Arguments::new() -> Arguments {
-  Arguments::{ repo: None, max_while_loop: None }
+  Arguments::{ repo: None, max_while_loop: None, conversation: None }
 }
 
 ///|
@@ -41,6 +48,22 @@ fn Arguments::parse(self : Arguments, args : ArrayView[String]) -> Unit raise {
       }
       self.max_while_loop = Some(max_while_loop)
       continue rest
+    }
+    ["conversations", .. rest] => {
+      self.conversation = Some(Conversation::List)
+      continue rest
+    }
+    ["conversation", id, .. rest] => {
+      let conversation = Conversation::Show(id~, output=None)
+      self.conversation = Some(conversation)
+      guard conversation is (Show(..) as conversation)
+      match rest {
+        ["--output", output, .. rest] => {
+          conversation.output = Some(output)
+          continue rest
+        }
+        [.. rest] => continue rest
+      }
     }
     [arg, ..] => raise InvalidArgument(arg)
     [] => break
@@ -172,6 +195,33 @@ async fn main {
     let args = @os.args()
     let arguments = Arguments::new()
     arguments.parse(args[1:])
+    if arguments.conversation is Some(conversation) {
+      let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
+      let manager = @conversation.Manager::new(path~)
+      match conversation {
+        List =>
+          for i, id in manager.list() {
+            let conversation = manager.load(id)
+            guard conversation is Some(conversation) else { continue }
+            let lines = ["\{i + 1}. \{id}"]
+            lines.append(conversation.display().map(line => "    \{line}"))
+            println(lines.join("\n"))
+          }
+        Show(id~, output~) => {
+          let conversation = manager.load(Id(id))
+          guard conversation is Some(conversation) else { return }
+          if output is Some(output) {
+            if output.has_suffix(".md") {
+              @fs.write_to_file(output, conversation.export_to_markdown())
+            }
+          } else {
+            let lines = conversation.display(show_messages=true)
+            println(lines.join("\n"))
+          }
+        }
+      }
+      return
+    }
     if arguments.repo is Some(repo) {
       let migrator = Migrator::{
         repo,
@@ -181,96 +231,90 @@ async fn main {
         },
       }
       migrator.execute(model)
-    } else {
-      let logger = @pino.logger("main", @pino.transport("file:.moonagent/log"))
-      let agent = @agent.new(model, cwd~)
-      defer agent.close()
-      agent.add_listener(TokenCounted, context => {
-        guard context.origin_token_count is Some(origin_token_count) else {
-          return
-        }
-        guard context.pruned_token_count is Some(pruned_token_count) else {
-          return
-        }
-        if origin_token_count != pruned_token_count {
-          logger.info("Context pruned", {
-            "origin_token_count": origin_token_count.to_json(),
-            "pruned_token_count": pruned_token_count.to_json(),
-          })
-        } else {
-          logger.info("Token count", {
-            "token_count": origin_token_count.to_json(),
-          })
-        }
-      })
-      agent.add_listener(RequestCompleted, context => {
-        guard context.usage is Some(usage) else { return }
-        logger.info("Request completed: Usage", { "usage": usage.to_json() })
-        guard context.message is Some(message) &&
-          message.content is Some(content) else {
-          return
-        }
-        println("> \{content}")
-      })
-      agent.add_listener(PreToolCall, context => {
-        guard context.tool_call is Some(tool_call) else { return }
-        logger.info("Calling tool", {
-          "name": tool_call.function.name.to_json(),
-        })
-        try {
-          let args = @json.parse(tool_call.function.arguments)
-          logger.info("Tool arguments", { "args": args })
-        } catch {
-          error =>
-            logger.error("Error parsing tool arguments", {
-              "error": error.to_json(),
-              "arguments": tool_call.function.arguments.to_json(),
-            })
-        }
-      })
-      agent.add_listener(PostToolCall, context => {
-        guard context.tool_call is Some(tool_call) else { return }
-        logger.info("Finished calling tool", {
-          "name": tool_call.function.name.to_json(),
-        })
-        guard context.tool_call_result is Some(result) else { return }
-        println("> Tool result: \{result.output}")
-        logger.info("Tool result", { "output": result.output.to_json() })
-        if result.error is Some(error) {
-          println("> Tool error: \{error}")
-          logger.error("Tool error", { "error": error.to_json() })
-        }
-      })
-      agent.add_listener(ConversationStart, _ => logger.info(
-        "Conversation started",
-        {},
-      ))
-      agent.add_listener(ConversationEnd, _ => logger.info(
-        "Conversation ended",
-        {},
-      ))
-      agent.add_tool(
-        @execute_command.execute_command,
-        @execute_command.context(rand=agent.rand, cwd=agent.cwd),
-      )
-      let file_manager = @file.manager(cwd~)
-      agent.add_tool(@file.list_files, file_manager)
-      agent.add_tool(@file.read_file, file_manager)
-      agent.add_tool(@file.write_to_file, file_manager)
-      let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
-      agent.add_tool(@todo.read, todo_list)
-      agent.add_tool(@todo.write, todo_list)
-      agent.add_message(@openai.system_message(content=@prompt.system))
-      let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
-      rl.set_prompt("< ")
-      group.spawn_bg(() => rl.start())
-      while true {
-        rl.prompt()
-        let content : String = rl.read_line()
-        let message = @openai.user_message(content~)
-        agent.add_message(message)
-        agent.start()
+      return
+    }
+    let logger = @pino.logger("main", @pino.transport("file:.moonagent/log"))
+    let agent = @agent.new(model, cwd~)
+    defer agent.close()
+    agent.add_listener(TokenCounted, context => {
+      guard context.origin_token_count is Some(origin_token_count) else {
+        return
       }
+      guard context.pruned_token_count is Some(pruned_token_count) else {
+        return
+      }
+      if origin_token_count != pruned_token_count {
+        logger.info("Context pruned", {
+          "origin_token_count": origin_token_count.to_json(),
+          "pruned_token_count": pruned_token_count.to_json(),
+        })
+      } else {
+        logger.info("Token count", {
+          "token_count": origin_token_count.to_json(),
+        })
+      }
+    })
+    agent.add_listener(RequestCompleted, context => {
+      guard context.usage is Some(usage) else { return }
+      logger.info("Request completed: Usage", { "usage": usage.to_json() })
+      guard context.message is Some(message) && message.content is Some(content) else {
+        return
+      }
+      println("> \{content}")
+    })
+    agent.add_listener(PreToolCall, context => {
+      guard context.tool_call is Some(tool_call) else { return }
+      logger.info("Calling tool", { "name": tool_call.function.name.to_json() })
+      try {
+        let args = @json.parse(tool_call.function.arguments)
+        logger.info("Tool arguments", { "args": args })
+      } catch {
+        error =>
+          logger.error("Error parsing tool arguments", {
+            "error": error.to_json(),
+            "arguments": tool_call.function.arguments.to_json(),
+          })
+      }
+    })
+    agent.add_listener(PostToolCall, context => {
+      guard context.tool_call is Some(tool_call) else { return }
+      logger.info("Finished calling tool", {
+        "name": tool_call.function.name.to_json(),
+      })
+      guard context.tool_call_result is Some(result) else { return }
+      println("> Tool result: \{result.output}")
+      logger.info("Tool result", { "output": result.output.to_json() })
+      if result.error is Some(error) {
+        println("> Tool error: \{error}")
+        logger.error("Tool error", { "error": error.to_json() })
+      }
+    })
+    agent.add_listener(ConversationStart, _ => logger.info(
+      "Conversation started",
+      {},
+    ))
+    agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
+    agent.add_tool(
+      @execute_command.execute_command,
+      @execute_command.context(rand=agent.rand, cwd=agent.cwd),
+    )
+    let file_manager = @file.manager(cwd~)
+    agent.add_tool(@file.list_files, file_manager)
+    agent.add_tool(@file.read_file, file_manager)
+    agent.add_tool(@file.write_to_file, file_manager)
+    let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
+    agent.add_tool(@todo.read, todo_list)
+    agent.add_tool(@todo.write, todo_list)
+    agent.add_message(@openai.system_message(content=@prompt.system))
+    let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
+    rl.set_prompt("< ")
+    group.spawn_bg(() => rl.start())
+    while true {
+      rl.prompt()
+      let content : String = rl.read_line()
+      let message = @openai.user_message(content~)
+      agent.add_message(message)
+      agent.start()
     }
   }) catch {
     error => println("Error: \{error}")

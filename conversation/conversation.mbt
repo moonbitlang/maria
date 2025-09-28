@@ -9,6 +9,70 @@ struct Conversation {
 }
 
 ///|
+pub fn Conversation::display(
+  self : Conversation,
+  show_messages? : Bool = false,
+) -> Array[String] raise {
+  let lines = []
+  lines.push("Name: \{self.name}")
+  if self.description is Some(description) {
+    lines.push("Description: \{description}")
+  }
+  if show_messages {
+    for i, message in self.messages {
+      let message = message.message
+      match message {
+        Assistant(assistant) => {
+          lines.push("\{i}. [assistant]")
+          let parts = assistant.content
+          for part in parts {
+            match part {
+              Text(text) =>
+                text.text.split("\n").each(line => lines.push("  \{line}"))
+            }
+          }
+        }
+        User(user) => {
+          lines.push("\{i}. [user]")
+          let parts = user.content
+          for part in parts {
+            match part {
+              Text(text) =>
+                text.text.split("\n").each(line => lines.push("  \{line}"))
+            }
+          }
+        }
+        System(system) => {
+          lines.push("\{i}. [system]")
+          let parts = system.content
+          for part in parts {
+            match part {
+              Text(text) =>
+                text.text.split("\n").each(line => lines.push("  \{line}"))
+            }
+          }
+        }
+        Tool(tool) => {
+          lines.push("\{i}. [tool]")
+          let parts = tool.content
+          for part in parts {
+            match part {
+              Text(text) =>
+                text.text.split("\n").each(line => lines.push("  \{line}"))
+            }
+          }
+        }
+      }
+    }
+  } else {
+    lines.push("Messages: \{self.messages.length()}")
+  }
+  lines.push("Created: \{@time.unix(self.created_at / 1000).to_string()}")
+  lines.push("Updated: \{@time.unix(self.updated_at / 1000).to_string()}")
+  lines
+}
+
+///|
 pub impl ToJson for Conversation with to_json(self) {
   fn int64_to_json(value : Int64) -> Json {
     Json::number(value.to_double(), repr=value.to_string())
@@ -68,6 +132,7 @@ pub impl @json.FromJson for Conversation with from_json(
       )
   }
   let created_at = match json.get("created_at") {
+    Some(Number(created_at, repr=None)) => created_at.to_int64()
     Some(created_at) =>
       @json.from_json(created_at, path=json_path.add_key("created_at"))
     None =>
@@ -76,6 +141,7 @@ pub impl @json.FromJson for Conversation with from_json(
       )
   }
   let updated_at = match json.get("updated_at") {
+    Some(Number(created_at, repr=None)) => created_at.to_int64()
     Some(updated_at) =>
       @json.from_json(updated_at, path=json_path.add_key("updated_at"))
     None =>
@@ -116,8 +182,18 @@ impl @json.FromJson for Message with from_json(
     raise @json.JsonDecodeError((json_path, "Expected object for Message"))
   }
   let timestamp = match json.get("timestamp") {
-    Some(timestamp) =>
-      @json.from_json(timestamp, path=json_path.add_key("timestamp"))
+    Some(Number(timestamp, repr=None)) => timestamp.to_int64()
+    Some(Number(_, repr=Some(repr))) =>
+      @strconv.parse_uint64(repr).reinterpret_as_int64() catch {
+        error =>
+          raise @json.JsonDecodeError(
+            (json_path.add_key("timestamp"), "Invalid timestamp: \{error}"),
+          )
+      }
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path.add_key("timestamp"), "Invalid timestamp"),
+      )
     None =>
       raise @json.JsonDecodeError(
         (json_path.add_key("timestamp"), "Missing field"),
@@ -185,7 +261,7 @@ pub fn Conversation::add_message(
 }
 
 ///|
-struct Id(String)
+pub(all) struct Id(String)
 
 ///|
 pub fn Id::new(rand~ : @random.Rand) -> Id {
@@ -193,17 +269,17 @@ pub fn Id::new(rand~ : @random.Rand) -> Id {
 }
 
 ///|
-impl Show for Id with output(self : Id, logger : &Logger) -> Unit {
+pub impl Show for Id with output(self : Id, logger : &Logger) -> Unit {
   logger.write_string(self.0)
 }
 
 ///|
-impl ToJson for Id with to_json(self : Id) -> Json {
+pub impl ToJson for Id with to_json(self : Id) -> Json {
   self.0.to_json()
 }
 
 ///|
-impl @json.FromJson for Id with from_json(
+pub impl @json.FromJson for Id with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Id raise @json.JsonDecodeError {
