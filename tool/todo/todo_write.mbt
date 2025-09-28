@@ -111,12 +111,14 @@ async fn List::execute_todo_write(
         let item = self.add_task(content, status~, priority~, notes~)
         try {
           self.save()
-          return @tool.ok(TodoWriteResult::{
-            todos: self.todos.map(t => t),
-            message: "Added new task: \{item.content}",
-            updated_todos: [item],
-            is_new_creation: false,
-          }.to_json())
+          return @tool.ok(
+            TodoWriteResult::{
+              todos: self.todos.map(t => t),
+              message: "Added new task: \{item.content}",
+              updated_todos: [item],
+              is_new_creation: false,
+            }.to_json(),
+          )
         } catch {
           error =>
             return @tool.error("Failed to save new task: \{error}", error~)
@@ -157,12 +159,14 @@ async fn List::execute_todo_write(
         }
         try {
           self.save()
-          @tool.ok(TodoWriteResult::{
-            todos: self.todos,
-            message: action_message,
-            updated_todos,
-            is_new_creation: false,
-          }.to_json())
+          @tool.ok(
+            TodoWriteResult::{
+              todos: self.todos,
+              message: action_message,
+              updated_todos,
+              is_new_creation: false,
+            }.to_json(),
+          )
         } catch {
           error =>
             return @tool.error("Failed to save task update: \{error}", error~)
