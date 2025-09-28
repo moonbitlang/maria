@@ -82,8 +82,7 @@ async test "read_file/directory" {
     let _ = subdir.add_file("file3.txt", "content3")
     let args : Json = { "path": "." }
     let result = @file.read_file.call(args, manager)
-    @json.inspect(result.output, content={
-      "type": "directory",
+    @json.inspect(result.output, content={      
       "path": ".",
       "entries": ["subdir/", "file1.txt", "file2.txt"],
       "display": "subdir/\nfile1.txt\nfile2.txt",

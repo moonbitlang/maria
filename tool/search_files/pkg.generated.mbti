@@ -12,6 +12,7 @@ let search_files : @tool.Tool[String]
 // Errors
 
 // Types and methods
+<<<<<<< HEAD
 pub(all) struct SearchResult {
   context : String
   line_number : Int
@@ -20,6 +21,8 @@ pub(all) struct SearchResult {
 }
 impl ToJson for SearchResult
 impl @json.FromJson for SearchResult
+=======
+>>>>>>> 875f304 (refactor: use type for JSON (de)serialization)
 
 // Type aliases
 
