@@ -10,10 +10,10 @@ pub let read : @tool.Tool[List] = @tool.tool(
   parameters={ "type": "object", "properties": {}, "required": [] },
   (_, self) => @tool.ok(TodoReadResult::{ todos: self.todos }.to_json()),
   render=result => {
-    let todos : Array[Item] = @json.from_json(result.output) catch {
+    let todos : TodoReadResult = @json.from_json(result.output) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
-    if todos.length() == 0 {
+    if todos.todos.length() == 0 {
       return "No todos found for this session."
     }
     let output = []
@@ -38,8 +38,8 @@ pub let read : @tool.Tool[List] = @tool.tool(
     }
 
     // Display todos in a single list with status markers
-    for i = 0; i < todos.length(); i = i + 1 {
-      let todo = todos[i]
+    for i = 0; i < todos.todos.length(); i = i + 1 {
+      let todo = todos.todos[i]
       let status_mark = get_status_emoji(todo.status)
       let priority_mark = get_priority_icon(todo.priority)
 
@@ -57,11 +57,11 @@ pub let read : @tool.Tool[List] = @tool.tool(
     output.push("")
 
     // Add summary statistics
-    let total = todos.length()
+    let total = todos.todos.length()
     let mut pending_count = 0
     let mut in_progress_count = 0
     let mut completed_count = 0
-    for todo in todos {
+    for todo in todos.todos {
       match todo.status {
         Status::Pending => pending_count = pending_count + 1
         Status::InProgress => in_progress_count = in_progress_count + 1

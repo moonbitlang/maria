@@ -26,7 +26,11 @@ async test "todo_read" {
     inspect(
       (@todo.read.render)(result),
       content=(
-        #|Error: Unexpected output format: JsonDecodeError(($, "Array::from_json: expected array"))
+        #|=== Current Session Todo List ===
+        #|
+        #|1. ⏳ 🟡 [b773b606] A sample task
+        #|
+        #|📊 Summary: Total: 1 | ⏳ Pending: 1
       ),
     )
   })

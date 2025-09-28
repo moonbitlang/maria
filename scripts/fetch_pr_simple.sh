@@ -10,8 +10,8 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "Usage: $0 [pr_number]"
     echo ""
     echo "Examples:"
-    echo "  $0 10     # Creates branch 'pr_10' with PR #10"
-    echo "  $0        # Creates branch 'pr_10' with PR #10 (default)"
+    echo "  $0 10     # Creates branch 'username/pr_10' with PR #10"
+    echo "  $0        # Creates branch 'username/pr_10' with PR #10 (default)"
     echo ""
     echo "This script will fetch the specified PR to a local branch."
     exit 0
