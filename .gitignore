@@ -5,3 +5,8 @@ target/
 vendor/
 compile_flags.txt
 .tmp/
+
+.auto-coder/
+/actions/
+/output.txt
+/.autocoderignore

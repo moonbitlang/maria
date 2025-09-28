@@ -12,6 +12,14 @@ priv struct MetaWriteParams {
 }
 
 ///|
+pub(all) struct MetaWriteToFileResult {
+  path : String
+  message : String
+  diff : String
+  learning_prompt : String?
+} derive(ToJson, FromJson)
+
+///|
 /// Parse and validate meta_write_to_file parameters
 fn parse_meta_write_params(args : Json) -> MetaWriteParams? {
   guard args is { "path": String(path), "description": String(description), .. } else {
@@ -165,6 +173,12 @@ let submit_fixed_file : @tool.Tool[FixingContext] = @tool.tool(
       error => @tool.error("Failed to write or verify file: \{error}", error~)
     }
   },
+  render=result => {
+    guard result.output is String(formatted) else {
+      return "Error: Unexpected output format"
+    }
+    formatted
+  },
 )
 
 ///|
@@ -199,6 +213,12 @@ let read_current_file : @tool.Tool[FixingContext] = @tool.tool(
       error => @tool.error("Failed to read file: \{error}", error~)
     }
   },
+  render=result => {
+    guard result.output is String(formatted) else {
+      return "Error: Unexpected output format"
+    }
+    formatted
+  },
 )
 
 ///|
@@ -221,6 +241,12 @@ let attempt_completion : @tool.Tool[FixingContext] = @tool.tool(
       return @tool.error("Missing 'result' argument")
     }
     @tool.ok("Syntax fixing completed: \{result}")
+  },
+  render=result => {
+    guard result.output is String(formatted) else {
+      return "Error: Unexpected output format"
+    }
+    formatted
   },
 )
 
@@ -450,14 +476,37 @@ async fn execute_meta_write_to_file(
       } else {
         ""
       }
-      @tool.ok(write_result.output + diff.diff_text + learning_prompt)
+      guard write_result.output is String(write_msg) else {
+        return @tool.error("Unexpected write result format")
+      }
+      @tool.ok(
+        MetaWriteToFileResult::{
+          path: resolved_path,
+          message: write_msg,
+          diff: diff.diff_text,
+          learning_prompt: match learning_prompt {
+            "" => None
+            learning_prompt => Some(learning_prompt)
+          },
+        }.to_json(),
+      )
     } else {
       // Non-MoonBit files: show diff from initial write
       let final_content = @fs.read_file(resolved_path)
       let diff = generate_diff(
         initial_content, final_content, "Complete diff from initial write",
       )
-      @tool.ok(write_result.output + diff.diff_text)
+      guard write_result.output is String(write_msg) else {
+        return @tool.error("Unexpected write result format")
+      }
+      @tool.ok(
+        MetaWriteToFileResult::{
+          path: resolved_path,
+          message: write_msg,
+          diff: diff.diff_text,
+          learning_prompt: None,
+        }.to_json(),
+      )
     }
   } catch {
     error => @tool.error("Error in meta_write_to_file: \{error}", error~)
@@ -492,4 +541,17 @@ pub let meta_write_to_file : @tool.Tool[@agent.Agent] = @tool.tool(
     "required": ["path", "description"],
   },
   execute_meta_write_to_file,
+  render=result => {
+    let meta_write_to_file_result : MetaWriteToFileResult = @json.from_json(
+      result.output,
+    ) catch {
+      error => return "Error: Unexpected output format: \{error}"
+    }
+    let formatted = []
+    formatted.push("Path: \{meta_write_to_file_result.path}")
+    formatted.push("Message: \{meta_write_to_file_result.message}")
+    formatted.push("Diff: \{meta_write_to_file_result.diff}")
+    let result = formatted.join("\n")
+    result
+  },
 )

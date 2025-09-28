@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool/execute_command"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
@@ -12,13 +13,21 @@ fn context(rand~ : @random.Rand, cwd~ : String) -> Context
 let execute_command : @tool.Tool[Context]
 
 // Errors
-pub suberror TimeoutError {
-  TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
-}
-impl Show for TimeoutError
-impl ToJson for TimeoutError
 
 // Types and methods
+pub(all) struct CommandResult {
+  command : String
+  arguments : Array[String]
+  exit_code : Int
+  output : String
+  truncated : Bool
+  total_lines : Int
+  timeout_ms : Int
+  output_file : String?
+}
+impl ToJson for CommandResult
+impl @json.FromJson for CommandResult
+
 type Context
 
 // Type aliases

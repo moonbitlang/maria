@@ -5,9 +5,5 @@
     "moonbitlang/maria/path",
     "moonbitlang/maria/spawn",
     "moonbitlang/regexp"
-  ],
-  "test-import": [
-    "moonbitlang/maria/mock",
-    "moonbitlang/async"
   ]
 }

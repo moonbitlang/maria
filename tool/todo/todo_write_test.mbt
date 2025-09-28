@@ -17,7 +17,7 @@ async test "todo_write/create/plain" {
       todo_list,
     )
     inspect(
-      result.output,
+      (@todo.write.render)(result),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -54,7 +54,7 @@ async test "todo_write/create/<task>" {
       todo_list,
     )
     inspect(
-      result.output,
+      (@todo.write.render)(result),
       content=(
         #|✅ Operation completed: Created 7 new todo items
         #|
@@ -91,9 +91,18 @@ async test "todo_write/update" {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": "✅ Operation completed: Created 2 new todo items\n\n📝 Newly created todos:\n  🟡 ⏳ [b773b606] First item\n  🟡 ⏳ [8c2599d9] Second item\n\n📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0",
-    })
+    inspect(
+      (@todo.write.render)(result),
+      content=(
+        #|✅ Operation completed: Created 2 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🟡 ⏳ [b773b606] First item
+        #|  🟡 ⏳ [8c2599d9] Second item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
+      ),
+    )
     let result = @todo.write.call(
       {
         "action": "update",
@@ -105,7 +114,7 @@ async test "todo_write/update" {
       todo_list,
     )
     inspect(
-      result.output,
+      (@todo.write.render)(result),
       content=(
         #|✅ Operation completed: Updated task: Updated first item
         #|
@@ -140,8 +149,64 @@ async test "todo_write/mark_completed" {
       },
       todo_list,
     )
+    fn drop_time(json : Json) -> Json {
+      if json is Object(obj) {
+        let obj = obj.map((key, value) => if key == "created_at" ||
+          key == "updated_at" {
+          String("...")
+        } else {
+          drop_time(value)
+        })
+        Json::object(obj)
+      } else if json is Array(arr) {
+        Json::array(arr.map(item => drop_time(item)))
+      } else {
+        json
+      }
+    }
+
+    @json.inspect(drop_time(result.output), content={
+      "todos": [
+        {
+          "content": "First item",
+          "created_at": "...",
+          "id": "b773b606",
+          "priority": "Medium",
+          "status": "Pending",
+          "updated_at": "...",
+        },
+        {
+          "content": "Second item",
+          "created_at": "...",
+          "id": "8c2599d9",
+          "priority": "Medium",
+          "status": "Pending",
+          "updated_at": "...",
+        },
+      ],
+      "message": "Created 2 new todo items",
+      "updated_todos": [
+        {
+          "content": "First item",
+          "created_at": "...",
+          "id": "b773b606",
+          "priority": "Medium",
+          "status": "Pending",
+          "updated_at": "...",
+        },
+        {
+          "content": "Second item",
+          "created_at": "...",
+          "id": "8c2599d9",
+          "priority": "Medium",
+          "status": "Pending",
+          "updated_at": "...",
+        },
+      ],
+      "is_new_creation": true,
+    })
     inspect(
-      result.output,
+      (@todo.write.render)(result),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -156,8 +221,40 @@ async test "todo_write/mark_completed" {
       { "action": "mark_completed", "task_id": "b773b606" },
       todo_list,
     )
+    @json.inspect(drop_time(result.output), content={
+      "todos": [
+        {
+          "content": "First item",
+          "created_at": "...",
+          "id": "b773b606",
+          "priority": "Medium",
+          "status": "Completed",
+          "updated_at": "...",
+        },
+        {
+          "content": "Second item",
+          "created_at": "...",
+          "id": "8c2599d9",
+          "priority": "Medium",
+          "status": "Pending",
+          "updated_at": "...",
+        },
+      ],
+      "message": "Marked task as completed: First item",
+      "updated_todos": [
+        {
+          "content": "First item",
+          "created_at": "...",
+          "id": "b773b606",
+          "priority": "Medium",
+          "status": "Completed",
+          "updated_at": "...",
+        },
+      ],
+      "is_new_creation": false,
+    })
     inspect(
-      result.output,
+      (@todo.write.render)(result),
       content=(
         #|✅ Operation completed: Marked task as completed: First item
         #|

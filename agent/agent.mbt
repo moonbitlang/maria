@@ -89,8 +89,8 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   for name, tool in agent.tools {
     let tool = @openai.tool(
       name~,
-      description=tool.description,
-      parameters=tool.parameters,
+      description=tool.desc.description,
+      parameters=tool.desc.parameters,
     )
     tools.push(tool)
   }
@@ -167,7 +167,7 @@ async fn Agent::execute_tool(
     PostToolCall,
     EventContext::new(tool_call~, tool_call_result=result),
   )
-  @openai.tool_message(content=result.output, tool_call_id=tool_call.id)
+  @openai.tool_message(content=(tool.render)(result), tool_call_id=tool_call.id)
 }
 
 ///|
@@ -183,11 +183,12 @@ pub fn[T] Agent::add_tool(
   tool : @tool.Tool[T],
   state : T,
 ) -> Unit noraise {
-  agent.tools[tool.name] = @tool.tool(
-    description=tool.description,
-    name=tool.name,
-    parameters=tool.parameters,
+  agent.tools[tool.desc.name] = @tool.tool(
+    description=tool.desc.description,
+    name=tool.desc.name,
+    parameters=tool.desc.parameters,
     (args : Json, _ : Unit) => tool.call(args, state),
+    render=tool.render,
   )
 }
 

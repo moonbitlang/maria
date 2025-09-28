@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool/file"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
@@ -17,7 +18,43 @@ let write_to_file : @tool.Tool[Manager]
 // Errors
 
 // Types and methods
+pub(all) struct FileEntry {
+  name : String
+  kind : String
+  size : Int?
+  is_hidden : Bool
+}
+impl ToJson for FileEntry
+impl @json.FromJson for FileEntry
+
+pub(all) struct ListFilesResult {
+  path : String
+  entries : Array[FileEntry]
+  total_count : Int
+  file_count : Int
+  directory_count : Int
+}
+impl ToJson for ListFilesResult
+impl @json.FromJson for ListFilesResult
+
 type Manager
+
+pub(all) struct ReadDirectoryResult {
+  path : String
+  entries : Array[String]
+  display : String
+}
+impl ToJson for ReadDirectoryResult
+impl @json.FromJson for ReadDirectoryResult
+
+pub(all) struct ReadFileResult {
+  path : String
+  content : String
+  start_line : Int
+  end_line : Int
+}
+impl ToJson for ReadFileResult
+impl @json.FromJson for ReadFileResult
 
 // Type aliases
 

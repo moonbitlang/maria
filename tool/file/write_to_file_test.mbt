@@ -7,7 +7,13 @@ async test "write_to_file/create" {
     let args : Json = { "path": "nonexistent.txt" }
     let result = @file.write_to_file.call(args, manager)
     @json.inspect(result, content={
-      "output": "New file created and content written to nonexistent.txt",
+      "output": {
+        "path": "nonexistent.txt",
+        "operation": "created",
+        "bytes_written": 0,
+        "search_used": false,
+        "message": "New file created and content written to nonexistent.txt",
+      },
     })
   })
 }
@@ -20,10 +26,12 @@ async test "write_to_file/replace" {
     let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file("file.txt", "Old content")
     @json.inspect(@file.read_file.call({ "path": "file.txt" }, manager), content={
-      "output": (
-        #|File: file.txt (lines 1-1 (1 lines))
-        #|Old content
-      ),
+      "output": {
+        "path": "file.txt",
+        "content": "Old content",
+        "start_line": 1,
+        "end_line": 1,
+      },
     })
     let args : Json = {
       "path": "file.txt",
@@ -31,7 +39,15 @@ async test "write_to_file/replace" {
       "replace": "New content",
     }
     let result = @file.write_to_file.call(args, manager)
-    @json.inspect(result, content={ "output": "Changes applied to file.txt" })
+    @json.inspect(result, content={
+      "output": {
+        "path": "file.txt",
+        "operation": "updated",
+        "bytes_written": 11,
+        "search_used": true,
+        "message": "Changes applied to file.txt",
+      },
+    })
   })
 }
 
@@ -50,9 +66,7 @@ async test "write_to_file/fail-to-match" {
     let result = @file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": "Search content not found in file (tried all matching strategies): Non-matching content",
-      "error": [
-        "Failure", "Search content not found in file (tried all matching strategies): Non-matching content",
-      ],
+      "error": "moonbitlang/maria/tool.Failure.Failure",
     })
   })
 }
@@ -78,6 +92,14 @@ async test "write_to_file/search-replace" {
       "replace": "line 2 modified",
     }
     let result = @file.write_to_file.call(args, manager)
-    @json.inspect(result, content={ "output": "Changes applied to file.txt" })
+    @json.inspect(result, content={
+      "output": {
+        "path": "file.txt",
+        "operation": "updated",
+        "bytes_written": 36,
+        "search_used": true,
+        "message": "Changes applied to file.txt",
+      },
+    })
   })
 }
