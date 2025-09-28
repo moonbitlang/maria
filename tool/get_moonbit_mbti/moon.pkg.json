@@ -1,0 +1,15 @@
+{
+  "import": [
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/moon"
+  ],
+  "test-import": [
+    "moonbitlang/maria/mock",
+    "moonbitlang/async"
+  ],
+  "link": {
+    "native": {
+      "cc": "clang"
+    }
+  }
+}

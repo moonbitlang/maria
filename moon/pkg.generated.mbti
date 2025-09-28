@@ -107,6 +107,11 @@ pub struct Pos {
 impl Show for Pos
 impl ToJson for Pos
 
+type Project
+fn Project::name(Self) -> String
+async fn Project::new(String) -> Self
+async fn Project::package_(Self, String) -> PackageView?
+
 type SegmentView
 fn SegmentView::content(Self) -> String
 fn SegmentView::diagnostics(Self) -> Array[Diagnostic]

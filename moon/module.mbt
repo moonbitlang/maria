@@ -64,7 +64,7 @@ async fn Module::discover(self : Module) -> Unit {
   async fn walk_directories(dir : String) -> Unit {
     let moon_pkg_path = @path.join(dir, "moon.pkg.json")
     if !@fs.exists(moon_pkg_path) {
-      let entries = @fs.list_directory(self.source())
+      let entries = @fs.list_directory(dir)
       for entry in entries {
         if entry.kind is Directory {
           walk_directories(entry.path)

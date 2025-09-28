@@ -122,8 +122,6 @@ pub async fn File::replace_segment(
   index : Int,
   content : String,
 ) -> Unit {
-  println("self.segments: \{self.segments}")
-  println("index: \{index}")
   let replaced = StringBuilder::new()
   for segment in self.segments[:index + 1] {
     for i in 0..<segment.length {

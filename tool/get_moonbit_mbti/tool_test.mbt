@@ -1,0 +1,71 @@
+///|
+async test "get_moonbit_mbti" {
+  @mock.with_temporary_directory(name="maria-test-get-moonbit-mbti", dir => {
+    @moon.new(dir.path(), name="test_get_moonbit_mbti")
+    let get_moonbit_mbti = @get_moonbit_mbti.get_moonbit_mbti
+    let result = get_moonbit_mbti.call(
+      { "package": "moonbitlang/core/set" },
+      dir.path(),
+    )
+    guard result.output is String(output)
+    inspect(
+      output,
+      content=(
+        #|// Generated using `moon info`, DON'T EDIT IT
+        #|package "moonbitlang/core/set"
+        #|
+        #|// Values
+        #|
+        #|// Errors
+        #|
+        #|// Types and methods
+        #|type Set[K]
+        #|fn[K : Hash + Eq] Set::add(Self[K], K) -> Unit
+        #|fn[K : Hash + Eq] Set::add_and_check(Self[K], K) -> Bool
+        #|fn[K] Set::capacity(Self[K]) -> Int
+        #|fn[K] Set::clear(Self[K]) -> Unit
+        #|fn[K : Hash + Eq] Set::contains(Self[K], K) -> Bool
+        #|fn[K] Set::copy(Self[K]) -> Self[K]
+        #|fn[K : Hash + Eq] Set::difference(Self[K], Self[K]) -> Self[K]
+        #|fn[K] Set::each(Self[K], (K) -> Unit raise?) -> Unit raise?
+        #|fn[K] Set::eachi(Self[K], (Int, K) -> Unit raise?) -> Unit raise?
+        #|#as_free_fn
+        #|fn[K : Hash + Eq] Set::from_array(Array[K]) -> Self[K]
+        #|#as_free_fn
+        #|fn[K : Hash + Eq] Set::from_iter(Iter[K]) -> Self[K]
+        #|#deprecated
+        #|fn[K : Hash + Eq] Set::insert(Self[K], K) -> Unit
+        #|fn[K : Hash + Eq] Set::intersection(Self[K], Self[K]) -> Self[K]
+        #|fn[K : Hash + Eq] Set::is_disjoint(Self[K], Self[K]) -> Bool
+        #|fn[K] Set::is_empty(Self[K]) -> Bool
+        #|fn[K : Hash + Eq] Set::is_subset(Self[K], Self[K]) -> Bool
+        #|fn[K : Hash + Eq] Set::is_superset(Self[K], Self[K]) -> Bool
+        #|fn[K] Set::iter(Self[K]) -> Iter[K]
+        #|#as_free_fn
+        #|fn[K] Set::new(capacity? : Int) -> Self[K]
+        #|#as_free_fn
+        #|fn[K : Hash + Eq] Set::of(FixedArray[K]) -> Self[K]
+        #|fn[K : Hash + Eq] Set::remove(Self[K], K) -> Unit
+        #|fn[K : Hash + Eq] Set::remove_and_check(Self[K], K) -> Bool
+        #|fn[K] Set::size(Self[K]) -> Int
+        #|fn[K : Hash + Eq] Set::symmetric_difference(Self[K], Self[K]) -> Self[K]
+        #|fn[K] Set::to_array(Self[K]) -> Array[K]
+        #|fn[K : Hash + Eq] Set::union(Self[K], Self[K]) -> Self[K]
+        #|impl[K : Hash + Eq] BitAnd for Set[K]
+        #|impl[K : Hash + Eq] BitOr for Set[K]
+        #|impl[K : Hash + Eq] BitXOr for Set[K]
+        #|impl[K] Default for Set[K]
+        #|impl[K : Hash + Eq] Eq for Set[K]
+        #|impl[K : Show] Show for Set[K]
+        #|impl[K : Hash + Eq] Sub for Set[K]
+        #|impl[X : ToJson] ToJson for Set[X]
+        #|
+        #|// Type aliases
+        #|
+        #|// Traits
+        #|
+        #|
+      ),
+    )
+  })
+}

@@ -10,7 +10,7 @@ let max : Uuid
 
 let nil : Uuid
 
-fn parse(String) -> Uuid raise ParseError
+fn parse(StringView) -> Uuid raise ParseError
 
 fn v4(rand~ : @random.Rand) -> Uuid
 

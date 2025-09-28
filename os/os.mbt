@@ -24,3 +24,8 @@ pub fn now_ms() -> Int64 raise {
   let tv = @uv.gettimeofday()
   tv.sec() * 1000 + (tv.usec() / 1000).to_int64()
 }
+
+///|
+pub fn home() -> String raise {
+  @encoding/utf8.decode(@uv.os_homedir())
+}

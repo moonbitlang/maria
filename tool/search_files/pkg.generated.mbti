@@ -12,10 +12,6 @@ let search_files : @tool.Tool[String]
 // Errors
 
 // Types and methods
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6e1a276 (Add JSON serialization support for tool result structures by defining structured result types with ToJson/FromJson implementations across multiple tool modules including execute_command, file, search_files, and todo. Modified files include tool/*/pkg.generated.mbti to add result structs with JSON derives, updated write_to_file.mbt to expose WriteResult struct, refactored meta_write_to_file/tool.mbt to use MetaWriteToFileResult with proper JSON serialization, and fixed todo_read_test.mbt to expect JSON object output instead of array.)
 pub(all) struct SearchResult {
   context : String
   line_number : Int
@@ -24,11 +20,6 @@ pub(all) struct SearchResult {
 }
 impl ToJson for SearchResult
 impl @json.FromJson for SearchResult
-<<<<<<< HEAD
-=======
->>>>>>> 875f304 (refactor: use type for JSON (de)serialization)
-=======
->>>>>>> 6e1a276 (Add JSON serialization support for tool result structures by defining structured result types with ToJson/FromJson implementations across multiple tool modules including execute_command, file, search_files, and todo. Modified files include tool/*/pkg.generated.mbti to add result structs with JSON derives, updated write_to_file.mbt to expose WriteResult struct, refactored meta_write_to_file/tool.mbt to use MetaWriteToFileResult with proper JSON serialization, and fixed todo_read_test.mbt to expect JSON object output instead of array.)
 
 // Type aliases
 

@@ -56,6 +56,16 @@ pub(all) struct ReadFileResult {
 impl ToJson for ReadFileResult
 impl @json.FromJson for ReadFileResult
 
+pub(all) struct WriteResult {
+  path : String
+  operation : String
+  bytes_written : Int
+  search_used : Bool
+  message : String
+}
+impl ToJson for WriteResult
+impl @json.FromJson for WriteResult
+
 // Type aliases
 
 // Traits

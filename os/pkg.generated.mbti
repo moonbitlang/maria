@@ -12,7 +12,11 @@ fn cwd() -> String raise
 
 fn getenv(StringView) -> String? raise
 
+fn home() -> String raise
+
 fn now() -> @time.ZonedDateTime raise
+
+fn now_ms() -> Int64 raise
 
 // Errors
 

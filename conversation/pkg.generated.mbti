@@ -2,6 +2,7 @@
 package "moonbitlang/maria/conversation"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/core/random"
   "moonbitlang/maria/openai"
 )
@@ -13,15 +14,24 @@ import(
 // Types and methods
 type Conversation
 fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit raise
+fn Conversation::display(Self, show_messages? : Bool) -> Array[String] raise
 fn Conversation::export_to_markdown(Self) -> String
 fn Conversation::id(Self) -> Id
 fn Conversation::new(name~ : String, description? : String, id~ : Id) -> Self raise
 fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
+impl ToJson for Conversation
+impl @json.FromJson for Conversation
 
-type Id
+pub(all) struct Id(String)
+#deprecated
+fn Id::inner(Self) -> String
 fn Id::new(rand~ : @random.Rand) -> Self
+impl Show for Id
+impl ToJson for Id
+impl @json.FromJson for Id
 
 type Manager
+async fn Manager::list(Self) -> Array[Id]
 async fn Manager::load(Self, Id) -> Conversation?
 async fn Manager::new(path~ : String) -> Self
 async fn Manager::save(Self, Conversation) -> Unit
