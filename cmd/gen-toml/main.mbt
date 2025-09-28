@@ -83,7 +83,17 @@ async fn main {
   agent.add_tool(@todo.read, todo_list)
   agent.add_tool(@todo.write, todo_list)
   agent.add_tool(@get_moonbit_mbti.get_moonbit_mbti, agent.cwd)
-  agent.add_message(@openai.system_message(content=@prompt.system))
+  agent.add_message(
+    @openai.system_message(
+      content=[
+        @prompt.Prelude,
+        @prompt.MoonBit,
+        @todo.ReadPrompt,
+        @todo.WritePrompt,
+        @search_files.SearchFilesPrompt,
+      ].join("\n"),
+    ),
+  )
   agent.add_message(
     @openai.user_message(
       content="Can you please implement an TOML parser in MoonBit?",

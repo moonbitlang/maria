@@ -305,7 +305,18 @@ async fn main {
     let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
     agent.add_tool(@todo.read, todo_list)
     agent.add_tool(@todo.write, todo_list)
-    agent.add_message(@openai.system_message(content=@prompt.system))
+    agent.add_tool(@search_files.search_files, agent.cwd)
+    agent.add_message(
+      @openai.system_message(
+        content=[
+          @prompt.Prelude,
+          @prompt.MoonBit,
+          @todo.ReadPrompt,
+          @todo.WritePrompt,
+          @search_files.SearchFilesPrompt,
+        ].join("\n"),
+      ),
+    )
     let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
     rl.set_prompt("< ")
     group.spawn_bg(() => rl.start())
