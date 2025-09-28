@@ -6,10 +6,5 @@
   "test-import": [
     "moonbitlang/maria/mock",
     "moonbitlang/async"
-  ],
-  "link": {
-    "native": {
-      "cc": "clang"
-    }
-  }
+  ]
 }
