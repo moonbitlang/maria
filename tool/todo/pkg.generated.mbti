@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool/todo"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
@@ -16,7 +17,48 @@ let write : @tool.Tool[List]
 // Errors
 
 // Types and methods
+pub(all) struct Item {
+  content : String
+  created_at : String
+  id : String
+  notes : String?
+  priority : Priority
+  status : Status
+  updated_at : String
+}
+impl ToJson for Item
+impl @json.FromJson for Item
+
 type List
+
+pub(all) enum Priority {
+  High
+  Medium
+  Low
+}
+impl ToJson for Priority
+
+pub(all) enum Status {
+  Pending
+  InProgress
+  Completed
+}
+impl ToJson for Status
+
+pub(all) struct TodoReadResult {
+  todos : Array[Item]
+}
+impl ToJson for TodoReadResult
+impl @json.FromJson for TodoReadResult
+
+pub(all) struct TodoWriteResult {
+  todos : Array[Item]
+  message : String
+  updated_todos : Array[Item]
+  is_new_creation : Bool
+}
+impl ToJson for TodoWriteResult
+impl @json.FromJson for TodoWriteResult
 
 // Type aliases
 

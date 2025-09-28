@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool/execute_command"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
@@ -14,6 +15,19 @@ let execute_command : @tool.Tool[Context]
 // Errors
 
 // Types and methods
+pub(all) struct CommandResult {
+  command : String
+  arguments : Array[String]
+  exit_code : Int
+  output : String
+  truncated : Bool
+  total_lines : Int
+  timeout_ms : Int
+  output_file : String?
+}
+impl ToJson for CommandResult
+impl @json.FromJson for CommandResult
+
 type Context
 
 // Type aliases

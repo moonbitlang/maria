@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool/search_files"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
@@ -11,6 +12,14 @@ let search_files : @tool.Tool[String]
 // Errors
 
 // Types and methods
+pub(all) struct SearchResult {
+  context : String
+  line_number : Int
+  match_line : String
+  path : String
+}
+impl ToJson for SearchResult
+impl @json.FromJson for SearchResult
 
 // Type aliases
 

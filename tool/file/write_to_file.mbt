@@ -24,7 +24,7 @@ priv struct MatchResult {
 
 ///|
 /// Write operation result for structured JSON output
-priv struct WriteResult {
+pub(all) struct WriteResult {
   path : String
   operation : String // "created", "updated", "replaced"
   bytes_written : Int
