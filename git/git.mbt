@@ -55,26 +55,21 @@ pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
 ) -> String {
-  @async.with_task_group(group => @fs.with_temporary_directory(
-    "maria-git-diff-XXXXXXX",
-    tmpdir => {
-      let original_path = @path.join(tmpdir, "original.txt")
-      @fs.write_to_file(original_path, original)
-      let modified_path = @path.join(tmpdir, "modified.txt")
-      @fs.write_to_file(modified_path, modified)
-      group.add_defer(() => @fs.remove(original_path))
-      group.add_defer(() => @fs.remove(modified_path))
-      let output = StringBuilder::new()
-      @spawn.spawn(
-        "git",
-        [
-          "diff", "--no-index", "--no-index", "--no-prefix", "--unified=3", original_path,
-          modified_path,
-        ],
-        output~,
-      )
-      |> ignore()
-      output.to_string()
-    },
-  ))
+  @fs.with_temporary_directory("maria-git-diff-XXXXXXX", tmpdir => {
+    let original_path = @path.join(tmpdir, "original.txt")
+    @fs.write_to_file(original_path, original)
+    let modified_path = @path.join(tmpdir, "modified.txt")
+    @fs.write_to_file(modified_path, modified)
+    let output = StringBuilder::new()
+    @spawn.spawn(
+      "git",
+      [
+        "diff", "--no-index", "--no-index", "--no-prefix", "--unified=3", original_path,
+        modified_path,
+      ],
+      output~,
+    )
+    |> ignore()
+    output.to_string()
+  })
 }

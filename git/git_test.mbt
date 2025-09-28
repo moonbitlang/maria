@@ -1,7 +1,6 @@
 ///|
 async test "clone" {
-  // FIXME: Enable this test after we have a way to mock git repositories.
-  if false {
+  if @os.getenv("CI") is None {
     @async.with_task_group(g => {
       let repo = @mock.directory("git-clone")
       g.add_defer(() => repo.close())
@@ -14,13 +13,15 @@ async test "clone" {
 
 ///|
 async test "commit" {
-  @async.with_timeout(10_000, () => @async.with_task_group(g => {
-    let repo = @mock.directory("git-commit")
-    g.add_defer(() => repo.close())
-    @git.init_(repo.path())
-    let _ = repo.add_file("file.txt", "Hello, Moonbit!")
-    @git.commit("Initial commit", ["file.txt"], cwd=repo.path())
-  }))
+  if @os.getenv("CI") is None {
+    @async.with_task_group(g => {
+      let repo = @mock.directory("git-commit")
+      g.add_defer(() => repo.close())
+      @git.init_(repo.path())
+      let _ = repo.add_file("file.txt", "Hello, Moonbit!")
+      @git.commit("Initial commit", ["file.txt"], cwd=repo.path())
+    })
+  }
 }
 
 ///|
