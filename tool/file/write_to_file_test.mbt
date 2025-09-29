@@ -13,6 +13,7 @@ async test "write_to_file/create" {
         "bytes_written": 0,
         "search_used": false,
         "message": "New file created and content written to nonexistent.txt",
+        "content": "",
       },
     })
   })
@@ -46,6 +47,7 @@ async test "write_to_file/replace" {
         "bytes_written": 11,
         "search_used": true,
         "message": "Changes applied to file.txt",
+        "content": "New content",
       },
     })
   })
@@ -99,6 +101,7 @@ async test "write_to_file/search-replace" {
         "bytes_written": 36,
         "search_used": true,
         "message": "Changes applied to file.txt",
+        "content": "line 1\nline 2 modified\nline 3\nline 4",
       },
     })
   })

@@ -41,6 +41,7 @@ async fn main {
   })
   agent.add_listener(PreToolCall, context => {
     guard context.tool_call is Some(tool_call) else { return }
+    println("> Calling tool: \{tool_call.function.name}")
     logger.info("Calling tool", { "name": tool_call.function.name.to_json() })
     try {
       let args = @json.parse(tool_call.function.arguments)
@@ -58,12 +59,16 @@ async fn main {
     logger.info("Finished calling tool", {
       "name": tool_call.function.name.to_json(),
     })
-    guard context.tool_call_result is Some(result) else { return }
-    println("> Tool result: \{result.output.to_json().stringify(indent=2)}")
-    logger.info("Tool result", { "output": result.output.to_json() })
-    if result.error is Some(error) {
-      println("> Tool error: \{error}")
-      logger.error("Tool error", { "error": error.to_json() })
+    if context.tool_call_result_text is Some(text) {
+      println("> Tool result (text): \{text}")
+      logger.info("Tool result (text)", { "text": text.to_json() })
+    } else if context.tool_call_result is Some(result) {
+      println("> Tool result: \{result.output.to_json().stringify(indent=2)}")
+      logger.info("Tool result", { "output": result.output.to_json() })
+      if result.error is Some(error) {
+        println("> Tool error: \{error}")
+        logger.error("Tool error", { "error": error.to_json() })
+      }
     }
   })
   agent.add_listener(ConversationStart, _ => logger.info(

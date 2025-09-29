@@ -17,6 +17,7 @@ pub struct EventContext {
   pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.Result?
+  tool_call_result_text : String?
 }
 
 ///|
@@ -27,6 +28,7 @@ fn EventContext::new(
   pruned_token_count? : Int,
   tool_call? : @openai.ChatCompletionMessageToolCall,
   tool_call_result? : @tool.Result,
+  tool_call_result_text? : String,
 ) -> EventContext {
   EventContext::{
     usage,
@@ -35,6 +37,7 @@ fn EventContext::new(
     pruned_token_count,
     tool_call,
     tool_call_result,
+    tool_call_result_text,
   }
 }
 
@@ -163,11 +166,16 @@ async fn Agent::execute_tool(
       )
   }
   let result = tool.call(arguments, ())
+  let rendered = (tool.render)(result)
   agent.emit(
     PostToolCall,
-    EventContext::new(tool_call~, tool_call_result=result),
+    EventContext::new(
+      tool_call~,
+      tool_call_result=result,
+      tool_call_result_text=rendered,
+    ),
   )
-  @openai.tool_message(content=(tool.render)(result), tool_call_id=tool_call.id)
+  @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
 ///|
