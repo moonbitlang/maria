@@ -51,6 +51,10 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated and saved to a file.",
         "default": 100,
       },
+      "working_directory": {
+        "type": "string",
+        "description": "The working directory to execute the command in. Defaults to the current working directory of the agent.",
+      },
     },
     "required": ["command", "arguments", "timeout"],
   },
@@ -81,6 +85,16 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     } else {
       100
     }
+    let working_directory = if args
+      is { "working_directory": String(working_directory), .. } {
+      if @path.is_absolute(working_directory) {
+        working_directory
+      } else {
+        @path.join(ctx.cwd, working_directory)
+      }
+    } else {
+      ctx.cwd
+    }
     let arguments : Array[String] = @json.from_json(arguments) catch {
       error => return @tool.error("Error parsing 'arguments': \{error}")
     }
@@ -89,7 +103,12 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       let result = @async.with_timeout_opt(timeout, () => {
         let output = StringBuilder::new()
         let arguments_view = arguments.map(arg => arg.view())
-        let status = @spawn.spawn(command, arguments_view, output~, cwd=ctx.cwd)
+        let status = @spawn.spawn(
+          command,
+          arguments_view,
+          output~,
+          cwd=working_directory,
+        )
         let output_text = output.to_string()
         let lines = output_text.split("\n").collect()
         let (final_output, truncated, output_file) = if lines.length() >=

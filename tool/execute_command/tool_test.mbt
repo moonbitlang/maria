@@ -98,3 +98,50 @@ async test "cd" {
     })
   })
 }
+
+///|
+async test "working_directory" {
+  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
+  @async.with_task_group(group => {
+    let cwd = @mock.directory("tool-execute-command-working-directory-test")
+    group.add_defer(() => cwd.close())
+    let _ = cwd.add_file("file.txt", "hello world")
+    let result = @execute_command.execute_command.call(
+      {
+        "command": "cat",
+        "arguments": ["file.txt"],
+        "timeout": 5000,
+        "working_directory": ".",
+      },
+      @execute_command.context(rand~, cwd=cwd.path()),
+    )
+    @json.inspect(result.output, content={
+      "command": "cat",
+      "arguments": ["file.txt"],
+      "exit_code": 0,
+      "output": "hello world",
+      "truncated": false,
+      "total_lines": 1,
+      "timeout_ms": 5000,
+    })
+    let _ = cwd.add_file("subdir/file.txt", "hello from subdir")
+    let result = @execute_command.execute_command.call(
+      {
+        "command": "cat",
+        "arguments": ["file.txt"],
+        "timeout": 5000,
+        "working_directory": "subdir",
+      },
+      @execute_command.context(rand~, cwd=cwd.path()),
+    )
+    @json.inspect(result.output, content={
+      "command": "cat",
+      "arguments": ["file.txt"],
+      "exit_code": 0,
+      "output": "hello from subdir",
+      "truncated": false,
+      "total_lines": 1,
+      "timeout_ms": 5000,
+    })
+  })
+}
