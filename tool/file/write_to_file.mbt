@@ -30,6 +30,7 @@ pub(all) struct WriteResult {
   bytes_written : Int
   search_used : Bool
   message : String
+  content : String
 } derive(ToJson, FromJson)
 
 ///|
@@ -239,6 +240,7 @@ async fn Manager::execute_write_to_file(
         bytes_written: replace.length(),
         search_used: false,
         message: "New file created and content written to \{path}",
+        content: replace,
       }
       @tool.ok(result.to_json())
     }
@@ -294,6 +296,7 @@ async fn Manager::execute_write_to_file(
       bytes_written: content.length(),
       search_used: search is Some(_),
       message: "Changes applied to \{path}",
+      content,
     }
     @tool.ok(result.to_json())
   } catch {
