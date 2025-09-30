@@ -8,10 +8,7 @@ async test "timeout" {
     ),
     content={
       "output": "Timeout when executing command",
-      "error": [
-        "TimeoutError",
-        { "command": "sleep", "arguments": ["5"], "timeout": 1 },
-      ],
+      "error": ["TimeoutError", { "command": "sleep", "timeout": 1 }],
     },
   ))
 }
@@ -24,12 +21,11 @@ async test "cat" {
     g.add_defer(() => cwd.close())
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
-      { "command": "cat", "arguments": ["file.txt"], "timeout": 5000 },
+      { "command": "cat file.txt", "timeout": 5000 },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
-      "command": "cat",
-      "arguments": ["file.txt"],
+      "command": "cat file.txt",
       "exit_code": 0,
       "output": "hello world",
       "truncated": false,
@@ -51,20 +47,15 @@ async test "output-overflow" {
     }
     let _ = cwd.add_file("file.txt", lines.join("\n"))
     let result = @execute_command.execute_command.call(
-      {
-        "command": "cat",
-        "arguments": ["file.txt"],
-        "timeout": 5000,
-        "max_output_lines": 5,
-      },
+      { "command": "cat file.txt", "timeout": 5000, "max_output_lines": 5 },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
-    @json.inspect(result.output.as_object().unwrap()["command"], content="cat")
-    @json.inspect(result.output.as_object().unwrap()["arguments"], content=[
-      "file.txt",
-    ])
+    @json.inspect(
+      result.output.as_object().unwrap()["command"],
+      content="cat file.txt",
+    )
     @json.inspect(result.output.as_object().unwrap()["exit_code"], content=0)
     @json.inspect(
       result.output.as_object().unwrap()["output"],
@@ -86,38 +77,15 @@ async test "output-overflow" {
 async test "cd" {
   let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-execute-command-output-overflow-test")
-    group.add_defer(() => cwd.close())
-    let result = @execute_command.execute_command.call(
-      { "command": "cd", "arguments": [".."], "timeout": 5000 },
-      @execute_command.context(rand~, cwd=cwd.path()),
-    )
-    @json.inspect(result, content={
-      "output": "Error: 'cd' command is not allowed. It makes no sense to change directory in a subprocess, as the working directory of parent process remains unchanged.",
-      "error": "moonbitlang/maria/tool.Failure.Failure",
-    })
-  })
-}
-
-///|
-async test "working_directory" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @async.with_task_group(group => {
     let cwd = @mock.directory("tool-execute-command-working-directory-test")
     group.add_defer(() => cwd.close())
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
-      {
-        "command": "cat",
-        "arguments": ["file.txt"],
-        "timeout": 5000,
-        "working_directory": ".",
-      },
+      { "command": "cat file.txt", "timeout": 5000 },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
-      "command": "cat",
-      "arguments": ["file.txt"],
+      "command": "cat file.txt",
       "exit_code": 0,
       "output": "hello world",
       "truncated": false,
@@ -126,17 +94,11 @@ async test "working_directory" {
     })
     let _ = cwd.add_file("subdir/file.txt", "hello from subdir")
     let result = @execute_command.execute_command.call(
-      {
-        "command": "cat",
-        "arguments": ["file.txt"],
-        "timeout": 5000,
-        "working_directory": "subdir",
-      },
+      { "command": "cd subdir && cat file.txt", "timeout": 5000 },
       @execute_command.context(rand~, cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
-      "command": "cat",
-      "arguments": ["file.txt"],
+      "command": "cd subdir && cat file.txt",
       "exit_code": 0,
       "output": "hello from subdir",
       "truncated": false,

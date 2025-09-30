@@ -1,6 +1,6 @@
 ///|
 priv suberror TimeoutError {
-  TimeoutError(command~ : String, arguments~ : Array[String], timeout~ : Int)
+  TimeoutError(command~ : String, timeout~ : Int)
 } derive(ToJson, Show)
 
 ///|
@@ -18,7 +18,6 @@ pub fn context(rand~ : @random.Rand, cwd~ : String) -> Context {
 /// Command execution result structure for structured JSON output
 pub(all) struct CommandResult {
   command : String
-  arguments : Array[String]
   exit_code : Int
   output : String
   truncated : Bool
@@ -29,21 +28,18 @@ pub(all) struct CommandResult {
 
 ///|
 pub let execute_command : @tool.Tool[Context] = @tool.tool(
-  description="Execute an external program",
+  description="Execute an shell command with arguments and capture its output.",
   name="execute_command",
   parameters={
     "type": "object",
     "properties": {
-      "command": { "type": "string", "description": "The program to execute" },
-      "arguments": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "The arguments to pass to the program",
-        "default": [],
+      "command": {
+        "type": "string",
+        "description": "The shell command to execute",
       },
       "timeout": {
         "type": "number",
-        "description": "The timeout in milliseconds for the program to execute",
+        "description": "The timeout in milliseconds for the shell command to execute",
         "default": 1000,
       },
       "max_output_lines": {
@@ -51,29 +47,15 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated and saved to a file.",
         "default": 100,
       },
-      "working_directory": {
-        "type": "string",
-        "description": "The working directory to execute the command in. Defaults to the current working directory of the agent.",
-      },
     },
-    "required": ["command", "arguments", "timeout"],
+    "required": ["command", "timeout"],
   },
   (args, ctx) => {
     let id = @uuid.v4(rand=ctx.rand)
     guard args
-      is {
-        "command": String(command),
-        "arguments": arguments,
-        "timeout": Number(timeout, ..),
-        ..
-      } else {
+      is { "command": String(command), "timeout": Number(timeout, ..), .. } else {
       return @tool.error(
-        "Error: 'command', 'arguments' and 'timeout' parameters are required",
-      )
-    }
-    if command is "cd" {
-      return @tool.error(
-        "Error: 'cd' command is not allowed. It makes no sense to change directory in a subprocess, as the working directory of parent process remains unchanged.",
+        "Error: 'command' and 'timeout' parameters are required",
       )
     }
     let max_output_lines = if args
@@ -95,17 +77,13 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     } else {
       ctx.cwd
     }
-    let arguments : Array[String] = @json.from_json(arguments) catch {
-      error => return @tool.error("Error parsing 'arguments': \{error}")
-    }
     let timeout = timeout.to_int()
     try {
       let result = @async.with_timeout_opt(timeout, () => {
         let output = StringBuilder::new()
-        let arguments_view = arguments.map(arg => arg.view())
         let status = @spawn.spawn(
-          command,
-          arguments_view,
+          "sh",
+          ["-c", command],
           output~,
           cwd=working_directory,
         )
@@ -114,7 +92,8 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         let (final_output, truncated, output_file) = if lines.length() >=
           max_output_lines {
           let relative_path = ".moonagent"
-            |> @path.join("processes")
+            |> @path.join("tools")
+            |> @path.join("execute_command")
             |> @path.join("\{id}")
             |> @path.join("output.txt")
           let absolute_path = ctx.cwd |> @path.join(relative_path)
@@ -139,7 +118,6 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         }
         let result = CommandResult::{
           command,
-          arguments,
           exit_code: status,
           output: final_output,
           truncated,
@@ -152,7 +130,7 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       match result {
         Some(result) => result
         None => {
-          let error = TimeoutError(command~, arguments~, timeout~)
+          let error = TimeoutError(command~, timeout~)
           @tool.error("Timeout when executing command", error~)
         }
       }
@@ -165,8 +143,7 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       error => return "Error: Unexpected output format: \{error}"
     }
     let formatted = []
-    let args_joined = cmd_result.arguments.join(" ")
-    formatted.push("Command: \{cmd_result.command} \{args_joined}")
+    formatted.push("Command: \{cmd_result.command}")
     formatted.push("Exit code: \{cmd_result.exit_code}")
     if cmd_result.truncated {
       let newline_split = cmd_result.output.split("\n")
