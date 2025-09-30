@@ -1,9 +1,9 @@
 ///|
 priv struct HistoryManager {
-  history : @deque.Deque[@bytes.View]
+  history : @deque.Deque[BytesView]
   mut index : Int
   size : Int
-  events : @aqueue.Queue[@deque.Deque[@bytes.View]]
+  events : @aqueue.Queue[@deque.Deque[BytesView]]
 }
 
 ///|
@@ -27,7 +27,7 @@ fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
 }
 
 ///|
-fn @bytes.View::has_prefix(self : @bytes.View, prefix : @bytes.View) -> Bool {
+fn BytesView::has_prefix(self : BytesView, prefix : BytesView) -> Bool {
   if self.length() <= prefix.length() {
     return false
   }
@@ -40,7 +40,7 @@ fn @bytes.View::has_prefix(self : @bytes.View, prefix : @bytes.View) -> Bool {
 }
 
 ///|
-fn @bytes.View::trim_start(self : @bytes.View) -> @bytes.View {
+fn BytesView::trim_start(self : BytesView) -> BytesView {
   loop self {
     [' ', .. rest] => continue rest
     [.. rest] => break rest
@@ -48,7 +48,7 @@ fn @bytes.View::trim_start(self : @bytes.View) -> @bytes.View {
 }
 
 ///|
-fn @bytes.View::trim_end(self : @bytes.View) -> @bytes.View {
+fn BytesView::trim_end(self : BytesView) -> BytesView {
   loop self {
     [.. rest, ' '] => continue rest
     [.. rest] => break rest
@@ -56,16 +56,16 @@ fn @bytes.View::trim_end(self : @bytes.View) -> @bytes.View {
 }
 
 ///|
-fn @bytes.View::trim(self : @bytes.View) -> @bytes.View {
+fn BytesView::trim(self : BytesView) -> BytesView {
   self.trim_start().trim_end()
 }
 
 ///|
 fn reverse_string(
-  line : @bytes.View,
+  line : BytesView,
   from? : Byte = '\r',
   to? : Byte = '\r',
-) -> @bytes.View {
+) -> BytesView {
   let parts = []
   let mut start = 0
   loop line[:] {
@@ -92,10 +92,10 @@ fn reverse_string(
 ///|
 fn HistoryManager::add_history(
   self : HistoryManager,
-  line : @bytes.View,
+  line : BytesView,
   is_multiline~ : Bool,
   last_command_errored~ : Bool,
-) -> @bytes.View {
+) -> BytesView {
   if line.length() == 0 {
     return ""
   }
@@ -140,8 +140,8 @@ fn HistoryManager::add_history(
 ///|
 fn HistoryManager::navigate_to_next(
   self : HistoryManager,
-  substring_search : @bytes.View,
-) -> @bytes.View? {
+  substring_search : BytesView,
+) -> BytesView? {
   if !self.can_navigate_to_next() {
     return None
   }
@@ -160,8 +160,8 @@ fn HistoryManager::navigate_to_next(
 ///|
 fn HistoryManager::navigate_to_previous(
   self : HistoryManager,
-  substring_search : @bytes.View,
-) -> @bytes.View? {
+  substring_search : BytesView,
+) -> BytesView? {
   if !self.can_navigate_to_prev() {
     return None
   }
