@@ -1,10 +1,9 @@
 ///|
 async test "timeout" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(_ => @json.inspect(
     @execute_command.execute_command.call(
       { "command": "sleep", "arguments": ["5"], "timeout": 1 },
-      @execute_command.context(rand~, cwd="."),
+      @execute_command.context(cwd="."),
     ),
     content={
       "output": "Timeout when executing command",
@@ -15,14 +14,13 @@ async test "timeout" {
 
 ///|
 async test "cat" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(g => {
     let cwd = @mock.directory("tool-execute-command-test")
     g.add_defer(() => cwd.close())
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },
-      @execute_command.context(rand~, cwd=cwd.path()),
+      @execute_command.context(cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cat file.txt",
@@ -37,7 +35,6 @@ async test "cat" {
 
 ///|
 async test "output-overflow" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(group => {
     let cwd = @mock.directory("tool-execute-command-output-overflow-test")
     group.add_defer(() => cwd.close())
@@ -48,7 +45,7 @@ async test "output-overflow" {
     let _ = cwd.add_file("file.txt", lines.join("\n"))
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000, "max_output_lines": 5 },
-      @execute_command.context(rand~, cwd=cwd.path()),
+      @execute_command.context(cwd=cwd.path()),
     )
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
@@ -75,14 +72,13 @@ async test "output-overflow" {
 
 ///|
 async test "cd" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(group => {
     let cwd = @mock.directory("tool-execute-command-working-directory-test")
     group.add_defer(() => cwd.close())
     let _ = cwd.add_file("file.txt", "hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },
-      @execute_command.context(rand~, cwd=cwd.path()),
+      @execute_command.context(cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cat file.txt",
@@ -95,7 +91,7 @@ async test "cd" {
     let _ = cwd.add_file("subdir/file.txt", "hello from subdir")
     let result = @execute_command.execute_command.call(
       { "command": "cd subdir && cat file.txt", "timeout": 5000 },
-      @execute_command.context(rand~, cwd=cwd.path()),
+      @execute_command.context(cwd=cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cd subdir && cat file.txt",

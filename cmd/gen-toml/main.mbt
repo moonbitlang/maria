@@ -78,13 +78,13 @@ async fn main {
   agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
   agent.add_tool(
     @execute_command.execute_command,
-    @execute_command.context(rand=agent.rand, cwd=agent.cwd),
+    @execute_command.context(cwd=agent.cwd),
   )
   let file_manager = @file.manager(cwd~)
   agent.add_tool(@file.list_files, file_manager)
   agent.add_tool(@file.read_file, file_manager)
   agent.add_tool(@file.write_to_file, file_manager)
-  let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
+  let todo_list = @todo.list(cwd=agent.cwd)
   agent.add_tool(@todo.read, todo_list)
   agent.add_tool(@todo.write, todo_list)
   agent.add_tool(@get_moonbit_mbti.get_moonbit_mbti, agent.cwd)

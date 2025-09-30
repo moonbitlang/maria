@@ -5,13 +5,12 @@ priv suberror TimeoutError {
 
 ///|
 struct Context {
-  rand : @random.Rand
   cwd : String
 }
 
 ///|
-pub fn context(rand~ : @random.Rand, cwd~ : String) -> Context {
-  Context::{ rand, cwd }
+pub fn context(cwd~ : String) -> Context {
+  Context::{ cwd, }
 }
 
 ///|
@@ -51,7 +50,6 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     "required": ["command", "timeout"],
   },
   (args, ctx) => {
-    let id = @uuid.v4(rand=ctx.rand)
     guard args
       is { "command": String(command), "timeout": Number(timeout, ..), .. } else {
       return @tool.error(
@@ -91,6 +89,7 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         let lines = output_text.split("\n").collect()
         let (final_output, truncated, output_file) = if lines.length() >=
           max_output_lines {
+          let id = @uuid.v4()
           let relative_path = ".moonagent"
             |> @path.join("tools")
             |> @path.join("execute_command")

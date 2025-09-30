@@ -8,5 +8,5 @@
     "moonbitlang/maria/os",
     "moonbitlang/x/time"
   ],
-  "test-import": ["moonbitlang/maria/rand", "moonbitlang/maria/mock"]
+  "test-import": ["moonbitlang/maria/mock"]
 }

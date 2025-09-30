@@ -9,7 +9,6 @@
   ],
   "test-import": [
     "moonbitlang/async",
-    "moonbitlang/maria/mock",
-    "moonbitlang/maria/rand"
+    "moonbitlang/maria/mock"
   ]
 }

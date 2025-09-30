@@ -264,8 +264,8 @@ pub fn Conversation::add_message(
 pub(all) struct Id(String)
 
 ///|
-pub fn Id::new(rand~ : @random.Rand) -> Id {
-  Id(@uuid.v4(rand~).to_string())
+pub fn Id::new() -> Id raise {
+  Id(@uuid.v4().to_string())
 }
 
 ///|
