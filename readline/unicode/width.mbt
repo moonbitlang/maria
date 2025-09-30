@@ -1,5 +1,5 @@
 ///|
-pub fn char_width_left(string : @bytes.View, index : Int) -> Int {
+pub fn char_width_left(string : BytesView, index : Int) -> Int {
   let char = match string[:index] {
     [] => return 0
     [.., 0x00..=0x7F as b0] => Some(b0.to_char())
@@ -43,7 +43,7 @@ pub fn char_width_left(string : @bytes.View, index : Int) -> Int {
 }
 
 ///|
-pub fn char_size_left(string : @bytes.View, index : Int) -> Int {
+pub fn char_size_left(string : BytesView, index : Int) -> Int {
   for width = 0, string = string[:index] {
     let mut char : Char? = None
     let mut size = 0
@@ -119,7 +119,7 @@ pub fn char_size_left(string : @bytes.View, index : Int) -> Int {
 }
 
 ///|
-pub fn char_width_right(string : @bytes.View, index : Int) -> Int {
+pub fn char_width_right(string : BytesView, index : Int) -> Int {
   let char : Char? = match string[index:] {
     [] => return 0
     [0x00..=0x7F as b0, ..] => Some(b0.to_char())
@@ -163,7 +163,7 @@ pub fn char_width_right(string : @bytes.View, index : Int) -> Int {
 }
 
 ///|
-pub fn char_size_right(string : @bytes.View, index : Int) -> Int {
+pub fn char_size_right(string : BytesView, index : Int) -> Int {
   let char : Char? = match string[index:] {
     [] => return 0
     [0x00..=0x7F as b0, ..] => Some(b0.to_char())

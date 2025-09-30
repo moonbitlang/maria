@@ -1,5 +1,5 @@
 ///|
-fn @bytes.View::end_offset(self : @bytes.View) -> Int {
+fn BytesView::end_offset(self : BytesView) -> Int {
   self.start_offset() + self.length()
 }
 
@@ -21,7 +21,7 @@ pub let sep : Byte = try {
 }
 
 ///|
-pub fn dirname(path : @bytes.View) -> @bytes.View {
+pub fn dirname(path : BytesView) -> BytesView {
   if sep == '\\' {
     loop path {
       [] => "."
@@ -38,7 +38,7 @@ pub fn dirname(path : @bytes.View) -> @bytes.View {
 }
 
 ///|
-pub fn basename(path : @bytes.View) -> @bytes.View {
+pub fn basename(path : BytesView) -> BytesView {
   if sep == '\\' {
     loop path[:] {
       [] => "."
@@ -55,7 +55,7 @@ pub fn basename(path : @bytes.View) -> @bytes.View {
 }
 
 ///|
-pub fn ext(path : @bytes.View) -> @bytes.View {
+pub fn ext(path : BytesView) -> BytesView {
   loop path[:] {
     [] => ""
     [.. view, '.'] => path[view.end_offset():]
@@ -64,7 +64,7 @@ pub fn ext(path : @bytes.View) -> @bytes.View {
 }
 
 ///|
-pub fn stem(path : @bytes.View) -> @bytes.View {
+pub fn stem(path : BytesView) -> BytesView {
   let base = basename(path)
   loop base[:] {
     [] => base
@@ -74,7 +74,7 @@ pub fn stem(path : @bytes.View) -> @bytes.View {
 }
 
 ///|
-fn trim_sep(p : @bytes.View) -> @bytes.View {
+fn trim_sep(p : BytesView) -> BytesView {
   if sep == '\\' {
     loop p {
       [.. p, '\\' | '/'] => continue p
@@ -90,7 +90,7 @@ fn trim_sep(p : @bytes.View) -> @bytes.View {
 }
 
 ///|
-pub fn join(p : @bytes.View, q : @bytes.View) -> Bytes {
+pub fn join(p : BytesView, q : BytesView) -> Bytes {
   let p = trim_sep(p)
   let q = trim_sep(q)
   if p is ("" | ".") {

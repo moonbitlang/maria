@@ -62,6 +62,7 @@ pub(all) struct WriteResult {
   bytes_written : Int
   search_used : Bool
   message : String
+  content : String
 }
 impl ToJson for WriteResult
 impl @json.FromJson for WriteResult

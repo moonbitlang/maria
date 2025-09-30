@@ -1,6 +1,6 @@
 ///|
 priv struct Edit {
-  text : @bytes.View
+  text : BytesView
   cursor : Int
 }
 
@@ -52,7 +52,7 @@ pub struct Key {
 
 ///|
 priv struct Events {
-  line : @aqueue.Queue[@bytes.View]
+  line : @aqueue.Queue[BytesView]
   keypress : @aqueue.Queue[KeyPress]
   key : @aqueue.Queue[Key]
 }
@@ -71,8 +71,8 @@ struct Interface {
   tty : @uv.Tty
   input : @pipe.PipeRead
   output : @pipe.PipeWrite
-  mut line : @bytes.View
-  mut previous_line : @bytes.View
+  mut line : BytesView
+  mut previous_line : BytesView
   mut is_multiline : Bool
   mut prompt : Bytes
   mut old_prompt : Bytes
@@ -85,10 +85,10 @@ struct Interface {
   mut previous_key : Key?
   undo_stack : @deque.Deque[Edit]
   redo_stack : @deque.Deque[Edit]
-  kill_ring : @deque.Deque[@bytes.View]
+  kill_ring : @deque.Deque[BytesView]
   mut kill_ring_cursor : Int
   mut yanking : Bool
-  mut substring_search : @bytes.View?
+  mut substring_search : BytesView?
   history : @deque.Deque[Bytes]
   mut history_index : Int
   events : Events
@@ -148,7 +148,7 @@ pub fn Interface::close(self : Interface) -> Unit {
 }
 
 ///|
-pub fn Interface::set_line(self : Interface, line : @bytes.View) -> Unit {
+pub fn Interface::set_line(self : Interface, line : BytesView) -> Unit {
   self.line = line
   loop line[:] {
     [] => break
@@ -346,7 +346,7 @@ fn Interface::get_display_position(
 ///|
 fn Interface::push_to_undo_stack(
   self : Interface,
-  text : @bytes.View,
+  text : BytesView,
   cursor : Int,
 ) -> Unit {
   self.undo_stack.push_back({ text, cursor })
@@ -358,7 +358,7 @@ fn Interface::push_to_undo_stack(
 ///|
 fn Interface::before_edit(
   self : Interface,
-  old_text : @bytes.View,
+  old_text : BytesView,
   old_cursor : Int,
 ) -> Unit {
   self.push_to_undo_stack(old_text, old_cursor)
@@ -367,7 +367,7 @@ fn Interface::before_edit(
 ///|
 async fn Interface::insert_string(
   self : Interface,
-  string : @bytes.View,
+  string : BytesView,
 ) -> Unit {
   self.before_edit(self.line, self.cursor)
   if self.cursor < self.line.length() {
@@ -418,7 +418,7 @@ const MaxLengthOfKillRing = 32
 ///|
 async fn Interface::push_to_kill_ring(
   self : Interface,
-  del : @bytes.View,
+  del : BytesView,
 ) -> Unit noraise {
   if del == "" || self.kill_ring.back() == Some(del) {
     return
@@ -519,7 +519,7 @@ async fn Interface::yank_pop(self : Interface) -> Unit {
 }
 
 ///|
-fn word_size_left(string : @bytes.View, index : Int) -> Int {
+fn word_size_left(string : BytesView, index : Int) -> Int {
   if index == 0 {
     return 0
   }
@@ -535,7 +535,7 @@ fn word_size_left(string : @bytes.View, index : Int) -> Int {
 }
 
 ///|
-fn word_right_left(string : @bytes.View, index : Int) -> Int {
+fn word_right_left(string : BytesView, index : Int) -> Int {
   if index >= string.length() {
     return 0
   }
@@ -650,7 +650,7 @@ pub fn Interface::add_new_line_on_tty(self : Interface) -> Unit {
 }
 
 ///|
-fn Interface::add_history(self : Interface) -> @bytes.View {
+fn Interface::add_history(self : Interface) -> BytesView {
   return self.history_manager.add_history(
     self.line,
     is_multiline=self.is_multiline,
@@ -678,7 +678,7 @@ async fn Interface::line(self : Interface) -> Unit {
 }
 
 ///|
-fn @bytes.View::split(self : @bytes.View, sep : Byte) -> Array[@bytes.View] {
+fn BytesView::split(self : BytesView, sep : Byte) -> Array[BytesView] {
   let parts = []
   let mut start = 0
   loop self[:] {
@@ -700,7 +700,7 @@ fn @bytes.View::split(self : @bytes.View, sep : Byte) -> Array[@bytes.View] {
 async fn Interface::multiline_move(
   self : Interface,
   direction : Int,
-  split_lines : Array[@bytes.View],
+  split_lines : Array[BytesView],
   cursor_pos : Position,
 ) -> Unit {
   let rows = cursor_pos.rows
