@@ -365,10 +365,7 @@ fn Interface::before_edit(
 }
 
 ///|
-async fn Interface::insert_string(
-  self : Interface,
-  string : BytesView,
-) -> Unit {
+async fn Interface::insert_string(self : Interface, string : BytesView) -> Unit {
   self.before_edit(self.line, self.cursor)
   if self.cursor < self.line.length() {
     let begin = self.line[:self.cursor]
