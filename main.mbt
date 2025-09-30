@@ -124,7 +124,7 @@ async fn Migrator::execute(
     println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
     println("created agent")
-    let todo_list = @todo.list(rand=agent.rand, cwd=dst_path)
+    let todo_list = @todo.list(cwd=dst_path)
     println("created todo list")
     let file_manager = @file.manager(cwd=dst_path)
     println("created file manager")
@@ -136,7 +136,7 @@ async fn Migrator::execute(
     agent.add_message(@openai.user_message(content=prompt))
     agent.add_tool(
       @execute_command.execute_command,
-      @execute_command.context(rand=agent.rand, cwd=dst_path),
+      @execute_command.context(cwd=dst_path),
     )
     agent.add_tool(@file.list_files, file_manager)
     agent.add_tool(@file.read_file, file_manager)
@@ -296,13 +296,13 @@ async fn main {
     agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
     agent.add_tool(
       @execute_command.execute_command,
-      @execute_command.context(rand=agent.rand, cwd=agent.cwd),
+      @execute_command.context(cwd=agent.cwd),
     )
     let file_manager = @file.manager(cwd~)
     agent.add_tool(@file.list_files, file_manager)
     agent.add_tool(@file.read_file, file_manager)
     agent.add_tool(@file.write_to_file, file_manager)
-    let todo_list = @todo.list(rand=agent.rand, cwd=agent.cwd)
+    let todo_list = @todo.list(cwd=agent.cwd)
     agent.add_tool(@todo.read, todo_list)
     agent.add_tool(@todo.write, todo_list)
     agent.add_tool(@search_files.search_files, agent.cwd)

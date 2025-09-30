@@ -34,10 +34,9 @@ test "to_bytes" {
 
 ///|
 test "v4" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  @json.inspect(@uuid.v4(rand~) == @uuid.v4(rand~), content=false)
-  @json.inspect(@uuid.v4(rand~).variant(), content=["RFC9562", "V4"])
-  @json.inspect(@uuid.v4(rand~).version(), content=["V4"])
+  @json.inspect(@uuid.v4() == @uuid.v4(), content=false)
+  @json.inspect(@uuid.v4().variant(), content=["RFC9562", "V4"])
+  @json.inspect(@uuid.v4().version(), content=["V4"])
 }
 
 ///|
@@ -81,16 +80,14 @@ test "max" {
 
 ///|
 test "compare" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @json.inspect(@uuid.nil < @uuid.max, content=true)
-  @json.inspect(@uuid.nil < @uuid.v4(rand~), content=true)
-  @json.inspect(@uuid.v4(rand~) < @uuid.max, content=true)
+  @json.inspect(@uuid.nil < @uuid.v4(), content=true)
+  @json.inspect(@uuid.v4() < @uuid.max, content=true)
 }
 
 ///|
 test "hash" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
-  let v4 = @uuid.v4(rand~)
+  let v4 = @uuid.v4()
   @json.inspect(v4.hash() == v4.hash(), content=true)
-  @json.inspect(@uuid.v4(rand~).hash() != @uuid.v4(rand~).hash(), content=true)
+  @json.inspect(@uuid.v4().hash() != @uuid.v4().hash(), content=true)
 }

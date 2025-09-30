@@ -25,9 +25,9 @@ pub impl ToJson for Uuid with to_json(self : Uuid) -> Json {
 }
 
 ///|
-pub fn v4(rand~ : @random.Rand) -> Uuid {
-  let hi = rand.uint64()
-  let lo = rand.uint64()
+pub fn v4() -> Uuid raise {
+  let hi = @rand.uint64()
+  let lo = @rand.uint64()
   let hi = (hi & 0xFFFF_FFFF_FFFF_0FFF_UL) | 0x0000_0000_0000_4000_UL
   let lo = (lo & 0x0FFF_FFFF_FFFF_FFFF_UL) | 0x8000_0000_0000_0000_UL
   { hi, lo }

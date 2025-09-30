@@ -6,7 +6,6 @@ fn get_current_timestamp() -> String raise {
 
 ///|
 struct List {
-  rand : @random.Rand
   cwd : String
   mut todos : Array[Item]
   mut created_at : String
@@ -113,9 +112,8 @@ fn Item::update(
 }
 
 ///|
-pub fn list(rand~ : @random.Rand, cwd~ : StringView) -> List raise {
+pub fn list(cwd~ : StringView) -> List raise {
   List::{
-    rand,
     cwd: cwd.to_string(),
     todos: [],
     created_at: get_current_timestamp(),
@@ -224,8 +222,8 @@ fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
 }
 
 ///|
-fn List::generate_todo_id(self : List) -> String raise {
-  @uuid.v4(rand=self.rand).to_string()[0:8].to_string()
+fn List::generate_todo_id(_ : List) -> String raise {
+  @uuid.v4().to_string()[0:8].to_string()
 }
 
 ///|

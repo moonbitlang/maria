@@ -8,7 +8,6 @@
     "moonbitlang/maria/fs"
   ],
   "test-import": [
-    "moonbitlang/maria/mock",
-    "moonbitlang/maria/rand"
+    "moonbitlang/maria/mock"
   ]
 }

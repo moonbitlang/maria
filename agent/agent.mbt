@@ -246,7 +246,7 @@ pub async fn new(
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     rand,
     history: @conversation.Conversation::new(
-      id=@conversation.Id::new(rand~),
+      id=@conversation.Id::new(),
       name="",
     ),
     cwd: cwd.to_string(),

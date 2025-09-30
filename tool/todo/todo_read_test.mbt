@@ -1,10 +1,49 @@
 ///|
+fn[T : ToJson] drop_id(json : T) -> Json {
+  let json = json.to_json()
+  if json is Object(obj) {
+    let obj = obj.map((key, value) => if key == "id" {
+      String("...")
+    } else {
+      drop_id(value)
+    })
+    Json::object(obj)
+  } else if json is Array(arr) {
+    Json::array(arr.map(item => drop_id(item)))
+  } else {
+    json
+  }
+}
+
+///|
+fn[T : ToJson] drop_time(json : T) -> Json {
+  let json = json.to_json()
+  if json is Object(obj) {
+    let obj = obj.map((key, value) => if key == "created_at" ||
+      key == "updated_at" {
+      String("...")
+    } else {
+      drop_time(value)
+    })
+    Json::object(obj)
+  } else if json is Array(arr) {
+    Json::array(arr.map(item => drop_time(item)))
+  } else {
+    json
+  }
+}
+
+///|
+fn[T : ToJson] drop_id_and_time(json : T) -> Json {
+  drop_id(drop_time(json))
+}
+
+///|
 async test "todo_read" {
-  let rand = @rand.chacha8(seed="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456")
   @async.with_task_group(g => {
     let cwd = @mock.directory("tool-todo_read")
     g.add_defer(() => cwd.close())
-    let todo_list = @todo.list(rand~, cwd=cwd.path())
+    let todo_list = @todo.list(cwd=cwd.path())
     @json.inspect(@todo.read.call({}, todo_list), content={
       "output": { "todos": [] },
     })
@@ -16,15 +55,19 @@ async test "todo_read" {
       todo_list,
     )
     let result = @todo.read.call({}, todo_list)
-    inspect(
-      (@todo.read.render)(result),
-      content=(
-        #|=== Current Session Todo List ===
-        #|
-        #|1. ⏳ 🟡 [b773b606] A sample task
-        #|
-        #|📊 Summary: Total: 1 | ⏳ Pending: 1
-      ),
-    )
+    @json.inspect(drop_id_and_time(result.to_json()), content={
+      "output": {
+        "todos": [
+          {
+            "content": "A sample task",
+            "created_at": "...",
+            "id": "...",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "...",
+          },
+        ],
+      },
+    })
   })
 }
