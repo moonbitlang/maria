@@ -101,7 +101,7 @@ pub impl @json.FromJson for Diagnostic with from_json(
 
 ///|
 async fn check(
-  package_? : Package,
+  package_path? : StringView,
   patch_file? : StringView,
   target_dir? : StringView,
   cwd? : StringView,
@@ -116,9 +116,9 @@ async fn check(
       }
   }
   let arguments : Array[StringView] = ["check", "--output-json"]
-  if package_ is Some(package_) {
-    arguments.push("--package")
-    arguments.push(package_.name())
+  if package_path is Some(package_path) {
+    arguments.push("--package-path")
+    arguments.push(package_path)
   }
   if patch_file is Some(patch_file) {
     arguments.push("--patch-file")
@@ -128,8 +128,10 @@ async fn check(
     arguments.push("--target-dir")
     arguments.push(target_dir)
   }
+  arguments.push("--directory")
+  arguments.push(cwd)
   let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, output~, cwd~)
+  let _ = @spawn.spawn("moon", arguments, output~)
   let output = output.to_string()
   let diagnostics = []
   for line in output.split("\n") {
