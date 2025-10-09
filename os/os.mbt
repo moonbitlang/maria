@@ -15,14 +15,20 @@ pub fn cwd() -> String raise {
 
 ///|
 pub fn now() -> @time.ZonedDateTime raise {
-  let ts = @uv.clock_gettime(Realtime)
-  @time.unix(ts.sec(), nanosecond=ts.nsec())
+  let tv : FixedArray[Int64] = [0, 0]
+  c_gettimeofday(tv)
+  @time.unix(tv[0], nanosecond=(tv[1] * 1000).to_int())
 }
 
 ///|
-pub fn now_ms() -> Int64 raise {
-  let tv = @uv.gettimeofday()
-  tv.sec() * 1000 + (tv.usec() / 1000).to_int64()
+#borrow(tv)
+extern "c" fn c_gettimeofday(tv : FixedArray[Int64]) = "moonbit_maria_os_gettimeofday"
+
+///|
+pub fn now_ms() -> Int64 {
+  let tv : FixedArray[Int64] = [0, 0]
+  c_gettimeofday(tv)
+  tv[0] * 1000 + tv[1] / 1000
 }
 
 ///|

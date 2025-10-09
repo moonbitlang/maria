@@ -232,7 +232,7 @@ pub fn Conversation::new(
   name~ : String,
   description? : String,
   id~ : Id,
-) -> Conversation raise {
+) -> Conversation {
   let now_ms = @os.now_ms()
   Conversation::{
     name,
@@ -250,7 +250,7 @@ pub fn Conversation::add_message(
   message : @openai.ChatCompletionMessageParam,
   usage? : @openai.CompletionUsage,
   created? : Int64,
-) -> Unit raise {
+) -> Unit {
   let timestamp = match created {
     None => @os.now_ms()
     Some(created) => created
