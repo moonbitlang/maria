@@ -26,3 +26,6 @@ pub extern "c" fn getpid() -> Int = "moonbit_maria_process_getpid"
 
 ///|
 pub extern "c" fn getppid() -> Int = "moonbit_maria_process_getppid"
+
+///|
+pub extern "c" fn kill(pid : Int, sig : Int) -> Int = "moonbit_maria_process_kill"
