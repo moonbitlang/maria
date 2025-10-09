@@ -11,6 +11,20 @@ pub enum FileKind {
 } derive(Show, Hash, Eq, Compare, ToJson)
 
 ///|
+fn FileKind::of_fs_file_kind(file_kind : @fs.FileKind) -> FileKind {
+  match file_kind {
+    @fs.FileKind::Unknown => Unknown
+    @fs.FileKind::Regular => Regular
+    @fs.FileKind::Directory => Directory
+    @fs.FileKind::SymLink => SymLink
+    @fs.FileKind::Socket => Socket
+    @fs.FileKind::Pipe => Pipe
+    @fs.FileKind::BlockDevice => BlockDevice
+    @fs.FileKind::CharDevice => CharDevice
+  }
+}
+
+///|
 pub struct DirectoryEntry {
   path : String
   name : String
@@ -29,16 +43,7 @@ pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
     entries.push(DirectoryEntry::{
       path: filename,
       name: basename,
-      kind: match file.kind() {
-        Unknown => Unknown
-        Regular => Regular
-        Directory => Directory
-        SymLink => SymLink
-        Socket => Socket
-        Pipe => Pipe
-        BlockDevice => BlockDevice
-        CharDevice => CharDevice
-      },
+      kind: FileKind::of_fs_file_kind(file.kind()),
     })
   }
   entries.sort()

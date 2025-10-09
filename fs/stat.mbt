@@ -1,33 +1,43 @@
 ///|
-struct Stat(@uv.Stat)
+struct Stat(Bytes)
+
+///|
+extern "c" fn fs_stat_sizeof() -> Int = "moonbit_maria_fs_stat_sizeof"
+
+///|
+#borrow(path, stat)
+extern "c" fn fs_stat_sync(path : Bytes, stat : FixedArray[Byte]) -> Int = "moonbit_maria_fs_stat_sync"
 
 ///|
 pub fn stat(path : StringView) -> Stat raise {
-  Stat(@global.uv().fs_stat_sync(@encoding/utf8.encode(path)))
+  let buf : FixedArray[Byte] = FixedArray::make(fs_stat_sizeof(), 0)
+  let result = fs_stat_sync(@encoding/utf8.encode(path), buf)
+  if result == 0 {
+    Stat(buf.unsafe_reinterpret_as_bytes())
+  } else {
+    raise @errno.Errno(result)
+  }
 }
+
+///|
+#borrow(stat)
+extern "c" fn fs_stat_get_mtime(stat : Bytes) -> Int64 = "moonbit_maria_fs_stat_get_mtime"
 
 ///|
 pub fn Stat::mtime(self : Stat) -> Int64 {
-  // Convert to milliseconds
-  self.0.mtim_sec() * 1_000 + self.0.mtim_nsec() / 1_000_000
+  fs_stat_get_mtime(self.0)
 }
+
+///|
+#borrow(stat)
+extern "c" fn fs_stat_get_atime(stat : Bytes) -> Int64 = "moonbit_maria_fs_stat_get_atime"
 
 ///|
 pub fn Stat::atime(self : Stat) -> Int64 {
-  // Convert to milliseconds
-  self.0.atim_sec() * 1_000 + self.0.atim_nsec() / 1_000_000
+  fs_stat_get_atime(self.0)
 }
 
 ///|
-pub fn Stat::kind(self : Stat) -> FileKind {
-  match self.0.type_() {
-    Dir => Directory
-    File => Regular
-    Socket => Socket
-    Link => SymLink
-    Fifo => Pipe
-    Char => CharDevice
-    Block => BlockDevice
-    Unknown => Unknown
-  }
+pub async fn kind(path : StringView) -> FileKind {
+  FileKind::of_fs_file_kind(@fs.kind(path.to_string()))
 }
