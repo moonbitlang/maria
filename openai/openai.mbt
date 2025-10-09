@@ -1070,12 +1070,30 @@ pub impl ToChatCompletionMessageParamContent for String with to_chat_completion_
 }
 
 ///|
-pub impl ToChatCompletionMessageParamContent for Array[
-  ChatCompletionContentPartParam,
-] with to_chat_completion_message_param_content(
-  self : Array[ChatCompletionContentPartParam],
+pub impl ToChatCompletionMessageParamContent for StringView with to_chat_completion_message_param_content(
+  self : StringView,
 ) -> Array[ChatCompletionContentPartParam] {
-  self
+  [text_content_part(self.to_string())]
+}
+
+///|
+pub impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam with to_chat_completion_message_param_content(
+  self : ChatCompletionContentPartParam,
+) -> Array[ChatCompletionContentPartParam] {
+  [self]
+}
+
+///|
+pub impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamContent for Array[
+  T,
+] with to_chat_completion_message_param_content(self : Array[T]) -> Array[
+  ChatCompletionContentPartParam,
+] {
+  let parts = []
+  for part in self {
+    parts.append(part.to_chat_completion_message_param_content())
+  }
+  parts
 }
 
 ///|
