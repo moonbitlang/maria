@@ -35,3 +35,8 @@ pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
     logger.write_string(str)
   }
 }
+
+///|
+pub impl ToJson for Errno with to_json(self : Errno) -> Json {
+  self.to_string().to_json()
+}
