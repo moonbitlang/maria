@@ -1,5 +1,6 @@
 ///|
 pub async fn gen(input : StringView) -> Unit {
+  @backtrace.initialize()
   let cwd = @os.cwd()
   let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(key) {
     key
