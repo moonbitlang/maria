@@ -1,7 +1,5 @@
 {
   "is-main": true,
-  "import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/cmd/gen"
-  ]
+  "import": ["moonbitlang/async", "moonbitlang/maria/cmd/gen"],
+  "overrides": ["moonbitlang/maria/abort"]
 }
