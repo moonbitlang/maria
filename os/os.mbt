@@ -137,3 +137,20 @@ pub fn home() -> String raise {
   @stdlib.free(buf)
   @encoding/utf8.decode(dir_buf.unsafe_reinterpret_as_bytes())
 }
+
+///|
+pub fn tmpdir() -> String raise {
+  if getenv("TMPDIR") is Some(tmpdir) {
+    return tmpdir
+  }
+  if getenv("TMP") is Some(temp) {
+    return temp
+  }
+  if getenv("TEMP") is Some(temp) {
+    return temp
+  }
+  if getenv("TEMPDIR") is Some(temp) {
+    return temp
+  }
+  return "/tmp"
+}

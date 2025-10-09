@@ -23,3 +23,8 @@ test "home" {
     ignore(@os.home())
   }
 }
+
+///|
+test "tmpdir" {
+  ignore(@os.tmpdir())
+}
