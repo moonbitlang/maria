@@ -6,7 +6,6 @@
     "moonbitlang/maria/path",
     "moonbitlang/async",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/model",
-    "moonbitlang/maria/fs"
+    "moonbitlang/maria/model"
   ]
 }
