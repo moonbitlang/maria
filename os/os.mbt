@@ -154,3 +154,29 @@ pub fn tmpdir() -> String raise {
   }
   return "/tmp"
 }
+
+///|
+extern "c" fn sysconf_SC_HOST_NAME_MAX() -> Int64 = "moonbit_maria_sysconf_SC_HOST_NAME_MAX"
+
+///|
+#borrow(name)
+extern "c" fn os_gethostname(name : FixedArray[Byte]) -> Int = "moonbit_maria_os_gethostname"
+
+///|
+pub fn gethostname() -> String raise {
+  let mut buf : FixedArray[Byte] = FixedArray::make(
+    sysconf_SC_HOST_NAME_MAX().to_int(),
+    0,
+  )
+  let mut result = os_gethostname(buf)
+  while result == @errno.enametoolong {
+    buf = FixedArray::make(FixedArray::length(buf) * 2, 0)
+    result = os_gethostname(buf)
+  }
+  if result == 0 {
+    let len = buflen(buf)
+    @encoding/utf8.decode(buf.unsafe_reinterpret_as_bytes()[0:len])
+  } else {
+    raise @errno.Errno(result)
+  }
+}

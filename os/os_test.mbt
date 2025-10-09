@@ -28,3 +28,8 @@ test "home" {
 test "tmpdir" {
   ignore(@os.tmpdir())
 }
+
+///|
+test "gethostname" {
+  ignore(@os.gethostname())
+}

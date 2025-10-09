@@ -87,3 +87,19 @@ moonbit_maria_os_passwd_get_dir(moonbit_bytes_t pwd) {
   struct passwd *p = (struct passwd *)pwd;
   return p->pw_dir;
 }
+
+MOONBIT_FFI_EXPORT
+int64_t
+moonbit_maria_sysconf_SC_HOST_NAME_MAX(void) {
+  return (int64_t)sysconf(_SC_HOST_NAME_MAX);
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_os_gethostname(moonbit_bytes_t name) {
+  errno = 0;
+  if (gethostname((char *)name, Moonbit_array_length(name)) == -1) {
+    return errno;
+  }
+  return 0;
+}

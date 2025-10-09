@@ -4,7 +4,7 @@ struct Directory(String)
 ///|
 #callsite(autofill(loc))
 pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
-  let cwd = @encoding/utf8.decode(@uv.cwd()) catch {
+  let cwd = @os.cwd() catch {
     error => {
       println(
         "[ERROR] \{loc}: failed to get current working directory: \{error}",

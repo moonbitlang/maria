@@ -13,3 +13,9 @@ char *
 moonbit_maria_errno_strerror(int errnum) {
   return strerror(errnum);
 }
+
+MOONBIT_FFI_EXPORT
+int
+moonbit_maria_errno_ENAMETOOLONG() {
+  return ENAMETOOLONG;
+}

@@ -40,15 +40,10 @@ pub fn Logger::log(
   } catch {
     _ => ()
   }
-  try {
-    let time = @uv.gettimeofday()
-    let time_ms = time.sec() * 1000 + time.usec().to_int64() / 1000
-    object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
-    if self.tag != "" {
-      object["tag"] = self.tag.to_json()
-    }
-  } catch {
-    _ => ()
+  let time_ms = @os.now_ms()
+  object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
+  if self.tag != "" {
+    object["tag"] = self.tag.to_json()
   }
   for k, v in content {
     object[k] = v
