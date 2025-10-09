@@ -1,0 +1,10 @@
+.DS_Store
+target/
+.mooncakes/
+.moonagent/
+
+# Project-specific
+scripts/tmp
+scripts/*.txt
+scripts/*.rs
+bench_data/*

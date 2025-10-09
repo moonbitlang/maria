@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/readline/unicode/width"
+
+// Values
+fn char(Char, cjk? : Bool) -> Int?
+
+fn string(StringView, cjk? : Bool) -> Int
+
+let unicode_version : (Int, Int, Int)
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
