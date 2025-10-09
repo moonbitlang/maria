@@ -70,9 +70,9 @@ pub async fn Package::check(
   self : Package,
   patch_file? : StringView,
   target_dir? : StringView,
-  cwd? : StringView,
+  cwd~ : StringView,
 ) -> Array[Diagnostic] {
-  check(package_=self, patch_file?, target_dir?, cwd?)
+  check(package_path=self.path, patch_file?, target_dir?, cwd~)
 }
 
 ///|

@@ -1,0 +1,123 @@
+///|
+pub struct CheckMoonbitProjectParams {
+  diagnostic_limit : Int?
+  patch_code : String?
+  patch_file_name : String?
+  project_path : String
+} derive(@json.FromJson, ToJson)
+
+///|
+pub fn params(
+  diagnostic_limit? : Int,
+  patch_code? : String,
+  patch_file_name? : String,
+  project_path~ : String,
+) -> CheckMoonbitProjectParams {
+  CheckMoonbitProjectParams::{
+    diagnostic_limit,
+    patch_code,
+    patch_file_name,
+    project_path,
+  }
+}
+
+///|
+priv struct CheckMoonbitProjectResult {
+  diagnostics : Array[@moon.Diagnostic]
+  diagnostic_limit : Int
+} derive(@json.FromJson, ToJson)
+
+///|
+pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
+  description="Call MoonBit toolchain to check current MoonBit project, and report any errors. Optionally, you can provide a code snippet and a file path to check the code as if it were appended to that file.",
+  name="check_moonbit_project",
+  parameters={
+    "type": "object",
+    "diagnostic_limit": {
+      "type": "integer",
+      "description": "The maximum number of diagnostics to return. Default is 10.",
+      "default": 10,
+    },
+    "patch_code": {
+      "type": "string",
+      "description": "A code snippet to check as if it were appended to the file at 'patch_file'.",
+      "default": "",
+    },
+    "patch_file_name": {
+      "type": "string",
+      "description": "The file path to check the 'patch_code' against. If not provided, the code will be checked in isolation.",
+      "default": "",
+    },
+    "project_path": {
+      "type": "string",
+      "description": "The path to the MoonBit project to check. Defaults to the current working directory.",
+      "default": ".",
+    },
+    "required": ["project_path"],
+  },
+  (args, cwd) => {
+    let args : CheckMoonbitProjectParams = @json.from_json(args) catch {
+      error =>
+        return @tool.error("Error: Failed to parse arguments: \{error}", error~)
+    }
+    let resolved_project_path = if @path.is_absolute(args.project_path) {
+      args.project_path
+    } else {
+      @path.join(cwd, args.project_path)
+    }
+    let diagnostic_limit = args.diagnostic_limit.unwrap_or(10)
+    let moon = @moon.Module::load(resolved_project_path) catch {
+      error =>
+        return @tool.error(
+          "Error: Failed to load project at '\{resolved_project_path}': \{error}",
+          error~,
+        )
+    }
+    let diagnostics = if args.patch_code is Some(code) &&
+      args.patch_file_name is Some(file_path) {
+      let resolved_file_path = if @path.is_absolute(file_path) {
+        file_path
+      } else {
+        @path.join(resolved_project_path, file_path)
+      }
+      moon.check_patch_insert(resolved_file_path, code) catch {
+        error =>
+          return @tool.error("Error: Failed to check patch: \{error}", error~)
+      }
+    } else {
+      try {
+        moon.check()
+        moon.diagnostics().collect()
+      } catch {
+        error =>
+          return @tool.error("Error: Failed to check project: \{error}", error~)
+      }
+    }
+    @tool.ok(
+      CheckMoonbitProjectResult::{ diagnostics, diagnostic_limit }.to_json(),
+    )
+  },
+  render=result => {
+    if result.error is Some(error) {
+      return "Error: \{error}"
+    }
+    let result : CheckMoonbitProjectResult = @json.from_json(result.output) catch {
+      error => return "Error: Failed to parse result: \{error}"
+    }
+    let diagnostics = if result.diagnostics.length() < result.diagnostic_limit {
+      result.diagnostics[:]
+    } else {
+      result.diagnostics[:result.diagnostic_limit]
+    }
+    if diagnostics.length() == 0 {
+      "MoonBit project check passed with no diagnostics found."
+    } else {
+      let rendered_diagnostics = @moon.render_diagnostics(
+        diagnostics,
+        limit=result.diagnostic_limit,
+      )
+      "MoonBit project check found the following diagnostics:\n\n" +
+      "\{rendered_diagnostics}"
+    }
+  },
+)

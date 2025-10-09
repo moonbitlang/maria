@@ -87,6 +87,22 @@ async test "check_patch" {
       },
     ])
     let segment = segments[0]
-    @json.inspect(moon.check_patch(segment, "///|\nlet x : Int = 100"), content=[])
+    @json.inspect(
+      cwd.strip_cwd(
+        moon.check_patch_replace(segment, "///|\nlet x : String = 100"),
+      ),
+      content=[
+        {
+          "error_code": 4014,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 21, "line": 2 },
+            "path": "./example.mbt",
+            "start": { "col": 18, "line": 2 },
+          },
+          "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",
+        },
+      ],
+    )
   })
 }
