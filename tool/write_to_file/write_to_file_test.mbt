@@ -5,7 +5,7 @@ async test "write_to_file/create" {
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
-    let result = @file.write_to_file.call(args, manager)
+    let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": {
         "path": "nonexistent.txt",
@@ -26,7 +26,7 @@ async test "write_to_file/replace" {
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file("file.txt", "Old content")
-    @json.inspect(@file.read_file.call({ "path": "file.txt" }, manager), content={
+    @json.inspect(@read_file.read_file.call({ "path": "file.txt" }, manager), content={
       "output": {
         "path": "file.txt",
         "content": "Old content",
@@ -39,7 +39,7 @@ async test "write_to_file/replace" {
       "search": "Old content",
       "replace": "New content",
     }
-    let result = @file.write_to_file.call(args, manager)
+    let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": {
         "path": "file.txt",
@@ -65,7 +65,7 @@ async test "write_to_file/fail-to-match" {
       "search": "Non-matching content",
       "replace": "New content",
     }
-    let result = @file.write_to_file.call(args, manager)
+    let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": "Search content not found in file (tried all matching strategies): Non-matching content",
       "error": "moonbitlang/maria/tool.Failure.Failure",
@@ -93,7 +93,7 @@ async test "write_to_file/search-replace" {
       "search": "line 2",
       "replace": "line 2 modified",
     }
-    let result = @file.write_to_file.call(args, manager)
+    let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": {
         "path": "file.txt",

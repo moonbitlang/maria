@@ -18,7 +18,7 @@ pub(all) struct ListFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub let list_files : @tool.Tool[Manager] = @tool.tool(
+pub let list_files : @tool.Tool[@file.Manager] = @tool.tool(
   description="List files in a directory",
   name="list_files",
   parameters={
