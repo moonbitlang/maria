@@ -66,7 +66,9 @@ jobs:
 
       - name: Generate `pkg.generated.mbti`
         run: |
+          moon install
           moon info
+          git diff --exit-code
 
   fmt:
     runs-on: ubuntu-latest
