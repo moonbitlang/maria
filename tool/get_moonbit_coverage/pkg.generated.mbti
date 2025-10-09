@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tool/get_moonbit_coverage"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let get_moonbit_coverage : @tool.Tool[String]
+
+fn params(file? : String, project_path~ : String) -> Params
+
+// Errors
+
+// Types and methods
+pub struct Params {
+  file : String?
+  project_path : String
+}
+impl ToJson for Params
+impl @json.FromJson for Params
+
+pub struct Result(String)
+#deprecated
+fn Result::inner(Self) -> String
+impl Show for Result
+impl ToJson for Result
+impl @json.FromJson for Result
+
+// Type aliases
+
+// Traits
+

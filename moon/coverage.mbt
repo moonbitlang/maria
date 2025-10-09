@@ -4,11 +4,20 @@ struct Coverage {
 }
 
 ///|
-async fn coverage_analyze(package_? : String, cwd? : StringView) -> String {
+async fn coverage_analyze(
+  package_? : String,
+  file? : String,
+  cwd? : StringView,
+) -> String {
   let arguments : Array[StringView] = ["coverage", "analyze"]
   if package_ is Some(package_) {
     arguments.push("--package")
     arguments.push(package_)
+  }
+  arguments.push("--")
+  if file is Some(file) {
+    arguments.push("-F")
+    arguments.push(file)
   }
   let output = StringBuilder::new()
   let _ = @spawn.spawn("moon", arguments, output~, cwd?)
@@ -16,12 +25,16 @@ async fn coverage_analyze(package_? : String, cwd? : StringView) -> String {
 }
 
 ///|
-pub async fn Coverage::analyze(self : Coverage, package_? : Package) -> String {
+pub async fn Coverage::analyze(
+  self : Coverage,
+  package_? : Package,
+  file? : String,
+) -> String {
   let package_ = match package_ {
     Some(package_) => Some(package_.name)
     None => None
   }
-  coverage_analyze(package_?, cwd=self.path)
+  coverage_analyze(package_?, file?, cwd=self.path)
 }
 
 ///|

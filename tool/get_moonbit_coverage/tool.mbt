@@ -1,0 +1,98 @@
+///|
+pub struct Params {
+  file : String?
+  project_path : String
+} derive(@json.FromJson, ToJson)
+
+///|
+pub fn params(file? : String, project_path~ : String) -> Params {
+  Params::{ file, project_path }
+}
+
+///|
+pub struct Result(String)
+
+///|
+pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
+  logger.write_string(self.0)
+}
+
+///|
+pub impl Show for Result with to_string(self : Result) -> String {
+  self.0
+}
+
+///|
+pub impl ToJson for Result with to_json(self : Result) -> Json {
+  self.0.to_json()
+}
+
+///|
+pub impl @json.FromJson for Result with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Result {
+  Result((@json.from_json(json, path=json_path) : String))
+}
+
+///|
+pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
+  description="Get coverage information for a MoonBit source file or project. If a specific file is provided, this tool analyzes that file and returns line-by-line coverage data. If the file is not found, it returns the coverage summary for the entire project.",
+  name="get_moonbit_coverage",
+  parameters={
+    "type": "object",
+    "properties": {
+      "file": {
+        "type": "string",
+        "description": "The path to the MoonBit source file to analyze. If not provided, the tool will return coverage information for the entire project.",
+      },
+      "project_path": {
+        "type": "string",
+        "description": "The path to the MoonBit project (parent path of moon.mod.json), relative to the current working directory.",
+      },
+    },
+    "required": ["project_path"],
+  },
+  (args, cwd) => {
+    let args : Params = @json.from_json(args) catch {
+      error => return @tool.error("Invalid arguments: \{error}", error~)
+    }
+    let resolved_project_path = if @path.is_absolute(args.project_path) {
+      args.project_path
+    } else {
+      @path.join(cwd, args.project_path)
+    }
+    let moon = @moon.Module::load(resolved_project_path) catch {
+      error =>
+        return @tool.error(
+          "Failed to load MoonBit project at '\{resolved_project_path}': \{error}",
+          error~,
+        )
+    }
+    guard args.file is Some(file) else {
+      @tool.ok(Result(moon.coverage.report(format=Summary)).to_json()) catch {
+        error =>
+          @tool.error(
+            "Failed to get coverage summary for project at '\{resolved_project_path}': \{error}",
+            error~,
+          )
+      }
+    }
+    @tool.ok(Result(moon.coverage.analyze(file~)).to_json()) catch {
+      error =>
+        @tool.error(
+          "Failed to analyze coverage for file '\{file}': \{error}",
+          error~,
+        )
+    }
+  },
+  render=result => {
+    if result.error is Some(error) {
+      return "Error: \{error}"
+    }
+    let result : Result = @json.from_json(result.output) catch {
+      error => return "Error: Invalid result format: \{error}"
+    }
+    result.0
+  },
+)

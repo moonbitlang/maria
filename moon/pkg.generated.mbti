@@ -17,7 +17,7 @@ type Artifacts
 impl ToJson for Artifacts
 
 type Coverage
-async fn Coverage::analyze(Self, package_? : Package) -> String
+async fn Coverage::analyze(Self, package_? : Package, file? : String) -> String
 async fn Coverage::clean(Self, package_? : String) -> String
 async fn Coverage::report(Self, package_? : String, output_file? : String, format? : CoverageFormat) -> String
 

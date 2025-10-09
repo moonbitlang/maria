@@ -33,25 +33,27 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
   name="check_moonbit_project",
   parameters={
     "type": "object",
-    "diagnostic_limit": {
-      "type": "integer",
-      "description": "The maximum number of diagnostics to return. Default is 10.",
-      "default": 10,
-    },
-    "patch_code": {
-      "type": "string",
-      "description": "A code snippet to check as if it were appended to the file at 'patch_file'.",
-      "default": "",
-    },
-    "patch_file_name": {
-      "type": "string",
-      "description": "The file path to check the 'patch_code' against. If not provided, the code will be checked in isolation.",
-      "default": "",
-    },
-    "project_path": {
-      "type": "string",
-      "description": "The path to the MoonBit project to check. Defaults to the current working directory.",
-      "default": ".",
+    "properties": {
+      "diagnostic_limit": {
+        "type": "integer",
+        "description": "The maximum number of diagnostics to return. Default is 10.",
+        "default": 10,
+      },
+      "patch_code": {
+        "type": "string",
+        "description": "A code snippet to check as if it were appended to the file at 'patch_file'.",
+        "default": "",
+      },
+      "patch_file_name": {
+        "type": "string",
+        "description": "The file path to check the 'patch_code' against. If not provided, the code will be checked in isolation.",
+        "default": "",
+      },
+      "project_path": {
+        "type": "string",
+        "description": "The path to the MoonBit project to check. Defaults to the current working directory.",
+        "default": ".",
+      },
     },
     "required": ["project_path"],
   },
