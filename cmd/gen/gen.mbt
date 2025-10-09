@@ -1,5 +1,5 @@
 ///|
-async fn main {
+pub async fn gen(input : StringView) -> Unit {
   let cwd = @os.cwd()
   let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(key) {
     key
@@ -95,10 +95,6 @@ async fn main {
       ].join("\n"),
     ),
   )
-  agent.add_message(
-    @openai.user_message(
-      content="Can you please implement an INI parser in MoonBit?",
-    ),
-  )
+  agent.add_message(@openai.user_message(content=input))
   agent.start()
 }

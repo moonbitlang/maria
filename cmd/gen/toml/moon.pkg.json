@@ -1,0 +1,4 @@
+{
+  "is-main": true,
+  "import": ["moonbitlang/async", "moonbitlang/maria/cmd/gen"]
+}
