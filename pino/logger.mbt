@@ -36,7 +36,7 @@ pub fn Logger::log(
     "msg": message.to_json(),
   }
   try {
-    object["hostname"] = @encoding.decode(@uv.os_gethostname(), encoding=UTF8).to_json()
+    object["hostname"] = @encoding/utf8.decode(@uv.os_gethostname()).to_json()
   } catch {
     _ => ()
   }
