@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/cmd/gen-ini"
+package "moonbitlang/maria/cmd/gen/toml"
 
 // Values
 

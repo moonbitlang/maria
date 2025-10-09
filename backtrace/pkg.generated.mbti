@@ -1,7 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/cmd/gen/ini"
+package "moonbitlang/maria/backtrace"
 
 // Values
+fn backtrace(n? : Int) -> FixedArray[String] raise
+
+fn initialize() -> Unit
 
 // Errors
 

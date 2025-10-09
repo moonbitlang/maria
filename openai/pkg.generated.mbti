@@ -112,6 +112,7 @@ pub enum ChatCompletionContentPartParam {
   Text(ChatCompletionContentPartTextParam)
 }
 impl ToJson for ChatCompletionContentPartParam
+impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam
 
 pub struct ChatCompletionContentPartTextParam {
   text : String
@@ -281,5 +282,6 @@ impl ToJson for ResponseFormat
 // Traits
 trait ToChatCompletionMessageParamContent
 impl ToChatCompletionMessageParamContent for String
-impl ToChatCompletionMessageParamContent for Array[ChatCompletionContentPartParam]
+impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamContent for Array[T]
+impl ToChatCompletionMessageParamContent for StringView
 

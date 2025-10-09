@@ -3,7 +3,6 @@ package "moonbitlang/maria/conversation"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/core/random"
   "moonbitlang/maria/openai"
 )
 
@@ -25,7 +24,7 @@ impl @json.FromJson for Conversation
 pub(all) struct Id(String)
 #deprecated
 fn Id::inner(Self) -> String
-fn Id::new(rand~ : @random.Rand) -> Self
+fn Id::new() -> Self raise
 impl Show for Id
 impl ToJson for Id
 impl @json.FromJson for Id

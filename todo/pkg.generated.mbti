@@ -1,22 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/tool/todo"
+package "moonbitlang/maria/todo"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/core/random"
-  "moonbitlang/maria/tool"
 )
 
 // Values
-fn list(rand~ : @random.Rand, cwd~ : StringView) -> List raise
-
-let read : @tool.Tool[List]
-
-let write : @tool.Tool[List]
+fn list(cwd~ : StringView) -> List raise
 
 // Errors
 
 // Types and methods
+type Index
+
 pub(all) struct Item {
   content : String
   created_at : String
@@ -26,10 +22,19 @@ pub(all) struct Item {
   status : Status
   updated_at : String
 }
+fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Self raise
 impl ToJson for Item
 impl @json.FromJson for Item
 
 type List
+fn List::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item raise
+fn List::find(Self, String) -> Index?
+fn List::get(Self, Index) -> Item
+async fn List::load(Self) -> Unit
+fn List::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
+async fn List::save(Self) -> Unit
+fn List::todos(Self) -> Array[Item]
+fn List::update_task(Self, Index, Item) -> Unit raise
 
 pub(all) enum Priority {
   High
@@ -44,21 +49,6 @@ pub(all) enum Status {
   Completed
 }
 impl ToJson for Status
-
-pub(all) struct TodoReadResult {
-  todos : Array[Item]
-}
-impl ToJson for TodoReadResult
-impl @json.FromJson for TodoReadResult
-
-pub(all) struct TodoWriteResult {
-  todos : Array[Item]
-  message : String
-  updated_todos : Array[Item]
-  is_new_creation : Bool
-}
-impl ToJson for TodoWriteResult
-impl @json.FromJson for TodoWriteResult
 
 // Type aliases
 
