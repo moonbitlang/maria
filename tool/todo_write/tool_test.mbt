@@ -1,10 +1,50 @@
 ///|
+fn[T : ToJson] drop_id(json : T) -> Json {
+  let json = json.to_json()
+  if json is Object(obj) {
+    let obj = obj.map((key, value) => if key == "id" {
+      String("...")
+    } else {
+      drop_id(value)
+    })
+    Json::object(obj)
+  } else if json is Array(arr) {
+    Json::array(arr.map(item => drop_id(item)))
+  } else {
+    json
+  }
+}
+
+///|
+fn[T : ToJson] drop_time(json : T) -> Json {
+  let json = json.to_json()
+  if json is Object(obj) {
+    let obj = obj.map((key, value) => if key == "created_at" ||
+      key == "updated_at" {
+      String("...")
+    } else {
+      drop_time(value)
+    })
+    Json::object(obj)
+  } else if json is Array(arr) {
+    Json::array(arr.map(item => drop_time(item)))
+  } else {
+    json
+  }
+}
+
+///|
+fn[T : ToJson] drop_id_and_time(json : T) -> Json {
+  drop_id(drop_time(json))
+}
+
+///|
 async test "todo_write/create/plain" {
   @async.with_task_group(group => {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(cwd=cwd.path())
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       {
         "action": "create",
         "content": (
@@ -66,7 +106,7 @@ async test "todo_write/create/<task>" {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(cwd=cwd.path())
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       {
         "action": "create",
         "content": (
@@ -209,10 +249,10 @@ async test "todo_write/create/<task>" {
 ///|
 async test "todo_write/update" {
   @async.with_task_group(group => {
-    let cwd = @mock.directory("togol-todo_write")
+    let cwd = @mock.directory("todo-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(cwd=cwd.path())
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       {
         "action": "create",
         "content": (
@@ -265,7 +305,7 @@ async test "todo_write/update" {
         "is_new_creation": true,
       },
     })
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       {
         "action": "update",
         "task_id": "b773b606",
@@ -288,7 +328,7 @@ async test "todo_write/mark_completed" {
     let cwd = @mock.directory("tool-todo_write")
     group.add_defer(() => cwd.close())
     let todo_list = @todo.list(cwd=cwd.path())
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       {
         "action": "create",
         "content": (
@@ -381,7 +421,7 @@ async test "todo_write/mark_completed" {
         "is_new_creation": true,
       },
     })
-    let result = @todo.write.call(
+    let result = @todo_write.todo_write.call(
       { "action": "mark_completed", "task_id": "b773b606" },
       todo_list,
     )

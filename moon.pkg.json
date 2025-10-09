@@ -14,12 +14,14 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/git",
     "moonbitlang/maria/moon",
-    "moonbitlang/maria/tool/todo",
+    "moonbitlang/maria/todo",
     "moonbitlang/maria/tool/file",
     "moonbitlang/maria/tool/fix_moonbit_warnings",
     "moonbitlang/maria/os",
     "moonbitlang/maria/prompt",
     "moonbitlang/maria/conversation",
-    "moonbitlang/maria/tool/search_files"
+    "moonbitlang/maria/tool/search_files",
+    "moonbitlang/maria/tool/todo_write",
+    "moonbitlang/maria/tool/todo_read"
   ]
 }

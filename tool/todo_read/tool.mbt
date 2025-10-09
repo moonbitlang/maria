@@ -1,14 +1,14 @@
 ///|
 pub(all) struct TodoReadResult {
-  todos : Array[Item]
+  todos : Array[@todo.Item]
 } derive(ToJson, FromJson)
 
 ///|
-pub let read : @tool.Tool[List] = @tool.tool(
+pub let todo_read : @tool.Tool[@todo.List] = @tool.tool(
   description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
   name="todo_read",
   parameters={ "type": "object", "properties": {}, "required": [] },
-  (_, self) => @tool.ok(TodoReadResult::{ todos: self.todos }.to_json()),
+  (_, self) => @tool.ok(TodoReadResult::{ todos: self.todos() }.to_json()),
   render=result => {
     let todos : TodoReadResult = @json.from_json(result.output) catch {
       error => return "Error: Unexpected output format: \{error}"
@@ -20,20 +20,20 @@ pub let read : @tool.Tool[List] = @tool.tool(
     output.push("=== Current Session Todo List ===\n")
 
     // Status emoji mapping
-    fn get_status_emoji(status : Status) -> String {
+    fn get_status_emoji(status : @todo.Status) -> String {
       match status {
-        Status::Completed => "✅"
-        Status::InProgress => "🔄"
-        Status::Pending => "⏳"
+        Completed => "✅"
+        InProgress => "🔄"
+        Pending => "⏳"
       }
     }
 
     // Priority icon mapping
-    fn get_priority_icon(priority : Priority) -> String {
+    fn get_priority_icon(priority : @todo.Priority) -> String {
       match priority {
-        Priority::High => "🔴"
-        Priority::Medium => "🟡"
-        Priority::Low => "🟢"
+        High => "🔴"
+        Medium => "🟡"
+        Low => "🟢"
       }
     }
 
@@ -63,9 +63,9 @@ pub let read : @tool.Tool[List] = @tool.tool(
     let mut completed_count = 0
     for todo in todos.todos {
       match todo.status {
-        Status::Pending => pending_count = pending_count + 1
-        Status::InProgress => in_progress_count = in_progress_count + 1
-        Status::Completed => completed_count = completed_count + 1
+        Pending => pending_count = pending_count + 1
+        InProgress => in_progress_count = in_progress_count + 1
+        Completed => completed_count = completed_count + 1
       }
     }
     let summary_parts = ["Total: \{total}"]
@@ -84,7 +84,7 @@ pub let read : @tool.Tool[List] = @tool.tool(
 )
 
 ///|
-pub const ReadPrompt : String =
+pub const Prompt : String =
   #|# todo_read
   #|
   #|## Purpose
