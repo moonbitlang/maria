@@ -173,8 +173,8 @@ test "find_match with fuzzy disabled works for exact substring" {
 
 ///|
 /// Main execution function for the write_to_file tool
-async fn Manager::execute_write_to_file(
-  self : Manager,
+async fn @file.Manager::execute_write_to_file(
+  self : @file.Manager,
   args : Json,
 ) -> @tool.Result noraise {
   // Parse required path parameter
@@ -278,7 +278,7 @@ async fn Manager::execute_write_to_file(
 }
 
 ///|
-pub let write_to_file : @tool.Tool[Manager] = @tool.tool(
+pub let write_to_file : @tool.Tool[@file.Manager] = @tool.tool(
   description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
   name="write_to_file",
   parameters={

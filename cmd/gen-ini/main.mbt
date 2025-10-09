@@ -76,9 +76,9 @@ async fn main {
     @execute_command.context(cwd=agent.cwd),
   )
   let file_manager = @file.manager(cwd~)
-  agent.add_tool(@file.list_files, file_manager)
-  agent.add_tool(@file.read_file, file_manager)
-  agent.add_tool(@file.write_to_file, file_manager)
+  agent.add_tool(@list_files.list_files, file_manager)
+  agent.add_tool(@read_file.read_file, file_manager)
+  agent.add_tool(@write_to_file.write_to_file, file_manager)
   let todo_list = @todo.list(cwd=agent.cwd)
   agent.add_tool(@todo_read.todo_read, todo_list)
   agent.add_tool(@todo_write.todo_write, todo_list)

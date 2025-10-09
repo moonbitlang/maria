@@ -1,0 +1,4 @@
+{
+  "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/mock"],
+  "test-import": ["moonbitlang/async", "moonbitlang/maria/mock"]
+}

@@ -1,5 +1,5 @@
 ///|
-struct Manager {
+pub struct Manager {
   cwd : String
   access : Map[String, Int64]
 }

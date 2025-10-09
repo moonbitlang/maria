@@ -5,7 +5,7 @@ async test "read_file/nonexistent" {
     g.add_defer(() => cwd.close())
     let manager = @file.manager(cwd=cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
-    let result = @file.read_file.call(args, manager)
+    let result = @read_file.read_file.call(args, manager)
     @json.inspect(
       result.output,
       content="Error reading file: File not found: nonexistent.txt",
@@ -32,7 +32,7 @@ async test "read_file/content" {
       ),
     )
     let args : Json = { "path": "test.txt" }
-    let result = @file.read_file.call(args, manager)
+    let result = @read_file.read_file.call(args, manager)
     inspect(
       result.output,
       content=(
@@ -59,7 +59,7 @@ async test "read_file/line_range" {
       ),
     )
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
-    let result = @file.read_file.call(args, manager)
+    let result = @read_file.read_file.call(args, manager)
     inspect(
       result.output,
       content=(
@@ -81,7 +81,7 @@ async test "read_file/directory" {
     g.add_defer(() => subdir.close())
     let _ = subdir.add_file("file3.txt", "content3")
     let args : Json = { "path": "." }
-    let result = @file.read_file.call(args, manager)
+    let result = @read_file.read_file.call(args, manager)
     @json.inspect(result.output, content={
       "path": ".",
       "entries": ["subdir/", "file1.txt", "file2.txt"],

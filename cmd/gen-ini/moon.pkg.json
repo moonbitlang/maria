@@ -6,7 +6,7 @@
     "moonbitlang/maria/prompt",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/todo",
-    "moonbitlang/maria/tool/file",
+    "moonbitlang/maria/file",
     "moonbitlang/async",
     "moonbitlang/maria/os",
     "moonbitlang/maria/model",
@@ -15,6 +15,9 @@
     "moonbitlang/maria/tool/get_moonbit_mbti",
     "moonbitlang/maria/tool/search_files",
     "moonbitlang/maria/tool/todo_write",
-    "moonbitlang/maria/tool/todo_read"
+    "moonbitlang/maria/tool/todo_read",
+    "moonbitlang/maria/tool/write_to_file",
+    "moonbitlang/maria/tool/read_file",
+    "moonbitlang/maria/tool/list_files"
   ]
 }
