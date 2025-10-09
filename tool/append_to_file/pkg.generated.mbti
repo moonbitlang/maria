@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tool/append_to_file"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let append_to_file : @tool.Tool[String]
+
+fn params(content~ : String, path? : String, separator? : String) -> Params
+
+// Errors
+
+// Types and methods
+pub struct Params {
+  content : String
+  path : String?
+  separator : String?
+}
+impl ToJson for Params
+impl @json.FromJson for Params
+
+pub struct Result {
+  path : String
+}
+impl ToJson for Result
+impl @json.FromJson for Result
+
+// Type aliases
+
+// Traits
+
