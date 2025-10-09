@@ -3,7 +3,7 @@
     "tonyfettes/uv",
     "moonbitlang/x/time",
     "tonyfettes/c",
-    "tonyfettes/c/stdlib"
+    "moonbitlang/maria/errno"
   ],
   "native-stub": ["os.c"]
 }

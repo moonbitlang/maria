@@ -41,43 +41,14 @@ pub fn args() -> Array[String] {
 }
 
 ///|
-extern "c" fn errno_ERANGE() -> Int = "moonbit_maria_errno_ERANGE"
-
-///|
-let erange : Int = errno_ERANGE()
-
-///|
 #borrow(buf)
 extern "c" fn os_getcwd(buf : FixedArray[Byte]) -> Int = "moonbit_maria_os_getcwd"
-
-///|
-pub suberror Errno Int
-
-///|
-extern "c" fn errno_strerror(errnum : Int) -> @c.Pointer[Byte] = "moonbit_maria_errno_strerror"
-
-///|
-pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
-  let Errno(errnum) = self
-  let c_str = errno_strerror(errnum)
-  if c_str.is_null() {
-    logger.write_string("Errno(\{errnum}")
-  } else {
-    let c_len = strlen(c_str)
-    let buf : FixedArray[Byte] = FixedArray::make(c_len, 0)
-    for i = 0; i < c_len; i = i + 1 {
-      buf[i] = c_str[i]
-    }
-    let str = @encoding/utf8.decode_lossy(buf.unsafe_reinterpret_as_bytes())
-    logger.write_string(str)
-  }
-}
 
 ///|
 pub fn cwd() -> String raise {
   let mut buf : FixedArray[Byte] = FixedArray::make(4096, 0)
   let mut result = os_getcwd(buf)
-  while result == erange {
+  while result == @errno.erange {
     buf = FixedArray::make(FixedArray::length(buf) * 2, 0)
     result = os_getcwd(buf)
   }
@@ -85,7 +56,7 @@ pub fn cwd() -> String raise {
     let len = buflen(buf)
     @encoding/utf8.decode(buf.unsafe_reinterpret_as_bytes()[0:len])
   } else {
-    raise Errno(result)
+    raise @errno.Errno(result)
   }
 }
 

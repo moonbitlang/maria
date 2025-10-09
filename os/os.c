@@ -30,15 +30,3 @@ moonbit_maria_os_getcwd(moonbit_bytes_t buf) {
   }
   return 0;
 }
-
-MOONBIT_FFI_EXPORT
-int
-moonbit_maria_errno_ERANGE() {
-  return ERANGE;
-}
-
-MOONBIT_FFI_EXPORT
-char *
-moonbit_maria_errno_strerror(int errnum) {
-  return strerror(errnum);
-}

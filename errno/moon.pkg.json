@@ -1,0 +1,4 @@
+{
+  "import": ["tonyfettes/c"],
+  "native-stub": ["errno.c"]
+}
