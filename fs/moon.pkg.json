@@ -16,5 +16,5 @@
       "alias": "this"
     }
   ],
-  "native-stub": ["stat.c"]
+  "native-stub": ["stat.c", "mkdtemp.c"]
 }
