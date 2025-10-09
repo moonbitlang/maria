@@ -1,8 +1,6 @@
 {
   "import": [
     "moonbitlang/async/process",
-    "moonbitlang/async",
-    "moonbitlang/async/pipe",
     "moonbitlang/async/io"
   ]
 }
