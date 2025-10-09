@@ -1,4 +1,9 @@
 {
-  "import": ["tonyfettes/uv", "moonbitlang/x/time"],
+  "import": [
+    "tonyfettes/uv",
+    "moonbitlang/x/time",
+    "tonyfettes/c",
+    "tonyfettes/c/stdlib"
+  ],
   "native-stub": ["os.c"]
 }

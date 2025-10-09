@@ -7,7 +7,8 @@
     "tonyfettes/tiktoken": "0.1.1",
     "tonyfettes/uv": "0.12.8",
     "rami3l/unicodewidth": "0.2.0",
-    "moonbitlang/regexp": "0.3.1"
+    "moonbitlang/regexp": "0.3.1",
+    "tonyfettes/c": "0.5.4"
   },
   "readme": "README.md",
   "repository": "",
