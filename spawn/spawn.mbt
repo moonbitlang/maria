@@ -20,3 +20,9 @@ pub async fn spawn(
     @process.run(command, arguments, cwd?)
   }
 }
+
+///|
+pub extern "c" fn getpid() -> Int = "moonbit_maria_process_getpid"
+
+///|
+pub extern "c" fn getppid() -> Int = "moonbit_maria_process_getppid"
