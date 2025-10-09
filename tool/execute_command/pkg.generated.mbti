@@ -3,12 +3,11 @@ package "moonbitlang/maria/tool/execute_command"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/core/random"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn context(rand~ : @random.Rand, cwd~ : String) -> Context
+fn context(cwd~ : String) -> Context
 
 let execute_command : @tool.Tool[Context]
 
@@ -17,7 +16,6 @@ let execute_command : @tool.Tool[Context]
 // Types and methods
 pub(all) struct CommandResult {
   command : String
-  arguments : Array[String]
   exit_code : Int
   output : String
   truncated : Bool

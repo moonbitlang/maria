@@ -10,6 +10,8 @@ fn bytes(Int) -> Bytes raise
 
 fn chacha8(seed? : Bytes) -> @random.Rand
 
+fn uint64() -> UInt64 raise
+
 // Errors
 
 // Types and methods

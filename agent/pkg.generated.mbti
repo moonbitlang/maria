@@ -45,6 +45,7 @@ pub struct EventContext {
   pruned_token_count : Int?
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.Result?
+  tool_call_result_text : String?
 }
 
 // Type aliases
