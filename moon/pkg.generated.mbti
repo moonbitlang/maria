@@ -73,7 +73,8 @@ pub struct Module {
   // private fields
 }
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
-async fn Module::check_patch(Self, SegmentView, String) -> Array[Diagnostic]
+async fn Module::check_patch_insert(Self, String, String) -> Array[Diagnostic]
+async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[Diagnostic]
 async fn Module::diagnostics(Self) -> Iter[Diagnostic]
 fn Module::files(Self) -> Iter[File]
 async fn Module::load(String) -> Self
