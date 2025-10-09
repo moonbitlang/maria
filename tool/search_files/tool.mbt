@@ -471,7 +471,7 @@ pub let search_files : @tool.Tool[String] = @tool.tool(
 )
 
 ///|
-pub const SearchFilesPrompt : String =
+pub const Prompt : String =
   #|# search_files
   #|
   #|## Purpose

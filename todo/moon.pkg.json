@@ -4,7 +4,6 @@
     "moonbitlang/maria/fs",
     "moonbitlang/maria/uuid",
     "moonbitlang/x/time",
-    "moonbitlang/maria/tool",
     "moonbitlang/maria/os"
   ],
   "test-import": [

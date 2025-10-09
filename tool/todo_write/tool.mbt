@@ -1,14 +1,14 @@
 ///|
 pub(all) struct TodoWriteResult {
-  todos : Array[Item]
+  todos : Array[@todo.Item]
   message : String
-  updated_todos : Array[Item]
+  updated_todos : Array[@todo.Item]
   is_new_creation : Bool
 } derive(ToJson, FromJson)
 
 ///|
-async fn List::execute_todo_write(
-  self : List,
+async fn @todo.List::execute_todo_write(
+  self : @todo.List,
   args : Json,
 ) -> @tool.Result noraise {
   enum Action {
@@ -44,7 +44,7 @@ async fn List::execute_todo_write(
     { "task_id": String(t), .. } => Some(t)
     _ => None
   }
-  let priority = match args {
+  let priority : @todo.Priority = match args {
     { "priority": p, .. } =>
       match p {
         "high" => High
@@ -57,7 +57,7 @@ async fn List::execute_todo_write(
       }
     _ => Medium
   }
-  let status : Status = match args {
+  let status : @todo.Status = match args {
     { "status": s, .. } =>
       match s {
         "pending" => Pending
@@ -92,10 +92,11 @@ async fn List::execute_todo_write(
             }
             try {
               self.save()
+              let todos = self.todos()
               return @tool.ok({
-                "todos": self.todos.map(t => t.to_json()),
-                "message": "Created \{self.todos.length()} new todo items",
-                "updated_todos": self.todos.map(t => t.to_json()),
+                "todos": todos.map(t => t.to_json()),
+                "message": "Created \{todos.length()} new todo items",
+                "updated_todos": todos.map(t => t.to_json()),
                 "is_new_creation": true,
               })
             } catch {
@@ -113,7 +114,7 @@ async fn List::execute_todo_write(
           self.save()
           return @tool.ok(
             TodoWriteResult::{
-              todos: self.todos.map(t => t),
+              todos: self.todos().map(t => t),
               message: "Added new task: \{item.content}",
               updated_todos: [item],
               is_new_creation: false,
@@ -161,7 +162,7 @@ async fn List::execute_todo_write(
           self.save()
           @tool.ok(
             TodoWriteResult::{
-              todos: self.todos,
+              todos: self.todos(),
               message: action_message,
               updated_todos,
               is_new_creation: false,
@@ -179,7 +180,7 @@ async fn List::execute_todo_write(
 }
 
 ///|
-pub let write : @tool.Tool[List] = @tool.tool(
+pub let todo_write : @tool.Tool[@todo.List] = @tool.tool(
   description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
   name="todo_write",
   parameters={
@@ -224,10 +225,10 @@ pub let write : @tool.Tool[List] = @tool.tool(
       } else {
       return "Error: Unexpected output format"
     }
-    let todos : Array[Item] = @json.from_json(todos) catch {
+    let todos : Array[@todo.Item] = @json.from_json(todos) catch {
       error => return "Error: Failed to parse todos: \{error}"
     }
-    let updated_todos : Array[Item] = @json.from_json(updated_todos) catch {
+    let updated_todos : Array[@todo.Item] = @json.from_json(updated_todos) catch {
       error => return "Error: Failed to parse updated_todos: \{error}"
     }
     let is_new_creation : Bool = @json.from_json(is_new_creation) catch {
@@ -240,7 +241,7 @@ pub let write : @tool.Tool[List] = @tool.tool(
     output.push("✅ Operation completed: \{action_performed}\n")
 
     // Status and priority icon helpers
-    fn get_status_icon(status : Status) -> String {
+    fn get_status_icon(status : @todo.Status) -> String {
       match status {
         Completed => "✅"
         InProgress => "🔄"
@@ -248,7 +249,7 @@ pub let write : @tool.Tool[List] = @tool.tool(
       }
     }
 
-    fn get_priority_icon(priority : Priority) -> String {
+    fn get_priority_icon(priority : @todo.Priority) -> String {
       match priority {
         High => "🔴"
         Medium => "🟡"
@@ -310,7 +311,7 @@ pub let write : @tool.Tool[List] = @tool.tool(
 )
 
 ///|
-pub const WritePrompt : String =
+pub const Prompt : String =
   #|# todo_write
   #|
   #|## Purpose

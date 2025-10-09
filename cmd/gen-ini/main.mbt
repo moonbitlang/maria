@@ -80,8 +80,8 @@ async fn main {
   agent.add_tool(@file.read_file, file_manager)
   agent.add_tool(@file.write_to_file, file_manager)
   let todo_list = @todo.list(cwd=agent.cwd)
-  agent.add_tool(@todo.read, todo_list)
-  agent.add_tool(@todo.write, todo_list)
+  agent.add_tool(@todo_read.todo_read, todo_list)
+  agent.add_tool(@todo_write.todo_write, todo_list)
   agent.add_tool(@search_files.search_files, agent.cwd)
   agent.add_tool(@get_moonbit_mbti.get_moonbit_mbti, agent.cwd)
   agent.add_message(
@@ -89,9 +89,9 @@ async fn main {
       content=[
         @prompt.Prelude,
         @prompt.MoonBit,
-        @todo.ReadPrompt,
-        @todo.WritePrompt,
-        @search_files.SearchFilesPrompt,
+        @todo_read.Prompt,
+        @todo_write.Prompt,
+        @search_files.Prompt,
       ].join("\n"),
     ),
   )

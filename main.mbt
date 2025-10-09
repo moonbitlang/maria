@@ -141,8 +141,8 @@ async fn Migrator::execute(
     agent.add_tool(@file.list_files, file_manager)
     agent.add_tool(@file.read_file, file_manager)
     agent.add_tool(@file.write_to_file, file_manager)
-    agent.add_tool(@todo.read, todo_list)
-    agent.add_tool(@todo.write, todo_list)
+    agent.add_tool(@todo_read.todo_read, todo_list)
+    agent.add_tool(@todo_write.todo_write, todo_list)
     agent.add_tool(@fix_moonbit_warnings.fix_moonbit_warnings, agent)
     agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
@@ -303,17 +303,17 @@ async fn main {
     agent.add_tool(@file.read_file, file_manager)
     agent.add_tool(@file.write_to_file, file_manager)
     let todo_list = @todo.list(cwd=agent.cwd)
-    agent.add_tool(@todo.read, todo_list)
-    agent.add_tool(@todo.write, todo_list)
+    agent.add_tool(@todo_read.todo_read, todo_list)
+    agent.add_tool(@todo_write.todo_write, todo_list)
     agent.add_tool(@search_files.search_files, agent.cwd)
     agent.add_message(
       @openai.system_message(
         content=[
           @prompt.Prelude,
           @prompt.MoonBit,
-          @todo.ReadPrompt,
-          @todo.WritePrompt,
-          @search_files.SearchFilesPrompt,
+          @todo_read.Prompt,
+          @todo_write.Prompt,
+          @search_files.Prompt,
         ].join("\n"),
       ),
     )

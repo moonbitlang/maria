@@ -13,6 +13,11 @@ struct List {
 }
 
 ///|
+pub fn List::todos(self : List) -> Array[Item] {
+  self.todos.copy()
+}
+
+///|
 pub(all) enum Priority {
   High
   Medium
@@ -88,7 +93,7 @@ fn Item::new(
 }
 
 ///|
-fn Item::update(
+pub fn Item::update(
   self : Item,
   content? : String,
   notes? : String?,
@@ -130,7 +135,7 @@ fn List::todo_file_path(self : List) -> String {
 }
 
 ///|
-async fn List::load(self : List) -> Unit {
+pub async fn List::load(self : List) -> Unit {
   let path = self.todo_file_path()
   if !@fs.exists(path) {
     return
@@ -192,7 +197,7 @@ test "extract_task_tags" {
 }
 
 ///|
-fn List::add_task(
+pub fn List::add_task(
   self : List,
   content : String,
   status? : Status = Pending,
@@ -216,7 +221,7 @@ fn List::add_task(
 }
 
 ///|
-fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
+pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.todos[index.0] = item
   self.updated_at = get_current_timestamp()
 }
@@ -227,10 +232,10 @@ fn List::generate_todo_id(_ : List) -> String raise {
 }
 
 ///|
-priv struct Index(Int)
+struct Index(Int)
 
 ///|
-fn List::find(self : List, id : String) -> Index? {
+pub fn List::find(self : List, id : String) -> Index? {
   for i, todo in self.todos {
     if todo.id == id {
       return Some(Index(i))
@@ -240,12 +245,12 @@ fn List::find(self : List, id : String) -> Index? {
 }
 
 ///|
-fn List::get(self : List, index : Index) -> Item {
+pub fn List::get(self : List, index : Index) -> Item {
   self.todos[index.0]
 }
 
 ///|
-async fn save(self : List) -> Unit {
+pub async fn save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.updated_at = get_current_timestamp()
@@ -307,7 +312,7 @@ fn remove_list_prefixes(line : String) -> String {
 }
 
 ///|
-fn List::parse(
+pub fn List::parse(
   self : List,
   content : String,
   priority~ : Priority,
