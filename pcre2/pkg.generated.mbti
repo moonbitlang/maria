@@ -7,22 +7,14 @@ fn compile(String) -> Code raise Pcre2Error
 // Errors
 pub suberror Pcre2Error {
   LookaroundBSK
-  Unicode(UnicodeError)
   Compile(String, Int, UInt64)
   Code(Int)
 }
 impl Show for Pcre2Error
 
-pub suberror UnicodeError {
-  InvalidCodeUnitOffset(Int)
-  InvalidSurrogatePair
-}
-impl Show for UnicodeError
-
 // Types and methods
 type Code
 fn Code::matches(Self, StringView) -> Matches raise Pcre2Error
-fn Code::substitute(Self, String, String) -> String
 
 type Match
 fn Match::groups(Self) -> Iter2[Int, StringView]
@@ -31,15 +23,6 @@ fn[Index : MatchIndex] Match::op_get(Self, Index) -> StringView
 
 type Matches
 fn Matches::next(Self) -> Match? raise Pcre2Error
-
-pub enum Pcre2Newline {
-  CR
-  LF
-  CRLF
-  Any
-  AnyCRLF
-  Nul
-}
 
 // Type aliases
 

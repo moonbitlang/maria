@@ -9,7 +9,7 @@ pub typealias Pointer as Ptr
 pub fn[T, U] Pointer::cast(self : Pointer[T]) -> Pointer[U] = "%identity"
 
 ///|
-extern "c" fn Pointer::_is_null(ptr : Pointer[Unit]) -> Bool = "moonbit_c_is_null"
+extern "c" fn Pointer::_is_null(ptr : Pointer[Unit]) -> Bool = "moonbit_maria_c_is_null"
 
 ///|
 pub fn[T] Pointer::is_null(self : Pointer[T]) -> Bool {
@@ -17,7 +17,7 @@ pub fn[T] Pointer::is_null(self : Pointer[T]) -> Bool {
 }
 
 ///|
-extern "c" fn Pointer::_null() -> Pointer[Unit] = "moonbit_c_null"
+extern "c" fn Pointer::_null() -> Pointer[Unit] = "moonbit_maria_c_null"
 
 ///|
 pub fn[T] Pointer::null() -> Pointer[T] {
@@ -28,7 +28,7 @@ pub fn[T] Pointer::null() -> Pointer[T] {
 pub extern "c" fn Pointer::op_equal(
   self : Pointer[Unit],
   other : Pointer[Unit],
-) -> Bool = "moonbit_c_pointer_equal"
+) -> Bool = "moonbit_maria_c_pointer_equal"
 
 ///|
 pub impl[T] Eq for Pointer[T] with equal(self : Pointer[T], other : Pointer[T]) -> Bool {
@@ -72,52 +72,52 @@ pub(open) trait Load {
 extern "c" fn moonbit_c_load_byte(
   pointer : Pointer[Byte],
   offset : Int,
-) -> Byte = "moonbit_c_load_byte"
+) -> Byte = "moonbit_maria_c_load_byte"
 
 ///|
 extern "c" fn moonbit_c_load_int16(
   pointer : Pointer[Int16],
   offset : Int,
-) -> Int16 = "moonbit_c_load_int16"
+) -> Int16 = "moonbit_maria_c_load_int16"
 
 ///|
 extern "c" fn moonbit_c_load_uint16(
   pointer : Pointer[UInt16],
   offset : Int,
-) -> UInt16 = "moonbit_c_load_uint16"
+) -> UInt16 = "moonbit_maria_c_load_uint16"
 
 ///|
-extern "c" fn moonbit_c_load_int(pointer : Pointer[Int], offset : Int) -> Int = "moonbit_c_load_int"
+extern "c" fn moonbit_c_load_int(pointer : Pointer[Int], offset : Int) -> Int = "moonbit_maria_c_load_int"
 
 ///|
 extern "c" fn moonbit_c_load_uint(
   pointer : Pointer[UInt],
   offset : Int,
-) -> UInt = "moonbit_c_load_uint"
+) -> UInt = "moonbit_maria_c_load_uint"
 
 ///|
 extern "c" fn moonbit_c_load_int64(
   pointer : Pointer[Int64],
   offset : Int,
-) -> Int64 = "moonbit_c_load_int64"
+) -> Int64 = "moonbit_maria_c_load_int64"
 
 ///|
 extern "c" fn moonbit_c_load_uint64(
   pointer : Pointer[UInt64],
   offset : Int,
-) -> UInt64 = "moonbit_c_load_uint64"
+) -> UInt64 = "moonbit_maria_c_load_uint64"
 
 ///|
 extern "c" fn moonbit_c_load_float(
   pointer : Pointer[Float],
   offset : Int,
-) -> Float = "moonbit_c_load_float"
+) -> Float = "moonbit_maria_c_load_float"
 
 ///|
 extern "c" fn moonbit_c_load_double(
   pointer : Pointer[Double],
   offset : Int,
-) -> Double = "moonbit_c_load_double"
+) -> Double = "moonbit_maria_c_load_double"
 
 ///|
 pub impl Load for Byte with load(pointer : Pointer[Byte], offset : Int) -> Byte {
@@ -169,63 +169,63 @@ extern "c" fn moonbit_c_store_byte(
   pointer : Pointer[Byte],
   offset : Int,
   value : Byte,
-) -> Unit = "moonbit_c_store_byte"
+) -> Unit = "moonbit_maria_c_store_byte"
 
 ///|
 extern "c" fn moonbit_c_store_int16(
   pointer : Pointer[Int16],
   offset : Int,
   value : Int16,
-) -> Unit = "moonbit_c_store_int16"
+) -> Unit = "moonbit_maria_c_store_int16"
 
 ///|
 extern "c" fn moonbit_c_store_uint16(
   pointer : Pointer[UInt16],
   offset : Int,
   value : UInt16,
-) -> Unit = "moonbit_c_store_uint16"
+) -> Unit = "moonbit_maria_c_store_uint16"
 
 ///|
 extern "c" fn moonbit_c_store_int(
   pointer : Pointer[Int],
   offset : Int,
   value : Int,
-) -> Unit = "moonbit_c_store_int"
+) -> Unit = "moonbit_maria_c_store_int"
 
 ///|
 extern "c" fn moonbit_c_store_uint(
   pointer : Pointer[UInt],
   offset : Int,
   value : UInt,
-) -> Unit = "moonbit_c_store_uint"
+) -> Unit = "moonbit_maria_c_store_uint"
 
 ///|
 extern "c" fn moonbit_c_store_int64(
   pointer : Pointer[Int64],
   offset : Int,
   value : Int64,
-) -> Unit = "moonbit_c_store_int64"
+) -> Unit = "moonbit_maria_c_store_int64"
 
 ///|
 extern "c" fn moonbit_c_store_uint64(
   pointer : Pointer[UInt64],
   offset : Int,
   value : UInt64,
-) -> Unit = "moonbit_c_store_uint64"
+) -> Unit = "moonbit_maria_c_store_uint64"
 
 ///|
 extern "c" fn moonbit_c_store_float(
   pointer : Pointer[Float],
   offset : Int,
   value : Float,
-) -> Unit = "moonbit_c_store_float"
+) -> Unit = "moonbit_maria_c_store_float"
 
 ///|
 extern "c" fn moonbit_c_store_double(
   pointer : Pointer[Double],
   offset : Int,
   value : Double,
-) -> Unit = "moonbit_c_store_double"
+) -> Unit = "moonbit_maria_c_store_double"
 
 ///|
 trait Store {

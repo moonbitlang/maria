@@ -1,3 +1,0 @@
-///|
-#external
-pub type FILE

@@ -1,5 +1,5 @@
 ///|
-extern "c" fn c_malloc(size : UInt64) -> Pointer[Unit] = "moonbit_c_malloc"
+extern "c" fn c_malloc(size : UInt64) -> Pointer[Unit] = "moonbit_maria_c_malloc"
 
 ///|
 pub fn[T] malloc(size : UInt64) -> Pointer[T] {
@@ -7,7 +7,7 @@ pub fn[T] malloc(size : UInt64) -> Pointer[T] {
 }
 
 ///|
-extern "c" fn c_free(ptr : Pointer[Unit]) = "moonbit_c_free"
+extern "c" fn c_free(ptr : Pointer[Unit]) = "moonbit_maria_c_free"
 
 ///|
 pub fn[T] free(ptr : Pointer[T]) -> Unit {

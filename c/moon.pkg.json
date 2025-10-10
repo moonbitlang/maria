@@ -2,25 +2,10 @@
   "targets": {
     "nullable.mbt": ["native", "llvm"],
     "pointer.mbt": ["native", "llvm"],
-    "atexit_test.mbt": ["native", "llvm"],
-    "atexit.mbt": ["native", "llvm"],
     "exit.mbt": ["native", "llvm"],
     "malloc.mbt": ["native", "llvm"],
     "memcpy.mbt": ["native", "llvm"],
-    "fflush.mbt": ["native", "llvm"],
-    "fgetc.mbt": ["native", "llvm"],
-    "fgets.mbt": ["native", "llvm"],
-    "FILE.mbt": ["native", "llvm"],
-    "getchar_test.mbt": ["native", "llvm"],
-    "getchar.mbt": ["native", "llvm"],
-    "stdio.mbt": ["native", "llvm"]
+    "strlen.mbt": ["native", "llvm"]
   },
-  "native-stub": [
-    "c.c",
-    "atexit.c",
-    "malloc.c",
-    "memcpy.c",
-    "uintptr.c",
-    "stdio.c"
-  ]
+  "native-stub": ["c.c", "malloc.c", "memcpy.c", "strlen.c"]
 }
