@@ -1,9 +1,10 @@
 #include "moonbit.h"
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <sys/ioctl.h>
+#if defined(__APPLE__)
 #include <sys/ttycom.h>
+#endif
 #include <termios.h>
 #include <unistd.h>
 
