@@ -2,7 +2,7 @@
   "name": "moonbitlang/maria",
   "version": "0.1.0",
   "deps": {
-    "moonbitlang/async": "0.8.0",
+    "moonbitlang/async": "0.8.3",
     "moonbitlang/x": "0.4.34",
     "tonyfettes/tiktoken": "0.1.1",
     "tonyfettes/uv": "0.12.8",
