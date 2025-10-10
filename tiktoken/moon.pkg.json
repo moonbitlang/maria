@@ -1,6 +1,6 @@
 {
   "import": [
-    "tonyfettes/pcre2",
+    "moonbitlang/maria/pcre2",
     "moonbitlang/maria/base64"
   ]
 }
