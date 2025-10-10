@@ -121,7 +121,7 @@ pub fn home() -> String raise {
   let uid = os_getuid()
   let pwd : FixedArray[Byte] = FixedArray::make(os_passwd_sizeof(), 0)
   let buf_len = sysconf_SC_GETPW_R_SIZE_MAX().to_uint64()
-  let buf : @c.Pointer[Byte] = @stdlib.malloc(buf_len)
+  let buf : @c.Pointer[Byte] = @c.malloc(buf_len)
   println("buf.len = \{buf_len}")
   let result : Ref[@c.Pointer[Unit]] = Ref::new(@c.Pointer::null())
   let errno = os_getpwuid_r(uid, pwd, buf, buf_len, result)
@@ -134,7 +134,7 @@ pub fn home() -> String raise {
   for i = 0; i < len; i = i + 1 {
     dir_buf[i] = ptr[i]
   }
-  @stdlib.free(buf)
+  @c.free(buf)
   @encoding/utf8.decode(dir_buf.unsafe_reinterpret_as_bytes())
 }
 

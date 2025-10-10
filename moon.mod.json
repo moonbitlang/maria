@@ -5,7 +5,6 @@
     "moonbitlang/async": "0.8.3",
     "moonbitlang/x": "0.4.34",
     "moonbitlang/regexp": "0.3.1",
-    "tonyfettes/c": "0.5.4",
     "tonyfettes/pcre2": "0.3.4"
   },
   "readme": "README.md",
