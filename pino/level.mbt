@@ -6,7 +6,7 @@ pub(all) enum Level {
   Warn
   Error
   Fatal
-}
+} derive(Show)
 
 ///|
 fn Level::to_int(self : Level) -> Int {

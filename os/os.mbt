@@ -39,6 +39,30 @@ pub fn unsetenv(key : StringView) -> Unit raise {
 }
 
 ///|
+#borrow(key, value)
+extern "c" fn os_setenv(key : Bytes, value : Bytes, overwrite : Int) -> Int = "moonbit_maria_os_setenv"
+
+///|
+pub fn setenv(
+  key : StringView,
+  value : StringView,
+  overwrite? : Bool = true,
+) -> Unit raise {
+  let result = os_setenv(
+    @encoding/utf8.encode(key),
+    @encoding/utf8.encode(value),
+    if overwrite {
+      1
+    } else {
+      0
+    },
+  )
+  if result != 0 {
+    raise @errno.Errno(result)
+  }
+}
+
+///|
 pub fn args() -> Array[String] {
   @env.args()
 }
@@ -113,7 +137,6 @@ pub fn home() -> String raise {
   let pwd : FixedArray[Byte] = FixedArray::make(os_passwd_sizeof(), 0)
   let buf_len = sysconf_SC_GETPW_R_SIZE_MAX().to_uint64()
   let buf : @c.Pointer[Byte] = @c.malloc(buf_len)
-  println("buf.len = \{buf_len}")
   let result : Ref[@c.Pointer[Unit]] = Ref::new(@c.Pointer::null())
   let errno = os_getpwuid_r(uid, pwd, buf, buf_len, result)
   if errno != 0 {

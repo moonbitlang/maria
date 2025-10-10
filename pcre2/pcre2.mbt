@@ -218,25 +218,25 @@ pub fn compile(pattern : String) -> Code raise Pcre2Error {
 
 ///|
 struct Match {
-  subject : @string.View
+  subject : StringView
   code_unit_offsets : FixedArray[Int]
   name_table : Map[String, Int]
 }
 
 ///|
 trait MatchIndex {
-  get(Match, Self) -> @string.View
+  get(Match, Self) -> StringView
 }
 
 ///|
-pub impl MatchIndex for Int with get(self : Match, index : Int) -> @string.View {
+pub impl MatchIndex for Int with get(self : Match, index : Int) -> StringView {
   let start = self.code_unit_offsets[index * 2]
   let end = self.code_unit_offsets[index * 2 + 1]
   self.subject.view(start_offset=start, end_offset=end)
 }
 
 ///|
-pub impl MatchIndex for String with get(self : Match, index : String) -> @string.View {
+pub impl MatchIndex for String with get(self : Match, index : String) -> StringView {
   let index = self.name_table.get(index).unwrap()
   let start = self.code_unit_offsets[index * 2]
   let end = self.code_unit_offsets[index * 2 + 1]
@@ -247,12 +247,12 @@ pub impl MatchIndex for String with get(self : Match, index : String) -> @string
 pub fn[Index : MatchIndex] Match::op_get(
   self : Match,
   index : Index,
-) -> @string.View {
+) -> StringView {
   Index::get(self, index)
 }
 
 ///|
-pub fn Match::groups(self : Match) -> Iter2[Int, @string.View] {
+pub fn Match::groups(self : Match) -> Iter2[Int, StringView] {
   Iter2::new(each => {
     for i in 0..<(self.code_unit_offsets.length() / 2) {
       let start = self.code_unit_offsets[2 * i]
@@ -267,7 +267,7 @@ pub fn Match::groups(self : Match) -> Iter2[Int, @string.View] {
 }
 
 ///|
-pub fn Match::named_groups(self : Match) -> Iter2[String, @string.View] {
+pub fn Match::named_groups(self : Match) -> Iter2[String, StringView] {
   Iter2::new(each => {
     for name, index in self.name_table {
       let start = self.code_unit_offsets[2 * index]
@@ -585,7 +585,7 @@ pub fn Matches::next(self : Matches) -> Match? raise Pcre2Error {
 /// ```
 pub fn Code::matches(
   self : Code,
-  subject : @string.View,
+  subject : StringView,
 ) -> Matches raise Pcre2Error {
   // The following code has been adapted from the pcre2demo.c file in the PCRE2
   // library.

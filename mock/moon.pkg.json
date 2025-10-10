@@ -6,6 +6,7 @@
     "moonbitlang/async/io",
     "moonbitlang/maria/uuid",
     "moonbitlang/maria/os",
-    "moonbitlang/maria/errno"
+    "moonbitlang/maria/errno",
+    "moonbitlang/async/semaphore"
   ]
 }

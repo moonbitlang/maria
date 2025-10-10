@@ -23,6 +23,7 @@ pub(all) enum Level {
   Error
   Fatal
 }
+impl Show for Level
 
 type Logger
 fn Logger::child(Self, String) -> Self
@@ -37,6 +38,7 @@ fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
 type Transport
 fn Transport::console() -> Self
 fn Transport::file(StringView) -> Self
+fn Transport::sink() -> Self
 
 // Type aliases
 
