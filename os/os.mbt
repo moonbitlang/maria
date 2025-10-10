@@ -3,15 +3,6 @@
 extern "c" fn os_getenv(key : Bytes) -> @c.Pointer[Byte] = "moonbit_maria_os_getenv"
 
 ///|
-fn strlen(c_str : @c.Pointer[Byte]) -> Int {
-  for i = 0; ; i = i + 1 {
-    if c_str[i] == 0 {
-      return i
-    }
-  }
-}
-
-///|
 fn buflen(buf : FixedArray[Byte]) -> Int {
   for i = 0; i < FixedArray::length(buf); i = i + 1 {
     if buf[i] == 0 {
@@ -27,7 +18,7 @@ pub fn getenv(key : StringView) -> String? raise {
   if c_str.is_null() {
     return None
   }
-  let len = strlen(c_str)
+  let len = @c.strlen(c_str).to_int()
   let buf : FixedArray[Byte] = FixedArray::make(len, 0)
   for i = 0; i < len; i = i + 1 {
     buf[i] = c_str[i]
@@ -129,7 +120,7 @@ pub fn home() -> String raise {
     raise @errno.Errno(errno)
   }
   let ptr = os_passwd_get_dir(pwd.unsafe_reinterpret_as_bytes())
-  let len = strlen(ptr)
+  let len = @c.strlen(ptr).to_int()
   let dir_buf : FixedArray[Byte] = FixedArray::make(len, 0)
   for i = 0; i < len; i = i + 1 {
     dir_buf[i] = ptr[i]

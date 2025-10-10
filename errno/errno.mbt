@@ -1,13 +1,4 @@
 ///|
-fn strlen(c_str : @c.Pointer[Byte]) -> Int {
-  for i = 0; ; i = i + 1 {
-    if c_str[i] == 0 {
-      return i
-    }
-  }
-}
-
-///|
 extern "c" fn errno_ERANGE() -> Int = "moonbit_maria_errno_ERANGE"
 
 ///|
@@ -32,7 +23,7 @@ pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
   if c_str.is_null() {
     logger.write_string("Errno(\{errnum}")
   } else {
-    let c_len = strlen(c_str)
+    let c_len = @c.strlen(c_str).to_int()
     let buf : FixedArray[Byte] = FixedArray::make(c_len, 0)
     for i = 0; i < c_len; i = i + 1 {
       buf[i] = c_str[i]

@@ -12,6 +12,8 @@ fn memcpy(Pointer[Byte], Pointer[Byte], UInt64) -> Unit
 
 let null : Null
 
+fn strlen(Pointer[Byte]) -> UInt64
+
 // Errors
 
 // Types and methods
