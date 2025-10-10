@@ -32,11 +32,11 @@ pub fn Logger::log(
   }
   let object : Map[String, Json] = {
     "level": level.to_int().to_json(),
-    "pid": @uv.os_getpid().to_int().to_json(),
+    "pid": @spawn.getpid().to_json(),
     "msg": message.to_json(),
   }
   try {
-    object["hostname"] = @encoding/utf8.decode(@uv.os_gethostname()).to_json()
+    object["hostname"] = @os.gethostname().to_json()
   } catch {
     _ => ()
   }

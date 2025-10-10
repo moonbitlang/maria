@@ -1,10 +1,10 @@
 {
   "import": [
     "moonbitlang/async/fs",
-    "tonyfettes/uv",
     "moonbitlang/maria/path",
     "moonbitlang/async/aqueue",
     "moonbitlang/async/io",
-    "moonbitlang/maria/os"
+    "moonbitlang/maria/os",
+    "moonbitlang/maria/spawn"
   ]
 }
