@@ -1,14 +1,15 @@
 ///|
+#borrow(buf)
+extern "c" fn rand_bytes(buf : Bytes) -> Int = "moonbit_maria_rand_bytes"
+
+///|
 pub fn bytes(n : Int) -> Bytes raise {
-  let seed = Bytes::make(n, 0)
-  let uv = @global.uv()
-  let mut error = None
-  let _ = uv.random(seed, 0, _ => (), e => error = Some(e))
-  uv.run(Default)
-  if error is Some(error) {
-    raise error
+  let buf = Bytes::make(n, 0)
+  let errno = rand_bytes(buf)
+  if errno != 0 {
+    raise @errno.Errno(errno)
   }
-  seed
+  buf
 }
 
 ///|
