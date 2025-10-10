@@ -1,5 +1,6 @@
 #include "moonbit.h"
 #include <errno.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 MOONBIT_FFI_EXPORT
