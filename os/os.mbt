@@ -39,6 +39,30 @@ pub fn unsetenv(key : StringView) -> Unit raise {
 }
 
 ///|
+#borrow(key, value)
+extern "c" fn os_setenv(key : Bytes, value : Bytes, overwrite : Int) -> Int = "moonbit_maria_os_setenv"
+
+///|
+pub fn setenv(
+  key : StringView,
+  value : StringView,
+  overwrite? : Bool = true,
+) -> Unit raise {
+  let result = os_setenv(
+    @encoding/utf8.encode(key),
+    @encoding/utf8.encode(value),
+    if overwrite {
+      1
+    } else {
+      0
+    },
+  )
+  if result != 0 {
+    raise @errno.Errno(result)
+  }
+}
+
+///|
 pub fn args() -> Array[String] {
   @env.args()
 }

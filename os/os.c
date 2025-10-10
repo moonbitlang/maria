@@ -23,13 +23,17 @@ moonbit_maria_os_getenv(moonbit_bytes_t key) {
 }
 
 MOONBIT_FFI_EXPORT
-int
+int32_t
 moonbit_maria_os_setenv(
   moonbit_bytes_t key,
   moonbit_bytes_t value,
   int overwrite
 ) {
-  return setenv((const char *)key, (const char *)value, overwrite);
+  if (setenv((const char *)key, (const char *)value, overwrite) != 0) {
+    return errno;
+  } else {
+    return 0;
+  }
 }
 
 MOONBIT_FFI_EXPORT
