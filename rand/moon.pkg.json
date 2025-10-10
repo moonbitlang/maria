@@ -1,5 +1,4 @@
 {
-  "import": [
-    "moonbitlang/maria/errno"
-  ]
+  "import": ["moonbitlang/maria/errno"],
+  "native-stub": ["rand.c"]
 }
