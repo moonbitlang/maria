@@ -19,3 +19,16 @@ int
 moonbit_maria_errno_ENAMETOOLONG() {
   return ENAMETOOLONG;
 }
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_get() {
+  return errno;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_set(int32_t err) {
+  errno = err;
+  return errno;
+}

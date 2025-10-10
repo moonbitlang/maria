@@ -46,3 +46,9 @@ pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
 pub impl ToJson for Errno with to_json(self : Errno) -> Json {
   self.to_string().to_json()
 }
+
+///|
+pub extern "c" fn get() -> Int = "moonbit_c_errno_get"
+
+///|
+pub extern "c" fn set(err : Int) -> Int = "moonbit_c_errno_set"

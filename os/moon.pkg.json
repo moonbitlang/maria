@@ -1,9 +1,8 @@
 {
   "import": [
     "moonbitlang/x/time",
-    "tonyfettes/c",
     "moonbitlang/maria/errno",
-    "tonyfettes/c/stdlib"
+    "moonbitlang/maria/c"
   ],
   "native-stub": ["os.c"]
 }
