@@ -1202,7 +1202,7 @@ async fn Interface::tab_completer(
     return
   }
   self.before_edit(self.line, self.cursor)
-  let completion_widths = completions.map(@unicodewidth.str_width(_))
+  let completion_widths = completions.map(@unicode/width.string(_))
   let mut width = 0
   for completion_width in completion_widths {
     width = @cmp.maximum(width, completion_width)
