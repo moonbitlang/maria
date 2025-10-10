@@ -2,12 +2,17 @@
 package "moonbitlang/maria/mock"
 
 import(
+  "moonbitlang/async/semaphore"
   "moonbitlang/maria/model"
 )
 
 // Values
 #callsite(autofill(loc))
 async fn directory(String, loc~ : SourceLoc) -> Directory
+
+async fn home(String) -> Home
+
+let home_lock : @semaphore.Semaphore
 
 fn model() -> @model.Model
 
@@ -37,6 +42,14 @@ async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit, loc~ :
 
 type File
 fn File::path(Self) -> String
+
+type Home
+#callsite(autofill(loc))
+async fn Home::add_file(Self, String, String, loc~ : SourceLoc) -> File
+#callsite(autofill(loc))
+async fn Home::add_subdirectory(Self, String, loc~ : SourceLoc) -> Directory
+async fn Home::close(Self) -> Unit
+fn Home::path(Self) -> String
 
 // Type aliases
 

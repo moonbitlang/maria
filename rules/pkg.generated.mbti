@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/rules"
+
+import(
+  "moonbitlang/maria/pino"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Loader
+fn Loader::format(Self) -> String
+async fn Loader::load(Self) -> Unit
+fn Loader::new(String, logger~ : @pino.Logger) -> Self
+
+pub struct Rule {
+  description : String?
+  globs : Array[String]
+  always_apply : Bool
+  content : String
+  source : Source
+}
+impl Show for Rule
+impl ToJson for Rule
+
+pub enum Source {
+  Global
+  Local
+}
+impl Show for Source
+impl ToJson for Source
+
+// Type aliases
+
+// Traits
+

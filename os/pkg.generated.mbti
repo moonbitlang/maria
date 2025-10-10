@@ -20,6 +20,8 @@ fn now() -> @time.ZonedDateTime raise
 
 fn now_ms() -> Int64
 
+fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
+
 fn tmpdir() -> String raise
 
 fn unsetenv(StringView) -> Unit raise
