@@ -308,3 +308,75 @@ pub fn[T : ToJson] strip_timestamp(value : T) -> Json {
     other => other
   }
 }
+
+///|
+pub let home_lock : @semaphore.Semaphore = @semaphore.Semaphore::new(1)
+
+///|
+struct Home {
+  directory : Directory
+  backup : String
+}
+
+///|
+pub fn Home::path(self : Home) -> String {
+  self.directory.path()
+}
+
+///|
+#callsite(autofill(loc))
+pub async fn Home::add_file(
+  self : Home,
+  name : String,
+  content : String,
+  loc~ : SourceLoc,
+) -> File {
+  self.directory.add_file(name, content) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create file \{name} in home directory: \{error}",
+      )
+      raise error
+    }
+  }
+}
+
+///|
+#callsite(autofill(loc))
+pub async fn Home::add_subdirectory(
+  self : Home,
+  name : String,
+  loc~ : SourceLoc,
+) -> Directory {
+  self.directory.add_subdirectory(name) catch {
+    error => {
+      println(
+        "[ERROR] \{loc}: failed to create subdirectory \{name} in home directory: \{error}",
+      )
+      raise error
+    }
+  }
+}
+
+///|
+pub async fn home(name : String) -> Home {
+  let dir = directory(name)
+  home_lock.acquire()
+  let backup = @os.home()
+  @os.setenv("HOME", dir.path(), overwrite=true)
+  Home::{ backup, directory: dir }
+}
+
+///|
+pub async fn Home::close(self : Home) -> Unit {
+  self.directory.close() catch {
+    error => {
+      println(
+        "[ERROR] failed to remove temporary home directory: \{self.directory.path()}: \{error}",
+      )
+      raise error
+    }
+  }
+  @os.setenv("HOME", self.backup, overwrite=true)
+  home_lock.release()
+}
