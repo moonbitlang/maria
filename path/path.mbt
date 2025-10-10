@@ -86,7 +86,10 @@ pub fn split(view : StringView) -> Iter[StringView] {
       ['/', .. rest] as view => {
         let part = last
           .data()
-          .view(start_offset=last.start, end_offset=view.start)
+          .view(
+            start_offset=last.start_offset(),
+            end_offset=view.start_offset(),
+          )
         match each(part) {
           IterContinue => {
             let rest = skip~: loop rest {

@@ -113,7 +113,6 @@ pub fn home() -> String raise {
   let pwd : FixedArray[Byte] = FixedArray::make(os_passwd_sizeof(), 0)
   let buf_len = sysconf_SC_GETPW_R_SIZE_MAX().to_uint64()
   let buf : @c.Pointer[Byte] = @c.malloc(buf_len)
-  println("buf.len = \{buf_len}")
   let result : Ref[@c.Pointer[Unit]] = Ref::new(@c.Pointer::null())
   let errno = os_getpwuid_r(uid, pwd, buf, buf_len, result)
   if errno != 0 {
