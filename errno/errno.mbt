@@ -48,7 +48,7 @@ pub impl ToJson for Errno with to_json(self : Errno) -> Json {
 }
 
 ///|
-pub extern "c" fn get() -> Int = "moonbit_c_errno_get"
+pub extern "c" fn get() -> Int = "moonbit_maria_errno_get"
 
 ///|
-pub extern "c" fn set(err : Int) -> Int = "moonbit_c_errno_set"
+pub extern "c" fn set(err : Int) -> Int = "moonbit_maria_errno_set"

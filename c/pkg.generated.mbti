@@ -2,50 +2,21 @@
 package "moonbitlang/maria/c"
 
 // Values
-fn atexit(FuncRef[() -> Unit]) -> Int
-
-let eof : Int
-
 fn[T] exit(Int) -> T
 
-fn[T : ToNullableFILE] fflush(T) -> Int
-
-fn fgetc(FILE) -> Int
-
-fn fgets(FixedArray[Byte], FILE) -> Bool
-
-fn fputs(Bytes, FILE) -> Int
-
 fn[T] free(Pointer[T]) -> Unit
-
-fn getchar() -> Int
 
 fn[T] malloc(UInt64) -> Pointer[T]
 
 fn memcpy(Pointer[Byte], Pointer[Byte], UInt64) -> Unit
 
-fn memcpy_from_bytes(Pointer[Byte], Bytes, UInt64) -> Unit
-
-fn memcpy_to_bytes(Bytes, Pointer[Byte], UInt64) -> Unit
-
 let null : Null
-
-let stderr : FILE
-
-let stdin : FILE
-
-let stdout : FILE
 
 // Errors
 
 // Types and methods
 #external
-pub type FILE
-impl ToNullableFILE for FILE
-
-#external
 pub type Null
-impl ToNullableFILE for Null
 
 #external
 pub type Pointer[_]
@@ -58,26 +29,6 @@ fn[T : Load] Pointer::op_get(Self[T], Int) -> T
 fn[T : Store] Pointer::op_set(Self[T], Int, T) -> Unit
 fn[T : Store] Pointer::store(Self[T], offset? : Int, T) -> Unit
 impl[T] Eq for Pointer[T]
-
-#external
-pub type UIntPtr
-fn UIntPtr::from_byte(Byte) -> Self
-fn UIntPtr::from_int(Int) -> Self
-fn UIntPtr::from_int16(Int16) -> Self
-fn UIntPtr::from_int64(Int64) -> Self
-fn[T] UIntPtr::from_pointer(Pointer[T]) -> Self
-fn UIntPtr::from_uint(UInt) -> Self
-fn UIntPtr::from_uint16(UInt16) -> Self
-fn UIntPtr::from_uint64(UInt64) -> Self
-fn UIntPtr::to_byte(Self) -> Byte
-fn UIntPtr::to_int(Self) -> Int
-fn UIntPtr::to_int16(Self) -> Int16
-fn UIntPtr::to_int64(Self) -> Int64
-fn UIntPtr::to_uint(Self) -> Int
-fn UIntPtr::to_uint16(Self) -> UInt16
-fn UIntPtr::to_uint64(Self) -> Int64
-impl Show for UIntPtr
-impl ToJson for UIntPtr
 
 // Type aliases
 pub typealias Pointer as Ptr
@@ -106,6 +57,4 @@ impl Store for UInt16
 impl Store for UInt64
 impl Store for Float
 impl Store for Double
-
-trait ToNullableFILE
 
