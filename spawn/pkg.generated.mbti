@@ -2,6 +2,12 @@
 package "moonbitlang/maria/spawn"
 
 // Values
+fn getpid() -> Int
+
+fn getppid() -> Int
+
+fn kill(Int, Int) -> Int
+
 async fn spawn(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Int
 
 // Errors
