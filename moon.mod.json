@@ -4,8 +4,7 @@
   "deps": {
     "moonbitlang/async": "0.8.3",
     "moonbitlang/x": "0.4.34",
-    "moonbitlang/regexp": "0.3.1",
-    "tonyfettes/pcre2": "0.3.4"
+    "moonbitlang/regexp": "0.3.1"
   },
   "readme": "README.md",
   "repository": "",
