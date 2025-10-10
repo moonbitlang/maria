@@ -1,12 +1,16 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/spawn"
 
+import(
+  "moonbitlang/maria/errno"
+)
+
 // Values
 fn getpid() -> Int
 
 fn getppid() -> Int
 
-fn kill(Int, Int) -> Int
+fn kill(Int, Int) -> Unit raise @errno.Errno
 
 async fn spawn(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Int
 

@@ -14,7 +14,7 @@ async fn read_file(StringView) -> String
 
 async fn remove(StringView) -> Unit
 
-fn resolve(StringView) -> String raise
+async fn resolve(StringView) -> String
 
 fn stat(StringView) -> Stat raise
 
