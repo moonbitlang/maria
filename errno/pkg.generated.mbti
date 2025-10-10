@@ -6,10 +6,6 @@ let enametoolong : Int
 
 let erange : Int
 
-fn get() -> Int
-
-fn set(Int) -> Int
-
 // Errors
 pub(all) suberror Errno Int
 impl Show for Errno
