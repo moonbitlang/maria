@@ -1,5 +1,6 @@
 {
   "import": [
-    "tonyfettes/uv"
+    "tonyfettes/uv",
+    "moonbitlang/maria/os"
   ]
 }

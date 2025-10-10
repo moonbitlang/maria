@@ -4,21 +4,7 @@ fn StringView::end_offset(self : StringView) -> Int {
 }
 
 ///|
-pub let sep : Char = try {
-  if @uv.os_uname().sysname() == "Windows_NT" {
-    abort("Windows is not supported yet")
-  } else {
-    '/'
-  }
-} catch {
-  error => {
-    let message = @encoding/utf8.decode_lossy(error.to_bytes())
-    println(
-      "Warning: failed to set default path implementation, defaulting to posix. Error: \{message}",
-    )
-    '/'
-  }
-}
+pub let sep : Char = '/'
 
 ///|
 pub fn dirname(path : StringView) -> StringView {
@@ -229,7 +215,7 @@ pub fn resolve(view : StringView) -> String raise {
   if is_absolute(view) {
     return normalize(view)
   } else {
-    let cwd = @encoding/utf8.decode(@uv.cwd())
+    let cwd = @os.cwd()
     normalize(join(cwd, view))
   }
 }
