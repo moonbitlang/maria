@@ -1,9 +1,7 @@
 {
   "import": [
     "moonbitlang/async/fs",
-    "tonyfettes/uv",
     "moonbitlang/maria/path",
-    "moonbitlang/maria/internal/global",
     "moonbitlang/async/io",
     "moonbitlang/maria/errno",
     "moonbitlang/maria/os"
