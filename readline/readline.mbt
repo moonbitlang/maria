@@ -1299,7 +1299,7 @@ async fn Interface::handle_keypress(
       Byte('n') => self.history_next()
       Byte('p') => self.history_prev()
       Byte('y') => self.yank()
-      Byte('z') => @uv.kill(@uv.os_getppid(), @uv.Signum::sigtstp())
+      Byte('z') => @spawn.kill(@spawn.getppid(), @signal.sigtstp)
       Byte('w') | Backspace => self.delete_word_left()
       Delete => self.delete_word_right()
       Left => self.word_left()

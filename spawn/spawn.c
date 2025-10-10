@@ -1,6 +1,7 @@
 #include "moonbit.h"
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 
 MOONBIT_FFI_EXPORT
 int32_t
@@ -17,5 +18,10 @@ moonbit_maria_process_getppid(void) {
 MOONBIT_FFI_EXPORT
 int32_t
 moonbit_maria_process_kill(int32_t pid, int32_t sig) {
-  return kill((pid_t)pid, sig);
+  int32_t result = kill((pid_t)pid, sig);
+  if (result == -1) {
+    return errno;
+  } else {
+    return 0;
+  }
 }
