@@ -27,7 +27,7 @@ pub fn Logger::log(
   message : StringView,
   content : Map[String, Json],
 ) -> Unit {
-  if self.level.to_int() < level.to_int() {
+  if level.to_int() < self.level.to_int() {
     return
   }
   let object : Map[String, Json] = {
