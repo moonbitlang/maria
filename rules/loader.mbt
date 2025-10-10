@@ -201,7 +201,7 @@ test "Rule::parse" {
     "description": "This is a test rule",
     "globs": ["**/*.js", "**/*.ts"],
     "always_apply": true,
-    "content": "\nconsole.log(\"Hello, world!\");\n\n",
+    "content": "\nconsole.log(\"Hello, world!\");",
     "source": "Global",
   })
 }
