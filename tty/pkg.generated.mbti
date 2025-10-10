@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tty"
+
+// Values
+fn set_raw_mode(Int) -> Unit raise
+
+fn window_size() -> Size raise
+
+// Errors
+
+// Types and methods
+pub struct Size {
+  row : Int
+  col : Int
+}
+impl ToJson for Size
+
+// Type aliases
+
+// Traits
+

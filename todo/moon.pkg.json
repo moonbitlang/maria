@@ -5,9 +5,5 @@
     "moonbitlang/maria/uuid",
     "moonbitlang/x/time",
     "moonbitlang/maria/os"
-  ],
-  "test-import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/mock"
   ]
 }

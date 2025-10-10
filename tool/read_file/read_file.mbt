@@ -43,8 +43,7 @@ async fn @file.Manager::execute_read_file_tool(
     if !@fs.exists(resolved_path) {
       return @tool.error("Error reading file: File not found: \{path}")
     }
-    let stat = @fs.stat(resolved_path)
-    if stat.kind() is Directory {
+    if @fs.kind(resolved_path) is Directory {
       let entries = @fs.list_directory(resolved_path).map(entry => match
         entry.kind {
         Directory => "\{entry.name}\{@path.sep}"

@@ -20,3 +20,20 @@ pub async fn spawn(
     @process.run(command, arguments, cwd?)
   }
 }
+
+///|
+pub extern "c" fn getpid() -> Int = "moonbit_maria_process_getpid"
+
+///|
+pub extern "c" fn getppid() -> Int = "moonbit_maria_process_getppid"
+
+///|
+extern "c" fn process_kill(pid : Int, sig : Int) -> Int = "moonbit_maria_process_kill"
+
+///|
+pub fn kill(pid : Int, sig : Int) -> Unit raise @errno.Errno {
+  let status = process_kill(pid, sig)
+  if status != 0 {
+    raise @errno.Errno(status)
+  }
+}

@@ -184,8 +184,7 @@ async fn find_references(
 /// Check if path exists and get its type
 async fn check_path(path : String) -> (Bool, Bool) { // (exists, is_file)
   try {
-    let stat = @fs.stat(path)
-    match stat.kind() {
+    match @fs.kind(path) {
       Regular => (true, true)
       Directory => (true, false)
       _ => (false, false)

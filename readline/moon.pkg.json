@@ -1,13 +1,14 @@
 {
   "import": [
-    "tonyfettes/uv",
     "moonbitlang/async/pipe",
     "moonbitlang/maria/readline/csi",
     "moonbitlang/async/aqueue",
     "rami3l/unicodewidth",
     "moonbitlang/async",
     "moonbitlang/maria/readline/unicode",
-    "moonbitlang/maria/internal/global",
-    "moonbitlang/async/io"
+    "moonbitlang/async/io",
+    "moonbitlang/maria/tty",
+    "moonbitlang/maria/signal",
+    "moonbitlang/maria/spawn"
   ]
 }

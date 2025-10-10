@@ -68,7 +68,6 @@ fn Events::new() -> Events {
 
 ///|
 struct Interface {
-  tty : @uv.Tty
   input : @pipe.PipeRead
   output : @pipe.PipeWrite
   mut line : BytesView
@@ -105,12 +104,9 @@ pub fn interface(
   input~ : @pipe.PipeRead,
   output? : @pipe.PipeWrite = @pipe.stdout,
 ) -> Interface raise {
-  let uv = @global.uv()
-  let tty = @uv.Tty::new(uv, @uv.File::of_int(input.fd()))
-  tty.set_mode(@uv.TtyMode::raw())
+  @tty.set_raw_mode(input.fd())
   Interface::{
     line: "",
-    tty,
     input,
     output,
     prompt: "",
@@ -143,8 +139,8 @@ pub fn interface(
 }
 
 ///|
-pub fn Interface::close(self : Interface) -> Unit {
-  self.tty.close(() => ())
+pub fn Interface::close(_ : Interface) -> Unit {
+
 }
 
 ///|
@@ -278,8 +274,8 @@ priv struct Position {
 }
 
 ///|
-fn Interface::columns(self : Interface) -> Int raise {
-  self.tty.get_winsize().0
+fn Interface::columns(_ : Interface) -> Int raise {
+  @tty.window_size().col
 }
 
 ///|
@@ -1303,10 +1299,7 @@ async fn Interface::handle_keypress(
       Byte('n') => self.history_next()
       Byte('p') => self.history_prev()
       Byte('y') => self.yank()
-      Byte('z') =>
-        if @uv.os_uname().sysname() != "Windows_NT" {
-          @uv.kill(@uv.os_getppid(), @uv.Signum::sigtstp())
-        }
+      Byte('z') => @spawn.kill(@spawn.getppid(), @signal.sigtstp)
       Byte('w') | Backspace => self.delete_word_left()
       Delete => self.delete_word_right()
       Left => self.word_left()

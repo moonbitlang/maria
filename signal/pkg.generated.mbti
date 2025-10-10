@@ -1,12 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/global"
-
-import(
-  "tonyfettes/uv"
-)
+package "moonbitlang/maria/signal"
 
 // Values
-fn uv() -> @uv.Loop raise @uv.Errno
+let sigtstp : Int
 
 // Errors
 

@@ -12,11 +12,17 @@ fn cwd() -> String raise
 
 fn getenv(StringView) -> String? raise
 
+fn gethostname() -> String raise
+
 fn home() -> String raise
 
 fn now() -> @time.ZonedDateTime raise
 
-fn now_ms() -> Int64 raise
+fn now_ms() -> Int64
+
+fn tmpdir() -> String raise
+
+fn unsetenv(StringView) -> Unit raise
 
 // Errors
 

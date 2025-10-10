@@ -1,6 +1,4 @@
 {
-  "import": [
-    "moonbitlang/maria/internal/global",
-    "tonyfettes/uv"
-  ]
+  "import": ["moonbitlang/maria/errno"],
+  "native-stub": ["rand.c"]
 }

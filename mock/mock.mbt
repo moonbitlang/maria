@@ -2,9 +2,13 @@
 struct Directory(String)
 
 ///|
+#borrow(template)
+extern "c" fn fs_mkdtemp(template : Bytes) -> Int = "moonbit_maria_fs_mkdtemp"
+
+///|
 #callsite(autofill(loc))
 pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
-  let cwd = @encoding/utf8.decode(@uv.cwd()) catch {
+  let cwd = @os.cwd() catch {
     error => {
       println(
         "[ERROR] \{loc}: failed to get current working directory: \{error}",
@@ -24,17 +28,14 @@ pub async fn directory(name : String, loc~ : SourceLoc) -> Directory {
       error => println("[ERROR] \{loc}: failed to create .tmp: \{error}")
     }
   }
-  let tmpdir = @global.uv().fs_mkdtemp_sync(
-    @encoding/utf8.encode(@path.join(dot_tmp, template)),
-  ) catch {
-    error => {
-      println(
-        "[ERROR] \{loc}: failed to create temporary directory: \{@encoding/utf8.decode_lossy(error.to_bytes())}",
-      )
-      raise error
-    }
+  let template = @encoding/utf8.encode(@path.join(dot_tmp, template))
+  let errno = fs_mkdtemp(template)
+  if errno != 0 {
+    let error = @errno.Errno(errno)
+    println("[ERROR] \{loc}: failed to create temporary directory: \{error}")
+    raise error
   }
-  return Directory(@encoding/utf8.decode(tmpdir))
+  return Directory(@encoding/utf8.decode(template))
 }
 
 ///|

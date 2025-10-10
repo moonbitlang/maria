@@ -1,10 +1,10 @@
 {
   "import": [
     "moonbitlang/async/fs",
-    "tonyfettes/uv",
     "moonbitlang/maria/path",
-    "moonbitlang/maria/internal/global",
-    "moonbitlang/async/io"
+    "moonbitlang/async/io",
+    "moonbitlang/maria/errno",
+    "moonbitlang/maria/os"
   ],
   "test-import": [
     "moonbitlang/async",
@@ -13,5 +13,6 @@
       "path": "moonbitlang/maria/fs",
       "alias": "this"
     }
-  ]
+  ],
+  "native-stub": ["stat.c", "mkdtemp.c"]
 }
