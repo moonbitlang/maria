@@ -3,12 +3,15 @@
     "moonbitlang/async/pipe",
     "moonbitlang/maria/readline/csi",
     "moonbitlang/async/aqueue",
-    "rami3l/unicodewidth",
     "moonbitlang/async",
     "moonbitlang/maria/readline/unicode",
     "moonbitlang/async/io",
     "moonbitlang/maria/tty",
     "moonbitlang/maria/signal",
-    "moonbitlang/maria/spawn"
+    "moonbitlang/maria/spawn",
+    {
+      "path": "moonbitlang/maria/readline/unicode/width",
+      "alias": "unicode/width"
+    }
   ]
 }

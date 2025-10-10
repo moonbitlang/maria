@@ -38,7 +38,7 @@ pub fn char_width_left(string : BytesView, index : Int) -> Int {
     [..] => return 1
   }
   guard char is Some(char) else { return 1 }
-  guard @unicodewidth.char_width(char) is Some(width) else { return 1 }
+  guard @unicode/width.char(char) is Some(width) else { return 1 }
   width
 }
 
@@ -107,7 +107,7 @@ pub fn char_size_left(string : BytesView, index : Int) -> Int {
       [..] => return width + 1
     }
     guard char is Some(char) else { return width + 1 }
-    guard @unicodewidth.char_width(char) is Some(char_width) else {
+    guard @unicode/width.char(char) is Some(char_width) else {
       return width + 1
     }
     if char_width == 0 {
@@ -158,7 +158,7 @@ pub fn char_width_right(string : BytesView, index : Int) -> Int {
     [..] => None
   }
   guard char is Some(char) else { return 1 }
-  guard @unicodewidth.char_width(char) is Some(width) else { return 1 }
+  guard @unicode/width.char(char) is Some(width) else { return 1 }
   width
 }
 
@@ -202,6 +202,6 @@ pub fn char_size_right(string : BytesView, index : Int) -> Int {
     [..] => None
   }
   guard char is Some(char) else { return 1 }
-  guard @unicodewidth.char_width(char) is Some(width) else { return 1 }
+  guard @unicode/width.char(char) is Some(width) else { return 1 }
   width
 }

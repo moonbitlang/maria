@@ -1,5 +1,8 @@
 {
   "import": [
-    "rami3l/unicodewidth"
+    {
+      "path": "moonbitlang/maria/readline/unicode/width",
+      "alias": "unicode/width"
+    }
   ]
 }
