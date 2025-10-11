@@ -1,32 +1,41 @@
 ///|
-struct Target[K, C](Map[K, Array[async (C) -> Unit]])
-
-///|
-pub fn[Kind : Eq + Hash, Context] Target::new() -> Target[Kind, Context] {
-  Target({})
+struct Target[T] {
+  aqueue : @aqueue.Queue[T?]
+  listeners : Array[async (T) -> Unit]
 }
 
 ///|
-pub async fn[Kind : Eq + Hash, Context] Target::emit(
-  target : Target[Kind, Context],
-  kind : Kind,
-  context : Context,
-) -> Unit {
-  guard target.0.get(kind) is Some(listeners) else { return }
-  for listener in listeners {
-    listener(context)
-  }
+pub fn[T] Target::new() -> Target[T] {
+  Target::{ aqueue: @aqueue.Queue::new(), listeners: [] }
 }
 
 ///|
-pub fn[Kind : Eq + Hash, Context] Target::add_listener(
-  target : Target[Kind, Context],
-  kind : Kind,
-  f : async (Context) -> Unit,
+pub fn[T] Target::emit(self : Target[T], event : T) -> Unit {
+  self.aqueue.put(Some(event))
+}
+
+///|
+pub fn[T] Target::add_listener(
+  self : Target[T],
+  f : async (T) -> Unit,
 ) -> Unit noraise {
-  if target.0.get(kind) is Some(listeners) {
-    listeners.push(f)
-  } else {
-    target.0[kind] = [f]
+  self.listeners.push(f)
+}
+
+///|
+pub async fn[T] Target::start(self : Target[T]) -> Unit {
+  loop self.aqueue.get() {
+    Some(event) => {
+      for listener in self.listeners {
+        listener(event)
+      }
+      continue self.aqueue.get()
+    }
+    None => break
   }
+}
+
+///|
+pub fn[T] Target::close(self : Target[T]) -> Unit {
+  self.aqueue.put(None)
 }

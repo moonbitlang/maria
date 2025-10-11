@@ -1,47 +1,4 @@
 ///|
-/// Event type that occurs during agent conversation lifecycle.
-pub(all) enum Event {
-  ConversationStart
-  ConversationEnd
-  PreToolCall
-  PostToolCall
-  TokenCounted
-  RequestCompleted
-} derive(Eq, Hash)
-
-///|
-pub struct EventContext {
-  usage : @openai.CompletionUsage?
-  message : @openai.ChatCompletionMessage?
-  origin_token_count : Int?
-  pruned_token_count : Int?
-  tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.Result?
-  tool_call_result_text : String?
-}
-
-///|
-fn EventContext::new(
-  usage? : @openai.CompletionUsage,
-  message? : @openai.ChatCompletionMessage,
-  origin_token_count? : Int,
-  pruned_token_count? : Int,
-  tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : @tool.Result,
-  tool_call_result_text? : String,
-) -> EventContext {
-  EventContext::{
-    usage,
-    message,
-    origin_token_count,
-    pruned_token_count,
-    tool_call,
-    tool_call_result,
-    tool_call_result_text,
-  }
-}
-
-///|
 pub struct Agent {
   priv logger : @pino.Logger
   rand : @random.Rand
@@ -50,7 +7,7 @@ pub struct Agent {
   priv tools : Map[String, @tool.Tool[Unit]]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
-  priv event_target : @event.Target[Event, EventContext]
+  events : @events.Events
   priv token_counter : @token.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
@@ -118,9 +75,8 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
       usage=@openai.usage(include_=true),
     ),
   )
-  agent.emit(
-    TokenCounted,
-    EventContext::new(origin_token_count~, pruned_token_count~),
+  agent.events.emit(
+    @events.token_counted(origin_token_count~, pruned_token_count~),
   )
   let messages = @cache.cache_messages(messages)
   let request = @openai.chat_completion(
@@ -131,10 +87,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let response = @ai.chat(model=agent.model, request)
   guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
-  agent.emit(
-    RequestCompleted,
-    EventContext::new(usage?=response.usage, message~),
-  )
+  agent.events.emit(@events.request_completed(usage?=response.usage, message~))
   for message in staged {
     agent.history.add_message(message)
   }
@@ -157,7 +110,7 @@ async fn Agent::execute_tool(
       tool_call_id=tool_call.id,
     )
   }
-  agent.emit(PreToolCall, EventContext::new(tool_call~))
+  agent.events.emit(@events.pre_tool_call(tool_call~))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
       return @openai.tool_message(
@@ -167,14 +120,7 @@ async fn Agent::execute_tool(
   }
   let result = tool.call(arguments, ())
   let rendered = (tool.render)(result)
-  agent.emit(
-    PostToolCall,
-    EventContext::new(
-      tool_call~,
-      tool_call_result=result,
-      tool_call_result_text=rendered,
-    ),
-  )
+  agent.events.emit(@events.post_tool_call(tool_call~, result~, rendered~))
   @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
@@ -202,7 +148,7 @@ pub fn[T] Agent::add_tool(
 
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit {
-  agent.emit(ConversationStart, EventContext::new())
+  agent.events.emit(@events.conversation_start())
   while true {
     let response = agent.call()
     if response.tool_calls is [] {
@@ -213,7 +159,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.add_message(agent.execute_tool(call))
     }
   }
-  agent.emit(ConversationEnd, EventContext::new())
+  agent.events.emit(@events.conversation_end())
 }
 
 ///|
@@ -253,37 +199,10 @@ pub async fn new(
     model,
     tools: {},
     queue: [],
-    event_target: @event.Target::new(),
+    events: @events.new(),
     token_counter: @token.Counter::new(),
     context_pruner: @context.Pruner::new(safe_zone_tokens=model.context_window),
     session_manager,
   }
   agent
-}
-
-///|
-async fn Agent::emit(
-  agent : Agent,
-  kind : Event,
-  context : EventContext,
-) -> Unit {
-  agent.event_target.emit(kind, context)
-}
-
-///|
-/// Registers an event listener for the specified event type on the agent.
-///
-/// Parameters:
-///
-/// * `agent` : The agent to add the event listener to.
-/// * `kind` : The type of event to listen for.
-/// * `f` : The asynchronous callback function to execute when the event is
-///   triggered. The function receives an `EventContext` containing relevant
-///   event data.
-pub fn Agent::add_listener(
-  agent : Agent,
-  kind : Event,
-  f : async (EventContext) -> Unit,
-) -> Unit {
-  agent.event_target.add_listener(kind, f)
 }

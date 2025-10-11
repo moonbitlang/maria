@@ -1,0 +1,9 @@
+{
+  "import": [
+    "moonbitlang/maria/openai",
+    "moonbitlang/async/aqueue",
+    "moonbitlang/maria/event",
+    "moonbitlang/async",
+    "moonbitlang/maria/tool"
+  ]
+}
