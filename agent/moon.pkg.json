@@ -3,7 +3,6 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/event",
     "moonbitlang/maria/token",
     "moonbitlang/maria/cache",
     "moonbitlang/maria/pino",
@@ -12,7 +11,6 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/path",
     "moonbitlang/maria/rand",
-    "moonbitlang/async/aqueue",
     "moonbitlang/maria/agent/events",
     "moonbitlang/async"
   ]

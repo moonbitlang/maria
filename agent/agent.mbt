@@ -27,6 +27,7 @@ pub fn Agent::add_message(
 ///|
 pub fn Agent::close(agent : Agent) -> Unit {
   agent.logger.close()
+  agent.events.close()
 }
 
 ///|
@@ -92,9 +93,6 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     agent.history.add_message(message)
   }
   agent.history.add_message(message.to_param())
-  if message.content is Some(content) {
-    println("\{content}")
-  }
   agent.session_manager.save(agent.history)
   message
 }
@@ -148,18 +146,21 @@ pub fn[T] Agent::add_tool(
 
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit {
-  agent.events.emit(@events.conversation_start())
-  while true {
-    let response = agent.call()
-    if response.tool_calls is [] {
-      break
+  @async.with_task_group(group => {
+    group.spawn_bg(() => agent.events.start(), no_wait=true)
+    agent.events.emit(@events.conversation_start())
+    while true {
+      let response = agent.call()
+      if response.tool_calls is [] {
+        break
+      }
+      for i in 0..<response.tool_calls.length() {
+        let call = response.tool_calls[i]
+        agent.add_message(agent.execute_tool(call))
+      }
     }
-    for i in 0..<response.tool_calls.length() {
-      let call = response.tool_calls[i]
-      agent.add_message(agent.execute_tool(call))
-    }
-  }
-  agent.events.emit(@events.conversation_end())
+    agent.events.emit(@events.conversation_end())
+  })
 }
 
 ///|

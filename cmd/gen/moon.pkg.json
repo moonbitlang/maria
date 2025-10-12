@@ -17,6 +17,7 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/prompt",
-    "moonbitlang/maria/backtrace"
+    "moonbitlang/maria/backtrace",
+    "moonbitlang/maria/agent/events"
   ]
 }

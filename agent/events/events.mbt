@@ -209,3 +209,13 @@ pub impl Event for ConversationEnd with add_listener(
 pub fn conversation_end() -> ConversationEnd {
   ConversationEnd::{  }
 }
+
+///|
+pub fn Events::close(self : Events) -> Unit {
+  self.pre_tool_call.close()
+  self.post_tool_call.close()
+  self.token_counted.close()
+  self.request_completed.close()
+  self.conversation_start.close()
+  self.conversation_end.close()
+}
