@@ -1,17 +1,45 @@
-# `moonbitlang/maria/tool/'"$pkg_name"'`
+# `moonbitlang/maria/tool/get_moonbit_coverage`
 
-AI agent tool for '"${pkg_name//_/ }"' operations.
+Retrieves code coverage reports for MoonBit projects.
 
 ## Overview
 
-This package provides a tool that AI agents can use to perform '"${pkg_name//_/ }"' operations programmatically.
+This tool generates and returns code coverage reports after running tests with coverage enabled. Helps identify untested code and improve test coverage.
 
-## Usage
+## Parameters
 
-This tool is automatically registered with the AI agent system and can be invoked through natural language requests.
+- `project_path` (required): Path to the MoonBit project
+- `file` (optional): Specific file to get coverage for (returns project-wide if omitted)
+
+## Behavior
+
+- Runs tests with coverage instrumentation
+- Analyzes which lines were executed
+- Generates coverage report in requested format
+- Can filter to specific files or show entire project
+
+## Report Information
+
+Coverage reports typically include:
+- Lines covered vs. total lines
+- Percentage coverage
+- Uncovered line numbers
+- File-by-file breakdown
+- Summary statistics
+
+## Use Cases
+
+- Identifying untested code
+- Improving test coverage
+- Finding gaps in test suites
+- Code quality metrics
+- CI/CD coverage reporting
+- Test effectiveness analysis
 
 ## Notes
 
 - Part of the maria AI agent tool system
-- Integrated with @openai function calling
-- Parameters and behavior defined by the tool schema
+- Requires tests to be run with coverage enabled
+- Uses MoonBit's built-in coverage tools
+- Can generate multiple report formats
+- Helps guide test writing efforts
