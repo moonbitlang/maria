@@ -69,15 +69,21 @@ async fn @file.Manager::execute_read_file_tool(
       None => 1
     }
     let end_line = match end_line {
-      Some(end_line) if end_line >= 1 => {
+      Some(end_line) => {
+        if end_line < 1 {
+          return @tool.error("Error: end_line must be >= 1, got \{end_line}")
+        }
         if end_line <= start_line {
           return @tool.error(
             "Error: end_line (\{end_line}) must be greater than start_line (\{start_line})",
           )
         }
-        end_line
+        if end_line > lines.length() {
+          lines.length()
+        } else {
+          end_line
+        }
       }
-      Some(n) => return @tool.error("Error: end_line must be >= 1, got \{n}")
       None => lines.length()
     }
     return @tool.ok(
