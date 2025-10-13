@@ -3,14 +3,13 @@ package "moonbitlang/maria/rand"
 
 import(
   "moonbitlang/core/random"
+  "moonbitlang/maria/errno"
 )
 
 // Values
-fn bytes(Int) -> Bytes raise
+fn bytes(Int) -> Bytes raise @errno.Errno
 
-fn chacha8(seed? : Bytes) -> @random.Rand
-
-fn uint64() -> UInt64 raise
+fn chacha8() -> @random.Rand raise @errno.Errno
 
 // Errors
 

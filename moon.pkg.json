@@ -25,6 +25,8 @@
     "moonbitlang/maria/tool/todo_read",
     "moonbitlang/maria/tool/write_to_file",
     "moonbitlang/maria/tool/read_file",
-    "moonbitlang/maria/tool/list_files"
+    "moonbitlang/maria/tool/list_files",
+    "moonbitlang/maria/uuid",
+    "moonbitlang/maria/rand"
   ]
 }

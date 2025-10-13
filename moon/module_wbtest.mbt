@@ -1,24 +1,33 @@
 ///|
-async test "discover" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-module-discover")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "discover" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0", "source": "src" }
-      .to_json()
-      .stringify(),
+      content={ "name": "example", "version": "0.1.0", "source": "src" }
+        .to_json()
+        .stringify(),
     )
-    let _ = cwd.add_file("src/moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("src/lib/moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
-      "src/lib/util/moon.pkg.json",
-      Json::object({}).stringify(),
+    let src = taco.add_directory("src")
+    let _ = src.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let src_lib = src.add_directory("lib")
+    let _ = src_lib.add_file(
+      "moon.pkg.json",
+      content=Json::object({}).stringify(),
     )
-    let _ = cwd.add_file("src/lib/util/helpers.mbt", "let x : Int = 42")
-    let _ = cwd.add_file("src/app/moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("src/app/main.mbt", "let y : String = \"hello\"")
-    let moon = Module::load(cwd.path())
+    let src_lib_util = src_lib.add_directory("util")
+    let _ = src_lib_util.add_file(
+      "moon.pkg.json",
+      content=Json::object({}).stringify(),
+    )
+    let util = taco.add_directory("util")
+    let _ = util.add_file("helpers.mbt", content="let x : Int = 42")
+    let src_app = src.add_directory("app")
+    let _ = src_app.add_file(
+      "moon.pkg.json",
+      content=Json::object({}).stringify(),
+    )
+    let _ = src_app.add_file("main.mbt", content="let y : String = \"hello\"")
+    let moon = Module::load(taco.cwd.path())
     moon.discover()
     let pkg_names = moon.packages.keys().collect()
     pkg_names.sort()
@@ -29,20 +38,18 @@ async test "discover" {
 }
 
 ///|
-async test "diagnostics" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-check")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "diagnostics" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("example.mbt", "let x : Int = \"string\"")
-    let moon = Module::load(cwd.path())
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file("example.mbt", content="let x : Int = \"string\"")
+    let moon = Module::load(taco.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics().collect()
-    @json.inspect(cwd.strip_cwd(diagnostics), content=[
+    @json.inspect(taco.json(diagnostics), content=[
       {
         "error_code": 2,
         "level": "Warning",

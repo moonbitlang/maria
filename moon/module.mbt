@@ -34,6 +34,7 @@ impl @json.FromJson for Module with from_json(
 
 ///|
 pub async fn Module::load(path : String) -> Module {
+  let path = @fs.resolve(path)
   let moon_mod_path = @path.join(path, "moon.mod.json")
   let mod : Module = moon_mod_path
     |> @fs.read_file()
@@ -124,7 +125,7 @@ pub fn Module::files(self : Module) -> Iter[File] {
 }
 
 ///|
-pub fn Module::locate_package(self : Module, file : String) -> Package raise {
+pub async fn Module::locate_package(self : Module, file : String) -> Package {
   let dir = @path.dirname(file)
   let src = self.source()
   let pkg_name = match @path.relative(src, dir) {

@@ -1,29 +1,27 @@
 ///|
-async test "check_moonbit_project" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-check-moonbit-project")
-    g.add_defer(() => cwd.close())
+async test "check_moonbit_project" (t : @test.T) {
+  @taco.run(t, taco => {
     @fs.write_to_file(
-      @path.join(cwd.path(), "moon.mod.json"),
+      @path.join(taco.cwd.path(), "moon.mod.json"),
       { "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
     @fs.write_to_file(
-      @path.join(cwd.path(), "moon.pkg.json"),
+      @path.join(taco.cwd.path(), "moon.pkg.json"),
       Json::object({}).stringify(),
     )
     @fs.write_to_file(
-      @path.join(cwd.path(), "example.mbt"),
+      @path.join(taco.cwd.path(), "example.mbt"),
       "///|\nlet x : Int = \"string\"",
     )
     let args = @check_moonbit_project.params(
       diagnostic_limit=10,
-      project_path=cwd.path(),
+      project_path=taco.cwd.path(),
     )
     let result = @check_moonbit_project.check_moonbit_project.call(
       args.to_json(),
-      cwd.path(),
+      taco.cwd.path(),
     )
-    @json.inspect(cwd.strip_cwd(result), content={
+    @json.inspect(taco.json(result), content={
       "output": {
         "diagnostics": [
           {
@@ -54,33 +52,31 @@ async test "check_moonbit_project" {
 }
 
 ///|
-async test "check_moonbit_project/patch-insert" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-check-moonbit-project-patch")
-    g.add_defer(() => cwd.close())
+async test "check_moonbit_project/patch-insert" (t : @test.T) {
+  @taco.run(t, taco => {
     @fs.write_to_file(
-      @path.join(cwd.path(), "moon.mod.json"),
+      @path.join(taco.cwd.path(), "moon.mod.json"),
       { "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
     @fs.write_to_file(
-      @path.join(cwd.path(), "moon.pkg.json"),
+      @path.join(taco.cwd.path(), "moon.pkg.json"),
       Json::object({}).stringify(),
     )
     @fs.write_to_file(
-      @path.join(cwd.path(), "example.mbt"),
+      @path.join(taco.cwd.path(), "example.mbt"),
       "///|\nlet x : Int = \"string\"\n",
     )
     let args = @check_moonbit_project.params(
       diagnostic_limit=10,
-      project_path=cwd.path(),
+      project_path=taco.cwd.path(),
       patch_code="let y : String = 42",
       patch_file_name="example.mbt",
     )
     let result = @check_moonbit_project.check_moonbit_project.call(
       args.to_json(),
-      cwd.path(),
+      taco.cwd.path(),
     )
-    @json.inspect(cwd.strip_cwd(result), content={
+    @json.inspect(taco.json(result), content={
       "output": {
         "diagnostics": [
           {

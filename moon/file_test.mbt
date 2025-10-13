@@ -1,15 +1,16 @@
 ///|
-async test "replace-segment" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-module-replace-segment")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "replace-segment" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let example_mbt = cwd.add_file("example.mbt", "///|\nlet x : Int = 42")
-    let moon = Module::load(cwd.path())
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let example_mbt = taco.add_file(
+      "example.mbt",
+      content="///|\nlet x : Int = 42",
+    )
+    let moon = Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
@@ -21,7 +22,7 @@ async test "replace-segment" {
     ])
     let file = files[0]
     let segments = file.segments()
-    @json.inspect(cwd.strip_cwd(segments), content=[
+    @json.inspect(taco.json(segments), content=[
       {
         "file": "./example.mbt",
         "index": 1,

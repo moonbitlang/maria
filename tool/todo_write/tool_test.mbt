@@ -39,11 +39,9 @@ fn[T : ToJson] drop_id_and_time(json : T) -> Json {
 }
 
 ///|
-async test "todo_write/create/plain" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-todo_write")
-    group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+async test "todo_write/create/plain" (t : @test.T) {
+  @taco.run(t, taco => {
+    let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     let result = @todo_write.todo_write.call(
       {
         "action": "create",
@@ -101,18 +99,16 @@ async test "todo_write/create/plain" {
 }
 
 ///|
-async test "todo_write/create/<task>" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-todo_write")
-    group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+async test "todo_write/create/<task>" (t : @test.T) {
+  @taco.run(t, taco => {
+    let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     let result = @todo_write.todo_write.call(
       {
         "action": "create",
         "content": (
-          #|<task>Examine reference repository structure at .moonagent/repos/inih</task>
+          #|<task>Examine reference repository structure at .moonagent/repos/ini</task>
           #|<task>Examine current MoonBit project structure</task>
-          #|<task>Analyze source files in inih repository</task>
+          #|<task>Analyze source files in ini repository</task>
           #|<task>Plan migration strategy preserving original structure</task>
           #|<task>Translate C/C++ files to MoonBit file-by-file</task>
           #|<task>Create appropriate MoonBit module structure</task>
@@ -125,7 +121,7 @@ async test "todo_write/create/<task>" {
       "output": {
         "todos": [
           {
-            "content": "Examine reference repository structure at .moonagent/repos/inih",
+            "content": "Examine reference repository structure at .moonagent/repos/ini",
             "created_at": "...",
             "id": "...",
             "priority": "Medium",
@@ -141,7 +137,7 @@ async test "todo_write/create/<task>" {
             "updated_at": "...",
           },
           {
-            "content": "Analyze source files in inih repository",
+            "content": "Analyze source files in ini repository",
             "created_at": "...",
             "id": "...",
             "priority": "Medium",
@@ -184,7 +180,7 @@ async test "todo_write/create/<task>" {
         "message": "Created 7 new todo items",
         "updated_todos": [
           {
-            "content": "Examine reference repository structure at .moonagent/repos/inih",
+            "content": "Examine reference repository structure at .moonagent/repos/ini",
             "created_at": "...",
             "id": "...",
             "priority": "Medium",
@@ -200,7 +196,7 @@ async test "todo_write/create/<task>" {
             "updated_at": "...",
           },
           {
-            "content": "Analyze source files in inih repository",
+            "content": "Analyze source files in ini repository",
             "created_at": "...",
             "id": "...",
             "priority": "Medium",
@@ -247,11 +243,9 @@ async test "todo_write/create/<task>" {
 }
 
 ///|
-async test "todo_write/update" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("todo-todo_write")
-    group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+async test "todo_write/update" (t : @test.T) {
+  @taco.run(t, taco => {
+    let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     let result = @todo_write.todo_write.call(
       {
         "action": "create",
@@ -323,11 +317,9 @@ async test "todo_write/update" {
 }
 
 ///|
-async test "todo_write/mark_completed" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-todo_write")
-    group.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+async test "todo_write/mark_completed" (t : @test.T) {
+  @taco.run(t, taco => {
+    let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     let result = @todo_write.todo_write.call(
       {
         "action": "create",

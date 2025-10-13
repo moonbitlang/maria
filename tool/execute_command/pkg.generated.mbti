@@ -21,7 +21,6 @@ pub(all) struct CommandResult {
   truncated : Bool
   total_lines : Int
   timeout_ms : Int
-  output_file : String?
 }
 fn CommandResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn CommandResult::to_json(Self) -> Json // from trait `ToJson`

@@ -3,7 +3,7 @@
     "moonbitlang/maria/path",
     "moonbitlang/maria/fs",
     "moonbitlang/maria/uuid",
-    "moonbitlang/x/time",
-    "moonbitlang/maria/os"
+    "moonbitlang/maria/clock",
+    "moonbitlang/x/time"
   ]
 }

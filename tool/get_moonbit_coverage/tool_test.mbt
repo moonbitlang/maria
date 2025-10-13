@@ -1,16 +1,14 @@
 ///|
-async test "get_moonbit_coverage" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("get_moonbit_coverage")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "get_moonbit_coverage" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
       "example.mbt",
-      (
+      content=(
         #|///|
         #|pub fn fib(n : Int) -> Int {
         #|  if n <= 1 {
@@ -21,9 +19,9 @@ async test "get_moonbit_coverage" {
         #|}
       ),
     )
-    let _ = cwd.add_file(
+    let _ = taco.add_file(
       "example_test.mbt",
-      (
+      content=(
         #|///|
         #|test "fib" {
         #|  @json.inspect(@example.fib(1), content=1)
@@ -31,12 +29,12 @@ async test "get_moonbit_coverage" {
       ),
     )
     let params = @get_moonbit_coverage.params(
-      project_path=cwd.path(),
+      project_path=taco.cwd.path(),
       file="example.mbt",
     )
     let result = @get_moonbit_coverage.get_moonbit_coverage.call(
       params.to_json(),
-      cwd.path(),
+      taco.cwd.path(),
     )
     let result : @get_moonbit_coverage.Result = @json.from_json(result.output)
     inspect(

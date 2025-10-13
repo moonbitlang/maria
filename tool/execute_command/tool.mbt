@@ -22,7 +22,6 @@ pub(all) struct CommandResult {
   truncated : Bool
   total_lines : Int
   timeout_ms : Int
-  output_file : String?
 } derive(ToJson, FromJson)
 
 ///|
@@ -87,33 +86,11 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         )
         let output_text = output.to_string()
         let lines = output_text.split("\n").collect()
-        let (final_output, truncated, output_file) = if lines.length() >=
-          max_output_lines {
-          let id = @uuid.v4()
-          let relative_path = ".moonagent"
-            |> @path.join("tools")
-            |> @path.join("execute_command")
-            |> @path.join("\{id}")
-            |> @path.join("output.txt")
-          let absolute_path = ctx.cwd |> @path.join(relative_path)
-          @fs.make_directory(@path.dirname(absolute_path), recursive=true) catch {
-            error =>
-              return @tool.error(
-                "Error creating directory for output file: \{error}",
-                error~,
-              )
-          }
-          @fs.write_to_file(absolute_path, output_text) catch {
-            error =>
-              return @tool.error(
-                "Error writing output to file: \{error}",
-                error~,
-              )
-          }
+        let (final_output, truncated) = if lines.length() >= max_output_lines {
           let truncated_output = lines[:max_output_lines].join("\n")
-          (truncated_output, true, Some(relative_path))
+          (truncated_output, true)
         } else {
-          (output_text, false, None)
+          (output_text, false)
         }
         let result = CommandResult::{
           command,
@@ -122,7 +99,6 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
           truncated,
           total_lines: lines.length(),
           timeout_ms: timeout,
-          output_file,
         }
         return @tool.ok(result.to_json())
       })
@@ -151,12 +127,12 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         "Output: (first \{output_lines_count} of \{cmd_result.total_lines} lines)",
       )
       formatted.push(cmd_result.output)
-      match cmd_result.output_file {
-        Some(file_path) =>
-          formatted.push(
-            "... (truncated, use <read_file> tool to read full output at \{file_path}) ...",
-          )
-        None => ()
+      if cmd_result.truncated {
+        formatted.push(
+          "... (truncated, try using redirection to pipe output to a file) ...",
+        )
+      } else {
+        ()
       }
     } else {
       formatted.push("Output:")

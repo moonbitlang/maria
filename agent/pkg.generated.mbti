@@ -3,20 +3,21 @@ package "moonbitlang/maria/agent"
 
 import(
   "moonbitlang/core/random"
-  "moonbitlang/maria/conversation"
   "moonbitlang/maria/model"
   "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
+  "moonbitlang/maria/uuid"
 )
 
 // Values
-async fn new(@model.Model, cwd~ : StringView, session_manager? : @conversation.Manager) -> Agent
+async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, cwd~ : StringView) -> Agent
 
 // Errors
 
 // Types and methods
 pub struct Agent {
   rand : @random.Rand
+  uuid : @uuid.Generator
   cwd : String
   model : @model.Model
   // private fields

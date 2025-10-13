@@ -31,10 +31,10 @@ type Directory
 async fn Directory::add_directory(Self, String, loc~ : SourceLoc) -> Self
 #callsite(autofill(loc))
 async fn Directory::add_file(Self, String, String, loc~ : SourceLoc) -> File
+async fn Directory::close(Self) -> Unit
 #callsite(autofill(loc))
 async fn Directory::list(Self, loc~ : SourceLoc) -> Array[String]
 fn Directory::path(Self) -> String
-async fn Directory::remove(Self) -> Unit
 fn[T : ToJson] Directory::strip_cwd(Self, T) -> Json
 
 type File

@@ -106,6 +106,7 @@ async fn Migrator::execute(
   cwd? : String,
 ) -> Unit {
   let cwd = cwd.unwrap_or_else(@os.cwd)
+  let uuid = @uuid.generator(@rand.chacha8())
   let src_name = get_repo_name(self.repo)
   let dst_name = normalize_repo_name(src_name)
   let dst_path = @path.join(cwd, dst_name)
@@ -124,7 +125,7 @@ async fn Migrator::execute(
     println("cloned into \{src_path}")
     let agent = @agent.new(model, cwd=dst_path)
     println("created agent")
-    let todo_list = @todo.list(cwd=dst_path)
+    let todo_list = @todo.list(uuid~, cwd=dst_path)
     println("created todo list")
     let file_manager = @file.manager(cwd=dst_path)
     println("created file manager")
@@ -195,9 +196,9 @@ async fn main {
     let args = @os.args()
     let arguments = Arguments::new()
     arguments.parse(args[1:])
+    let uuid = @uuid.generator(@rand.chacha8())
     if arguments.conversation is Some(conversation) {
-      let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
-      let manager = @conversation.Manager::new(path~)
+      let manager = @conversation.Manager::new(uuid~, cwd~)
       match conversation {
         List =>
           for i, id in manager.list() {
@@ -208,7 +209,7 @@ async fn main {
             println(lines.join("\n"))
           }
         Show(id~, output~) => {
-          let conversation = manager.load(Id(id))
+          let conversation = manager.load(id)
           guard conversation is Some(conversation) else { return }
           if output is Some(output) {
             if output.has_suffix(".md") {
@@ -302,7 +303,7 @@ async fn main {
     agent.add_tool(@list_files.list_files, file_manager)
     agent.add_tool(@read_file.read_file, file_manager)
     agent.add_tool(@write_to_file.write_to_file, file_manager)
-    let todo_list = @todo.list(cwd=agent.cwd)
+    let todo_list = @todo.list(uuid~, cwd=agent.cwd)
     agent.add_tool(@todo_read.todo_read, todo_list)
     agent.add_tool(@todo_write.todo_write, todo_list)
     agent.add_tool(@search_files.search_files, agent.cwd)

@@ -25,12 +25,30 @@ pub impl ToJson for Uuid with to_json(self : Uuid) -> Json {
 }
 
 ///|
-pub fn v4() -> Uuid raise {
-  let hi = @rand.uint64()
-  let lo = @rand.uint64()
+struct Generator(&Source)
+
+///|
+pub(open) trait Source {
+  uint64(self : Self) -> UInt64 raise
+}
+
+///|
+pub fn Generator::v4(self : Generator) -> Uuid raise {
+  let hi = self.0.uint64()
+  let lo = self.0.uint64()
   let hi = (hi & 0xFFFF_FFFF_FFFF_0FFF_UL) | 0x0000_0000_0000_4000_UL
   let lo = (lo & 0x0FFF_FFFF_FFFF_FFFF_UL) | 0x8000_0000_0000_0000_UL
   { hi, lo }
+}
+
+///|
+pub impl Source for @random.Rand with uint64(self : @random.Rand) -> UInt64 raise {
+  self.uint64()
+}
+
+///|
+pub fn[Source : Source] generator(source : Source) -> Generator {
+  Generator(source)
 }
 
 ///|
@@ -40,6 +58,28 @@ pub let nil : Uuid = { hi: 0UL, lo: 0UL }
 pub let max : Uuid = {
   hi: 0xFFFF_FFFF_FFFF_FFFF_UL,
   lo: 0xFFFF_FFFF_FFFF_FFFF_UL,
+}
+
+///|
+#as_free_fn
+pub fn Uuid::of_bytes(bytes : Bytes) -> Uuid {
+  let hi = (bytes[0].to_uint64() << 56) |
+    (bytes[1].to_uint64() << 48) |
+    (bytes[2].to_uint64() << 40) |
+    (bytes[3].to_uint64() << 32) |
+    (bytes[4].to_uint64() << 24) |
+    (bytes[5].to_uint64() << 16) |
+    (bytes[6].to_uint64() << 8) |
+    bytes[7].to_uint64()
+  let lo = (bytes[8].to_uint64() << 56) |
+    (bytes[9].to_uint64() << 48) |
+    (bytes[10].to_uint64() << 40) |
+    (bytes[11].to_uint64() << 32) |
+    (bytes[12].to_uint64() << 24) |
+    (bytes[13].to_uint64() << 16) |
+    (bytes[14].to_uint64() << 8) |
+    bytes[15].to_uint64()
+  { hi, lo }
 }
 
 ///|

@@ -39,11 +39,9 @@ fn[T : ToJson] drop_id_and_time(json : T) -> Json {
 }
 
 ///|
-async test "todo_read" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-todo_read")
-    g.add_defer(() => cwd.close())
-    let todo_list = @todo.list(cwd=cwd.path())
+async test "todo_read" (t : @test.T) {
+  @taco.run(t, taco => {
+    let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     @json.inspect(@todo_read.todo_read.call({}, todo_list), content={
       "output": { "todos": [] },
     })

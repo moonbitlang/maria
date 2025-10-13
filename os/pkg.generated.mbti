@@ -8,6 +8,8 @@ import(
 // Values
 fn args() -> Array[String]
 
+fn chdir(StringView) -> Unit raise
+
 fn cwd() -> String raise
 
 fn getenv(StringView) -> String? raise

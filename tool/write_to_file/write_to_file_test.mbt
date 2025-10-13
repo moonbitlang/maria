@@ -1,9 +1,7 @@
 ///|
-async test "write_to_file/create" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-write-file-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
+async test "write_to_file/create" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
@@ -20,12 +18,10 @@ async test "write_to_file/create" {
 }
 
 ///|
-async test "write_to_file/replace" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-write-file-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file("file.txt", "Old content")
+async test "write_to_file/replace" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file("file.txt", content="Old content")
     @json.inspect(@read_file.read_file.call({ "path": "file.txt" }, manager), content={
       "output": {
         "path": "file.txt",
@@ -54,12 +50,10 @@ async test "write_to_file/replace" {
 }
 
 ///|
-async test "write_to_file/fail-to-match" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-write-file-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file("file.txt", "Old content")
+async test "write_to_file/fail-to-match" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file("file.txt", content="Old content")
     let args : Json = {
       "path": "file.txt",
       "search": "Non-matching content",
@@ -76,14 +70,12 @@ async test "write_to_file/fail-to-match" {
 }
 
 ///|
-async test "write_to_file/search-replace" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-write-file-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file(
+async test "write_to_file/search-replace" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file(
       "file.txt",
-      (
+      content=(
         #|line 1
         #|line 2
         #|line 3

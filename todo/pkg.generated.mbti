@@ -3,10 +3,12 @@ package "moonbitlang/maria/todo"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/clock"
+  "moonbitlang/maria/uuid"
 )
 
 // Values
-fn list(cwd~ : StringView) -> List raise
+fn list(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> List raise
 
 // Errors
 
@@ -24,7 +26,6 @@ pub(all) struct Item {
 }
 fn Item::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn Item::to_json(Self) -> Json // from trait `ToJson`
-fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Self raise
 impl ToJson for Item
 impl @json.FromJson for Item
 
@@ -36,6 +37,7 @@ async fn List::load(Self) -> Unit
 fn List::parse(Self, String, priority~ : Priority, notes? : String) -> Unit raise
 async fn List::save(Self) -> Unit
 fn List::todos(Self) -> Array[Item]
+fn List::update_item(Self, Item, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Item raise
 fn List::update_task(Self, Index, Item) -> Unit raise
 
 pub(all) enum Priority {

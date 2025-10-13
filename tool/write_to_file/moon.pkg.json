@@ -6,8 +6,8 @@
     "moonbitlang/maria/path"
   ],
   "test-import": [
-    "moonbitlang/maria/mock",
     "moonbitlang/async",
-    "moonbitlang/maria/tool/read_file"
+    "moonbitlang/maria/tool/read_file",
+    "moonbitlang/maria/taco"
   ]
 }

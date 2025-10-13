@@ -1,23 +1,31 @@
 ///|
 struct Manager {
+  uuid : @uuid.Generator
+  clock : &@clock.Clock
   path : String
   cache : @lru.Cache[String, Conversation]
 }
 
 ///|
-pub async fn Manager::new(path~ : String) -> Manager {
+pub async fn Manager::new(
+  uuid~ : @uuid.Generator,
+  clock? : &@clock.Clock = @clock.epoch,
+  cwd~ : String,
+) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = @path.join(path, "conversations")
-  println("Conversation path: \{conversations}")
+  let conversations = cwd
+    |> @path.join(".moonagent")
+    |> @path.join("conversations")
+    |> @path.join("conversations")
   if !@fs.exists(conversations) {
     @fs.make_directory(conversations, recursive=true)
   }
-  Manager::{ path, cache }
+  Manager::{ uuid, clock, path: cwd, cache }
 }
 
 ///|
-pub async fn Manager::load(self : Manager, id : Id) -> Conversation? {
-  let id = id.0
+pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
+  let id = id
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
@@ -44,7 +52,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 }
 
 ///|
-pub async fn Manager::list(self : Manager) -> Array[Id] {
+pub async fn Manager::list(self : Manager) -> Array[String] {
   let path = self.path |> @path.join("conversations")
   let entries = @fs.list_directory(path)
   let ids = []
@@ -56,7 +64,24 @@ pub async fn Manager::list(self : Manager) -> Array[Id] {
       continue
     }
     let id = @uuid.parse(@path.stem(entry.name)) catch { _ => continue }
-    ids.push(Id(id.to_string()))
+    ids.push(id.to_string())
   }
   ids
+}
+
+///|
+pub fn Manager::new_conversation(
+  self : Manager,
+  name~ : String,
+  description? : String,
+) -> Conversation raise {
+  Conversation::{
+    clock: self.clock,
+    name,
+    description,
+    id: self.uuid.v4().to_string(),
+    messages: [],
+    created_at: self.clock.now(),
+    updated_at: self.clock.now(),
+  }
 }

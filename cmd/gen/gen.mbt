@@ -80,7 +80,7 @@ pub async fn gen(input : StringView) -> Unit {
   agent.add_tool(@list_files.list_files, file_manager)
   agent.add_tool(@read_file.read_file, file_manager)
   agent.add_tool(@write_to_file.write_to_file, file_manager)
-  let todo_list = @todo.list(cwd=agent.cwd)
+  let todo_list = @todo.list(uuid=agent.uuid, cwd=agent.cwd)
   agent.add_tool(@todo_read.todo_read, todo_list)
   agent.add_tool(@todo_write.todo_write, todo_list)
   agent.add_tool(@search_files.search_files, agent.cwd)

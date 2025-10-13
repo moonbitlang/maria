@@ -1,16 +1,14 @@
 ///|
-async test "test" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-test")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "test" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
       "test.mbt",
-      (
+      content=(
         #|///|
         #|test "add" {
         #|  let x = 2 + 2
@@ -23,9 +21,9 @@ async test "test" {
         #|}
       ),
     )
-    let moon = @moon.Module::load(cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
-    @json.inspect(cwd.strip_cwd(moon.test_()), content=[
+    @json.inspect(taco.json(moon.test_()), content=[
       {
         "package_": "example",
         "filename": "test.mbt",

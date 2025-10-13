@@ -1,8 +1,9 @@
 ///|
 struct Conversation {
+  clock : &@clock.Clock
   name : String
   description : String?
-  id : Id
+  id : String
   messages : Array[Message]
   created_at : Int64
   mut updated_at : Int64
@@ -73,7 +74,7 @@ pub fn Conversation::display(
 }
 
 ///|
-pub impl ToJson for Conversation with to_json(self) {
+pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   fn int64_to_json(value : Int64) -> Json {
     Json::number(value.to_double(), repr=value.to_string())
   }
@@ -149,7 +150,15 @@ pub impl @json.FromJson for Conversation with from_json(
         (json_path.add_key("updated_at"), "Missing field"),
       )
   }
-  Conversation::{ name, description, id, messages, created_at, updated_at }
+  Conversation::{
+    clock: @clock.epoch,
+    name,
+    description,
+    id,
+    messages,
+    created_at,
+    updated_at,
+  }
 }
 
 ///|
@@ -162,7 +171,7 @@ priv struct Message {
 }
 
 ///|
-impl ToJson for Message with to_json(self) {
+impl ToJson for Message with to_json(self : Message) -> Json {
   let object : Map[String, Json] = {
     "timestamp": self.timestamp.to_json(),
     "message": self.message.to_json(),
@@ -228,67 +237,19 @@ impl @json.FromJson for Message with from_json(
 }
 
 ///|
-pub fn Conversation::new(
-  name~ : String,
-  description? : String,
-  id~ : Id,
-) -> Conversation {
-  let now_ms = @os.now_ms()
-  Conversation::{
-    name,
-    description,
-    id,
-    messages: [],
-    created_at: now_ms,
-    updated_at: now_ms,
-  }
-}
-
-///|
 pub fn Conversation::add_message(
   self : Conversation,
   message : @openai.ChatCompletionMessageParam,
   usage? : @openai.CompletionUsage,
-  created? : Int64,
 ) -> Unit {
-  let timestamp = match created {
-    None => @os.now_ms()
-    Some(created) => created
-  }
-  let message = Message::{ timestamp, usage, message }
+  let now = self.clock.now()
+  let message = Message::{ timestamp: now, usage, message }
   self.messages.push(message)
-  self.updated_at = @os.now_ms()
+  self.updated_at = now
 }
 
 ///|
-pub(all) struct Id(String)
-
-///|
-pub fn Id::new() -> Id raise {
-  Id(@uuid.v4().to_string())
-}
-
-///|
-pub impl Show for Id with output(self : Id, logger : &Logger) -> Unit {
-  logger.write_string(self.0)
-}
-
-///|
-pub impl ToJson for Id with to_json(self : Id) -> Json {
-  self.0.to_json()
-}
-
-///|
-pub impl @json.FromJson for Id with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Id raise @json.JsonDecodeError {
-  let id : String = @json.from_json(json, path=json_path)
-  id
-}
-
-///|
-pub fn Conversation::id(self : Conversation) -> Id {
+pub fn Conversation::id(self : Conversation) -> String {
   self.id
 }
 

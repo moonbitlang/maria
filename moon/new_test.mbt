@@ -1,11 +1,11 @@
 ///|
-async test "new" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("moon-new")
-    group.add_defer(() => cwd.close())
-    @moon.new(user="moonbitlang", name="maria_test", ".", cwd=cwd.path())
-    @json.inspect(cwd.strip_cwd(@fs.list_directory(cwd.path())), content=[
+async test "new" (t : @test.T) {
+  @taco.run(t, taco => {
+    @moon.new(user="moonbitlang", name="maria_test", ".", cwd=taco.cwd.path())
+    let entries = @fs.list_directory(taco.cwd.path())
+    @json.inspect(taco.json(entries), content=[
       { "path": "./cmd", "name": "cmd", "kind": "Directory" },
+      { "path": "./.git", "name": ".git", "kind": "Directory" },
       { "path": "./.github", "name": ".github", "kind": "Directory" },
       { "path": "./LICENSE", "name": "LICENSE", "kind": "Regular" },
       { "path": "./.githooks", "name": ".githooks", "kind": "Directory" },

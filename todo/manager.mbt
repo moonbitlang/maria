@@ -1,11 +1,16 @@
 ///|
 /// Get current ISO timestamp
-fn get_current_timestamp() -> String raise {
-  @os.now().to_string()
+fn get_current_timestamp(clock : &@clock.Clock) -> String raise {
+  let ms = clock.now()
+  let s = ms / 1000
+  let ns = ms % 1000 * 1_000_000
+  @time.unix(s, nanosecond=ns.to_int()).to_string()
 }
 
 ///|
 struct List {
+  uuid : @uuid.Generator
+  clock : &@clock.Clock
   cwd : String
   mut todos : Array[Item]
   mut created_at : String
@@ -73,14 +78,15 @@ pub(all) struct Item {
 } derive(ToJson, @json.FromJson)
 
 ///|
-fn Item::new(
+fn List::item(
+  self : List,
   id~ : String,
   content : String,
   status~ : Status,
   priority~ : Priority,
   notes? : String,
 ) -> Item raise {
-  let now = get_current_timestamp()
+  let now = get_current_timestamp(self.clock)
   Item::{
     content,
     created_at: now,
@@ -93,14 +99,15 @@ fn Item::new(
 }
 
 ///|
-pub fn Item::update(
-  self : Item,
+pub fn List::update_item(
+  self : List,
+  item : Item,
   content? : String,
   notes? : String?,
   status? : Status,
   priority? : Priority,
 ) -> Item raise {
-  let mut updated = { ..self, updated_at: get_current_timestamp() }
+  let mut updated = { ..item, updated_at: get_current_timestamp(self.clock) }
   if content is Some(content) {
     updated = { ..updated, content, }
   }
@@ -117,12 +124,18 @@ pub fn Item::update(
 }
 
 ///|
-pub fn list(cwd~ : StringView) -> List raise {
+pub fn list(
+  uuid~ : @uuid.Generator,
+  clock? : &@clock.Clock = @clock.epoch,
+  cwd~ : StringView,
+) -> List raise {
   List::{
+    uuid,
+    clock,
     cwd: cwd.to_string(),
     todos: [],
-    created_at: get_current_timestamp(),
-    updated_at: get_current_timestamp(),
+    created_at: get_current_timestamp(clock),
+    updated_at: get_current_timestamp(clock),
   }
 }
 
@@ -208,7 +221,7 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = Item::new(
+  let item = self.item(
     id=self.generate_todo_id(),
     content,
     status~,
@@ -216,19 +229,19 @@ pub fn List::add_task(
     notes?,
   )
   self.todos.push(item)
-  self.updated_at = get_current_timestamp()
+  self.updated_at = get_current_timestamp(self.clock)
   item
 }
 
 ///|
 pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.todos[index.0] = item
-  self.updated_at = get_current_timestamp()
+  self.updated_at = get_current_timestamp(self.clock)
 }
 
 ///|
-fn List::generate_todo_id(_ : List) -> String raise {
-  @uuid.v4().to_string()[0:8].to_string()
+fn List::generate_todo_id(self : List) -> String raise {
+  self.uuid.v4().to_string()[0:8].to_string()
 }
 
 ///|
@@ -253,7 +266,7 @@ pub fn List::get(self : List, index : Index) -> Item {
 pub async fn save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.updated_at = get_current_timestamp()
+  self.updated_at = get_current_timestamp(self.clock)
   let json : Json = {
     "created_at": self.created_at,
     "todos": self.todos,
@@ -319,7 +332,7 @@ pub fn List::parse(
   notes? : String,
 ) -> Unit raise {
   self.todos.clear()
-  self.created_at = get_current_timestamp()
+  self.created_at = get_current_timestamp(self.clock)
   self.updated_at = self.created_at
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
@@ -328,7 +341,7 @@ pub fn List::parse(
     for task_content in task_matches {
       let trimmed = task_content.trim(char_set=" \t\r\n").to_string()
       if trimmed.length() > 0 {
-        let todo = Item::new(
+        let todo = self.item(
           id=self.generate_todo_id(),
           trimmed,
           notes?,
@@ -350,7 +363,7 @@ pub fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = Item::new(
+        let todo = self.item(
           id=self.generate_todo_id(),
           clean_line,
           notes?,
