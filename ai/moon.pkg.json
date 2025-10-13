@@ -4,6 +4,7 @@
     "moonbitlang/maria/openai",
     "moonbitlang/async/http",
     "moonbitlang/maria/schema",
-    "moonbitlang/async/io"
+    "moonbitlang/async/io",
+    "moonbitlang/async"
   ]
 }
