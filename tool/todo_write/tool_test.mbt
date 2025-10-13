@@ -317,7 +317,7 @@ async test "todo_write/update" {
     )
     @json.inspect(drop_id_and_time(result), content={
       "output": "Error: Task with ID 'b773b606' not found.",
-      "error": "moonbitlang/maria/tool.Failure.Failure",
+      "error": ["Failure", "Error: Task with ID 'b773b606' not found."],
     })
   })
 }
@@ -431,7 +431,7 @@ async test "todo_write/mark_completed" {
     )
     @json.inspect(drop_id_and_time(result), content={
       "output": "Error: Task with ID 'b773b606' not found.",
-      "error": "moonbitlang/maria/tool.Failure.Failure",
+      "error": ["Failure", "Error: Task with ID 'b773b606' not found."],
     })
   })
 }
