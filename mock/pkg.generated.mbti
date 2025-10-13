@@ -28,17 +28,14 @@ async fn with_temporary_directory(name~ : String, async (Directory) -> Unit, loc
 // Types and methods
 type Directory
 #callsite(autofill(loc))
+async fn Directory::add_directory(Self, String, loc~ : SourceLoc) -> Self
+#callsite(autofill(loc))
 async fn Directory::add_file(Self, String, String, loc~ : SourceLoc) -> File
-#callsite(autofill(loc))
-async fn Directory::add_subdirectory(Self, String, loc~ : SourceLoc) -> Self
-#callsite(autofill(loc))
-async fn Directory::close(Self, loc~ : SourceLoc) -> Unit
 #callsite(autofill(loc))
 async fn Directory::list(Self, loc~ : SourceLoc) -> Array[String]
 fn Directory::path(Self) -> String
+async fn Directory::remove(Self) -> Unit
 fn[T : ToJson] Directory::strip_cwd(Self, T) -> Json
-#callsite(autofill(loc))
-async fn Directory::with_subdirectory(Self, String, async (Self) -> Unit, loc~ : SourceLoc) -> Unit
 
 type File
 fn File::path(Self) -> String

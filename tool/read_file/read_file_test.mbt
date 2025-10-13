@@ -96,7 +96,7 @@ async test "read_file/directory" {
     let manager = @file.manager(cwd=cwd.path())
     let _ = cwd.add_file("file1.txt", "content1")
     let _ = cwd.add_file("file2.txt", "content2")
-    let subdir = cwd.add_subdirectory("subdir")
+    let subdir = cwd.add_directory("subdir")
     g.add_defer(() => subdir.close())
     let _ = subdir.add_file("file3.txt", "content3")
     let args : Json = { "path": "." }

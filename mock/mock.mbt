@@ -67,25 +67,8 @@ async fn make_directory(path : StringView, loc~ : SourceLoc) -> Unit {
 }
 
 ///|
-#callsite(autofill(loc))
-async fn remove_directory(path : String, loc~ : SourceLoc) -> Unit {
-  @fs.rmdir(path, recursive=true) catch {
-    error =>
-      println("[ERROR] \{loc}: failed to remove directory \{path}: \{error}")
-  }
-}
-
-///|
-#callsite(autofill(loc))
-pub async fn Directory::close(self : Directory, loc~ : SourceLoc) -> Unit {
-  remove_directory(self.0) catch {
-    error => {
-      println(
-        "[ERROR] \{loc}: failed to remove temporary directory: \{self.path()}: \{error}",
-      )
-      raise error
-    }
-  }
+pub async fn Directory::close(self : Directory) -> Unit {
+  @fs.rmdir(self.0, recursive=true)
 }
 
 ///|
@@ -137,7 +120,7 @@ pub async fn Directory::add_file(
 
 ///|
 #callsite(autofill(loc))
-pub async fn Directory::add_subdirectory(
+pub async fn Directory::add_directory(
   self : Directory,
   name : String,
   loc~ : SourceLoc,
@@ -150,24 +133,6 @@ pub async fn Directory::add_subdirectory(
     }
   }
   Directory(dir)
-}
-
-///|
-#callsite(autofill(loc))
-pub async fn Directory::with_subdirectory(
-  self : Directory,
-  name : String,
-  f : async (Directory) -> Unit,
-  loc~ : SourceLoc,
-) -> Unit {
-  let dir = @path.join(self.0, name)
-  @fs.mkdir(dir, permission=0o755) catch {
-    error => {
-      println("[ERROR] \{loc}: failed to create subdirectory \{dir}: \{error}")
-      raise error
-    }
-  }
-  f(Directory(dir))
 }
 
 ///|
@@ -348,7 +313,7 @@ pub async fn Home::add_subdirectory(
   name : String,
   loc~ : SourceLoc,
 ) -> Directory {
-  self.directory.add_subdirectory(name) catch {
+  self.directory.add_directory(name) catch {
     error => {
       println(
         "[ERROR] \{loc}: failed to create subdirectory \{name} in home directory: \{error}",

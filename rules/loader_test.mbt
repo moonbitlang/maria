@@ -4,7 +4,7 @@ async test "Loader::load" {
     let home = @mock.home("rules-loader-load")
     let home_rules = home
       .add_subdirectory(".moonagent")
-      .add_subdirectory("rules")
+      .add_directory("rules")
     let _ = home_rules.add_file(
       "a.md",
       (
@@ -30,8 +30,8 @@ async test "Loader::load" {
     g.add_defer(() => home.close())
     let project = home.add_subdirectory("project")
     let project_rules = project
-      .add_subdirectory(".moonagent")
-      .add_subdirectory("rules")
+      .add_directory(".moonagent")
+      .add_directory("rules")
     let _ = project_rules.add_file(
       "c.md",
       (
