@@ -1,29 +1,4 @@
 ///|
-async fn[T] with_retry(
-  backoff_multiplier~ : Int,
-  delay_ms~ : Int,
-  max_delay_ms~ : Int,
-  max_retries~ : Int,
-  f : async () -> T,
-) -> T {
-  guard max_retries > 0
-  let errors : Array[Error] = []
-  let mut delay_ms = delay_ms
-  for attempt in 0..<max_retries {
-    try {
-      return f()
-    } catch {
-      (error : Error) => {
-        errors.push(error)
-        continue
-      }
-    }
-    delay_ms = @cmp.minimum(delay_ms * backoff_multiplier, max_delay_ms)
-  }
-  raise errors.last().unwrap()
-}
-
-///|
 priv suberror HttpError {
   HttpError(code~ : Int, body~ : String)
 } derive(Show)
@@ -33,11 +8,9 @@ pub async fn chat(
   model~ : @model.Model,
   request : @openai.ChatCompletionParam,
 ) -> @openai.ChatCompletion {
-  let (response, response_body) = with_retry(
-    backoff_multiplier=2,
-    delay_ms=1000,
-    max_delay_ms=16000,
-    max_retries=5,
+  let (response, response_body) = @async.retry(
+    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
+    max_retry=5,
     () => @http.post("\{model.base_url}/chat/completions", request.to_json(), headers={
       "Authorization": "Bearer \{model.api_key}",
       "Content-Type": "application/json",
