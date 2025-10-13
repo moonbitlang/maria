@@ -147,7 +147,8 @@ pub fn[T] Agent::add_tool(
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
-    group.spawn_bg(() => agent.events.start(), no_wait=true)
+    group.spawn_bg(() => agent.events.start())
+    defer agent.events.close()
     agent.events.emit(@events.conversation_start())
     while true {
       let response = agent.call()
