@@ -11,12 +11,9 @@ This package provides an agent framework for managing AI-powered workflows, tool
 ### Agent Execution
 
 ```moonbit
-///|
-test "run agent" {
-  // Agents execute tasks with access to tools and context
-  // Typically used as part of the maria CLI system
-  let _ = 0
-}
+// Agents execute tasks with access to tools and context
+// Typically used as part of the maria CLI system
+let _ = 0
 ```
 
 ## API Reference

@@ -11,29 +11,23 @@ This package provides utilities for interacting with terminal devices, including
 ### Getting Window Size
 
 ```moonbit
-///|
-test "get terminal size" {
-  let size = @tty.window_size()
-  // size.row contains number of rows
-  // size.col contains number of columns
-  let _ = (size.row, size.col)
-}
+let size = @tty.window_size()
+// size.row contains number of rows
+// size.col contains number of columns
+let _ = (size.row, size.col)
 ```
 
 ### Setting Raw Mode
 
 ```moonbit
-///|
-test "set raw mode" {
-  // Set stdin (fd 0) to raw mode
-  // @tty.set_raw_mode(0)
-  
-  // In raw mode:
-  // - Input is not line-buffered
-  // - Special characters are not processed
-  // - Echo is disabled
-  let _ = 0
-}
+// Set stdin (fd 0) to raw mode
+// @tty.set_raw_mode(0)
+
+// In raw mode:
+// - Input is not line-buffered
+// - Special characters are not processed
+// - Echo is disabled
+let _ = 0
 ```
 
 ## API Reference

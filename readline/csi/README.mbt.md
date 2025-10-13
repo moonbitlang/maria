@@ -11,39 +11,30 @@ This package provides ANSI escape sequences for controlling terminal behavior, i
 ### Cursor Movement
 
 ```moonbit
-///|
-test "cursor" {
-  // Move cursor up
-  print(@csi.cursor_up(5))
-  
-  // Move to position
-  print(@csi.cursor_position(10, 20))
-}
+// Move cursor up
+print(@csi.cursor_up(5))
+
+// Move to position
+print(@csi.cursor_position(10, 20))
 ```
 
 ### Colors
 
 ```moonbit
-///|
-test "colors" {
-  // Set foreground color
-  print(@csi.fg_color(31))  // Red
-  print("Error")
-  print(@csi.reset())
-}
+// Set foreground color
+print(@csi.fg_color(31))  // Red
+print("Error")
+print(@csi.reset())
 ```
 
 ### Screen Control
 
 ```moonbit
-///|
-test "screen" {
-  // Clear screen
-  print(@csi.clear_screen())
-  
-  // Clear line
-  print(@csi.clear_line())
-}
+// Clear screen
+print(@csi.clear_screen())
+
+// Clear line
+print(@csi.clear_line())
 ```
 
 ## API Reference

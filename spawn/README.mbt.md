@@ -11,71 +11,56 @@ This package provides functions for spawning external processes, managing proces
 ### Spawning Processes
 
 ```moonbit
-///|
-test "spawn process" {
-  let status = @spawn.spawn(
-    "echo",
-    ["Hello, World!"]
-  )
-  // Returns exit status (0 for success)
-  @json.inspect(status, content=0)
-}
+let status = @spawn.spawn(
+  "echo",
+  ["Hello, World!"]
+)
+// Returns exit status (0 for success)
+status // 0
 ```
 
 ### Capturing Output
 
 ```moonbit
-///|
-test "spawn with output capture" {
-  let output = StringBuilder::new()
-  let logger = Logger::new(output)
-  let status = @spawn.spawn(
-    "echo",
-    ["test"],
-    output=logger
-  )
-  @json.inspect(status, content=0)
-  let output_str = output.to_string()
-  // output_str contains "test\n"
-  let _ = output_str
-}
+let output = StringBuilder::new()
+let logger = Logger::new(output)
+let status = @spawn.spawn(
+  "echo",
+  ["test"],
+  output=logger
+)
+status // 0
+let output_str = output.to_string()
+// output_str contains "test\n"
+let _ = output_str
 ```
 
 ### Custom Working Directory
 
 ```moonbit
-///|
-test "spawn with cwd" {
-  let status = @spawn.spawn(
-    "pwd",
-    [],
-    cwd="/tmp"
-  )
-  @json.inspect(status, content=0)
-}
+let status = @spawn.spawn(
+  "pwd",
+  [],
+  cwd="/tmp"
+)
+status // 0
 ```
 
 ### Process IDs
 
 ```moonbit
-///|
-test "get process ids" {
-  let pid = @spawn.getpid()      // Current process ID
-  let ppid = @spawn.getppid()    // Parent process ID
-  let _ = (pid, ppid)
-}
+let pid = @spawn.getpid()      // Current process ID
+let ppid = @spawn.getppid()    // Parent process ID
+let _ = (pid, ppid)
 ```
 
 ### Sending Signals
 
 ```moonbit
-///|
-test "send signal to process" {
-  let pid = @spawn.getpid()
-  // Send a signal to a process
-  // @spawn.kill(pid, @signal.sigtstp)
-  let _ = pid
-}
+let pid = @spawn.getpid()
+// Send a signal to a process
+// @spawn.kill(pid, @signal.sigtstp)
+let _ = pid
 ```
 
 ## API Reference

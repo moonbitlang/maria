@@ -11,12 +11,9 @@ This package provides model definitions, capabilities, and configuration for var
 ### Model Selection
 
 ```moonbit
-///|
-test "select model" {
-  // Model configurations for GPT-4, GPT-3.5, etc.
-  let model = "gpt-4-turbo"
-  let _ = model
-}
+// Model configurations for GPT-4, GPT-3.5, etc.
+let model = "gpt-4-turbo"
+let _ = model
 ```
 
 ## API Reference

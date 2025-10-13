@@ -11,40 +11,31 @@ This package provides the main AI agent interface for interacting with language 
 ### Creating an Agent
 
 ```moonbit
-///|
-test "create agent" {
-  let agent = @ai.Agent::new(
-    model="gpt-4",
-    system_prompt="You are a helpful assistant"
-  )
-  let _ = agent
-}
+let agent = @ai.Agent::new(
+  model="gpt-4",
+  system_prompt="You are a helpful assistant"
+)
+let _ = agent
 ```
 
 ### Sending Messages
 
 ```moonbit
-///|
-test "chat" {
-  let agent = @ai.Agent::new(model="gpt-4")
-  let response = agent.chat("What is 2+2?")
-  // response contains the AI's reply
-  let _ = response
-}
+let agent = @ai.Agent::new(model="gpt-4")
+let response = agent.chat("What is 2+2?")
+// response contains the AI's reply
+let _ = response
 ```
 
 ### With Tools
 
 ```moonbit
-///|
-test "agent with tools" {
-  let agent = @ai.Agent::new(
-    model="gpt-4",
-    tools=[/* tool definitions */]
-  )
-  let response = agent.chat("Search for information")
-  let _ = response
-}
+let agent = @ai.Agent::new(
+  model="gpt-4",
+  tools=[/* tool definitions */]
+)
+let response = agent.chat("Search for information")
+let _ = response
 ```
 
 ## API Reference

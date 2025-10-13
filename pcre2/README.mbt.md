@@ -11,25 +11,19 @@ This package provides bindings to the PCRE2 library for advanced regular express
 ### Basic Pattern Matching
 
 ```moonbit
-///|
-test "match pattern" {
-  let pattern = @pcre2.compile("\\d+")
-  let result = pattern.match_("The answer is 42")
-  // Returns match result with captured groups
-  let _ = result
-}
+let pattern = @pcre2.compile("\\d+")
+let result = pattern.match_("The answer is 42")
+// Returns match result with captured groups
+let _ = result
 ```
 
 ### Pattern Replacement
 
 ```moonbit
-///|
-test "replace pattern" {
-  let pattern = @pcre2.compile("\\d+")
-  let result = pattern.replace("Price: 100", "200")
-  // result might be "Price: 200"
-  let _ = result
-}
+let pattern = @pcre2.compile("\\d+")
+let result = pattern.replace("Price: 100", "200")
+// result might be "Price: 200"
+let _ = result
 ```
 
 ## API Reference

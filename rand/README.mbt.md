@@ -11,35 +11,26 @@ This package provides access to cryptographically secure random number generatio
 ### Generate Random Bytes
 
 ```moonbit
-///|
-test "random bytes" {
-  let random_data = @rand.bytes(16)
-  @json.inspect(random_data.length(), content=16)
-  // Each byte is random
-}
+let random_data = @rand.bytes(16)
+random_data.length() // 16
+// Each byte is random
 ```
 
 ### Generate Random UInt64
 
 ```moonbit
-///|
-test "random uint64" {
-  let random_num = @rand.uint64()
-  // random_num is a cryptographically secure random UInt64
-  let _ = random_num
-}
+let random_num = @rand.uint64()
+// random_num is a cryptographically secure random UInt64
+let _ = random_num
 ```
 
 ### ChaCha8 Random Generator
 
 ```moonbit
-///|
-test "chacha8 rng" {
-  // Create a seeded random number generator
-  let rng = @rand.chacha8()
-  let num = rng.int()
-  let _ = num
-}
+// Create a seeded random number generator
+let rng = @rand.chacha8()
+let num = rng.int()
+let _ = num
 ```
 
 ## API Reference

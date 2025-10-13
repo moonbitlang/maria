@@ -11,96 +11,78 @@ This package provides a fluent API for building JSON Schema definitions, commonl
 ### Basic Types
 
 ```moonbit
-///|
-test "basic types" {
-  let int_schema = @schema.integer()
-  let str_schema = @schema.string()
-  
-  @json.inspect(int_schema.to_json(), content={"type": "integer"})
-  @json.inspect(str_schema.to_json(), content={"type": "string"})
-}
+let int_schema = @schema.integer()
+let str_schema = @schema.string()
+
+int_schema.to_json() // {"type": "integer"}
+str_schema.to_json() // {"type": "string"}
 ```
 
 ### Object Schemas
 
 ```moonbit
-///|
-test "object schema" {
-  let person_schema = @schema.object(
-    {
-      "name": @schema.string(),
-      "age": @schema.integer(),
-    },
-    required=["name"],
-    additional_properties=false
-  )
-  
-  let json = person_schema.to_json()
-  // json contains {"type": "object", "properties": {...}, "required": ["name"], "additionalProperties": false}
-  let _ = json
-}
+let person_schema = @schema.object(
+  {
+    "name": @schema.string(),
+    "age": @schema.integer(),
+  },
+  required=["name"],
+  additional_properties=false
+)
+
+let json = person_schema.to_json()
+// json contains {"type": "object", "properties": {...}, "required": ["name"], "additionalProperties": false}
+let _ = json
 ```
 
 ### Array Schemas
 
 ```moonbit
-///|
-test "array schema" {
-  let numbers_schema = @schema.array(@schema.integer())
-  
-  @json.inspect(
-    numbers_schema.to_json(),
-    content={
-      "type": "array",
-      "items": {"type": "integer"}
-    }
-  )
-}
+let numbers_schema = @schema.array(@schema.integer())
+
+numbers_schema.to_json() // {
+    "type": "array",
+    "items": {"type": "integer"}
+  }
 ```
 
 ### Enum Schemas
 
 ```moonbit
-///|
-test "enum schema" {
-  let status_schema = @schema.enums([
-    Json::string("pending"),
-    Json::string("approved"),
-    Json::string("rejected")
-  ])
-  
-  let json = status_schema.to_json()
-  // json contains {"enum": ["pending", "approved", "rejected"]}
-  let _ = json
-}
+let status_schema = @schema.enums([
+  Json::string("pending"),
+  Json::string("approved"),
+  Json::string("rejected")
+])
+
+let json = status_schema.to_json()
+// json contains {"enum": ["pending", "approved", "rejected"]}
+let _ = json
 ```
 
 ### Complex Nested Schemas
 
 ```moonbit
-///|
-test "nested schema" {
-  let address_schema = @schema.object(
-    {
-      "street": @schema.string(),
-      "city": @schema.string(),
-      "zip": @schema.string(),
-    },
-    required=["street", "city"]
-  )
-  
-  let user_schema = @schema.object(
-    {
-      "id": @schema.integer(),
-      "name": @schema.string(),
-      "addresses": @schema.array(address_schema),
-    },
-    required=["id", "name"]
-  )
-  
-  let json = user_schema.to_json()
-  let _ = json
-}
+let address_schema = @schema.object(
+  {
+    "street": @schema.string(),
+    "city": @schema.string(),
+    "zip": @schema.string(),
+  },
+  required=["street", "city"]
+)
+
+let user_schema = @schema.object(
+  {
+    "id": @schema.integer(),
+    "name": @schema.string(),
+    "addresses": @schema.array(address_schema),
+  },
+  required=["id", "name"]
+)
+
+let json = user_schema.to_json()
+let _ = json
 ```
 
 ## API Reference

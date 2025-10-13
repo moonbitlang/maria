@@ -11,60 +11,48 @@ This package provides functions for reading, setting, and unsetting environment 
 ### Reading Environment Variables
 
 ```moonbit
-///|
-test "get environment variable" {
-  // Get an environment variable
-  let home = @os.getenv("HOME")
-  // Returns Some(value) if set, None if not found
-  let _ = home
-  
-  let nonexistent = @os.getenv("NONEXISTENT_VAR")
-  @json.inspect(nonexistent, content=None)
-}
+// Get an environment variable
+let home = @os.getenv("HOME")
+// Returns Some(value) if set, None if not found
+let _ = home
+
+let nonexistent = @os.getenv("NONEXISTENT_VAR")
+nonexistent // None
 ```
 
 ### Setting Environment Variables
 
 ```moonbit
-///|
-test "set environment variable" {
-  // Set a new environment variable
-  @os.setenv("MY_VAR", "my_value")
-  
-  // Get it back
-  let value = @os.getenv("MY_VAR")
-  @json.inspect(value, content=Some("my_value"))
-  
-  // Overwrite existing variable (default behavior)
-  @os.setenv("MY_VAR", "new_value")
-  @json.inspect(@os.getenv("MY_VAR"), content=Some("new_value"))
-  
-  // Don't overwrite if already set
-  @os.setenv("MY_VAR", "another_value", overwrite=false)
-  @json.inspect(@os.getenv("MY_VAR"), content=Some("new_value"))
-}
+// Set a new environment variable
+@os.setenv("MY_VAR", "my_value")
+
+// Get it back
+let value = @os.getenv("MY_VAR")
+value // Some("my_value")
+
+// Overwrite existing variable (default behavior)
+@os.setenv("MY_VAR", "new_value")
+@os.getenv("MY_VAR") // Some("new_value")
+
+// Don't overwrite if already set
+@os.setenv("MY_VAR", "another_value", overwrite=false)
+@os.getenv("MY_VAR") // Some("new_value")
 ```
 
 ### Unsetting Environment Variables
 
 ```moonbit
-///|
-test "unset environment variable" {
-  @os.setenv("TEMP_VAR", "value")
-  @os.unsetenv("TEMP_VAR")
-  @json.inspect(@os.getenv("TEMP_VAR"), content=None)
-}
+@os.setenv("TEMP_VAR", "value")
+@os.unsetenv("TEMP_VAR")
+@os.getenv("TEMP_VAR") // None
 ```
 
 ### Getting Current Working Directory
 
 ```moonbit
-///|
-test "get current working directory" {
-  let cwd = @os.cwd()
-  // Returns the current working directory as a string
-  let _ = cwd
-}
+let cwd = @os.cwd()
+// Returns the current working directory as a string
+let _ = cwd
 ```
 
 ## API Reference

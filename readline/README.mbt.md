@@ -11,48 +11,39 @@ This package provides a readline-like interface for building interactive command
 ### Basic Readline
 
 ```moonbit
-///|
-test "readline" {
-  // Create readline interface
-  let rl = @readline.Readline::new(prompt="> ")
-  
-  // Read a line (blocks until input)
-  // let line = rl.readline()
-  
-  let _ = rl
-}
+// Create readline interface
+let rl = @readline.Readline::new(prompt="> ")
+
+// Read a line (blocks until input)
+// let line = rl.readline()
+
+let _ = rl
 ```
 
 ### With History
 
 ```moonbit
-///|
-test "history" {
-  let rl = @readline.Readline::new(prompt="> ")
-  
-  // Add to history
-  rl.add_history("previous command")
-  
-  // Navigate history with up/down arrows
-  let _ = rl
-}
+let rl = @readline.Readline::new(prompt="> ")
+
+// Add to history
+rl.add_history("previous command")
+
+// Navigate history with up/down arrows
+let _ = rl
 ```
 
 ### With Completion
 
 ```moonbit
-///|
-test "completion" {
-  let rl = @readline.Readline::new(
-    prompt="> ",
-    completer=fn(text) {
-      // Return possible completions
-      ["help", "exit", "quit"].filter(fn(cmd) { cmd.starts_with(text) })
-    }
-  )
-  
-  let _ = rl
-}
+let rl = @readline.Readline::new(
+  prompt="> ",
+  completer=fn(text) {
+    // Return possible completions
+    ["help", "exit", "quit"].filter(fn(cmd) { cmd.starts_with(text) })
+  }
+)
+
+let _ = rl
 ```
 
 ## API Reference

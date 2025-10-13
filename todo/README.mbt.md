@@ -11,125 +11,104 @@ This package provides a comprehensive TODO list management system with support f
 ### Creating a TODO List
 
 ```moonbit
-///|
-test "create todo list" {
-  let todos = @todo.list(cwd="/home/user/project")
-  let _ = todos
-}
+let todos = @todo.list(cwd="/home/user/project")
+let _ = todos
 ```
 
 ### Adding Tasks
 
 ```moonbit
-///|
-test "add task" {
-  let todos = @todo.list(cwd="/tmp")
-  
-  let task = todos.add_task(
-    "Implement feature X",
-    status=@todo.Status::Pending,
-    priority=@todo.Priority::High,
-    notes="Needs review"
-  )
-  
-  @json.inspect(task.content, content="Implement feature X")
-}
+let todos = @todo.list(cwd="/tmp")
+
+let task = todos.add_task(
+  "Implement feature X",
+  status=@todo.Status::Pending,
+  priority=@todo.Priority::High,
+  notes="Needs review"
+)
+
+task.content // "Implement feature X"
 ```
 
 ### Parsing Tasks from Text
 
 ```moonbit
-///|
-test "parse tasks" {
-  let todos = @todo.list(cwd="/tmp")
-  
-  // Parse from numbered list
-  todos.parse(
-    "1. First task\n2. Second task\n3. Third task",
-    priority=@todo.Priority::Medium
-  )
-  
-  @json.inspect(todos.todos().length(), content=3)
-}
+let todos = @todo.list(cwd="/tmp")
+
+// Parse from numbered list
+todos.parse(
+  "1. First task\n2. Second task\n3. Third task",
+  priority=@todo.Priority::Medium
+)
+
+todos.todos().length() // 3
 ```
 
 ### Parsing from Task Tags
 
 ```moonbit
-///|
-test "parse task tags" {
-  let todos = @todo.list(cwd="/tmp")
-  
-  todos.parse(
-    "<task>Write tests</task>\nSome text\n<task>Update docs</task>",
-    priority=@todo.Priority::Low
-  )
-  
-  let tasks = todos.todos()
-  @json.inspect(tasks.length(), content=2)
-}
+let todos = @todo.list(cwd="/tmp")
+
+todos.parse(
+  "<task>Write tests</task>\nSome text\n<task>Update docs</task>",
+  priority=@todo.Priority::Low
+)
+
+let tasks = todos.todos()
+tasks.length() // 2
 ```
 
 ### Updating Tasks
 
 ```moonbit
-///|
-test "update task" {
-  let todos = @todo.list(cwd="/tmp")
-  let task = todos.add_task("Original task")
-  
-  let updated = task.update(
-    content="Updated task",
-    status=@todo.Status::Completed,
-    priority=@todo.Priority::High
-  )
-  
-  let index = todos.find(task.id).unwrap()
-  todos.update_task(index, updated)
-}
+let todos = @todo.list(cwd="/tmp")
+let task = todos.add_task("Original task")
+
+let updated = task.update(
+  content="Updated task",
+  status=@todo.Status::Completed,
+  priority=@todo.Priority::High
+)
+
+let index = todos.find(task.id).unwrap()
+todos.update_task(index, updated)
 ```
 
 ### Finding and Getting Tasks
 
 ```moonbit
-///|
-test "find task" {
-  let todos = @todo.list(cwd="/tmp")
-  let task = todos.add_task("Test task")
-  
-  let index = todos.find(task.id)
-  match index {
-    Some(idx) => {
-      let found = todos.get(idx)
-      @json.inspect(found.content, content="Test task")
-    }
-    None => ()
+let todos = @todo.list(cwd="/tmp")
+let task = todos.add_task("Test task")
+
+let index = todos.find(task.id)
+match index {
+  Some(idx) => {
+    let found = todos.get(idx)
+    found.content // "Test task"
   }
+  None => ()
 }
 ```
 
 ### Saving and Loading
 
 ```moonbit
-///|
-test "save and load" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("todo-test")
-    g.add_defer(() => dir.close())
-    
-    let todos = @todo.list(cwd=dir.path())
-    todos.add_task("Task 1")
-    todos.add_task("Task 2")
-    
-    todos.save()
-    
-    // Create new list and load
-    let todos2 = @todo.list(cwd=dir.path())
-    todos2.load()
-    
-    @json.inspect(todos2.todos().length(), content=2)
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("todo-test")
+  g.add_defer(() => dir.close())
+  
+  let todos = @todo.list(cwd=dir.path())
+  todos.add_task("Task 1")
+  todos.add_task("Task 2")
+  
+  todos.save()
+  
+  // Create new list and load
+  let todos2 = @todo.list(cwd=dir.path())
+  todos2.load()
+  
+  todos2.todos().length() // 2
+})
 ```
 
 ## API Reference

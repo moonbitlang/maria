@@ -11,51 +11,38 @@ This package provides efficient Base64 encoding and decoding with support for bo
 ### Basic Encoding
 
 ```moonbit
-///|
-test "basic encoding" {
-  let data = b"Hello, World!"
-  let encoded = @base64.encode(data)
-  @json.inspect(encoded, content="SGVsbG8sIFdvcmxkIQ==")
-}
+let data = b"Hello, World!"
+let encoded = @base64.encode(data)
+// encoded == "SGVsbG8sIFdvcmxkIQ=="
 ```
 
 ### Basic Decoding
 
 ```moonbit
-///|
-test "basic decoding" {
-  let encoded = "SGVsbG8sIFdvcmxkIQ=="
-  let decoded = @base64.decode(encoded)
-  @json.inspect(decoded, content=b"Hello, World!")
-}
+let encoded = "SGVsbG8sIFdvcmxkIQ=="
+let decoded = @base64.decode(encoded)
+// decoded == b"Hello, World!"
 ```
 
 ### URL-Safe Encoding
 
 ```moonbit
-///|
-test "url safe encoding" {
-  let data = b"test\xFF\xFE"
-  let encoded = @base64.encode(data, url_safe=true)
-  // URL-safe uses '-' and '_' instead of '+' and '/'
-  let _ = encoded
-}
+let data = b"test\xFF\xFE"
+let encoded = @base64.encode(data, url_safe=true)
+// URL-safe uses '-' and '_' instead of '+' and '/'
 ```
 
 ### Streaming Encoding
 
 ```moonbit
-///|
-test "streaming encoding" {
-  let encoder = @base64.Encoder::new()
-  let builder = StringBuilder::new()
-  encoder.encode_to(
-    b"Hello",
-    fn(ch) { builder.write_char(ch) },
-    padding=true
-  )
-  @json.inspect(builder.to_string(), content="SGVsbG8=")
-}
+let encoder = @base64.Encoder::new()
+let builder = StringBuilder::new()
+encoder.encode_to(
+  b"Hello",
+  fn(ch) { builder.write_char(ch) },
+  padding=true
+)
+// builder.to_string() == "SGVsbG8="
 ```
 
 ## API Reference

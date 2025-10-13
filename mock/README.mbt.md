@@ -11,50 +11,41 @@ This package provides utilities for creating temporary directories and files for
 ### Creating a Temporary Directory
 
 ```moonbit
-///|
-test "create mock directory" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("test-dir")
-    g.add_defer(() => dir.close())
-    
-    let path = dir.path()
-    // path is something like "maria-mock-test-dir-XXXXXX"
-    let _ = path
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("test-dir")
+  g.add_defer(() => dir.close())
+  
+  let path = dir.path()
+  // path is something like "maria-mock-test-dir-XXXXXX"
+  let _ = path
+})
 ```
 
 ### Adding Files to Mock Directory
 
 ```moonbit
-///|
-test "add files to mock" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("test")
-    g.add_defer(() => dir.close())
-    
-    let file_path = dir.add_file("test.txt", "Hello, World!")
-    // File is created at dir.path() + "/test.txt"
-    let content = @fs.read_file(file_path).text()
-    @json.inspect(content, content="Hello, World!")
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("test")
+  g.add_defer(() => dir.close())
+  
+  let file_path = dir.add_file("test.txt", "Hello, World!")
+  // File is created at dir.path() + "/test.txt"
+  let content = @fs.read_file(file_path).text()
+  content // "Hello, World!"
+})
 ```
 
 ### Stripping CWD from Paths
 
 ```moonbit
-///|
-test "strip cwd from paths" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("strip-test")
-    g.add_defer(() => dir.close())
-    
-    let full_path = @path.join(dir.path(), "file.txt")
-    let relative = dir.strip_cwd(full_path)
-    @json.inspect(relative, content="./file.txt")
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("strip-test")
+  g.add_defer(() => dir.close())
+  
+  let full_path = @path.join(dir.path(), "file.txt")
+  let relative = dir.strip_cwd(full_path)
+  relative // "./file.txt"
+})
 ```
 
 ## API Reference

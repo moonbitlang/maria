@@ -11,73 +11,61 @@ This package provides a simple and efficient LRU cache that automatically evicts
 ### Creating a Cache
 
 ```moonbit
-///|
-test "create cache" {
-  // Create cache with default size (100)
-  let cache : @lru.Cache[String, Int] = @lru.cache()
-  
-  // Create cache with custom size
-  let small_cache : @lru.Cache[String, String] = @lru.cache(max_size=10)
-  let _ = (cache, small_cache)
-}
+// Create cache with default size (100)
+let cache : @lru.Cache[String, Int] = @lru.cache()
+
+// Create cache with custom size
+let small_cache : @lru.Cache[String, String] = @lru.cache(max_size=10)
+let _ = (cache, small_cache)
 ```
 
 ### Basic Operations
 
 ```moonbit
-///|
-test "cache operations" {
-  let cache : @lru.Cache[String, Int] = @lru.cache(max_size=3)
-  
-  // Set values
-  cache.set("a", 1)
-  cache.set("b", 2)
-  cache["c"] = 3  // Using op_set alias
-  
-  // Get values
-  @json.inspect(cache.get("a"), content=Some(1))
-  @json.inspect(cache["b"], content=2)  // Using op_get (unwraps)
-  
-  // Non-existent key
-  @json.inspect(cache.get("d"), content=None)
-}
+let cache : @lru.Cache[String, Int] = @lru.cache(max_size=3)
+
+// Set values
+cache.set("a", 1)
+cache.set("b", 2)
+cache["c"] = 3  // Using op_set alias
+
+// Get values
+cache.get("a") // Some(1)
+cache["b"] // 2  // Using op_get (unwraps)
+
+// Non-existent key
+cache.get("d") // None
 ```
 
 ### LRU Eviction
 
 ```moonbit
-///|
-test "lru eviction" {
-  let cache : @lru.Cache[String, Int] = @lru.cache(max_size=2)
-  
-  cache.set("a", 1)
-  cache.set("b", 2)
-  
-  // Access "a" to mark it as recently used
-  let _ = cache.get("a")
-  
-  // Adding "c" will evict "b" (least recently used)
-  cache.set("c", 3)
-  
-  @json.inspect(cache.get("a"), content=Some(1))  // Still present
-  @json.inspect(cache.get("b"), content=None)     // Evicted
-  @json.inspect(cache.get("c"), content=Some(3))  // Just added
-}
+let cache : @lru.Cache[String, Int] = @lru.cache(max_size=2)
+
+cache.set("a", 1)
+cache.set("b", 2)
+
+// Access "a" to mark it as recently used
+let _ = cache.get("a")
+
+// Adding "c" will evict "b" (least recently used)
+cache.set("c", 3)
+
+cache.get("a") // Some(1)  // Still present
+cache.get("b") // None     // Evicted
+cache.get("c") // Some(3)  // Just added
 ```
 
 ### Converting to JSON
 
 ```moonbit
-///|
-test "cache to json" {
-  let cache : @lru.Cache[String, Int] = @lru.cache(max_size=3)
-  cache.set("x", 10)
-  cache.set("y", 20)
-  
-  let json = cache.to_json()
-  // Returns JSON object with cache contents
-  let _ = json
-}
+let cache : @lru.Cache[String, Int] = @lru.cache(max_size=3)
+cache.set("x", 10)
+cache.set("y", 20)
+
+let json = cache.to_json()
+// Returns JSON object with cache contents
+let _ = json
 ```
 
 ## API Reference

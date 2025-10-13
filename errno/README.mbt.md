@@ -11,38 +11,29 @@ This package provides access to system error codes and error messages from the C
 ### Error Constants
 
 ```moonbit
-///|
-test "errno constants" {
-  // ERANGE - Result too large
-  let _ = @errno.erange
-  
-  // ENAMETOOLONG - File name too long
-  let _ = @errno.enametoolong
-}
+// ERANGE - Result too large
+let _ = @errno.erange
+
+// ENAMETOOLONG - File name too long
+let _ = @errno.enametoolong
 ```
 
 ### Error Messages
 
 ```moonbit
-///|
-test "errno to string" {
-  let err = @errno.Errno(@errno.erange)
-  let msg = err.to_string()
-  // Returns human-readable error message like "Numerical result out of range"
-  let _ = msg
-}
+let err = @errno.Errno(@errno.erange)
+let msg = err.to_string()
+// Returns human-readable error message like "Numerical result out of range"
+let _ = msg
 ```
 
 ### Using with ToJson
 
 ```moonbit
-///|
-test "errno json" {
-  let err = @errno.Errno(@errno.enametoolong)
-  let json = err.to_json()
-  // Converts to JSON string representation
-  let _ = json
-}
+let err = @errno.Errno(@errno.enametoolong)
+let json = err.to_json()
+// Converts to JSON string representation
+let _ = json
 ```
 
 ## API Reference

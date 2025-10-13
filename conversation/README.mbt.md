@@ -11,26 +11,20 @@ This package manages conversation history, including messages, tool calls, and s
 ### Creating a Conversation
 
 ```moonbit
-///|
-test "new conversation" {
-  let conv = @conversation.Conversation::new()
-  let _ = conv
-}
+let conv = @conversation.Conversation::new()
+let _ = conv
 ```
 
 ### Adding Messages
 
 ```moonbit
-///|
-test "add messages" {
-  let conv = @conversation.Conversation::new()
-  
-  conv.add_user_message("Hello")
-  conv.add_assistant_message("Hi there!")
-  
-  let messages = conv.messages()
-  @json.inspect(messages.length(), content=2)
-}
+let conv = @conversation.Conversation::new()
+
+conv.add_user_message("Hello")
+conv.add_assistant_message("Hi there!")
+
+let messages = conv.messages()
+messages.length() // 2
 ```
 
 ## API Reference

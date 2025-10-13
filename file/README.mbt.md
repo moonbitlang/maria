@@ -11,11 +11,8 @@ This package provides a simple file manager that tracks file access within a spe
 ### Creating a File Manager
 
 ```moonbit
-///|
-test "create file manager" {
-  let manager = @file.manager(cwd="/home/user/project")
-  let _ = manager
-}
+let manager = @file.manager(cwd="/home/user/project")
+let _ = manager
 ```
 
 ## API Reference

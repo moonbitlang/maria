@@ -9,15 +9,11 @@ This package provides a single function for gracefully aborting program executio
 ## Usage
 
 ```moonbit
-///|
-test "abort example" {
-  // This would abort the program with a message and backtrace
-  // @abort.abort("Something went wrong")
-  
-  // In tests, we just verify the function exists
-  let _ : Unit = @abort.abort("test message")
-}
+// Abort with an error message
+@abort.abort("Something went wrong")
 ```
+
+Note: This function never returns and will terminate the program.
 
 ## API Reference
 

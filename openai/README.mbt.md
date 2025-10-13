@@ -11,73 +11,64 @@ This package provides a complete OpenAI API client with support for chat complet
 ### Chat Completions
 
 ```moonbit
-///|
-test "chat completion" {
-  let param = @openai.chat_completion_param(
-    model="gpt-4",
-    messages=[
-      @openai.system_message(content="You are helpful"),
-      @openai.user_message(content="Hello!")
-    ]
-  )
-  
-  let response = @openai.chat_completion(param)
-  // response contains the model's reply
-  let _ = response
-}
+let param = @openai.chat_completion_param(
+  model="gpt-4",
+  messages=[
+    @openai.system_message(content="You are helpful"),
+    @openai.user_message(content="Hello!")
+  ]
+)
+
+let response = @openai.chat_completion(param)
+// response contains the model's reply
+let _ = response
 ```
 
 ### Function Calling
 
 ```moonbit
-///|
-test "with tools" {
-  let tool = @openai.tool(
-    name="get_weather",
-    description="Get weather for a location",
-    parameters={
-      "type": "object",
-      "properties": {
-        "location": {"type": "string"}
-      },
-      "required": ["location"]
-    }
-  )
-  
-  let param = @openai.chat_completion_param(
-    model="gpt-4",
-    messages=[/* messages */],
-    tools=[tool]
-  )
-  
-  let response = @openai.chat_completion(param)
-  // Check for tool calls in response
-  let _ = response
-}
+let tool = @openai.tool(
+  name="get_weather",
+  description="Get weather for a location",
+  parameters={
+    "type": "object",
+    "properties": {
+      "location": {"type": "string"}
+    },
+    "required": ["location"]
+  }
+)
+
+let param = @openai.chat_completion_param(
+  model="gpt-4",
+  messages=[/* messages */],
+  tools=[tool]
+)
+
+let response = @openai.chat_completion(param)
+// Check for tool calls in response
+let _ = response
 ```
 
 ### Message Types
 
 ```moonbit
-///|
-test "message types" {
-  // System message
-  let sys = @openai.system_message(content="You are helpful")
-  
-  // User message
-  let user = @openai.user_message(content="Hello")
-  
-  // Assistant message
-  let asst = @openai.assistant_message(content="Hi there!")
-  
-  // Tool result message
-  let tool_result = @openai.tool_message(
-    content="Result data",
-    tool_call_id="call_123"
-  )
-  
-  let _ = (sys, user, asst, tool_result)
-}
+// System message
+let sys = @openai.system_message(content="You are helpful")
+
+// User message
+let user = @openai.user_message(content="Hello")
+
+// Assistant message
+let asst = @openai.assistant_message(content="Hi there!")
+
+// Tool result message
+let tool_result = @openai.tool_message(
+  content="Result data",
+  tool_call_id="call_123"
+)
+
+let _ = (sys, user, asst, tool_result)
 ```
 
 ## API Reference

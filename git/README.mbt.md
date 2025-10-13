@@ -11,85 +11,70 @@ This package provides high-level functions for common Git operations like clonin
 ### Cloning a Repository
 
 ```moonbit
-///|
-test "clone repository" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("git-clone")
-    g.add_defer(() => dir.close())
-    
-    @git.clone(
-      "https://github.com/example/repo.git",
-      to="repo",
-      cwd=dir.path()
-    )
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("git-clone")
+  g.add_defer(() => dir.close())
+  
+  @git.clone(
+    "https://github.com/example/repo.git",
+    to="repo",
+    cwd=dir.path()
+  )
+})
 ```
 
 ### Initializing a Repository
 
 ```moonbit
-///|
-test "init repository" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("git-init")
-    g.add_defer(() => dir.close())
-    
-    let repo_path = @path.join(dir.path(), "my-repo")
-    @git.init_(repo_path)
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("git-init")
+  g.add_defer(() => dir.close())
+  
+  let repo_path = @path.join(dir.path(), "my-repo")
+  @git.init_(repo_path)
+})
 ```
 
 ### Committing Changes
 
 ```moonbit
-///|
-test "commit files" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("git-commit")
-    g.add_defer(() => dir.close())
-    
-    @git.init_(dir.path())
-    let _ = dir.add_file("test.txt", "Hello")
-    
-    @git.commit(
-      "Initial commit",
-      ["test.txt"],
-      cwd=dir.path()
-    )
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("git-commit")
+  g.add_defer(() => dir.close())
+  
+  @git.init_(dir.path())
+  let _ = dir.add_file("test.txt", "Hello")
+  
+  @git.commit(
+    "Initial commit",
+    ["test.txt"],
+    cwd=dir.path()
+  )
+})
 ```
 
 ### Creating a Branch
 
 ```moonbit
-///|
-test "create branch" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("git-branch")
-    g.add_defer(() => dir.close())
-    
-    @git.init_(dir.path())
-    let msg = @git.create_branch(branch_name="feature", cwd=dir.path())
-    let _ = msg
-  })
-}
+@async.with_task_group(g => {
+  let dir = @mock.directory("git-branch")
+  g.add_defer(() => dir.close())
+  
+  @git.init_(dir.path())
+  let msg = @git.create_branch(branch_name="feature", cwd=dir.path())
+  let _ = msg
+})
 ```
 
 ### Generating Diffs
 
 ```moonbit
-///|
-test "generate diff" {
-  let original = "Hello, World!"
-  let modified = "Hello, Moon!"
-  
-  let diff = @git.generate_git_diff(original~, modified~)
-  // diff contains unified diff format
-  let _ = diff
-}
+let original = "Hello, World!"
+let modified = "Hello, Moon!"
+
+let diff = @git.generate_git_diff(original~, modified~)
+// diff contains unified diff format
+let _ = diff
 ```
 
 ## API Reference

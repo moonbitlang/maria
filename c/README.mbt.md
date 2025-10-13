@@ -11,41 +11,32 @@ This package provides essential utilities for interfacing with C code, including
 ### Working with Pointers
 
 ```moonbit
-///|
-test "pointer operations" {
-  // Create a null pointer
-  let null_ptr : @c.Pointer[Int] = @c.Pointer::null()
-  @json.inspect(null_ptr.is_null(), content=true)
-  
-  // Check pointer equality
-  let ptr1 = @c.Pointer::null()
-  let ptr2 = @c.Pointer::null()
-  @json.inspect(ptr1 == ptr2, content=true)
-}
+// Create a null pointer
+let null_ptr : @c.Pointer[Int] = @c.Pointer::null()
+null_ptr.is_null() // true
+
+// Check pointer equality
+let ptr1 = @c.Pointer::null()
+let ptr2 = @c.Pointer::null()
+ptr1 == ptr2 // true
 ```
 
 ### Loading and Storing Values
 
 ```moonbit
-///|
-test "load and store" {
-  // Pointers support loading and storing primitive types
-  // Example with byte array
-  let bytes = Bytes::make(10, 0)
-  // ptr operations would work with external C memory
-  let _ = bytes
-}
+// Pointers support loading and storing primitive types
+// Example with byte array
+let bytes = Bytes::make(10, 0)
+// ptr operations would work with external C memory
+let _ = bytes
 ```
 
 ### String Operations
 
 ```moonbit
-///|
-test "strlen" {
-  // C string length calculation
-  // @c.strlen(c_string_pointer)
-  let _ = 0
-}
+// C string length calculation
+// @c.strlen(c_string_pointer)
+let _ = 0
 ```
 
 ## API Reference

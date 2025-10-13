@@ -11,12 +11,9 @@ This package provides access to Unix signal constants for use with process signa
 ### Signal Constants
 
 ```moonbit
-///|
-test "signal constants" {
-  // SIGTSTP - Terminal stop signal (Ctrl+Z)
-  let sig = @signal.sigtstp
-  let _ = sig
-}
+// SIGTSTP - Terminal stop signal (Ctrl+Z)
+let sig = @signal.sigtstp
+let _ = sig
 ```
 
 ## API Reference

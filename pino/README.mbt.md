@@ -11,33 +11,27 @@ This package provides a structured logging system with support for different log
 ### Basic Logging
 
 ```moonbit
-///|
-test "basic logging" {
-  let logger = @pino.logger(
-    level=@pino.Level::Info,
-    transport=@pino.console()
-  )
-  
-  logger.info("Application started")
-  logger.error("An error occurred")
-}
+let logger = @pino.logger(
+  level=@pino.Level::Info,
+  transport=@pino.console()
+)
+
+logger.info("Application started")
+logger.error("An error occurred")
 ```
 
 ### Structured Logging
 
 ```moonbit
-///|
-test "structured logging" {
-  let logger = @pino.logger(
-    level=@pino.Level::Debug,
-    transport=@pino.console()
-  )
-  
-  logger.info("User logged in", {
-    "user_id": 123,
-    "ip": "192.168.1.1"
-  })
-}
+let logger = @pino.logger(
+  level=@pino.Level::Debug,
+  transport=@pino.console()
+)
+
+logger.info("User logged in", {
+  "user_id": 123,
+  "ip": "192.168.1.1"
+})
 ```
 
 ## API Reference

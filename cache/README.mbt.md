@@ -11,17 +11,14 @@ This package provides utilities for marking OpenAI chat completion messages for 
 ### Caching Messages
 
 ```moonbit
-///|
-test "cache messages" {
-  let messages = [
-    @openai.system_message(content="You are a helpful assistant."),
-    @openai.user_message(content="Hello!"),
-  ]
-  
-  let cached_messages = @cache.cache_messages(messages)
-  // The last text content in system messages will be marked for caching
-  let _ = cached_messages
-}
+let messages = [
+  @openai.system_message(content="You are a helpful assistant."),
+  @openai.user_message(content="Hello!"),
+]
+
+let cached_messages = @cache.cache_messages(messages)
+// The last text content in system messages will be marked for caching
+let _ = cached_messages
 ```
 
 ## API Reference

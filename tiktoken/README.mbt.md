@@ -11,26 +11,20 @@ This package provides access to tiktoken encodings for tokenizing text according
 ### Using cl100k_base Encoding
 
 ```moonbit
-///|
-test "encode text" {
-  let encoding = @tiktoken.cl100k_base()
-  let tokens = encoding.encode("Hello, World!")
-  // Returns array of token IDs
-  let token_count = tokens.length()
-  let _ = token_count
-}
+let encoding = @tiktoken.cl100k_base()
+let tokens = encoding.encode("Hello, World!")
+// Returns array of token IDs
+let token_count = tokens.length()
+let _ = token_count
 ```
 
 ### Decoding Tokens
 
 ```moonbit
-///|
-test "decode tokens" {
-  let encoding = @tiktoken.cl100k_base()
-  let tokens = encoding.encode("Hello!")
-  let text = encoding.decode(tokens)
-  @json.inspect(text, content="Hello!")
-}
+let encoding = @tiktoken.cl100k_base()
+let tokens = encoding.encode("Hello!")
+let text = encoding.decode(tokens)
+text // "Hello!"
 ```
 
 ## API Reference

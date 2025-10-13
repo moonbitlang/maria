@@ -11,29 +11,23 @@ This package provides utilities for extracting relevant code snippets and managi
 ### Creating an Extractor
 
 ```moonbit
-///|
-test "create extractor" {
-  let extractor = @context.Extractor::new(
-    window_size=8000,
-    overlap=1000
-  )
-  let _ = extractor
-}
+let extractor = @context.Extractor::new(
+  window_size=8000,
+  overlap=1000
+)
+let _ = extractor
 ```
 
 ### Extracting Code Snippets
 
 ```moonbit
-///|
-test "extract snippets" {
-  let extractor = @context.Extractor::new()
-  let code = "// Large code file content..."
-  let history = [/* conversation history */]
-  
-  let snippets = extractor.extract_code_snippets(code, history~)
-  // Returns relevant code segments based on conversation
-  let _ = snippets
-}
+let extractor = @context.Extractor::new()
+let code = "// Large code file content..."
+let history = [/* conversation history */]
+
+let snippets = extractor.extract_code_snippets(code, history~)
+// Returns relevant code segments based on conversation
+let _ = snippets
 ```
 
 ## API Reference

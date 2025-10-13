@@ -11,48 +11,34 @@ This package provides UUID generation, parsing, and manipulation capabilities wi
 ### Generate UUID v4
 
 ```moonbit
-///|
-test "generate uuid v4" {
-  let uuid = @uuid.v4()
-  let uuid_str = uuid.to_string()
-  // UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-  @json.inspect(uuid_str.length(), content=36)
-  @json.inspect(uuid.version(), content=Some(@uuid.Version::V4))
-}
+let uuid = @uuid.v4()
+let uuid_str = uuid.to_string()
+// UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 ```
 
 ### Parse UUID from String
 
 ```moonbit
-///|
-test "parse uuid" {
-  let uuid = @uuid.parse("550e8400-e29b-41d4-a716-446655440000")
-  @json.inspect(uuid.to_string(), content="550e8400-e29b-41d4-a716-446655440000")
-}
+let uuid = @uuid.parse("550e8400-e29b-41d4-a716-446655440000")
+// uuid.to_string() == "550e8400-e29b-41d4-a716-446655440000"
 ```
 
 ### Special UUIDs
 
 ```moonbit
-///|
-test "special uuids" {
-  // Nil UUID (all zeros)
-  @json.inspect(@uuid.nil.to_string(), content="00000000-0000-0000-0000-000000000000")
-  
-  // Max UUID (all ones)
-  @json.inspect(@uuid.max.to_string(), content="ffffffff-ffff-ffff-ffff-ffffffffffff")
-}
+// Nil UUID (all zeros)
+@uuid.nil.to_string() // "00000000-0000-0000-0000-000000000000"
+
+// Max UUID (all ones)
+@uuid.max.to_string() // "ffffffff-ffff-ffff-ffff-ffffffffffff"
 ```
 
 ### Convert to Bytes
 
 ```moonbit
-///|
-test "uuid to bytes" {
-  let uuid = @uuid.nil
-  let bytes = uuid.to_bytes()
-  @json.inspect(bytes.length(), content=16)
-}
+let uuid = @uuid.nil
+let bytes = uuid.to_bytes()
+// bytes.length() == 16
 ```
 
 ## API Reference

@@ -11,93 +11,78 @@ This package provides utilities for counting tokens in OpenAI chat completion re
 ### Creating a Token Counter
 
 ```moonbit
-///|
-test "create counter" {
-  let counter = @token.Counter::new()
-  let _ = counter
-}
+let counter = @token.Counter::new()
+let _ = counter
 ```
 
 ### Counting String Tokens
 
 ```moonbit
-///|
-test "count string" {
-  let counter = @token.Counter::new()
-  let token_count = counter.count_string("Hello, World!")
-  // Returns token count including system overhead
-  let _ = token_count
-}
+let counter = @token.Counter::new()
+let token_count = counter.count_string("Hello, World!")
+// Returns token count including system overhead
+let _ = token_count
 ```
 
 ### Counting Messages
 
 ```moonbit
-///|
-test "count messages" {
-  let counter = @token.Counter::new()
-  let messages = [
-    @openai.user_message(content="What is 2+2?"),
-    @openai.assistant_message(content="2+2 equals 4."),
-  ]
-  
-  // Manually count messages
-  let mut total = 0
-  for msg in messages {
-    total += counter.count_message(msg)
-  }
-  let _ = total
+let counter = @token.Counter::new()
+let messages = [
+  @openai.user_message(content="What is 2+2?"),
+  @openai.assistant_message(content="2+2 equals 4."),
+]
+
+// Manually count messages
+let mut total = 0
+for msg in messages {
+  total += counter.count_message(msg)
 }
+let _ = total
 ```
 
 ### Counting Tools
 
 ```moonbit
-///|
-test "count with tools" {
-  let counter = @token.Counter::new()
-  let tool = @openai.tool(
-    name="get_weather",
-    description="Get current weather",
-    parameters={
-      "type": "object",
-      "properties": {
-        "location": {"type": "string"}
-      }
+let counter = @token.Counter::new()
+let tool = @openai.tool(
+  name="get_weather",
+  description="Get current weather",
+  parameters={
+    "type": "object",
+    "properties": {
+      "location": {"type": "string"}
     }
-  )
-  
-  counter.add_tool(tool)
-  // Counter now includes tool overhead
-  let _ = counter
-}
+  }
+)
+
+counter.add_tool(tool)
+// Counter now includes tool overhead
+let _ = counter
 ```
 
 ### Counting Complete Request
 
 ```moonbit
-///|
-test "count full request" {
-  let counter = @token.Counter::new()
-  let param = @openai.chat_completion_param(
-    model="gpt-4",
-    messages=[
-      @openai.system_message(content="You are a helpful assistant."),
-      @openai.user_message(content="Hello!"),
-    ],
-    tools=[
-      @openai.tool(
-        name="search",
-        description="Search for information",
-        parameters={"type": "object", "properties": {}}
-      )
-    ]
-  )
-  
-  let total_tokens = counter.count_param(param)
-  // Returns total token count for the entire request
-  let _ = total_tokens
-}
+let counter = @token.Counter::new()
+let param = @openai.chat_completion_param(
+  model="gpt-4",
+  messages=[
+    @openai.system_message(content="You are a helpful assistant."),
+    @openai.user_message(content="Hello!"),
+  ],
+  tools=[
+    @openai.tool(
+      name="search",
+      description="Search for information",
+      parameters={"type": "object", "properties": {}}
+    )
+  ]
+)
+
+let total_tokens = counter.count_param(param)
+// Returns total token count for the entire request
+let _ = total_tokens
 ```
 
 ## API Reference

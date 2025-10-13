@@ -11,12 +11,9 @@ This package provides a framework for defining and applying rules to data struct
 ### Defining Rules
 
 ```moonbit
-///|
-test "define rule" {
-  // Rules define conditions and actions
-  // Example: validation rules, transformation rules, etc.
-  let _ = 0
-}
+// Rules define conditions and actions
+// Example: validation rules, transformation rules, etc.
+let _ = 0
 ```
 
 ## API Reference

@@ -11,69 +11,57 @@ This package provides a simple event emitter/listener pattern with type-safe eve
 ### Creating an Event Target
 
 ```moonbit
-///|
-test "create event target" {
-  let target : @event.Target[String, Int] = @event.Target::new()
-  let _ = target
-}
+let target : @event.Target[String, Int] = @event.Target::new()
+let _ = target
 ```
 
 ### Adding Event Listeners
 
 ```moonbit
-///|
-test "add listener" {
-  let target : @event.Target[String, String] = @event.Target::new()
-  
-  target.add_listener("message", async fn(context) {
-    println("Received: \{context}")
-  })
-  
-  let _ = target
-}
+let target : @event.Target[String, String] = @event.Target::new()
+
+target.add_listener("message", async fn(context) {
+  println("Received: \{context}")
+})
+
+let _ = target
 ```
 
 ### Emitting Events
 
 ```moonbit
-///|
-test "emit event" {
-  let target : @event.Target[String, Int] = @event.Target::new()
-  let received = Ref::new(None)
-  
-  target.add_listener("count", async fn(value) {
-    received.val = Some(value)
-  })
-  
-  target.emit("count", 42)
-  
-  @json.inspect(received.val, content=Some(42))
-}
+let target : @event.Target[String, Int] = @event.Target::new()
+let received = Ref::new(None)
+
+target.add_listener("count", async fn(value) {
+  received.val = Some(value)
+})
+
+target.emit("count", 42)
+
+received.val // Some(42)
 ```
 
 ### Multiple Listeners
 
 ```moonbit
-///|
-test "multiple listeners" {
-  let target : @event.Target[String, String] = @event.Target::new()
-  let results = []
-  
-  target.add_listener("event", async fn(ctx) {
-    results.push("listener1: \{ctx}")
-  })
-  
-  target.add_listener("event", async fn(ctx) {
-    results.push("listener2: \{ctx}")
-  })
-  
-  target.emit("event", "test")
-  
-  @json.inspect(results, content=[
-    "listener1: test",
-    "listener2: test"
-  ])
-}
+let target : @event.Target[String, String] = @event.Target::new()
+let results = []
+
+target.add_listener("event", async fn(ctx) {
+  results.push("listener1: \{ctx}")
+})
+
+target.add_listener("event", async fn(ctx) {
+  results.push("listener2: \{ctx}")
+})
+
+target.emit("event", "test")
+
+results // [
+  "listener1: test",
+  "listener2: test"
+]
 ```
 
 ## API Reference

@@ -11,70 +11,55 @@ This package provides programmatic access to MoonBit projects, including checkin
 ### Loading a Module
 
 ```moonbit
-///|
-test "load module" {
-  let moon = @moon.Module::load("/path/to/project")
-  // Module represents a MoonBit project with moon.mod.json
-  let _ = moon
-}
+let moon = @moon.Module::load("/path/to/project")
+// Module represents a MoonBit project with moon.mod.json
+let _ = moon
 ```
 
 ### Checking Code
 
 ```moonbit
-///|
-test "check code" {
-  let moon = @moon.Module::load(".")
-  moon.check()
-  
-  let diagnostics = moon.diagnostics().collect()
-  // diagnostics contains errors and warnings
-  let _ = diagnostics
-}
+let moon = @moon.Module::load(".")
+moon.check()
+
+let diagnostics = moon.diagnostics().collect()
+// diagnostics contains errors and warnings
+let _ = diagnostics
 ```
 
 ### Running Tests
 
 ```moonbit
-///|
-test "run tests" {
-  let moon = @moon.Module::load(".")
-  let results = moon.test_()
-  // results contains test outcomes
-  let _ = results
-}
+let moon = @moon.Module::load(".")
+let results = moon.test_()
+// results contains test outcomes
+let _ = results
 ```
 
 ### Getting Package Interface
 
 ```moonbit
-///|
-test "get interface" {
-  let moon = @moon.Module::load(".")
-  let pkg = moon.package_("my_package")
-  match pkg {
-    Some(pkg) => {
-      let interface = pkg.interface()
-      // interface is the .mbti file content
-      let _ = interface
-    }
-    None => ()
+let moon = @moon.Module::load(".")
+let pkg = moon.package_("my_package")
+match pkg {
+  Some(pkg) => {
+    let interface = pkg.interface()
+    // interface is the .mbti file content
+    let _ = interface
   }
+  None => ()
 }
 ```
 
 ### Coverage Analysis
 
 ```moonbit
-///|
-test "coverage" {
-  let moon = @moon.Module::load(".")
-  moon.test_(enable_coverage=true)
-  
-  let report = moon.coverage.report(format=Summary)
-  // report shows covered/uncovered lines
-  let _ = report
-}
+let moon = @moon.Module::load(".")
+moon.test_(enable_coverage=true)
+
+let report = moon.coverage.report(format=Summary)
+// report shows covered/uncovered lines
+let _ = report
 ```
 
 ## API Reference

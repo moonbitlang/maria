@@ -11,90 +11,66 @@ This package provides asynchronous file system operations including reading, wri
 ### Reading Files
 
 ```moonbit
-///|
-test "read file" {
-  let content = @fs.read_file("README.md")
-  let text = content.text()
-  let _ = text
-}
+let content = @fs.read_file("README.md")
+let text = content.text()
+let _ = text
 ```
 
 ### Writing Files
 
 ```moonbit
-///|
-test "write file" {
-  @fs.write_to_file("/tmp/test.txt", "Hello, World!")
-}
+@fs.write_to_file("/tmp/test.txt", "Hello, World!")
 ```
 
 ### Listing Directories
 
 ```moonbit
-///|
-test "list directory" {
-  let entries = @fs.list_directory(".")
-  // Returns array of file/directory names
-  let _ = entries
-}
+let entries = @fs.list_directory(".")
+// Returns array of file/directory names
+let _ = entries
 ```
 
 ### Creating Directories
 
 ```moonbit
-///|
-test "make directory" {
-  @fs.mkdir("/tmp/mydir", permission=0o755)
-  
-  // Recursive creation
-  @fs.make_directory("/tmp/a/b/c", recursive=true)
-}
+@fs.mkdir("/tmp/mydir", permission=0o755)
+
+// Recursive creation
+@fs.make_directory("/tmp/a/b/c", recursive=true)
 ```
 
 ### Checking Existence
 
 ```moonbit
-///|
-test "file exists" {
-  let exists = @fs.exists("README.md")
-  let _ = exists
-}
+let exists = @fs.exists("README.md")
+let _ = exists
 ```
 
 ### File Stats
 
 ```moonbit
-///|
-test "file stats" {
-  let stat = @fs.stat("README.md")
-  let mtime = stat.mtime()  // Modification time
-  let atime = stat.atime()  // Access time
-  let _ = (mtime, atime)
-}
+let stat = @fs.stat("README.md")
+let mtime = stat.mtime()  // Modification time
+let atime = stat.atime()  // Access time
+let _ = (mtime, atime)
 ```
 
 ### Removing Files/Directories
 
 ```moonbit
-///|
-test "remove" {
-  @fs.remove("/tmp/test.txt")
-  
-  // Remove directory recursively
-  @fs.rmdir("/tmp/mydir", recursive=true)
-}
+@fs.remove("/tmp/test.txt")
+
+// Remove directory recursively
+@fs.rmdir("/tmp/mydir", recursive=true)
 ```
 
 ### Temporary Directories
 
 ```moonbit
-///|
-test "temp directory" {
-  @fs.with_temporary_directory("test-XXXXXX", fn(tmpdir) {
-    // Use tmpdir
-    // Automatically cleaned up after function returns
-  })
-}
+@fs.with_temporary_directory("test-XXXXXX", fn(tmpdir) {
+  // Use tmpdir
+  // Automatically cleaned up after function returns
+})
 ```
 
 ## API Reference

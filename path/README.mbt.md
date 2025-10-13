@@ -11,67 +11,52 @@ This package provides functions for working with Unix-style file paths, includin
 ### Path Components
 
 ```moonbit
-///|
-test "path components" {
-  let path = "/home/user/file.txt"
-  
-  // Get directory name
-  @json.inspect(@path.dirname(path), content="/home/user")
-  
-  // Get base name
-  @json.inspect(@path.basename(path), content="file.txt")
-  
-  // Get extension
-  @json.inspect(@path.ext(path), content=".txt")
-  
-  // Get stem (filename without extension)
-  @json.inspect(@path.stem(path), content="file")
-}
+let path = "/home/user/file.txt"
+
+// Get directory name
+@path.dirname(path) // "/home/user"
+
+// Get base name
+@path.basename(path) // "file.txt"
+
+// Get extension
+@path.ext(path) // ".txt"
+
+// Get stem (filename without extension)
+@path.stem(path) // "file"
 ```
 
 ### Joining Paths
 
 ```moonbit
-///|
-test "join paths" {
-  let joined = @path.join("/home/user", "documents/file.txt")
-  @json.inspect(joined, content="/home/user/documents/file.txt")
-  
-  // Handles normalization
-  let normalized = @path.join("/home", "../tmp/./file.txt")
-  @json.inspect(normalized, content="/tmp/file.txt")
-}
+let joined = @path.join("/home/user", "documents/file.txt")
+joined // "/home/user/documents/file.txt"
+
+// Handles normalization
+let normalized = @path.join("/home", "../tmp/./file.txt")
+normalized // "/tmp/file.txt"
 ```
 
 ### Path Normalization
 
 ```moonbit
-///|
-test "normalize path" {
-  @json.inspect(@path.normalize("/home/./user/../tmp"), content="/home/tmp")
-  @json.inspect(@path.normalize("../../file.txt"), content="../../file.txt")
-}
+@path.normalize("/home/./user/../tmp") // "/home/tmp"
+@path.normalize("../../file.txt") // "../../file.txt"
 ```
 
 ### Absolute vs Relative Paths
 
 ```moonbit
-///|
-test "absolute paths" {
-  @json.inspect(@path.is_absolute("/home/user"), content=true)
-  @json.inspect(@path.is_absolute("./file.txt"), content=false)
-  @json.inspect(@path.is_relative("docs/file.txt"), content=true)
-}
+@path.is_absolute("/home/user") // true
+@path.is_absolute("./file.txt") // false
+@path.is_relative("docs/file.txt") // true
 ```
 
 ### Computing Relative Paths
 
 ```moonbit
-///|
-test "relative path" {
-  let rel = @path.relative("/home/user/docs", "/home/user/images/pic.jpg")
-  @json.inspect(rel, content="../images/pic.jpg")
-}
+let rel = @path.relative("/home/user/docs", "/home/user/images/pic.jpg")
+rel // "../images/pic.jpg"
 ```
 
 ## API Reference
