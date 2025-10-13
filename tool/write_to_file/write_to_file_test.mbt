@@ -68,7 +68,9 @@ async test "write_to_file/fail-to-match" {
     let result = @write_to_file.write_to_file.call(args, manager)
     @json.inspect(result, content={
       "output": "Search content not found in file (tried all matching strategies): Non-matching content",
-      "error": "moonbitlang/maria/tool.Failure.Failure",
+      "error": [
+        "Failure", "Search content not found in file (tried all matching strategies): Non-matching content",
+      ],
     })
   })
 }

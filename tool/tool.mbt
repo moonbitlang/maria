@@ -27,7 +27,7 @@ pub fn ok(output : Json) -> Result {
 }
 
 ///|
-priv suberror Failure Json
+priv suberror Failure Json derive(ToJson)
 
 ///|
 pub fn error(output : Json, error? : Error = Failure(output)) -> Result {
