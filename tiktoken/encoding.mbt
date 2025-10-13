@@ -96,7 +96,7 @@ fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
 ///|
 pub fn Encoding::encode(
   self : Encoding,
-  piece : @string.View,
+  piece : StringView,
 ) -> Array[Int] raise {
   let tokens = []
   let matches = self.regex.matches(piece)
