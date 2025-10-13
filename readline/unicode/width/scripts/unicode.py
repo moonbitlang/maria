@@ -1553,7 +1553,7 @@ def lookup_fns(
     }}
 }}
 
-{cfg}fn str_width{cjk_lo}_impl(s : @string.View) -> Int {{
+{cfg}fn str_width{cjk_lo}_impl(s : StringView) -> Int {{
     s.rev_iter().fold(
         init=(0, default_width_info),
         fn(acc, c) {{

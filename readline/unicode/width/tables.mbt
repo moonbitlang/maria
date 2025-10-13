@@ -693,7 +693,7 @@ fn width_in_str(c : Char, next_info : WidthInfo) -> (Int, WidthInfo) {
 }
 
 ///|
-fn str_width_impl(s : @string.View) -> Int {
+fn str_width_impl(s : StringView) -> Int {
   s
   .rev_iter()
   .fold(init=(0, default_width_info), fn(acc, c) {
@@ -1096,7 +1096,7 @@ fn width_in_str_cjk(c : Char, next_info : WidthInfo) -> (Int, WidthInfo) {
 // CJK variant
 
 ///|
-fn str_width_cjk_impl(s : @string.View) -> Int {
+fn str_width_cjk_impl(s : StringView) -> Int {
   s
   .rev_iter()
   .fold(init=(0, default_width_info), fn(acc, c) {

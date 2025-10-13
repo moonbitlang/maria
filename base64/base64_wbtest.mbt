@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///|
-struct CustomBytes(@bytes.View)
+struct CustomBytes(BytesView)
 
 ///|
 impl Show for CustomBytes with output(self, logger) {

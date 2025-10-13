@@ -58,7 +58,7 @@ pub fn Encoder::new() -> Encoder {
 #locals(cb)
 pub fn Encoder::encode_to(
   self : Encoder,
-  bytes : @bytes.View,
+  bytes : BytesView,
   cb : (Char) -> Unit,
   url_safe? : Bool = false,
   padding? : Bool = false,
@@ -105,7 +105,7 @@ pub fn Encoder::encode_to(
 
 ///|
 /// Encode binary to ascii text following  defined in RFC 4648
-pub fn encode(bytes : @bytes.View, url_safe? : Bool = false) -> String {
+pub fn encode(bytes : BytesView, url_safe? : Bool = false) -> String {
   let builder = StringBuilder::new()
   let encoder = Encoder::new()
   encoder.encode_to(
@@ -132,7 +132,7 @@ pub fn Decoder::new() -> Decoder {
 #locals(cb)
 pub fn Decoder::decode_to(
   self : Decoder,
-  input : @string.View,
+  input : StringView,
   cb : (Byte) -> Unit,
   url_safe? : Bool = false,
 ) -> Unit raise DecodeError {
@@ -167,7 +167,7 @@ pub fn Decoder::decode_to(
 
 ///|
 pub fn decode(
-  input : @string.View,
+  input : StringView,
   url_safe? : Bool = false,
 ) -> Bytes raise DecodeError {
   let decoder = Decoder::new()
