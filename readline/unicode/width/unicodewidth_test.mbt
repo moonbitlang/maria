@@ -498,7 +498,7 @@ test "test_kirat_rai_vowel_signs" {
 async test "emoji_test_file" {
   let file = @fs.read_file("readline/unicode/width/emoji-test.txt")
   for line in file.split("\n") {
-    let cps = lexmatch line using longest {
+    let cps = lexmatch line with longest {
         "" => continue
         ("#", _) => continue
         ((".*" as cps) ";[ \t\n]*" "(fully-qualified|component).*" "[ \t\n]*") =>

@@ -12,6 +12,7 @@ fn[K : Eq + Hash, V] Cache::get(Self[K, V], K) -> V?
 fn[K : Eq + Hash, V] Cache::op_get(Self[K, V], K) -> V
 #alias(op_set)
 fn[K : Eq + Hash, V] Cache::set(Self[K, V], K, V) -> Unit
+fn[K : Show, V : ToJson] Cache::to_json(Self[K, V]) -> Json // from trait `ToJson`
 impl[K : Show, V : ToJson] ToJson for Cache[K, V]
 
 // Type aliases

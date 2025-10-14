@@ -18,6 +18,8 @@ pub(all) struct ReadDirectoryResult {
   entries : Array[String]
   display : String
 }
+fn ReadDirectoryResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ReadDirectoryResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ReadDirectoryResult
 impl @json.FromJson for ReadDirectoryResult
 
@@ -27,6 +29,8 @@ pub(all) struct ReadFileResult {
   start_line : Int
   end_line : Int
 }
+fn ReadFileResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ReadFileResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ReadFileResult
 impl @json.FromJson for ReadFileResult
 

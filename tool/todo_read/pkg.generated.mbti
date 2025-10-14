@@ -18,6 +18,8 @@ let todo_read : @tool.Tool[@todo.List]
 pub(all) struct TodoReadResult {
   todos : Array[@todo.Item]
 }
+fn TodoReadResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn TodoReadResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for TodoReadResult
 impl @json.FromJson for TodoReadResult
 

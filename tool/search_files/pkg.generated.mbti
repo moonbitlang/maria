@@ -20,6 +20,8 @@ pub(all) struct SearchResult {
   match_line : String
   path : String
 }
+fn SearchResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn SearchResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for SearchResult
 impl @json.FromJson for SearchResult
 

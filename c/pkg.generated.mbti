@@ -23,6 +23,7 @@ pub type Null
 #external
 pub type Pointer[_]
 fn[T, U] Pointer::cast(Self[T]) -> Self[U]
+fn[T] Pointer::equal(Self[T], Self[T]) -> Bool // from trait `Eq`
 fn[T] Pointer::is_null(Self[T]) -> Bool
 fn[T : Load] Pointer::load(Self[T], offset? : Int) -> T
 fn[T] Pointer::null() -> Self[T]

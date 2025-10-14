@@ -521,7 +521,7 @@ fn word_size_left(string : BytesView, index : Int) -> Int {
     .to_fixedarray()
     .rev()
     .unsafe_reinterpret_as_bytes()
-  lexmatch reversed using longest {
+  lexmatch reversed with longest {
     ("\s*([^\w\s]+|\w+)", rest) => rest.length()
     _ => 1
   }
@@ -536,7 +536,7 @@ fn word_right_left(string : BytesView, index : Int) -> Int {
     .to_bytes()
     .to_fixedarray()
     .unsafe_reinterpret_as_bytes()
-  lexmatch forward using longest {
+  lexmatch forward with longest {
     ("([^\w\s]+|\w+)\s*", rest) => rest.length()
     _ => 1
   }
@@ -553,7 +553,7 @@ async fn Interface::delete_word_left(self : Interface) -> Unit {
       .rev()
       .unsafe_reinterpret_as_bytes()
     let buffer = @buffer.new()
-    lexmatch reversed using longest {
+    lexmatch reversed with longest {
       ("\s*([^\w\s]+|\w+)", rest) =>
         buffer.write_bytesview(leading[:rest.length()])
       _ => buffer.write_bytesview(leading[:leading.length() - 1])
@@ -572,7 +572,7 @@ async fn Interface::delete_word_right(self : Interface) -> Unit {
     let trailing = self.line[self.cursor:]
     let buffer = @buffer.new()
     buffer.write_bytesview(self.line[:self.cursor])
-    lexmatch trailing using longest{
+    lexmatch trailing with longest {
       ("([^\w\s]+|\w+)\s*", rest) =>
         buffer.write_bytesview(trailing[rest.length():])
       _ => buffer.write_bytesview(trailing[1:])

@@ -6,6 +6,8 @@ fn cl100k_base() -> Encoding raise
 
 // Errors
 type DecodingError
+fn DecodingError::output(Self, &Logger) -> Unit // from trait `Show`
+fn DecodingError::to_string(Self) -> String // from trait `Show`
 impl Show for DecodingError
 
 // Types and methods
