@@ -139,9 +139,11 @@ pub struct ChatCompletionMessage {
   function_call : ChatCompletionMessageFunctionCall?
 }
 fn ChatCompletionMessage::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessage::to_json(Self) -> Json // from trait `ToJson`
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 fn ChatCompletionMessage::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessage
+impl ToJson for ChatCompletionMessage
 
 pub struct ChatCompletionMessageFunctionCall {
   arguments : String
@@ -166,16 +168,20 @@ pub enum ChatCompletionMessageRole {
   Assistant
 }
 fn ChatCompletionMessageRole::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessageRole::to_json(Self) -> Json // from trait `ToJson`
 fn ChatCompletionMessageRole::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageRole
+impl ToJson for ChatCompletionMessageRole
 
 pub struct ChatCompletionMessageToolCall {
   id : String
   function : Function
 }
 fn ChatCompletionMessageToolCall::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessageToolCall::to_json(Self) -> Json // from trait `ToJson`
 fn ChatCompletionMessageToolCall::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageToolCall
+impl ToJson for ChatCompletionMessageToolCall
 
 pub struct ChatCompletionParam {
   model : String

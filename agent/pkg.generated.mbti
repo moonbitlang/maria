@@ -52,6 +52,8 @@ pub struct EventContext {
   tool_call_result : @tool.Result?
   tool_call_result_text : String?
 }
+fn EventContext::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for EventContext
 
 // Type aliases
 

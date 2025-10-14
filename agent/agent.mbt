@@ -18,7 +18,7 @@ pub struct EventContext {
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.Result?
   tool_call_result_text : String?
-}
+} derive(ToJson)
 
 ///|
 fn EventContext::new(

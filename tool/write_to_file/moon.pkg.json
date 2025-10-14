@@ -8,6 +8,11 @@
   "test-import": [
     "moonbitlang/async",
     "moonbitlang/maria/tool/read_file",
-    "moonbitlang/maria/taco"
+    "moonbitlang/maria/taco",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/os",
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/pino"
   ]
 }

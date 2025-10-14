@@ -11,7 +11,9 @@ import(
 
 // Values
 #callsite(autofill(loc))
-async fn[T] run(@test.T, loc~ : SourceLoc, async (Context) -> T) -> T
+async fn run(@test.T, loc~ : SourceLoc, timeout? : Int, async (Context) -> Unit) -> Unit
+
+fn[X] skip(String) -> X raise
 
 async fn[T] with_home(Directory, async () -> T) -> T
 

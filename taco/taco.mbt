@@ -208,11 +208,12 @@ extern "c" fn fs_mkdtemp(template : Bytes) -> Int = "moonbit_maria_fs_mkdtemp"
 
 ///|
 #callsite(autofill(loc))
-pub async fn[T] run(
+pub async fn run(
   t : @test.T,
   loc~ : SourceLoc,
-  f : async (Context) -> T,
-) -> T {
+  timeout? : Int = 10_000,
+  f : async (Context) -> Unit,
+) -> Unit {
   let os_cwd = @os.cwd()
   let os_tmpdir = @os.tmpdir()
   let exec = os_args[0]
@@ -229,9 +230,15 @@ pub async fn[T] run(
   }
   let template = @encoding/utf8.decode(template)
   let tmp_pkg_path = @path.join(template, pkg_path)
-  @async.with_timeout(10_000, () => @async.with_task_group(group => {
+  @async.with_timeout(timeout, () => @async.with_task_group(group => {
     let cwd = directory(@path.join(tmp_pkg_path, t.name()))
-    let logger = @pino.logger(t.name(), @pino.Transport::sink())
+    let log_dir = os_cwd |> @path.join("__trajectories__")
+    @fs.mkdir(log_dir, permission=0o755) catch {
+      _ => ()
+    }
+    let logged = log_dir |> @path.join(t.name())
+    let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
+    group.spawn_bg(() => logger.start(), no_wait=true)
     let clock = Clock::{ timestamp: 0 }
     let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
     let uuid = @uuid.generator(rand)
@@ -239,5 +246,16 @@ pub async fn[T] run(
     let ctx = Context::{ file, cwd, logger, clock, rand, uuid }
     group.add_defer(() => ctx.close())
     f(ctx)
-  }))
+  })) catch {
+    Skip(_) => ()
+    error => raise error
+  }
+}
+
+///|
+priv suberror Skip String
+
+///|
+pub fn[X] skip(message : String) -> X raise {
+  raise Skip(message)
 }

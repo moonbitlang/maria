@@ -183,7 +183,7 @@ pub struct ChatCompletionMessageToolCall {
 } derive(Show)
 
 ///|
-impl ToJson for ChatCompletionMessageToolCall with to_json(
+pub impl ToJson for ChatCompletionMessageToolCall with to_json(
   self : ChatCompletionMessageToolCall,
 ) -> Json {
   { "id": self.id, "function": self.function, "type": "function" }
@@ -216,13 +216,22 @@ pub enum ChatCompletionMessageRole {
 } derive(Show)
 
 ///|
+pub impl ToJson for ChatCompletionMessageRole with to_json(
+  self : ChatCompletionMessageRole,
+) -> Json {
+  match self {
+    Assistant => "assistant"
+  }
+}
+
+///|
 pub struct ChatCompletionMessage {
   content : String?
   refusal : String?
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
-} derive(Show)
+} derive(Show, ToJson)
 
 ///|
 #deprecated("Use ChatCompletionMessageToolCall instead")
