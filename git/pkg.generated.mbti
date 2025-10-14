@@ -10,7 +10,7 @@ async fn create_branch(branch_name~ : String, cwd? : String) -> String
 
 async fn generate_git_diff(original~ : String, modified~ : String) -> String
 
-async fn init_(String, output? : &Logger) -> Unit
+async fn init_(String) -> Unit
 
 // Errors
 

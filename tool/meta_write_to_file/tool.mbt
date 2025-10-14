@@ -99,7 +99,13 @@ fn is_moonbit_file(file_path : String) -> Bool {
 async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
   try {
     let output = StringBuilder::new()
-    let _ = @spawn.spawn("moon", ["fmt", file_path], output~, cwd~)
+    let _ = @spawn.spawn(
+      "moon",
+      ["fmt", file_path],
+      stdout=output,
+      stderr=output,
+      cwd~,
+    )
     // Ignore formatting errors for now
   } catch {
     _ => () // Silently ignore formatting errors

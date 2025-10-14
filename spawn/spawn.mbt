@@ -2,22 +2,44 @@
 pub async fn spawn(
   command : StringView,
   arguments : Array[StringView],
-  output? : &Logger,
+  stderr? : &Logger,
+  stdout? : &Logger,
   cwd? : StringView,
 ) -> Int {
   let command = command.to_string()
   let arguments = arguments.map(arg => arg.to_string())
   let cwd = cwd.map(_.to_string())
-  if output is Some(output) {
-    let (status, data) = @process.collect_output_merged(
-      command,
-      arguments,
-      cwd?,
-    )
-    output.write_string(data.text())
-    status
-  } else {
-    @process.run(command, arguments, cwd?)
+  match (stdout, stderr) {
+    (Some(stdout), Some(stderr)) if physical_equal(stdout, stderr) => {
+      let (status, data) = @process.collect_output_merged(
+        command,
+        arguments,
+        cwd?,
+      )
+      stdout.write_string(data.text())
+      status
+    }
+    (Some(stdout), Some(stderr)) => {
+      let (status, out_data, err_data) = @process.collect_output(
+        command,
+        arguments,
+        cwd?,
+      )
+      stdout.write_string(out_data.text())
+      stderr.write_string(err_data.text())
+      status
+    }
+    (Some(stdout), None) => {
+      let (status, out_data) = @process.collect_stdout(command, arguments, cwd?)
+      stdout.write_string(out_data.text())
+      status
+    }
+    (None, Some(stderr)) => {
+      let (status, err_data) = @process.collect_stderr(command, arguments, cwd?)
+      stderr.write_string(err_data.text())
+      status
+    }
+    (None, None) => @process.run(command, arguments, cwd?)
   }
 }
 

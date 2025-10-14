@@ -131,7 +131,7 @@ async fn check(
   arguments.push("--directory")
   arguments.push(cwd)
   let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, output~)
+  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd~)
   let output = output.to_string()
   let diagnostics = []
   for line in output.split("\n") {

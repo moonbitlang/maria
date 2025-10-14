@@ -8,8 +8,8 @@ pub async fn clone(url : String, to~ : StringView, cwd? : StringView) -> Unit {
 }
 
 ///|
-pub async fn init_(path : String, output? : &Logger) -> Unit {
-  let status = @spawn.spawn("git", ["init", path], output?)
+pub async fn init_(path : String) -> Unit {
+  let status = @spawn.spawn("git", ["init", path])
   if status != 0 {
     fail("git init failed with status code \{status}")
   }
@@ -23,14 +23,21 @@ pub async fn commit(
   cwd? : StringView,
 ) -> Unit {
   let buffer = StringBuilder::new()
-  let status = @spawn.spawn("git", ["add", ..files], output=buffer, cwd?)
+  let status = @spawn.spawn(
+    "git",
+    ["add", ..files],
+    stdout=buffer,
+    stderr=buffer,
+    cwd?,
+  )
   guard status is 0 else {
     fail("git add failed with \{status}: \{buffer.to_string()}")
   }
   let status = @spawn.spawn(
     "git",
     ["commit", "-m", message],
-    output=buffer,
+    stdout=buffer,
+    stderr=buffer,
     cwd?,
   )
   guard status is 0 else {
@@ -67,7 +74,8 @@ pub async fn generate_git_diff(
         "diff", "--no-index", "--no-index", "--no-prefix", "--unified=3", original_path,
         modified_path,
       ],
-      output~,
+      stdout=output,
+      stderr=output,
     )
     |> ignore()
     output.to_string()
