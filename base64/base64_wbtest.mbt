@@ -44,7 +44,7 @@ test "base64 decode" {
   inspect(
     decode("bGlnaHQgd28="),
     content=(
-      #|b"\x6c\x69\x67\x68\x74\x20\x77\x6f"
+      #|b"light wo"
     ),
   )
   inspect(decode("bGlnaHQgd29y") |> CustomBytes(_), content="light wor")
