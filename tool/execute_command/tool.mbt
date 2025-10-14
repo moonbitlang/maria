@@ -81,7 +81,8 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         let status = @spawn.spawn(
           "sh",
           ["-c", command],
-          output~,
+          stdout=output,
+          stderr=output,
           cwd=working_directory,
         )
         let output_text = output.to_string()

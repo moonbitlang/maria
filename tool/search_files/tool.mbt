@@ -130,7 +130,8 @@ async fn goto_definition(
   let status = @spawn.spawn(
     "moon",
     ["ide", "goto-definition", query],
-    output~,
+    stdout=output,
+    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
@@ -160,7 +161,8 @@ async fn find_references(
   let status = @spawn.spawn(
     "moon",
     ["ide", "find-references", query],
-    output~,
+    stdout=output,
+    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
