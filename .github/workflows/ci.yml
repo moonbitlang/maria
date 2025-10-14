@@ -33,7 +33,7 @@ jobs:
       - name: Install MoonBit
         uses: ./.github/actions/install-moonbit
         with:
-          channel: latest
+          channel: nightly
 
       - name: Inspect MoonBit version
         run: |
@@ -58,7 +58,7 @@ jobs:
       - name: Install MoonBit
         uses: ./.github/actions/install-moonbit
         with:
-          channel: latest
+          channel: nightly
 
       - name: Inspect MoonBit version
         run: |
@@ -80,7 +80,7 @@ jobs:
       - name: Install MoonBit
         uses: ./.github/actions/install-moonbit
         with:
-          channel: latest
+          channel: nightly
 
       - name: Inspect MoonBit version
         run: |
