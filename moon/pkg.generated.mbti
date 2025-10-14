@@ -94,7 +94,7 @@ async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[Diagnos
 async fn Module::diagnostics(Self) -> Iter[Diagnostic]
 fn Module::files(Self) -> Iter[File]
 async fn Module::load(String) -> Self
-fn Module::locate_package(Self, String) -> Package raise
+async fn Module::locate_package(Self, String) -> Package
 fn Module::name(Self) -> String
 fn Module::package_(Self, String) -> PackageView?
 fn Module::source(Self) -> String

@@ -5,6 +5,9 @@
     "moonbitlang/maria/path",
     "moonbitlang/maria/os"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/mock"],
-  "wbtest-import": ["moonbitlang/maria/mock", "moonbitlang/async"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/taco"
+  ],
+  "wbtest-import": ["moonbitlang/maria/taco", "moonbitlang/async"]
 }

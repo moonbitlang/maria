@@ -1,15 +1,16 @@
 ///|
-async test "check_patch" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-check-patch")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "check_patch" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("example.mbt", "///|\nlet x : Int = \"string\"")
-    let moon = Module::load(cwd.path())
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
+      "example.mbt",
+      content="///|\nlet x : Int = \"string\"",
+    )
+    let moon = Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
@@ -21,7 +22,7 @@ async test "check_patch" {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(cwd.strip_cwd(files), content=[
+    @json.inspect(taco.json(files), content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
         "header": { "start": 0, "end": 0, "diagnostics": [] },
@@ -79,7 +80,7 @@ async test "check_patch" {
     ])
     let file = files[0]
     let segments = file.segments()
-    @json.inspect(cwd.strip_cwd(segments), content=[
+    @json.inspect(taco.json(segments), content=[
       {
         "file": "./example.mbt",
         "index": 1,
@@ -88,9 +89,7 @@ async test "check_patch" {
     ])
     let segment = segments[0]
     @json.inspect(
-      cwd.strip_cwd(
-        moon.check_patch_replace(segment, "///|\nlet x : String = 100"),
-      ),
+      taco.json(moon.check_patch_replace(segment, "///|\nlet x : String = 100")),
       content=[
         {
           "error_code": 4014,

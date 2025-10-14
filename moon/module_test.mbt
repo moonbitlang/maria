@@ -1,15 +1,13 @@
 ///|
-async test "files" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-module")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "files" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("example.mbt", "///|\nlet x : Int = 42")
-    let moon = Module::load(cwd.path())
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file("example.mbt", content="///|\nlet x : Int = 42")
+    let moon = Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
@@ -21,7 +19,7 @@ async test "files" {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(cwd.strip_cwd(files), content=[
+    @json.inspect(taco.json(files), content=[
       {
         "content": "///|\nlet x : Int = 42",
         "header": { "start": 0, "end": 0, "diagnostics": [] },
@@ -61,7 +59,7 @@ async test "files" {
     for file in files {
       segments.push(file.segments())
     }
-    @json.inspect(cwd.strip_cwd(segments), content=[
+    @json.inspect(taco.json(segments), content=[
       [
         {
           "file": "./example.mbt",
@@ -74,19 +72,17 @@ async test "files" {
 }
 
 ///|
-async test "interface" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-module-interface")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "interface" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file("example.mbt", "let x : Int = 42")
-    let moon = Module::load(cwd.path())
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file("example.mbt", content="let x : Int = 42")
+    let moon = Module::load(taco.cwd.path())
     let pkg = moon.package_("example")
-    @json.inspect(cwd.strip_cwd(pkg), content=[
+    @json.inspect(taco.json(pkg), content=[
       {
         "name": "example",
         "path": ".",
@@ -102,9 +98,24 @@ async test "interface" {
     ])
     guard pkg is Some(pkg)
     let interface = pkg.interface()
-    @json.inspect(
+    inspect(
       interface,
-      content="// Generated using `moon info`, DON'T EDIT IT\npackage \"example\"\n\n// Values\n\n// Errors\n\n// Types and methods\n\n// Type aliases\n\n// Traits\n\n",
+      content=(
+        #|// Generated using `moon info`, DON'T EDIT IT
+        #|package "example"
+        #|
+        #|// Values
+        #|
+        #|// Errors
+        #|
+        #|// Types and methods
+        #|
+        #|// Type aliases
+        #|
+        #|// Traits
+        #|
+        #|
+      ),
     )
   })
 }

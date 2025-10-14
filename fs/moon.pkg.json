@@ -8,11 +8,11 @@
   ],
   "test-import": [
     "moonbitlang/async",
-    "moonbitlang/maria/mock",
     {
       "path": "moonbitlang/maria/fs",
       "alias": "this"
-    }
+    },
+    "moonbitlang/maria/taco"
   ],
   "native-stub": ["stat.c", "mkdtemp.c"]
 }

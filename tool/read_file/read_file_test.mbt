@@ -1,9 +1,7 @@
 ///|
-async test "read_file/nonexistent" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-read-file-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
+async test "nonexistent" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = @read_file.read_file.call(args, manager)
     @json.inspect(
@@ -17,14 +15,12 @@ async test "read_file/nonexistent" {
 }
 
 ///|
-async test "read_file/content" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-read-file-content-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file(
+async test "content" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file(
       "test.txt",
-      (
+      content=(
         #|line 1
         #|line 2
         #|line 3
@@ -53,14 +49,12 @@ async test "read_file/content" {
 }
 
 ///|
-async test "read_file/line_range" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-read-file-range-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file(
+async test "line_range" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file(
       "lines.txt",
-      (
+      content=(
         #|line 1
         #|line 2
         #|line 3
@@ -89,16 +83,13 @@ async test "read_file/line_range" {
 }
 
 ///|
-async test "read_file/directory" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-read-file-directory-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file("file1.txt", "content1")
-    let _ = cwd.add_file("file2.txt", "content2")
-    let subdir = cwd.add_subdirectory("subdir")
-    g.add_defer(() => subdir.close())
-    let _ = subdir.add_file("file3.txt", "content3")
+async test "directory" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file("file1.txt", content="content1")
+    let _ = taco.add_file("file2.txt", content="content2")
+    let subdir = taco.add_directory("subdir")
+    let _ = subdir.add_file("file3.txt", content="content3")
     let args : Json = { "path": "." }
     let result = @read_file.read_file.call(args, manager)
     @json.inspect(result.output, content={
@@ -120,14 +111,12 @@ async test "read_file/directory" {
 }
 
 ///|
-async test "read_file/invalid-range" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-read-file-invalid-range-test")
-    g.add_defer(() => cwd.close())
-    let manager = @file.manager(cwd=cwd.path())
-    let _ = cwd.add_file(
+async test "invalid-range" (t : @test.T) {
+  @taco.run(t, taco => {
+    let manager = @file.manager(cwd=taco.cwd.path())
+    let _ = taco.add_file(
       "test.txt",
-      (
+      content=(
         #|line 1
         #|line 2
         #|line 3

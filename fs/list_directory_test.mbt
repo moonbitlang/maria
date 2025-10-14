@@ -1,15 +1,11 @@
 ///|
-async test "list_directory" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("fs-list_directory")
-    g.add_defer(() => dir.close())
-    let _ = dir.add_file("file1.txt", "content1")
-    let _ = dir.add_file("file2.txt", "content2")
-    let _ = dir.with_subdirectory("subdir", subdir => subdir.add_file(
-        "file3.txt", "content3",
-      )
-      |> ignore())
-    @json.inspect(dir.strip_cwd(@this.list_directory(dir.path())), content=[
+async test "list_directory" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file("file1.txt", content="content1")
+    let _ = taco.add_file("file2.txt", content="content2")
+    let subdir = taco.add_directory("subdir")
+    let _ = subdir.add_file("file3.txt", content="content3")
+    @json.inspect(taco.json(@this.list_directory(taco.cwd.path())), content=[
       { "path": "./subdir", "name": "subdir", "kind": "Directory" },
       { "path": "./file1.txt", "name": "file1.txt", "kind": "Regular" },
       { "path": "./file2.txt", "name": "file2.txt", "kind": "Regular" },

@@ -1,14 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/uuid"
 
+import(
+  "moonbitlang/core/random"
+)
+
 // Values
+fn[Source : Source] generator(Source) -> Generator
+
 let max : Uuid
 
 let nil : Uuid
 
 fn parse(StringView) -> Uuid raise ParseError
-
-fn v4() -> Uuid raise
 
 // Errors
 type ParseError
@@ -19,11 +23,16 @@ impl Show for ParseError
 impl ToJson for ParseError
 
 // Types and methods
+type Generator
+fn Generator::v4(Self) -> Uuid raise
+
 type Uuid
 fn Uuid::compare(Self, Self) -> Int // from trait `Compare`
 fn Uuid::equal(Self, Self) -> Bool // from trait `Eq`
 fn Uuid::hash(Self) -> Int // from trait `Hash`
 fn Uuid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#as_free_fn
+fn Uuid::of_bytes(Bytes) -> Self
 fn Uuid::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Uuid::output(Self, &Logger) -> Unit // from trait `Show`
 fn Uuid::to_bytes(Self) -> Bytes
@@ -76,4 +85,8 @@ impl ToJson for Version
 // Type aliases
 
 // Traits
+pub(open) trait Source {
+  uint64(Self) -> UInt64 raise
+}
+impl Source for @random.Rand
 

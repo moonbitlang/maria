@@ -3,7 +3,9 @@ package "moonbitlang/maria/conversation"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/clock"
   "moonbitlang/maria/openai"
+  "moonbitlang/maria/uuid"
 )
 
 // Values
@@ -12,33 +14,21 @@ import(
 
 // Types and methods
 type Conversation
-fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
+fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage) -> Unit
 fn Conversation::display(Self, show_messages? : Bool) -> Array[String] raise
 fn Conversation::export_to_markdown(Self) -> String
 fn Conversation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Conversation::id(Self) -> Id
-fn Conversation::new(name~ : String, description? : String, id~ : Id) -> Self
+fn Conversation::id(Self) -> String
 fn Conversation::to_json(Self) -> Json // from trait `ToJson`
 fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
 impl ToJson for Conversation
 impl @json.FromJson for Conversation
 
-pub(all) struct Id(String)
-fn Id::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-#deprecated
-fn Id::inner(Self) -> String
-fn Id::new() -> Self raise
-fn Id::output(Self, &Logger) -> Unit // from trait `Show`
-fn Id::to_json(Self) -> Json // from trait `ToJson`
-fn Id::to_string(Self) -> String // from trait `Show`
-impl Show for Id
-impl ToJson for Id
-impl @json.FromJson for Id
-
 type Manager
-async fn Manager::list(Self) -> Array[Id]
-async fn Manager::load(Self, Id) -> Conversation?
-async fn Manager::new(path~ : String) -> Self
+async fn Manager::list(Self) -> Array[String]
+async fn Manager::load(Self, String) -> Conversation?
+async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : String) -> Self
+fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation raise
 async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases

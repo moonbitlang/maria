@@ -1,11 +1,11 @@
 ///|
-async test "get_moonbit_mbti" {
-  @mock.with_temporary_directory(name="maria-test-get-moonbit-mbti", dir => {
-    @moon.new(dir.path(), name="test_get_moonbit_mbti")
+async test "get_moonbit_mbti" (t : @test.T) {
+  @taco.run(t, taco => {
+    @moon.new(taco.cwd.path(), name="test_get_moonbit_mbti")
     let get_moonbit_mbti = @get_moonbit_mbti.get_moonbit_mbti
     let result = get_moonbit_mbti.call(
       { "package": "moonbitlang/core/set" },
-      dir.path(),
+      taco.cwd.path(),
     )
     guard result.output is String(output)
     inspect(

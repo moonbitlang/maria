@@ -194,3 +194,15 @@ pub fn gethostname() -> String raise {
     raise @errno.Errno(result)
   }
 }
+
+///|
+#borrow(path)
+extern "c" fn os_chdir(path : Bytes) -> Int = "moonbit_maria_os_chdir"
+
+///|
+pub fn chdir(path : StringView) -> Unit raise {
+  let result = os_chdir(@encoding/utf8.encode(path))
+  if result != 0 {
+    raise @errno.Errno(result)
+  }
+}

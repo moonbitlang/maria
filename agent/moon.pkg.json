@@ -11,6 +11,7 @@
     "moonbitlang/maria/conversation",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/path",
-    "moonbitlang/maria/rand"
+    "moonbitlang/maria/rand",
+    "moonbitlang/maria/uuid"
   ]
 }

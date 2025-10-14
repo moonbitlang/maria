@@ -18,7 +18,7 @@ pub struct EventContext {
   tool_call : @openai.ChatCompletionMessageToolCall?
   tool_call_result : @tool.Result?
   tool_call_result_text : String?
-}
+} derive(ToJson)
 
 ///|
 fn EventContext::new(
@@ -45,6 +45,7 @@ fn EventContext::new(
 pub struct Agent {
   priv logger : @pino.Logger
   rand : @random.Rand
+  uuid : @uuid.Generator
   cwd : String
   model : @model.Model
   priv tools : Map[String, @tool.Tool[Unit]]
@@ -231,24 +232,27 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 /// no tools, and a fresh event target for handling agent lifecycle events.
 pub async fn new(
   model : @model.Model,
+  rand? : @random.Rand,
+  uuid? : @uuid.Generator,
   cwd~ : StringView,
-  session_manager? : @conversation.Manager,
 ) -> Agent {
-  let rand = @rand.chacha8(seed=@rand.bytes(32))
-  let session_manager = match session_manager {
-    Some(session_manager) => session_manager
-    None => {
-      let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
-      @conversation.Manager::new(path~)
-    }
+  let rand = match rand {
+    Some(rand) => rand
+    None => @rand.chacha8()
+  }
+  let uuid = match uuid {
+    Some(uuid) => uuid
+    None => @uuid.generator(rand)
+  }
+  let session_manager = {
+    let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
+    @conversation.Manager::new(uuid~, cwd=path)
   }
   let agent = Agent::{
     logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     rand,
-    history: @conversation.Conversation::new(
-      id=@conversation.Id::new(),
-      name="",
-    ),
+    uuid,
+    history: session_manager.new_conversation(name="history"),
     cwd: cwd.to_string(),
     model,
     tools: {},

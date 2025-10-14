@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/clock"
+
+// Values
+let epoch : Epoch
+
+// Errors
+
+// Types and methods
+type Epoch
+fn Epoch::now(Self) -> Int64 // from trait `Clock`
+impl Clock for Epoch
+
+// Type aliases
+
+// Traits
+pub(open) trait Clock {
+  now(Self) -> Int64
+}
+

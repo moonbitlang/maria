@@ -10,3 +10,5 @@ compile_flags.txt
 /actions/
 /output.txt
 /.autocoderignore
+
+/__trajectories__

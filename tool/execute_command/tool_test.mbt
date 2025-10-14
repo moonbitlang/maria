@@ -13,14 +13,12 @@ async test "timeout" {
 }
 
 ///|
-async test "cat" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("tool-execute-command-test")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file("file.txt", "hello world")
+async test "cat" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file("file.txt", content="hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },
-      @execute_command.context(cwd=cwd.path()),
+      @execute_command.context(cwd=taco.cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cat file.txt",
@@ -34,18 +32,16 @@ async test "cat" {
 }
 
 ///|
-async test "output-overflow" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-execute-command-output-overflow-test")
-    group.add_defer(() => cwd.close())
+async test "output-overflow" (t : @test.T) {
+  @taco.run(t, taco => {
     let lines = []
     for i = 0; i < 100; i = i + 1 {
       lines.push("hello")
     }
-    let _ = cwd.add_file("file.txt", lines.join("\n"))
+    let _ = taco.add_file("file.txt", content=lines.join("\n"))
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000, "max_output_lines": 5 },
-      @execute_command.context(cwd=cwd.path()),
+      @execute_command.context(cwd=taco.cwd.path()),
     )
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
@@ -71,14 +67,12 @@ async test "output-overflow" {
 }
 
 ///|
-async test "cd" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("tool-execute-command-working-directory-test")
-    group.add_defer(() => cwd.close())
-    let _ = cwd.add_file("file.txt", "hello world")
+async test "cd" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file("file.txt", content="hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },
-      @execute_command.context(cwd=cwd.path()),
+      @execute_command.context(cwd=taco.cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cat file.txt",
@@ -88,10 +82,12 @@ async test "cd" {
       "total_lines": 1,
       "timeout_ms": 5000,
     })
-    let _ = cwd.add_file("subdir/file.txt", "hello from subdir")
+    let _ = taco
+      .add_directory("subdir")
+      .add_file("file.txt", content="hello from subdir")
     let result = @execute_command.execute_command.call(
       { "command": "cd subdir && cat file.txt", "timeout": 5000 },
-      @execute_command.context(cwd=cwd.path()),
+      @execute_command.context(cwd=taco.cwd.path()),
     )
     @json.inspect(result.output, content={
       "command": "cd subdir && cat file.txt",

@@ -1,16 +1,14 @@
 ///|
-async test "Coverage::report" {
-  @async.with_task_group(group => {
-    let cwd = @mock.directory("moon-coverage-report")
-    group.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "Coverage::report" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
       "example.mbt",
-      (
+      content=(
         #|///|
         #|pub fn fib(n : Int) -> Int {
         #|  if n == 0 {
@@ -23,16 +21,16 @@ async test "Coverage::report" {
         #|}
       ),
     )
-    let _ = cwd.add_file(
+    let _ = taco.add_file(
       "example_test.mbt",
-      (
+      content=(
         #|///|
         #|test "fib" {
         #|  @json.inspect(@example.fib(0), content=1)
         #|}
       ),
     )
-    let moon = @moon.Module::load(cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
@@ -47,11 +45,11 @@ async test "Coverage::report" {
     @json.inspect(
       moon.coverage.report(
         format=Coveralls,
-        output_file=@path.join(cwd.path(), "coverage.json"),
+        output_file=@path.join(taco.cwd.path(), "coverage.json"),
       ),
     )
     @json.inspect(
-      @json.parse(@fs.read_file(@path.join(cwd.path(), "coverage.json"))),
+      @json.parse(@fs.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
       content={
         "source_files": [
           {
@@ -66,18 +64,16 @@ async test "Coverage::report" {
 }
 
 ///|
-async test "Coverage::analyze" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-coverage")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "Coverage::analyze" (t : @test.T) {
+  @taco.run(t, timeout=30_000, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
       "example.mbt",
-      (
+      content=(
         #|///|
         #|pub fn fib(n : Int) -> Int {
         #|  if n == 0 {
@@ -90,16 +86,16 @@ async test "Coverage::analyze" {
         #|}
       ),
     )
-    let _ = cwd.add_file(
+    let _ = taco.add_file(
       "example_test.mbt",
-      (
+      content=(
         #|///|
         #|test "fib" {
         #|  @json.inspect(@example.fib(0), content=1)
         #|}
       ),
     )
-    let moon = @moon.Module::load(cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
@@ -131,18 +127,16 @@ async test "Coverage::analyze" {
 }
 
 ///|
-async test "Coverage::clean" {
-  @async.with_task_group(g => {
-    let cwd = @mock.directory("moon-coverage-clean")
-    g.add_defer(() => cwd.close())
-    let _ = cwd.add_file(
+async test "Coverage::clean" (t : @test.T) {
+  @taco.run(t, taco => {
+    let _ = taco.add_file(
       "moon.mod.json",
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = cwd.add_file("moon.pkg.json", Json::object({}).stringify())
-    let _ = cwd.add_file(
+    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = taco.add_file(
       "example.mbt",
-      (
+      content=(
         #|///|
         #|pub fn fib(n : Int) -> Int {
         #|  if n == 0 {
@@ -155,16 +149,16 @@ async test "Coverage::clean" {
         #|}
       ),
     )
-    let _ = cwd.add_file(
+    let _ = taco.add_file(
       "example_test.mbt",
-      (
+      content=(
         #|///|
         #|test "fib" {
         #|  @json.inspect(@example.fib(0), content=1)
         #|}
       ),
     )
-    let moon = @moon.Module::load(cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])
     @json.inspect(moon.test_(enable_coverage=true), content=[])

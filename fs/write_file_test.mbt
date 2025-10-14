@@ -1,9 +1,7 @@
 ///|
-async test "write_to_file" {
-  @async.with_task_group(g => {
-    let dir = @mock.directory("fs-write_file")
-    g.add_defer(() => dir.close())
-    let file = dir.add_file("example.txt", "")
+async test "write_to_file" (t : @test.T) {
+  @taco.run(t, taco => {
+    let file = taco.add_file("example.txt", content="")
     @this.write_to_file(file.path(), "Hello, Moonbit!")
     let content = @this.read_file(file.path())
     @json.inspect(content, content="Hello, Moonbit!")

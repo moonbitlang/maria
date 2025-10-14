@@ -5,7 +5,7 @@
   ],
   "test-import": [
     "moonbitlang/async",
-    "moonbitlang/maria/mock",
+    "moonbitlang/maria/taco",
     "moonbitlang/maria/tool/todo_write"
   ]
 }

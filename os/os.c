@@ -107,3 +107,14 @@ moonbit_maria_os_gethostname(moonbit_bytes_t name) {
   }
   return 0;
 }
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_os_chdir(moonbit_bytes_t path) {
+  int result = chdir((const char *)path);
+  if (result != 0) {
+    return errno;
+  } else {
+    return 0;
+  }
+}

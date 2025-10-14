@@ -3,11 +3,9 @@
     "moonbitlang/maria/tool",
     "moonbitlang/async",
     "moonbitlang/maria/spawn",
-    "moonbitlang/maria/path",
-    "moonbitlang/maria/uuid",
-    "moonbitlang/maria/fs"
+    "moonbitlang/maria/path"
   ],
   "test-import": [
-    "moonbitlang/maria/mock"
+    "moonbitlang/maria/taco"
   ]
 }

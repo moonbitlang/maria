@@ -1,0 +1,14 @@
+{
+  "import": [
+    "moonbitlang/maria/path",
+    "moonbitlang/async/fs",
+    "moonbitlang/async",
+    "moonbitlang/maria/os",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/errno",
+    "moonbitlang/async/semaphore",
+    "moonbitlang/maria/pino",
+    "moonbitlang/maria/clock",
+    "moonbitlang/maria/uuid"
+  ]
+}
