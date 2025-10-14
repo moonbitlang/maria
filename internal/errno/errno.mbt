@@ -23,6 +23,12 @@ pub(all) suberror Errno Int
 extern "c" fn errno_strerror(errnum : Int) -> @c.Pointer[Byte] = "moonbit_maria_errno_strerror"
 
 ///|
+extern "c" fn errno_ENOTDIR() -> Int = "moonbit_maria_errno_ENOTDIR"
+
+///|
+pub let enotdir : Int = errno_ENOTDIR()
+
+///|
 pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
   let Errno(errnum) = self
   let c_str = errno_strerror(errnum)

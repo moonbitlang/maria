@@ -6,9 +6,13 @@ import(
 )
 
 // Values
+pub async fn directory(StringView) -> Directory
+
 pub async fn exists(StringView) -> Bool
 
 pub async fn exists_as_file(StringView) -> Bool
+
+pub async fn file(StringView) -> File
 
 pub fn get_lock_owner(@fs.File) -> Int? raise
 
@@ -41,8 +45,27 @@ pub async fn write_bytes_to_file(StringView, Bytes) -> Unit
 pub async fn write_to_file(StringView, StringView) -> Unit
 
 // Errors
+pub suberror DoesNotExist String
+
+pub suberror Exists String
+
+type IsNotDirectory
+pub impl Show for IsNotDirectory
+pub impl ToJson for IsNotDirectory
+
+pub suberror IsNotFile {
+  IsNotFile(path~ : String, kind~ : @fs.FileKind)
+}
+pub impl Show for IsNotFile
+pub impl ToJson for IsNotFile
 
 // Types and methods
+type Directory
+pub async fn Directory::add_file(Self, StringView, content? : String) -> File
+pub async fn Directory::list(Self) -> Array[Entry]
+pub fn Directory::name(Self) -> StringView
+pub fn Directory::path(Self) -> String
+
 pub struct DirectoryEntry {
   path : String
   name : String
@@ -53,6 +76,16 @@ pub impl Eq for DirectoryEntry
 pub impl Hash for DirectoryEntry
 pub impl Show for DirectoryEntry
 pub impl ToJson for DirectoryEntry
+
+pub enum Entry {
+  Directory(Directory)
+  File(File)
+}
+
+type File
+pub fn File::name(Self) -> StringView
+pub async fn File::read(Self) -> String
+pub async fn File::write(Self, StringView) -> Unit
 
 pub enum FileKind {
   Unknown

@@ -16,6 +16,8 @@ pub let enametoolong : Int
 
 pub let enoent : Int
 
+pub let enotdir : Int
+
 pub let enotty : Int
 
 pub let erange : Int
