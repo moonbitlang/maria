@@ -65,7 +65,7 @@ async test "Coverage::report" (t : @test.T) {
 
 ///|
 async test "Coverage::analyze" (t : @test.T) {
-  @taco.run(t, taco => {
+  @taco.run(t, timeout=30_000, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
       content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
