@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/readline/unicode"
+
+// Values
+fn char_size_left(BytesView, Int) -> Int
+
+fn char_size_right(BytesView, Int) -> Int
+
+fn char_width_left(BytesView, Int) -> Int
+
+fn char_width_right(BytesView, Int) -> Int
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

@@ -1,8 +1,0 @@
-{
-  "import": [
-    {
-      "path": "moonbitlang/maria/readline/unicode/width",
-      "alias": "unicode/width"
-    }
-  ]
-}

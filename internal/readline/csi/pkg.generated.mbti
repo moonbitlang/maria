@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/readline/csi"
+
+// Values
+const ClearLine : Bytes = \x1b[2K
+
+const ClearScreenDown : Bytes = \x1b[0J
+
+const ClearToLineBeginning : Bytes = \x1b[1K
+
+const ClearToLineEnd : Bytes = \x1b[0K
+
+const Escape : Byte = \x1b
+
+fn csi(Bytes) -> Bytes
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

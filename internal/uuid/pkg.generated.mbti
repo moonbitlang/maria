@@ -1,0 +1,92 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/uuid"
+
+import(
+  "moonbitlang/core/random"
+)
+
+// Values
+fn[Source : Source] generator(Source) -> Generator
+
+let max : Uuid
+
+let nil : Uuid
+
+fn parse(StringView) -> Uuid raise ParseError
+
+// Errors
+type ParseError
+fn ParseError::output(Self, &Logger) -> Unit // from trait `Show`
+fn ParseError::to_json(Self) -> Json // from trait `ToJson`
+fn ParseError::to_string(Self) -> String // from trait `Show`
+impl Show for ParseError
+impl ToJson for ParseError
+
+// Types and methods
+type Generator
+fn Generator::v4(Self) -> Uuid raise
+
+type Uuid
+fn Uuid::compare(Self, Self) -> Int // from trait `Compare`
+fn Uuid::equal(Self, Self) -> Bool // from trait `Eq`
+fn Uuid::hash(Self) -> Int // from trait `Hash`
+fn Uuid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#as_free_fn
+fn Uuid::of_bytes(Bytes) -> Self
+fn Uuid::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Uuid::output(Self, &Logger) -> Unit // from trait `Show`
+fn Uuid::to_bytes(Self) -> Bytes
+fn Uuid::to_json(Self) -> Json // from trait `ToJson`
+fn Uuid::to_string(Self) -> String
+fn Uuid::variant(Self) -> Variant
+fn Uuid::version(Self) -> Version?
+impl Compare for Uuid
+impl Eq for Uuid
+impl Hash for Uuid
+impl Show for Uuid
+impl ToJson for Uuid
+
+pub enum Variant {
+  ReservedNCS
+  RFC9562(Version)
+  ReservedMicrosoft
+  ReservedFuture
+}
+fn Variant::output(Self, &Logger) -> Unit // from trait `Show`
+fn Variant::to_json(Self) -> Json // from trait `ToJson`
+fn Variant::to_string(Self) -> String // from trait `Show`
+impl Show for Variant
+impl ToJson for Variant
+
+pub(all) enum Version {
+  V0
+  V1
+  V2
+  V3
+  V4
+  V5
+  V6
+  V7
+  V8
+  V9
+  V10
+  V11
+  V12
+  V13
+  V14
+  V15
+}
+fn Version::output(Self, &Logger) -> Unit // from trait `Show`
+fn Version::to_json(Self) -> Json // from trait `ToJson`
+fn Version::to_string(Self) -> String // from trait `Show`
+impl Show for Version
+impl ToJson for Version
+
+// Type aliases
+
+// Traits
+pub(open) trait Source {
+  uint64(Self) -> UInt64 raise
+}
+impl Source for @random.Rand
+

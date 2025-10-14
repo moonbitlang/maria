@@ -1,0 +1,8 @@
+{
+  "import": [
+    "moonbitlang/x/time",
+    "moonbitlang/maria/internal/errno",
+    "moonbitlang/maria/internal/c"
+  ],
+  "native-stub": ["os.c"]
+}

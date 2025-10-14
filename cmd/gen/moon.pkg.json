@@ -1,22 +1,22 @@
 {
   "import": [
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/tool/get_moonbit_mbti",
-    "moonbitlang/maria/tool/search_files",
-    "moonbitlang/maria/tool/todo_write",
-    "moonbitlang/maria/tool/todo_read",
+    "moonbitlang/maria/tools/get_moonbit_mbti",
+    "moonbitlang/maria/tools/search_files",
+    "moonbitlang/maria/tools/todo_write",
+    "moonbitlang/maria/tools/todo_read",
     "moonbitlang/maria/todo",
-    "moonbitlang/maria/tool/write_to_file",
-    "moonbitlang/maria/tool/list_files",
-    "moonbitlang/maria/tool/execute_command",
+    "moonbitlang/maria/tools/write_to_file",
+    "moonbitlang/maria/tools/list_files",
+    "moonbitlang/maria/tools/execute_command",
     "moonbitlang/maria/file",
-    "moonbitlang/maria/tool/read_file",
+    "moonbitlang/maria/tools/read_file",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/os",
-    "moonbitlang/maria/pino",
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/prompt",
-    "moonbitlang/maria/backtrace"
+    "moonbitlang/maria/internal/backtrace"
   ]
 }

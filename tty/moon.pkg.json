@@ -1,6 +1,0 @@
-{
-  "import": [
-    "moonbitlang/maria/errno"
-  ],
-  "native-stub": ["tty.c"]
-}

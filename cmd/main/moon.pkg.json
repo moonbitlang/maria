@@ -1,0 +1,32 @@
+{
+  "is-main": true,
+  "import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/tools/execute_command",
+    "moonbitlang/maria/internal/readline",
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/fs",
+    "moonbitlang/maria/internal/git",
+    "moonbitlang/maria/internal/moon",
+    "moonbitlang/maria/todo",
+    "moonbitlang/maria/file",
+    "moonbitlang/maria/tools/fix_moonbit_warnings",
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/prompt",
+    "moonbitlang/maria/internal/conversation",
+    "moonbitlang/maria/tools/search_files",
+    "moonbitlang/maria/tools/todo_write",
+    "moonbitlang/maria/tools/todo_read",
+    "moonbitlang/maria/tools/write_to_file",
+    "moonbitlang/maria/tools/read_file",
+    "moonbitlang/maria/tools/list_files",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/rand"
+  ]
+}

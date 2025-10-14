@@ -3,15 +3,15 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/event",
-    "moonbitlang/maria/token",
-    "moonbitlang/maria/cache",
-    "moonbitlang/maria/pino",
-    "moonbitlang/maria/context",
-    "moonbitlang/maria/conversation",
-    "moonbitlang/maria/ai",
-    "moonbitlang/maria/path",
-    "moonbitlang/maria/rand",
-    "moonbitlang/maria/uuid"
+    "moonbitlang/maria/internal/event",
+    "moonbitlang/maria/internal/token",
+    "moonbitlang/maria/internal/cache",
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/internal/context",
+    "moonbitlang/maria/internal/conversation",
+    "moonbitlang/maria/internal/ai",
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/uuid"
   ]
 }

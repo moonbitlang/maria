@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/write_to_file"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/file"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let write_to_file : @tool.Tool[@file.Manager]
+
+// Errors
+
+// Types and methods
+pub(all) struct WriteResult {
+  path : String
+  operation : WriteResultOperation
+  bytes_written : Int
+  search_used : Bool
+  message : String
+  content : String
+}
+fn WriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn WriteResult::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for WriteResult
+impl @json.FromJson for WriteResult
+
+pub enum WriteResultOperation {
+  Created
+  Updated
+  Replaced
+}
+fn WriteResultOperation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn WriteResultOperation::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for WriteResultOperation
+impl @json.FromJson for WriteResultOperation
+
+// Type aliases
+
+// Traits
+

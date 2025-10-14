@@ -1,6 +1,0 @@
-{
-  "test-import": [
-    "moonbitlang/maria/fs",
-    "moonbitlang/async"
-  ]
-}

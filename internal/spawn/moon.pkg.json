@@ -1,0 +1,8 @@
+{
+  "import": [
+    "moonbitlang/async/process",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/internal/errno"
+  ],
+  "native-stub": ["spawn.c"]
+}

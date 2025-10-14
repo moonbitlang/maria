@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/search_files"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+const Prompt : String = "# search_files\n\n## Purpose\n\n- Search for patterns in files with two distinct modes: regex-based file content\n  search and fuzzy symbolic search for MoonBit definitions\n- Performs searches through files in the specified directory, displaying matches\n  with context lines\n- **Specifically for MoonBit definition searches**: Use the `moonbit_definition`\n  kind for finding MoonBit symbol definitions with fuzzy matching\n\n## When to Use\n\nUse this tool in two main scenarios:\n\n### For General Pattern Searches (kind: \"regex\")\n\n- **Text pattern matching**: When you need to find specific code patterns,\n  comments, or documentation\n- **Multi-file searches**: Finding all occurrences of a pattern across multiple\n  files\n- **File content exploration**: Understanding how certain concepts are used\n  throughout the codebase\n- **Reference finding**: Locating all usages of a particular identifier or\n  pattern\n\n### For MoonBit Definition Searches (kind: \"moonbit_definition\")\n\n**This is the preferred approach for finding MoonBit symbols!**\n\n- **Finding function/method definitions**: When you need to see how a specific\n  MoonBit function is implemented\n- **Locating type definitions**: To understand the structure and implementation\n  of MoonBit structs, enums, or traits\n- **Variable/constant definitions**: Finding where specific MoonBit variables or\n  constants are declared\n- **API exploration**: Understanding how specific MoonBit APIs or library\n  functions are defined\n- **Code navigation**: Quickly jumping to the definition of a MoonBit symbol\n- **Understanding implementations**: Seeing the actual MoonBit code behind a\n  symbol name\n- **Common format**:\n  - 'fn @pkg.function': search for function or method defined in 'pkg' with name 'function'\n  - 'struct @pkg.Struct': search for struct 'Struct' defined in 'pkg'\n  - 'enum @pkg.Enum': search for enum 'Enum' defined in 'pkg'\n  - 'type @pkg.Type': search for type 'Type' defined in 'pkg'\n  - 'let @pkg.value': search for toplevel let defined 'value' in 'pkg'\n  - 'const @pkg.value': search for toplevel const defined 'value' in 'pkg'\n  - 'trait @pkg.Trait': search for trait 'Trait' defined in 'pkg'\n  - 'impl Trait for Type with method': search for 'method' of 'Trait' implemented by 'Type'\n\n## Important: MoonBit Definition Search\n\n**When you need to search for MoonBit definitions, always use `search_files` with `kind: \"moonbit_definition\"`**\ninstead of other search methods. This provides fuzzy symbolic search\nspecifically designed for MoonBit language constructs.\n\n## Parameters and Usage\n\n- **path**: The directory to search in\n- **regex**:\n  - For `kind: \"regex\"`: Traditional regex pattern\n  - For `kind: \"moonbit_definition\"`: **NOT a regex pattern!** This is a fuzzy\n    search query string (symbol name or partial name). The tool will perform\n    fuzzy matching to find symbols, so regex syntax like `|`, `*`, `+`, etc.\n    should NOT be used.\n- **kind**: Either `\"regex\"` or `\"moonbit_definition\"`\n- **file_pattern**: Optional glob pattern to filter files (e.g., '*.mbt')\n- **context_lines**: Number of context lines around matches (default: 2)\n\n## ⚠️ Critical: MoonBit Definition Search Query Format\n\n**When using `kind: \"moonbit_definition\"`, the `regex` parameter is NOT treated as a regular expression!**\n\n- ✅ **Correct**: `\"regex\": \"Array::length\"` - Simple symbol name\n- ✅ **Correct**: `\"regex\": \"fib\"` - Partial name for fuzzy matching\n- ✅ **Correct**: `\"regex\": \"fibonacci\"` - Full function name\n- ❌ **Incorrect**: `\"regex\": \"fib|fibonacci\"` - This will search for a symbol\n  literally named \"fib|fibonacci\", not symbols matching either \"fib\" OR\n  \"fibonacci\"\n- ❌ **Incorrect**: `\"regex\": \"Array.*length\"` - This will search for a symbol\n  literally containing \"Array.*length\", not symbols matching the pattern\n\nThe fuzzy search will automatically find partial matches, so there's no need for\nregex syntax when using `moonbit_definition` kind.\n\n## Example Usage Scenarios\n\n### MoonBit Definition Search Examples\n\nUser: I need to see how the Array::length method is defined.\n\nAssistant:\n\nI'll search for the Array::length definition using MoonBit definition search.\n(Issuing <search_files/> tool call with `kind` as `\"moonbit_definition\"` and\n`regex` as `\"Array::length\"`.)\n\nTool:\n\n```plaintext\nFound 1 symbols match query 'Array::length':\n`Array::length` in builtin/arraycore_nonjs.mbt:77-80:\n77:#intrinsic(\"%array.length\")\n78:pub fn[T] Array::length(self : Array[T]) -> Int {\n79:  self.len\n80:}\n```\n\nAssistant:\n\nI found the definition of the Array::length method:\n\n```moonbit\n#intrinsic(\"%array.length\")\npub fn[T] Array::length(self : Array[T]) -> Int {\n  self.len\n}\n```\n\n### Regex Search Examples\n\nUser: Find all error handling patterns in the code.\n\nA: I'll search for error handling patterns using regex.\n\nUses search_files with:\n\n- kind: \"regex\"\n- regex: \"(try|catch|error|Error)\"\n\nSearch results omit for brevity.\n"
+
+let search_files : @tool.Tool[String]
+
+// Errors
+
+// Types and methods
+pub(all) struct SearchResult {
+  context : String
+  line_number : Int
+  match_line : String
+  path : String
+}
+fn SearchResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn SearchResult::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for SearchResult
+impl @json.FromJson for SearchResult
+
+// Type aliases
+
+// Traits
+

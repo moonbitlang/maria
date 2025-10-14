@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/list_files"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/file"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let list_files : @tool.Tool[@file.Manager]
+
+// Errors
+
+// Types and methods
+pub(all) struct FileEntry {
+  name : String
+  kind : String
+  size : Int?
+  is_hidden : Bool
+}
+fn FileEntry::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn FileEntry::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for FileEntry
+impl @json.FromJson for FileEntry
+
+pub(all) struct ListFilesResult {
+  path : String
+  entries : Array[FileEntry]
+  total_count : Int
+  file_count : Int
+  directory_count : Int
+}
+fn ListFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ListFilesResult::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for ListFilesResult
+impl @json.FromJson for ListFilesResult
+
+// Type aliases
+
+// Traits
+

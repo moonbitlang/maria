@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/maria/internal/tiktoken",
+    "moonbitlang/maria/openai"
+  ]
+}

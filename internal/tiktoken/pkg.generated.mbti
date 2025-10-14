@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/tiktoken"
+
+// Values
+fn cl100k_base() -> Encoding raise
+
+// Errors
+type DecodingError
+fn DecodingError::output(Self, &Logger) -> Unit // from trait `Show`
+fn DecodingError::to_string(Self) -> String // from trait `Show`
+impl Show for DecodingError
+
+// Types and methods
+type Encoding
+fn Encoding::decode(Self, ArrayView[Int]) -> String raise DecodingError
+fn Encoding::encode(Self, StringView) -> Array[Int] raise
+fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int], special_tokens~ : Map[String, Int], pat_str~ : String) -> Self raise
+fn Encoding::special_tokens(Self, String) -> Int?
+
+// Type aliases
+
+// Traits
+

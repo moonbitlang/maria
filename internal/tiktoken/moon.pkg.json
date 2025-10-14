@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/maria/internal/pcre2",
+    "moonbitlang/maria/internal/base64"
+  ]
+}

@@ -4,7 +4,7 @@ package "moonbitlang/maria/todo"
 import(
   "moonbitlang/core/json"
   "moonbitlang/maria/clock"
-  "moonbitlang/maria/uuid"
+  "moonbitlang/maria/internal/uuid"
 )
 
 // Values
