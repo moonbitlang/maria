@@ -308,7 +308,7 @@ fn remove_list_prefixes(line : String) -> String {
       _ => result = result
     }
   }
-  result.trim(" \t\r\n").to_string()
+  result.trim(char_set=" \t\r\n").to_string()
 }
 
 ///|
@@ -326,7 +326,7 @@ pub fn List::parse(
   if task_matches.length() > 0 {
     // Found <task> tags, use them
     for task_content in task_matches {
-      let trimmed = task_content.trim(" \t\r\n").to_string()
+      let trimmed = task_content.trim(char_set=" \t\r\n").to_string()
       if trimmed.length() > 0 {
         let todo = Item::new(
           id=self.generate_todo_id(),
@@ -340,9 +340,9 @@ pub fn List::parse(
     }
   } else {
     // Fallback to line-by-line parsing
-    let lines = content.trim(" \t\r\n").to_string().split("\n")
+    let lines = content.trim(char_set=" \t\r\n").to_string().split("\n")
     for line in lines {
-      let trimmed_line = line.trim(" \t\r\n").to_string()
+      let trimmed_line = line.trim(char_set=" \t\r\n").to_string()
       if trimmed_line.length() == 0 {
         continue
       }

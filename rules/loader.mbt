@@ -56,8 +56,8 @@ pub struct Rule {
 
 ///|
 fn parse_yaml_value(string : StringView) -> Json {
-  let string = lexmatch string {
-      "\s*" (".*" as string) "\s*" => string
+  let string = lexmatch string with longest {
+      ("\s*" (".*" as string) "\s*") => string
       string => string
     }
   match string {
@@ -131,16 +131,16 @@ fn Rule::parse(content : String, source~ : Source) -> Rule {
     let line = line.to_string()
     match state {
       PreFrontMatter =>
-        lexmatch line {
+        lexmatch line with longest {
           "\s*---\s*" => state = FrontMatter
           _ => continue
         }
       FrontMatter =>
-        lexmatch line {
+        lexmatch line with longest {
           "\s*" => continue
-          "\s*#", _ => continue
+          ("\s*#", _) => continue
           "\s*---\s*" => state = PostFrontMatter
-          ("\s*[^:]*" as key) ":\s*", rest => {
+          (("\s*[^:]*" as key) ":\s*", rest) => {
             let value = parse_yaml_value(rest)
             if key is ("alwaysApply" | "always_apply" | "always-apply") {
               front_matter["alwaysApply"] = value
@@ -180,7 +180,7 @@ fn Rule::parse(content : String, source~ : Source) -> Rule {
     description,
     globs,
     always_apply,
-    content: builder.to_string().trim_end(" \r\t\n").to_string(),
+    content: builder.to_string().trim_end(char_set=" \r\t\n").to_string(),
     source,
   }
 }
@@ -222,7 +222,7 @@ pub fn Loader::format(self : Loader) -> String {
     (
       $|# Project Rules
       $|
-      $|Loaded \{self.rules.size()} rules from .moonagent/rules directory:
+      $|Loaded \{self.rules.length()} rules from .moonagent/rules directory:
       $|
     ),
   )

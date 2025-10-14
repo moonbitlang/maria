@@ -21,6 +21,8 @@ pub(all) struct WriteResult {
   message : String
   content : String
 }
+fn WriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn WriteResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for WriteResult
 impl @json.FromJson for WriteResult
 
@@ -29,6 +31,8 @@ pub enum WriteResultOperation {
   Updated
   Replaced
 }
+fn WriteResultOperation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn WriteResultOperation::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for WriteResultOperation
 impl @json.FromJson for WriteResultOperation
 

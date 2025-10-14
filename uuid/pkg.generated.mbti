@@ -12,12 +12,22 @@ fn v4() -> Uuid raise
 
 // Errors
 type ParseError
+fn ParseError::output(Self, &Logger) -> Unit // from trait `Show`
+fn ParseError::to_json(Self) -> Json // from trait `ToJson`
+fn ParseError::to_string(Self) -> String // from trait `Show`
 impl Show for ParseError
 impl ToJson for ParseError
 
 // Types and methods
 type Uuid
+fn Uuid::compare(Self, Self) -> Int // from trait `Compare`
+fn Uuid::equal(Self, Self) -> Bool // from trait `Eq`
+fn Uuid::hash(Self) -> Int // from trait `Hash`
+fn Uuid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+fn Uuid::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Uuid::output(Self, &Logger) -> Unit // from trait `Show`
 fn Uuid::to_bytes(Self) -> Bytes
+fn Uuid::to_json(Self) -> Json // from trait `ToJson`
 fn Uuid::to_string(Self) -> String
 fn Uuid::variant(Self) -> Variant
 fn Uuid::version(Self) -> Version?
@@ -33,6 +43,9 @@ pub enum Variant {
   ReservedMicrosoft
   ReservedFuture
 }
+fn Variant::output(Self, &Logger) -> Unit // from trait `Show`
+fn Variant::to_json(Self) -> Json // from trait `ToJson`
+fn Variant::to_string(Self) -> String // from trait `Show`
 impl Show for Variant
 impl ToJson for Variant
 
@@ -54,6 +67,9 @@ pub(all) enum Version {
   V14
   V15
 }
+fn Version::output(Self, &Logger) -> Unit // from trait `Show`
+fn Version::to_json(Self) -> Json // from trait `ToJson`
+fn Version::to_string(Self) -> String // from trait `Show`
 impl Show for Version
 impl ToJson for Version
 

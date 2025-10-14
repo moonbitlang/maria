@@ -92,10 +92,10 @@ fn find_match(
   let haystack_lines = haystack.split("\n").to_array()
   let needle_lines = needle.split("\n").to_array()
   let trimmed_haystack_lines = haystack_lines.map(fn(line) {
-    line.trim(" \t\r\n").to_string()
+    line.trim(char_set=" \t\r\n").to_string()
   })
   let trimmed_needle_lines = needle_lines.map(fn(line) {
-    line.trim(" \t\r\n").to_string()
+    line.trim(char_set=" \t\r\n").to_string()
   })
 
   /// Create a match result starting from a specific line index

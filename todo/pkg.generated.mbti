@@ -22,6 +22,8 @@ pub(all) struct Item {
   status : Status
   updated_at : String
 }
+fn Item::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Item::to_json(Self) -> Json // from trait `ToJson`
 fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Self raise
 impl ToJson for Item
 impl @json.FromJson for Item
@@ -41,6 +43,7 @@ pub(all) enum Priority {
   Medium
   Low
 }
+fn Priority::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Priority
 
 pub(all) enum Status {
@@ -48,6 +51,7 @@ pub(all) enum Status {
   InProgress
   Completed
 }
+fn Status::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Status
 
 // Type aliases

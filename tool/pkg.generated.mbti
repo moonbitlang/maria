@@ -15,6 +15,7 @@ pub struct Result {
   output : Json
   error : Error?
 }
+fn Result::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Result
 
 pub struct Tool[T] {

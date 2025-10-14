@@ -30,6 +30,7 @@ fn[T : ToChatCompletionMessageParamContent] user_message(content~ : T, name? : S
 pub(all) enum CacheControl {
   Ephemeral
 }
+fn CacheControl::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for CacheControl
 
 pub struct ChatCompletion {
@@ -41,6 +42,9 @@ pub struct ChatCompletion {
   system_fingerprint : String?
   service_tier : ChatCompletionServiceTier?
 }
+fn ChatCompletion::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ChatCompletion::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletion::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletion
 impl @json.FromJson for ChatCompletion
 
@@ -57,6 +61,8 @@ pub struct ChatCompletionChoice {
   message : ChatCompletionMessage
   logprobs : ChatCompletionChoiceLogprobs?
 }
+fn ChatCompletionChoice::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionChoice::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionChoice
 
 pub enum ChatCompletionChoiceFinishReason {
@@ -66,12 +72,16 @@ pub enum ChatCompletionChoiceFinishReason {
   ContentFilter
   FunctionCall
 }
+fn ChatCompletionChoiceFinishReason::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionChoiceFinishReason::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionChoiceFinishReason
 
 pub struct ChatCompletionChoiceLogprobs {
   content : Array[ChatCompletionTokenLogprob]?
   refusal : Array[ChatCompletionTokenLogprob]?
 }
+fn ChatCompletionChoiceLogprobs::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionChoiceLogprobs::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionChoiceLogprobs
 
 pub struct ChatCompletionChunk {
@@ -83,6 +93,7 @@ pub struct ChatCompletionChunk {
   system_fingerprint : String?
   service_tier : ChatCompletionServiceTier?
 }
+fn ChatCompletionChunk::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 impl @json.FromJson for ChatCompletionChunk
 
 pub struct ChatCompletionChunkChoice {
@@ -111,6 +122,7 @@ pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
 pub enum ChatCompletionContentPartParam {
   Text(ChatCompletionContentPartTextParam)
 }
+fn ChatCompletionContentPartParam::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ChatCompletionContentPartParam
 impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam
 
@@ -126,13 +138,17 @@ pub struct ChatCompletionMessage {
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
 }
+fn ChatCompletionMessage::output(Self, &Logger) -> Unit // from trait `Show`
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
+fn ChatCompletionMessage::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessage
 
 pub struct ChatCompletionMessageFunctionCall {
   arguments : String
   name : String
 }
+fn ChatCompletionMessageFunctionCall::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessageFunctionCall::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageFunctionCall
 
 pub enum ChatCompletionMessageParam {
@@ -141,18 +157,24 @@ pub enum ChatCompletionMessageParam {
   Assistant(ChatCompletionAssistantMessageParam)
   Tool(ChatCompletionToolMessageParam)
 }
+fn ChatCompletionMessageParam::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ChatCompletionMessageParam::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ChatCompletionMessageParam
 impl @json.FromJson for ChatCompletionMessageParam
 
 pub enum ChatCompletionMessageRole {
   Assistant
 }
+fn ChatCompletionMessageRole::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessageRole::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageRole
 
 pub struct ChatCompletionMessageToolCall {
   id : String
   function : Function
 }
+fn ChatCompletionMessageToolCall::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionMessageToolCall::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageToolCall
 
 pub struct ChatCompletionParam {
@@ -165,6 +187,7 @@ pub struct ChatCompletionParam {
   temperature : Double?
   response_format : ResponseFormat?
 }
+fn ChatCompletionParam::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ChatCompletionParam
 
 pub enum ChatCompletionRole {
@@ -182,6 +205,8 @@ pub enum ChatCompletionServiceTier {
   Scale
   Priority
 }
+fn ChatCompletionServiceTier::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionServiceTier::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionServiceTier
 
 pub struct ChatCompletionSystemMessageParam {
@@ -195,6 +220,8 @@ pub struct ChatCompletionTokenLogprob {
   bytes : Array[Int]?
   top_logprobs : Array[ChatCompletionTopLogprob]
 }
+fn ChatCompletionTokenLogprob::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionTokenLogprob::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionTokenLogprob
 
 pub struct ChatCompletionToolMessageParam {
@@ -205,6 +232,7 @@ pub struct ChatCompletionToolMessageParam {
 pub enum ChatCompletionToolParam {
   Function(FunctionDefinition)
 }
+fn ChatCompletionToolParam::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ChatCompletionToolParam
 
 pub struct ChatCompletionTopLogprob {
@@ -212,6 +240,8 @@ pub struct ChatCompletionTopLogprob {
   logprob : Double
   bytes : Array[Int]?
 }
+fn ChatCompletionTopLogprob::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletionTopLogprob::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionTopLogprob
 
 pub struct ChatCompletionUserMessageParam {
@@ -222,6 +252,9 @@ pub struct ChatCompletionUserMessageParam {
 pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
 }
+fn CompletionTokensDetails::output(Self, &Logger) -> Unit // from trait `Show`
+fn CompletionTokensDetails::to_json(Self) -> Json // from trait `ToJson`
+fn CompletionTokensDetails::to_string(Self) -> String // from trait `Show`
 impl Show for CompletionTokensDetails
 impl ToJson for CompletionTokensDetails
 
@@ -234,6 +267,10 @@ pub struct CompletionUsage {
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 }
+fn CompletionUsage::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn CompletionUsage::output(Self, &Logger) -> Unit // from trait `Show`
+fn CompletionUsage::to_json(Self) -> Json // from trait `ToJson`
+fn CompletionUsage::to_string(Self) -> String // from trait `Show`
 impl Show for CompletionUsage
 impl ToJson for CompletionUsage
 impl @json.FromJson for CompletionUsage
@@ -245,6 +282,9 @@ pub struct CompletionUsageParam {
 pub struct CostDetails {
   upstream_inference_cost : Double?
 }
+fn CostDetails::output(Self, &Logger) -> Unit // from trait `Show`
+fn CostDetails::to_json(Self) -> Json // from trait `ToJson`
+fn CostDetails::to_string(Self) -> String // from trait `Show`
 impl Show for CostDetails
 impl ToJson for CostDetails
 
@@ -252,6 +292,8 @@ pub struct Function {
   arguments : String
   name : String
 }
+fn Function::output(Self, &Logger) -> Unit // from trait `Show`
+fn Function::to_string(Self) -> String // from trait `Show`
 impl Show for Function
 
 pub struct FunctionDefinition {
@@ -267,6 +309,9 @@ pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
 }
+fn PromptTokensDetails::output(Self, &Logger) -> Unit // from trait `Show`
+fn PromptTokensDetails::to_json(Self) -> Json // from trait `ToJson`
+fn PromptTokensDetails::to_string(Self) -> String // from trait `Show`
 impl Show for PromptTokensDetails
 impl ToJson for PromptTokensDetails
 
@@ -275,6 +320,7 @@ pub(all) enum ResponseFormat {
   JsonSchema(JsonSchema)
   JsonObject
 }
+fn ResponseFormat::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ResponseFormat
 
 // Type aliases

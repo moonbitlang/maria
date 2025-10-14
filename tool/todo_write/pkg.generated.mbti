@@ -21,6 +21,8 @@ pub(all) struct TodoWriteResult {
   updated_todos : Array[@todo.Item]
   is_new_creation : Bool
 }
+fn TodoWriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn TodoWriteResult::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for TodoWriteResult
 impl @json.FromJson for TodoWriteResult
 

@@ -45,7 +45,7 @@ pub fn[K : Eq + Hash, V] Cache::set(
   key : K,
   value : V,
 ) -> Unit {
-  if self.cache.size() >= self.max_size {
+  if self.cache.length() >= self.max_size {
     self.evict()
   }
   self.cache[key] = Entry::{ accessed: self.timestamp, value }

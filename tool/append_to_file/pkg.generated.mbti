@@ -19,12 +19,16 @@ pub struct Params {
   path : String?
   separator : String?
 }
+fn Params::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Params::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Params
 impl @json.FromJson for Params
 
 pub struct Result {
   path : String
 }
+fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Result::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Result
 impl @json.FromJson for Result
 

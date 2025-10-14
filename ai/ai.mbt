@@ -54,7 +54,7 @@ fn extract_first_json_block(content : String) -> String? {
     .split("```")
     .take(1)
     .peek()
-    .map(s => s.trim(" \r\n\t").to_string()))
+    .map(s => s.trim(char_set=" \r\n\t").to_string()))
 }
 
 ///|

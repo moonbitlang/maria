@@ -12,6 +12,8 @@ fn transport(StringView) -> Transport raise
 
 // Errors
 pub suberror InvalidTransport StringView
+fn InvalidTransport::output(Self, &@builtin.Logger) -> Unit // from trait `Show`
+fn InvalidTransport::to_string(Self) -> String // from trait `Show`
 impl Show for InvalidTransport
 
 // Types and methods
@@ -23,6 +25,8 @@ pub(all) enum Level {
   Error
   Fatal
 }
+fn Level::output(Self, &@builtin.Logger) -> Unit // from trait `Show`
+fn Level::to_string(Self) -> String // from trait `Show`
 impl Show for Level
 
 type Logger

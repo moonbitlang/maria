@@ -14,6 +14,7 @@ async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, overlay? : Map[
 
 // Types and methods
 type Artifacts
+fn Artifacts::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Artifacts
 
 type Coverage
@@ -29,6 +30,8 @@ pub(all) enum CoverageFormat {
   Html
   Summary
 }
+fn CoverageFormat::output(Self, &Logger) -> Unit // from trait `Show`
+fn CoverageFormat::to_string(Self) -> String // from trait `Show`
 impl Show for CoverageFormat
 
 pub struct Diagnostic {
@@ -37,6 +40,10 @@ pub struct Diagnostic {
   loc : Loc
   message : String
 }
+fn Diagnostic::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Diagnostic::output(Self, &Logger) -> Unit // from trait `Show`
+fn Diagnostic::to_json(Self) -> Json // from trait `ToJson`
+fn Diagnostic::to_string(Self) -> String // from trait `Show`
 impl Show for Diagnostic
 impl ToJson for Diagnostic
 impl @json.FromJson for Diagnostic
@@ -44,10 +51,13 @@ impl @json.FromJson for Diagnostic
 type File
 fn File::header(Self) -> SegmentView
 fn File::lines(Self) -> Array[StringView]
+fn File::output(Self, &Logger) -> Unit // from trait `Show`
 fn File::path(Self) -> String
 async fn File::replace_segment(Self, Int, String) -> Unit
 fn File::segment(Self, Int) -> SegmentView
 fn File::segments(Self) -> ArrayView[SegmentView]
+fn File::to_json(Self) -> Json // from trait `ToJson`
+fn File::to_string(Self) -> String // from trait `Show`
 impl Show for File
 impl ToJson for File
 
@@ -55,6 +65,9 @@ pub enum Level {
   Error
   Warning
 }
+fn Level::output(Self, &Logger) -> Unit // from trait `Show`
+fn Level::to_json(Self) -> Json // from trait `ToJson`
+fn Level::to_string(Self) -> String // from trait `Show`
 impl Show for Level
 impl ToJson for Level
 
@@ -63,6 +76,9 @@ pub struct Loc {
   path : String
   start : Pos
 }
+fn Loc::output(Self, &Logger) -> Unit // from trait `Show`
+fn Loc::to_json(Self) -> Json // from trait `ToJson`
+fn Loc::to_string(Self) -> String // from trait `Show`
 impl Show for Loc
 impl ToJson for Loc
 
@@ -90,7 +106,10 @@ fn Package::add_diagnostic(Self, Diagnostic) -> Unit
 async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd~ : StringView) -> Array[Diagnostic]
 async fn Package::interface(Self) -> String?
 fn Package::name(Self) -> String
+fn Package::output(Self, &Logger) -> Unit // from trait `Show`
 fn Package::path(Self) -> String
+fn Package::to_json(Self) -> Json // from trait `ToJson`
+fn Package::to_string(Self) -> String // from trait `Show`
 impl Show for Package
 impl ToJson for Package
 
@@ -101,12 +120,16 @@ pub struct PackageView {
 async fn PackageView::info(Self) -> Unit
 async fn PackageView::interface(Self) -> String
 fn PackageView::package_(Self) -> Package
+fn PackageView::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for PackageView
 
 pub struct Pos {
   col : Int
   line : Int
 }
+fn Pos::output(Self, &Logger) -> Unit // from trait `Show`
+fn Pos::to_json(Self) -> Json // from trait `ToJson`
+fn Pos::to_string(Self) -> String // from trait `Show`
 impl Show for Pos
 impl ToJson for Pos
 
@@ -119,9 +142,11 @@ type SegmentView
 fn SegmentView::content(Self) -> String
 fn SegmentView::diagnostics(Self) -> Array[Diagnostic]
 async fn SegmentView::replace(Self, String) -> Unit
+fn SegmentView::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for SegmentView
 
 type TestFailure
+fn TestFailure::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for TestFailure
 
 // Type aliases

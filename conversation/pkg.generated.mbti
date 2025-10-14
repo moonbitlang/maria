@@ -15,16 +15,22 @@ type Conversation
 fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage, created? : Int64) -> Unit
 fn Conversation::display(Self, show_messages? : Bool) -> Array[String] raise
 fn Conversation::export_to_markdown(Self) -> String
+fn Conversation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn Conversation::id(Self) -> Id
 fn Conversation::new(name~ : String, description? : String, id~ : Id) -> Self
+fn Conversation::to_json(Self) -> Json // from trait `ToJson`
 fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
 impl ToJson for Conversation
 impl @json.FromJson for Conversation
 
 pub(all) struct Id(String)
+fn Id::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 #deprecated
 fn Id::inner(Self) -> String
 fn Id::new() -> Self raise
+fn Id::output(Self, &Logger) -> Unit // from trait `Show`
+fn Id::to_json(Self) -> Json // from trait `ToJson`
+fn Id::to_string(Self) -> String // from trait `Show`
 impl Show for Id
 impl ToJson for Id
 impl @json.FromJson for Id
