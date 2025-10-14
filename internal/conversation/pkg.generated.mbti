@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/conversation"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/clock"
+  "moonbitlang/maria/internal/uuid"
+  "moonbitlang/maria/openai"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Conversation
+fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage) -> Unit
+fn Conversation::display(Self, show_messages? : Bool) -> Array[String] raise
+fn Conversation::export_to_markdown(Self) -> String
+fn Conversation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Conversation::id(Self) -> String
+fn Conversation::to_json(Self) -> Json // from trait `ToJson`
+fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
+impl ToJson for Conversation
+impl @json.FromJson for Conversation
+
+type Manager
+async fn Manager::list(Self) -> Array[String]
+async fn Manager::load(Self, String) -> Conversation?
+async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : String) -> Self
+fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation raise
+async fn Manager::save(Self, Conversation) -> Unit
+
+// Type aliases
+
+// Traits
+

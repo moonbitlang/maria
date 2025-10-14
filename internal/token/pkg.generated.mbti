@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/token"
+
+import(
+  "moonbitlang/maria/openai"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Counter
+fn Counter::add_tool(Self, @openai.ChatCompletionToolParam) -> Unit raise
+fn Counter::count_param(Self, @openai.ChatCompletionParam) -> Int raise
+fn Counter::count_string(Self, String) -> Int raise
+fn Counter::new() -> Self raise
+
+// Type aliases
+
+// Traits
+

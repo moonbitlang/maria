@@ -1,0 +1,80 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/readline"
+
+import(
+  "moonbitlang/async/pipe"
+)
+
+// Values
+fn interface(input~ : @pipe.PipeRead, output? : @pipe.PipeWrite) -> Interface raise
+
+// Errors
+pub suberror Aborted {
+  CtrlC
+}
+
+// Types and methods
+pub(all) struct CompletionResult {
+  completions : Array[StringView]
+  complete_on : StringView
+}
+
+type Interface
+fn Interface::add_new_line_on_tty(Self) -> Unit
+fn Interface::close(Self) -> Unit
+async fn Interface::prompt(Self, preserve_cursor? : Bool) -> Unit
+async fn Interface::question(Self, StringView) -> String
+async fn Interface::read_key(Self) -> Key
+async fn Interface::read_line(Self) -> String
+fn Interface::set_line(Self, BytesView) -> Unit
+fn Interface::set_prompt(Self, Bytes) -> Unit
+async fn Interface::start(Self) -> Unit
+
+pub struct Key {
+  mut meta : Bool
+  mut name : KeyName
+  mut sequence : Bytes
+  mut ctrl : Bool
+  mut shift : Bool
+}
+
+pub enum KeyName {
+  Escape
+  Enter
+  Return
+  Backspace
+  Delete
+  Up
+  Down
+  Left
+  Right
+  Home
+  End
+  Insert
+  Clear
+  PageUp
+  PageDown
+  Tab
+  F1
+  F2
+  F3
+  F4
+  F5
+  F6
+  F7
+  F8
+  F9
+  F10
+  F11
+  F12
+  PasteStart
+  PasteEnd
+  Space
+  Byte(Byte)
+  Undefined
+}
+
+// Type aliases
+
+// Traits
+

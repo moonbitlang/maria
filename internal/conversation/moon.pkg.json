@@ -1,0 +1,15 @@
+{
+  "import": [
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/lru",
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/fs",
+    "moonbitlang/x/time",
+    "moonbitlang/maria/clock"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/taco",
+    "moonbitlang/async"
+  ]
+}

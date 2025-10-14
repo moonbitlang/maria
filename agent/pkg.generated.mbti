@@ -3,10 +3,10 @@ package "moonbitlang/maria/agent"
 
 import(
   "moonbitlang/core/random"
+  "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
   "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
-  "moonbitlang/maria/uuid"
 )
 
 // Values

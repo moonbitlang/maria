@@ -1,0 +1,18 @@
+{
+  "import": [
+    "moonbitlang/async/fs",
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/internal/errno",
+    "moonbitlang/maria/internal/os"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    {
+      "path": "moonbitlang/maria/internal/fs",
+      "alias": "this"
+    },
+    "moonbitlang/maria/internal/taco"
+  ],
+  "native-stub": ["stat.c", "mkdtemp.c"]
+}

@@ -1,0 +1,11 @@
+{
+  "import": [
+    "moonbitlang/maria/tool",
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/maria/internal/path"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/taco"
+  ]
+}

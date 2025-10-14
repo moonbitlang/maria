@@ -1,4 +1,0 @@
-{
-  "import": ["moonbitlang/maria/tool", "moonbitlang/maria/moon"],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/taco"]
-}

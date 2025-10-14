@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/check_moonbit_project"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let check_moonbit_project : @tool.Tool[String]
+
+fn params(diagnostic_limit? : Int, patch_code? : String, patch_file_name? : String, project_path~ : String) -> CheckMoonbitProjectParams
+
+// Errors
+
+// Types and methods
+pub struct CheckMoonbitProjectParams {
+  diagnostic_limit : Int?
+  patch_code : String?
+  patch_file_name : String?
+  project_path : String
+}
+fn CheckMoonbitProjectParams::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn CheckMoonbitProjectParams::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for CheckMoonbitProjectParams
+impl @json.FromJson for CheckMoonbitProjectParams
+
+// Type aliases
+
+// Traits
+

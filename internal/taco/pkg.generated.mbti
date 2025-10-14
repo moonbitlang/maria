@@ -1,0 +1,56 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/taco"
+
+import(
+  "moonbitlang/core/random"
+  "moonbitlang/core/test"
+  "moonbitlang/maria/clock"
+  "moonbitlang/maria/internal/pino"
+  "moonbitlang/maria/internal/uuid"
+)
+
+// Values
+#callsite(autofill(loc))
+async fn run(@test.T, loc~ : SourceLoc, timeout? : Int, async (Context) -> Unit) -> Unit
+
+fn[X] skip(String) -> X raise
+
+async fn[T] with_home(Directory, async () -> T) -> T
+
+// Errors
+
+// Types and methods
+pub struct Context {
+  cwd : Directory
+  logger : @pino.Logger
+  clock : &@clock.Clock
+  rand : @random.Rand
+  uuid : @uuid.Generator
+  // private fields
+}
+async fn Context::add_directory(Self, String) -> Directory
+async fn Context::add_file(Self, String, content? : String) -> File
+fn[T : ToJson] Context::json(Self, T) -> Json
+fn[T : Show] Context::show(Self, T) -> String
+
+type Directory
+async fn Directory::add_directory(Self, String) -> Self
+async fn Directory::add_file(Self, String, content? : String) -> File
+async fn Directory::list(Self) -> Array[Entry]
+fn Directory::path(Self) -> String
+
+pub enum Entry {
+  Directory(Directory)
+  File(File)
+}
+fn Entry::name(Self) -> StringView
+
+type File
+fn File::path(Self) -> String
+async fn File::read(Self) -> String
+async fn File::write(Self, String) -> Unit
+
+// Type aliases
+
+// Traits
+

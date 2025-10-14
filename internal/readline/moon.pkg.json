@@ -1,0 +1,17 @@
+{
+  "import": [
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/internal/readline/csi",
+    "moonbitlang/async/aqueue",
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/readline/unicode",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/internal/tty",
+    "moonbitlang/maria/internal/signal",
+    "moonbitlang/maria/internal/spawn",
+    {
+      "path": "moonbitlang/maria/internal/readline/unicode/width",
+      "alias": "unicode/width"
+    }
+  ]
+}

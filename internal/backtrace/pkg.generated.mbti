@@ -1,0 +1,16 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/backtrace"
+
+// Values
+fn backtrace(n? : Int) -> FixedArray[String] raise
+
+fn initialize() -> Unit
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
