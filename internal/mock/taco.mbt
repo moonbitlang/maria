@@ -39,12 +39,12 @@ impl @clock.Clock for Clock with now(self : Clock) -> Int64 {
 
 ///|
 pub struct Context {
-  priv file : String
   cwd : Directory
   logger : @pino.Logger
   clock : &@clock.Clock
   rand : @random.Rand
   uuid : @uuid.Generator
+  filter : Filter
 }
 
 ///|
@@ -67,26 +67,44 @@ pub async fn Context::add_directory(self : Context, name : String) -> Directory 
 }
 
 ///|
-priv trait Filter {
-  filter(self : Context, value : Self) -> Self
+struct Filter {
+  keywords : Array[(String, String)]
 }
 
 ///|
-impl Filter for String with filter(self : Context, value : String) -> String {
-  value
-  .replace_all(old=self.cwd.path(), new=".")
-  .replace_all(old=self.file.to_string(), new="(mock:file)")
+fn Filter::new() -> Filter {
+  Filter::{ keywords: [] }
 }
 
 ///|
-impl Filter for Json with filter(self : Context, value : Json) -> Json {
+fn Filter::add(self : Filter, key : String, value : String) -> Unit {
+  self.keywords.push((key, value))
+}
+
+///|
+priv trait Filterable {
+  filter(self : Filter, value : Self) -> Self
+}
+
+///|
+impl Filterable for String with filter(self : Filter, content : String) -> String {
+  let mut content = content
+  for keyword in self.keywords {
+    let (key, value) = keyword
+    content = content.replace_all(old=value, new="(mock:\{key})")
+  }
+  content
+}
+
+///|
+impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
   match value {
-    String(string) => Json::string(Filter::filter(self, string))
-    Array(array) => Json::array(array.map(e => Filter::filter(self, e)))
+    String(string) => Json::string(Filterable::filter(self, string))
+    Array(array) => Json::array(array.map(e => Filterable::filter(self, e)))
     Object(old_object) => {
       let new_object = {}
       for k, v in old_object {
-        new_object[Filter::filter(self, k)] = Filter::filter(self, v)
+        new_object[Filterable::filter(self, k)] = Filterable::filter(self, v)
       }
       Json::object(new_object)
     }
@@ -96,12 +114,12 @@ impl Filter for Json with filter(self : Context, value : Json) -> Json {
 
 ///|
 pub fn[T : ToJson] Context::json(self : Context, value : T) -> Json {
-  Filter::filter(self, ToJson::to_json(value))
+  Filterable::filter(self.filter, ToJson::to_json(value))
 }
 
 ///|
 pub fn[T : Show] Context::show(self : Context, value : T) -> String {
-  Filter::filter(self, Show::to_string(value))
+  Filterable::filter(self.filter, Show::to_string(value))
 }
 
 ///|
@@ -243,7 +261,14 @@ pub async fn run(
     let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
     let uuid = @uuid.generator(rand)
     let file = loc.to_string().split(":").peek().unwrap().to_string()
-    let ctx = Context::{ file, cwd, logger, clock, rand, uuid }
+    let filter = Filter::new()
+    filter.add("file", file)
+    filter.add("cwd", cwd.path())
+    filter.add("env:HOME", directory(@os.home()).path())
+    if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
+      filter.add("env:OPENAI_API_KEY", api_key)
+    }
+    let ctx = Context::{ cwd, logger, clock, rand, uuid, filter }
     group.add_defer(() => ctx.close())
     f(ctx)
   })) catch {

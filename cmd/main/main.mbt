@@ -191,7 +191,7 @@ async fn main {
       api_key~,
       base_url="https://openrouter.ai/api/v1",
       name="anthropic/claude-sonnet-4",
-      context_window=200000,
+      safe_zone_tokens=200000,
     )
     let args = @os.args()
     let arguments = Arguments::new()
