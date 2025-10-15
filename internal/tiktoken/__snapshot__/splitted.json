@@ -1,0 +1,878 @@
+{
+  "basic hello world": {
+    "text": "hello world ",
+    "splitteds": [
+      "hello",
+      " world",
+      " "
+    ]
+  },
+  "mixed unicode and emoji": {
+    "text": "hello world 你好 🐫32 ",
+    "splitteds": [
+      "hello",
+      " world",
+      " 你好",
+      " 🐫",
+      "32",
+      " "
+    ]
+  },
+  "contractions with apostrophe - case insensitive": {
+    "text": "'s's'S'D'd'M'm'T't",
+    "splitteds": [
+      "'s",
+      "'s",
+      "'S",
+      "'D",
+      "'d",
+      "'M",
+      "'m",
+      "'T",
+      "'t"
+    ]
+  },
+  "contractions with ll, ve, re": {
+    "text": "'ll'll've're",
+    "splitteds": [
+      "'ll",
+      "'ll",
+      "'ve",
+      "'re"
+    ]
+  },
+  "non-letter prefix with letters": {
+    "text": "!hello #world @user $money %percent ^caret",
+    "splitteds": [
+      "!hello",
+      " #world",
+      " @user",
+      " $money",
+      " %percent",
+      " ^caret"
+    ]
+  },
+  "punctuation followed by letters": {
+    "text": ".com,org;net:edu?query&param=value",
+    "splitteds": [
+      ".com",
+      ",org",
+      ";net",
+      ":edu",
+      "?query",
+      "&param",
+      "=value"
+    ]
+  },
+  "unicode letters with prefixes": {
+    "text": "!你好 @世界 #こんにちは $مرحبا",
+    "splitteds": [
+      "!你好",
+      " @世界",
+      " #こんにちは",
+      " $مرحبا"
+    ]
+  },
+  "numbers 1-3 digits": {
+    "text": "1 12 123 1234 0 00 000 999",
+    "splitteds": [
+      "1",
+      " ",
+      "12",
+      " ",
+      "123",
+      " ",
+      "123",
+      "4",
+      " ",
+      "0",
+      " ",
+      "00",
+      " ",
+      "000",
+      " ",
+      "999"
+    ]
+  },
+  "unicode numbers": {
+    "text": "١٢٣ ௧௨௩ ๑๒๓ 一二三",
+    "splitteds": [
+      "١٢٣",
+      " ",
+      "௧௨௩",
+      " ",
+      "๑๒๓",
+      " 一二三"
+    ]
+  },
+  "space followed by punctuation": {
+    "text": " !@# $%^ &*() -_=+ []{}\\|",
+    "splitteds": [
+      " !@#",
+      " $%^",
+      " &*()",
+      " -_=+",
+      " []{}\\|"
+    ]
+  },
+  "punctuation with newlines": {
+    "text": "!@#\r\n$%^\n&*()\r",
+    "splitteds": [
+      "!@#\r\n",
+      "$%^\n",
+      "&*()\r"
+    ]
+  },
+  "mixed symbols and special chars": {
+    "text": "©™®°±×÷≠≤≥∞§¶•‰‱",
+    "splitteds": [
+      "©™®°±×÷≠≤≥∞§¶•‰‱"
+    ]
+  },
+  "whitespace at end of string": {
+    "text": "text   ",
+    "splitteds": [
+      "text",
+      "   "
+    ]
+  },
+  "tabs and spaces at end": {
+    "text": "word\t\t  ",
+    "splitteds": [
+      "word",
+      "\t\t  "
+    ]
+  },
+  "whitespace followed by newlines": {
+    "text": "line1  \nline2\t\rline3   \r\n",
+    "splitteds": [
+      "line",
+      "1",
+      "  \n",
+      "line",
+      "2",
+      "\t\r",
+      "line",
+      "3",
+      "   \r\n"
+    ]
+  },
+  "only whitespace and newlines": {
+    "text": "   \n\t\r  \r\n",
+    "splitteds": [
+      "   \n\t\r  \r\n"
+    ]
+  },
+  "whitespace not followed by non-whitespace": {
+    "text": "word   end",
+    "splitteds": [
+      "word",
+      "   end"
+    ]
+  },
+  "single whitespace characters": {
+    "text": "a b\tc\nd e",
+    "splitteds": [
+      "a",
+      " b",
+      "\tc",
+      "\n",
+      "d",
+      " e"
+    ]
+  },
+  "complex real-world text": {
+    "text": "Hello, I'm testing the tokenizer! It's working well. Numbers: 123, 4567. Symbols: @#$%",
+    "splitteds": [
+      "Hello",
+      ", I",
+      "'m",
+      " testing",
+      " the",
+      " tokenizer",
+      "! It",
+      "'s",
+      " working",
+      " well",
+      ". Numbers",
+      ":",
+      " ",
+      "123",
+      ",",
+      " ",
+      "456",
+      "7",
+      ". Symbols",
+      ":",
+      " @#$%"
+    ]
+  },
+  "programming code snippet": {
+    "text": "fn main() {\n  let x = 42;\n  println!(\"Hello, world!\");\n}",
+    "splitteds": [
+      "fn",
+      " main",
+      "()",
+      " {\n",
+      "  let",
+      " x",
+      " =",
+      " ",
+      "42",
+      ";\n",
+      "  println",
+      "!(\"Hello",
+      ", world",
+      "!\");\n",
+      "}"
+    ]
+  },
+  "multilingual text": {
+    "text": "English, 中文, العربية, Español, français, русский, 日本語",
+    "splitteds": [
+      "English",
+      ", 中文",
+      ", العربية",
+      ", Español",
+      ", français",
+      ", русский",
+      ", 日本語"
+    ]
+  },
+  "mathematical expressions": {
+    "text": "x + y = 123, π ≈ 3.14159, ∑(i=1 to n) xi",
+    "splitteds": [
+      "x",
+      " + y",
+      " =",
+      " ",
+      "123",
+      ", π",
+      " ≈",
+      " ",
+      "3",
+      ".",
+      "141",
+      "59",
+      ", ∑(i",
+      "=",
+      "1",
+      " to",
+      " n",
+      ") xi"
+    ]
+  },
+  "email and URLs": {
+    "text": "Email: user@example.com, URL: https://www.test.org/path?q=123",
+    "splitteds": [
+      "Email",
+      ": user",
+      "@example",
+      ".com",
+      ", URL",
+      ": https",
+      "://www",
+      ".test",
+      ".org",
+      "/path",
+      "?q",
+      "=",
+      "123"
+    ]
+  },
+  "json-like structure": {
+    "text": "{\"name\": \"value\", \"number\": 42, \"array\": [1, 2, 3]}",
+    "splitteds": [
+      "{\"name",
+      "\": \"value",
+      "\", \"number",
+      "\":",
+      " ",
+      "42",
+      ", \"array",
+      "\":",
+      " [",
+      "1",
+      ",",
+      " ",
+      "2",
+      ",",
+      " ",
+      "3",
+      "]}"
+    ]
+  },
+  "json with indent=2": {
+    "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"path\": {\n      \"type\": \"string\",\n      \"description\": \"The directory path to list files from\"\n    }\n  },\n  \"required\": [\n    \"path\"\n  ]\n}",
+    "splitteds": [
+      "{\n",
+      "  \"type",
+      "\": \"object",
+      "\",\n",
+      "  \"properties",
+      "\":",
+      " {\n",
+      "    \"path",
+      "\":",
+      " {\n",
+      "      \"type",
+      "\": \"string",
+      "\",\n",
+      "      \"description",
+      "\": \"The",
+      " directory",
+      " path",
+      " to",
+      " list",
+      " files",
+      " from",
+      "\"\n",
+      " ",
+      " ",
+      " ",
+      " }\n",
+      " ",
+      " },\n",
+      "  \"required",
+      "\":",
+      " [\n",
+      "    \"path",
+      "\"\n",
+      " ",
+      " ]\n",
+      "}"
+    ]
+  },
+  "empty string": {
+    "text": "",
+    "splitteds": []
+  },
+  "only whitespace": {
+    "text": "   \t\n  ",
+    "splitteds": [
+      "   \t\n  "
+    ]
+  },
+  "mixed newline types": {
+    "text": "line1\nline2\rline3\r\nline4",
+    "splitteds": [
+      "line",
+      "1",
+      "\n",
+      "line",
+      "2",
+      "\r",
+      "line",
+      "3",
+      "\r",
+      "\n",
+      "line",
+      "4"
+    ]
+  },
+  "consecutive punctuation": {
+    "text": "...!!!???---___+++",
+    "splitteds": [
+      "...!!!???---___+++"
+    ]
+  },
+  "apostrophe variations": {
+    "text": "'t'T'not_matched'xyz'll've're's'S'd'D'm'M",
+    "splitteds": [
+      "'t",
+      "'T",
+      "'not",
+      "_matched",
+      "'xyz",
+      "'ll",
+      "'ve",
+      "'re",
+      "'s",
+      "'S",
+      "'d",
+      "'D",
+      "'m",
+      "'M"
+    ]
+  },
+  "numbers at boundaries": {
+    "text": "a1b 12c 123d 1234e",
+    "splitteds": [
+      "a",
+      "1",
+      "b",
+      " ",
+      "12",
+      "c",
+      " ",
+      "123",
+      "d",
+      " ",
+      "123",
+      "4",
+      "e"
+    ]
+  },
+  "unicode combining characters": {
+    "text": "café naïve résumé Zürich",
+    "splitteds": [
+      "café",
+      " naïve",
+      " résumé",
+      " Zürich"
+    ]
+  },
+  "emoji and symbols mix": {
+    "text": "Hello 👋 world 🌍! Price: $100.50 😊",
+    "splitteds": [
+      "Hello",
+      " 👋 world",
+      " 🌍! Price",
+      ":",
+      " $",
+      "100",
+      ".",
+      "50",
+      " 😊"
+    ]
+  },
+  "escaped characters and quotes": {
+    "text": "\"quoted text\" 'single quotes' \\n\\t\\r",
+    "splitteds": [
+      "\"quoted",
+      " text",
+      "\" 'single",
+      " quotes",
+      "' \\n",
+      "\\t",
+      "\\r"
+    ]
+  },
+  "boundary whitespace combinations": {
+    "text": "\n\r\t \n  \t\r  ",
+    "splitteds": [
+      "\n\r\t \n  \t\r  "
+    ]
+  },
+  "stress test: all regex parts combined": {
+    "text": "'s'll've're 123 hello@world.com !@#$%^&*() \t\n\r 你好🌍",
+    "splitteds": [
+      "'s",
+      "'ll",
+      "'ve",
+      "'re",
+      " ",
+      "123",
+      " hello",
+      "@world",
+      ".com",
+      " !@#$%^&*()",
+      " \t\n",
+      "\r",
+      " 你好",
+      "🌍"
+    ]
+  },
+  "number patterns: floats and scientific notation": {
+    "text": "3.14 2.718e10 1E-5 .5 5. 123.456.789",
+    "splitteds": [
+      "3",
+      ".",
+      "14",
+      " ",
+      "2",
+      ".",
+      "718",
+      "e",
+      "10",
+      " ",
+      "1",
+      "E",
+      "-",
+      "5",
+      " .",
+      "5",
+      " ",
+      "5",
+      ".",
+      " ",
+      "123",
+      ".",
+      "456",
+      ".",
+      "789"
+    ]
+  },
+  "nested quotes and escapes": {
+    "text": "\"He said 'Hello \"world\"!' to me.\"",
+    "splitteds": [
+      "\"He",
+      " said",
+      " 'Hello",
+      " \"world",
+      "\"!' to",
+      " me",
+      ".\""
+    ]
+  },
+  "maximum length number sequences": {
+    "text": "999888777666555444333222111000",
+    "splitteds": [
+      "999",
+      "888",
+      "777",
+      "666",
+      "555",
+      "444",
+      "333",
+      "222",
+      "111",
+      "000"
+    ]
+  },
+  "contractions with mixed case and punctuation": {
+    "text": "It's, can't, won't, I'd, we'll, they've, 'twas, o'clock",
+    "splitteds": [
+      "It",
+      "'s",
+      ", can",
+      "'t",
+      ", won",
+      "'t",
+      ", I",
+      "'d",
+      ", we",
+      "'ll",
+      ", they",
+      "'ve",
+      ", 'twas",
+      ", o",
+      "'clock"
+    ]
+  },
+  "url-like patterns with different protocols": {
+    "text": "http://test.com https://secure.org ftp://files.net file:///local/path",
+    "splitteds": [
+      "http",
+      "://test",
+      ".com",
+      " https",
+      "://secure",
+      ".org",
+      " ftp",
+      "://files",
+      ".net",
+      " file",
+      ":///local",
+      "/path"
+    ]
+  },
+  "mixed directional text (RTL/LTR)": {
+    "text": "English العربية עברית English again",
+    "splitteds": [
+      "English",
+      " العربية",
+      " עברית",
+      " English",
+      " again"
+    ]
+  },
+  "code with mixed brackets and operators": {
+    "text": "arr[i][j] = {x: y, z: w} && (a || b) != c",
+    "splitteds": [
+      "arr",
+      "[i",
+      "][j",
+      "] = {x",
+      ": y",
+      ", z",
+      ": w",
+      "} && (a",
+      " || b",
+      ") != c"
+    ]
+  },
+  "whitespace variations: unicode spaces": {
+    "text": "word non-breaking em-space thin-space",
+    "splitteds": [
+      "word",
+      " non",
+      "-breaking",
+      " em",
+      "-space",
+      " thin",
+      "-space"
+    ]
+  },
+  "extremely long word": {
+    "text": "supercalifragilisticexpialidocious",
+    "splitteds": [
+      "supercalifragilisticexpialidocious"
+    ]
+  },
+  "single characters from each pattern": {
+    "text": "' a 1 ! \t\n\r",
+    "splitteds": [
+      "' a",
+      " ",
+      "1",
+      " !",
+      " \t\n\r"
+    ]
+  },
+  "boundary conditions: string start/end": {
+    "text": "\n  start middle end  \t",
+    "splitteds": [
+      "\n",
+      "  start",
+      " middle",
+      " end",
+      "  \t"
+    ]
+  },
+  "html-like tags and entities": {
+    "text": "<div class=\"test\">Hello &amp; goodbye &lt;/div&gt;",
+    "splitteds": [
+      "<div",
+      " class",
+      "=\"test",
+      "\">Hello",
+      " &amp",
+      "; goodbye",
+      " &lt",
+      ";/div",
+      "&gt",
+      ";"
+    ]
+  },
+  "regex special chars as literal text": {
+    "text": "^$.*+?{}[]|()\\ ",
+    "splitteds": [
+      "^$.*+?{}[]|()\\",
+      " "
+    ]
+  },
+  "apostrophe edge cases not contractions": {
+    "text": "'hello 'world' 'test's",
+    "splitteds": [
+      "'hello",
+      " 'world",
+      "' 'test",
+      "'s"
+    ]
+  },
+  "sequential numbers with separators": {
+    "text": "1,234 567-890 123.456 789/012",
+    "splitteds": [
+      "1",
+      ",",
+      "234",
+      " ",
+      "567",
+      "-",
+      "890",
+      " ",
+      "123",
+      ".",
+      "456",
+      " ",
+      "789",
+      "/",
+      "012"
+    ]
+  },
+  "unicode control characters": {
+    "text": "text\u0001control\u0002chars\u001fhere",
+    "splitteds": [
+      "text",
+      "\u0001control",
+      "\u0002chars",
+      "\u001fhere"
+    ]
+  },
+  "mixed script numbers": {
+    "text": "123 ፩፪፫ ۱۲۳ 一二三四五",
+    "splitteds": [
+      "123",
+      " ",
+      "፩፪፫",
+      " ",
+      "۱۲۳",
+      " 一二三四五"
+    ]
+  },
+  "pathological whitespace cases": {
+    "text": " \t\n\r      ",
+    "splitteds": [
+      " \t\n\r      "
+    ]
+  },
+  "repeated apostrophe patterns": {
+    "text": "'s's's'll'll've've're're'd'd't't'm'm'S'S'D'D'M'M'T'T",
+    "splitteds": [
+      "'s",
+      "'s",
+      "'s",
+      "'ll",
+      "'ll",
+      "'ve",
+      "'ve",
+      "'re",
+      "'re",
+      "'d",
+      "'d",
+      "'t",
+      "'t",
+      "'m",
+      "'m",
+      "'S",
+      "'S",
+      "'D",
+      "'D",
+      "'M",
+      "'M",
+      "'T",
+      "'T"
+    ]
+  },
+  "numbers at 1-3 digit boundaries": {
+    "text": "9 99 999 9999 1000 100 10 1",
+    "splitteds": [
+      "9",
+      " ",
+      "99",
+      " ",
+      "999",
+      " ",
+      "999",
+      "9",
+      " ",
+      "100",
+      "0",
+      " ",
+      "100",
+      " ",
+      "10",
+      " ",
+      "1"
+    ]
+  },
+  "letter-number boundaries": {
+    "text": "a1 1a ab12 12ab abc123 123abc",
+    "splitteds": [
+      "a",
+      "1",
+      " ",
+      "1",
+      "a",
+      " ab",
+      "12",
+      " ",
+      "12",
+      "ab",
+      " abc",
+      "123",
+      " ",
+      "123",
+      "abc"
+    ]
+  },
+  "unicode category edge cases": {
+    "text": "𝕒𝔟𝑐 𝟭𝟮𝟯 🄰🄱🄲",
+    "splitteds": [
+      "𝕒𝔟𝑐",
+      " ",
+      "𝟭𝟮𝟯",
+      " 🄰🄱🄲"
+    ]
+  },
+  "punctuation clusters with whitespace": {
+    "text": "!!! \t\n ??? \r\n ... ",
+    "splitteds": [
+      "!!!",
+      " \t\n",
+      " ???",
+      " \r",
+      "\n",
+      " ...",
+      " "
+    ]
+  },
+  "string ending variations": {
+    "text": "text\n",
+    "splitteds": [
+      "text",
+      "\n"
+    ]
+  },
+  "only newlines": {
+    "text": "\n\r\n\r",
+    "splitteds": [
+      "\n\r\n\r"
+    ]
+  },
+  "mixed apostrophe and quotation marks": {
+    "text": "\"can't\" 'won't' `don't`",
+    "splitteds": [
+      "\"can",
+      "'t",
+      "\" 'won",
+      "'t",
+      "' `don",
+      "'t",
+      "`"
+    ]
+  },
+  "very long number sequence beyond 3 digits": {
+    "text": "1234567890123456789",
+    "splitteds": [
+      "123",
+      "456",
+      "789",
+      "012",
+      "345",
+      "678",
+      "9"
+    ]
+  },
+  "unicode punctuation and symbols": {
+    "text": "¡¿¡¿ «»«» ''‚„‚„",
+    "splitteds": [
+      "¡¿¡¿",
+      " «»«»",
+      " ''‚„‚„"
+    ]
+  },
+  "letters followed by numbers without space": {
+    "text": "word123 test456 abc789",
+    "splitteds": [
+      "word",
+      "123",
+      " test",
+      "456",
+      " abc",
+      "789"
+    ]
+  },
+  "complex punctuation sequences": {
+    "text": "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+    "splitteds": [
+      "!@#$%^&*()_+-=[]{}|;':\",./<>?"
+    ]
+  },
+  "whitespace at string boundaries": {
+    "text": " start  end ",
+    "splitteds": [
+      " start",
+      "  end",
+      " "
+    ]
+  },
+  "CJK ideographs mixed with other scripts": {
+    "text": "漢字abc한글def مرحباghi",
+    "splitteds": [
+      "漢字abc한글def",
+      " مرحباghi"
+    ]
+  }
+}
