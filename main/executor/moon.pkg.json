@@ -1,0 +1,11 @@
+{
+  "import": [
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/openai",
+    "moonbitlang/async",
+    "moonbitlang/async/io",
+    "moonbitlang/maria",
+    "moonbitlang/maria/tool"
+  ]
+}
