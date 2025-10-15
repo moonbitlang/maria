@@ -207,6 +207,30 @@ test "json-like structure" {
 }
 
 ///|
+test "json with indent=2" {
+  let result = [
+    "{\n", " ", " \"", "type", "\":", " \"", "object", "\",\n", " ", " \"", "properties",
+    "\":", " {\n", "   ", " \"", "path", "\":", " {\n", "     ", " \"", "type", "\":",
+    " \"", "string", "\",\n", "     ", " \"", "description", "\":", " \"", "The",
+    " directory", " path", " to", " list", " files", " from", "\"\n", "   ", " }\n",
+    " ", " },\n", " ", " \"", "required", "\":", " [\n", "   ", " \"", "path", "\"\n",
+    " ", " ]\n", "}",
+  ]
+  let input : Json = {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The directory path to list files from",
+      },
+    },
+    "required": ["path"],
+  }
+  let input = input.stringify(indent=2)
+  @json.inspect(cl100k_base_tokenize_all(input), content=result.to_json())
+}
+
+///|
 test "empty and whitespace-only strings" {
   let input = ""
   let result = cl100k_base_tokenize_all(input)

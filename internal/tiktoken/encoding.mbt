@@ -4,15 +4,31 @@ struct Encoding {
   decoder : Map[Int, Bytes]
   special_encoder : Map[String, Int]
   special_decoder : Map[Int, Bytes]
-  regex : @pcre2.Code
+  pattern : Pattern
+}
+
+///|
+pub enum Pattern {
+  Cl100kBase
+  Pcre2(@pcre2.Code)
+}
+
+///|
+pub fn Pattern::cl100k_base() -> Pattern {
+  Cl100kBase
+}
+
+///|
+pub fn Pattern::pcre2(pat_str : String) -> Pattern raise {
+  Pcre2(@pcre2.compile(pat_str))
 }
 
 ///|
 pub fn Encoding::new(
   mergeable_ranks~ : Map[Bytes, Int],
   special_tokens~ : Map[String, Int],
-  pat_str~ : String,
-) -> Encoding raise {
+  pattern~ : Pattern,
+) -> Encoding {
   let encoder : Map[Bytes, Int] = {}
   let decoder = {}
   for piece, rank in mergeable_ranks {
@@ -25,8 +41,7 @@ pub fn Encoding::new(
     special_encoder[token] = rank
     special_decoder[rank] = @encoding/utf8.encode(token)
   }
-  let regex = @pcre2.compile(pat_str)
-  Encoding::{ encoder, decoder, special_encoder, special_decoder, regex }
+  Encoding::{ encoder, decoder, special_encoder, special_decoder, pattern }
 }
 
 ///|
@@ -99,14 +114,29 @@ pub fn Encoding::encode(
   piece : StringView,
 ) -> Array[Int] raise {
   let tokens = []
-  let matches = self.regex.matches(piece)
-  while matches.next() is Some(matched) {
-    let piece = @encoding/utf8.encode(matched[0])
-    match self.encoder.get(piece) {
-      Some(token) => tokens.push(token)
-      None => {
-        self.lookup(piece, tokens)
-        self.merge(tokens)
+  match self.pattern {
+    Cl100kBase =>
+      for matches in cl100k_base_tokenize_all(piece) {
+        let piece = @encoding/utf8.encode(matches)
+        match self.encoder.get(piece) {
+          Some(token) => tokens.push(token)
+          None => {
+            self.lookup(piece, tokens)
+            self.merge(tokens)
+          }
+        }
+      }
+    Pcre2(regex) => {
+      let matches = regex.matches(piece)
+      while matches.next() is Some(matched) {
+        let piece = @encoding/utf8.encode(matched[0])
+        match self.encoder.get(piece) {
+          Some(token) => tokens.push(token)
+          None => {
+            self.lookup(piece, tokens)
+            self.merge(tokens)
+          }
+        }
       }
     }
   }

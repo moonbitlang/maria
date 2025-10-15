@@ -10,20 +10,7 @@ test "cl100k_base" {
 }
 
 ///|
-fn pcre2_cl100k_tokenize(string : String) -> Array[String] raise {
-  let regex = @pcre2.compile(
-    "'(?i:[sdmt]|ll|ve|re)|[^\\r\\n\\p{L}\\p{N}]?+\\p{L}++|\\p{N}{1,3}+| ?[^\\s\\p{L}\\p{N}]++[\\r\\n]*+|\\s++$|\\s*[\\r\\n]|\\s+(?!\\S)|\\s",
-  )
-  let matches = regex.matches(string)
-  let tokens = []
-  while matches.next() is Some(matched) {
-    tokens.push(matched[0].to_string())
-  }
-  tokens
-}
-
-///|
-test "cl100k_base" {
+test "cl100k_base/pcre2" (t : @test.T) {
   let parameters : Json = {
     "type": "object",
     "properties": {
@@ -34,16 +21,32 @@ test "cl100k_base" {
     },
     "required": ["path"],
   }
-  for
-    content in [
-      "list_files",
-      "List files in a directory",
-      "The directory path to list files from",
-      parameters.stringify(indent=2),
-    ] {
-    @json.inspect(
-      pcre2_cl100k_tokenize(content),
-      content=cl100k_base_tokenize_all(content).to_json(),
-    )
+  let parameters = parameters.stringify(indent=2)
+  let cl100k_base = @tiktoken.cl100k_base(pcre2=true)
+  let tokens = cl100k_base.encode(parameters)
+  for token in tokens {
+    t.writeln(token)
   }
+  t.snapshot(filename="cl100k_base_tokens.txt")
+}
+
+///|
+test "cl100k_base/illusory0x0" (t : @test.T) {
+  let parameters : Json = {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The directory path to list files from",
+      },
+    },
+    "required": ["path"],
+  }
+  let parameters = parameters.stringify(indent=2)
+  let cl100k_base = @tiktoken.cl100k_base(pcre2=false)
+  let tokens = cl100k_base.encode(parameters)
+  for token in tokens {
+    t.writeln(token)
+  }
+  t.snapshot(filename="cl100k_base_tokens.txt")
 }
