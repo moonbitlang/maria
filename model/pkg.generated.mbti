@@ -1,18 +1,49 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/model"
 
+import(
+  "moonbitlang/core/json"
+)
+
 // Values
-fn new(api_key~ : String, base_url~ : String, name~ : String, context_window~ : Int) -> Model
+fn loader(home~ : StringView, cwd~ : StringView) -> Loader
+
+fn new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Model
 
 // Errors
+pub suberror NotConfigured
 
 // Types and methods
+type Loader
+fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
+async fn Loader::load(Self) -> Unit
+
 pub struct Model {
   name : String
+  description : String?
+  model_name : String
+  model_type : Type
   api_key : String
   base_url : String
-  context_window : Int
+  safe_zone_tokens : Int
+  supports_anthropic_prompt_caching : Bool
 }
+fn Model::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Model::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Model
+impl @json.FromJson for Model
+
+pub(all) enum Provider {
+  OpenAI
+}
+
+pub(all) enum Type {
+  SaaS(Provider)
+}
+fn Type::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Type::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Type
+impl @json.FromJson for Type
 
 // Type aliases
 

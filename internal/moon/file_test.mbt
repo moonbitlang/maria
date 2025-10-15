@@ -24,7 +24,7 @@ async test "replace-segment" (t : @test.T) {
     let segments = file.segments()
     @json.inspect(taco.json(segments), content=[
       {
-        "file": "./example.mbt",
+        "file": "(mock:cwd)/example.mbt",
         "index": 1,
         "content": "///|\nlet x : Int = 42",
       },

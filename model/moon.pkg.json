@@ -1,1 +1,10 @@
-{}
+{
+  "import": [
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/fs"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/async"
+  ]
+}

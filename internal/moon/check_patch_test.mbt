@@ -36,7 +36,7 @@ async test "check_patch" (t : @test.T) {
                 "level": "Warning",
                 "loc": {
                   "end": { "col": 6, "line": 2 },
-                  "path": "./example.mbt",
+                  "path": "(mock:cwd)/example.mbt",
                   "start": { "col": 5, "line": 2 },
                 },
                 "message": "Warning: Unused variable 'x'",
@@ -46,7 +46,7 @@ async test "check_patch" (t : @test.T) {
                 "level": "Error",
                 "loc": {
                   "end": { "col": 23, "line": 2 },
-                  "path": "./example.mbt",
+                  "path": "(mock:cwd)/example.mbt",
                   "start": { "col": 15, "line": 2 },
                 },
                 "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
@@ -60,7 +60,7 @@ async test "check_patch" (t : @test.T) {
             "level": "Warning",
             "loc": {
               "end": { "col": 6, "line": 2 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 5, "line": 2 },
             },
             "message": "Warning: Unused variable 'x'",
@@ -70,7 +70,7 @@ async test "check_patch" (t : @test.T) {
             "level": "Error",
             "loc": {
               "end": { "col": 23, "line": 2 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 15, "line": 2 },
             },
             "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
@@ -82,7 +82,7 @@ async test "check_patch" (t : @test.T) {
     let segments = file.segments()
     @json.inspect(taco.json(segments), content=[
       {
-        "file": "./example.mbt",
+        "file": "(mock:cwd)/example.mbt",
         "index": 1,
         "content": "///|\nlet x : Int = \"string\"",
       },
@@ -96,7 +96,7 @@ async test "check_patch" (t : @test.T) {
           "level": "Error",
           "loc": {
             "end": { "col": 21, "line": 2 },
-            "path": "./example.mbt",
+            "path": "(mock:cwd)/example.mbt",
             "start": { "col": 18, "line": 2 },
           },
           "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",

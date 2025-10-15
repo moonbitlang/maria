@@ -259,7 +259,9 @@ pub async fn new(
     queue: [],
     event_target: @event.Target::new(),
     token_counter: @token.Counter::new(),
-    context_pruner: @context.Pruner::new(safe_zone_tokens=model.context_window),
+    context_pruner: @context.Pruner::new(
+      safe_zone_tokens=model.safe_zone_tokens,
+    ),
     session_manager,
   }
   agent

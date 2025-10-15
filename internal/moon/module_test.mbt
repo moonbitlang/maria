@@ -33,7 +33,7 @@ async test "files" (t : @test.T) {
                 "level": "Warning",
                 "loc": {
                   "end": { "col": 6, "line": 2 },
-                  "path": "./example.mbt",
+                  "path": "(mock:cwd)/example.mbt",
                   "start": { "col": 5, "line": 2 },
                 },
                 "message": "Warning: Unused variable 'x'",
@@ -47,7 +47,7 @@ async test "files" (t : @test.T) {
             "level": "Warning",
             "loc": {
               "end": { "col": 6, "line": 2 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 5, "line": 2 },
             },
             "message": "Warning: Unused variable 'x'",
@@ -62,7 +62,7 @@ async test "files" (t : @test.T) {
     @json.inspect(taco.json(segments), content=[
       [
         {
-          "file": "./example.mbt",
+          "file": "(mock:cwd)/example.mbt",
           "index": 1,
           "content": "///|\nlet x : Int = 42",
         },
@@ -85,9 +85,9 @@ async test "interface" (t : @test.T) {
     @json.inspect(taco.json(pkg), content=[
       {
         "name": "example",
-        "path": ".",
+        "path": "(mock:cwd)",
         "files": {
-          "./example.mbt": {
+          "(mock:cwd)/example.mbt": {
             "content": "let x : Int = 42",
             "header": { "start": 0, "end": 1, "diagnostics": [] },
             "segments": [],

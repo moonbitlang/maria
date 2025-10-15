@@ -29,7 +29,7 @@ async test "check_moonbit_project" (t : @test.T) {
             "level": "Warning",
             "loc": {
               "end": { "col": 6, "line": 2 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 5, "line": 2 },
             },
             "message": "Warning: Unused variable 'x'",
@@ -39,7 +39,7 @@ async test "check_moonbit_project" (t : @test.T) {
             "level": "Error",
             "loc": {
               "end": { "col": 23, "line": 2 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 15, "line": 2 },
             },
             "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
@@ -84,7 +84,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
             "level": "Warning",
             "loc": {
               "end": { "col": 6, "line": 1 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 5, "line": 1 },
             },
             "message": "Warning: Unused variable 'y'",
@@ -94,7 +94,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
             "level": "Error",
             "loc": {
               "end": { "col": 20, "line": 1 },
-              "path": "./example.mbt",
+              "path": "(mock:cwd)/example.mbt",
               "start": { "col": 18, "line": 1 },
             },
             "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",

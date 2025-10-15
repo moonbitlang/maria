@@ -119,7 +119,7 @@ async test "write_to_file/agentic" (t : @test.T) {
       api_key~,
       base_url="https://openrouter.ai/api/v1",
       name="anthropic/claude-sonnet-4",
-      context_window=200000,
+      safe_zone_tokens=200000,
     )
     let agent = @agent.new(model, cwd=taco.cwd.path())
     agent.add_listener(PostToolCall, (event : @agent.EventContext) => taco.logger.info(

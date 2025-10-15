@@ -5,10 +5,10 @@ async test "make_directory" (t : @test.T) {
     let dir_b = @path.join(dir_a, "b")
     @this.make_directory(dir_b, recursive=true)
     @json.inspect(taco.json(@this.list_directory(taco.cwd.path())), content=[
-      { "path": "./a", "name": "a", "kind": "Directory" },
+      { "path": "(mock:cwd)/a", "name": "a", "kind": "Directory" },
     ])
     @json.inspect(taco.json(@this.list_directory(dir_a)), content=[
-      { "path": "./a/b", "name": "b", "kind": "Directory" },
+      { "path": "(mock:cwd)/a/b", "name": "b", "kind": "Directory" },
     ])
   })
 }

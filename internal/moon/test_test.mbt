@@ -32,10 +32,10 @@ async test "test" (t : @test.T) {
         "message": [
           "ExpectFailed",
           {
-            "loc": "./test.mbt:4:3-4:30",
+            "loc": "(mock:cwd)/test.mbt:4:3-4:30",
             "args_loc": [
-              ["./test.mbt:4:17-4:18"],
-              ["./test.mbt:4:28-4:29"],
+              ["(mock:cwd)/test.mbt:4:17-4:18"],
+              ["(mock:cwd)/test.mbt:4:28-4:29"],
               null,
               null,
             ],
@@ -50,7 +50,7 @@ async test "test" (t : @test.T) {
         "filename": "test.mbt",
         "index": 1,
         "test_name": "eq",
-        "message": ["String", "./test.mbt:9:3-9:22 FAILED: `2 != 3`"],
+        "message": ["String", "(mock:cwd)/test.mbt:9:3-9:22 FAILED: `2 != 3`"],
       },
     ])
   })
