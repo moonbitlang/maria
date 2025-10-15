@@ -26,7 +26,7 @@ pub struct Context {
   clock : &@clock.Clock
   rand : @random.Rand
   uuid : @uuid.Generator
-  // private fields
+  filter : Filter
 }
 async fn Context::add_directory(Self, String) -> Directory
 async fn Context::add_file(Self, String, content? : String) -> File
@@ -49,6 +49,8 @@ type File
 fn File::path(Self) -> String
 async fn File::read(Self) -> String
 async fn File::write(Self, String) -> Unit
+
+type Filter
 
 // Type aliases
 
