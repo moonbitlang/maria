@@ -12,7 +12,7 @@
       "path": "moonbitlang/maria/internal/fs",
       "alias": "this"
     },
-    "moonbitlang/maria/internal/taco"
+    "moonbitlang/maria/internal/mock"
   ],
   "native-stub": ["stat.c", "mkdtemp.c"]
 }

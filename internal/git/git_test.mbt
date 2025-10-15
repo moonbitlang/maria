@@ -1,8 +1,8 @@
 ///|
 async test "clone" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     @git.clone("https://github.com/moonbitlang/maria.git", to=taco.cwd.path())
-    let entries = taco.cwd.list().map((entry : @taco.Entry) => entry.name())
+    let entries = taco.cwd.list().map((entry : @mock.Entry) => entry.name())
     @json.inspect(entries.contains("moon.mod.json"), content=true)
   })
 }
@@ -10,7 +10,7 @@ async test "clone" (t : @test.T) {
 ///|
 async test "commit" (t : @test.T) {
   if @os.getenv("CI") is None {
-    @taco.run(t, taco => {
+    @mock.run(t, taco => {
       @git.init_(taco.cwd.path())
       let _ = taco.add_file("file.txt", content="Hello, Moonbit!")
       @git.commit("Initial commit", ["file.txt"], cwd=taco.cwd.path())

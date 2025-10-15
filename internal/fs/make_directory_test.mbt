@@ -1,6 +1,6 @@
 ///|
 async test "make_directory" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let dir_a = @path.join(taco.cwd.path(), "a")
     let dir_b = @path.join(dir_a, "b")
     @this.make_directory(dir_b, recursive=true)

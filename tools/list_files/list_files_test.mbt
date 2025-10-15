@@ -1,6 +1,6 @@
 ///|
 async test "list_files" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("moon.pkg.json", content="{}")
     let _ = taco.add_file("tool.mbt", content="// tool")
