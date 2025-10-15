@@ -9,7 +9,7 @@
     "moonbitlang/maria/clock"
   ],
   "test-import": [
-    "moonbitlang/maria/internal/taco",
+    "moonbitlang/maria/internal/mock",
     "moonbitlang/async"
   ]
 }

@@ -6,7 +6,7 @@
     "moonbitlang/maria/file"
   ],
   "test-import": [
-    "moonbitlang/maria/internal/taco",
+    "moonbitlang/maria/internal/mock",
     "moonbitlang/async"
   ]
 }

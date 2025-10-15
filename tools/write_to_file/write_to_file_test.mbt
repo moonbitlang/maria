@@ -1,6 +1,6 @@
 ///|
 async test "write_to_file/create" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = @write_to_file.write_to_file.call(args, manager)
@@ -19,7 +19,7 @@ async test "write_to_file/create" (t : @test.T) {
 
 ///|
 async test "write_to_file/replace" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
     @json.inspect(@read_file.read_file.call({ "path": "file.txt" }, manager), content={
@@ -51,7 +51,7 @@ async test "write_to_file/replace" (t : @test.T) {
 
 ///|
 async test "write_to_file/fail-to-match" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
     let args : Json = {
@@ -71,7 +71,7 @@ async test "write_to_file/fail-to-match" (t : @test.T) {
 
 ///|
 async test "write_to_file/search-replace" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
       "file.txt",
@@ -103,7 +103,7 @@ async test "write_to_file/search-replace" (t : @test.T) {
 
 ///|
 async test "write_to_file/agentic" (t : @test.T) {
-  @taco.run(timeout=60_000, t, taco => {
+  @mock.run(timeout=60_000, t, taco => {
     guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
     let manager = @file.manager(cwd=taco.cwd.path())
     let file = taco.add_file(

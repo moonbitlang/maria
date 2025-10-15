@@ -75,7 +75,7 @@ priv trait Filter {
 impl Filter for String with filter(self : Context, value : String) -> String {
   value
   .replace_all(old=self.cwd.path(), new=".")
-  .replace_all(old=self.file.to_string(), new="(taco:file)")
+  .replace_all(old=self.file.to_string(), new="(mock:file)")
 }
 
 ///|

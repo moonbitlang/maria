@@ -1,6 +1,6 @@
 ///|
 async test "append_to_file" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     @fs.write_to_file(
       @path.join(taco.cwd.path(), "file.txt"),
       "Line 1\nLine 2\n",

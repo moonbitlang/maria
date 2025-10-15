@@ -1,6 +1,6 @@
 ///|
 async test "nonexistent" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let result = @read_file.read_file.call(args, manager)
@@ -16,7 +16,7 @@ async test "nonexistent" (t : @test.T) {
 
 ///|
 async test "content" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
       "test.txt",
@@ -50,7 +50,7 @@ async test "content" (t : @test.T) {
 
 ///|
 async test "line_range" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
       "lines.txt",
@@ -84,7 +84,7 @@ async test "line_range" (t : @test.T) {
 
 ///|
 async test "directory" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file1.txt", content="content1")
     let _ = taco.add_file("file2.txt", content="content2")
@@ -112,7 +112,7 @@ async test "directory" (t : @test.T) {
 
 ///|
 async test "invalid-range" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
       "test.txt",

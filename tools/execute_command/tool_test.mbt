@@ -14,7 +14,7 @@ async test "timeout" {
 
 ///|
 async test "cat" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },
@@ -33,7 +33,7 @@ async test "cat" (t : @test.T) {
 
 ///|
 async test "output-overflow" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let lines = []
     for i = 0; i < 100; i = i + 1 {
       lines.push("hello")
@@ -68,7 +68,7 @@ async test "output-overflow" (t : @test.T) {
 
 ///|
 async test "cd" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
     let result = @execute_command.execute_command.call(
       { "command": "cat file.txt", "timeout": 5000 },

@@ -1,6 +1,6 @@
 ///|
 async test "files" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
       content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
@@ -73,7 +73,7 @@ async test "files" (t : @test.T) {
 
 ///|
 async test "interface" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
       content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),

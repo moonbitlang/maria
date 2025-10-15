@@ -1,6 +1,6 @@
 ///|
 async test "list_directory" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let _ = taco.add_file("file1.txt", content="content1")
     let _ = taco.add_file("file2.txt", content="content2")
     let subdir = taco.add_directory("subdir")

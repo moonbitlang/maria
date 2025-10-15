@@ -1,8 +1,8 @@
 ///|
 async test "Loader::load" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     let home = taco.cwd
-    @taco.with_home(home, () => {
+    @mock.with_home(home, () => {
       let home_rules = home.add_directory(".moonagent").add_directory("rules")
       let _ = home_rules.add_file(
         "a.md",

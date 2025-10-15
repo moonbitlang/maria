@@ -1,6 +1,6 @@
 ///|
 async test "check_moonbit_project" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     @fs.write_to_file(
       @path.join(taco.cwd.path(), "moon.mod.json"),
       { "name": "example", "version": "0.1.0" }.to_json().stringify(),
@@ -53,7 +53,7 @@ async test "check_moonbit_project" (t : @test.T) {
 
 ///|
 async test "check_moonbit_project/patch-insert" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     @fs.write_to_file(
       @path.join(taco.cwd.path(), "moon.mod.json"),
       { "name": "example", "version": "0.1.0" }.to_json().stringify(),

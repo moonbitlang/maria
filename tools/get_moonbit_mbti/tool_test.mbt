@@ -1,6 +1,6 @@
 ///|
 async test "get_moonbit_mbti" (t : @test.T) {
-  @taco.run(t, taco => {
+  @mock.run(t, taco => {
     @moon.new(taco.cwd.path(), name="test_get_moonbit_mbti")
     let get_moonbit_mbti = @get_moonbit_mbti.get_moonbit_mbti
     let result = get_moonbit_mbti.call(

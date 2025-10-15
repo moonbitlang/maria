@@ -6,6 +6,6 @@
     "moonbitlang/maria/internal/path"
   ],
   "test-import": [
-    "moonbitlang/maria/internal/taco"
+    "moonbitlang/maria/internal/mock"
   ]
 }
