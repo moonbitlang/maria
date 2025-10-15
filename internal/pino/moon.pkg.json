@@ -5,6 +5,7 @@
     "moonbitlang/async/aqueue",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/spawn"
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/async"
   ]
 }
