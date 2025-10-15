@@ -4,6 +4,10 @@ package "moonbitlang/maria/internal/tiktoken"
 // Values
 fn cl100k_base() -> Encoding raise
 
+fn cl100k_base_tokenize(StringView) -> StringView?
+
+fn cl100k_base_tokenize_all(StringView) -> Array[StringView]
+
 // Errors
 type DecodingError
 fn DecodingError::output(Self, &Logger) -> Unit // from trait `Show`
