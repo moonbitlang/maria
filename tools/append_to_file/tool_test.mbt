@@ -14,7 +14,9 @@ async test "append_to_file" (t : @test.T) {
       args.to_json(),
       taco.cwd.path(),
     )
-    @json.inspect(taco.json(result.output), content={ "path": "./file.txt" })
+    @json.inspect(taco.json(result.output), content={
+      "path": "(mock:cwd)/file.txt",
+    })
     let final_content = @fs.read_file(@path.join(taco.cwd.path(), "file.txt"))
     @json.inspect(final_content, content="Line 1\nLine 2\n\nLine 3")
   })

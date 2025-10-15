@@ -6,9 +6,9 @@ async test "list_directory" (t : @test.T) {
     let subdir = taco.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
     @json.inspect(taco.json(@this.list_directory(taco.cwd.path())), content=[
-      { "path": "./subdir", "name": "subdir", "kind": "Directory" },
-      { "path": "./file1.txt", "name": "file1.txt", "kind": "Regular" },
-      { "path": "./file2.txt", "name": "file2.txt", "kind": "Regular" },
+      { "path": "(mock:cwd)/subdir", "name": "subdir", "kind": "Directory" },
+      { "path": "(mock:cwd)/file1.txt", "name": "file1.txt", "kind": "Regular" },
+      { "path": "(mock:cwd)/file2.txt", "name": "file2.txt", "kind": "Regular" },
     ])
   })
 }
