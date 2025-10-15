@@ -1,10 +1,6 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/os"
 
-import(
-  "moonbitlang/x/time"
-)
-
 // Values
 fn args() -> Array[String]
 
@@ -17,10 +13,6 @@ fn getenv(StringView) -> String? raise
 fn gethostname() -> String raise
 
 fn home() -> String raise
-
-fn now() -> @time.ZonedDateTime raise
-
-fn now_ms() -> Int64
 
 fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
 

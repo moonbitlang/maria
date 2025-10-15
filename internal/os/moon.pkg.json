@@ -1,6 +1,5 @@
 {
   "import": [
-    "moonbitlang/x/time",
     "moonbitlang/maria/internal/errno",
     "moonbitlang/maria/internal/c"
   ],

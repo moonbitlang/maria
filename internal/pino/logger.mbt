@@ -40,7 +40,7 @@ pub fn Logger::log(
   } catch {
     _ => ()
   }
-  let time_ms = @os.now_ms()
+  let time_ms = @async.now()
   object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
   if self.tag != "" {
     object["tag"] = self.tag.to_json()
