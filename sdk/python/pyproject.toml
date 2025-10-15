@@ -3,7 +3,7 @@ requires = ["hatchling>=1.22"]
 build-backend = "hatchling.build"
 
 [project]
-name = "maria-python"
+name = "maria"
 version = "0.1.0"
 description = "Python bindings for the Maria agent executable."
 readme = "README.md"
@@ -16,15 +16,19 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
 ]
+dependencies = [
+    "openai>=2.3.0",
+    "pytest>=8.4.2",
+]
 
 [project.urls]
 Homepage = "https://github.com/moonbitlang/maria"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/maria_python"]
+packages = ["src/maria"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/maria_python/bin/sdk.exe" = "maria_python/bin/sdk.exe"
+"src/maria/bin/sdk.exe" = "maria/bin/sdk.exe"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/maria_python", "README.md", "LICENSE"]
+include = ["src/maria", "README.md", "LICENSE"]

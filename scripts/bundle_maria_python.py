@@ -12,7 +12,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE = REPO_ROOT / "target/native/release/build/sdk/sdk.exe"
-DESTINATION = REPO_ROOT / "sdk/python/src/maria_python/bin/sdk.exe"
+DESTINATION = REPO_ROOT / "sdk/python/src/maria/bin/sdk.exe"
 
 
 def _ensure_executable_bits(path: Path) -> None:
