@@ -11,9 +11,6 @@ pub fn loader(home~ : StringView, cwd~ : StringView) -> Loader {
 }
 
 ///|
-pub suberror NotConfigured
-
-///|
 async fn Model::load_from_path(path : StringView) -> Array[Model] {
   let text = @fs.read_file(path)
   let json = @json.parse(text)
@@ -35,9 +32,6 @@ pub async fn Loader::load(self : Loader) -> Unit {
     |> @path.join("models.json")
   if @fs.exists(user) {
     self.models.append(Model::load_from_path(user))
-  }
-  if self.models.is_empty() {
-    raise NotConfigured
   }
 }
 

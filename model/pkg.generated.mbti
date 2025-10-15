@@ -11,7 +11,6 @@ fn loader(home~ : StringView, cwd~ : StringView) -> Loader
 fn new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Model
 
 // Errors
-pub suberror NotConfigured
 
 // Types and methods
 type Loader
