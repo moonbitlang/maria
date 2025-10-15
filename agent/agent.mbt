@@ -140,9 +140,6 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     agent.history.add_message(message)
   }
   agent.history.add_message(message.to_param())
-  if message.content is Some(content) {
-    println("\{content}")
-  }
   agent.session_manager.save(agent.history)
   message
 }
