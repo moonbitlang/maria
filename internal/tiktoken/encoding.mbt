@@ -122,7 +122,7 @@ suberror DecodingError {
 ///|
 pub fn Encoding::decode(
   self : Encoding,
-  tokens : @array.View[Int],
+  tokens : ArrayView[Int],
 ) -> String raise DecodingError {
   let buffer = @buffer.new()
   for token in tokens {

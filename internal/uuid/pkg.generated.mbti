@@ -33,6 +33,7 @@ fn Uuid::hash(Self) -> Int // from trait `Hash`
 fn Uuid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #as_free_fn
 fn Uuid::of_bytes(Bytes) -> Self
+#deprecated
 fn Uuid::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Uuid::output(Self, &Logger) -> Unit // from trait `Show`
 fn Uuid::to_bytes(Self) -> Bytes

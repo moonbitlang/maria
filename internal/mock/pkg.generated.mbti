@@ -11,7 +11,7 @@ import(
 
 // Values
 #callsite(autofill(loc))
-async fn run(@test.T, loc~ : SourceLoc, timeout? : Int, async (Context) -> Unit) -> Unit
+async fn run(@test.Test, loc~ : SourceLoc, timeout? : Int, async (Context) -> Unit) -> Unit
 
 fn[X] skip(String) -> X raise
 

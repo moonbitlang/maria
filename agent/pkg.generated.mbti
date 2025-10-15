@@ -39,6 +39,7 @@ pub(all) enum Event {
 fn Event::equal(Self, Self) -> Bool // from trait `Eq`
 fn Event::hash(Self) -> Int // from trait `Hash`
 fn Event::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#deprecated
 fn Event::op_equal(Self, Self) -> Bool // from trait `Eq`
 impl Eq for Event
 impl Hash for Event
