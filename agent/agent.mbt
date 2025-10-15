@@ -43,7 +43,6 @@ fn EventContext::new(
 
 ///|
 pub struct Agent {
-  priv logger : @pino.Logger
   rand : @random.Rand
   uuid : @uuid.Generator
   cwd : String
@@ -69,8 +68,8 @@ pub fn Agent::add_message(
 }
 
 ///|
-pub fn Agent::close(agent : Agent) -> Unit {
-  agent.logger.close()
+pub fn Agent::close(_ : Agent) -> Unit {
+
 }
 
 ///|
@@ -246,7 +245,6 @@ pub async fn new(
     @conversation.Manager::new(uuid~, cwd=path)
   }
   let agent = Agent::{
-    logger: @pino.logger("LLM", @pino.transport("file:.moonagent/log")),
     rand,
     uuid,
     history: session_manager.new_conversation(name="history"),

@@ -32,6 +32,23 @@ pub fn transport(transport : StringView) -> Transport raise {
 }
 
 ///|
+async fn mkdir(path : String) -> Unit {
+  let dirs = []
+  for dir = path.view() {
+    let dir = dir.to_string()
+    if dir == "." || dir == "" || @fs.exists(dir) {
+      break
+    }
+    dirs.push(dir)
+    continue @path.dirname(dir)
+  }
+  for i in 0..<dirs.length() {
+    let dir = dirs[dirs.length() - 1 - i]
+    @fs.mkdir(dir, permission=0o755)
+  }
+}
+
+///|
 async fn Transport::write(self : Transport, content : Json) -> Unit {
   match self {
     Console => println(content.stringify())
@@ -41,7 +58,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
         None => {
           let dir : String = [..@path.dirname(path)]
           if !@fs.exists(dir) {
-            @fs.mkdir(dir, permission=0o755)
+            mkdir(dir)
           }
           let file = if @fs.exists(path) {
             @fs.open(path, mode=WriteOnly, append=true, create=0o644)

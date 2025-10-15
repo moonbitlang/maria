@@ -1,0 +1,8 @@
+{
+  "import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/readline",
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria"
+  ]
+}
