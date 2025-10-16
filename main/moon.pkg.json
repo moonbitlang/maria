@@ -8,8 +8,6 @@
     "moonbitlang/maria/main/executor",
     "moonbitlang/maria/main/conversation",
     "moonbitlang/maria/main/interactive",
-    "moonbitlang/maria/main/argument",
-    "moonbitlang/maria/internal/tty",
-    "moonbitlang/async/pipe"
+    "moonbitlang/maria/main/argument"
   ]
 }

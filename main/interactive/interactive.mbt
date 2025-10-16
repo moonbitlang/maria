@@ -1,7 +1,7 @@
 ///|
-pub async fn interactive(prompt? : String) -> Unit {
+pub async fn interactive(prompt? : String, model? : String) -> Unit {
   @async.with_task_group(group => {
-    let maria = @maria.Maria::new()
+    let maria = @maria.Maria::new(model?)
     maria.agent.add_listener(RequestCompleted, context => {
       guard context.message is Some(message) && message.content is Some(content) else {
         return
