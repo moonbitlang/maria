@@ -157,14 +157,6 @@
       "  \r\n"
     ]
   },
-  "whitespace not followed by non-whitespace": {
-    "text": "word   end",
-    "splitteds": [
-      "word",
-      "   ",
-      "end"
-    ]
-  },
   "single whitespace characters": {
     "text": "a b\tc\nd e",
     "splitteds": [
@@ -215,15 +207,15 @@
       " main",
       "()",
       " {\n",
-      "  ",
-      "let",
+      " ",
+      " let",
       " x",
       " =",
       " ",
       "42",
       ";\n",
-      "  ",
-      "println",
+      " ",
+      " println",
       "!(\"",
       "Hello",
       ",",
@@ -283,60 +275,6 @@
       "]}"
     ]
   },
-  "json with indent=2": {
-    "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"path\": {\n      \"type\": \"string\",\n      \"description\": \"The directory path to list files from\"\n    }\n  },\n  \"required\": [\n    \"path\"\n  ]\n}",
-    "splitteds": [
-      "{\n",
-      "  ",
-      "\"type",
-      "\":",
-      " \"",
-      "object",
-      "\",\n",
-      "  ",
-      "\"",
-      "properties",
-      "\":",
-      " {\n",
-      "    ",
-      "\"path",
-      "\":",
-      " {\n",
-      "      ",
-      "\"type",
-      "\":",
-      " \"",
-      "string",
-      "\",\n",
-      "      ",
-      "\"description",
-      "\":",
-      " \"",
-      "The",
-      " directory",
-      " path",
-      " to",
-      " list",
-      " files",
-      " from",
-      "\"\n",
-      "   ",
-      " }\n",
-      " ",
-      " },\n",
-      "  ",
-      "\"",
-      "required",
-      "\":",
-      " [\n",
-      "    ",
-      "\"path",
-      "\"\n",
-      " ",
-      " ]\n",
-      "}"
-    ]
-  },
   "empty string": {
     "text": "",
     "splitteds": []
@@ -347,23 +285,6 @@
       "   ",
       "\t\n",
       "  "
-    ]
-  },
-  "mixed newline types": {
-    "text": "line1\nline2\rline3\r\nline4",
-    "splitteds": [
-      "line",
-      "1",
-      "\n",
-      "line",
-      "2",
-      "\r",
-      "line",
-      "3",
-      "\r",
-      "\n",
-      "line",
-      "4"
     ]
   },
   "consecutive punctuation": {
@@ -550,8 +471,8 @@
       "files",
       ".net",
       " file",
-      "://",
-      "/local",
+      ":///",
+      "local",
       "/path"
     ]
   },
@@ -615,8 +536,8 @@
     "text": "\n  start middle end  \t",
     "splitteds": [
       "\n",
-      "  ",
-      "start",
+      " ",
+      " start",
       " middle",
       " end",
       "  \t"
@@ -773,19 +694,6 @@
       "abc"
     ]
   },
-  "punctuation clusters with whitespace": {
-    "text": "!!! \t\n ??? \r\n ... ",
-    "splitteds": [
-      "!!!",
-      " \t\n",
-      " ???",
-      " ",
-      "\r",
-      "\n",
-      " ...",
-      " "
-    ]
-  },
   "string ending variations": {
     "text": "text\n",
     "splitteds": [
@@ -868,8 +776,102 @@
     "text": " start  end ",
     "splitteds": [
       " start",
+      " ",
+      " end",
+      " "
+    ]
+  },
+  "whitespace not followed by non-whitespace": {
+    "text": "word   end",
+    "splitteds": [
+      "word",
       "  ",
-      "end",
+      " end"
+    ]
+  },
+  "json with indent=2": {
+    "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"path\": {\n      \"type\": \"string\",\n      \"description\": \"The directory path to list files from\"\n    }\n  },\n  \"required\": [\n    \"path\"\n  ]\n}",
+    "splitteds": [
+      "{\n",
+      " ",
+      " \"",
+      "type",
+      "\":",
+      " \"",
+      "object",
+      "\",\n",
+      " ",
+      " \"",
+      "properties",
+      "\":",
+      " {\n",
+      "   ",
+      " \"",
+      "path",
+      "\":",
+      " {\n",
+      "     ",
+      " \"",
+      "type",
+      "\":",
+      " \"",
+      "string",
+      "\",\n",
+      "     ",
+      " \"",
+      "description",
+      "\":",
+      " \"",
+      "The",
+      " directory",
+      " path",
+      " to",
+      " list",
+      " files",
+      " from",
+      "\"\n",
+      "   ",
+      " }\n",
+      " ",
+      " },\n",
+      " ",
+      " \"",
+      "required",
+      "\":",
+      " [\n",
+      "   ",
+      " \"",
+      "path",
+      "\"\n",
+      " ",
+      " ]\n",
+      "}"
+    ]
+  },
+  "mixed newline types": {
+    "text": "line1\nline2\rline3\r\nline4",
+    "splitteds": [
+      "line",
+      "1",
+      "\n",
+      "line",
+      "2",
+      "\r",
+      "line",
+      "3",
+      "\r\n",
+      "line",
+      "4"
+    ]
+  },
+  "punctuation clusters with whitespace": {
+    "text": "!!! \t\n ??? \r\n ... ",
+    "splitteds": [
+      "!!!",
+      " \t\n",
+      " ???",
+      " \r\n",
+      " ...",
       " "
     ]
   }
