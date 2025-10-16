@@ -2,7 +2,7 @@
 package "moonbitlang/maria/main/executor"
 
 // Values
-async fn execute(ArrayView[String]) -> Unit
+async fn execute(prompt~ : String, model? : String) -> Unit
 
 // Errors
 

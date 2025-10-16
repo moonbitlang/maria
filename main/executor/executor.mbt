@@ -4,17 +4,17 @@ async fn @pipe.PipeWrite::writeln(self : @pipe.PipeWrite, str : String) -> Unit 
 }
 
 ///|
-pub async fn execute(args : ArrayView[String]) -> Unit {
+pub async fn execute(prompt~ : String, model? : String) -> Unit {
   try {
-    guard args is [prompt] else {
-      let error : Json = {
-        "error": { "code": -1, "message": "Invalid arguments" },
-      }
-      println(error.stringify())
-      return
-    }
-    let maria = @maria.Maria::new()
+    let maria = @maria.Maria::new(model?)
     @async.with_task_group(_ => {
+      maria.agent.add_listener(ConversationStart, _ => {
+        let response : Json = {
+          "method": "maria.agent.conversation_start",
+          "params": {},
+        }
+        @pipe.stdout.writeln(response.stringify())
+      })
       maria.agent.add_listener(RequestCompleted, context => {
         guard context.usage is Some(usage) else { return }
         guard context.message is Some(message) else { return }

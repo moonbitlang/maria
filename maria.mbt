@@ -5,7 +5,11 @@ pub(all) struct Maria {
 }
 
 ///|
-async fn load_model(home~ : String, cwd~ : String) -> @model.Model? {
+async fn load_model(
+  home~ : String,
+  cwd~ : String,
+  model? : String,
+) -> @model.Model? {
   let model_loader = @model.loader(home~, cwd~)
   let api_key : String? = if @os.getenv("OPENAI_API_KEY") is Some(key) {
     Some(key)
@@ -14,7 +18,9 @@ async fn load_model(home~ : String, cwd~ : String) -> @model.Model? {
   } else {
     None
   }
-  let name : String? = if @os.getenv("MODEL_NAME") is Some(name) {
+  let name : String? = if model is Some(model) {
+    Some(model)
+  } else if @os.getenv("MODEL_NAME") is Some(name) {
     Some(name)
   } else {
     None
@@ -28,14 +34,16 @@ pub suberror ModelNotConfigured
 
 ///|
 #as_free_fn
-pub async fn Maria::new(logger? : @pino.Logger) -> Maria {
+pub async fn Maria::new(logger? : @pino.Logger, model? : String) -> Maria {
   let logger = match logger {
     Some(logger) => logger
     None => @pino.logger("maria", try! @pino.transport("file:.moonagent/log"))
   }
   let home = @os.home()
   let cwd = @os.cwd()
-  guard load_model(home~, cwd~) is Some(model) else { raise ModelNotConfigured }
+  guard load_model(home~, cwd~, model?) is Some(model) else {
+    raise ModelNotConfigured
+  }
   let agent = @agent.new(model, cwd~)
   agent.add_listener(TokenCounted, context => {
     guard context.origin_token_count is Some(origin_token_count) else { return }
