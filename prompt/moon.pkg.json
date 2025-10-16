@@ -3,7 +3,7 @@
     {
       "input": "system-prompt/Agents.mbt.md",
       "output": "moonbit.mbt",
-      "command": "moon -C scripts/embed run . -- $input -o $output --name MoonBit --pub"
+      "command": "moon -C scripts/embed run . -- $input -o $output --name moonbit --pub"
     }
   ]
 }

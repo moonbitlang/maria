@@ -317,7 +317,7 @@ pub let todo_write : @tool.Tool[@todo.List] = @tool.tool(
 )
 
 ///|
-pub const Prompt : String =
+pub let prompt : String =
   #|# todo_write
   #|
   #|## Purpose

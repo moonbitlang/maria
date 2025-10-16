@@ -59,11 +59,8 @@ async fn main {
     agent.add_message(
       @openai.system_message(
         content=[
-          @prompt.Prelude,
-          @prompt.MoonBit,
-          @todo_read.Prompt,
-          @todo_write.Prompt,
-          @search_files.Prompt,
+          @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt,
+          @search_files.prompt,
         ].join("\n"),
       ),
     )

@@ -1,5 +1,5 @@
 ///|
-pub const Prelude : String =
+pub let prelude : String =
   #|You are a highly skilled software developer with extensive knowledge in many
   #|programming languages, frameworks, design patterns, and best practices.
   #|In particular, you are an expert in the MoonBit programming language and you are
