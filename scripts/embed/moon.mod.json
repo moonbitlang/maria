@@ -1,8 +1,0 @@
-{
-  "name": "moonbitlang/maria/embed",
-  "version": "0.0.1",
-  "deps": {
-    "moonbitlang/async": "0.8.3"
-  },
-  "preferred-target": "native"
-}
