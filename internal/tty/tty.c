@@ -10,6 +10,12 @@
 
 MOONBIT_FFI_EXPORT
 int32_t
+moonbit_maria_tty_is_a_tty(int32_t fd) {
+  return isatty(fd);
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
 moonbit_maria_tty_get_win_size(int32_t *size) {
   struct winsize ws;
   int result = ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);

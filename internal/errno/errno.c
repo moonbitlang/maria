@@ -3,8 +3,8 @@
 #include <string.h>
 
 MOONBIT_FFI_EXPORT
-int
-moonbit_maria_errno_ERANGE() {
+int32_t
+moonbit_maria_errno_ERANGE(void) {
   return ERANGE;
 }
 
@@ -15,7 +15,25 @@ moonbit_maria_errno_strerror(int errnum) {
 }
 
 MOONBIT_FFI_EXPORT
-int
-moonbit_maria_errno_ENAMETOOLONG() {
+int32_t
+moonbit_maria_errno_ENAMETOOLONG(void) {
   return ENAMETOOLONG;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_EBADF(void) {
+  return EBADF;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_ENOTTY(void) {
+  return ENOTTY;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_get(void) {
+  return errno;
 }

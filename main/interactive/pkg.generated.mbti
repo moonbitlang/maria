@@ -2,7 +2,7 @@
 package "moonbitlang/maria/main/interactive"
 
 // Values
-async fn interactive() -> Unit
+async fn interactive(prompt? : String) -> Unit
 
 // Errors
 

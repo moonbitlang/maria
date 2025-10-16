@@ -3,6 +3,8 @@
     "moonbitlang/async",
     "moonbitlang/maria/internal/readline",
     "moonbitlang/async/pipe",
-    "moonbitlang/maria"
+    "moonbitlang/maria",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/openai"
   ]
 }
