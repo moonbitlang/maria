@@ -11,18 +11,6 @@ impl Show for MissingArgument with output(
 }
 
 ///|
-priv suberror InvalidArgument String
-
-///|
-impl Show for InvalidArgument with output(
-  self : InvalidArgument,
-  logger : &Logger,
-) -> Unit {
-  let InvalidArgument(reason) = self
-  logger.write_string("Invalid argument: \{reason}")
-}
-
-///|
 priv suberror UnrecognizedArgument String
 
 ///|
@@ -40,6 +28,7 @@ struct Arguments {
   mut public : Bool
   mut source : String?
   mut destination : String?
+  mut is_const : Bool
 }
 
 ///|
@@ -52,14 +41,13 @@ async fn main {
       public: false,
       source: None,
       destination: None,
+      is_const: false,
     }
     loop args {
       ["--name", name, .. rest] => {
         arguments.name = name
-        guard name is ['A'..='Z', ..] else {
-          raise InvalidArgument(
-            "name must start with an uppercase letter, got '\{name}'",
-          )
+        if name is ['A'..='Z', ..] {
+          arguments.is_const = true
         }
         continue rest
       }
@@ -91,9 +79,15 @@ async fn main {
     let text = @fs.read_file(source).text()
     let lines = ["///|"]
     if arguments.public {
-      lines.push("pub const \{arguments.name} : String =")
-    } else {
+      if arguments.is_const {
+        lines.push("pub const \{arguments.name} : String =")
+      } else {
+        lines.push("pub let \{arguments.name} : String =")
+      }
+    } else if arguments.is_const {
       lines.push("const \{arguments.name} : String =")
+    } else {
+      lines.push("let \{arguments.name} : String =")
     }
     for line in text.split("\n") {
       lines.push("  #|\{line}")

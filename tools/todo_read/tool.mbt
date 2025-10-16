@@ -84,7 +84,7 @@ pub let todo_read : @tool.Tool[@todo.List] = @tool.tool(
 )
 
 ///|
-pub const Prompt : String =
+pub let prompt : String =
   #|# todo_read
   #|
   #|## Purpose
