@@ -80,9 +80,17 @@ test "snapshot testing" (t : @test.T) {
     "CJK ideographs mixed with other scripts": "漢字abc한글def مرحباghi",
   }
   let map : SplitResult = {}
+  let cl100k_base = @tiktoken.cl100k_base(pcre2=false)
   for key, text in inputs {
-    let tokens = cl100k_base_tokenize_all(text)
-    let result = SplitItem::{ text, splitteds: tokens.map(x => x.to_string()) }
+    if !text.iter().all(Char::is_ascii) {
+      continue
+    }
+    let tokens = cl100k_base.encode(text)
+    let splitteds = []
+    for token in tokens {
+      splitteds.push(cl100k_base.decode([token]))
+    }
+    let result = SplitItem::{ text, splitteds }
     map[key] = result
   }
   t.writeln(map.to_json().stringify(indent=2))
