@@ -5,5 +5,16 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/regexp"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/maria/file",
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/tools/write_to_file"
   ]
 }
