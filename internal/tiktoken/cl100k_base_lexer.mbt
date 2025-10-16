@@ -171,10 +171,9 @@ fn cl100k_base_tokenize_part2(
     ch != '\u{000D}' && ch != '\n' && !is_letter(ch) && !is_number(ch)
   }
 
-  let (non_letter_len, remaining_input) = loop (0, input) {
-    (len, [ch, .. rest]) if predicate(ch) =>
-      continue (len + ch.utf16_len(), rest)
-    (len, rest) => break (len, rest)
+  let (non_letter_len, remaining_input) = match input {
+    [ch, .. rest] if predicate(ch) => (ch.utf16_len(), rest)
+    rest => (0, rest)
   }
   let letter_len = loop (0, remaining_input) {
     (len, [ch, .. rest]) if is_letter(ch) =>
@@ -397,14 +396,14 @@ fn cl100k_base_tokenize_part6(
   input : StringView,
 ) -> StringView raise BackTracing {
   // \s*[\r\n] means zero or more whitespace followed by \r or \n
-  let (ws_len, rest) = loop (0, input) {
-    (len, [ch, .. rest]) if is_space(ch) && ch != '\r' && ch != '\n' =>
+  let ws_len = loop (0, input) {
+    (len, [ch, .. rest]) if is_space(ch) =>
       continue (len + ch.utf16_len(), rest)
-    (len, rest) => break (len, rest)
+    (len, _) => break len
   }
-  match rest {
-    [ch, ..] if ch == '\r' || ch == '\n' =>
-      try! input[0:ws_len + ch.utf16_len()]
+  let last_ch = input.get_char(ws_len - 1)
+  match last_ch {
+    Some(ch) if ch == '\n' || ch == '\r' => try! input[0:ws_len]
     _ => raise BackTracing
   }
 }
@@ -444,24 +443,15 @@ fn cl100k_base_tokenize_part6(
 fn cl100k_base_tokenize_part7(
   input : StringView,
 ) -> StringView raise BackTracing {
-  // \s+(?!\S) means one or more whitespace NOT followed by non-whitespace
-  // This matches whitespace at end of string or before more whitespace
   let len = loop (0, input) {
-    (len, [ch, .. rest]) if is_space(ch) =>
-      continue (len + ch.utf16_len(), rest)
+    (len, [ch, lookahead, ..] as all) if is_space(ch) && is_space(lookahead) =>
+      continue (len + ch.utf16_len(), try! all[ch.utf16_len():])
     (len, _) => break len
   }
   if len == 0 {
     raise BackTracing
-  }
-
-  // Check negative lookahead: (?!\S) means not followed by non-whitespace
-  // This means either at end of string or followed by whitespace
-  let remaining = try! input[len:]
-  match remaining {
-    [] => try! input[0:len] // at end of string
-    [ch, ..] if is_space(ch) => try! input[0:len] // followed by whitespace
-    _ => raise BackTracing // followed by non-whitespace, no match
+  } else {
+    try! input[0:len]
   }
 }
 
@@ -503,9 +493,9 @@ pub fn cl100k_base_tokenize(input : StringView) -> StringView? {
 /// if error then use `Panic Mode` to skip one character and continue
 /// until the entire string is processed
 ///
-pub fn cl100k_base_tokenize_all(s : StringView) -> Array[StringView] {
+pub fn cl100k_base_tokenize_all(input : StringView) -> Array[StringView] {
   let tokens : Array[StringView] = []
-  let mut remaining = s
+  let mut remaining = input
   while remaining.length() > 0 {
     match cl100k_base_tokenize(remaining) {
       Some(token) => {
@@ -516,7 +506,7 @@ pub fn cl100k_base_tokenize_all(s : StringView) -> Array[StringView] {
       None =>
         match remaining.get_char(0) {
           None => abort("impossible, unexpected Unicode error")
-          Some(ch) => tokens.push(try! remaining[0:ch.utf16_len()])
+          Some(ch) => remaining = try! remaining[ch.utf16_len():]
         }
     }
   }
