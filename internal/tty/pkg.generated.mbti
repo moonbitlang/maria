@@ -2,6 +2,9 @@
 package "moonbitlang/maria/internal/tty"
 
 // Values
+#callsite(autofill(loc))
+fn isatty(Int, loc~ : SourceLoc) -> Bool raise
+
 fn set_raw_mode(Int) -> Unit raise
 
 fn window_size() -> Size raise

@@ -1,4 +1,24 @@
 ///|
+extern "c" fn tty_is_a_tty(fd : Int) -> Int = "moonbit_maria_tty_is_a_tty"
+
+///|
+#callsite(autofill(loc))
+pub fn isatty(fd : Int, loc~ : SourceLoc) -> Bool raise {
+  let result = tty_is_a_tty(fd)
+  if result == 0 {
+    let errno = @errno.get()
+    if errno == @errno.ebadf {
+      abort("\{loc}: Not a valid file descriptor: \{fd}")
+    } else if errno == @errno.enotty {
+      return false
+    } else {
+      raise @errno.Errno(errno)
+    }
+  }
+  return true
+}
+
+///|
 #borrow(size)
 extern "c" fn tty_get_win_size(size : FixedArray[Int]) -> Int = "moonbit_maria_tty_get_win_size"
 

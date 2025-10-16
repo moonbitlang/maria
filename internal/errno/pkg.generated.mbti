@@ -2,9 +2,15 @@
 package "moonbitlang/maria/internal/errno"
 
 // Values
+let ebadf : Int
+
 let enametoolong : Int
 
+let enotty : Int
+
 let erange : Int
+
+fn get() -> Int
 
 // Errors
 pub(all) suberror Errno Int

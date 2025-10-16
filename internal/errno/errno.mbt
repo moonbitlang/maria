@@ -37,3 +37,23 @@ pub impl Show for Errno with output(self : Errno, logger : &Logger) -> Unit {
 pub impl ToJson for Errno with to_json(self : Errno) -> Json {
   self.to_string().to_json()
 }
+
+///|
+extern "c" fn errno_EBADF() -> Int = "moonbit_maria_errno_EBADF"
+
+///|
+pub let ebadf : Int = errno_EBADF()
+
+///|
+extern "c" fn errno_ENOTTY() -> Int = "moonbit_maria_errno_ENOTTY"
+
+///|
+pub let enotty : Int = errno_ENOTTY()
+
+///|
+extern "c" fn errno_get() -> Int = "moonbit_maria_errno_get"
+
+///|
+pub fn get() -> Int {
+  errno_get()
+}
