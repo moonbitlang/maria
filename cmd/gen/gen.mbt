@@ -97,5 +97,8 @@ pub async fn gen(input : StringView) -> Unit {
     ),
   )
   agent.add_message(@openai.user_message(content=input))
-  agent.start()
+  @async.with_task_group(group => {
+    group.spawn_bg(() => logger.start())
+    agent.start()
+  })
 }
