@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/uuid"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/core/random"
 )
 
@@ -29,6 +30,7 @@ fn Generator::v4(Self) -> Uuid raise
 type Uuid
 fn Uuid::compare(Self, Self) -> Int // from trait `Compare`
 fn Uuid::equal(Self, Self) -> Bool // from trait `Eq`
+fn Uuid::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn Uuid::hash(Self) -> Int // from trait `Hash`
 fn Uuid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #as_free_fn
@@ -46,6 +48,7 @@ impl Eq for Uuid
 impl Hash for Uuid
 impl Show for Uuid
 impl ToJson for Uuid
+impl @json.FromJson for Uuid
 
 pub enum Variant {
   ReservedNCS

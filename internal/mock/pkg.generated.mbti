@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/mock"
 
 import(
+  "moonbitlang/async"
   "moonbitlang/core/random"
   "moonbitlang/core/test"
   "moonbitlang/maria/clock"
@@ -27,6 +28,7 @@ pub struct Context {
   rand : @random.Rand
   uuid : @uuid.Generator
   filter : Filter
+  group : @async.TaskGroup[Unit]
 }
 async fn Context::add_directory(Self, String) -> Directory
 async fn Context::add_file(Self, String, content? : String) -> File

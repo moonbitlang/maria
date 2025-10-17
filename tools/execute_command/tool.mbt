@@ -4,28 +4,20 @@ priv suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-struct Context {
-  cwd : String
-}
+pub(all) enum CommandResult {
+  Foreground(
+    command~ : String,
+    status~ : Int,
+    output~ : String,
+    truncated~ : Bool,
+    total_lines~ : Int,
+    timeout~ : Int
+  )
+  Background(command~ : String, pid~ : @spawn.Pid)
+} derive(@json.FromJson, ToJson)
 
 ///|
-pub fn context(cwd~ : String) -> Context {
-  Context::{ cwd, }
-}
-
-///|
-/// Command execution result structure for structured JSON output
-pub(all) struct CommandResult {
-  command : String
-  exit_code : Int
-  output : String
-  truncated : Bool
-  total_lines : Int
-  timeout_ms : Int
-} derive(ToJson, FromJson)
-
-///|
-pub let execute_command : @tool.Tool[Context] = @tool.tool(
+pub let execute_command : @tool.Tool[@spawn.Manager] = @tool.tool(
   description="Execute an shell command with arguments and capture its output.",
   name="execute_command",
   parameters={
@@ -37,7 +29,7 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
       },
       "timeout": {
         "type": "number",
-        "description": "The timeout in milliseconds for the shell command to execute",
+        "description": "The timeout in milliseconds for the shell command to execute. This field is required if the command is executed in foreground (background=false).",
         "default": 1000,
       },
       "max_output_lines": {
@@ -45,15 +37,28 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
         "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated and saved to a file.",
         "default": 100,
       },
+      "background": {
+        "type": "boolean",
+        "description": "Whether to run the command in the background (non-blocking). If true, the tool will return immediately after starting the command.",
+        "default": false,
+      },
     },
-    "required": ["command", "timeout"],
+    "required": ["command"],
   },
   (args, ctx) => {
-    guard args
-      is { "command": String(command), "timeout": Number(timeout, ..), .. } else {
-      return @tool.error(
-        "Error: 'command' and 'timeout' parameters are required",
-      )
+    guard args is { "command": String(command), .. } else {
+      return @tool.error("Error: 'command' parameters is required")
+    }
+    let timeout = if args is { "timeout": timeout, .. } {
+      guard timeout.as_number() is Some(timeout) else {
+        return @tool.error("'timeout' must be a number")
+      }
+      if timeout <= 0 {
+        return @tool.error("'timeout' must be a positive integer")
+      }
+      Some(timeout)
+    } else {
+      None
     }
     let max_output_lines = if args
       is { "max_output_lines": Number(max_output_lines, ..), .. } {
@@ -74,40 +79,59 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     } else {
       ctx.cwd
     }
-    let timeout = timeout.to_int()
+    let background = if args is { "background": background, .. } {
+      guard background.as_bool() is Some(background) else {
+        return @tool.error("'background' must be a boolean")
+      }
+      background
+    } else {
+      false
+    }
     try {
-      let result = @async.with_timeout_opt(timeout, () => {
-        let output = StringBuilder::new()
-        let status = @spawn.spawn(
-          "sh",
-          ["-c", command],
-          stdout=output,
-          stderr=output,
-          cwd=working_directory,
-        )
-        let output_text = output.to_string()
-        let lines = output_text.split("\n").collect()
-        let (final_output, truncated) = if lines.length() >= max_output_lines {
-          let truncated_output = lines[:max_output_lines].join("\n")
-          (truncated_output, true)
-        } else {
-          (output_text, false)
+      if background {
+        let process = ctx.spawn("sh", ["-c", command])
+        @tool.ok(CommandResult::Background(command~, pid=process.pid).to_json())
+      } else {
+        guard timeout is Some(timeout) else {
+          return @tool.error(
+            "'timeout' parameter is required when 'background' is false or not set, i.e. running in foreground",
+          )
         }
-        let result = CommandResult::{
-          command,
-          exit_code: status,
-          output: final_output,
-          truncated,
-          total_lines: lines.length(),
-          timeout_ms: timeout,
-        }
-        return @tool.ok(result.to_json())
-      })
-      match result {
-        Some(result) => result
-        None => {
-          let error = TimeoutError(command~, timeout~)
-          @tool.error("Timeout when executing command", error~)
+        let timeout = timeout.to_int()
+        let result = @async.with_timeout_opt(timeout, () => {
+          let output = StringBuilder::new()
+          let status = @spawn.spawn(
+            "sh",
+            ["-c", command],
+            stdout=output,
+            stderr=output,
+            cwd=working_directory,
+          )
+          let output_text = output.to_string()
+          let lines = output_text.split("\n").collect()
+          let (final_output, truncated) = if lines.length() >= max_output_lines {
+            let truncated_output = lines[:max_output_lines].join("\n")
+            (truncated_output, true)
+          } else {
+            (output_text, false)
+          }
+          return @tool.ok(
+            CommandResult::Foreground(
+              command~,
+              status~,
+              output=final_output,
+              truncated~,
+              total_lines=lines.length(),
+              timeout~,
+            ).to_json(),
+          )
+        })
+        match result {
+          Some(result) => result
+          None => {
+            let error = TimeoutError(command~, timeout~)
+            @tool.error("Timeout when executing command", error~)
+          }
         }
       }
     } catch {
@@ -118,27 +142,33 @@ pub let execute_command : @tool.Tool[Context] = @tool.tool(
     let cmd_result : CommandResult = @json.from_json(result.output) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
-    let formatted = []
-    formatted.push("Command: \{cmd_result.command}")
-    formatted.push("Exit code: \{cmd_result.exit_code}")
-    if cmd_result.truncated {
-      let newline_split = cmd_result.output.split("\n")
-      let output_lines_count = newline_split.collect().length()
-      formatted.push(
-        "Output: (first \{output_lines_count} of \{cmd_result.total_lines} lines)",
-      )
-      formatted.push(cmd_result.output)
-      if cmd_result.truncated {
-        formatted.push(
-          "... (truncated, try using redirection to pipe output to a file) ...",
-        )
-      } else {
-        ()
+    match cmd_result {
+      Foreground(command~, status~, output~, truncated~, total_lines~, ..) => {
+        let formatted = []
+        formatted.push("Command: \{command}")
+        formatted.push("Exit code: \{status}")
+        if truncated {
+          let newline_split = output.split("\n")
+          let output_lines_count = newline_split.collect().length()
+          formatted.push(
+            "Output: (first \{output_lines_count} of \{total_lines} lines)",
+          )
+          formatted.push(output)
+          if truncated {
+            formatted.push(
+              "... (truncated, try using redirection to pipe output to a file) ...",
+            )
+          } else {
+            ()
+          }
+        } else {
+          formatted.push("Output:")
+          formatted.push(output)
+        }
+        formatted.join("\n")
       }
-    } else {
-      formatted.push("Output:")
-      formatted.push(cmd_result.output)
+      Background(command~, pid~) =>
+        "Command: \{command}\nStarted in background with PID: \{pid}"
     }
-    formatted.join("\n")
   },
 )

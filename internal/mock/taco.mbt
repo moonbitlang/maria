@@ -45,6 +45,7 @@ pub struct Context {
   rand : @random.Rand
   uuid : @uuid.Generator
   filter : Filter
+  group : @async.TaskGroup[Unit]
 }
 
 ///|
@@ -268,7 +269,7 @@ pub async fn run(
     if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
       filter.add("env:OPENAI_API_KEY", api_key)
     }
-    let ctx = Context::{ cwd, logger, clock, rand, uuid, filter }
+    let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
     group.add_defer(() => ctx.close())
     f(ctx)
   })) catch {

@@ -2,7 +2,11 @@
   "import": [
     "moonbitlang/async/process",
     "moonbitlang/async/io",
-    "moonbitlang/maria/internal/errno"
+    "moonbitlang/maria/internal/errno",
+    "moonbitlang/async/aqueue",
+    "moonbitlang/async",
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/internal/uuid"
   ],
   "native-stub": ["spawn.c"]
 }

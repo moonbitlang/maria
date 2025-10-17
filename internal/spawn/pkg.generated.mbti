@@ -2,7 +2,10 @@
 package "moonbitlang/maria/internal/spawn"
 
 import(
+  "moonbitlang/async/pipe"
+  "moonbitlang/core/json"
   "moonbitlang/maria/internal/errno"
+  "moonbitlang/maria/internal/uuid"
 )
 
 // Values
@@ -17,6 +20,46 @@ async fn spawn(StringView, Array[StringView], stderr? : &Logger, stdout? : &Logg
 // Errors
 
 // Types and methods
+pub struct Manager {
+  uuid : @uuid.Generator
+  cwd : String
+  process : Map[Pid, Process]
+  // private fields
+}
+fn Manager::get(Self, Pid) -> Process?
+fn Manager::list(Self) -> Array[Pid]
+fn Manager::new(uuid~ : @uuid.Generator, cwd~ : String) -> Self
+async fn Manager::spawn(Self, StringView, Array[StringView], stderr? : Redirect, stdout? : Redirect, cwd? : StringView) -> Process
+async fn Manager::start(Self) -> Unit
+async fn Manager::wait(Self, Pid) -> Int
+
+type Pid
+fn Pid::equal(Self, Self) -> Bool // from trait `Eq`
+fn Pid::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Pid::hash(Self) -> Int // from trait `Hash`
+fn Pid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#deprecated
+fn Pid::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn Pid::output(Self, &Logger) -> Unit // from trait `Show`
+fn Pid::to_json(Self) -> Json // from trait `ToJson`
+fn Pid::to_string(Self) -> String // from trait `Show`
+impl Eq for Pid
+impl Hash for Pid
+impl Show for Pid
+impl ToJson for Pid
+impl @json.FromJson for Pid
+
+pub struct Process {
+  pid : Pid
+  stdout : @pipe.PipeRead?
+  stderr : @pipe.PipeRead?
+  // private fields
+}
+
+pub(all) enum Redirect {
+  Inherit
+  Capture
+}
 
 // Type aliases
 
