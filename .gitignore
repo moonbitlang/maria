@@ -14,3 +14,5 @@ compile_flags.txt
 /__trajectories__
 
 /publish/
+
+*.exe

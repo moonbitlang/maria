@@ -5,11 +5,13 @@ This directory contains example usage of the Maria Node.js SDK.
 ## Running the example
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Run the example:
+
    ```bash
    npm start
    ```
