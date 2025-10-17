@@ -2,55 +2,102 @@
 priv struct Spawn {
   command : String
   arguments : Array[String]
-  stderr : Redirect
-  stdout : Redirect
+  stderr : RedirectOutput
+  stdout : RedirectOutput
   cwd : String?
   process : @aqueue.Queue[Result[Process, Error]]
 }
 
 ///|
 pub struct Manager {
-  uuid : @uuid.Generator
+  mut id : Int
   cwd : String
   process : Map[Pid, Process]
   priv spawn : @aqueue.Queue[Spawn]
 }
 
 ///|
-pub fn Manager::new(uuid~ : @uuid.Generator, cwd~ : String) -> Manager {
-  Manager::{ uuid, cwd, process: {}, spawn: @aqueue.Queue::new() }
+pub fn Manager::new(cwd~ : String) -> Manager {
+  Manager::{ id: 0, cwd, process: {}, spawn: @aqueue.Queue::new() }
 }
 
 ///|
-struct Pid(@uuid.Uuid) derive(Show, Hash, Eq, ToJson, @json.FromJson)
+fn Manager::new_pid(self : Manager) -> Pid {
+  let id = self.id
+  self.id += 1
+  id
+}
+
+///|
+struct Pid(Int) derive(Hash, Eq)
+
+///|
+pub impl ToJson for Pid with to_json(self : Pid) -> Json {
+  self.0.to_json()
+}
+
+///|
+pub impl Show for Pid with output(self : Pid, logger : &Logger) -> Unit {
+  logger.write_string(self.0.to_string())
+}
 
 ///|
 pub struct Process {
   pid : Pid
-  priv status : @aqueue.Queue[Result[Int, Error]]
-  stdout : @pipe.PipeRead?
-  stderr : @pipe.PipeRead?
+  priv status : Ref[Int?]
+  priv task : @async.Task[Int]
+  stdout : RedirectOutput
+  stderr : RedirectOutput
 }
 
 ///|
-pub(all) enum Redirect {
+pub fn Process::status(self : Process) -> Int? {
+  self.status.val
+}
+
+///|
+struct Buffer {
+  mut chunks : Array[String]
+}
+
+///|
+pub fn Buffer::new() -> Buffer {
+  Buffer::{ chunks: [] }
+}
+
+///|
+fn Buffer::write(self : Buffer, chunk : String) -> Unit {
+  self.chunks.push(chunk)
+}
+
+///|
+pub fn Buffer::to_string(self : Buffer) -> String {
+  let string = self.chunks.join("")
+  self.chunks = [string]
+  string
+}
+
+///|
+pub(all) enum RedirectOutput {
   Inherit
-  Capture
+  Capture(Buffer)
+  File(String)
+  Sink
 }
 
 ///|
 pub async fn Manager::spawn(
   self : Manager,
-  command : StringView,
-  arguments : Array[StringView],
-  stderr? : Redirect = Inherit,
-  stdout? : Redirect = Inherit,
-  cwd? : StringView,
+  command : String,
+  arguments : Array[String],
+  stderr? : RedirectOutput = Inherit,
+  stdout? : RedirectOutput = Inherit,
+  cwd? : String,
 ) -> Process {
   let process = @aqueue.Queue::new()
   self.spawn.put(Spawn::{
-    command: command.to_string(),
-    arguments: arguments.map(arg => arg.to_string()),
+    command,
+    arguments,
     stderr,
     stdout,
     cwd: cwd.map(_.to_string()),
@@ -61,48 +108,88 @@ pub async fn Manager::spawn(
 
 ///|
 pub async fn Manager::wait(self : Manager, pid : Pid) -> Int {
-  self.process[pid].status.get().unwrap_or_error()
+  self.process[pid].task.wait()
+}
+
+///|
+pub async fn Process::wait(self : Process) -> Int {
+  self.task.wait()
 }
 
 ///|
 pub async fn Manager::start(self : Manager) -> Unit {
-  @async.with_task_group(group => group.spawn_bg(() => while true {
-    let spawn = self.spawn.get()
-    group.spawn_bg(() => try {
-      let pid = self.uuid.v4()
-      let stderr = if spawn.stderr is Capture {
-        Some(@process.read_from_process())
-      } else {
-        None
+  @async.with_task_group(group => {
+    async fn redirect_output(
+      redirect : RedirectOutput,
+    ) -> &@process.ProcessOutput? {
+      match redirect {
+        Capture(buffer) => {
+          let pipe = @process.read_from_process()
+          group.spawn_bg(() => {
+            let buf = FixedArray::make(1024, b'0')
+            while pipe.0.read(buf) is n && n > 0 {
+              buffer.write(
+                @encoding/utf8.decode_lossy(
+                  buf.unsafe_reinterpret_as_bytes()[0:n],
+                ),
+              )
+            }
+          })
+          Some(pipe.1)
+        }
+        Sink => {
+          let pipe = @process.read_from_process()
+          group.spawn_bg(() => {
+            let buf = FixedArray::make(1024, b'0')
+            while pipe.0.read(buf) is n && n > 0 {
+              // discard data
+            }
+          })
+          Some(pipe.1)
+        }
+        File(path) => Some(@process.redirect_to_file(path))
+        Inherit => None
       }
-      let stdout = if spawn.stdout is Capture {
-        Some(@process.read_from_process())
-      } else {
-        None
+    }
+
+    while true {
+      let spawn = self.spawn.get()
+      try {
+        let pid = self.new_pid()
+        let refer_status = Ref::new(None)
+        let stderr = redirect_output(spawn.stderr)
+        let stdout = redirect_output(spawn.stdout)
+        let task = group.spawn(() => {
+          let status = @process.run(
+            spawn.command,
+            spawn.arguments,
+            stderr?,
+            stdout?,
+            cwd?=spawn.cwd,
+          )
+          refer_status.val = Some(status)
+          status
+        })
+        let process = Process::{
+          pid,
+          status: refer_status,
+          task,
+          stdout: spawn.stdout,
+          stderr: spawn.stderr,
+        }
+        self.process[pid] = process
+        process
+      } catch {
+        error => spawn.process.put(Err(error))
+      } noraise {
+        process => spawn.process.put(Ok(process))
       }
-      let process = Process::{
-        pid,
-        status: @aqueue.Queue::new(),
-        stdout: stdout.map(pipe => pipe.0),
-        stderr: stderr.map(pipe => pipe.0),
-      }
-      self.process[pid] = process
-      spawn.process.put(Ok(process))
-      let status = try? @process.run(
-          spawn.command,
-          spawn.arguments,
-          stderr?=stderr.map(pipe => pipe.1),
-          stdout?=stdout.map(pipe => pipe.1),
-          cwd?=spawn.cwd,
-        )
-      process.status.put(status)
-    } catch {
-      error => spawn.process.put(Err(error))
-    })
-  })) catch {
+    }
+  }) catch {
     error => {
-      for _, process in self.process {
-        process.status.put(Err(error))
+      self.process.clear()
+      while self.spawn.try_get() is Some(spawn) {
+        spawn.process.put(Err(error))
       }
       raise error
     }
@@ -110,8 +197,8 @@ pub async fn Manager::start(self : Manager) -> Unit {
 }
 
 ///|
-pub fn Manager::list(self : Manager) -> Array[Pid] {
-  self.process.keys().to_array()
+pub fn Manager::list(self : Manager) -> Array[Process] {
+  self.process.values().to_array()
 }
 
 ///|

@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/wait_job"
+
+import(
+  "moonbitlang/maria/job"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+let wait_job : @tool.Tool[@job.Manager]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

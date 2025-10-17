@@ -5,8 +5,12 @@
     "moonbitlang/maria/internal/errno",
     "moonbitlang/async/aqueue",
     "moonbitlang/async",
-    "moonbitlang/async/pipe",
-    "moonbitlang/maria/internal/uuid"
+    "moonbitlang/async/pipe"
   ],
-  "native-stub": ["spawn.c"]
+  "native-stub": [
+    "spawn.c"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/mock"
+  ]
 }

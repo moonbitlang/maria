@@ -81,6 +81,7 @@ async test "search_files/agentic" (t : @test.T) {
       @fs.read_file(@path.join(taco.cwd.path(), "results.txt")).contains(
         "notes.txt",
       ),
+      content="true",
     )
   })
 }

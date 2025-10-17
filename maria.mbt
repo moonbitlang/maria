@@ -97,7 +97,7 @@ pub async fn Maria::new(logger? : @pino.Logger, model? : String) -> Maria {
   agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
   agent.add_tool(
     @execute_command.execute_command,
-    @spawn.Manager::new(uuid=agent.uuid, cwd=agent.cwd),
+    @job.Manager::new(cwd=agent.cwd),
   )
   let file_manager = @file.manager(cwd~)
   agent.add_tool(@list_files.list_files, file_manager)

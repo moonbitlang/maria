@@ -13,11 +13,11 @@ pub(all) enum CommandResult {
     total_lines~ : Int,
     timeout~ : Int
   )
-  Background(command~ : String, pid~ : @spawn.Pid)
+  Background(command~ : String, job_id~ : @job.Id)
 } derive(@json.FromJson, ToJson)
 
 ///|
-pub let execute_command : @tool.Tool[@spawn.Manager] = @tool.tool(
+pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
   description="Execute an shell command with arguments and capture its output.",
   name="execute_command",
   parameters={
@@ -89,8 +89,8 @@ pub let execute_command : @tool.Tool[@spawn.Manager] = @tool.tool(
     }
     try {
       if background {
-        let process = ctx.spawn("sh", ["-c", command])
-        @tool.ok(CommandResult::Background(command~, pid=process.pid).to_json())
+        let job = ctx.spawn(name=command, command~)
+        @tool.ok(CommandResult::Background(command~, job_id=job.id).to_json())
       } else {
         guard timeout is Some(timeout) else {
           return @tool.error(
@@ -167,8 +167,8 @@ pub let execute_command : @tool.Tool[@spawn.Manager] = @tool.tool(
         }
         formatted.join("\n")
       }
-      Background(command~, pid~) =>
-        "Command: \{command}\nStarted in background with PID: \{pid}"
+      Background(command~, job_id~) =>
+        "Command: \{command}\nStarted in background with Job ID: \{job_id}"
     }
   },
 )

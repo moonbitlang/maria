@@ -3,19 +3,19 @@ package "moonbitlang/maria/tools/execute_command"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/internal/spawn"
+  "moonbitlang/maria/job"
   "moonbitlang/maria/tool"
 )
 
 // Values
-let execute_command : @tool.Tool[@spawn.Manager]
+let execute_command : @tool.Tool[@job.Manager]
 
 // Errors
 
 // Types and methods
 pub(all) enum CommandResult {
   Foreground(command~ : String, status~ : Int, output~ : String, truncated~ : Bool, total_lines~ : Int, timeout~ : Int)
-  Background(command~ : String, pid~ : @spawn.Pid)
+  Background(command~ : String, job_id~ : @job.Id)
 }
 fn CommandResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn CommandResult::to_json(Self) -> Json // from trait `ToJson`

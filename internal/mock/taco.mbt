@@ -119,6 +119,7 @@ pub fn[T : ToJson] Context::json(self : Context, value : T) -> Json {
 }
 
 ///|
+#alias(text)
 pub fn[T : Show] Context::show(self : Context, value : T) -> String {
   Filterable::filter(self.filter, Show::to_string(value))
 }
