@@ -92,7 +92,7 @@ jobs:
           moon fmt
           git diff --exit-code
 
-  publish:
+  package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +108,6 @@ jobs:
         run: |
           moon version --all
 
-      - name: Run publish script
+      - name: Run package script
         run: |
-          python3 scripts/publish.py
+          python3 scripts/package.py
