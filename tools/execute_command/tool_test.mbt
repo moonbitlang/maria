@@ -113,10 +113,7 @@ async test "background" (t : @test.T) {
     )
     @json.inspect(result.output, content=[
       "Background",
-      {
-        "command": "sleep 2",
-        "pid": ["Pid", "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a"],
-      },
+      { "command": "sleep 2", "job_id": 0 },
     ])
   })
 }
