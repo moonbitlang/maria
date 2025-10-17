@@ -10,6 +10,7 @@ import platform
 
 def copy_file(src: Path, dest: Path):
     print(f"COPY {src} to {dest}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(src, dest)
 
 
@@ -21,6 +22,10 @@ def main():
     )
     copy_file(main_exe, Path("sdk") / "python" / "maria" / "bin" / f"{target}.exe")
     copy_file(main_exe, Path("sdk") / "nodejs" / "bin" / f"{target}.exe")
+    copy_file(
+        main_exe,
+        Path("sdk") / "java" / "src" / "main" / "resources" / "bin" / f"{target}.exe",
+    )
 
 
 if __name__ == "__main__":
