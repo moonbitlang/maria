@@ -2,10 +2,8 @@
 package "moonbitlang/maria/internal/spawn"
 
 import(
-  "moonbitlang/async/pipe"
   "moonbitlang/core/json"
   "moonbitlang/maria/internal/errno"
-  "moonbitlang/maria/internal/uuid"
 )
 
 // Values
@@ -20,16 +18,20 @@ async fn spawn(StringView, Array[StringView], stderr? : &Logger, stdout? : &Logg
 // Errors
 
 // Types and methods
+type Buffer
+fn Buffer::new() -> Self
+fn Buffer::to_string(Self) -> String
+
 pub struct Manager {
-  uuid : @uuid.Generator
+  mut id : Int
   cwd : String
   process : Map[Pid, Process]
   // private fields
 }
 fn Manager::get(Self, Pid) -> Process?
-fn Manager::list(Self) -> Array[Pid]
-fn Manager::new(uuid~ : @uuid.Generator, cwd~ : String) -> Self
-async fn Manager::spawn(Self, StringView, Array[StringView], stderr? : Redirect, stdout? : Redirect, cwd? : StringView) -> Process
+fn Manager::list(Self) -> Array[Process]
+fn Manager::new(cwd~ : String) -> Self
+async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String) -> Process
 async fn Manager::start(Self) -> Unit
 async fn Manager::wait(Self, Pid) -> Int
 
@@ -51,14 +53,17 @@ impl @json.FromJson for Pid
 
 pub struct Process {
   pid : Pid
-  stdout : @pipe.PipeRead?
-  stderr : @pipe.PipeRead?
+  stdout : RedirectOutput
+  stderr : RedirectOutput
   // private fields
 }
+fn Process::status(Self) -> Int?
 
-pub(all) enum Redirect {
+pub(all) enum RedirectOutput {
   Inherit
-  Capture
+  Capture(Buffer)
+  File(String)
+  Sink
 }
 
 // Type aliases

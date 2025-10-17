@@ -72,6 +72,11 @@ impl Hash for FileKind
 impl Show for FileKind
 impl ToJson for FileKind
 
+type FileRead
+fn FileRead::close(Self) -> Unit
+async fn FileRead::create(StringView) -> Self
+async fn FileRead::read_text(Self) -> String
+
 type Stat
 fn Stat::atime(Self) -> Int64
 fn Stat::mtime(Self) -> Int64
