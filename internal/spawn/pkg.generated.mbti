@@ -2,7 +2,6 @@
 package "moonbitlang/maria/internal/spawn"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/internal/errno"
 )
 
@@ -37,7 +36,6 @@ async fn Manager::wait(Self, Pid) -> Int
 
 type Pid
 fn Pid::equal(Self, Self) -> Bool // from trait `Eq`
-fn Pid::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn Pid::hash(Self) -> Int // from trait `Hash`
 fn Pid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
@@ -49,7 +47,6 @@ impl Eq for Pid
 impl Hash for Pid
 impl Show for Pid
 impl ToJson for Pid
-impl @json.FromJson for Pid
 
 pub struct Process {
   pid : Pid
@@ -58,6 +55,7 @@ pub struct Process {
   // private fields
 }
 fn Process::status(Self) -> Int?
+async fn Process::wait(Self) -> Int
 
 pub(all) enum RedirectOutput {
   Inherit

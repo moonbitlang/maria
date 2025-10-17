@@ -16,7 +16,6 @@
     "moonbitlang/maria/tools/todo_write",
     "moonbitlang/maria/tools/search_files",
     "moonbitlang/maria/prompt",
-    "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/job"
   ]
 }
