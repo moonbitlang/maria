@@ -27,20 +27,20 @@ async test "list_jobs/multiple" (t : @test.T) {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
     let tool = @list_jobs.list_jobs
-    let _ = manager.spawn(name="job1", command="echo job1")
-    let _ = manager.spawn(name="job2", command="echo job2")
+    let _ = manager.spawn(name="job1", command="sleep 1 && echo job1")
+    let _ = manager.spawn(name="job2", command="sleep 1 && echo job2")
     let result = tool.call({}, manager)
     inspect(
       mock.show((tool.render)(result)),
       content=(
         #|- [0] job1
-        #|  Command: echo job1
+        #|  Command: sleep 1 && echo job1
         #|  CWD: (mock:cwd)
         #|  Stdout: (mock:cwd)/.moonagent/jobs/0/stdout
         #|  Stderr: (mock:cwd)/.moonagent/jobs/0/stderr
         #|  Status: Running
         #|- [1] job2
-        #|  Command: echo job2
+        #|  Command: sleep 1 && echo job2
         #|  CWD: (mock:cwd)
         #|  Stdout: (mock:cwd)/.moonagent/jobs/1/stdout
         #|  Stderr: (mock:cwd)/.moonagent/jobs/1/stderr
@@ -57,21 +57,21 @@ async test "list_jobs/completed" (t : @test.T) {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
     let tool = @list_jobs.list_jobs
-    let _ = manager.spawn(name="job1", command="echo job1")
-    let _ = manager.spawn(name="job2", command="echo job2")
-    @async.sleep(100)
+    let _ = manager.spawn(name="job1", command="sleep 1 && echo job1")
+    let _ = manager.spawn(name="job2", command="sleep 1 && echo job2")
+    @async.sleep(2_000)
     let result = tool.call({}, manager)
     inspect(
       mock.show((tool.render)(result)),
       content=(
         #|- [0] job1
-        #|  Command: echo job1
+        #|  Command: sleep 1 && echo job1
         #|  CWD: (mock:cwd)
         #|  Stdout: (mock:cwd)/.moonagent/jobs/0/stdout
         #|  Stderr: (mock:cwd)/.moonagent/jobs/0/stderr
         #|  Status: Completed (exit code: 0)
         #|- [1] job2
-        #|  Command: echo job2
+        #|  Command: sleep 1 && echo job2
         #|  CWD: (mock:cwd)
         #|  Stdout: (mock:cwd)/.moonagent/jobs/1/stdout
         #|  Stderr: (mock:cwd)/.moonagent/jobs/1/stderr
