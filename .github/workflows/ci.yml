@@ -91,3 +91,23 @@ jobs:
           moon install
           moon fmt
           git diff --exit-code
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install MoonBit
+        uses: ./.github/actions/install-moonbit
+        with:
+          channel: nightly
+
+      - name: Inspect MoonBit version
+        run: |
+          moon version --all
+
+      - name: Run publish script
+        run: |
+          python3 scripts/publish.py

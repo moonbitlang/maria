@@ -12,3 +12,5 @@ compile_flags.txt
 /.autocoderignore
 
 /__trajectories__
+
+/publish/
