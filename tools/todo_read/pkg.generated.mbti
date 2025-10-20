@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/todo_read"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/todo"
   "moonbitlang/maria/tool"
 )
@@ -15,13 +14,6 @@ let todo_read : @tool.Tool[@todo.List]
 // Errors
 
 // Types and methods
-pub(all) struct TodoReadResult {
-  todos : Array[@todo.Item]
-}
-fn TodoReadResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn TodoReadResult::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for TodoReadResult
-impl @json.FromJson for TodoReadResult
 
 // Type aliases
 

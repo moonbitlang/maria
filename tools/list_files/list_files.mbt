@@ -1,6 +1,6 @@
 ///|
 /// File entry with metadata for enhanced list_files output
-pub(all) struct FileEntry {
+priv struct FileEntry {
   name : String
   kind : String // "file", "directory", "symlink", etc.
   size : Int? // Size in bytes for files, None for directories
@@ -9,7 +9,7 @@ pub(all) struct FileEntry {
 
 ///|
 /// Enhanced list_files result with metadata
-pub(all) struct ListFilesResult {
+priv struct ListFilesResult {
   path : String
   entries : Array[FileEntry]
   total_count : Int

@@ -1,5 +1,5 @@
 ///|
-pub(all) struct TodoReadResult {
+priv struct TodoReadResult {
   todos : Array[@todo.Item]
 } derive(ToJson, FromJson)
 

@@ -1,10 +1,10 @@
 ///|
-pub(all) struct TodoWriteResult {
+priv struct TodoWriteResult {
   todos : Array[@todo.Item]
   message : String
   updated_todos : Array[@todo.Item]
   is_new_creation : Bool
-} derive(ToJson, FromJson)
+} derive(ToJson)
 
 ///|
 async fn @todo.List::execute_todo_write(

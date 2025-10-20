@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/read_file"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/file"
   "moonbitlang/maria/tool"
 )
@@ -13,26 +12,6 @@ let read_file : @tool.Tool[@file.Manager]
 // Errors
 
 // Types and methods
-pub(all) struct ReadDirectoryResult {
-  path : String
-  entries : Array[String]
-  display : String
-}
-fn ReadDirectoryResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn ReadDirectoryResult::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for ReadDirectoryResult
-impl @json.FromJson for ReadDirectoryResult
-
-pub(all) struct ReadFileResult {
-  path : String
-  content : String
-  start_line : Int
-  end_line : Int
-}
-fn ReadFileResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn ReadFileResult::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for ReadFileResult
-impl @json.FromJson for ReadFileResult
 
 // Type aliases
 

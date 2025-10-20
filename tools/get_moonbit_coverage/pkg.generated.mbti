@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/get_moonbit_coverage"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
@@ -12,16 +11,6 @@ let get_moonbit_coverage : @tool.Tool[String]
 // Errors
 
 // Types and methods
-pub struct Result(String)
-fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-#deprecated
-fn Result::inner(Self) -> String
-fn Result::output(Self, &Logger) -> Unit // from trait `Show`
-fn Result::to_json(Self) -> Json // from trait `ToJson`
-fn Result::to_string(Self) -> String // from trait `Show`
-impl Show for Result
-impl ToJson for Result
-impl @json.FromJson for Result
 
 // Type aliases
 

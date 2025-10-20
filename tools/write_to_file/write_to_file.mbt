@@ -8,14 +8,14 @@ priv struct MatchResult {
 } derive(ToJson)
 
 ///|
-pub enum WriteResultOperation {
+priv enum WriteResultOperation {
   Created
   Updated
   Replaced
 }
 
 ///|
-pub impl ToJson for WriteResultOperation with to_json(
+impl ToJson for WriteResultOperation with to_json(
   self : WriteResultOperation,
 ) -> Json {
   match self {
@@ -26,7 +26,7 @@ pub impl ToJson for WriteResultOperation with to_json(
 }
 
 ///|
-pub impl @json.FromJson for WriteResultOperation with from_json(
+impl @json.FromJson for WriteResultOperation with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> WriteResultOperation raise {
@@ -48,7 +48,7 @@ pub impl @json.FromJson for WriteResultOperation with from_json(
 
 ///|
 /// Write operation result for structured JSON output
-pub(all) struct WriteResult {
+priv struct WriteResult {
   path : String
   operation : WriteResultOperation
   bytes_written : Int

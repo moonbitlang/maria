@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/todo_write"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/todo"
   "moonbitlang/maria/tool"
 )
@@ -15,16 +14,6 @@ let todo_write : @tool.Tool[@todo.List]
 // Errors
 
 // Types and methods
-pub(all) struct TodoWriteResult {
-  todos : Array[@todo.Item]
-  message : String
-  updated_todos : Array[@todo.Item]
-  is_new_creation : Bool
-}
-fn TodoWriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn TodoWriteResult::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for TodoWriteResult
-impl @json.FromJson for TodoWriteResult
 
 // Type aliases
 
