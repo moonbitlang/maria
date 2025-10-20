@@ -443,7 +443,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
     )
     @json.inspect(result, content=[
       "Error",
-      ["Failure", "Error: Task with ID 'nonexistent' not found."],
+      ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
     let result = @todo_write.todo_write.call(
@@ -568,7 +568,7 @@ async test "todo_write/mark_progress" (t : @test.T) {
     )
     @json.inspect(result, content=[
       "Error",
-      ["Failure", "Error: Task with ID 'nonexistent' not found."],
+      ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
     inspect(

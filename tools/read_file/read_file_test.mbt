@@ -12,7 +12,7 @@ async test "nonexistent" (t : @test.T) {
       fail("Expected an error for nonexistent file")
     }
     @json.inspect(error, content=[
-      "Failure", "Error reading file: File not found: nonexistent.txt",
+      "ToolFailure", "Error reading file: File not found: nonexistent.txt",
     ])
   })
 }

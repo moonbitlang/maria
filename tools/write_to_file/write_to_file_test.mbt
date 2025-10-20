@@ -66,7 +66,7 @@ async test "write_to_file/fail-to-match" (t : @test.T) {
     @json.inspect(result, content=[
       "Error",
       [
-        "Failure", "Search content not found in file (tried all matching strategies): Non-matching content",
+        "ToolFailure", "Search content not found in file (tried all matching strategies): Non-matching content",
       ],
       "Search content not found in file (tried all matching strategies): Non-matching content",
     ])
