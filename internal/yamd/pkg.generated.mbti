@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/yamd"
+
+// Values
+fn parse(String) -> Document
+
+// Errors
+
+// Types and methods
+pub struct Document {
+  meta : Map[String, Json]
+  text : String
+}
+
+// Type aliases
+
+// Traits
+

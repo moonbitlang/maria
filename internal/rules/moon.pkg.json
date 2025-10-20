@@ -3,7 +3,8 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/fs",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/os"
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/yamd"
   ],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }
