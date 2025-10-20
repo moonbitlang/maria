@@ -10,7 +10,7 @@ pub let todo_read : @tool.Tool[@todo.List] = @tool.tool(
   parameters={ "type": "object", "properties": {}, "required": [] },
   (_, self) => @tool.ok(TodoReadResult::{ todos: self.todos() }.to_json()),
   render=result => {
-    let todos : TodoReadResult = @json.from_json(result.output) catch {
+    let todos : TodoReadResult = @json.from_json(result.output()) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
     if todos.todos.length() == 0 {

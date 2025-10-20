@@ -11,10 +11,11 @@ fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json
 // Errors
 
 // Types and methods
-pub struct Result {
-  output : Json
-  error : Error?
+pub enum Result {
+  Ok(Json)
+  Error(Error, Json)
 }
+fn Result::output(Self) -> Json
 fn Result::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Result
 

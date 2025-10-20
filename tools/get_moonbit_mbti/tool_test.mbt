@@ -7,7 +7,7 @@ async test "get_moonbit_mbti" (t : @test.T) {
       { "package": "moonbitlang/core/set" },
       taco.cwd.path(),
     )
-    guard result.output is String(output)
+    guard result.output() is String(output)
     inspect(
       output,
       content=(

@@ -436,7 +436,7 @@ pub let search_files : @tool.Tool[String] = @tool.tool(
   search_files_impl,
   render=result => try {
     // Try to parse as structured search result data (regex search)
-    let search_data : SearchResultData = @json.from_json(result.output)
+    let search_data : SearchResultData = @json.from_json(result.output())
     // Handle regex search results
     if search_data.total_matches == 0 {
       return search_data.message
@@ -455,7 +455,9 @@ pub let search_files : @tool.Tool[String] = @tool.tool(
     _ =>
       // Try to parse as MoonBit tool result (definition/references search)
       try {
-        let moonbit_result : MoonbitToolResult = @json.from_json(result.output)
+        let moonbit_result : MoonbitToolResult = @json.from_json(
+          result.output(),
+        )
         let formatted = []
         formatted.push(moonbit_result.message)
         let query_value = moonbit_result.query

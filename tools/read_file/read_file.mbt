@@ -118,7 +118,7 @@ pub let read_file : @tool.Tool[@file.Manager] = @tool.tool(
   },
   (args, self) => self.execute_read_file_tool(args),
   // Check if this is a directory listing
-  render=result => match result.output {
+  render=result => match result.output() {
     { "path": String(path), "display": String(display), .. } =>
       "Directory: \{path}\nEntries:\n\{display}"
     {

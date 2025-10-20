@@ -15,8 +15,9 @@ async test "check_moonbit_project" (t : @test.T) {
     )
     let args = params(diagnostic_limit=10, project_path=taco.cwd.path())
     let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
-    @json.inspect(taco.json(result), content={
-      "output": {
+    @json.inspect(taco.json(result), content=[
+      "Ok",
+      {
         "diagnostics": [
           {
             "error_code": 2,
@@ -41,7 +42,7 @@ async test "check_moonbit_project" (t : @test.T) {
         ],
         "diagnostic_limit": 10,
       },
-    })
+    ])
   })
 }
 
@@ -67,8 +68,9 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
       patch_file_name="example.mbt",
     )
     let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
-    @json.inspect(taco.json(result), content={
-      "output": {
+    @json.inspect(taco.json(result), content=[
+      "Ok",
+      {
         "diagnostics": [
           {
             "error_code": 2,
@@ -93,6 +95,6 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
         ],
         "diagnostic_limit": 10,
       },
-    })
+    ])
   })
 }

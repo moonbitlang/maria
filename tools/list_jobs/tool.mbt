@@ -26,7 +26,8 @@ pub let list_jobs : @tool.Tool[@job.Manager] = @tool.tool(
     }
     @tool.ok(output.to_string().to_json())
   },
-  render=result => result.output
+  render=result => result
+    .output()
     .as_string()
     .unwrap_or("Failed to convert output to string."),
 )

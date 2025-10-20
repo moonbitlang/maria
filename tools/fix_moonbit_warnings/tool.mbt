@@ -35,8 +35,8 @@ let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
       "patched": patched,
     })
   },
-  render=result => if result.error is Some(_) {
-    guard result.output
+  render=result => if result is Error(_, output) {
+    guard output
       is { "diagnostics": Array(diagnostics), "patched": String(patched), .. } else {
       return "Error: Unexpected error format"
     }
@@ -233,7 +233,7 @@ pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
     }
   },
   render=result => {
-    guard result.output is String(formatted) else {
+    guard result.output() is String(formatted) else {
       return "Error: Unexpected output format"
     }
     formatted

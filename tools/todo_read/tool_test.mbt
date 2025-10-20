@@ -42,19 +42,22 @@ fn[T : ToJson] drop_id_and_time(json : T) -> Json {
 async test "todo_read" (t : @test.T) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
-    @json.inspect(@todo_read.todo_read.call({}, todo_list), content={
-      "output": { "todos": [] },
-    })
-    @json.inspect(@todo_read.todo_read.call({}, todo_list), content={
-      "output": { "todos": [] },
-    })
+    @json.inspect(@todo_read.todo_read.call({}, todo_list), content=[
+      "Ok",
+      { "todos": [] },
+    ])
+    @json.inspect(@todo_read.todo_read.call({}, todo_list), content=[
+      "Ok",
+      { "todos": [] },
+    ])
     let _ = @todo_write.todo_write.call(
       { "action": "create", "content": "A sample task", "priority": "medium" },
       todo_list,
     )
     let result = @todo_read.todo_read.call({}, todo_list)
-    @json.inspect(drop_id_and_time(result.to_json()), content={
-      "output": {
+    @json.inspect(drop_id_and_time(result.to_json()), content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "A sample task",
@@ -66,6 +69,6 @@ async test "todo_read" (t : @test.T) {
           },
         ],
       },
-    })
+    ])
   })
 }

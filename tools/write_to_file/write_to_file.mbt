@@ -299,7 +299,7 @@ pub let write_to_file : @tool.Tool[@file.Manager] = @tool.tool(
   },
   (args, self) => self.execute_write_to_file(args),
   render=result => {
-    let write_result : WriteResult = @json.from_json(result.output) catch {
+    let write_result : WriteResult = @json.from_json(result.output()) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
     write_result.message

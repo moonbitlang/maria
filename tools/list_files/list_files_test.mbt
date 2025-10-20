@@ -6,7 +6,7 @@ async test "list_files" (t : @test.T) {
     let _ = taco.add_file("tool.mbt", content="// tool")
     let _ = taco.add_file("tool_test.mbt", content="// test")
     @json.inspect(
-      @list_files.list_files.call({ "path": "." }, manager).output,
+      @list_files.list_files.call({ "path": "." }, manager).output(),
       content={
         "path": ".",
         "entries": [
