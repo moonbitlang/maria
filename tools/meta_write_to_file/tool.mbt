@@ -180,7 +180,7 @@ let submit_fixed_file : @tool.Tool[FixingContext] = @tool.tool(
     }
   },
   render=result => {
-    guard result.output is String(formatted) else {
+    guard result.output() is String(formatted) else {
       return "Error: Unexpected output format"
     }
     formatted
@@ -220,7 +220,7 @@ let read_current_file : @tool.Tool[FixingContext] = @tool.tool(
     }
   },
   render=result => {
-    guard result.output is String(formatted) else {
+    guard result.output() is String(formatted) else {
       return "Error: Unexpected output format"
     }
     formatted
@@ -249,7 +249,7 @@ let attempt_completion : @tool.Tool[FixingContext] = @tool.tool(
     @tool.ok("Syntax fixing completed: \{result}")
   },
   render=result => {
-    guard result.output is String(formatted) else {
+    guard result.output() is String(formatted) else {
       return "Error: Unexpected output format"
     }
     formatted
@@ -421,9 +421,8 @@ async fn execute_meta_write_to_file(
       (None, None) =>
         @tool.error("Either 'replace' content must be provided for new files")
     }
-    match write_result.error {
-      Some(_) => return write_result
-      None => () // Continue processing
+    if write_result is Error(_, _) {
+      return write_result // Continue processing
     }
 
     // Step 1.5: Capture content immediately after initial write
@@ -448,7 +447,8 @@ async fn execute_meta_write_to_file(
         }
         let fixing_error = fix_syntax_errors(fixing_ctx)
         match fixing_error {
-          Some(error) => return @tool.error("\{write_result.output}\n\{error}")
+          Some(error) =>
+            return @tool.error("\{write_result.output()}\n\{error}")
           None => () // Continue
         }
       }
@@ -482,7 +482,7 @@ async fn execute_meta_write_to_file(
       } else {
         ""
       }
-      guard write_result.output is String(write_msg) else {
+      guard write_result.output() is String(write_msg) else {
         return @tool.error("Unexpected write result format")
       }
       @tool.ok(
@@ -502,7 +502,7 @@ async fn execute_meta_write_to_file(
       let diff = generate_diff(
         initial_content, final_content, "Complete diff from initial write",
       )
-      guard write_result.output is String(write_msg) else {
+      guard write_result.output() is String(write_msg) else {
         return @tool.error("Unexpected write result format")
       }
       @tool.ok(
@@ -549,7 +549,7 @@ pub let meta_write_to_file : @tool.Tool[@agent.Agent] = @tool.tool(
   execute_meta_write_to_file,
   render=result => {
     let meta_write_to_file_result : MetaWriteToFileResult = @json.from_json(
-      result.output,
+      result.output(),
     ) catch {
       error => return "Error: Unexpected output format: \{error}"
     }

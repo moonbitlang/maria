@@ -89,10 +89,10 @@ pub let append_to_file : @tool.Tool[String] = @tool.tool(
     @tool.ok(result.to_json())
   },
   render=result => {
-    if result.error is Some(error) {
+    if result is Error(error, _) {
       return "Error: \{error}"
     }
-    let result : Result = @json.from_json(result.output) catch {
+    let result : Result = @json.from_json(result.output()) catch {
       error => return "Error: Failed to parse result: \{error}"
     }
     "Appended content to file at path: \{result.path}"

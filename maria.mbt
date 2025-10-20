@@ -85,8 +85,8 @@ pub async fn Maria::new(logger? : @pino.Logger, model? : String) -> Maria {
       "name": tool_call.function.name.to_json(),
     })
     guard context.tool_call_result is Some(result) else { return }
-    logger.info("Tool result", { "output": result.output.to_json() })
-    if result.error is Some(error) {
+    logger.info("Tool result", { "output": result.output().to_json() })
+    if result is Error(error, _) {
       logger.error("Tool error", { "error": error.to_json() })
     }
   })

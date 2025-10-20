@@ -118,10 +118,10 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
     )
   },
   render=result => {
-    if result.error is Some(error) {
+    if result is Error(error, _) {
       return "Error: \{error}"
     }
-    let result : CheckMoonbitProjectResult = @json.from_json(result.output) catch {
+    let result : CheckMoonbitProjectResult = @json.from_json(result.output()) catch {
       error => return "Error: Failed to parse result: \{error}"
     }
     let diagnostics = if result.diagnostics.length() < result.diagnostic_limit {

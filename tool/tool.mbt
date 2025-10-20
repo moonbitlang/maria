@@ -16,14 +16,22 @@ pub struct Tool[T] {
 pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
 
 ///|
-pub struct Result {
-  output : Json
-  error : Error?
+pub enum Result {
+  Ok(Json)
+  Error(Error, Json)
 } derive(ToJson)
 
 ///|
 pub fn ok(output : Json) -> Result {
-  Result::{ output, error: None }
+  Ok(output)
+}
+
+///|
+pub fn Result::output(self : Result) -> Json {
+  match self {
+    Ok(output) => output
+    Error(_, output) => output
+  }
 }
 
 ///|
@@ -31,7 +39,7 @@ priv suberror Failure Json derive(ToJson)
 
 ///|
 pub fn error(output : Json, error? : Error = Failure(output)) -> Result {
-  Result::{ output, error: Some(error) }
+  Error(error, output)
 }
 
 ///|

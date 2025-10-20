@@ -43,7 +43,7 @@ pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
     @tool.ok(interface.to_json())
   },
   render=result => {
-    guard result.output is String(result)
+    guard result.output() is String(result)
     result
   },
 )

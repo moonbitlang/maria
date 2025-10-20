@@ -17,8 +17,9 @@ async test "todo_write/create/plain" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "Test todo item",
@@ -58,7 +59,7 @@ async test "todo_write/create/plain" (t : @test.T) {
         ],
         "is_new_creation": true,
       },
-    })
+    ])
     inspect(
       (@todo_write.todo_write.render)(result),
       content=(
@@ -97,8 +98,9 @@ async test "todo_write/create/<task>" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "Examine reference repository structure at .moonagent/repos/ini",
@@ -218,7 +220,7 @@ async test "todo_write/create/<task>" (t : @test.T) {
         ],
         "is_new_creation": true,
       },
-    })
+    ])
     inspect(
       (@todo_write.todo_write.render)(result),
       content=(
@@ -258,8 +260,9 @@ async test "todo_write/update" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "First item",
@@ -299,7 +302,7 @@ async test "todo_write/update" (t : @test.T) {
         ],
         "is_new_creation": true,
       },
-    })
+    ])
     let result = @todo_write.todo_write.call(
       {
         "action": "update",
@@ -310,8 +313,9 @@ async test "todo_write/update" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "Updated first item",
@@ -343,7 +347,7 @@ async test "todo_write/update" (t : @test.T) {
         ],
         "is_new_creation": false,
       },
-    })
+    ])
     inspect(
       (@todo_write.todo_write.render)(result),
       content=(
@@ -381,7 +385,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result.output, content={
+    @json.inspect(result.output(), content={
       "todos": [
         {
           "content": "First item",
@@ -437,15 +441,16 @@ async test "todo_write/mark_completed" (t : @test.T) {
       { "action": "mark_completed", "task_id": "nonexistent" },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": "Error: Task with ID 'nonexistent' not found.",
-      "error": ["Failure", "Error: Task with ID 'nonexistent' not found."],
-    })
+    @json.inspect(result, content=[
+      "Error",
+      ["Failure", "Error: Task with ID 'nonexistent' not found."],
+      "Error: Task with ID 'nonexistent' not found.",
+    ])
     let result = @todo_write.todo_write.call(
       { "action": "mark_completed", "task_id": "ac8a366d" },
       todo_list,
     )
-    @json.inspect(result.output, content={
+    @json.inspect(result.output(), content={
       "todos": [
         {
           "content": "First item",
@@ -514,8 +519,9 @@ async test "todo_write/mark_progress" (t : @test.T) {
       },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "First item",
@@ -555,15 +561,16 @@ async test "todo_write/mark_progress" (t : @test.T) {
         ],
         "is_new_creation": true,
       },
-    })
+    ])
     let result = @todo_write.todo_write.call(
       { "action": "mark_progress", "task_id": "nonexistent" },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": "Error: Task with ID 'nonexistent' not found.",
-      "error": ["Failure", "Error: Task with ID 'nonexistent' not found."],
-    })
+    @json.inspect(result, content=[
+      "Error",
+      ["Failure", "Error: Task with ID 'nonexistent' not found."],
+      "Error: Task with ID 'nonexistent' not found.",
+    ])
     inspect(
       (@todo_write.todo_write.render)(result),
       content="Error: Unexpected output format",
@@ -572,8 +579,9 @@ async test "todo_write/mark_progress" (t : @test.T) {
       { "action": "mark_progress", "task_id": "ac8a366d" },
       todo_list,
     )
-    @json.inspect(result, content={
-      "output": {
+    @json.inspect(result, content=[
+      "Ok",
+      {
         "todos": [
           {
             "content": "First item",
@@ -605,7 +613,7 @@ async test "todo_write/mark_progress" (t : @test.T) {
         ],
         "is_new_creation": false,
       },
-    })
+    ])
     inspect(
       (@todo_write.todo_write.render)(result),
       content=(

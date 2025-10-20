@@ -85,7 +85,7 @@ pub let list_files : @tool.Tool[@file.Manager] = @tool.tool(
     }
   },
   render=result => {
-    let list_result : ListFilesResult = @json.from_json(result.output) catch {
+    let list_result : ListFilesResult = @json.from_json(result.output()) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
     if list_result.total_count == 0 {

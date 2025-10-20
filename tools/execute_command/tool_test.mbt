@@ -5,10 +5,11 @@ async test "timeout" (t : @test.T) {
       { "command": "sleep", "arguments": ["5"], "timeout": 1 },
       @job.Manager::new(cwd=mock.cwd.path()),
     ),
-    content={
-      "output": "Timeout when executing command",
-      "error": ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-    },
+    content=[
+      "Error",
+      ["TimeoutError", { "command": "sleep", "timeout": 1 }],
+      "Timeout when executing command",
+    ],
   )))
 }
 
@@ -20,7 +21,7 @@ async test "cat" (t : @test.T) {
       { "command": "cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
+    @json.inspect(result.output(), content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -48,7 +49,7 @@ async test "output-overflow" (t : @test.T) {
     )
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
-    @json.inspect(result.output, content=[
+    @json.inspect(result.output(), content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -70,7 +71,7 @@ async test "cd" (t : @test.T) {
       { "command": "cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
+    @json.inspect(result.output(), content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -88,7 +89,7 @@ async test "cd" (t : @test.T) {
       { "command": "cd subdir && cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
+    @json.inspect(result.output(), content=[
       "Foreground",
       {
         "command": "cd subdir && cat file.txt",
@@ -111,7 +112,7 @@ async test "background" (t : @test.T) {
       { "command": "sleep 2", "background": true },
       manager,
     )
-    @json.inspect(result.output, content=[
+    @json.inspect(result.output(), content=[
       "Background",
       { "command": "sleep 2", "job_id": 0 },
     ])

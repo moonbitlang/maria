@@ -221,7 +221,7 @@ pub let todo_write : @tool.Tool[@todo.List] = @tool.tool(
   },
   (args, self) => self.execute_todo_write(args),
   render=result => {
-    guard result.output
+    guard result.output()
       is {
         "todos": todos,
         "message": String(action_performed),

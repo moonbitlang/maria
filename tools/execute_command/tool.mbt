@@ -139,7 +139,7 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
     }
   },
   render=result => {
-    let cmd_result : CommandResult = @json.from_json(result.output) catch {
+    let cmd_result : CommandResult = @json.from_json(result.output()) catch {
       error => return "Error: Unexpected output format: \{error}"
     }
     match cmd_result {
