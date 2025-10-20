@@ -1,12 +1,20 @@
 ///|
-pub struct Params {
+priv struct Params {
   file : String?
   project_path : String
 } derive(@json.FromJson, ToJson)
 
 ///|
-pub fn params(file? : String, project_path~ : String) -> Params {
+fn params(file? : String, project_path~ : String) -> Params {
   Params::{ file, project_path }
+}
+
+///|
+test "params ToJson" {
+  @json.inspect(params(file="src/main.mbt", project_path="."), content={
+    "file": "src/main.mbt",
+    "project_path": ".",
+  })
 }
 
 ///|
