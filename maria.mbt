@@ -11,19 +11,15 @@ async fn load_model(
   model? : String,
 ) -> @model.Model? {
   let model_loader = @model.loader(home~, cwd~)
-  let api_key : String? = if @os.getenv("OPENAI_API_KEY") is Some(key) {
-    Some(key)
-  } else if @os.getenv("OPENROUTER_API_KEY") is Some(key) {
-    Some(key)
+  let api_key : String? = if @os.getenv("OPENAI_API_KEY") is (Some(_) as key) {
+    key
   } else {
-    None
+    @os.getenv("OPENROUTER_API_KEY")
   }
-  let name : String? = if model is Some(model) {
-    Some(model)
-  } else if @os.getenv("MODEL_NAME") is Some(name) {
-    Some(name)
+  let name : String? = if model is (Some(_) as model) {
+    model
   } else {
-    None
+    @os.getenv("MODEL_NAME")
   }
   model_loader.load()
   return model_loader.get_model(name?, api_key?)
@@ -34,11 +30,13 @@ pub suberror ModelNotConfigured
 
 ///|
 #as_free_fn
-pub async fn Maria::new(logger? : @pino.Logger, model? : String) -> Maria {
-  let logger = match logger {
-    Some(logger) => logger
-    None => @pino.logger("maria", try! @pino.transport("file:.moonagent/log"))
-  }
+pub async fn Maria::new(
+  logger? : @pino.Logger = @pino.logger(
+    "maria",
+    try! @pino.transport("file:.moonagent/log"),
+  ),
+  model? : String,
+) -> Maria {
   let home = @os.home()
   let cwd = @os.cwd()
   guard load_model(home~, cwd~, model?) is Some(model) else {
@@ -46,8 +44,14 @@ pub async fn Maria::new(logger? : @pino.Logger, model? : String) -> Maria {
   }
   let agent = @agent.new(model, cwd~)
   agent.add_listener(TokenCounted, context => {
-    guard context.origin_token_count is Some(origin_token_count) else { return }
-    guard context.pruned_token_count is Some(pruned_token_count) else { return }
+    guard context
+      is {
+        origin_token_count: Some(origin_token_count),
+        pruned_token_count: Some(pruned_token_count),
+        ..,
+      } else {
+      return
+    }
     if origin_token_count != pruned_token_count {
       logger.info("Context pruned", {
         "origin_token_count": origin_token_count.to_json(),
