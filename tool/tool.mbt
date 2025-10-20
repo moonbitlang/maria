@@ -35,10 +35,10 @@ pub fn Result::output(self : Result) -> Json {
 }
 
 ///|
-priv suberror Failure Json derive(ToJson)
+priv suberror ToolFailure Json derive(ToJson)
 
 ///|
-pub fn error(output : Json, error? : Error = Failure(output)) -> Result {
+pub fn error(output : Json, error? : Error = ToolFailure(output)) -> Result {
   Error(error, output)
 }
 
