@@ -422,7 +422,7 @@ async fn execute_meta_write_to_file(
         @tool.error("Either 'replace' content must be provided for new files")
     }
     if write_result is Error(_, _) {
-      return write_result // Continue processing
+      return write_result // Return early on error
     }
 
     // Step 1.5: Capture content immediately after initial write
