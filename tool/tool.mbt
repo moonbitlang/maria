@@ -13,7 +13,7 @@ pub struct Tool[T] {
 }
 
 ///|
-typealias async (Json, T) -> Result noraise as ToolFn[T]
+pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
 
 ///|
 pub struct Result {
