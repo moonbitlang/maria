@@ -15,9 +15,7 @@ priv enum WriteResultOperation {
 }
 
 ///|
-impl ToJson for WriteResultOperation with to_json(
-  self : WriteResultOperation,
-) -> Json {
+impl ToJson for WriteResultOperation with to_json(self : WriteResultOperation) -> Json {
   match self {
     Created => "created"
     Updated => "updated"
