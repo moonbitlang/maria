@@ -37,10 +37,10 @@ pub async fn Module::load(path : String) -> Module {
   let path = @fs.resolve(path)
   let moon_mod_path = @path.join(path, "moon.mod.json")
   let mod : Module = moon_mod_path
-    |> @fs.read_file()
-    |> @json.parse()
-    |> @json.from_json()
-  let mod = { ..mod, path, coverage: { ..mod.coverage, path, } }
+    |> @fs.read_file
+    |> @json.parse
+    |> @json.from_json
+  let mod = { ..mod, path, coverage: { path, } }
   mod.discover()
   mod
 }
