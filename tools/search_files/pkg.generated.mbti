@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/search_files"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
@@ -14,16 +13,6 @@ let search_files : @tool.Tool[String]
 // Errors
 
 // Types and methods
-pub(all) struct SearchResult {
-  context : String
-  line_number : Int
-  match_line : String
-  path : String
-}
-fn SearchResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn SearchResult::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for SearchResult
-impl @json.FromJson for SearchResult
 
 // Type aliases
 

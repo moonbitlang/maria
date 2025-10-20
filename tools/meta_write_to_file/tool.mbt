@@ -12,7 +12,7 @@ priv struct MetaWriteParams {
 }
 
 ///|
-pub(all) struct MetaWriteToFileResult {
+priv struct MetaWriteToFileResult {
   path : String
   message : String
   diff : String

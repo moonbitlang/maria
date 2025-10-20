@@ -1,17 +1,17 @@
 ///|
-pub(all) struct ReadFileResult {
+priv struct ReadFileResult {
   path : String
   content : String
   start_line : Int
   end_line : Int
-} derive(ToJson, FromJson)
+} derive(ToJson)
 
 ///|
-pub(all) struct ReadDirectoryResult {
+priv struct ReadDirectoryResult {
   path : String
   entries : Array[String]
   display : String
-} derive(ToJson, FromJson)
+} derive(ToJson)
 
 ///|
 async fn @file.Manager::execute_read_file_tool(

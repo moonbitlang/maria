@@ -31,7 +31,7 @@ async test "get_moonbit_coverage" (t : @test.T) {
     let params = params(project_path=taco.cwd.path(), file="example.mbt")
     let result = get_moonbit_coverage.call(params.to_json(), taco.cwd.path())
     let result : Result = @json.from_json(result.output)
-    inspect(
+    @json.inspect(
       result,
       content=(
         $|Total: 1 uncovered line(s) in 1 file(s)
@@ -43,7 +43,7 @@ async test "get_moonbit_coverage" (t : @test.T) {
         $|  |     n
         $|  |   } else {
         $|6 |     fib(n - 1) + fib(n - 2)
-        $|  |     ^^^^^^^^^^^^^^^^^^^^^^^ \t<-- UNCOVERED
+        $|  |     ^^^^^^^^^^^^^^^^^^^^^^^ 	<-- UNCOVERED
         $|  |   }
         $|  | }
         $|  …

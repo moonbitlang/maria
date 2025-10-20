@@ -18,25 +18,15 @@ test "params ToJson" {
 }
 
 ///|
-pub struct Result(String)
+priv struct Result(String)
 
 ///|
-pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
-  logger.write_string(self.0)
-}
-
-///|
-pub impl Show for Result with to_string(self : Result) -> String {
-  self.0
-}
-
-///|
-pub impl ToJson for Result with to_json(self : Result) -> Json {
+impl ToJson for Result with to_json(self : Result) -> Json {
   self.0.to_json()
 }
 
 ///|
-pub impl @json.FromJson for Result with from_json(
+impl @json.FromJson for Result with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Result {
