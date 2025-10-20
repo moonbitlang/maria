@@ -1,35 +1,44 @@
 ///|
 async test "Coverage::report" (t : @test.T) {
   @mock.run(t, taco => {
-    let _ = taco.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file(
-      "example.mbt",
-      content=(
-        #|///|
-        #|pub fn fib(n : Int) -> Int {
-        #|  if n == 0 {
-        #|    1
-        #|  } else if n == 1 {
-        #|    1
-        #|  } else {
-        #|    fib(n - 1) + fib(n - 2)
-        #|  }
-        #|}
+    taco.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
       ),
-    )
-    let _ = taco.add_file(
-      "example_test.mbt",
-      content=(
-        #|///|
-        #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
-        #|}
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
       ),
-    )
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|pub fn fib(n : Int) -> Int {
+          #|  if n == 0 {
+          #|    1
+          #|  } else if n == 1 {
+          #|    1
+          #|  } else {
+          #|    fib(n - 1) + fib(n - 2)
+          #|  }
+          #|}
+        ),
+      ),
+      (
+        "example_test.mbt",
+        (
+          #|///|
+          #|test "fib" {
+          #|  @json.inspect(@example.fib(0), content=1)
+          #|}
+        ),
+      ),
+    ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])
@@ -66,35 +75,44 @@ async test "Coverage::report" (t : @test.T) {
 ///|
 async test "Coverage::analyze" (t : @test.T) {
   @mock.run(t, timeout=30_000, taco => {
-    let _ = taco.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file(
-      "example.mbt",
-      content=(
-        #|///|
-        #|pub fn fib(n : Int) -> Int {
-        #|  if n == 0 {
-        #|    1
-        #|  } else if n == 1 {
-        #|    1
-        #|  } else {
-        #|    fib(n - 1) + fib(n - 2)
-        #|  }
-        #|}
+    taco.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
       ),
-    )
-    let _ = taco.add_file(
-      "example_test.mbt",
-      content=(
-        #|///|
-        #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
-        #|}
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
       ),
-    )
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|pub fn fib(n : Int) -> Int {
+          #|  if n == 0 {
+          #|    1
+          #|  } else if n == 1 {
+          #|    1
+          #|  } else {
+          #|    fib(n - 1) + fib(n - 2)
+          #|  }
+          #|}
+        ),
+      ),
+      (
+        "example_test.mbt",
+        (
+          #|///|
+          #|test "fib" {
+          #|  @json.inspect(@example.fib(0), content=1)
+          #|}
+        ),
+      ),
+    ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])
@@ -129,35 +147,44 @@ async test "Coverage::analyze" (t : @test.T) {
 ///|
 async test "Coverage::clean" (t : @test.T) {
   @mock.run(t, timeout=30_000, taco => {
-    let _ = taco.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file(
-      "example.mbt",
-      content=(
-        #|///|
-        #|pub fn fib(n : Int) -> Int {
-        #|  if n == 0 {
-        #|    1
-        #|  } else if n == 1 {
-        #|    1
-        #|  } else {
-        #|    fib(n - 1) + fib(n - 2)
-        #|  }
-        #|}
+    taco.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
       ),
-    )
-    let _ = taco.add_file(
-      "example_test.mbt",
-      content=(
-        #|///|
-        #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
-        #|}
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
       ),
-    )
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|pub fn fib(n : Int) -> Int {
+          #|  if n == 0 {
+          #|    1
+          #|  } else if n == 1 {
+          #|    1
+          #|  } else {
+          #|    fib(n - 1) + fib(n - 2)
+          #|  }
+          #|}
+        ),
+      ),
+      (
+        "example_test.mbt",
+        (
+          #|///|
+          #|test "fib" {
+          #|  @json.inspect(@example.fib(0), content=1)
+          #|}
+        ),
+      ),
+    ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics().collect(), content=[])

@@ -89,8 +89,7 @@ async test "line_range" (t : @test.T) {
 async test "directory" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
-    let _ = taco.add_file("file1.txt", content="content1")
-    let _ = taco.add_file("file2.txt", content="content2")
+    taco.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
     let subdir = taco.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
     let args : Json = { "path": "." }
