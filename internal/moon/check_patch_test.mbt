@@ -22,7 +22,7 @@ async test "check_patch" (t : @test.T) {
         ),
       ),
     ])
-    let moon = Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {

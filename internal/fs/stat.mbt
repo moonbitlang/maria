@@ -41,3 +41,11 @@ pub fn Stat::atime(self : Stat) -> Int64 {
 pub async fn kind(path : StringView) -> FileKind {
   FileKind::of_fs_file_kind(@fs.kind(path.to_string()))
 }
+
+///|
+pub async fn exists_as_file(path : StringView) -> Bool {
+  if !exists(path) {
+    return false
+  }
+  return kind(path) is Regular
+}

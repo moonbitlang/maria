@@ -4,6 +4,8 @@ package "moonbitlang/maria/internal/fs"
 // Values
 async fn exists(StringView) -> Bool
 
+async fn exists_as_file(StringView) -> Bool
+
 async fn kind(StringView) -> FileKind
 
 async fn list_directory(StringView) -> Array[DirectoryEntry]

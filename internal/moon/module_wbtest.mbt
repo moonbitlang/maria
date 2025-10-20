@@ -1,5 +1,5 @@
 ///|
-async test "discover" (t : @test.T) {
+async test "packages" (t : @test.T) {
   @mock.run(t, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
@@ -27,58 +27,11 @@ async test "discover" (t : @test.T) {
       content=Json::object({}).stringify(),
     )
     let _ = src_app.add_file("main.mbt", content="let y : String = \"hello\"")
-    let moon = Module::load(taco.cwd.path())
-    moon.discover()
+    let moon = Module::new(taco.cwd.path())
     let pkg_names = moon.packages.keys().collect()
     pkg_names.sort()
     @json.inspect(pkg_names, content=[
       "example", "example/app", "example/lib", "example/lib/util",
-    ])
-  })
-}
-
-///|
-async test "diagnostics" (t : @test.T) {
-  @mock.run(t, taco => {
-    taco.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
-      ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
-      ),
-      ("example.mbt", "let x : Int = \"string\""),
-    ])
-    let moon = Module::load(taco.cwd.path())
-    moon.check()
-    let diagnostics = moon.diagnostics().collect()
-    @json.inspect(taco.json(diagnostics), content=[
-      {
-        "error_code": 2,
-        "level": "Warning",
-        "loc": {
-          "end": { "col": 6, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 5, "line": 1 },
-        },
-        "message": "Warning: Unused variable 'x'",
-      },
-      {
-        "error_code": 4014,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 23, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 15, "line": 1 },
-        },
-        "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
-      },
     ])
   })
 }
