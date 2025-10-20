@@ -63,6 +63,16 @@ pub async fn Context::add_file(
 }
 
 ///|
+pub async fn Context::add_files(
+  self : Context,
+  files : Array[(String, String)],
+) -> Unit {
+  for item in files {
+    self.cwd.add_file(item.0, content=item.1) |> ignore
+  }
+}
+
+///|
 pub async fn Context::add_directory(self : Context, name : String) -> Directory {
   self.cwd.add_directory(name)
 }
