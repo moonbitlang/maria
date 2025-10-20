@@ -6,7 +6,7 @@ fn error(Json, error? : Error) -> Result
 
 fn ok(Json) -> Result
 
-fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], async (Json, T) -> Result noraise, render~ : async (Result) -> String noraise) -> Tool[T]
+fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], ToolFn[T], render~ : async (Result) -> String noraise) -> Tool[T]
 
 // Errors
 
@@ -30,6 +30,10 @@ pub struct ToolDesc {
   name : String
   parameters : Map[String, Json]
 }
+
+pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
+#deprecated
+fn[T] ToolFn::inner(Self[T]) -> async (Json, T) -> Result noraise
 
 // Type aliases
 

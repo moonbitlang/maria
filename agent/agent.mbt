@@ -192,7 +192,7 @@ pub fn[T] Agent::add_tool(
     description=tool.desc.description,
     name=tool.desc.name,
     parameters=tool.desc.parameters,
-    (args : Json, _ : Unit) => tool.call(args, state),
+    ToolFn((args : Json, _ : Unit) => tool.call(args, state)),
     render=tool.render,
   )
 }
