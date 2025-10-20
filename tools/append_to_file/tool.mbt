@@ -1,17 +1,29 @@
 ///|
-pub struct Params {
+priv struct Params {
   content : String
   path : String?
   separator : String?
 } derive(ToJson, @json.FromJson)
 
 ///|
-pub fn params(content~ : String, path? : String, separator? : String) -> Params {
+fn params(content~ : String, path? : String, separator? : String) -> Params {
   Params::{ content, path, separator }
 }
 
 ///|
-pub struct Result {
+test {
+  @json.inspect(
+    params(content="Hello, World!", path="example.txt", separator="\n"),
+    content={
+      "content": "Hello, World!",
+      "path": "example.txt",
+      "separator": "\n",
+    },
+  )
+}
+
+///|
+priv struct Result {
   path : String
 } derive(@json.FromJson, ToJson)
 

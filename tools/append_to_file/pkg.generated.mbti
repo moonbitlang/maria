@@ -2,35 +2,15 @@
 package "moonbitlang/maria/tools/append_to_file"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
 // Values
 let append_to_file : @tool.Tool[String]
 
-fn params(content~ : String, path? : String, separator? : String) -> Params
-
 // Errors
 
 // Types and methods
-pub struct Params {
-  content : String
-  path : String?
-  separator : String?
-}
-fn Params::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Params::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for Params
-impl @json.FromJson for Params
-
-pub struct Result {
-  path : String
-}
-fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Result::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for Result
-impl @json.FromJson for Result
 
 // Type aliases
 
