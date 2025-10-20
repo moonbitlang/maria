@@ -1,15 +1,27 @@
 ///|
 async test "check_patch" (t : @test.T) {
   @mock.run(t, taco => {
-    let _ = taco.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file(
-      "example.mbt",
-      content="///|\nlet x : Int = \"string\"",
-    )
+    taco.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
+      ),
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
+      ),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|let x : Int = "string"
+        ),
+      ),
+    ])
     let moon = Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[

@@ -1,26 +1,35 @@
 ///|
 async test "test" (t : @test.T) {
   @mock.run(t, taco => {
-    let _ = taco.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file(
-      "test.mbt",
-      content=(
-        #|///|
-        #|test "add" {
-        #|  let x = 2 + 2
-        #|  @json.inspect(x, content=3)
-        #|}
-        #|
-        #|///|
-        #|test "eq" {
-        #|  assert_eq(1 + 1, 3)
-        #|}
+    taco.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
       ),
-    )
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
+      ),
+      (
+        "test.mbt",
+        (
+          #|///|
+          #|test "add" {
+          #|  let x = 2 + 2
+          #|  @json.inspect(x, content=3)
+          #|}
+          #|
+          #|///|
+          #|test "eq" {
+          #|  assert_eq(1 + 1, 3)
+          #|}
+        ),
+      ),
+    ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
     @json.inspect(taco.json(moon.test_()), content=[

@@ -39,21 +39,23 @@ async test "search_files" (t : @test.T) {
 async test "search_files/agentic" (t : @test.T) {
   @mock.run(t, timeout=60_000, taco => {
     guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
-    let _ = taco.add_file(
-      "notes.txt",
-      content=(
-        #|These are some notes about the project.
-        #|We need to implement a feature to search files.
-        #|The search should be efficient and accurate.
+    taco.add_files([
+      (
+        "notes.txt",
+        (
+          #|These are some notes about the project.
+          #|We need to implement a feature to search files.
+          #|The search should be efficient and accurate.
+        ),
       ),
-    )
-    let _ = taco.add_file(
-      "file.txt",
-      content=(
-        #|This file contains some important information.
-        #|Make sure to read it carefully.
+      (
+        "file.txt",
+        (
+          #|This file contains some important information.
+          #|Make sure to read it carefully.
+        ),
       ),
-    )
+    ])
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
