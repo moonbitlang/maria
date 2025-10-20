@@ -55,112 +55,13 @@ pub struct Rule {
 } derive(Show, ToJson)
 
 ///|
-fn parse_yaml_value(string : StringView) -> Json {
-  let string = lexmatch string with longest {
-      ("\s*" (".*" as string) "\s*") => string
-      string => string
-    }
-  match string {
-    ['"', .. string, '"'] | ['\'', .. string, '\''] =>
-      Json::string(string.to_string())
-    "true" => Json::boolean(true)
-    "false" => Json::boolean(false)
-    ['[', .. string, ']'] =>
-      Json::array(string.split(",").map(s => parse_yaml_value(s)).collect())
-    _ if (try? @strconv.parse_double(string)) is Ok(number) =>
-      Json::number(number)
-    _ => Json::string(string.to_string())
-  }
-}
-
-///|
-test {
-  @json.inspect(
-    parse_yaml_value(
-      (
-        #|[1, 2, 3]
-      ),
-    ),
-    content=[1, 2, 3],
-  )
-  @json.inspect(
-    parse_yaml_value(
-      (
-        #|"hello"
-      ),
-    ),
-    content="hello",
-  )
-  @json.inspect(
-    parse_yaml_value(
-      (
-        #|  true
-      ),
-    ),
-    content=true,
-  )
-  @json.inspect(
-    parse_yaml_value(
-      (
-        #|  false
-      ),
-    ),
-    content=false,
-  )
-  @json.inspect(
-    parse_yaml_value(
-      (
-        #|  123.45
-      ),
-    ),
-    content=123.45,
-  )
-}
-
-///|
 fn Rule::parse(content : String, source~ : Source) -> Rule {
-  enum State {
-    PreFrontMatter
-    FrontMatter
-    PostFrontMatter
-  }
-  let mut state : State = PreFrontMatter
-  let front_matter : Map[StringView, Json] = {}
-  let builder = StringBuilder::new()
-  for line in content.split("\n") {
-    let line = line.to_string()
-    match state {
-      PreFrontMatter =>
-        lexmatch line with longest {
-          "\s*---\s*" => state = FrontMatter
-          _ => continue
-        }
-      FrontMatter =>
-        lexmatch line with longest {
-          "\s*" => continue
-          ("\s*#", _) => continue
-          "\s*---\s*" => state = PostFrontMatter
-          (("\s*[^:]*" as key) ":\s*", rest) => {
-            let value = parse_yaml_value(rest)
-            if key is ("alwaysApply" | "always_apply" | "always-apply") {
-              front_matter["alwaysApply"] = value
-            } else {
-              front_matter[key] = value
-            }
-          }
-          _ => continue
-        }
-      PostFrontMatter => {
-        builder.write_string(line)
-        builder.write_char('\n')
-      }
-    }
-  }
-  let description = match front_matter.get("description") {
+  let doc = @yamd.parse(content)
+  let description = match doc.meta.get("description") {
     Some(Json::String(desc)) => Some(desc)
     _ => None
   }
-  let globs = match front_matter.get("globs") {
+  let globs = match doc.meta.get("globs") {
     Some(Json::Array(arr)) =>
       arr
       .iter()
@@ -171,18 +72,12 @@ fn Rule::parse(content : String, source~ : Source) -> Rule {
       .collect()
     _ => []
   }
-  let always_apply : Bool = match front_matter.get("alwaysApply") {
+  let always_apply : Bool = match doc.meta.get("alwaysApply") {
     Some(True) => true
     Some(False) => false
     _ => false
   }
-  Rule::{
-    description,
-    globs,
-    always_apply,
-    content: builder.to_string().trim_end(char_set=" \r\t\n").to_string(),
-    source,
-  }
+  Rule::{ description, globs, always_apply, content: doc.text, source }
 }
 
 ///|
