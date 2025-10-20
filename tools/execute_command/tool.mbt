@@ -4,7 +4,7 @@ priv suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-pub(all) enum CommandResult {
+priv enum CommandResult {
   Foreground(
     command~ : String,
     status~ : Int,
