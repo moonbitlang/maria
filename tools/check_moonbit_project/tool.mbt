@@ -1,5 +1,5 @@
 ///|
-pub struct CheckMoonbitProjectParams {
+priv struct CheckMoonbitProjectParams {
   diagnostic_limit : Int?
   patch_code : String?
   patch_file_name : String?
@@ -7,7 +7,7 @@ pub struct CheckMoonbitProjectParams {
 } derive(@json.FromJson, ToJson)
 
 ///|
-pub fn params(
+fn params(
   diagnostic_limit? : Int,
   patch_code? : String,
   patch_file_name? : String,
@@ -19,6 +19,24 @@ pub fn params(
     patch_file_name,
     project_path,
   }
+}
+
+///|
+test "params ToJson" {
+  @json.inspect(
+    params(
+      diagnostic_limit=5,
+      patch_code="let x : Int = \"string\"",
+      patch_file_name="example.mbt",
+      project_path=".",
+    ),
+    content={
+      "diagnostic_limit": 5,
+      "patch_code": "let x : Int = \"string\"",
+      "patch_file_name": "example.mbt",
+      "project_path": ".",
+    },
+  )
 }
 
 ///|

@@ -13,14 +13,8 @@ async test "check_moonbit_project" (t : @test.T) {
       @path.join(taco.cwd.path(), "example.mbt"),
       "///|\nlet x : Int = \"string\"",
     )
-    let args = @check_moonbit_project.params(
-      diagnostic_limit=10,
-      project_path=taco.cwd.path(),
-    )
-    let result = @check_moonbit_project.check_moonbit_project.call(
-      args.to_json(),
-      taco.cwd.path(),
-    )
+    let args = params(diagnostic_limit=10, project_path=taco.cwd.path())
+    let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
     @json.inspect(taco.json(result), content={
       "output": {
         "diagnostics": [
@@ -66,16 +60,13 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
       @path.join(taco.cwd.path(), "example.mbt"),
       "///|\nlet x : Int = \"string\"\n",
     )
-    let args = @check_moonbit_project.params(
+    let args = params(
       diagnostic_limit=10,
       project_path=taco.cwd.path(),
       patch_code="let y : String = 42",
       patch_file_name="example.mbt",
     )
-    let result = @check_moonbit_project.check_moonbit_project.call(
-      args.to_json(),
-      taco.cwd.path(),
-    )
+    let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
     @json.inspect(taco.json(result), content={
       "output": {
         "diagnostics": [
