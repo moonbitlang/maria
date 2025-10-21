@@ -360,7 +360,7 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
               @tool.error(
                 "Error performing MoonBit analysis for '\{query}': \{error}",
               )
-            error => @tool.error("Error searching files: \{error}", error~)
+            error => @tool.error("Error searching files: \{error}")
           }
         }
         None =>

@@ -151,8 +151,7 @@ async fn @todo.List::execute_todo_write(
   }
   try {
     self.load() catch {
-      error =>
-        return @tool.error("Error loading existing todo list: \{error}", error~)
+      error => return @tool.error("Error loading existing todo list: \{error}")
     }
     match action {
       Create =>
@@ -162,8 +161,7 @@ async fn @todo.List::execute_todo_write(
           Some(content) => {
             // Clear existing todos and create new ones
             self.parse(content, priority~, notes?) catch {
-              error =>
-                return @tool.error("Error parsing content: \{error}", error~)
+              error => return @tool.error("Error parsing content: \{error}")
             }
             try {
               self.save()
@@ -177,8 +175,7 @@ async fn @todo.List::execute_todo_write(
                 }.render(),
               )
             } catch {
-              error =>
-                return @tool.error("Failed to save todo list: \{error}", error~)
+              error => return @tool.error("Failed to save todo list: \{error}")
             }
           }
         }
@@ -198,8 +195,7 @@ async fn @todo.List::execute_todo_write(
             }.render(),
           )
         } catch {
-          error =>
-            return @tool.error("Failed to save new task: \{error}", error~)
+          error => return @tool.error("Failed to save new task: \{error}")
         }
       }
       Update | MarkProgress | MarkCompleted => {
@@ -252,13 +248,12 @@ async fn @todo.List::execute_todo_write(
             }.render(),
           )
         } catch {
-          error =>
-            return @tool.error("Failed to save task update: \{error}", error~)
+          error => return @tool.error("Failed to save task update: \{error}")
         }
       }
     }
   } catch {
-    error => @tool.error("Error in todo write operation: \{error}", error~)
+    error => @tool.error("Error in todo write operation: \{error}")
   }
 }
 

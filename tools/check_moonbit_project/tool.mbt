@@ -71,8 +71,7 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
   },
   (args, cwd) => {
     let args : CheckMoonbitProjectParams = @json.from_json(args) catch {
-      error =>
-        return @tool.error("Error: Failed to parse arguments: \{error}", error~)
+      error => return @tool.error("Error: Failed to parse arguments: \{error}")
     }
     let resolved_project_path = if @path.is_absolute(args.project_path) {
       args.project_path
@@ -84,7 +83,6 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
       error =>
         return @tool.error(
           "Error: Failed to load project at '\{resolved_project_path}': \{error}",
-          error~,
         )
     }
     let diagnostics = if args.patch_code is Some(code) &&
@@ -95,16 +93,14 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
         @path.join(resolved_project_path, file_path)
       }
       moon.check_patch_insert(resolved_file_path, code) catch {
-        error =>
-          return @tool.error("Error: Failed to check patch: \{error}", error~)
+        error => return @tool.error("Error: Failed to check patch: \{error}")
       }
     } else {
       try {
         moon.check()
         moon.diagnostics().collect()
       } catch {
-        error =>
-          return @tool.error("Error: Failed to check project: \{error}", error~)
+        error => return @tool.error("Error: Failed to check project: \{error}")
       }
     }
     let diagnostics = if diagnostics.length() < diagnostic_limit {

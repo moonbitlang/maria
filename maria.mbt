@@ -89,10 +89,10 @@ pub async fn Maria::new(
       "name": tool_call.function.name.to_json(),
     })
     guard context.tool_call_result is Some(result) else { return }
-    logger.info("Tool result", { "output": result.output.to_json() })
-    if result.error is Some(error) {
-      logger.error("Tool error", { "error": error.to_json() })
-    }
+    logger.info("Tool result", {
+      "output": result.output.to_json(),
+      "failed": result.failed.to_json(),
+    })
   })
   agent.add_listener(ConversationStart, _ => logger.info(
     "Conversation started",

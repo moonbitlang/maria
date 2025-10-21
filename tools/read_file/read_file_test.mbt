@@ -8,7 +8,7 @@ async test "nonexistent" (t : @test.T) {
       result.output,
       content="Error reading file: File not found: nonexistent.txt",
     )
-    @json.inspect(result.error, content=[
+    @json.inspect(result.failed, content=[
       ["Failure", "Error reading file: File not found: nonexistent.txt"],
     ])
   })

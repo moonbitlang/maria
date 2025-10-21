@@ -37,7 +37,7 @@ pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
   },
   (args, cwd) => {
     let args : Params = @json.from_json(args) catch {
-      error => return @tool.error("Invalid arguments: \{error}", error~)
+      error => return @tool.error("Invalid arguments: \{error}")
     }
     let resolved_project_path = if @path.is_absolute(args.project_path) {
       args.project_path
@@ -48,7 +48,6 @@ pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
       error =>
         return @tool.error(
           "Failed to load MoonBit project at '\{resolved_project_path}': \{error}",
-          error~,
         )
     }
     guard args.file is Some(file) else {
@@ -56,16 +55,12 @@ pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
         error =>
           @tool.error(
             "Failed to get coverage summary for project at '\{resolved_project_path}': \{error}",
-            error~,
           )
       }
     }
     @tool.ok(moon.coverage.analyze(file~)) catch {
       error =>
-        @tool.error(
-          "Failed to analyze coverage for file '\{file}': \{error}",
-          error~,
-        )
+        @tool.error("Failed to analyze coverage for file '\{file}': \{error}")
     }
   },
 )

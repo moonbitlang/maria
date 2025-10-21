@@ -88,7 +88,7 @@ pub let list_files : @tool.Tool[@file.Manager] = @tool.tool(
         @tool.ok(output.join("\n"))
       }
     } catch {
-      error => @tool.error("Error listing files: \{error}", error~)
+      error => @tool.error("Error listing files: \{error}")
     }
   },
 )

@@ -19,10 +19,10 @@ let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
     }
     let patched : String = @json.from_json(patched) catch {
       error =>
-        return @tool.error("Invalid 'segment' argument: \{error}", error~)
+        return @tool.error("Invalid 'segment' argument: \{error}")
     }
     let diagnostics = moon.check_patch_replace(segment, patched) catch {
-      error => return @tool.error("Failed to check patch: \{error}", error~)
+      error => return @tool.error("Failed to check patch: \{error}")
     }
     guard diagnostics is [diagnostic, ..] else {
       result.val = Some(patched)
@@ -173,7 +173,7 @@ pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
       @path.join(cwd, project_path)
     }
     let moon = @moon.Module::load(project_path) catch {
-      error => return @tool.error("Failed to load module: \{error}", error~)
+      error => return @tool.error("Failed to load module: \{error}")
     }
     let files = moon.files().collect()
     @async.with_timeout(
@@ -181,7 +181,7 @@ pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
       () => moon.check(),
       error=Failure("Timeout after 4 minutes"),
     ) catch {
-      error => return @tool.error("Failed to check module: \{error}", error~)
+      error => return @tool.error("Failed to check module: \{error}")
     }
     let mut files_updated = 0
     let mut segments_updated = 0
@@ -218,7 +218,7 @@ pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
         "Processed \{files_updated} files and updated \{segments_updated} segments.",
       )
     })).or_error(Failure("Takes too long processing all the segments")) catch {
-      error => return @tool.error("Failed to process files: \{error}", error~)
+      error => return @tool.error("Failed to process files: \{error}")
     }
   },
 )

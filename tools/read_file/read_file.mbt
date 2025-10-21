@@ -76,7 +76,7 @@ async fn @file.Manager::execute_read_file_tool(
     let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
     return @tool.ok("File: \{path} (\{range_info})\n\{selected_content}")
   } catch {
-    error => @tool.error("Error reading file: \{error}", error~)
+    error => @tool.error("Error reading file: \{error}")
   }
 }
 

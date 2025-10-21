@@ -1,9 +1,4 @@
 ///|
-priv suberror TimeoutError {
-  TimeoutError(command~ : String, timeout~ : Int)
-} derive(ToJson, Show)
-
-///|
 pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
   description="Execute an shell command with arguments and capture its output.",
   name="execute_command",
@@ -129,14 +124,11 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
         })
         match result {
           Some(result) => result
-          None => {
-            let error = TimeoutError(command~, timeout~)
-            @tool.error("Timeout when executing command", error~)
-          }
+          None => @tool.error("Timeout when executing command")
         }
       }
     } catch {
-      error => @tool.error("Error executing command: \{error}", error~)
+      error => @tool.error("Error executing command: \{error}")
     }
   },
 )

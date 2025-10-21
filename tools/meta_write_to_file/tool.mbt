@@ -189,7 +189,7 @@ let submit_fixed_file : @tool.Tool[FixingContext] = @tool.tool(
         )
       }
     } catch {
-      error => @tool.error("Failed to write or verify file: \{error}", error~)
+      error => @tool.error("Failed to write or verify file: \{error}")
     }
   },
 )
@@ -223,7 +223,7 @@ let read_current_file : @tool.Tool[FixingContext] = @tool.tool(
       let content = @fs.read_file(ctx.file_path)
       @tool.ok("File content:\n\{content}")
     } catch {
-      error => @tool.error("Failed to read file: \{error}", error~)
+      error => @tool.error("Failed to read file: \{error}")
     }
   },
 )
@@ -390,7 +390,7 @@ async fn execute_meta_write_to_file(
           @fs.write_to_file(resolved_path, replace)
           @tool.ok("File written successfully to \{params.path}")
         } catch {
-          error => @tool.error("Error writing to file: \{error}", error~)
+          error => @tool.error("Error writing to file: \{error}")
         }
       (Some(search), replace_opt) =>
         // Search and replace operation
@@ -411,12 +411,12 @@ async fn execute_meta_write_to_file(
             }
           }
         } catch {
-          error => @tool.error("Error writing to file: \{error}", error~)
+          error => @tool.error("Error writing to file: \{error}")
         }
       (None, None) =>
         @tool.error("Either 'replace' content must be provided for new files")
     }
-    if write_result.error is Some(_) {
+    if write_result.failed {
       return write_result // Return early on error
     }
 
@@ -504,7 +504,7 @@ async fn execute_meta_write_to_file(
       )
     }
   } catch {
-    error => @tool.error("Error in meta_write_to_file: \{error}", error~)
+    error => @tool.error("Error in meta_write_to_file: \{error}")
   }
 }
 

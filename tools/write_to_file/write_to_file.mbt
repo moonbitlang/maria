@@ -203,7 +203,7 @@ async fn @file.Manager::execute_write_to_file(
     @fs.write_to_file(resolved_path, content)
     @tool.ok("Changes applied to \{path}")
   } catch {
-    error => @tool.error("Error writing to file: \{error}", error~)
+    error => @tool.error("Error writing to file: \{error}")
   }
 }
 

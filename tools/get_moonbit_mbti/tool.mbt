@@ -18,16 +18,12 @@ pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
     }
     let moon = @moon.Project::new(cwd) catch {
       error =>
-        return @tool.error(
-          "Error: Failed to load module at '\{cwd}': \{error}",
-          error~,
-        )
+        return @tool.error("Error: Failed to load module at '\{cwd}': \{error}")
     }
     let pkg = moon.package_(pkg_name) catch {
       error =>
         return @tool.error(
           "Error: Failed to find package '\{pkg_name}': \{error}",
-          error~,
         )
     }
     guard pkg is Some(pkg) else {
@@ -37,7 +33,6 @@ pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
       error =>
         return @tool.error(
           "Error: Failed to get interface for package '\{pkg_name}': \{error}",
-          error~,
         )
     }
     @tool.ok(interface)
