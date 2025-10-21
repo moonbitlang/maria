@@ -3,10 +3,10 @@
     "moonbitlang/async/process",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/spawn",
-    "moonbitlang/maria/internal/fs"
+    "moonbitlang/maria/internal/fs",
+    "moonbitlang/async"
   ],
   "test-import": [
-    "moonbitlang/async",
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/internal/os"
   ]
