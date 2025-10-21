@@ -27,7 +27,7 @@ async test "project" (t : @test.T) {
         .to_json()
         .stringify(),
     )
-    let _ = mock.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = deps.add_file("moon.pkg.json", content=Json::object({}).stringify())
     let project = @moon.Module::load(mock.cwd.path())
     let mod_names : Array[(String, Array[String])] = []
     @json.inspect(project.name(), content="example")

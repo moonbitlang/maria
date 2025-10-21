@@ -89,17 +89,14 @@ async fn Module::load_mod(
   if !@fs.exists(dir) {
     return
   }
-  if visit.contains(dir) {
-    return
-  }
-  visit.add(dir)
   let dir = @fs.resolve(dir)
   let moon_mod_path = @path.join(dir, "moon.mod.json")
   if @fs.exists(moon_mod_path) &&
     @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
     let mod = Module::new(dir)
     self.modules.push(mod)
-    self.load_pkg(mod, @path.join(dir, mod.source()), visit~)
+    let mod_src = @path.join(dir, mod.source())
+    self.load_pkg(mod, mod_src, visit~)
   } else {
     self.load_pkg(mod, dir, visit~)
   }
@@ -115,11 +112,11 @@ async fn Module::load_pkg(
   if !@fs.exists(dir) {
     return
   }
+  let dir = @fs.resolve(dir)
   if visit.contains(dir) {
     return
   }
   visit.add(dir)
-  let dir = @fs.resolve(dir)
   let moon_pkg_path = @path.join(dir, "moon.pkg.json")
   if !@fs.exists_as_file(moon_pkg_path) {
     let entries = @fs.list_directory(dir)
@@ -128,6 +125,7 @@ async fn Module::load_pkg(
         self.load_pkg(mod, entry.path, visit~)
       }
     }
+    return
   }
   let pkg_name = {
     let rel = @path.relative(@path.join(self.path, mod.source()), dir)
