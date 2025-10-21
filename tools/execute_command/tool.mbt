@@ -43,7 +43,7 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
         "default": false,
       },
     },
-    "required": ["command"],
+    "required": ["command", "timeout"],
   },
   (args, ctx) => {
     guard args is { "command": String(command), .. } else {
