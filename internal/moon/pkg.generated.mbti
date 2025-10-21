@@ -102,7 +102,6 @@ async fn Module::load(String) -> Self
 async fn Module::locate_package(Self, String) -> Package
 fn Module::modules(Self) -> Iter[Self]
 fn Module::name(Self) -> String
-fn Module::package_(Self, String) -> PackageView?
 fn Module::packages(Self) -> Iter[Package]
 fn Module::source(Self) -> String
 async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Array[TestFailure]
