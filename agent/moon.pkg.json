@@ -6,9 +6,9 @@
     "moonbitlang/maria/internal/event",
     "moonbitlang/maria/internal/token",
     "moonbitlang/maria/internal/cache",
-    "moonbitlang/maria/internal/context",
+    "moonbitlang/maria/context",
     "moonbitlang/maria/internal/conversation",
-    "moonbitlang/maria/internal/ai",
+    "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/internal/uuid"
