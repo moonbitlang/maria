@@ -16,21 +16,21 @@ pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
     guard args is { "package": String(pkg_name), .. } else {
       @tool.error("Error: 'package' argument is required and must be a string.")
     }
-    let moon = @moon.Project::new(cwd) catch {
+    let moon = @moon.Module::load(cwd) catch {
       error =>
         return @tool.error(
           "Error: Failed to load module at '\{cwd}': \{error}",
           error~,
         )
     }
-    let pkg = moon.package_(pkg_name) catch {
-      error =>
-        return @tool.error(
-          "Error: Failed to find package '\{pkg_name}': \{error}",
-          error~,
-        )
-    }
-    guard pkg is Some(pkg) else {
+    guard (moon.find_package(pkg_name) catch {
+        error =>
+          return @tool.error(
+            "Error: Failed to find package '\{pkg_name}': \{error}",
+            error~,
+          )
+      })
+      is Some(pkg) else {
       @tool.error("Error: Package '\{pkg_name}' not found in module.")
     }
     let interface = pkg.interface() catch {

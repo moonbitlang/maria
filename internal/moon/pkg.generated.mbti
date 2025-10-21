@@ -86,6 +86,8 @@ pub struct Module {
   path : String
   name : String
   coverage : Coverage
+  modules : Array[Module]
+  cakes : Map[String, Module]
   // private fields
 }
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
@@ -93,10 +95,14 @@ async fn Module::check_patch_insert(Self, String, String) -> Array[Diagnostic]
 async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[Diagnostic]
 async fn Module::diagnostics(Self) -> Iter[Diagnostic]
 fn Module::files(Self) -> Iter[File]
+async fn Module::find_module(Self, String) -> Self?
+async fn Module::find_package(Self, String) -> PackageView?
+async fn Module::install(Self) -> Unit
 async fn Module::load(String) -> Self
 async fn Module::locate_package(Self, String) -> Package
+fn Module::modules(Self) -> Iter[Self]
 fn Module::name(Self) -> String
-fn Module::package_(Self, String) -> PackageView?
+fn Module::packages(Self) -> Iter[Package]
 fn Module::source(Self) -> String
 async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Array[TestFailure]
 async fn Module::test_build_only(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Artifacts
@@ -132,11 +138,6 @@ fn Pos::to_json(Self) -> Json // from trait `ToJson`
 fn Pos::to_string(Self) -> String // from trait `Show`
 impl Show for Pos
 impl ToJson for Pos
-
-type Project
-fn Project::name(Self) -> String
-async fn Project::new(String) -> Self
-async fn Project::package_(Self, String) -> PackageView?
 
 type SegmentView
 fn SegmentView::content(Self) -> String

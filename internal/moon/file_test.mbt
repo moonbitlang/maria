@@ -19,7 +19,7 @@ async test "replace-segment" (t : @test.T) {
       "example.mbt",
       content="///|\nlet x : Int = 42",
     )
-    let moon = Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(taco.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
