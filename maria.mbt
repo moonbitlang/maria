@@ -64,7 +64,7 @@ pub async fn Maria::new(
   agent.add_listener(RequestCompleted, context => {
     guard context.usage is Some(usage) else { return }
     guard context.message is Some(message) else { return }
-    logger.info("Request completed: Usage", {
+    logger.info("Request completed", {
       "usage": usage.to_json(),
       "message": message.to_json(),
     })
@@ -75,12 +75,22 @@ pub async fn Maria::new(
     try {
       let args = @json.parse(tool_call.function.arguments)
       logger.info("Tool arguments", { "args": args })
+      logger.info("PreToolCall", {
+        "name": tool_call.function.name.to_json(),
+        "args": args,
+      })
     } catch {
-      error =>
+      error => {
         logger.error("Error parsing tool arguments", {
           "error": error.to_json(),
           "arguments": tool_call.function.arguments.to_json(),
         })
+        logger.error("PreToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "args": tool_call.function.arguments.to_json(),
+          "error": error.to_json(),
+        })
+      }
     }
   })
   agent.add_listener(PostToolCall, context => {
@@ -90,8 +100,20 @@ pub async fn Maria::new(
     })
     guard context.tool_call_result is Some(result) else { return }
     logger.info("Tool result", { "output": result.output().to_json() })
-    if result is Error(error, _) {
-      logger.error("Tool error", { "error": error.to_json() })
+    match result {
+      Error(error, output) => {
+        logger.info("PostToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "output": output,
+          "error": error.to_json(),
+        })
+        logger.error("Tool error", { "error": error.to_json() })
+      }
+      Ok(output) =>
+        logger.info("PostToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "output": output,
+        })
     }
   })
   agent.add_listener(ConversationStart, _ => logger.info(
