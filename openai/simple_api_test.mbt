@@ -4,8 +4,8 @@ async test "text" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
   let model = @model.new(
     api_key~,
-    base_url="https://api.openai.com/v1",
-    name="gpt-4o-mini",
+    base_url="https://openrouter.ai/api/v1",
+    name="openai/gpt-4o-mini",
     safe_zone_tokens=100000,
   )
   let response = text(model~, prompt="Say 'Hello, World!' and nothing else.")
@@ -18,8 +18,8 @@ async test "json" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
   let model = @model.new(
     api_key~,
-    base_url="https://api.openai.com/v1",
-    name="gpt-4o-mini",
+    base_url="https://openrouter.ai/api/v1",
+    name="openai/gpt-4o-mini",
     safe_zone_tokens=100000,
   )
   let response = json(
@@ -39,8 +39,8 @@ async test "chat" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
   let model = @model.new(
     api_key~,
-    base_url="https://api.openai.com/v1",
-    name="gpt-4o-mini",
+    base_url="https://openrouter.ai/api/v1",
+    name="openai/gpt-4o-mini",
     safe_zone_tokens=100000,
   )
   let completion = chat(
@@ -68,8 +68,8 @@ async test "chat_with_usage" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
   let model = @model.new(
     api_key~,
-    base_url="https://api.openai.com/v1",
-    name="gpt-4o-mini",
+    base_url="https://openrouter.ai/api/v1",
+    name="openai/gpt-4o-mini",
     safe_zone_tokens=100000,
   )
   let completion = chat(
