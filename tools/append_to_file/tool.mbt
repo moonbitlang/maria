@@ -23,11 +23,6 @@ test {
 }
 
 ///|
-priv struct Result {
-  path : String
-} derive(@json.FromJson, ToJson)
-
-///|
 pub let append_to_file : @tool.Tool[String] = @tool.tool(
   description="Append content to a file at the specified path. If the file doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.",
   name="append_to_file",
@@ -85,16 +80,6 @@ pub let append_to_file : @tool.Tool[String] = @tool.tool(
     let _ = @fs.write_to_file(path, content_to_append) catch {
       error => return @tool.error("Failed to write to file: \{error}")
     }
-    let result = Result::{ path, }
-    @tool.ok(result.to_json())
-  },
-  render=result => {
-    if result is Error(error, _) {
-      return "Error: \{error}"
-    }
-    let result : Result = @json.from_json(result.output()) catch {
-      error => return "Error: Failed to parse result: \{error}"
-    }
-    "Appended content to file at path: \{result.path}"
+    @tool.ok("Appended content to file at path: \{path}")
   },
 )

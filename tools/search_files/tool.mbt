@@ -3,9 +3,8 @@
 priv struct SearchResult {
   context : String
   line_number : Int
-  match_line : String
   path : String
-} derive(ToJson, FromJson)
+}
 
 ///|
 /// Error types for search operations
@@ -20,7 +19,7 @@ priv enum SearchKind {
   Regex
   MoonbitDefinition
   MoonbitReferences
-} derive(ToJson, FromJson)
+}
 
 ///|
 /// Parse search kind from string
@@ -111,7 +110,6 @@ async fn search_in_file(
       let result = SearchResult::{
         context: context_lines_arr.join("\n"),
         line_number: i + 1,
-        match_line: line.to_string(), // Convert StringView to String
         path: relative_path,
       }
       results.push(result)
@@ -197,31 +195,6 @@ async fn check_path(path : String) -> (Bool, Bool) { // (exists, is_file)
 }
 
 ///|
-/// Structured search result for JSON output
-priv struct SearchResultData {
-  kind : SearchKind
-  query : String
-  path : String
-  file_pattern : String
-  context_lines : Int
-  total_matches : Int
-  results : Array[SearchResult]
-  truncated : Bool
-  message : String
-} derive(ToJson, FromJson)
-
-///|
-/// Structured MoonBit tool result for JSON output
-priv struct MoonbitToolResult {
-  kind : SearchKind
-  query : String
-  path : String
-  working_directory : String
-  output : String
-  message : String
-} derive(ToJson, FromJson)
-
-///|
 /// Main tool implementation function
 async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
   // Extract parameters with validation
@@ -272,15 +245,15 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                   } else {
                     "Search completed using fuzzy symbolic search for MoonBit definitions."
                   }
-                  let result = MoonbitToolResult::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    working_directory: absolute_search_path,
-                    output,
-                    message,
-                  }
-                  @tool.ok(result.to_json())
+                  let formatted = []
+                  formatted.push(message)
+                  let query_value = search_pattern
+                  formatted.push("Query: \"\{query_value}\"")
+                  let working_dir = absolute_search_path
+                  formatted.push("Working directory: \{working_dir}")
+                  formatted.push("")
+                  formatted.push(output)
+                  @tool.ok(formatted.join("\n"))
                 }
               }
               MoonbitReferences => {
@@ -302,15 +275,15 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                   } else {
                     "Search completed using MoonBit IDE find-references tool."
                   }
-                  let result = MoonbitToolResult::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    working_directory: absolute_search_path,
-                    output,
-                    message,
-                  }
-                  @tool.ok(result.to_json())
+                  let formatted = []
+                  formatted.push(message)
+                  let query_value = search_pattern
+                  formatted.push("Query: \"\{query_value}\"")
+                  let working_dir = absolute_search_path
+                  formatted.push("Working directory: \{working_dir}")
+                  formatted.push("")
+                  formatted.push(output)
+                  @tool.ok(formatted.join("\n"))
                 }
               }
               Regex => {
@@ -363,18 +336,20 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
                   } else {
                     "Search completed. Found \{all_results.length()} matches."
                   }
-                  let result = SearchResultData::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    file_pattern,
-                    context_lines,
-                    total_matches: all_results.length(),
-                    results: limited_results,
-                    truncated,
-                    message,
+                  // Handle regex search results
+                  if all_results.is_empty() {
+                    return @tool.ok(message)
                   }
-                  @tool.ok(result.to_json())
+                  let formatted = []
+                  formatted.push(message)
+                  formatted.push("")
+                  for result in limited_results {
+                    let header = "\{result.path}:\{result.line_number}"
+                    formatted.push("\{header}")
+                    formatted.push(result.context)
+                    formatted.push("")
+                  }
+                  @tool.ok(formatted.join("\n"))
                 }
               }
             }
@@ -434,43 +409,6 @@ pub let search_files : @tool.Tool[String] = @tool.tool(
     "required": ["path", "regex", "kind"],
   },
   search_files_impl,
-  render=result => try {
-    // Try to parse as structured search result data (regex search)
-    let search_data : SearchResultData = @json.from_json(result.output())
-    // Handle regex search results
-    if search_data.total_matches == 0 {
-      return search_data.message
-    }
-    let formatted = []
-    formatted.push(search_data.message)
-    formatted.push("")
-    for result in search_data.results {
-      let header = "\{result.path}:\{result.line_number}"
-      formatted.push("\{header}")
-      formatted.push(result.context)
-      formatted.push("")
-    }
-    formatted.join("\n")
-  } catch {
-    _ =>
-      // Try to parse as MoonBit tool result (definition/references search)
-      try {
-        let moonbit_result : MoonbitToolResult = @json.from_json(
-          result.output(),
-        )
-        let formatted = []
-        formatted.push(moonbit_result.message)
-        let query_value = moonbit_result.query
-        formatted.push("Query: \"\{query_value}\"")
-        let working_dir = moonbit_result.working_directory
-        formatted.push("Working directory: \{working_dir}")
-        formatted.push("")
-        formatted.push(moonbit_result.output)
-        formatted.join("\n")
-      } catch {
-        _ => "Error: Unexpected output format"
-      }
-  },
 )
 
 ///|

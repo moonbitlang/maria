@@ -8,54 +8,6 @@ priv struct MatchResult {
 } derive(ToJson)
 
 ///|
-priv enum WriteResultOperation {
-  Created
-  Updated
-  Replaced
-}
-
-///|
-impl ToJson for WriteResultOperation with to_json(self : WriteResultOperation) -> Json {
-  match self {
-    Created => "created"
-    Updated => "updated"
-    Replaced => "replaced"
-  }
-}
-
-///|
-impl @json.FromJson for WriteResultOperation with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> WriteResultOperation raise {
-  guard json is String(op) else {
-    raise @json.JsonDecodeError(
-      (json_path, "Invalid WriteResultOperation value: expected string"),
-    )
-  }
-  match op {
-    "created" => Created
-    "updated" => Updated
-    "replaced" => Replaced
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path, "Invalid WriteResultOperation value: \{op}"),
-      )
-  }
-}
-
-///|
-/// Write operation result for structured JSON output
-priv struct WriteResult {
-  path : String
-  operation : WriteResultOperation
-  bytes_written : Int
-  search_used : Bool
-  message : String
-  content : String
-} derive(ToJson, FromJson)
-
-///|
 /// Find a match in the haystack string using various matching strategies
 ///
 /// Implements three matching strategies in order:
@@ -205,15 +157,7 @@ async fn @file.Manager::execute_write_to_file(
 
       // File doesn't exist, create new file with replace content
       @fs.write_to_file(resolved_path, replace)
-      let result = WriteResult::{
-        path,
-        operation: Created,
-        bytes_written: replace.length(),
-        search_used: false,
-        message: "New file created and content written to \{path}",
-        content: replace,
-      }
-      @tool.ok(result.to_json())
+      @tool.ok("New file created and content written to \{path}")
     }
 
     // Read existing file content
@@ -257,19 +201,7 @@ async fn @file.Manager::execute_write_to_file(
 
     // Write the modified content back to file
     @fs.write_to_file(resolved_path, content)
-    let operation = match search {
-      None => Replaced
-      Some(_) => Updated
-    }
-    let result = WriteResult::{
-      path,
-      operation,
-      bytes_written: content.length(),
-      search_used: search is Some(_),
-      message: "Changes applied to \{path}",
-      content,
-    }
-    @tool.ok(result.to_json())
+    @tool.ok("Changes applied to \{path}")
   } catch {
     error => @tool.error("Error writing to file: \{error}", error~)
   }
@@ -298,10 +230,4 @@ pub let write_to_file : @tool.Tool[@file.Manager] = @tool.tool(
     "required": ["path"],
   },
   (args, self) => self.execute_write_to_file(args),
-  render=result => {
-    let write_result : WriteResult = @json.from_json(result.output()) catch {
-      error => return "Error: Unexpected output format: \{error}"
-    }
-    write_result.message
-  },
 )

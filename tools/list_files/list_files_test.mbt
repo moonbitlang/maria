@@ -8,7 +8,7 @@ async test "list_files" (t : @test.T) {
       ("tool_test.mbt", "// test"),
     ])
     @json.inspect(
-      @list_files.list_files.call({ "path": "." }, manager).output(),
+      @list_files.list_files.call({ "path": "." }, manager).output,
       content={
         "path": ".",
         "entries": [

@@ -1,19 +1,4 @@
 ///|
-priv struct ReadFileResult {
-  path : String
-  content : String
-  start_line : Int
-  end_line : Int
-} derive(ToJson)
-
-///|
-priv struct ReadDirectoryResult {
-  path : String
-  entries : Array[String]
-  display : String
-} derive(ToJson)
-
-///|
 async fn @file.Manager::execute_read_file_tool(
   self : @file.Manager,
   args : Json,
@@ -51,7 +36,7 @@ async fn @file.Manager::execute_read_file_tool(
         _ => entry.name
       })
       let display = entries.join("\n")
-      return @tool.ok(ReadDirectoryResult::{ path, entries, display }.to_json())
+      return @tool.ok("Directory: \{path}\nEntries:\n\{display}")
     }
 
     // Open and read the file
@@ -86,9 +71,10 @@ async fn @file.Manager::execute_read_file_tool(
       }
       None => lines.length()
     }
-    return @tool.ok(
-      ReadFileResult::{ path, content, start_line, end_line }.to_json(),
-    )
+    let selected_lines = lines[start_line - 1:end_line]
+    let selected_content = selected_lines.join("\n")
+    let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
+    return @tool.ok("File: \{path} (\{range_info})\n\{selected_content}")
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
   }
@@ -117,29 +103,4 @@ pub let read_file : @tool.Tool[@file.Manager] = @tool.tool(
     "required": ["path"],
   },
   (args, self) => self.execute_read_file_tool(args),
-  // Check if this is a directory listing
-  render=result => match result.output() {
-    { "path": String(path), "display": String(display), .. } =>
-      "Directory: \{path}\nEntries:\n\{display}"
-    {
-      "path": String(path),
-      "content": String(content),
-      "start_line": start_line,
-      "end_line": end_line,
-      ..
-    } => {
-      let start_line : Int = @json.from_json(start_line) catch {
-        error => return "Error parsing start_line from tool output: \{error}"
-      }
-      let end_line : Int = @json.from_json(end_line) catch {
-        error => return "Error parsing end_line from tool output: \{error}"
-      }
-      let lines = content.split("\n").to_array()
-      let selected_lines = lines[start_line - 1:end_line]
-      let selected_content = selected_lines.join("\n")
-      let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
-      "File: \{path} (\{range_info})\n\{selected_content}"
-    }
-    _ => "Error: Unexpected output format"
-  },
 )

@@ -12,9 +12,8 @@ async test "wait_job" (t : @test.T) {
       { "job_id": 0, "timeout": 5000, "max_output_lines": 2 },
       manager,
     )
-    let result = (tool.render)(result)
     inspect(
-      mock.show(result),
+      mock.show(result.output),
       content=(
         #|Job 0 completed with exit code 0
         #|Stdout ((mock:cwd)/.moonagent/jobs/0/stdout):

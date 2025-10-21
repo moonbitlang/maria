@@ -40,12 +40,6 @@ test "params ToJson" {
 }
 
 ///|
-priv struct CheckMoonbitProjectResult {
-  diagnostics : Array[@moon.Diagnostic]
-  diagnostic_limit : Int
-} derive(@json.FromJson, ToJson)
-
-///|
 pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
   description="Call MoonBit toolchain to check current MoonBit project, and report any errors. Optionally, you can provide a code snippet and a file path to check the code as if it were appended to that file.",
   name="check_moonbit_project",
@@ -113,31 +107,22 @@ pub let check_moonbit_project : @tool.Tool[String] = @tool.tool(
           return @tool.error("Error: Failed to check project: \{error}", error~)
       }
     }
-    @tool.ok(
-      CheckMoonbitProjectResult::{ diagnostics, diagnostic_limit }.to_json(),
-    )
-  },
-  render=result => {
-    if result is Error(error, _) {
-      return "Error: \{error}"
-    }
-    let result : CheckMoonbitProjectResult = @json.from_json(result.output()) catch {
-      error => return "Error: Failed to parse result: \{error}"
-    }
-    let diagnostics = if result.diagnostics.length() < result.diagnostic_limit {
-      result.diagnostics[:]
+    let diagnostics = if diagnostics.length() < diagnostic_limit {
+      diagnostics[:]
     } else {
-      result.diagnostics[:result.diagnostic_limit]
+      diagnostics[:diagnostic_limit]
     }
     if diagnostics.length() == 0 {
-      "MoonBit project check passed with no diagnostics found."
+      @tool.ok("MoonBit project check passed with no diagnostics found.")
     } else {
       let rendered_diagnostics = @moon.render_diagnostics(
         diagnostics,
-        limit=result.diagnostic_limit,
+        limit=diagnostic_limit,
       )
-      "MoonBit project check found the following diagnostics:\n\n" +
-      "\{rendered_diagnostics}"
+      @tool.ok(
+        "MoonBit project check found the following diagnostics:\n\n" +
+        "\{rendered_diagnostics}",
+      )
     }
   },
 )

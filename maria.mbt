@@ -89,8 +89,8 @@ pub async fn Maria::new(
       "name": tool_call.function.name.to_json(),
     })
     guard context.tool_call_result is Some(result) else { return }
-    logger.info("Tool result", { "output": result.output().to_json() })
-    if result is Error(error, _) {
+    logger.info("Tool result", { "output": result.output.to_json() })
+    if result.error is Some(error) {
       logger.error("Tool error", { "error": error.to_json() })
     }
   })

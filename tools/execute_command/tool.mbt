@@ -4,19 +4,6 @@ priv suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-priv enum CommandResult {
-  Foreground(
-    command~ : String,
-    status~ : Int,
-    output~ : String,
-    truncated~ : Bool,
-    total_lines~ : Int,
-    timeout~ : Int
-  )
-  Background(command~ : String, job_id~ : @job.Id)
-} derive(@json.FromJson, ToJson)
-
-///|
 pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
   description="Execute an shell command with arguments and capture its output.",
   name="execute_command",
@@ -90,7 +77,9 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
     try {
       if background {
         let job = ctx.spawn(name=command, command~)
-        @tool.ok(CommandResult::Background(command~, job_id=job.id).to_json())
+        @tool.ok(
+          "Command: \{command}\nStarted in background with Job ID: \{job.id}",
+        )
       } else {
         guard timeout is Some(timeout) else {
           return @tool.error(
@@ -107,24 +96,36 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
             stderr=output,
             cwd=working_directory,
           )
-          let output_text = output.to_string()
-          let lines = output_text.split("\n").collect()
+          let output = output.to_string()
+          let lines = output.split("\n").collect()
           let (final_output, truncated) = if lines.length() >= max_output_lines {
             let truncated_output = lines[:max_output_lines].join("\n")
             (truncated_output, true)
           } else {
-            (output_text, false)
+            (output, false)
           }
-          return @tool.ok(
-            CommandResult::Foreground(
-              command~,
-              status~,
-              output=final_output,
-              truncated~,
-              total_lines=lines.length(),
-              timeout~,
-            ).to_json(),
-          )
+          let formatted = []
+          formatted.push("Command: \{command}")
+          formatted.push("Exit code: \{status}")
+          if truncated {
+            let newline_split = output.split("\n")
+            let output_lines_count = newline_split.collect().length()
+            formatted.push(
+              "Output: (first \{output_lines_count} of \{lines.length()} lines)",
+            )
+            formatted.push(output)
+            if truncated {
+              formatted.push(
+                "... (truncated, try using redirection to pipe output to a file) ...",
+              )
+            } else {
+              ()
+            }
+          } else {
+            formatted.push("Output:")
+            formatted.push(final_output)
+          }
+          return @tool.ok(formatted.join("\n"))
         })
         match result {
           Some(result) => result
@@ -136,39 +137,6 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
       }
     } catch {
       error => @tool.error("Error executing command: \{error}", error~)
-    }
-  },
-  render=result => {
-    let cmd_result : CommandResult = @json.from_json(result.output()) catch {
-      error => return "Error: Unexpected output format: \{error}"
-    }
-    match cmd_result {
-      Foreground(command~, status~, output~, truncated~, total_lines~, ..) => {
-        let formatted = []
-        formatted.push("Command: \{command}")
-        formatted.push("Exit code: \{status}")
-        if truncated {
-          let newline_split = output.split("\n")
-          let output_lines_count = newline_split.collect().length()
-          formatted.push(
-            "Output: (first \{output_lines_count} of \{total_lines} lines)",
-          )
-          formatted.push(output)
-          if truncated {
-            formatted.push(
-              "... (truncated, try using redirection to pipe output to a file) ...",
-            )
-          } else {
-            ()
-          }
-        } else {
-          formatted.push("Output:")
-          formatted.push(output)
-        }
-        formatted.join("\n")
-      }
-      Background(command~, job_id~) =>
-        "Command: \{command}\nStarted in background with Job ID: \{job_id}"
     }
   },
 )

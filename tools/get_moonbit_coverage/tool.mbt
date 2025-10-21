@@ -18,22 +18,6 @@ test "params ToJson" {
 }
 
 ///|
-priv struct Result(String)
-
-///|
-impl ToJson for Result with to_json(self : Result) -> Json {
-  self.0.to_json()
-}
-
-///|
-impl @json.FromJson for Result with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Result {
-  Result((@json.from_json(json, path=json_path) : String))
-}
-
-///|
 pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
   description="Get coverage information for a MoonBit source file or project. If a specific file is provided, this tool analyzes that file and returns line-by-line coverage data. If the file is not found, it returns the coverage summary for the entire project.",
   name="get_moonbit_coverage",
@@ -68,7 +52,7 @@ pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
         )
     }
     guard args.file is Some(file) else {
-      @tool.ok(Result(moon.coverage.report(format=Summary)).to_json()) catch {
+      @tool.ok(moon.coverage.report(format=Summary)) catch {
         error =>
           @tool.error(
             "Failed to get coverage summary for project at '\{resolved_project_path}': \{error}",
@@ -76,21 +60,12 @@ pub let get_moonbit_coverage : @tool.Tool[String] = @tool.tool(
           )
       }
     }
-    @tool.ok(Result(moon.coverage.analyze(file~)).to_json()) catch {
+    @tool.ok(moon.coverage.analyze(file~)) catch {
       error =>
         @tool.error(
           "Failed to analyze coverage for file '\{file}': \{error}",
           error~,
         )
     }
-  },
-  render=result => {
-    if result is Error(error, _) {
-      return "Error: \{error}"
-    }
-    let result : Result = @json.from_json(result.output()) catch {
-      error => return "Error: Invalid result format: \{error}"
-    }
-    result.0
   },
 )

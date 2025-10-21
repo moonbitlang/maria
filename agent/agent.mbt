@@ -163,16 +163,15 @@ async fn Agent::execute_tool(
       )
   }
   let result = tool.call(arguments, ())
-  let rendered = (tool.render)(result)
   agent.emit(
     PostToolCall,
     EventContext::new(
       tool_call~,
       tool_call_result=result,
-      tool_call_result_text=rendered,
+      tool_call_result_text=result.output,
     ),
   )
-  @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+  @openai.tool_message(content=result.output, tool_call_id=tool_call.id)
 }
 
 ///|
@@ -193,7 +192,6 @@ pub fn[T] Agent::add_tool(
     name=tool.desc.name,
     parameters=tool.desc.parameters,
     ToolFn((args : Json, _ : Unit) => tool.call(args, state)),
-    render=tool.render,
   )
 }
 

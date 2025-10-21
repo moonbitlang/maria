@@ -73,10 +73,6 @@ pub let wait_job : @tool.Tool[@job.Manager] = @tool.tool(
     output.write_string(
       "Stderr:\n\{truncate_output(stderr, max_output_lines~)}\n",
     )
-    @tool.ok(output.to_string().to_json())
+    @tool.ok(output.to_string())
   },
-  render=result => result
-    .output()
-    .as_string()
-    .unwrap_or("Failed to convert output to string."),
 )
