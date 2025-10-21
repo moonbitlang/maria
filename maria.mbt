@@ -155,6 +155,9 @@ pub fn Maria::close(self : Maria) -> Unit {
 
 ///|
 pub async fn Maria::start(self : Maria, prompt : String) -> Unit {
-  self.agent.add_message(@openai.user_message(content=prompt))
-  self.agent.start()
+  @async.with_task_group(group => {
+    group.spawn_bg(() => self.logger.start(), no_wait=true)
+    self.agent.add_message(@openai.user_message(content=prompt))
+    self.agent.start()
+  })
 }
