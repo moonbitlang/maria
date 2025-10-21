@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/git"
 
 // Values
-async fn add_worktree(String, cwd? : StringView) -> Unit
+async fn add_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView) -> Unit
 
 async fn clone(String, to~ : StringView, cwd? : StringView) -> Unit
 
@@ -16,7 +16,7 @@ async fn init_(String) -> Unit
 
 async fn remove_worktree(String, force? : Bool, cwd? : StringView) -> Unit
 
-async fn[T] with_worktree(String, cwd? : StringView, async () -> T) -> T
+async fn[T] with_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView, async () -> T) -> T
 
 // Errors
 
