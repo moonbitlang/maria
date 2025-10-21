@@ -3,6 +3,6 @@
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/token",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/internal/ai"
+    "moonbitlang/maria/ai"
   ]
 }
