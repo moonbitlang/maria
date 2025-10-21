@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/maria/internal/c"
+    "moonbitlang/tiktoken/c"
   ],
   "targets": {
     "pcre2.mbt": ["native"],
