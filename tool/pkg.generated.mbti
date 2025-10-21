@@ -2,26 +2,24 @@
 package "moonbitlang/maria/tool"
 
 // Values
-fn error(Json, error? : Error) -> Result
+fn error(String) -> Result
 
-fn ok(Json) -> Result
+fn ok(String) -> Result
 
-fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], ToolFn[T], render~ : async (Result) -> String noraise) -> Tool[T]
+fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], ToolFn[T]) -> Tool[T]
 
 // Errors
 
 // Types and methods
-pub enum Result {
-  Ok(Json)
-  Error(Error, Json)
+pub struct Result {
+  output : String
+  failed : Bool
 }
-fn Result::output(Self) -> Json
 fn Result::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Result
 
 pub struct Tool[T] {
   desc : ToolDesc
-  render : async (Result) -> String noraise
   // private fields
 }
 async fn[T] Tool::call(Self[T], Json, T) -> Result noraise

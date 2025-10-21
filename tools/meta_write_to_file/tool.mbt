@@ -442,8 +442,7 @@ async fn execute_meta_write_to_file(
         }
         let fixing_error = fix_syntax_errors(fixing_ctx)
         match fixing_error {
-          Some(error) =>
-            return @tool.error("\{write_result.output}\n\{error}")
+          Some(error) => return @tool.error("\{write_result.output}\n\{error}")
           None => () // Continue
         }
       }

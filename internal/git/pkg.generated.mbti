@@ -2,6 +2,8 @@
 package "moonbitlang/maria/internal/git"
 
 // Values
+async fn add_worktree(String, cwd? : StringView) -> Unit
+
 async fn clone(String, to~ : StringView, cwd? : StringView) -> Unit
 
 async fn commit(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Unit

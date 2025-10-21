@@ -18,8 +18,7 @@ let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
       return @tool.error("Missing 'segment' argument")
     }
     let patched : String = @json.from_json(patched) catch {
-      error =>
-        return @tool.error("Invalid 'segment' argument: \{error}")
+      error => return @tool.error("Invalid 'segment' argument: \{error}")
     }
     let diagnostics = moon.check_patch_replace(segment, patched) catch {
       error => return @tool.error("Failed to check patch: \{error}")
