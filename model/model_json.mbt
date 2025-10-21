@@ -1,4 +1,3 @@
-
 ///|
 pub impl @json.FromJson for Model with from_json(
   json : Json,

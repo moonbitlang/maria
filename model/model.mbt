@@ -10,7 +10,6 @@ pub struct Model {
   supports_anthropic_prompt_caching : Bool
 } derive(ToJson)
 
-
 ///|
 pub(all) enum Provider {
   OpenAI
@@ -20,7 +19,6 @@ pub(all) enum Provider {
 pub(all) enum Type {
   SaaS(Provider)
 }
-
 
 ///|
 /// Creates a new Model instance with the specified configuration parameters.
