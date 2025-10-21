@@ -4,6 +4,19 @@ priv suberror HttpError {
 } derive(Show)
 
 ///|
+/// Execute a chat completion request with the OpenAI API.
+///
+/// Sends a chat completion request to the model's endpoint and returns the parsed response.
+/// Includes automatic retry logic with exponential backoff for transient failures.
+///
+/// Parameters:
+/// - model: The model configuration containing API credentials and endpoint
+/// - request: The chat completion parameters including messages, tools, and settings
+///
+/// Returns a ChatCompletion object containing the model's response, including generated
+/// messages, token usage, and metadata.
+///
+/// Raises HttpError if the API returns a non-2xx status code.
 pub async fn chat(
   model~ : @model.Model,
   request : ChatCompletionParam,
@@ -24,6 +37,18 @@ pub async fn chat(
 }
 
 ///|
+/// Generate a simple text response from a prompt.
+///
+/// Convenience function that sends a single user prompt to the model and returns
+/// the text content of the response. Automatically handles the system message and
+/// extraction of the response content.
+///
+/// Parameters:
+/// - model: The model configuration containing API credentials and endpoint
+/// - prompt: The user's prompt text
+///
+/// Returns the text content of the model's response.
+/// Fails if the completion has no content in the message.
 pub async fn text(model~ : @model.Model, prompt~ : String) -> String {
   let completion = chat(
     model~,
@@ -78,6 +103,19 @@ test "extract_first_json_block" {
 }
 
 ///|
+/// Generate a JSON response from a prompt.
+///
+/// Requests the model to return a JSON object in a code block (wrapped in ```json```)
+/// and extracts the first JSON block from the response.
+///
+/// Parameters:
+/// - model: The model configuration containing API credentials and endpoint
+/// - prompt: The user's prompt text requesting JSON output
+///
+/// Returns a parsed Json object from the model's response.
+///
+/// Fails if the completion has no content, no JSON code block is found in the response,
+/// or the JSON cannot be parsed.
 pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
   let completion = chat(
     model~,
@@ -101,6 +139,11 @@ pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
 }
 
 ///|
+/// Trait for types that can be automatically generated from structured prompts.
+///
+/// Types implementing this trait can describe themselves with a name, description,
+/// and JSON schema, allowing the model to generate responses that conform to
+/// the expected structure.
 pub(open) trait Structural: @json.FromJson {
   name() -> String
   description() -> String
@@ -108,6 +151,24 @@ pub(open) trait Structural: @json.FromJson {
 }
 
 ///|
+/// Generate structured data from a prompt using JSON schema.
+///
+/// This function uses the model's JSON schema support to ensure the response
+/// conforms to a specific structure defined by the type parameter `T`. The
+/// response is automatically parsed and validated against the schema.
+///
+/// # Type Parameters
+/// - `T`: A type implementing `Structural` trait that defines the expected schema
+///
+/// # Parameters
+/// - `model`: The model configuration containing API credentials and endpoint
+/// - `prompt`: The user's prompt text
+///
+/// # Returns
+/// A value of type `T` parsed from the model's structured response
+///
+/// Fails if the completion has no content, the JSON cannot be parsed,
+/// or the parsed JSON doesn't match the expected schema.
 pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T {
   let completion = chat(
     model~,

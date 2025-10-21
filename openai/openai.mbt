@@ -594,6 +594,14 @@ pub struct CompletionUsageParam {
 }
 
 ///|
+/// Create a usage tracking parameter for chat completions.
+///
+/// Controls whether token usage information is included in the response.
+///
+/// Parameters:
+/// - include_: Whether to include usage statistics in the response
+///
+/// Returns a CompletionUsageParam that can be passed to chat_completion.
 pub fn usage(include_~ : Bool) -> CompletionUsageParam {
   CompletionUsageParam::{ include_, }
 }
@@ -616,6 +624,22 @@ pub struct ChatCompletionParam {
 }
 
 ///|
+/// Create a chat completion parameter object.
+///
+/// This function constructs a complete set of parameters for a chat completion
+/// request, including messages, tools, and various configuration options.
+///
+/// # Parameters
+/// - `model`: The model identifier (e.g., "gpt-4o-mini", "gpt-4-turbo")
+/// - `messages`: Array of messages forming the conversation history
+/// - `tools`: Optional array of function tools the model can call
+/// - `usage`: Optional parameter to request usage statistics
+/// - `user`: Optional unique identifier for the end-user
+/// - `max_tokens`: Optional maximum number of tokens to generate
+/// - `temperature`: Optional sampling temperature (0.0 to 2.0)
+/// - `response_format`: Optional format for structured responses
+///
+/// Returns a ChatCompletionParam object ready to be passed to the chat function.
 pub fn chat_completion(
   model~ : String,
   messages~ : Array[ChatCompletionMessageParam],
@@ -801,6 +825,19 @@ impl @json.FromJson for ChatCompletionContentPartParam with from_json(
 }
 
 ///|
+/// Create a text content part for message content.
+///
+/// Text content parts are the building blocks of message content in chat completions.
+/// They can optionally include cache control directives for prompt caching.
+///
+/// # Parameters
+/// - `text`: The text content
+/// - `cache_control`: Optional cache control directive (currently only `Ephemeral` is supported)
+///
+/// # Returns
+/// A `ChatCompletionContentPartParam` that can be included in message content
+///
+/// Returns a ChatCompletionContentPartParam representing plain text content.
 pub fn text_content_part(
   text : String,
   cache_control? : CacheControl,
@@ -1106,6 +1143,21 @@ pub impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamCo
 }
 
 ///|
+/// Create a system message for chat completion.
+///
+/// System messages set the behavior and context for the assistant. They are
+/// typically placed at the beginning of the conversation.
+///
+/// # Type Parameters
+/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+///
+/// # Parameters
+/// - `content`: The system message content
+/// - `name`: Optional name to identify the message author
+///
+/// # Returns
+/// A `ChatCompletionMessageParam` with role "system"
+/// Returns a ChatCompletionMessageParam with role "system".
 pub fn[T : ToChatCompletionMessageParamContent] system_message(
   content~ : T,
   name? : String,
@@ -1117,6 +1169,18 @@ pub fn[T : ToChatCompletionMessageParamContent] system_message(
 }
 
 ///|
+/// Create a user message for chat completion.
+///
+/// User messages represent input from the end user in the conversation.
+///
+/// # Type Parameters
+/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+///
+/// # Parameters
+/// - `content`: The user message content
+/// - `name`: Optional name to identify the user
+///
+/// Returns a ChatCompletionMessageParam representing the user's input with role "user".
 pub fn[T : ToChatCompletionMessageParamContent] user_message(
   content~ : T,
   name? : String,
@@ -1128,6 +1192,19 @@ pub fn[T : ToChatCompletionMessageParamContent] user_message(
 }
 
 ///|
+/// Create a tool result message for chat completion.
+///
+/// Tool messages contain the results of function tool calls made by the assistant.
+/// They must reference a specific tool call ID from a previous assistant message.
+///
+/// # Type Parameters
+/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+///
+/// # Parameters
+/// - `content`: The tool execution result
+/// - `tool_call_id`: The ID of the tool call this result corresponds to
+///
+/// Returns a ChatCompletionMessageParam with role "tool".
 pub fn[T : ToChatCompletionMessageParamContent] tool_message(
   content~ : T,
   tool_call_id~ : String,
@@ -1160,6 +1237,19 @@ impl ToJson for FunctionDefinition with to_json(self : FunctionDefinition) -> Js
 }
 
 ///|
+/// Create a function tool definition for chat completion.
+///
+/// Tools allow the model to call functions to perform actions or retrieve
+/// information. The model will decide when and how to call these functions
+/// based on the conversation context.
+///
+/// # Parameters
+/// - `name`: The name of the function tool
+/// - `description`: A description of what the function does (helps the model decide when to call it)
+/// - `parameters`: JSON schema describing the function's parameters
+/// - `strict`: Optional flag to enable strict schema validation
+///
+/// Returns a ChatCompletionToolParam representing the function tool.
 pub fn tool(
   name~ : String,
   description~ : String,
@@ -1446,6 +1536,21 @@ pub impl @json.FromJson for ChatCompletionChunk with from_json(
 }
 
 ///|
+/// Create an assistant message for chat completion.
+///
+/// Assistant messages represent responses from the AI model. They can contain
+/// text content and/or tool call requests. This function is useful when
+/// constructing multi-turn conversations or when replaying conversation history.
+///
+/// # Type Parameters
+/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+///
+/// # Parameters
+/// - `content`: Optional content from the assistant
+/// - `tool_calls`: Optional array of tool calls the assistant made
+/// - `name`: Optional name to identify the assistant
+///
+/// Returns a ChatCompletionMessageParam with role "assistant".
 pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
   content? : T,
   tool_calls? : Array[ChatCompletionMessageToolCall] = [],
@@ -1479,6 +1584,19 @@ struct JsonSchema {
 }
 
 ///|
+/// Create a JSON schema response format.
+///
+/// This function creates a response format that constrains the model to generate
+/// JSON output conforming to a specific schema. The model will automatically
+/// structure its response to match the provided schema.
+///
+/// # Parameters
+/// - `name`: A name for the schema (used for identification)
+/// - `schema`: JSON schema object defining the expected structure
+/// - `description`: Optional description of the schema's purpose
+/// - `strict`: Optional flag to enable strict schema validation
+///
+/// Returns a ResponseFormat that can be used in chat completion requests.
 pub fn json_schema(
   name~ : String,
   schema~ : Map[String, Json],
