@@ -68,7 +68,13 @@ jobs:
         run: |
           moon install
           moon info
-          git diff --exit-code
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Error: 'pkg.generated.mbti' is not up to date. Please run 'moon info' locally and commit the changes."
+            git diff
+            exit 1
+          else
+            echo "'pkg.generated.mbti' is up to date."
+          fi
 
   fmt:
     runs-on: ubuntu-latest
