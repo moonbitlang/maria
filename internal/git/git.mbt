@@ -49,15 +49,6 @@ pub async fn commit(
 }
 
 ///|
-pub async fn create_branch(branch_name~ : String, cwd? : String) -> String {
-  let cwd = cwd.map(_.to_string())
-  guard @process.run("git", ["branch", branch_name], cwd?) is 0 else {
-    fail("git branch creation failed")
-  }
-  return "Branch '\{branch_name}' created successfully"
-}
-
-///|
 pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
