@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/context"
+package "moonbitlang/maria/context"
 
 import(
   "moonbitlang/core/json"

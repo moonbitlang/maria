@@ -3,16 +3,26 @@ package "moonbitlang/maria/openai"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/internal/schema"
+  "moonbitlang/maria/model"
 )
 
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
+async fn chat(model~ : @model.Model, ChatCompletionParam) -> ChatCompletion
+
 fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat) -> ChatCompletionParam
+
+async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T
+
+async fn json(model~ : @model.Model, prompt~ : String) -> Json
 
 fn json_schema(name~ : String, schema~ : Map[String, Json], description? : String, strict? : Bool) -> ResponseFormat
 
 fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
+
+async fn text(model~ : @model.Model, prompt~ : String) -> String
 
 fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionContentPartParam
 
@@ -332,6 +342,12 @@ impl ToJson for ResponseFormat
 // Type aliases
 
 // Traits
+pub(open) trait Structural : @json.FromJson {
+  name() -> String
+  description() -> String
+  schema() -> @schema.Schema
+}
+
 trait ToChatCompletionMessageParamContent
 impl ToChatCompletionMessageParamContent for String
 impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamContent for Array[T]
