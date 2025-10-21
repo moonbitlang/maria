@@ -278,7 +278,7 @@ pub async fn Module::diagnostics(self : Module) -> Iter[Diagnostic] {
 }
 
 ///|
-pub fn Module::package_(self : Module, name : String) -> PackageView? {
+fn Module::package_(self : Module, name : String) -> PackageView? {
   match self.packages.get(name) {
     None => None
     Some(_) => Some(PackageView::{ module_: self, name })

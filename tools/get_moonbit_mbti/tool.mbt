@@ -23,7 +23,14 @@ pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
           error~,
         )
     }
-    guard moon.package_(pkg_name) is Some(pkg) else {
+    guard (moon.find_package(pkg_name) catch {
+        error =>
+          return @tool.error(
+            "Error: Failed to find package '\{pkg_name}': \{error}",
+            error~,
+          )
+      })
+      is Some(pkg) else {
       @tool.error("Error: Package '\{pkg_name}' not found in module.")
     }
     let interface = pkg.interface() catch {
