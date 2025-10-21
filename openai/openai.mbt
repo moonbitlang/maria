@@ -913,7 +913,7 @@ pub struct ChatCompletionToolMessageParam {
 }
 
 ///|
-pub enum ChatCompletionMessageParam {
+pub(all) enum ChatCompletionMessageParam {
   System(ChatCompletionSystemMessageParam)
   User(ChatCompletionUserMessageParam)
   Assistant(ChatCompletionAssistantMessageParam)

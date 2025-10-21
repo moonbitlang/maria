@@ -163,7 +163,7 @@ fn ChatCompletionMessageFunctionCall::output(Self, &Logger) -> Unit // from trai
 fn ChatCompletionMessageFunctionCall::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessageFunctionCall
 
-pub enum ChatCompletionMessageParam {
+pub(all) enum ChatCompletionMessageParam {
   System(ChatCompletionSystemMessageParam)
   User(ChatCompletionUserMessageParam)
   Assistant(ChatCompletionAssistantMessageParam)

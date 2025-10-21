@@ -1,13 +1,23 @@
 ///|
-/// Test basic text completion
-async test "text" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
-  let model = @model.new(
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+///|
+fn gpt4o_mini(api_key : String) -> @model.Model {
+  @model.new(
     api_key~,
-    base_url="https://openrouter.ai/api/v1",
+    base_url=OPENROUTER_BASE_URL,
     name="openai/gpt-4o-mini",
     safe_zone_tokens=100000,
   )
+}
+
+///|
+/// Test basic text completion
+async test "text" {
+  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+    fail("OPENAI_API_KEY not set")
+  }
+  let model = gpt4o_mini(api_key)
   let response = text(model~, prompt="Say 'Hello, World!' and nothing else.")
   inspect(response.contains("Hello"), content="true")
 }
@@ -15,34 +25,27 @@ async test "text" {
 ///|
 /// Test JSON response parsing
 async test "json" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
-  let model = @model.new(
-    api_key~,
-    base_url="https://openrouter.ai/api/v1",
-    name="openai/gpt-4o-mini",
-    safe_zone_tokens=100000,
-  )
+  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+    fail("OPENAI_API_KEY not set")
+  }
+  let model = gpt4o_mini(api_key)
   let response = json(
     model~,
     prompt="Return a JSON object with a 'message' field containing 'Hello, World!'. Wrap it in ```json```.",
   )
-  guard response is Object(obj) else { fail("Expected JSON object") }
-  guard obj.get("message") is Some(String(message)) else {
-    fail("Expected 'message' field")
+  guard response is { "message": String(message), .. } &&
+    message.contains("Hello") else {
+    fail("Expected JSON object")
   }
-  inspect(message.contains("Hello"), content="true")
 }
 
 ///|
 /// Test basic chat completion
 async test "chat" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
-  let model = @model.new(
-    api_key~,
-    base_url="https://openrouter.ai/api/v1",
-    name="openai/gpt-4o-mini",
-    safe_zone_tokens=100000,
-  )
+  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+    fail("OPENAI_API_KEY not set")
+  }
+  let model = gpt4o_mini(api_key)
   let completion = chat(
     model~,
     chat_completion(
@@ -55,23 +58,20 @@ async test "chat" {
       temperature=0.7,
     ),
   )
-  inspect(completion.choices.length() > 0, content="true")
-  guard completion.choices[0].message.content is Some(content) else {
-    fail("Expected content in message")
+  guard completion.choices
+    is [{ message: { content: Some(content), .. }, .. }, ..] &&
+    content.contains("Hello") else {
+    fail("Expected choices with message content")
   }
-  inspect(content.contains("Hello"), content="true")
 }
 
 ///|
 /// Test chat completion with usage tracking
 async test "chat_with_usage" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
-  let model = @model.new(
-    api_key~,
-    base_url="https://openrouter.ai/api/v1",
-    name="openai/gpt-4o-mini",
-    safe_zone_tokens=100000,
-  )
+  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+    fail("OPENAI_API_KEY not set")
+  }
+  let model = gpt4o_mini(api_key)
   let completion = chat(
     model~,
     chat_completion(
@@ -86,9 +86,9 @@ async test "chat_with_usage" {
     ),
   )
   guard completion.usage is Some(usage) else { fail("Expected usage data") }
-  inspect(usage.total_tokens > 0, content="true")
-  inspect(usage.prompt_tokens > 0, content="true")
-  inspect(usage.completion_tokens > 0, content="true")
+  assert_true(usage.total_tokens > 0)
+  assert_true(usage.prompt_tokens > 0)
+  assert_true(usage.completion_tokens > 0)
 }
 
 ///|
@@ -110,7 +110,7 @@ test "message_helpers" {
 ///|
 /// Test tool definition
 test "tool_definition" {
-  let tool_def = tool(
+  let tool_def = @openai.tool(
     name="get_weather",
     description="Get the current weather in a location",
     parameters={
@@ -120,11 +120,9 @@ test "tool_definition" {
     },
   )
   let json = tool_def.to_json()
-  guard json is Object(obj) else { fail("Expected JSON object") }
-  guard obj.get("type") is Some(String("function")) else {
-    fail("Expected type 'function'")
+  guard json is { "type": "function", "function": _, .. } else {
+    fail("Expected JSON object")
   }
-  guard obj.get("function") is Some(_) else { fail("Expected function field") }
 }
 
 ///|
@@ -141,8 +139,7 @@ test "response_format" {
     "properties": { "message": { "type": "string" } },
   })
   let json = json_schema_format.to_json()
-  guard json is Object(obj) else { fail("Expected JSON object") }
-  guard obj.get("type") is Some(String("json_schema")) else {
-    fail("Expected type 'json_schema'")
+  guard json is { "type": "json_schema", .. } else {
+    fail("Expected JSON object")
   }
 }
