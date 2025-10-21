@@ -18,7 +18,7 @@ pub(all) struct Maria {
 }
 fn Maria::close(Self) -> Unit
 #as_free_fn
-async fn Maria::new(logger? : @pino.Logger, model? : String) -> Self
+async fn Maria::new(logger? : @pino.Logger, model? : String, cwd? : String) -> Self
 async fn Maria::start(Self, String) -> Unit
 
 // Type aliases

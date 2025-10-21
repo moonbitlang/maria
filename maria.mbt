@@ -36,9 +36,13 @@ pub async fn Maria::new(
     try! @pino.transport("file:.moonagent/log"),
   ),
   model? : String,
+  cwd? : String,
 ) -> Maria {
   let home = @os.home()
-  let cwd = @os.cwd()
+  let cwd = match cwd {
+    None => @os.cwd()
+    Some(cwd) => cwd
+  }
   guard load_model(home~, cwd~, model?) is Some(model) else {
     raise ModelNotConfigured
   }
