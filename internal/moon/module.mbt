@@ -80,29 +80,52 @@ pub fn Module::source(self : Module) -> String {
 }
 
 ///|
-async fn Module::load_mod(self : Module, mod : Module, dir : String) -> Unit {
+async fn Module::load_mod(
+  self : Module,
+  mod : Module,
+  dir : String,
+  visit~ : Set[String],
+) -> Unit {
+  if !@fs.exists(dir) {
+    return
+  }
+  if visit.contains(dir) {
+    return
+  }
+  visit.add(dir)
+  let dir = @fs.resolve(dir)
   let moon_mod_path = @path.join(dir, "moon.mod.json")
   if @fs.exists(moon_mod_path) &&
     @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
     let mod = Module::new(dir)
     self.modules.push(mod)
-    self.load_pkg(mod, @path.join(dir, mod.source()))
+    self.load_pkg(mod, @path.join(dir, mod.source()), visit~)
   } else {
-    self.load_pkg(mod, dir)
+    self.load_pkg(mod, dir, visit~)
   }
 }
 
 ///|
-async fn Module::load_pkg(self : Module, mod : Module, dir : String) -> Unit {
+async fn Module::load_pkg(
+  self : Module,
+  mod : Module,
+  dir : String,
+  visit~ : Set[String],
+) -> Unit {
   if !@fs.exists(dir) {
     return
   }
+  if visit.contains(dir) {
+    return
+  }
+  visit.add(dir)
+  let dir = @fs.resolve(dir)
   let moon_pkg_path = @path.join(dir, "moon.pkg.json")
   if !@fs.exists_as_file(moon_pkg_path) {
     let entries = @fs.list_directory(dir)
     for entry in entries {
       if entry.kind is Directory {
-        self.load_pkg(mod, entry.path)
+        self.load_pkg(mod, entry.path, visit~)
       }
     }
   }
@@ -119,7 +142,7 @@ async fn Module::load_pkg(self : Module, mod : Module, dir : String) -> Unit {
   let entries = @fs.list_directory(dir)
   for entry in entries {
     if entry.kind is Directory {
-      self.load_mod(mod, entry.path)
+      self.load_mod(mod, entry.path, visit~)
     } else if entry.kind is Regular {
       if entry.name.has_suffix(".mbt") || entry.name.has_suffix(".mbt.md") {
         pkg.add_file(entry.path)
@@ -131,7 +154,7 @@ async fn Module::load_pkg(self : Module, mod : Module, dir : String) -> Unit {
 ///|
 async fn Module::scan(self : Module) -> Unit {
   let src = @path.join(self.path, self.source())
-  self.load_pkg(self, src)
+  self.load_pkg(self, src, visit=Set::new())
 }
 
 ///|
