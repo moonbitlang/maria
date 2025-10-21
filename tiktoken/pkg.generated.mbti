@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/tiktoken"
+package "moonbitlang/tiktoken"
 
 import(
-  "moonbitlang/maria/internal/pcre2"
+  "moonbitlang/tiktoken/pcre2"
 )
 
 // Values

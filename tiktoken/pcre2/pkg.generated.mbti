@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/pcre2"
+package "moonbitlang/tiktoken/pcre2"
 
 // Values
 fn compile(String) -> Code raise Pcre2Error
