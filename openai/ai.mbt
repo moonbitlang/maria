@@ -6,8 +6,8 @@ priv suberror HttpError {
 ///|
 pub async fn chat(
   model~ : @model.Model,
-  request : @openai.ChatCompletionParam,
-) -> @openai.ChatCompletion {
+  request : ChatCompletionParam,
+) -> ChatCompletion {
   let (response, response_body) = @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
@@ -27,11 +27,11 @@ pub async fn chat(
 pub async fn text(model~ : @model.Model, prompt~ : String) -> String {
   let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content=prompt),
+        system_message(content="You are a helpful assistant."),
+        user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
@@ -81,11 +81,11 @@ test "extract_first_json_block" {
 pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
   let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content=prompt),
+        system_message(content="You are a helpful assistant."),
+        user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
@@ -111,15 +111,15 @@ pub(open) trait Structural: @json.FromJson {
 pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T {
   let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content=prompt),
+        system_message(content="You are a helpful assistant."),
+        user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
-      response_format=@openai.json_schema(
+      response_format=json_schema(
         name=T::name(),
         schema=T::schema().to_json(),
         description=T::description(),

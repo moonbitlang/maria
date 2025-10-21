@@ -128,7 +128,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     model=agent.model.name,
     tools~,
   )
-  let response = @ai.chat(model=agent.model, request)
+  let response = @openai.chat(model=agent.model, request)
   guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
   agent.emit(

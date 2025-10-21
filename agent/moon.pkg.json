@@ -8,7 +8,6 @@
     "moonbitlang/maria/internal/cache",
     "moonbitlang/maria/context",
     "moonbitlang/maria/internal/conversation",
-    "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/internal/uuid"

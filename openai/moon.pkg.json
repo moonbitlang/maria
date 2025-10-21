@@ -1,1 +1,9 @@
-{}
+{
+  "import": [
+    "moonbitlang/maria/model",
+    "moonbitlang/async/http",
+    "moonbitlang/maria/internal/schema",
+    "moonbitlang/async/io",
+    "moonbitlang/async"
+  ]
+}

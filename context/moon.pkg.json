@@ -2,7 +2,6 @@
   "import": [
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/token",
-    "moonbitlang/maria/model",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/model"
   ]
 }
