@@ -9,7 +9,7 @@ async test "nonexistent" (t : @test.T) {
       content="Error reading file: File not found: nonexistent.txt",
     )
     @json.inspect(result.error, content=[
-      "ToolFailure", "Error reading file: File not found: nonexistent.txt",
+      ["Failure", "Error reading file: File not found: nonexistent.txt"],
     ])
   })
 }
@@ -29,12 +29,10 @@ async test "content" (t : @test.T) {
     )
     let args : Json = { "path": "test.txt" }
     let result = @read_file.read_file.call(args, manager)
-    @json.inspect(result.output, content={
-      "path": "test.txt",
-      "content": "line 1\nline 2\nline 3\nline 4",
-      "start_line": 1,
-      "end_line": 4,
-    })
+    @json.inspect(
+      result.output,
+      content="File: test.txt (lines 1-4 (4 lines))\nline 1\nline 2\nline 3\nline 4",
+    )
     inspect(
       result.output,
       content=(
@@ -64,12 +62,10 @@ async test "line_range" (t : @test.T) {
     )
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
     let result = @read_file.read_file.call(args, manager)
-    @json.inspect(result.output, content={
-      "path": "lines.txt",
-      "content": "line 1\nline 2\nline 3\nline 4\nline 5",
-      "start_line": 2,
-      "end_line": 4,
-    })
+    @json.inspect(
+      result.output,
+      content="File: lines.txt (lines 2-4 (3 lines))\nline 2\nline 3\nline 4",
+    )
     inspect(
       result.output,
       content=(
@@ -91,11 +87,10 @@ async test "directory" (t : @test.T) {
     let _ = subdir.add_file("file3.txt", content="content3")
     let args : Json = { "path": "." }
     let result = @read_file.read_file.call(args, manager)
-    @json.inspect(result.output, content={
-      "path": ".",
-      "entries": ["subdir/", "file1.txt", "file2.txt"],
-      "display": "subdir/\nfile1.txt\nfile2.txt",
-    })
+    @json.inspect(
+      result.output,
+      content="Directory: .\nEntries:\nsubdir/\nfile1.txt\nfile2.txt",
+    )
     inspect(
       result.output,
       content=(
@@ -135,12 +130,10 @@ async test "invalid-range" (t : @test.T) {
     )
     let args : Json = { "path": "test.txt", "start_line": 2, "end_line": 1024 }
     let result = @read_file.read_file.call(args, manager)
-    @json.inspect(result.output, content={
-      "path": "test.txt",
-      "content": "line 1\nline 2\nline 3",
-      "start_line": 2,
-      "end_line": 3,
-    })
+    @json.inspect(
+      result.output,
+      content="File: test.txt (lines 2-3 (2 lines))\nline 2\nline 3",
+    )
     inspect(
       result.output,
       content=(

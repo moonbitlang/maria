@@ -5,11 +5,10 @@ async test "timeout" (t : @test.T) {
       { "command": "sleep", "arguments": ["5"], "timeout": 1 },
       @job.Manager::new(cwd=mock.cwd.path()),
     ),
-    content=[
-      "Error",
-      ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-      "Timeout when executing command",
-    ],
+    content={
+      "output": "Timeout when executing command",
+      "error": ["TimeoutError", { "command": "sleep", "timeout": 1 }],
+    },
   )))
 }
 
@@ -21,17 +20,15 @@ async test "cat" (t : @test.T) {
       { "command": "cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
-      "Foreground",
-      {
-        "command": "cat file.txt",
-        "status": 0,
-        "output": "hello world",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
-      },
-    ])
+    inspect(
+      result.output,
+      content=(
+        #|Command: cat file.txt
+        #|Exit code: 0
+        #|Output:
+        #|hello world
+      ),
+    )
   })
 }
 
@@ -49,17 +46,20 @@ async test "output-overflow" (t : @test.T) {
     )
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
-    @json.inspect(result.output, content=[
-      "Foreground",
-      {
-        "command": "cat file.txt",
-        "status": 0,
-        "output": "hello\nhello\nhello\nhello\nhello",
-        "truncated": true,
-        "total_lines": 100,
-        "timeout": 5000,
-      },
-    ])
+    inspect(
+      result.output,
+      content=(
+        #|Command: cat file.txt
+        #|Exit code: 0
+        #|Output: (first 5 of 100 lines)
+        #|hello
+        #|hello
+        #|hello
+        #|hello
+        #|hello
+        #|... (truncated, try using redirection to pipe output to a file) ...
+      ),
+    )
   })
 }
 
@@ -71,17 +71,10 @@ async test "cd" (t : @test.T) {
       { "command": "cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
-      "Foreground",
-      {
-        "command": "cat file.txt",
-        "status": 0,
-        "output": "hello world",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
-      },
-    ])
+    @json.inspect(
+      result.output,
+      content="Command: cat file.txt\nExit code: 0\nOutput:\nhello world",
+    )
     let _ = taco
       .add_directory("subdir")
       .add_file("file.txt", content="hello from subdir")
@@ -89,17 +82,15 @@ async test "cd" (t : @test.T) {
       { "command": "cd subdir && cat file.txt", "timeout": 5000 },
       @job.Manager::new(cwd=taco.cwd.path()),
     )
-    @json.inspect(result.output, content=[
-      "Foreground",
-      {
-        "command": "cd subdir && cat file.txt",
-        "status": 0,
-        "output": "hello from subdir",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
-      },
-    ])
+    inspect(
+      result.output,
+      content=(
+        #|Command: cd subdir && cat file.txt
+        #|Exit code: 0
+        #|Output:
+        #|hello from subdir
+      ),
+    )
   })
 }
 
@@ -112,9 +103,12 @@ async test "background" (t : @test.T) {
       { "command": "sleep 2", "background": true },
       manager,
     )
-    @json.inspect(result.output, content=[
-      "Background",
-      { "command": "sleep 2", "job_id": 0 },
-    ])
+    inspect(
+      result.output,
+      content=(
+        #|Command: sleep 2
+        #|Started in background with Job ID: 0
+      ),
+    )
   })
 }

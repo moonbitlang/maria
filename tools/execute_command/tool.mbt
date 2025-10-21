@@ -98,7 +98,7 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
           )
           let output = output.to_string()
           let lines = output.split("\n").collect()
-          let (final_output, truncated) = if lines.length() >= max_output_lines {
+          let (output, truncated) = if lines.length() >= max_output_lines {
             let truncated_output = lines[:max_output_lines].join("\n")
             (truncated_output, true)
           } else {
@@ -123,7 +123,7 @@ pub let execute_command : @tool.Tool[@job.Manager] = @tool.tool(
             }
           } else {
             formatted.push("Output:")
-            formatted.push(final_output)
+            formatted.push(output)
           }
           return @tool.ok(formatted.join("\n"))
         })

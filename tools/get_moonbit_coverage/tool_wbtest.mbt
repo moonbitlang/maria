@@ -40,7 +40,7 @@ async test "get_moonbit_coverage" (t : @test.T) {
     let params = params(project_path=taco.cwd.path(), file="example.mbt")
     let result = get_moonbit_coverage.call(params.to_json(), taco.cwd.path())
     @json.inspect(
-      result,
+      result.output,
       content=(
         $|Total: 1 uncovered line(s) in 1 file(s)
         $|

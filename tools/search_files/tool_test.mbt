@@ -11,27 +11,18 @@ async test "search_files" (t : @test.T) {
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
     let result = @search_files.search_files.call(args, taco.cwd.path())
-    @json.inspect(result, content=[
-      "Ok",
-      {
-        "kind": "Regex",
-        "query": "search files",
-        "path": ".",
-        "file_pattern": "*",
-        "context_lines": 2,
-        "total_matches": 1,
-        "results": [
-          {
-            "context": "1: These are some notes about the project.\n2: We need to implement a feature to search files.\n3: The search should be efficient and accurate.",
-            "line_number": 2,
-            "match_line": "We need to implement a feature to search files.",
-            "path": "notes.txt",
-          },
-        ],
-        "truncated": false,
-        "message": "Search completed. Found 1 matches.",
-      },
-    ])
+    inspect(
+      result.output,
+      content=(
+        #|Search completed. Found 1 matches.
+        #|
+        #|notes.txt:2
+        #|1: These are some notes about the project.
+        #|2: We need to implement a feature to search files.
+        #|3: The search should be efficient and accurate.
+        #|
+      ),
+    )
   })
 }
 

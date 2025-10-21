@@ -169,11 +169,10 @@ async test "todo_write/mark_completed" (t : @test.T) {
       { "action": "mark_completed", "task_id": "nonexistent" },
       todo_list,
     )
-    @json.inspect(result, content=[
-      "Error",
-      ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
-      "Error: Task with ID 'nonexistent' not found.",
-    ])
+    @json.inspect(result, content={
+      "output": "Error: Task with ID 'nonexistent' not found.",
+      "error": ["Failure", "Error: Task with ID 'nonexistent' not found."],
+    })
     let result = @todo_write.todo_write.call(
       { "action": "mark_completed", "task_id": "ac8a366d" },
       todo_list,
@@ -222,11 +221,10 @@ async test "todo_write/mark_progress" (t : @test.T) {
       { "action": "mark_progress", "task_id": "nonexistent" },
       todo_list,
     )
-    @json.inspect(result, content=[
-      "Error",
-      ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
-      "Error: Task with ID 'nonexistent' not found.",
-    ])
+    @json.inspect(result, content={
+      "output": "Error: Task with ID 'nonexistent' not found.",
+      "error": ["Failure", "Error: Task with ID 'nonexistent' not found."],
+    })
     inspect(
       result.output,
       content="Error: Task with ID 'nonexistent' not found.",
