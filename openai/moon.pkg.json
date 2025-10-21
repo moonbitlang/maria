@@ -5,5 +5,8 @@
     "moonbitlang/maria/internal/schema",
     "moonbitlang/async/io",
     "moonbitlang/async"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/os"
   ]
 }
