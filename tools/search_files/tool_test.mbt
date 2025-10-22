@@ -61,7 +61,7 @@ async test "search_files/agentic" (t : @test.T) {
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
-      name="anthropic/claude-sonnet-4",
+      name="qwen/qwen3-coder-plus",
       safe_zone_tokens=200000,
     )
     let agent = @agent.new(model, cwd=taco.cwd.path())
