@@ -281,7 +281,7 @@ pub fn ChatCompletionMessage::to_param(
 }
 
 ///|
-impl @json.FromJson for ChatCompletionMessage with from_json(
+pub impl @json.FromJson for ChatCompletionMessage with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessage {
