@@ -5,9 +5,8 @@ pub struct Module {
   priv source : String
   priv packages : Map[String, Package]
   coverage : Coverage
-  priv modules : Array[Module]
   priv mut core : Module?
-  priv cakes : Array[Module]
+  priv cakes : Map[String, Module]
 }
 
 ///|
@@ -46,9 +45,8 @@ async fn Module::new(path : String) -> Module {
     source,
     packages: {},
     coverage: { path, },
-    modules: [],
     core: None,
-    cakes: [],
+    cakes: {},
   }
 }
 
@@ -74,7 +72,6 @@ async fn Module::load_pkg(
   self : Module,
   dir : String,
   visit~ : Set[String],
-  in_cakes~ : Bool,
 ) -> Unit {
   if !@fs.exists(dir) {
     return
@@ -91,13 +88,6 @@ async fn Module::load_pkg(
     let moon_mod_path = @path.join(dir, "moon.mod.json")
     if @fs.exists(moon_mod_path) &&
       @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
-      let mod = Module::new(dir)
-      if in_cakes {
-        self.cakes.push(mod)
-      } else {
-        self.modules.push(mod)
-      }
-      mod.scan()
       return
     }
   }
@@ -111,11 +101,7 @@ async fn Module::load_pkg(
         if entry.name is ".moonagent" {
           continue
         }
-        if entry.name is ".mooncakes" {
-          self.load_pkg(entry.path, visit~, in_cakes=true)
-        } else {
-          self.load_pkg(entry.path, visit~, in_cakes~)
-        }
+        self.load_pkg(entry.path, visit~)
       }
     }
     return
@@ -137,11 +123,7 @@ async fn Module::load_pkg(
       if entry.name is ".moonagent" {
         continue
       }
-      if entry.name is ".mooncakes" {
-        self.load_pkg(entry.path, visit~, in_cakes=true)
-      } else {
-        self.load_pkg(entry.path, visit~, in_cakes~)
-      }
+      self.load_pkg(entry.path, visit~)
     } else if entry.kind is Regular {
       if entry.name.has_suffix(".mbt") || entry.name.has_suffix(".mbt.md") {
         pkg.add_file(entry.path)
@@ -153,7 +135,7 @@ async fn Module::load_pkg(
 ///|
 async fn Module::scan(self : Module) -> Unit {
   let visit : Set[String] = Set::new()
-  self.load_pkg(self.source, visit~, in_cakes=false)
+  self.load_pkg(self.source, visit~)
 }
 
 ///|
@@ -169,35 +151,25 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
   if self.package_(name) is Some(package_) {
     return Some(package_)
   }
-  for module_ in self.modules {
-    if name.has_prefix(module_.name()) {
-      return module_.package_(name)
-    }
-  }
   let parts = @path.split(name).collect()
   guard parts is [author, module_, ..] else { return None }
   let mod_name = @path.join(author, module_)
-  for cake in self.cakes {
-    if cake.name() == mod_name {
-      return cake.package_(name)
-    }
-  } else {
-    None
+  if self.cakes.get(mod_name) is Some(cake_mod) {
+    return cake_mod.package_(name)
   }
-}
-
-///|
-pub async fn Module::find_module(self : Module, name : String) -> Module? {
-  if name == self.name {
-    return Some(self)
+  let cakes_path = @path.join(self.path, ".mooncakes")
+  if !@fs.exists(cakes_path) {
+    self.install()
   }
-  for module_ in self.modules {
-    if module_.name == name {
-      break Some(module_)
-    }
-  } else {
-    None
+  let cakes_path = @fs.resolve(cakes_path)
+  let mod_path = @path.join(cakes_path, mod_name)
+  if !@fs.exists(mod_path) {
+    return None
   }
+  let cake_mod = Module::new(mod_path)
+  cake_mod.scan()
+  self.cakes[cake_mod.name()] = cake_mod
+  cake_mod.package_(name)
 }
 
 ///|
@@ -205,11 +177,6 @@ pub fn Module::packages(self : Module) -> Iter[PackageView] {
   self.packages
   .values()
   .map(pkg => PackageView::{ module_: self, name: pkg.name })
-}
-
-///|
-pub fn Module::modules(self : Module) -> Iter[Module] {
-  Iter::singleton(self).concat(self.modules.iter())
 }
 
 ///|
