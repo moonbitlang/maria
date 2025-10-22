@@ -8,6 +8,10 @@ async fn clone(String, to~ : StringView, cwd? : StringView) -> Unit
 
 async fn commit(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Unit
 
+async fn create_branch(String, start_point? : String, cwd? : StringView) -> Unit
+
+async fn delete_branch(force? : Bool, String, cwd? : StringView) -> Unit
+
 async fn generate_git_diff(original~ : String, modified~ : String) -> String
 
 async fn init_(String) -> Unit
