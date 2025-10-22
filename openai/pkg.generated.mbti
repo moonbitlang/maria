@@ -148,12 +148,14 @@ pub struct ChatCompletionMessage {
   tool_calls : Array[ChatCompletionMessageToolCall]
   function_call : ChatCompletionMessageFunctionCall?
 }
+fn ChatCompletionMessage::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn ChatCompletionMessage::output(Self, &Logger) -> Unit // from trait `Show`
 fn ChatCompletionMessage::to_json(Self) -> Json // from trait `ToJson`
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 fn ChatCompletionMessage::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletionMessage
 impl ToJson for ChatCompletionMessage
+impl @json.FromJson for ChatCompletionMessage
 
 pub struct ChatCompletionMessageFunctionCall {
   arguments : String
