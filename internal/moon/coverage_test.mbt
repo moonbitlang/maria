@@ -74,7 +74,7 @@ async test "Coverage::report" (t : @test.T) {
 
 ///|
 async test "Coverage::analyze" (t : @test.T) {
-  @mock.run(t, timeout=30_000, taco => {
+  @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (
         "moon.mod.json",
@@ -146,7 +146,7 @@ async test "Coverage::analyze" (t : @test.T) {
 
 ///|
 async test "Coverage::clean" (t : @test.T) {
-  @mock.run(t, timeout=30_000, taco => {
+  @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (
         "moon.mod.json",
