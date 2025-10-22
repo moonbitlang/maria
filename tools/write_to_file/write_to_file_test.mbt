@@ -108,8 +108,11 @@ async test "write_to_file/search-replace" (t : @test.T) {
 
 ///|
 async test "write_to_file/agentic" (t : @test.T) {
+  // TODO: add retries support
   @mock.run(timeout=60_000, t, taco => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else { return }
+    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+      fail("OPENAI_API_KEY not set")
+    }
     let manager = @file.manager(cwd=taco.cwd.path())
     let file = taco.add_file(
       "file.txt",
@@ -123,7 +126,7 @@ async test "write_to_file/agentic" (t : @test.T) {
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
-      name="anthropic/claude-sonnet-4",
+      name="qwen/qwen3-coder",
       safe_zone_tokens=200000,
     )
     let agent = @agent.new(model, cwd=taco.cwd.path())
