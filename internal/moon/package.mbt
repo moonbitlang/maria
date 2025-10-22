@@ -1,9 +1,32 @@
 ///|
+struct Import {
+  path : String
+  alias_ : String?
+} derive(Show)
+
+///|
+pub impl @json.FromJson for Import with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Import {
+  match json {
+    String(path) => Import::{ path, alias_: None }
+    { "path": String(path), "alias": String(alias_), .. } =>
+      Import::{ path, alias_: Some(alias_) }
+    _ => raise @json.JsonDecodeError((json_path, "Invalid Import"))
+  }
+}
+
+///|
 struct Package {
   name : String
   path : String
   files : Map[String, File]
   mtime : Int64
+  is_main : Bool
+  import_ : Array[Import]
+  test_import : Array[Import]
+  wbtest_import : Array[Import]
 } derive(Show)
 
 ///|
@@ -16,9 +39,59 @@ pub impl ToJson for Package with to_json(self : Package) -> Json {
 }
 
 ///|
-fn Package::new(path~ : String, name~ : String) -> Package raise {
+async fn Package::new(path~ : String, name~ : String) -> Package {
+  let moon_pkg_path = @path.join(path, "moon.pkg.json")
+  let import_ = []
+  let test_import = []
+  let wbtest_import = []
+  let mut is_main = false
+  let moon_pkg_text = @fs.read_file(moon_pkg_path)
+  try {
+    if @json.parse(moon_pkg_text) is Object(moon_pkg_json) {
+      if moon_pkg_json.get("import") is Some(import_json) {
+        import_.append(@json.from_json(import_json)) catch {
+          _ => ()
+        }
+      }
+      if moon_pkg_json.get("test-import") is Some(test_import_json) {
+        test_import.append(@json.from_json(test_import_json)) catch {
+          _ => ()
+        }
+      }
+      if moon_pkg_json.get("wbtest-import") is Some(wbtest_import_json) {
+        wbtest_import.append(@json.from_json(wbtest_import_json)) catch {
+          _ => ()
+        }
+      }
+      if moon_pkg_json.get("is-main") is Some(is_main_json) {
+        try {
+          is_main = @json.from_json(is_main_json)
+        } catch {
+          _ => ()
+        }
+      }
+      if moon_pkg_json.get("is_main") is Some(is_main_json) {
+        try {
+          is_main = @json.from_json(is_main_json)
+        } catch {
+          _ => ()
+        }
+      }
+    }
+  } catch {
+    _ => ()
+  }
   let mtime = @fs.stat(path).mtime()
-  Package::{ name, path, files: {}, mtime }
+  Package::{
+    name,
+    path,
+    files: {},
+    mtime,
+    is_main,
+    import_,
+    test_import,
+    wbtest_import,
+  }
 }
 
 ///|
@@ -141,4 +214,20 @@ pub async fn PackageView::interface(self : PackageView) -> String {
       }
     }
   }
+}
+
+///|
+pub fn PackageView::is_main(self : PackageView) -> Bool {
+  let package_ = self.package_()
+  package_.is_main
+}
+
+///|
+pub fn PackageView::name(self : PackageView) -> String {
+  self.package_().name
+}
+
+///|
+pub fn PackageView::files(self : PackageView) -> Iter[File] {
+  self.package_().files()
 }
