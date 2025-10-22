@@ -6,7 +6,16 @@ struct Loader {
 }
 
 ///|
-pub fn loader(home~ : StringView, cwd~ : StringView) -> Loader {
+/// Create a model loader scoped to the given home directory and
+/// current working directory.
+///
+/// Parameters:
+/// - home: Absolute path to the user's home directory.
+/// - cwd: Absolute path to the current project directory.
+///
+/// Returns a Loader instance with an empty model cache that can be
+/// populated by calling `load`.
+pub fn Loader::new(home~ : StringView, cwd~ : StringView) -> Loader {
   Loader::{ home, cwd, models: [] }
 }
 
@@ -18,6 +27,13 @@ async fn Model::load_from_path(path : StringView) -> Array[Model] {
 }
 
 ///|
+/// Populate the loader's in-memory model cache by reading project and
+/// user model configuration files.
+///
+/// The loader looks for `.moonagent/models/models.json` inside the
+/// current working directory first, then the user's home directory. If
+/// either file exists, the models defined there are appended to the
+/// loader's cache.
 pub async fn Loader::load(self : Loader) -> Unit {
   let project = self.cwd
     |> @path.join(".moonagent")
@@ -36,6 +52,17 @@ pub async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
+/// Retrieve a model from the loader's cache, optionally overriding
+/// selected fields.
+///
+/// Parameters:
+/// - name: Model name to look up. When omitted, the first cached model
+///   is returned (if any).
+/// - api_key: Optional API key override for the returned model.
+/// - base_url: Optional base URL override for the returned model.
+///
+/// Returns the matching model with overrides applied, or `None` when no
+/// model is available.
 pub fn Loader::get_model(
   self : Loader,
   name? : String,

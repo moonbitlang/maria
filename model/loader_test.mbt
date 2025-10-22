@@ -90,7 +90,7 @@ async test "load" (t : @test.T) {
         "models.json",
         content=project_models.to_json().stringify(indent=2),
       )
-    let loader = @model.loader(home=home.path(), cwd=project.path())
+    let loader = @model.Loader::new(home=home.path(), cwd=project.path())
     loader.load()
     @json.inspect(loader.get_model(), content=[
       {

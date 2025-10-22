@@ -21,19 +21,23 @@ pub(all) enum Type {
 }
 
 ///|
-/// Creates a new Model instance with the specified configuration parameters.
+/// Create a new model configuration describing how to reach a provider
+/// backed language model.
 ///
 /// Parameters:
+/// - api_key: API key used when issuing requests to the model service.
+/// - base_url: Base URL of the provider endpoint.
+/// - name: Identifier for this configuration, used to select models.
+/// - safe_zone_tokens: Token buffer reserved for internal bookkeeping.
+/// - model_name: Optional provider specific model identifier.
+/// - model_type: Optional provider and deployment metadata.
+/// - description: Optional human readable description.
+/// - supports_anthropic_prompt_caching: Enable Anthropic prompt caching
+///   support when true.
 ///
-/// * `api_key` : The API key for authenticating with the language model
-///   service.
-/// * `base_url` : The base URL of the language model API endpoint.
-/// * `name` : The name or identifier of the language model.
-/// * `context_window` : The maximum number of tokens that can be processed in a
-///   single request.
-///
-/// Returns a new `Model` instance configured with the provided parameters.
-pub fn new(
+/// Returns a Model value ready to be passed to higher level APIs.
+#as_free_fn
+pub fn Model::new(
   api_key~ : String,
   base_url~ : String,
   name~ : String,
@@ -43,7 +47,7 @@ pub fn new(
   description? : String,
   supports_anthropic_prompt_caching? : Bool = false,
 ) -> Model {
-  Model::{
+  {
     api_key,
     base_url,
     name,

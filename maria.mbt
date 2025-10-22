@@ -10,7 +10,7 @@ async fn load_model(
   cwd~ : String,
   model? : String,
 ) -> @model.Model? {
-  let model_loader = @model.loader(home~, cwd~)
+  let model_loader = @model.Loader::new(home~, cwd~)
   let api_key : String? = if @os.getenv("OPENAI_API_KEY") is (Some(_) as key) {
     key
   } else {
