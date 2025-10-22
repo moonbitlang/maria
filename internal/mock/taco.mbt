@@ -237,11 +237,45 @@ let os_args : Array[String] = @os.args()
 extern "c" fn fs_mkdtemp(template : Bytes) -> Int = "moonbit_maria_fs_mkdtemp"
 
 ///|
+/// Runs a test function within an isolated mock environment with controlled
+/// resources and automatic cleanup.
+///
+/// Parameters:
+///
+/// * `t` : The test instance that provides the test name and context.
+/// * `loc` : The source location where this function is called (automatically
+///   filled by the compiler).
+/// * `timeout` (Optional) : timeout in milliseconds for the test execution
+///   (defaults to 10,000ms).
+/// * `retry` (Optional) : number of retry attempts if the test fails.
+/// * `f` : The async test function to execute, which receives a mock `Context`
+///   with isolated filesystem, logger, clock, and other utilities.
+///
+/// Throws an error of type `@errno.Errno` if temporary directory creation
+/// fails, or propagates any error thrown by the test function (except `Skip`
+/// errors which are silently ignored).
+///
+/// Panics if the executable path structure doesn't match the expected MoonBit
+/// project layout (`["target", "native", "debug" | "release", "test", .. parts,
+/// _]`).
+///
+/// Example:
+///
+/// ```moonbit async
+/// async test (t : @test.T) {
+///   @mock.run(t, ctx => {
+///     let file = ctx.add_file("test.txt", content="Hello, World!")
+///     let content = file.read()
+///     @json.inspect(content, content="Hello, World!")
+///   })
+/// }
+/// ```
 #callsite(autofill(loc))
 pub async fn run(
   t : @test.T,
   loc~ : SourceLoc,
   timeout? : Int = 10_000,
+  retry? : Int,
   f : async (Context) -> Unit,
 ) -> Unit {
   let os_cwd = @os.cwd()
@@ -250,7 +284,11 @@ pub async fn run(
   let exec = @path.relative(os_cwd, exec)
   let exec_parts = @path.split(exec).collect()
   guard exec_parts
-    is ["target", "native", "debug" | "release", "test", .. parts, _]
+    is ["target", "native", "debug" | "release", "test", .. parts, _] else {
+    abort(
+      "Unexpected executable path, @mock should only be used in test: \{exec}",
+    )
+  }
   let pkg_path = parts.join(@path.sep.to_string())
   let template : String = @path.join(os_tmpdir, "moonbit-taco-XXXXXXX")
   let template = @encoding/utf8.encode(template)
@@ -260,32 +298,40 @@ pub async fn run(
   }
   let template = @encoding/utf8.decode(template)
   let tmp_pkg_path = @path.join(template, pkg_path)
-  @async.with_timeout(timeout, () => @async.with_task_group(group => {
-    let cwd = directory(@path.join(tmp_pkg_path, t.name()))
-    let log_dir = os_cwd |> @path.join("__trajectories__")
-    @fs.mkdir(log_dir, permission=0o755) catch {
-      _ => ()
+  async fn run() -> Unit {
+    @async.with_timeout(timeout, () => @async.with_task_group(group => {
+      let cwd = directory(@path.join(tmp_pkg_path, t.name()))
+      let log_dir = os_cwd |> @path.join("__trajectories__")
+      @fs.mkdir(log_dir, permission=0o755) catch {
+        _ => ()
+      }
+      let logged = log_dir |> @path.join(t.name())
+      let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
+      group.spawn_bg(() => logger.start(), no_wait=true)
+      let clock = Clock::{ timestamp: 0 }
+      let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
+      let uuid = @uuid.generator(rand)
+      let file = loc.to_string().split(":").peek().unwrap().to_string()
+      let filter = Filter::new()
+      filter.add("file", file)
+      filter.add("cwd", cwd.path())
+      filter.add("env:HOME", directory(@os.home()).path())
+      if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
+        filter.add("env:OPENAI_API_KEY", api_key)
+      }
+      let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
+      group.add_defer(() => ctx.close())
+      f(ctx)
+    })) catch {
+      Skip(_) => ()
+      error => raise error
     }
-    let logged = log_dir |> @path.join(t.name())
-    let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
-    group.spawn_bg(() => logger.start(), no_wait=true)
-    let clock = Clock::{ timestamp: 0 }
-    let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
-    let uuid = @uuid.generator(rand)
-    let file = loc.to_string().split(":").peek().unwrap().to_string()
-    let filter = Filter::new()
-    filter.add("file", file)
-    filter.add("cwd", cwd.path())
-    filter.add("env:HOME", directory(@os.home()).path())
-    if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
-      filter.add("env:OPENAI_API_KEY", api_key)
-    }
-    let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
-    group.add_defer(() => ctx.close())
-    f(ctx)
-  })) catch {
-    Skip(_) => ()
-    error => raise error
+  }
+
+  if retry is Some(retry) {
+    @async.retry(Immediate, max_retry=retry, run)
+  } else {
+    run()
   }
 }
 
