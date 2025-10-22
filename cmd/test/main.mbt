@@ -10,7 +10,6 @@ async fn main {
   let mut log_file = None
   loop args {
     ["--prompt-file", pf, .. args] => {
-      println("pf: \{pf}")
       if pf is ['-', ..] {
         println("Error: --prompt-file takes a file path")
         return
@@ -46,11 +45,6 @@ async fn main {
     "maria_test",
     try! @pino.transport("file:\{log_file}"),
   )
-  logger.info("Starting Maria test", {
-    "prompt_file": prompt_file.to_json(),
-    "prompt": prompt.to_json(),
-    "log_file": log_file.to_json(),
-  })
   @async.with_task_group(group => {
     group.spawn_bg(() => logger.start(), no_wait=true)
     let maria = @maria.Maria::new(logger~)

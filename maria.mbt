@@ -35,60 +35,50 @@ pub async fn Maria::new(
       } else {
       return
     }
+    logger.info("TokenCounted", { "token_count": origin_token_count.to_json() })
     if origin_token_count != pruned_token_count {
-      logger.info("Context pruned", {
+      logger.info("ContextPruned", {
         "origin_token_count": origin_token_count.to_json(),
         "pruned_token_count": pruned_token_count.to_json(),
       })
-    } else {
-      logger.info("Token count", { "token_count": origin_token_count.to_json() })
     }
   })
   agent.add_listener(RequestCompleted, context => {
     guard context.usage is Some(usage) else { return }
     guard context.message is Some(message) else { return }
-    logger.info("Request completed", {
+    logger.info("RequestCompleted", {
       "usage": usage.to_json(),
       "message": message.to_json(),
     })
   })
   agent.add_listener(PreToolCall, context => {
     guard context.tool_call is Some(tool_call) else { return }
-    logger.info("Calling tool", { "name": tool_call.function.name.to_json() })
     try {
       let args = @json.parse(tool_call.function.arguments)
-      logger.info("Tool arguments", { "args": args })
       logger.info("PreToolCall", {
         "name": tool_call.function.name.to_json(),
         "args": args,
       })
     } catch {
-      error => {
-        logger.error("Error parsing tool arguments", {
-          "error": error.to_json(),
-          "arguments": tool_call.function.arguments.to_json(),
-        })
+      error =>
         logger.error("PreToolCall", {
           "name": tool_call.function.name.to_json(),
           "args": tool_call.function.arguments.to_json(),
           "error": error.to_json(),
         })
-      }
     }
   })
   agent.add_listener(PostToolCall, context => {
     guard context.tool_call is Some(tool_call) else { return }
-    logger.info("Finished calling tool", {
-      "name": tool_call.function.name.to_json(),
-    })
     guard context.tool_call_result is Some(result) else { return }
-    logger.info("Tool result", { "output": result.output().to_json() })
+    guard context.tool_call_result_text is Some(text) else { return }
     match result {
       Error(error, output) => {
         logger.info("PostToolCall", {
           "name": tool_call.function.name.to_json(),
           "output": output,
           "error": error.to_json(),
+          "text": text.to_json(),
         })
         logger.error("Tool error", { "error": error.to_json() })
       }
@@ -96,14 +86,12 @@ pub async fn Maria::new(
         logger.info("PostToolCall", {
           "name": tool_call.function.name.to_json(),
           "output": output,
+          "text": text.to_json(),
         })
     }
   })
-  agent.add_listener(ConversationStart, _ => logger.info(
-    "Conversation started",
-    {},
-  ))
-  agent.add_listener(ConversationEnd, _ => logger.info("Conversation ended", {}))
+  agent.add_listener(ConversationStart, _ => logger.info("PreConversation", {}))
+  agent.add_listener(ConversationEnd, _ => logger.info("PostConversation", {}))
   agent.add_tool(
     @execute_command.execute_command,
     @job.Manager::new(cwd=agent.cwd),
@@ -116,14 +104,11 @@ pub async fn Maria::new(
   agent.add_tool(@todo_read.todo_read, todo_list)
   agent.add_tool(@todo_write.todo_write, todo_list)
   agent.add_tool(@search_files.search_files, agent.cwd)
-  agent.add_message(
-    @openai.system_message(
-      content=[
-        @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt,
-        @search_files.prompt,
-      ].join("\n"),
-    ),
-  )
+  let system_prompt = [
+    @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
+  ].join("\n")
+  let system_message = @openai.system_message(content=system_prompt)
+  agent.add_message(system_message)
   Maria::{ logger, agent }
 }
 
@@ -136,7 +121,10 @@ pub fn Maria::close(self : Maria) -> Unit {
 pub async fn Maria::start(self : Maria, prompt : String) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.logger.start(), no_wait=true)
-    self.agent.add_message(@openai.user_message(content=prompt))
+    let user_message = @openai.user_message(content=prompt)
+    // TODO: move to event system
+    self.logger.info("MessageAdded", { "message": user_message.to_json() })
+    self.agent.add_message(user_message)
     self.agent.start()
   })
 }
