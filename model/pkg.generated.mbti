@@ -6,9 +6,6 @@ import(
 )
 
 // Values
-fn loader(home~ : StringView, cwd~ : StringView) -> Loader
-
-fn new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Model
 
 // Errors
 
@@ -16,6 +13,7 @@ fn new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ 
 type Loader
 fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
 async fn Loader::load(Self) -> Unit
+fn Loader::new(home~ : StringView, cwd~ : StringView) -> Self
 
 pub struct Model {
   name : String
@@ -28,6 +26,8 @@ pub struct Model {
   supports_anthropic_prompt_caching : Bool
 }
 fn Model::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+#as_free_fn
+fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
 fn Model::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Model
 impl @json.FromJson for Model
