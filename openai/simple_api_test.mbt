@@ -2,11 +2,11 @@
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 ///|
-fn gpt4o_mini(api_key : String) -> @model.Model {
+fn deepseek_model(api_key : String) -> @model.Model {
   @model.new(
     api_key~,
     base_url=OPENROUTER_BASE_URL,
-    name="openai/gpt-4o-mini",
+    name="deepseek/deepseek-v3.2-exp",
     safe_zone_tokens=100000,
   )
 }
@@ -17,7 +17,7 @@ async test "text" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
     fail("OPENAI_API_KEY not set")
   }
-  let model = gpt4o_mini(api_key)
+  let model = deepseek_model(api_key)
   let response = text(model~, prompt="Say 'Hello, World!' and nothing else.")
   inspect(response.contains("Hello"), content="true")
 }
@@ -28,7 +28,7 @@ async test "json" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
     fail("OPENAI_API_KEY not set")
   }
-  let model = gpt4o_mini(api_key)
+  let model = deepseek_model(api_key)
   let response = json(
     model~,
     prompt="Return a JSON object with a 'message' field containing 'Hello, World!'. Wrap it in ```json```.",
@@ -45,7 +45,7 @@ async test "chat" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
     fail("OPENAI_API_KEY not set")
   }
-  let model = gpt4o_mini(api_key)
+  let model = deepseek_model(api_key)
   let completion = chat(
     model~,
     chat_completion(
@@ -71,7 +71,7 @@ async test "chat_with_usage" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
     fail("OPENAI_API_KEY not set")
   }
-  let model = gpt4o_mini(api_key)
+  let model = deepseek_model(api_key)
   let completion = chat(
     model~,
     chat_completion(
