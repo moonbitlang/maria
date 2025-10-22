@@ -12,13 +12,15 @@ fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool
 
 async fn chat(model~ : @model.Model, ChatCompletionParam) -> ChatCompletion
 
-fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat) -> ChatCompletionParam
+fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, provider? : Provider) -> ChatCompletionParam
 
 async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T
 
 async fn json(model~ : @model.Model, prompt~ : String) -> Json
 
 fn json_schema(name~ : String, schema~ : Map[String, Json], description? : String, strict? : Bool) -> ResponseFormat
+
+fn provider(order? : Array[String], allow_fallback? : Bool, require_parameters? : Bool, data_collection? : DataCollection, zdr? : Bool, only? : Array[String], ignore? : Array[String], sort? : SortOption) -> Provider
 
 fn[T : ToChatCompletionMessageParamContent] system_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
@@ -204,6 +206,7 @@ pub struct ChatCompletionParam {
   max_tokens : Int?
   temperature : Double?
   response_format : ResponseFormat?
+  provider : Provider?
 }
 fn ChatCompletionParam::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ChatCompletionParam
@@ -306,6 +309,11 @@ fn CostDetails::to_string(Self) -> String // from trait `Show`
 impl Show for CostDetails
 impl ToJson for CostDetails
 
+pub(all) enum DataCollection {
+  Allow
+  Deny
+}
+
 pub struct Function {
   arguments : String
   name : String
@@ -333,6 +341,19 @@ fn PromptTokensDetails::to_string(Self) -> String // from trait `Show`
 impl Show for PromptTokensDetails
 impl ToJson for PromptTokensDetails
 
+pub struct Provider {
+  order : Array[String]?
+  allow_fallback : Bool?
+  require_parameters : Bool?
+  data_collection : DataCollection?
+  zdr : Bool?
+  only : Array[String]?
+  ignore : Array[String]?
+  sort : SortOption?
+}
+fn Provider::to_json(Self) -> Json // from trait `ToJson`
+impl ToJson for Provider
+
 pub(all) enum ResponseFormat {
   Text
   JsonSchema(JsonSchema)
@@ -340,6 +361,12 @@ pub(all) enum ResponseFormat {
 }
 fn ResponseFormat::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for ResponseFormat
+
+pub(all) enum SortOption {
+  Price
+  Throughput
+  Latency
+}
 
 // Type aliases
 

@@ -612,6 +612,93 @@ impl ToJson for CompletionUsageParam with to_json(self : CompletionUsageParam) -
 }
 
 ///|
+pub(all) enum DataCollection {
+  Allow
+  Deny
+}
+
+///|
+pub(all) enum SortOption {
+  Price
+  Throughput
+  Latency
+}
+
+///|
+pub struct Provider {
+  order : Array[String]?
+  allow_fallback : Bool?
+  require_parameters : Bool?
+  data_collection : DataCollection?
+  zdr : Bool?
+  only : Array[String]?
+  ignore : Array[String]?
+  sort : SortOption?
+}
+
+///|
+pub impl ToJson for Provider with to_json(self : Provider) -> Json {
+  let json : Map[String, Json] = {}
+  if self.order is Some(order) {
+    json["order"] = order.to_json()
+  }
+  if self.allow_fallback is Some(allow_fallback) {
+    json["allow_fallback"] = Json::boolean(allow_fallback)
+  }
+  if self.require_parameters is Some(require_parameters) {
+    json["require_parameters"] = Json::boolean(require_parameters)
+  }
+  if self.data_collection is Some(data_collection) {
+    let data_collection_str = match data_collection {
+      Allow => "allow"
+      Deny => "deny"
+    }
+    json["data_collection"] = Json::string(data_collection_str)
+  }
+  if self.zdr is Some(zdr) {
+    json["zdr"] = Json::boolean(zdr)
+  }
+  if self.only is Some(only) {
+    json["only"] = only.to_json()
+  }
+  if self.ignore is Some(ignore) {
+    json["ignore"] = ignore.to_json()
+  }
+  if self.sort is Some(sort) {
+    let sort_str = match sort {
+      Price => "price"
+      Throughput => "throughput"
+      Latency => "latency"
+    }
+    json["sort"] = Json::string(sort_str)
+  }
+  Json::object(json)
+}
+
+///|
+pub fn provider(
+  order? : Array[String],
+  allow_fallback? : Bool,
+  require_parameters? : Bool,
+  data_collection? : DataCollection,
+  zdr? : Bool,
+  only? : Array[String],
+  ignore? : Array[String],
+  sort? : SortOption,
+) -> Provider {
+  Provider::{
+    order,
+    allow_fallback,
+    require_parameters,
+    data_collection,
+    zdr,
+    only,
+    ignore,
+    sort,
+  }
+}
+
+///|
 pub struct ChatCompletionParam {
   model : String
   messages : Array[ChatCompletionMessageParam]
@@ -621,6 +708,7 @@ pub struct ChatCompletionParam {
   max_tokens : Int?
   temperature : Double?
   response_format : ResponseFormat?
+  provider : Provider?
 }
 
 ///|
@@ -649,6 +737,7 @@ pub fn chat_completion(
   max_tokens? : Int,
   temperature? : Double,
   response_format? : ResponseFormat,
+  provider? : Provider,
 ) -> ChatCompletionParam {
   ChatCompletionParam::{
     model,
@@ -659,6 +748,7 @@ pub fn chat_completion(
     max_tokens,
     temperature,
     response_format,
+    provider,
   }
 }
 
@@ -682,6 +772,9 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
   }
   if self.temperature is Some(temperature) {
     json["temperature"] = temperature.to_json()
+  }
+  if self.provider is Some(provider) {
+    json["provider"] = provider.to_json()
   }
   Json::object(json)
 }
