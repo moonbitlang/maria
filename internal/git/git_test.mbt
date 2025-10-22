@@ -29,8 +29,9 @@ async test "generate_git_diff" {
     #|line 2 modified
     #|line 3
     #|line 4 added
+  let diff = @git.generate_git_diff(original~, modified~)
   inspect(
-    @git.generate_git_diff(original~, modified~)
+    diff
     .split("\n")
     .drop_while(line => !line.contains("@@"))
     .collect()
