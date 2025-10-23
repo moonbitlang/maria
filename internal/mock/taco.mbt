@@ -2,6 +2,7 @@
 struct Directory(String)
 
 ///|
+/// Returns the absolute filesystem path represented by this mock directory.
 pub fn Directory::path(self : Directory) -> String {
   self.0
 }
@@ -9,8 +10,7 @@ pub fn Directory::path(self : Directory) -> String {
 ///|
 async fn directory(path : String) -> Directory {
   let dirs = []
-  for dir = path.view() {
-    let dir = dir.to_string()
+  for dir = path[:] {
     if dir == "." || dir == "" || @fs.exists(dir) {
       break
     }
@@ -54,6 +54,7 @@ async fn Context::close(self : Context) -> Unit {
 }
 
 ///|
+/// Adds a file inside the mock workspace, overwriting any existing content.
 pub async fn Context::add_file(
   self : Context,
   name : String,
@@ -63,6 +64,7 @@ pub async fn Context::add_file(
 }
 
 ///|
+/// Creates multiple files under the mock workspace in a single batch.
 pub async fn Context::add_files(
   self : Context,
   files : Array[(String, String)],
@@ -73,6 +75,7 @@ pub async fn Context::add_files(
 }
 
 ///|
+/// Creates a subdirectory relative to the mock workspace root and returns it.
 pub async fn Context::add_directory(self : Context, name : String) -> Directory {
   self.cwd.add_directory(name)
 }
@@ -124,11 +127,13 @@ impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
 }
 
 ///|
+/// Serializes a value to JSON while masking sensitive fields with the current filter.
 pub fn[T : ToJson] Context::json(self : Context, value : T) -> Json {
   Filterable::filter(self.filter, ToJson::to_json(value))
 }
 
 ///|
+/// Formats a value into a filtered string suited for deterministic snapshots.
 #alias(text)
 pub fn[T : Show] Context::show(self : Context, value : T) -> String {
   Filterable::filter(self.filter, Show::to_string(value))
@@ -138,6 +143,7 @@ pub fn[T : Show] Context::show(self : Context, value : T) -> String {
 let home_lock : @semaphore.Semaphore = @semaphore.Semaphore::new(1)
 
 ///|
+/// Temporarily points `HOME` to the provided directory while running `f`.
 pub async fn[T] with_home(directory : Directory, f : async () -> T) -> T {
   home_lock.acquire()
   let home = @os.home()
@@ -158,6 +164,7 @@ pub async fn[T] with_home(directory : Directory, f : async () -> T) -> T {
 }
 
 ///|
+/// Writes a file relative to this directory and returns a handle to it.
 pub async fn Directory::add_file(
   self : Directory,
   name : String,
@@ -169,6 +176,7 @@ pub async fn Directory::add_file(
 }
 
 ///|
+/// Creates a nested directory relative to this directory and returns it.
 pub async fn Directory::add_directory(
   self : Directory,
   name : String,
@@ -182,16 +190,19 @@ pub async fn Directory::add_directory(
 struct File(String)
 
 ///|
+/// Returns the absolute filesystem path for this mock file.
 pub fn File::path(self : File) -> String {
   self.0
 }
 
 ///|
+/// Reads the entire file contents as a UTF-8 string.
 pub async fn File::read(self : File) -> String {
   @fs.read_file(self.0).text()
 }
 
 ///|
+/// Replaces the file contents with the provided string.
 pub async fn File::write(self : File, content : String) -> Unit {
   @fs.write_file(self.0, content)
 }
@@ -211,11 +222,13 @@ fn Entry::path(self : Entry) -> String {
 }
 
 ///|
+/// Returns the final path component for this directory or file entry.
 pub fn Entry::name(self : Entry) -> StringView {
   @path.basename(self.path())
 }
 
 ///|
+/// Lists the immediate entries contained in this directory.
 pub async fn Directory::list(self : Directory) -> Array[Entry] {
   let entries = []
   for name in @fs.readdir(self.0) {
@@ -339,6 +352,7 @@ pub async fn run(
 priv suberror Skip String
 
 ///|
+/// Aborts the current test flow without failing, marking it as skipped.
 pub fn[X] skip(message : String) -> X raise {
   raise Skip(message)
 }
