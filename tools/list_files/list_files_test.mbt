@@ -7,19 +7,17 @@ async test "list_files" (t : @test.T) {
       ("tool.mbt", "// tool"),
       ("tool_test.mbt", "// test"),
     ])
-    @json.inspect(
-      @list_files.list_files.call({ "path": "." }, manager).output(),
-      content={
-        "path": ".",
-        "entries": [
-          { "name": "tool.mbt", "kind": "file", "is_hidden": false },
-          { "name": "moon.pkg.json", "kind": "file", "is_hidden": false },
-          { "name": "tool_test.mbt", "kind": "file", "is_hidden": false },
-        ],
-        "total_count": 3,
-        "file_count": 3,
-        "directory_count": 0,
-      },
-    )
+    let tool = @list_files.new(manager)
+    @json.inspect(tool.call({ "path": "." }).output(), content={
+      "path": ".",
+      "entries": [
+        { "name": "tool.mbt", "kind": "file", "is_hidden": false },
+        { "name": "moon.pkg.json", "kind": "file", "is_hidden": false },
+        { "name": "tool_test.mbt", "kind": "file", "is_hidden": false },
+      ],
+      "total_count": 3,
+      "file_count": 3,
+      "directory_count": 0,
+    })
   })
 }

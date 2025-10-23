@@ -263,7 +263,7 @@ pub fn List::get(self : List, index : Index) -> Item {
 }
 
 ///|
-pub async fn save(self : List) -> Unit {
+pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.updated_at = get_current_timestamp(self.clock)

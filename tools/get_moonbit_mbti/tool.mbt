@@ -1,49 +1,53 @@
 ///|
-pub let get_moonbit_mbti : @tool.Tool[String] = @tool.tool(
-  name="get_moonbit_mbti",
-  description="Get Moonbit MBTI",
-  parameters={
-    "type": "object",
-    "properties": {
-      "package": {
-        "type": "string",
-        "description": "The name of the package to analyze (e.g. 'moonbitlang/core/set`').",
+pub fn new(cwd : String) -> @tool.Tool {
+  @tool.tool(
+    name="get_moonbit_mbti",
+    description="Get Moonbit MBTI",
+    parameters={
+      "type": "object",
+      "properties": {
+        "package": {
+          "type": "string",
+          "description": "The name of the package to analyze (e.g. 'moonbitlang/core/set`').",
+        },
       },
+      "required": ["package"],
     },
-    "required": ["package"],
-  },
-  (args, cwd) => {
-    guard args is { "package": String(pkg_name), .. } else {
-      @tool.error("Error: 'package' argument is required and must be a string.")
-    }
-    let moon = @moon.Module::load(cwd) catch {
-      error =>
-        return @tool.error(
-          "Error: Failed to load module at '\{cwd}': \{error}",
-          error~,
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      guard args is { "package": String(pkg_name), .. } else {
+        @tool.error(
+          "Error: 'package' argument is required and must be a string.",
         )
-    }
-    guard (moon.find_package(pkg_name) catch {
+      }
+      let moon = @moon.Module::load(cwd) catch {
         error =>
           return @tool.error(
-            "Error: Failed to find package '\{pkg_name}': \{error}",
+            "Error: Failed to load module at '\{cwd}': \{error}",
             error~,
           )
-      })
-      is Some(pkg) else {
-      @tool.error("Error: Package '\{pkg_name}' not found in module.")
-    }
-    let interface = pkg.interface() catch {
-      error =>
-        return @tool.error(
-          "Error: Failed to get interface for package '\{pkg_name}': \{error}",
-          error~,
-        )
-    }
-    @tool.ok(interface.to_json())
-  },
-  render=result => {
-    guard result.output() is String(result)
-    result
-  },
-)
+      }
+      guard (moon.find_package(pkg_name) catch {
+          error =>
+            return @tool.error(
+              "Error: Failed to find package '\{pkg_name}': \{error}",
+              error~,
+            )
+        })
+        is Some(pkg) else {
+        @tool.error("Error: Package '\{pkg_name}' not found in module.")
+      }
+      let interface = pkg.interface() catch {
+        error =>
+          return @tool.error(
+            "Error: Failed to get interface for package '\{pkg_name}': \{error}",
+            error~,
+          )
+      }
+      @tool.ok(interface.to_json())
+    }),
+    render=result => {
+      guard result.output() is String(result)
+      result
+    },
+  )
+}

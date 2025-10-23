@@ -14,7 +14,7 @@ async test "check_moonbit_project" (t : @test.T) {
       "///|\nlet x : Int = \"string\"",
     )
     let args = params(diagnostic_limit=10, project_path=taco.cwd.path())
-    let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
+    let result = new(taco.cwd.path()).call(args.to_json())
     @json.inspect(taco.json(result), content=[
       "Ok",
       {
@@ -67,7 +67,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.T) {
       patch_code="let y : String = 42",
       patch_file_name="example.mbt",
     )
-    let result = check_moonbit_project.call(args.to_json(), taco.cwd.path())
+    let result = new(taco.cwd.path()).call(args.to_json())
     @json.inspect(taco.json(result), content=[
       "Ok",
       {

@@ -276,41 +276,45 @@ async fn @file.Manager::execute_write_to_file(
 }
 
 ///|
-pub let write_to_file : @tool.Tool[@file.Manager] = @tool.tool(
-  description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
-  name="write_to_file",
-  parameters={
-    "type": "object",
-    "properties": {
-      "path": {
-        "type": "string",
-        "description": "The path of the file to write to, relative to the current working directory.",
+pub fn new(manager : @file.Manager) -> @tool.Tool {
+  @tool.tool(
+    description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
+    name="write_to_file",
+    parameters={
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The path of the file to write to, relative to the current working directory.",
+        },
+        "replace": {
+          "type": "string",
+          "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
+        },
+        "search": {
+          "type": "string",
+          "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
+        },
       },
-      "replace": {
-        "type": "string",
-        "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
-      },
-      "search": {
-        "type": "string",
-        "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
-      },
+      "required": ["path"],
     },
-    "required": ["path"],
-  },
-  (args, self) => self.execute_write_to_file(args),
-  render=result => match result {
-    Ok(json) => {
-      let write_result : WriteResult = @json.from_json(json) catch {
-        error =>
-          return "Error: Unexpected output format: \{error}\n\{json.stringify(indent=2)}"
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      manager.execute_write_to_file(args)
+    }),
+    render=result => match result {
+      Ok(json) => {
+        let write_result : WriteResult = @json.from_json(json) catch {
+          error =>
+            return "Error: Unexpected output format: \{error}\n\{json.stringify(indent=2)}"
+        }
+        write_result.message
       }
-      write_result.message
-    }
-    Error(error, json) =>
-      if json is String(message) {
-        message
-      } else {
-        error.to_string()
-      }
-  },
-)
+      Error(error, json) =>
+        if json is String(message) {
+          message
+        } else {
+          error.to_string()
+        }
+    },
+  )
+}

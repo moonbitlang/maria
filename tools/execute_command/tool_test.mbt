@@ -1,26 +1,24 @@
 ///|
 async test "timeout" (t : @test.T) {
-  @mock.run(t, mock => @async.with_task_group(_ => @json.inspect(
-    @execute_command.execute_command.call(
-      { "command": "sleep", "arguments": ["5"], "timeout": 1 },
-      @job.Manager::new(cwd=mock.cwd.path()),
-    ),
-    content=[
-      "Error",
-      ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-      "Timeout when executing command",
-    ],
-  )))
+  @mock.run(t, mock => @async.with_task_group(_ => {
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
+    @json.inspect(
+      tool.call({ "command": "sleep", "arguments": ["5"], "timeout": 1 }),
+      content=[
+        "Error",
+        ["TimeoutError", { "command": "sleep", "timeout": 1 }],
+        "Timeout when executing command",
+      ],
+    )
+  }))
 }
 
 ///|
 async test "cat" (t : @test.T) {
   @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
-    let result = @execute_command.execute_command.call(
-      { "command": "cat file.txt", "timeout": 5000 },
-      @job.Manager::new(cwd=taco.cwd.path()),
-    )
+    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     @json.inspect(result.output(), content=[
       "Foreground",
       {
@@ -43,10 +41,12 @@ async test "output-overflow" (t : @test.T) {
       lines.push("hello")
     }
     let _ = taco.add_file("file.txt", content=lines.join("\n"))
-    let result = @execute_command.execute_command.call(
-      { "command": "cat file.txt", "timeout": 5000, "max_output_lines": 5 },
-      @job.Manager::new(cwd=taco.cwd.path()),
-    )
+    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let result = tool.call({
+      "command": "cat file.txt",
+      "timeout": 5000,
+      "max_output_lines": 5,
+    })
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
     @json.inspect(result.output(), content=[
@@ -67,10 +67,8 @@ async test "output-overflow" (t : @test.T) {
 async test "cd" (t : @test.T) {
   @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
-    let result = @execute_command.execute_command.call(
-      { "command": "cat file.txt", "timeout": 5000 },
-      @job.Manager::new(cwd=taco.cwd.path()),
-    )
+    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     @json.inspect(result.output(), content=[
       "Foreground",
       {
@@ -85,10 +83,11 @@ async test "cd" (t : @test.T) {
     let _ = taco
       .add_directory("subdir")
       .add_file("file.txt", content="hello from subdir")
-    let result = @execute_command.execute_command.call(
-      { "command": "cd subdir && cat file.txt", "timeout": 5000 },
-      @job.Manager::new(cwd=taco.cwd.path()),
-    )
+    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let result = tool.call({
+      "command": "cd subdir && cat file.txt",
+      "timeout": 5000,
+    })
     @json.inspect(result.output(), content=[
       "Foreground",
       {
@@ -108,10 +107,8 @@ async test "background" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @job.Manager::new(cwd=taco.cwd.path())
     taco.group.spawn_bg(() => manager.start(), no_wait=true)
-    let result = @execute_command.execute_command.call(
-      { "command": "sleep 2", "background": true },
-      manager,
-    )
+    let tool = @execute_command.new(manager)
+    let result = tool.call({ "command": "sleep 2", "background": true })
     @json.inspect(result.output(), content=[
       "Background",
       { "command": "sleep 2", "job_id": 0 },

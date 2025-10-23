@@ -3,9 +3,9 @@ async test "list_jobs" (t : @test.T) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
-    let tool = @list_jobs.list_jobs
+    let tool = @list_jobs.new(manager)
     let _ = manager.spawn(name="sleep", command="sleep 2")
-    let result = tool.call({}, manager)
+    let result = tool.call({})
     inspect(
       mock.show((tool.render)(result)),
       content=(
@@ -26,10 +26,10 @@ async test "list_jobs/multiple" (t : @test.T) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
-    let tool = @list_jobs.list_jobs
+    let tool = @list_jobs.new(manager)
     let _ = manager.spawn(name="job1", command="sleep 1 && echo job1")
     let _ = manager.spawn(name="job2", command="sleep 1 && echo job2")
-    let result = tool.call({}, manager)
+    let result = tool.call({})
     inspect(
       mock.show((tool.render)(result)),
       content=(
@@ -56,11 +56,11 @@ async test "list_jobs/completed" (t : @test.T) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
-    let tool = @list_jobs.list_jobs
+    let tool = @list_jobs.new(manager)
     let _ = manager.spawn(name="job1", command="sleep 1 && echo job1")
     let _ = manager.spawn(name="job2", command="sleep 1 && echo job2")
     @async.sleep(2_000)
-    let result = tool.call({}, manager)
+    let result = tool.call({})
     inspect(
       mock.show((tool.render)(result)),
       content=(

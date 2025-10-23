@@ -143,118 +143,125 @@ async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
 
 ///|
 /// Tool for the sub-agent to submit fixed code segments
-let submit_fixed_file : @tool.Tool[FixingContext] = @tool.tool(
-  name="submit_fixed_file",
-  description="Submit the complete fixed file content for verification",
-  parameters={
-    "type": "object",
-    "properties": {
-      "content": {
-        "type": "string",
-        "description": "The complete fixed file content",
+fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool {
+  @tool.tool(
+    name="submit_fixed_file",
+    description="Submit the complete fixed file content for verification",
+    parameters={
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The complete fixed file content",
+        },
       },
+      "required": ["content"],
     },
-    "required": ["content"],
-  },
-  (args, ctx) => {
-    guard args is { "content": String(content), .. } else {
-      return @tool.error("Missing 'content' argument")
-    }
-    try {
-      // Write the fixed content to file
-      @fs.write_to_file(ctx.file_path, content)
-
-      // Check for syntax errors
-      let syntax_errors = check_syntax_errors(ctx.file_path, ctx.cwd)
-      if syntax_errors == "" {
-        @tool.ok(
-          "File verification successful! The code compiles without syntax errors.",
-        )
-      } else {
-        @tool.error(
-          "File verification failed with syntax errors:\n\{syntax_errors}",
-        )
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      guard args is { "content": String(content), .. } else {
+        return @tool.error("Missing 'content' argument")
       }
-    } catch {
-      error => @tool.error("Failed to write or verify file: \{error}", error~)
-    }
-  },
-  render=result => {
-    guard result.output() is String(formatted) else {
-      return "Error: Unexpected output format"
-    }
-    formatted
-  },
-)
+      try {
+        // Write the fixed content to file
+        @fs.write_to_file(ctx.file_path, content)
+
+        // Check for syntax errors
+        let syntax_errors = check_syntax_errors(ctx.file_path, ctx.cwd)
+        if syntax_errors == "" {
+          @tool.ok(
+            "File verification successful! The code compiles without syntax errors.",
+          )
+        } else {
+          @tool.error(
+            "File verification failed with syntax errors:\n\{syntax_errors}",
+          )
+        }
+      } catch {
+        error => @tool.error("Failed to write or verify file: \{error}", error~)
+      }
+    }),
+    render=result => {
+      guard result.output() is String(formatted) else {
+        return "Error: Unexpected output format"
+      }
+      formatted
+    },
+  )
+}
 
 ///|
 /// Tool for the sub-agent to read current file content
-let read_current_file : @tool.Tool[FixingContext] = @tool.tool(
-  name="read_file",
-  description="Read the current file content to understand what needs to be fixed",
-  parameters={
-    "type": "object",
-    "properties": {
-      "path": {
-        "type": "string",
-        "description": "The file path to read (should match the target file)",
+fn read_current_file_new(ctx : FixingContext) -> @tool.Tool {
+  @tool.tool(
+    name="read_file",
+    description="Read the current file content to understand what needs to be fixed",
+    parameters={
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The file path to read (should match the target file)",
+        },
       },
+      "required": ["path"],
     },
-    "required": ["path"],
-  },
-  (args, ctx) => {
-    guard args is { "path": String(path), .. } else {
-      return @tool.error("Missing 'path' argument")
-    }
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      guard args is { "path": String(path), .. } else {
+        return @tool.error("Missing 'path' argument")
+      }
 
-    // Only allow reading the target file for security
-    // Simple string comparison for security
-    if path != ctx.file_path {
-      return @tool.error("Can only read the target file being fixed")
-    }
-    try {
-      let content = @fs.read_file(ctx.file_path)
-      @tool.ok("File content:\n\{content}")
-    } catch {
-      error => @tool.error("Failed to read file: \{error}", error~)
-    }
-  },
-  render=result => {
-    guard result.output() is String(formatted) else {
-      return "Error: Unexpected output format"
-    }
-    formatted
-  },
-)
+      // Only allow reading the target file for security
+      // Simple string comparison for security
+      if path != ctx.file_path {
+        return @tool.error("Can only read the target file being fixed")
+      }
+      try {
+        let content = @fs.read_file(ctx.file_path)
+        @tool.ok("File content:\n\{content}")
+      } catch {
+        error => @tool.error("Failed to read file: \{error}", error~)
+      }
+    }),
+    render=result => {
+      guard result.output() is String(formatted) else {
+        return "Error: Unexpected output format"
+      }
+      formatted
+    },
+  )
+}
 
 ///|
 /// Tool for the sub-agent to signal completion
-let attempt_completion : @tool.Tool[FixingContext] = @tool.tool(
-  name="attempt_completion",
-  description="Signal that syntax fixing is complete",
-  parameters={
-    "type": "object",
-    "properties": {
-      "result": {
-        "type": "string",
-        "description": "Summary of the fixing result",
+fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool {
+  let _ = ctx // Suppress unused warning
+  @tool.tool(
+    name="attempt_completion",
+    description="Signal that syntax fixing is complete",
+    parameters={
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string",
+          "description": "Summary of the fixing result",
+        },
       },
+      "required": ["result"],
     },
-    "required": ["result"],
-  },
-  (args, _ctx) => {
-    guard args is { "result": String(result), .. } else {
-      return @tool.error("Missing 'result' argument")
-    }
-    @tool.ok("Syntax fixing completed: \{result}")
-  },
-  render=result => {
-    guard result.output() is String(formatted) else {
-      return "Error: Unexpected output format"
-    }
-    formatted
-  },
-)
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      guard args is { "result": String(result), .. } else {
+        return @tool.error("Missing 'result' argument")
+      }
+      @tool.ok("Syntax fixing completed: \{result}")
+    }),
+    render=result => {
+      guard result.output() is String(formatted) else {
+        return "Error: Unexpected output format"
+      }
+      formatted
+    },
+  )
+}
 
 ///|
 /// Create a system message for the syntax fixing sub-agent
@@ -333,10 +340,10 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
     // Create sub-agent
     let subagent = @agent.new(ctx.parent_agent.model, cwd=ctx.cwd)
 
-    // Add tools
-    subagent.add_tool(read_current_file, ctx)
-    subagent.add_tool(submit_fixed_file, ctx)
-    subagent.add_tool(attempt_completion, ctx)
+    // Add tools using factory functions
+    subagent.add_tool(read_current_file_new(ctx))
+    subagent.add_tool(submit_fixed_file_new(ctx))
+    subagent.add_tool(attempt_completion_new(ctx))
 
     // Add system message
     subagent.add_message(
@@ -524,43 +531,47 @@ async fn execute_meta_write_to_file(
 
 ///|
 /// The meta_write_to_file tool definition
-pub let meta_write_to_file : @tool.Tool[@agent.Agent] = @tool.tool(
-  description="Enhanced file writing tool that writes content to a file, automatically formats MoonBit files using moon fmt, checks for syntax errors with moon check, and spawns a sub-agent to fix any syntax errors found. This ensures that MoonBit files are always properly formatted and syntactically correct after writing. Returns diff comparison if final content differs from initial write.",
-  name="meta_write_to_file",
-  parameters={
-    "type": "object",
-    "properties": {
-      "path": {
-        "type": "string",
-        "description": "The path of the file to write to, relative to the current working directory.",
+pub fn new(agent : @agent.Agent) -> @tool.Tool {
+  @tool.tool(
+    description="Enhanced file writing tool that writes content to a file, automatically formats MoonBit files using moon fmt, checks for syntax errors with moon check, and spawns a sub-agent to fix any syntax errors found. This ensures that MoonBit files are always properly formatted and syntactically correct after writing. Returns diff comparison if final content differs from initial write.",
+    name="meta_write_to_file",
+    parameters={
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The path of the file to write to, relative to the current working directory.",
+        },
+        "search": {
+          "type": "string",
+          "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
+        },
+        "replace": {
+          "type": "string",
+          "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
+        },
+        "description": {
+          "type": "string",
+          "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
+        },
       },
-      "search": {
-        "type": "string",
-        "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
-      },
-      "replace": {
-        "type": "string",
-        "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
-      },
-      "description": {
-        "type": "string",
-        "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
-      },
+      "required": ["path", "description"],
     },
-    "required": ["path", "description"],
-  },
-  execute_meta_write_to_file,
-  render=result => {
-    let meta_write_to_file_result : MetaWriteToFileResult = @json.from_json(
-      result.output(),
-    ) catch {
-      error => return "Error: Unexpected output format: \{error}"
-    }
-    let formatted = []
-    formatted.push("Path: \{meta_write_to_file_result.path}")
-    formatted.push("Message: \{meta_write_to_file_result.message}")
-    formatted.push("Diff: \{meta_write_to_file_result.diff}")
-    let result = formatted.join("\n")
-    result
-  },
-)
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      execute_meta_write_to_file(args, agent)
+    }),
+    render=result => {
+      let meta_write_to_file_result : MetaWriteToFileResult = @json.from_json(
+        result.output(),
+      ) catch {
+        error => return "Error: Unexpected output format: \{error}"
+      }
+      let formatted = []
+      formatted.push("Path: \{meta_write_to_file_result.path}")
+      formatted.push("Message: \{meta_write_to_file_result.message}")
+      formatted.push("Diff: \{meta_write_to_file_result.diff}")
+      let result = formatted.join("\n")
+      result
+    },
+  )
+}

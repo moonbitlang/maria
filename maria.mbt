@@ -69,18 +69,16 @@ pub async fn Maria::new(
     PostConversation => logger.info("PostConversation", {})
     _ => ()
   })
-  agent.add_tool(
-    @execute_command.execute_command,
-    @job.Manager::new(cwd=agent.cwd),
-  )
+  let job_manager = @job.Manager::new(cwd=agent.cwd)
+  agent.add_tool(@execute_command.new(job_manager))
   let file_manager = @file.manager(cwd~)
-  agent.add_tool(@list_files.list_files, file_manager)
-  agent.add_tool(@read_file.read_file, file_manager)
-  agent.add_tool(@write_to_file.write_to_file, file_manager)
+  agent.add_tool(@list_files.new(file_manager))
+  agent.add_tool(@read_file.new(file_manager))
+  agent.add_tool(@write_to_file.new(file_manager))
   let todo_list = @todo.list(uuid=agent.uuid, cwd=agent.cwd)
-  agent.add_tool(@todo_read.todo_read, todo_list)
-  agent.add_tool(@todo_write.todo_write, todo_list)
-  agent.add_tool(@search_files.search_files, agent.cwd)
+  agent.add_tool(@todo_read.new(todo_list))
+  agent.add_tool(@todo_write.new(todo_list))
+  agent.add_tool(@search_files.new(agent.cwd))
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
   ].join("\n")

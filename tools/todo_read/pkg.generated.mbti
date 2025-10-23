@@ -7,9 +7,9 @@ import(
 )
 
 // Values
-let prompt : String
+fn new(@todo.List) -> @tool.Tool
 
-let todo_read : @tool.Tool[@todo.List]
+let prompt : String
 
 // Errors
 

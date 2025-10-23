@@ -7,7 +7,7 @@ import(
 )
 
 // Values
-let list_jobs : @tool.Tool[@job.Manager]
+fn new(@job.Manager) -> @tool.Tool
 
 // Errors
 
