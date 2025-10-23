@@ -109,7 +109,7 @@ async test "write_to_file/search-replace" (t : @test.T) {
 ///|
 async test "write_to_file/agentic" (t : @test.T) {
   // TODO: add retries support
-  @mock.run(timeout=60_000, retry=3, t, taco => {
+  @mock.run(retry=3, t, taco => {
     guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
       fail("OPENAI_API_KEY not set")
     }
