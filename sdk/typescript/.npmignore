@@ -1,0 +1,17 @@
+# Source files
+*.ts
+tsconfig.json
+examples/
+.gitignore
+
+# Development files
+node_modules/
+.DS_Store
+*.tsbuildinfo
+
+# Keep only distribution files and necessary package files
+!dist/
+!bin/
+!README.md
+!LICENSE
+!package.json
