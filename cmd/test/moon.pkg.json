@@ -8,7 +8,8 @@
     "moonbitlang/x/time",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria",
-    "moonbitlang/maria/internal/backtrace"
+    "moonbitlang/maria/internal/backtrace",
+    "moonbitlang/maria/internal/spawn"
   ],
   "overrides": [
     "moonbitlang/maria/internal/abort"

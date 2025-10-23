@@ -6,6 +6,7 @@ async fn main {
     println("Usage: test --prompt-file <prompt-file> [--log-file <log-file>]")
     return
   }
+  let cwd = @os.cwd()
   let mut prompt_file = None
   let mut log_file = None
   loop args {
@@ -39,15 +40,31 @@ async fn main {
   let log_file = if log_file is Some(log_file) {
     log_file
   } else {
-    "maria_test_log_\{timestamp}.jsonl"
+    "maria_test_\{timestamp}.jsonl"
   }
   let logger = @pino.logger(
     "maria_test",
     try! @pino.transport("file:\{log_file}"),
   )
-  @async.with_task_group(group => {
-    group.spawn_bg(() => logger.start(), no_wait=true)
-    let maria = @maria.Maria::new(logger~)
-    maria.start(prompt)
+  @fs.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
+    println("Running test in temporary directory: \{tmpdir}")
+    @async.with_task_group(group => {
+      group.spawn_bg(() => logger.start(), no_wait=true)
+      let maria = @maria.Maria::new(logger~, cwd=tmpdir)
+      maria.start(prompt)
+    })
+    let zip_out = StringBuilder::new()
+    let status = @spawn.spawn(
+      "zip",
+      ["-r", "maria_test_\{timestamp}.zip", tmpdir],
+      stdout=zip_out,
+      stderr=zip_out,
+      cwd~,
+    )
+    if status != 0 {
+      fail(
+        "Failed to create zip archive of test directory (\{status}):\n\{zip_out.to_string()}",
+      )
+    }
   })
 }
