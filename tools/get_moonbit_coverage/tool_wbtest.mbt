@@ -1,6 +1,6 @@
 ///|
 async test "get_moonbit_coverage" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (
         "moon.mod.json",
