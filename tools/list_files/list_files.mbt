@@ -92,7 +92,7 @@ async fn @file.Manager::execute_list_files(
 }
 
 ///|
-let json_schema : Map[String, Json] = {
+let json_schema : Json = {
   "type": "object",
   "properties": {
     "path": {

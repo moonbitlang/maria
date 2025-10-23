@@ -26,7 +26,7 @@ async fn text(model~ : @model.Model, prompt~ : String) -> String
 
 fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionContentPartParam
 
-fn tool(name~ : String, description~ : String, parameters~ : Map[String, Json], strict? : Bool) -> ChatCompletionToolParam
+fn tool(name~ : String, description~ : String, parameters~ : Json, strict? : Bool) -> ChatCompletionToolParam
 
 fn[T : ToChatCompletionMessageParamContent] tool_message(content~ : T, tool_call_id~ : String) -> ChatCompletionMessageParam
 
@@ -317,7 +317,7 @@ impl Show for Function
 pub struct FunctionDefinition {
   name : String
   description : String
-  parameters : Map[String, Json]
+  parameters : Json
   strict : Bool?
 }
 
