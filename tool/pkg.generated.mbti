@@ -6,7 +6,7 @@ fn error(Json, error? : Error) -> Result
 
 fn ok(Json) -> Result
 
-fn[T] tool(description~ : String, name~ : String, parameters~ : Json, ToolFn[T], render~ : async (Result) -> String noraise) -> Tool[T]
+fn tool(description~ : String, name~ : String, parameters~ : Json, ToolFn, render~ : async (Result) -> String noraise) -> Tool
 
 // Errors
 
@@ -19,12 +19,12 @@ fn Result::output(Self) -> Json
 fn Result::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Result
 
-pub struct Tool[T] {
+pub struct Tool {
   desc : ToolDesc
   render : async (Result) -> String noraise
   // private fields
 }
-async fn[T] Tool::call(Self[T], Json, T) -> Result noraise
+async fn Tool::call(Self, Json) -> Result noraise
 
 pub struct ToolDesc {
   description : String
@@ -32,9 +32,9 @@ pub struct ToolDesc {
   parameters : Json
 }
 
-pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
+pub(all) struct ToolFn(async (Json) -> Result noraise)
 #deprecated
-fn[T] ToolFn::inner(Self[T]) -> async (Json, T) -> Result noraise
+fn ToolFn::inner(Self) -> async (Json) -> Result noraise
 
 // Type aliases
 

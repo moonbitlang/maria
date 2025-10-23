@@ -46,14 +46,14 @@ fn ListFilesResult::to_string(result : ListFilesResult) -> String {
 }
 
 ///|
-async fn @file.Manager::execute_list_files(
-  self : @file.Manager,
+async fn execute_list_files(
+  manager : @file.Manager,
   path : String,
 ) -> ListFilesResult {
   let resolved_path = if @path.is_absolute(path) {
     path.view()
   } else {
-    @path.join(self.cwd, path)
+    @path.join(manager.cwd, path)
   }
   let resolved_path = @path.resolve(resolved_path)
   let entries = @fs.list_directory(resolved_path)
@@ -104,26 +104,26 @@ let json_schema : Json = {
 }
 
 ///|
-pub let list_files : @tool.Tool[@file.Manager] = @tool.tool(
-  description="List files in a directory",
-  name="list_files",
-  parameters=json_schema,
-  (args, self) => {
-    guard args is { "path": String(path), .. } else {
-      return @tool.error("Error: 'path' parameter is required")
-    }
-    // FIXME:(upstream) weird error message when missing `try`
-    try self.execute_list_files(path) catch {
-      error => @tool.error("Error listing files: \{error}")
+pub fn new(manager : @file.Manager) -> @tool.Tool {
+  @tool.tool(
+    description="List files in a directory",
+    name="list_files",
+    parameters=json_schema,
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      guard args is { "path": String(path), .. } else {
+        return @tool.error("Error: 'path' parameter is required")
+      }
+      let result = execute_list_files(manager, path) catch {
+        error => return @tool.error("Error listing files: \{error}")
+      }
+      @tool.ok(result.to_json())
+    }),
+    render=result => try
+      (@json.from_json(result.output()) : ListFilesResult)
+    catch {
+      error => return "Error: Unexpected output format: \{error}"
     } noraise {
-      x => @tool.ok(x.to_json())
-    }
-  },
-  render=result => try
-    (@json.from_json(result.output()) : ListFilesResult)
-  catch {
-    error => return "Error: Unexpected output format: \{error}"
-  } noraise {
-    list_result => return list_result.to_string()
-  },
-)
+      list_result => return list_result.to_string()
+    },
+  )
+}

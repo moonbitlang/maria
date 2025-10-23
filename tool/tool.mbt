@@ -6,14 +6,14 @@ pub struct ToolDesc {
 }
 
 ///|
-pub struct Tool[T] {
+pub struct Tool {
   desc : ToolDesc
-  priv f : ToolFn[T]
+  priv f : ToolFn
   render : async (Result) -> String noraise
 }
 
 ///|
-pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
+pub(all) struct ToolFn(async (Json) -> Result noraise)
 
 ///|
 pub enum Result {
@@ -43,21 +43,17 @@ pub fn error(output : Json, error? : Error = ToolFailure(output)) -> Result {
 }
 
 ///|
-pub fn[T] tool(
+pub fn tool(
   description~ : String,
   name~ : String,
   parameters~ : Json,
-  f : ToolFn[T],
+  f : ToolFn,
   render~ : async (Result) -> String noraise,
-) -> Tool[T] {
+) -> Tool {
   Tool::{ desc: { description, name, parameters }, f, render }
 }
 
 ///|
-pub async fn[T] Tool::call(
-  tool : Tool[T],
-  args : Json,
-  state : T,
-) -> Result noraise {
-  (tool.f)(args, state)
+pub async fn Tool::call(tool : Tool, args : Json) -> Result noraise {
+  (tool.f)(args)
 }

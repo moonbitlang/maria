@@ -6,17 +6,14 @@ async test "todo_write/create/plain" (t : @test.T) {
       uuid=taco.uuid,
       cwd=taco.cwd.path(),
     )
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "create",
-        "content": (
-          #|Test todo item
-          #|Another test item
-        ),
-        "priority": "high",
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "create",
+      "content": (
+        #|Test todo item
+        #|Another test item
+      ),
+      "priority": "high",
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -61,7 +58,7 @@ async test "todo_write/create/plain" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -83,21 +80,18 @@ async test "todo_write/create/<task>" (t : @test.T) {
       uuid=taco.uuid,
       cwd=taco.cwd.path(),
     )
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "create",
-        "content": (
-          #|<task>Examine reference repository structure at .moonagent/repos/ini</task>
-          #|<task>Examine current MoonBit project structure</task>
-          #|<task>Analyze source files in ini repository</task>
-          #|<task>Plan migration strategy preserving original structure</task>
-          #|<task>Translate C/C++ files to MoonBit file-by-file</task>
-          #|<task>Create appropriate MoonBit module structure</task>
-          #|<task>Test migrated functionality</task>
-        ),
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "create",
+      "content": (
+        #|<task>Examine reference repository structure at .moonagent/repos/ini</task>
+        #|<task>Examine current MoonBit project structure</task>
+        #|<task>Analyze source files in ini repository</task>
+        #|<task>Plan migration strategy preserving original structure</task>
+        #|<task>Translate C/C++ files to MoonBit file-by-file</task>
+        #|<task>Create appropriate MoonBit module structure</task>
+        #|<task>Test migrated functionality</task>
+      ),
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -222,7 +216,7 @@ async test "todo_write/create/<task>" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Created 7 new todo items
         #|
@@ -249,17 +243,14 @@ async test "todo_write/update" (t : @test.T) {
       uuid=taco.uuid,
       cwd=taco.cwd.path(),
     )
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "create",
-        "content": (
-          #|First item
-          #|Second item
-        ),
-        "priority": "medium",
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "create",
+      "content": (
+        #|First item
+        #|Second item
+      ),
+      "priority": "medium",
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -303,16 +294,13 @@ async test "todo_write/update" (t : @test.T) {
         "is_new_creation": true,
       },
     ])
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "update",
-        "task_id": "ac8a366d",
-        "status": "in-progress",
-        "priority": "high",
-        "content": "Updated first item",
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "update",
+      "task_id": "ac8a366d",
+      "status": "in-progress",
+      "priority": "high",
+      "content": "Updated first item",
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -349,7 +337,7 @@ async test "todo_write/update" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Updated task: Updated first item
         #|
@@ -374,17 +362,14 @@ async test "todo_write/mark_completed" (t : @test.T) {
       uuid=taco.uuid,
       cwd=taco.cwd.path(),
     )
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "create",
-        "content": (
-          #|First item
-          #|Second item
-        ),
-        "priority": "medium",
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "create",
+      "content": (
+        #|First item
+        #|Second item
+      ),
+      "priority": "medium",
+    })
     @json.inspect(result.output(), content={
       "todos": [
         {
@@ -426,7 +411,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "is_new_creation": true,
     })
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -437,19 +422,19 @@ async test "todo_write/mark_completed" (t : @test.T) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    let result = @todo_write.todo_write.call(
-      { "action": "mark_completed", "task_id": "nonexistent" },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "mark_completed",
+      "task_id": "nonexistent",
+    })
     @json.inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
-    let result = @todo_write.todo_write.call(
-      { "action": "mark_completed", "task_id": "ac8a366d" },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "mark_completed",
+      "task_id": "ac8a366d",
+    })
     @json.inspect(result.output(), content={
       "todos": [
         {
@@ -483,7 +468,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "is_new_creation": false,
     })
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Marked task as completed: First item
         #|
@@ -508,17 +493,14 @@ async test "todo_write/mark_progress" (t : @test.T) {
       uuid=taco.uuid,
       cwd=taco.cwd.path(),
     )
-    let result = @todo_write.todo_write.call(
-      {
-        "action": "create",
-        "content": (
-          #|First item
-          #|Second item
-        ),
-        "priority": "medium",
-      },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "create",
+      "content": (
+        #|First item
+        #|Second item
+      ),
+      "priority": "medium",
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -562,23 +544,23 @@ async test "todo_write/mark_progress" (t : @test.T) {
         "is_new_creation": true,
       },
     ])
-    let result = @todo_write.todo_write.call(
-      { "action": "mark_progress", "task_id": "nonexistent" },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "mark_progress",
+      "task_id": "nonexistent",
+    })
     @json.inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content="Error: Unexpected output format",
     )
-    let result = @todo_write.todo_write.call(
-      { "action": "mark_progress", "task_id": "ac8a366d" },
-      todo_list,
-    )
+    let result = @todo_write.new(todo_list).call({
+      "action": "mark_progress",
+      "task_id": "ac8a366d",
+    })
     @json.inspect(result, content=[
       "Ok",
       {
@@ -615,7 +597,7 @@ async test "todo_write/mark_progress" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.todo_write.render)(result),
+      (@todo_write.new(todo_list).render)(result),
       content=(
         #|✅ Operation completed: Marked task as in progress: First item
         #|

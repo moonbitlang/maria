@@ -38,7 +38,8 @@ async test "get_moonbit_coverage" (t : @test.T) {
       ),
     ])
     let params = params(project_path=taco.cwd.path(), file="example.mbt")
-    let result = get_moonbit_coverage.call(params.to_json(), taco.cwd.path())
+    let tool = new(taco.cwd.path())
+    let result = tool.call(params.to_json())
     let result : CoverageResult = @json.from_json(result.output())
     @json.inspect(
       result.content,

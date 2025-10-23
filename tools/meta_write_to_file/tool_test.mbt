@@ -23,39 +23,35 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.write_to_file, file_manager)
-    agent.add_tool(@read_file.read_file, file_manager)
-    let tool = @meta_write_to_file.meta_write_to_file
-    agent.add_tool(tool, agent)
-    let result = tool.call(
-      {
-        "path": "main.mbt",
-        "replace": (
-          #|///|
-          #|enum Color {
-          #|  Red
-          #|  Green
-          #|  Blue
-          #|}
-          #|
-          #|///|
-          #|fn Color::to_string(color : Color) -> String {
-          #|  match color {
-          #|    Red => "red"
-          #|    Green => "green"
-          #|    Blue => "blue"
-          #|  }
-          #|}
-          #|
-          #|///|
-          #|fn main {
-          #|  println(Color::to_string(Blue))
-          #|}
-        ),
-        "description": "Add an enum Color with variants Red, Green, and Blue, a function to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
-      },
-      agent,
-    )
+    agent.add_tool(@write_to_file.new(file_manager))
+    agent.add_tool(@read_file.new(file_manager))
+    agent.add_tool(@meta_write_to_file.new(agent))
+    let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
+      "path": "main.mbt",
+      "replace": (
+        #|///|
+        #|enum Color {
+        #|  Red
+        #|  Green
+        #|  Blue
+        #|}
+        #|
+        #|///|
+        #|fn Color::to_string(color : Color) -> String {
+        #|  match color {
+        #|    Red => "red"
+        #|    Green => "green"
+        #|    Blue => "blue"
+        #|  }
+        #|}
+        #|
+        #|///|
+        #|fn main {
+        #|  println(Color::to_string(Blue))
+        #|}
+      ),
+      "description": "Add an enum Color with variants Red, Green, and Blue, a function to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
+    })
     @json.inspect(
       result.output().as_object().or_error(Failure("Expected object"))["message"],
       content="File written successfully to main.mbt",
@@ -113,37 +109,33 @@ async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.write_to_file, file_manager)
-    agent.add_tool(@read_file.read_file, file_manager)
-    let tool = @meta_write_to_file.meta_write_to_file
-    agent.add_tool(tool, agent)
-    let result = tool.call(
-      {
-        "path": "main.mbt",
-        "replace": (
-          #|enum Color {
-          #|  Red,
-          #|  Green,
-          #|  Blue,
-          #|}
-          #|
-          #|fn Color::to_string(self : Color) -> String {
-          #|  switch self {
-          #|    Red => "red",
-          #|    Green => "green",
-          #|    Blue => "blue",
-          #|  }
-          #|}
-          #|
-          #|fn main() {
-          #|  let color : Color = Blue
-          #|  println(color.to_string())
-          #|}
-        ),
-        "description": "Add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
-      },
-      agent,
-    )
+    agent.add_tool(@write_to_file.new(file_manager))
+    agent.add_tool(@read_file.new(file_manager))
+    agent.add_tool(@meta_write_to_file.new(agent))
+    let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
+      "path": "main.mbt",
+      "replace": (
+        #|enum Color {
+        #|  Red,
+        #|  Green,
+        #|  Blue,
+        #|}
+        #|
+        #|fn Color::to_string(self : Color) -> String {
+        #|  switch self {
+        #|    Red => "red",
+        #|    Green => "green",
+        #|    Blue => "blue",
+        #|  }
+        #|}
+        #|
+        #|fn main() {
+        #|  let color : Color = Blue
+        #|  println(color.to_string())
+        #|}
+      ),
+      "description": "Add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
+    })
     @json.inspect(
       result.output().as_object().or_error(Failure("Expected object"))["message"],
       content="File written successfully to main.mbt",
@@ -293,42 +285,38 @@ async test "meta_write_to_file/search-replace" (t : @test.T) {
     )
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.write_to_file, file_manager)
-    agent.add_tool(@read_file.read_file, file_manager)
-    let tool = @meta_write_to_file.meta_write_to_file
-    agent.add_tool(tool, agent)
-    let result = tool.call(
-      {
-        "path": "main.mbt",
-        "search": (
-          #|fn main {
-          #|  println("Hello, world!")
-          #|}
-        ),
-        "replace": (
-          #|enum Color {
-          #|  Red,
-          #|  Green,
-          #|  Blue,
-          #|}
-          #|
-          #|fn Color::to_string(self : Color) -> String {
-          #|  switch self {
-          #|    Red => "red",
-          #|    Green => "green",
-          #|    Blue => "blue",
-          #|  }
-          #|}
-          #|
-          #|fn main() {
-          #|  let color : Color = Blue
-          #|  println(color.to_string())
-          #|}
-        ),
-        "description": "Remove existing placeholder content, then add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
-      },
-      agent,
-    )
+    agent.add_tool(@write_to_file.new(file_manager))
+    agent.add_tool(@read_file.new(file_manager))
+    agent.add_tool(@meta_write_to_file.new(agent))
+    let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
+      "path": "main.mbt",
+      "search": (
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+      ),
+      "replace": (
+        #|enum Color {
+        #|  Red,
+        #|  Green,
+        #|  Blue,
+        #|}
+        #|
+        #|fn Color::to_string(self : Color) -> String {
+        #|  switch self {
+        #|    Red => "red",
+        #|    Green => "green",
+        #|    Blue => "blue",
+        #|  }
+        #|}
+        #|
+        #|fn main() {
+        #|  let color : Color = Blue
+        #|  println(color.to_string())
+        #|}
+      ),
+      "description": "Remove existing placeholder content, then add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
+    })
     @json.inspect(
       result.output().as_object().or_error(Failure("Expected object"))["message"],
       content="Changes applied to main.mbt",

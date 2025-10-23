@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-let check_moonbit_project : @tool.Tool[String]
+fn new(String) -> @tool.Tool
 
 // Errors
 

@@ -282,7 +282,7 @@ fn Interface::columns(_ : Interface) -> Int raise {
 const MultilinePrompt = "| "
 
 ///|
-fn get_cursor_pos(self : Interface) -> Position raise {
+fn Interface::get_cursor_pos(self : Interface) -> Position raise {
   let string_before_cursor = @buffer.new()
   string_before_cursor.write_bytes(self.prompt)
   string_before_cursor.write_bytesview(self.line[:self.cursor])

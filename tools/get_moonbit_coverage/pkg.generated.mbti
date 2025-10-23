@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-let get_moonbit_coverage : @tool.Tool[String]
+fn new(String) -> @tool.Tool
 
 // Errors
 

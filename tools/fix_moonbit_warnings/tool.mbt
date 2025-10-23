@@ -1,63 +1,65 @@
 ///|
-let submit_moonbit_segment : @tool.Tool[Task] = @tool.tool(
-  name="submit_moonbit_segment",
-  description="Submit a fixed MoonBit code segment for verification",
-  parameters={
-    "properties": {
-      "segment": {
-        "description": "The fixed MoonBit code segment",
-        "type": "string",
+fn submit_moonbit_segment_new(task : Task) -> @tool.Tool {
+  @tool.tool(
+    name="submit_moonbit_segment",
+    description="Submit a fixed MoonBit code segment for verification",
+    parameters={
+      "properties": {
+        "segment": {
+          "description": "The fixed MoonBit code segment",
+          "type": "string",
+        },
       },
+      "required": ["segment"],
+      "type": "object",
     },
-    "required": ["segment"],
-    "type": "object",
-  },
-  (args, task) => {
-    let { moon, segment, result } = task
-    guard args is { "segment": patched, .. } else {
-      return @tool.error("Missing 'segment' argument")
-    }
-    let patched : String = @json.from_json(patched) catch {
-      error =>
-        return @tool.error("Invalid 'segment' argument: \{error}", error~)
-    }
-    let diagnostics = moon.check_patch_replace(segment, patched) catch {
-      error => return @tool.error("Failed to check patch: \{error}", error~)
-    }
-    guard diagnostics is [diagnostic, ..] else {
-      result.val = Some(patched)
-      @tool.ok({})
-    }
-    let overlay = {}
-    overlay[diagnostic.loc.path] = patched
-    return @tool.error({
-      "diagnostics": diagnostics.map(d => d.to_json()),
-      "patched": patched,
-    })
-  },
-  render=result => if result is Error(_, output) {
-    guard output
-      is { "diagnostics": Array(diagnostics), "patched": String(patched), .. } else {
-      return "Error: Unexpected error format"
-    }
-    let diagnostics = diagnostics.map(d => @json.from_json(d)) catch {
-      error => return "Error parsing diagnostics from tool output: \{error}"
-    }
-    let diagnostic : @moon.Diagnostic = diagnostics[0]
-    let overlay = {}
-    overlay[diagnostic.loc.path] = patched
-    let rendered_diagnostics = @moon.render_diagnostics(
-      diagnostics,
-      limit=10,
-      overlay~,
-    )
-    "The submitted code segment has the following issues:\n\n" +
-    "\{rendered_diagnostics}\n\n" +
-    "Please fix these issues and resubmit the corrected code segment."
-  } else {
-    "The submitted code segment has been verified to compile without errors."
-  },
-)
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      let { moon, segment, result } = task
+      guard args is { "segment": patched, .. } else {
+        return @tool.error("Missing 'segment' argument")
+      }
+      let patched : String = @json.from_json(patched) catch {
+        error =>
+          return @tool.error("Invalid 'segment' argument: \{error}", error~)
+      }
+      let diagnostics = moon.check_patch_replace(segment, patched) catch {
+        error => return @tool.error("Failed to check patch: \{error}", error~)
+      }
+      guard diagnostics is [diagnostic, ..] else {
+        result.val = Some(patched)
+        @tool.ok({})
+      }
+      let overlay = {}
+      overlay[diagnostic.loc.path] = patched
+      return @tool.error({
+        "diagnostics": diagnostics.map(d => d.to_json()),
+        "patched": patched,
+      })
+    }),
+    render=result => if result is Error(_, output) {
+      guard output
+        is { "diagnostics": Array(diagnostics), "patched": String(patched), .. } else {
+        return "Error: Unexpected error format"
+      }
+      let diagnostics = diagnostics.map(d => @json.from_json(d)) catch {
+        error => return "Error parsing diagnostics from tool output: \{error}"
+      }
+      let diagnostic : @moon.Diagnostic = diagnostics[0]
+      let overlay = {}
+      overlay[diagnostic.loc.path] = patched
+      let rendered_diagnostics = @moon.render_diagnostics(
+        diagnostics,
+        limit=10,
+        overlay~,
+      )
+      "The submitted code segment has the following issues:\n\n" +
+      "\{rendered_diagnostics}\n\n" +
+      "Please fix these issues and resubmit the corrected code segment."
+    } else {
+      "The submitted code segment has been verified to compile without errors."
+    },
+  )
+}
 
 ///|
 priv struct Task {
@@ -76,7 +78,7 @@ async fn process_segment(
 ) -> String? {
   let result = Ref::new(None)
   let subagent = @agent.new(model, cwd~)
-  subagent.add_tool(submit_moonbit_segment, Task::{ moon, segment, result })
+  subagent.add_tool(submit_moonbit_segment_new(Task::{ moon, segment, result }))
   subagent.add_message(
     @openai.system_message(
       content=(
@@ -152,90 +154,92 @@ async fn process_segment(
 }
 
 ///|
-pub let fix_moonbit_warnings : @tool.Tool[@agent.Agent] = @tool.tool(
-  name="fix_moonbit_warnings",
-  description="Fix all MoonBit warnings/errors in the given project directory by applying a batch suggestion to all relevant MoonBit top-level constructs.",
-  parameters={
-    "properties": {
-      "description": {
-        "description": "A description of the changes to be made to fix the warnings/errors.",
-        "type": "string",
+pub fn new(agent : @agent.Agent) -> @tool.Tool {
+  @tool.tool(
+    name="fix_moonbit_warnings",
+    description="Fix all MoonBit warnings/errors in the given project directory by applying a batch suggestion to all relevant MoonBit top-level constructs.",
+    parameters={
+      "properties": {
+        "description": {
+          "description": "A description of the changes to be made to fix the warnings/errors.",
+          "type": "string",
+        },
+        "project_path": {
+          "description": "The path to the project directory containing the moon.mod.json file.",
+          "type": "string",
+        },
       },
-      "project_path": {
-        "description": "The path to the project directory containing the moon.mod.json file.",
-        "type": "string",
-      },
+      "required": ["description", "project_path"],
     },
-    "required": ["description", "project_path"],
-  },
-  (args : Json, agent : @agent.Agent) => {
-    guard args
-      is {
-        "description": String(description),
-        "project_path": String(project_path),
-        ..
-      } else {
-      return @tool.error("Missing 'description' or 'project_path' argument")
-    }
-    let cwd = agent.cwd
-    let project_path : String = if @path.is_absolute(project_path) {
-      project_path
-    } else {
-      @path.join(cwd, project_path)
-    }
-    let moon = @moon.Module::load(project_path) catch {
-      error => return @tool.error("Failed to load module: \{error}", error~)
-    }
-    let files = moon.files().collect()
-    @async.with_timeout(
-      120_000 * 4,
-      () => moon.check(),
-      error=Failure("Timeout after 4 minutes"),
-    ) catch {
-      error => return @tool.error("Failed to check module: \{error}", error~)
-    }
-    let mut files_updated = 0
-    let mut segments_updated = 0
-    @async.with_timeout_opt(60_000 * 10 * 8, () => @async.with_task_group(group => {
-      for file in files {
-        for segment in file.segments() {
-          group.spawn_bg(() => {
-            let updated = if @async.with_timeout_opt(120_000 * 4, () => process_segment(
-                model=agent.model,
-                cwd=agent.cwd,
-                moon~,
-                segment~,
-                description~,
-              ))
-              is Some(updated) {
-              updated
-            } else {
-              fail("Timeout after 4 minutes")
-            }
-            if updated is Some(updated) {
-              segment.replace(updated)
-              segments_updated += 1
-            }
-          }) catch {
-            error =>
-              println(
-                "Warning: Failed to process segment in file \{file.path()}: \{error}",
-              )
-          }
-        }
-        files_updated += 1
+    @tool.ToolFn(async fn(args : Json) -> @tool.Result noraise {
+      guard args
+        is {
+          "description": String(description),
+          "project_path": String(project_path),
+          ..
+        } else {
+        return @tool.error("Missing 'description' or 'project_path' argument")
       }
-      @tool.ok(
-        "Processed \{files_updated} files and updated \{segments_updated} segments.",
-      )
-    })).or_error(Failure("Takes too long processing all the segments")) catch {
-      error => return @tool.error("Failed to process files: \{error}", error~)
-    }
-  },
-  render=result => {
-    guard result.output() is String(formatted) else {
-      return "Error: Unexpected output format"
-    }
-    formatted
-  },
-)
+      let cwd = agent.cwd
+      let project_path : String = if @path.is_absolute(project_path) {
+        project_path
+      } else {
+        @path.join(cwd, project_path)
+      }
+      let moon = @moon.Module::load(project_path) catch {
+        error => return @tool.error("Failed to load module: \{error}", error~)
+      }
+      let files = moon.files().collect()
+      @async.with_timeout(
+        120_000 * 4,
+        () => moon.check(),
+        error=Failure("Timeout after 4 minutes"),
+      ) catch {
+        error => return @tool.error("Failed to check module: \{error}", error~)
+      }
+      let mut files_updated = 0
+      let mut segments_updated = 0
+      @async.with_timeout_opt(60_000 * 10 * 8, () => @async.with_task_group(group => {
+        for file in files {
+          for segment in file.segments() {
+            group.spawn_bg(() => {
+              let updated = if @async.with_timeout_opt(120_000 * 4, () => process_segment(
+                  model=agent.model,
+                  cwd=agent.cwd,
+                  moon~,
+                  segment~,
+                  description~,
+                ))
+                is Some(updated) {
+                updated
+              } else {
+                fail("Timeout after 4 minutes")
+              }
+              if updated is Some(updated) {
+                segment.replace(updated)
+                segments_updated += 1
+              }
+            }) catch {
+              error =>
+                println(
+                  "Warning: Failed to process segment in file \{file.path()}: \{error}",
+                )
+            }
+          }
+          files_updated += 1
+        }
+        @tool.ok(
+          "Processed \{files_updated} files and updated \{segments_updated} segments.",
+        )
+      })).or_error(Failure("Takes too long processing all the segments")) catch {
+        error => return @tool.error("Failed to process files: \{error}", error~)
+      }
+    }),
+    render=result => {
+      guard result.output() is String(formatted) else {
+        return "Error: Unexpected output format"
+      }
+      formatted
+    },
+  )
+}

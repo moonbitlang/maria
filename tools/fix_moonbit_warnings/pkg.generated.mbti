@@ -7,7 +7,7 @@ import(
 )
 
 // Values
-let fix_moonbit_warnings : @tool.Tool[@agent.Agent]
+fn new(@agent.Agent) -> @tool.Tool
 
 // Errors
 

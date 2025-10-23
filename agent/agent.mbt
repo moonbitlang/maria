@@ -59,7 +59,7 @@ pub struct Agent {
   cwd : String
   model : @model.Model
   priv logger : @pino.Logger
-  priv tools : Map[String, @tool.Tool[Unit]]
+  priv tools : Map[String, @tool.Tool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
   priv event_target : EventTarget
@@ -170,7 +170,7 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = tool.call(arguments, ())
+  let result = tool.call(arguments)
   let rendered = (tool.render)(result)
   agent.emit(PostToolCall(tool_call, result~, rendered~))
   @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
@@ -184,16 +184,12 @@ async fn Agent::execute_tool(
 /// * `agent` : The agent instance to add the tool to.
 /// * `tool` : The tool to be added, which will be indexed by its name for
 ///   future tool calls.
-pub fn[T] Agent::add_tool(
-  agent : Agent,
-  tool : @tool.Tool[T],
-  state : T,
-) -> Unit noraise {
+pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
   agent.tools[tool.desc.name] = @tool.tool(
     description=tool.desc.description,
     name=tool.desc.name,
     parameters=tool.desc.parameters,
-    ToolFn((args : Json, _ : Unit) => tool.call(args, state)),
+    ToolFn((args : Json) => tool.call(args)),
     render=tool.render,
   )
 }

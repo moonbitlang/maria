@@ -10,7 +10,7 @@ async test "search_files" (t : @test.T) {
       ),
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
-    let result = @search_files.search_files.call(args, taco.cwd.path())
+    let result = @search_files.new(taco.cwd.path()).call(args)
     @json.inspect(result, content=[
       "Ok",
       {
@@ -65,9 +65,6 @@ async test "search_files/agentic" (t : @test.T) {
       safe_zone_tokens=200000,
     )
     let agent = @agent.new(model, cwd=taco.cwd.path())
-    let file_manager = @file.manager(cwd=taco.cwd.path())
-    agent.add_tool(@write_to_file.write_to_file, file_manager)
-    agent.add_tool(@search_files.search_files, taco.cwd.path())
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
         taco.logger.info("PostToolCall", {
@@ -77,6 +74,9 @@ async test "search_files/agentic" (t : @test.T) {
         })
       _ => ()
     })
+    let file_manager = @file.manager(cwd=taco.cwd.path())
+    agent.add_tool(@write_to_file.new(file_manager))
+    agent.add_tool(@search_files.new(taco.cwd.path()))
     agent.add_message(
       @openai.user_message(
         content=(

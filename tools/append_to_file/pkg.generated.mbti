@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-let append_to_file : @tool.Tool[String]
+fn new(String) -> @tool.Tool
 
 // Errors
 

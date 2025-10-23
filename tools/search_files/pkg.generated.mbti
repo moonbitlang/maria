@@ -6,9 +6,9 @@ import(
 )
 
 // Values
-let prompt : String
+fn new(String) -> @tool.Tool
 
-let search_files : @tool.Tool[String]
+let prompt : String
 
 // Errors
 

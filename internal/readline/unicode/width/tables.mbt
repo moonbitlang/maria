@@ -211,28 +211,28 @@ let khmer_coeng_eligible_letter_width_info : WidthInfo = WidthInfo(
 ///|
 
 ///|
-fn is_ligature_transparent(self : WidthInfo) -> Bool {
+fn WidthInfo::is_ligature_transparent(self : WidthInfo) -> Bool {
   (self.0 & ligature_transparent_mask) == ligature_transparent_mask
 }
 
 ///|
-fn set_zwj_bit(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::set_zwj_bit(self : WidthInfo) -> WidthInfo {
   WidthInfo(self.0 | 0b0000_0100_0000_0000)
 }
 
 ///|
-fn is_emoji_presentation(self : WidthInfo) -> Bool {
+fn WidthInfo::is_emoji_presentation(self : WidthInfo) -> Bool {
   (self.0 & variation_selector_16_width_info.0) ==
   variation_selector_16_width_info.0
 }
 
 ///|
-fn is_zwj_emoji_presentation(self : WidthInfo) -> Bool {
+fn WidthInfo::is_zwj_emoji_presentation(self : WidthInfo) -> Bool {
   (self.0 & 0b1011_0000_0000_0000) == 0b1001_0000_0000_0000
 }
 
 ///|
-fn set_emoji_presentation(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::set_emoji_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask ||
     (self.0 & 0b1001_0000_0000_0000) == 0b0001_0000_0000_0000 {
     WidthInfo(
@@ -246,7 +246,7 @@ fn set_emoji_presentation(self : WidthInfo) -> WidthInfo {
 }
 
 ///|
-fn unset_emoji_presentation(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::unset_emoji_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(self.0 & (variation_selector_16_width_info.0 ^ @uint16.max_value))
   } else {
@@ -255,13 +255,13 @@ fn unset_emoji_presentation(self : WidthInfo) -> WidthInfo {
 }
 
 ///|
-fn is_text_presentation(self : WidthInfo) -> Bool {
+fn WidthInfo::is_text_presentation(self : WidthInfo) -> Bool {
   (self.0 & variation_selector_15_width_info.0) ==
   variation_selector_15_width_info.0
 }
 
 ///|
-fn set_text_presentation(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::set_text_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
       (self.0 | variation_selector_15_width_info.0) &
@@ -274,7 +274,7 @@ fn set_text_presentation(self : WidthInfo) -> WidthInfo {
 }
 
 ///|
-fn unset_text_presentation(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::unset_text_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(self.0 & (variation_selector_15_width_info.0 ^ @uint16.max_value))
   } else {
@@ -283,13 +283,13 @@ fn unset_text_presentation(self : WidthInfo) -> WidthInfo {
 }
 
 ///|
-fn is_vs1_2(self : WidthInfo) -> Bool {
+fn WidthInfo::is_vs1_2(self : WidthInfo) -> Bool {
   (self.0 & variation_selector_1_or_2_width_info.0) ==
   variation_selector_1_or_2_width_info.0
 }
 
 ///|
-fn set_vs1_2(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::set_vs1_2(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
       (self.0 | variation_selector_1_or_2_width_info.0) &
@@ -302,7 +302,7 @@ fn set_vs1_2(self : WidthInfo) -> WidthInfo {
 }
 
 ///|
-fn unset_vs1_2(self : WidthInfo) -> WidthInfo {
+fn WidthInfo::unset_vs1_2(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
       self.0 & (variation_selector_1_or_2_width_info.0 ^ @uint16.max_value),

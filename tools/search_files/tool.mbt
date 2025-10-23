@@ -401,77 +401,81 @@ async fn search_files_impl(args : Json, cwd : String) -> @tool.Result noraise {
 
 ///|
 /// Main search files tool implementation
-pub let search_files : @tool.Tool[String] = @tool.tool(
-  description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
-  name="search_files",
-  parameters={
-    "type": "object",
-    "properties": {
-      "context_lines": {
-        "type": "number",
-        "description": "Number of context lines to show before and after each match. Defaults to 2.",
-        "default": 2,
+pub fn new(cwd : String) -> @tool.Tool {
+  @tool.tool(
+    description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
+    name="search_files",
+    parameters={
+      "type": "object",
+      "properties": {
+        "context_lines": {
+          "type": "number",
+          "description": "Number of context lines to show before and after each match. Defaults to 2.",
+          "default": 2,
+        },
+        "file_pattern": {
+          "type": "string",
+          "description": "Glob pattern to filter files (e.g., '*.ts', '*.js', '*.py', etc.). Defaults to '*' to search all files.",
+          "default": "*",
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["regex", "moonbit_definition", "moonbit_references"],
+          "description": "The kind of search to perform. 'regex' performs traditional regex-based file content search. 'moonbit_definition' performs fuzzy symbolic search to find MoonBit symbol definitions - note that when using 'moonbit_definition', the regex parameter can be imprecise as the system will perform fuzzy search to find the most relevant symbols. 'moonbit_references' finds all references to a MoonBit symbol using the moon IDE tool.",
+        },
+        "path": {
+          "type": "string",
+          "description": "The path of the directory or file to search in, relative to the current working directory.",
+        },
+        "regex": {
+          "type": "string",
+          "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
+        },
       },
-      "file_pattern": {
-        "type": "string",
-        "description": "Glob pattern to filter files (e.g., '*.ts', '*.js', '*.py', etc.). Defaults to '*' to search all files.",
-        "default": "*",
-      },
-      "kind": {
-        "type": "string",
-        "enum": ["regex", "moonbit_definition", "moonbit_references"],
-        "description": "The kind of search to perform. 'regex' performs traditional regex-based file content search. 'moonbit_definition' performs fuzzy symbolic search to find MoonBit symbol definitions - note that when using 'moonbit_definition', the regex parameter can be imprecise as the system will perform fuzzy search to find the most relevant symbols. 'moonbit_references' finds all references to a MoonBit symbol using the moon IDE tool.",
-      },
-      "path": {
-        "type": "string",
-        "description": "The path of the directory or file to search in, relative to the current working directory.",
-      },
-      "regex": {
-        "type": "string",
-        "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
-      },
+      "required": ["path", "regex", "kind"],
     },
-    "required": ["path", "regex", "kind"],
-  },
-  search_files_impl,
-  render=result => try {
-    // Try to parse as structured search result data (regex search)
-    let search_data : SearchResultData = @json.from_json(result.output())
-    // Handle regex search results
-    if search_data.total_matches == 0 {
-      return search_data.message
-    }
-    let formatted = []
-    formatted.push(search_data.message)
-    formatted.push("")
-    for result in search_data.results {
-      let header = "\{result.path}:\{result.line_number}"
-      formatted.push("\{header}")
-      formatted.push(result.context)
-      formatted.push("")
-    }
-    formatted.join("\n")
-  } catch {
-    _ =>
-      // Try to parse as MoonBit tool result (definition/references search)
-      try {
-        let moonbit_result : MoonbitToolResult = @json.from_json(
-          result.output(),
-        )
-        let formatted = []
-        formatted.push(moonbit_result.message)
-        let query_value = moonbit_result.query
-        formatted.push("Query: \"\{query_value}\"")
-        let working_dir = moonbit_result.working_directory
-        formatted.push("Working directory: \{working_dir}")
-        formatted.push("")
-        formatted.push(moonbit_result.output)
-        formatted.join("\n")
-      } catch {
-        _ => "Error: Unexpected output format"
+    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+      search_files_impl(args, cwd)
+    }),
+    render=result => try {
+      // Try to parse as structured search result data (regex search)
+      let search_data : SearchResultData = @json.from_json(result.output())
+      // Handle regex search results
+      if search_data.total_matches == 0 {
+        return search_data.message
       }
-  },
-)
+      let formatted = []
+      formatted.push(search_data.message)
+      formatted.push("")
+      for result in search_data.results {
+        let header = "\{result.path}:\{result.line_number}"
+        formatted.push("\{header}")
+        formatted.push(result.context)
+        formatted.push("")
+      }
+      formatted.join("\n")
+    } catch {
+      _ =>
+        // Try to parse as MoonBit tool result (definition/references search)
+        try {
+          let moonbit_result : MoonbitToolResult = @json.from_json(
+            result.output(),
+          )
+          let formatted = []
+          formatted.push(moonbit_result.message)
+          let query_value = moonbit_result.query
+          formatted.push("Query: \"\{query_value}\"")
+          let working_dir = moonbit_result.working_directory
+          formatted.push("Working directory: \{working_dir}")
+          formatted.push("")
+          formatted.push(moonbit_result.output)
+          formatted.join("\n")
+        } catch {
+          _ => "Error: Unexpected output format"
+        }
+    },
+  )
+}
 
 ///|
 pub let prompt : String =
