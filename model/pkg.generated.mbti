@@ -6,15 +6,11 @@ import(
 )
 
 // Values
+async fn load_model(home~ : String, cwd~ : String, model? : String) -> Model?
 
 // Errors
 
 // Types and methods
-type Loader
-fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
-async fn Loader::load(Self) -> Unit
-fn Loader::new(home~ : StringView, cwd~ : StringView) -> Self
-
 pub struct Model {
   name : String
   description : String?
