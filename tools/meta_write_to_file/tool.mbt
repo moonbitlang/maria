@@ -318,7 +318,7 @@ fn build_fixing_user_message(
     $|5. Call `attempt_completion` when done\n\n
     $|**Guidelines:**\n
     $|- Focus only on fixing syntax errors, not improving code quality\n
-    $|- Preserve the original intent and functionality of the code\n
+    $|- Preserve the original intent and functionality of the code, as much as possible\n
     $|- Use proper MoonBit syntax and conventions\n
     $|- If you cannot fix an error, explain why clearly\n
     $|- When syntax check passes, call `attempt_completion` immediately\n\n
@@ -452,6 +452,9 @@ async fn execute_meta_write_to_file(
           None => () // Continue
         }
       }
+
+      // Step 3: Re-format the file after fixing
+      format_moonbit_file(resolved_path, cwd)
 
       // Step 4: Compare final content with initial content
       let final_content = @fs.read_file(resolved_path)
