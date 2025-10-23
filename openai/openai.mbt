@@ -1219,7 +1219,7 @@ pub fn[T : ToChatCompletionMessageParamContent] tool_message(
 pub struct FunctionDefinition {
   name : String
   description : String
-  parameters : Map[String, Json]
+  parameters : Json
   strict : Bool?
 }
 
@@ -1228,7 +1228,7 @@ impl ToJson for FunctionDefinition with to_json(self : FunctionDefinition) -> Js
   let json : Map[String, Json] = {
     "name": Json::string(self.name),
     "description": Json::string(self.description),
-    "parameters": Json::object(self.parameters),
+    "parameters": self.parameters,
   }
   if self.strict is Some(bool) {
     json["strict"] = Json::boolean(bool)
@@ -1253,7 +1253,7 @@ impl ToJson for FunctionDefinition with to_json(self : FunctionDefinition) -> Js
 pub fn tool(
   name~ : String,
   description~ : String,
-  parameters~ : Map[String, Json],
+  parameters~ : Json,
   strict? : Bool,
 ) -> ChatCompletionToolParam {
   Function(FunctionDefinition::{ name, description, parameters, strict })

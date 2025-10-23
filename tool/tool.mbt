@@ -2,7 +2,7 @@
 pub struct ToolDesc {
   description : String
   name : String
-  parameters : Map[String, Json]
+  parameters : Json
 }
 
 ///|
@@ -46,7 +46,7 @@ pub fn error(output : Json, error? : Error = ToolFailure(output)) -> Result {
 pub fn[T] tool(
   description~ : String,
   name~ : String,
-  parameters~ : Map[String, Json],
+  parameters~ : Json,
   f : ToolFn[T],
   render~ : async (Result) -> String noraise,
 ) -> Tool[T] {

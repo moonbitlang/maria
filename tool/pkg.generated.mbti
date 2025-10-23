@@ -6,7 +6,7 @@ fn error(Json, error? : Error) -> Result
 
 fn ok(Json) -> Result
 
-fn[T] tool(description~ : String, name~ : String, parameters~ : Map[String, Json], ToolFn[T], render~ : async (Result) -> String noraise) -> Tool[T]
+fn[T] tool(description~ : String, name~ : String, parameters~ : Json, ToolFn[T], render~ : async (Result) -> String noraise) -> Tool[T]
 
 // Errors
 
@@ -29,7 +29,7 @@ async fn[T] Tool::call(Self[T], Json, T) -> Result noraise
 pub struct ToolDesc {
   description : String
   name : String
-  parameters : Map[String, Json]
+  parameters : Json
 }
 
 pub(all) struct ToolFn[T](async (Json, T) -> Result noraise)
