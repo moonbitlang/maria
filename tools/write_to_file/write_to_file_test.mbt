@@ -152,3 +152,11 @@ async test "write_to_file/agentic" (t : @test.T) {
     )
   })
 }
+
+///|
+async test "write_to_file/render" {
+  @json.inspect(
+    (@write_to_file.write_to_file.render)(@tool.error("Some error occurred")),
+    content="Error: Unexpected output format: JsonDecodeError((, \"Expected object to deserialize WriteResult\"))",
+  )
+}
