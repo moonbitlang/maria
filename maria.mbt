@@ -1,5 +1,5 @@
 ///|
-pub(all) struct Maria {
+pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
 }
@@ -25,73 +25,50 @@ pub async fn Maria::new(
   guard @model.load_model(home~, cwd~, model?) is Some(model) else {
     raise ModelNotConfigured
   }
-  let agent = @agent.new(model, cwd~)
-  agent.add_listener(TokenCounted, context => {
-    guard context
-      is {
-        origin_token_count: Some(origin_token_count),
-        pruned_token_count: Some(pruned_token_count),
-        ..,
-      } else {
-      return
-    }
-    logger.info("TokenCounted", { "token_count": origin_token_count.to_json() })
-    if origin_token_count != pruned_token_count {
-      logger.info("ContextPruned", {
-        "origin_token_count": origin_token_count.to_json(),
-        "pruned_token_count": pruned_token_count.to_json(),
+  let agent = @agent.new(model, logger~, cwd~)
+  agent.add_listener(event => match event {
+    TokenCounted(token_count) =>
+      logger.info("TokenCounted", { "token_count": token_count.to_json() })
+    RequestCompleted(usage~, message~) =>
+      logger.info("RequestCompleted", {
+        "usage": usage.to_json(),
+        "message": message.to_json(),
       })
-    }
-  })
-  agent.add_listener(RequestCompleted, context => {
-    guard context.usage is Some(usage) else { return }
-    guard context.message is Some(message) else { return }
-    logger.info("RequestCompleted", {
-      "usage": usage.to_json(),
-      "message": message.to_json(),
-    })
-  })
-  agent.add_listener(PreToolCall, context => {
-    guard context.tool_call is Some(tool_call) else { return }
-    try {
-      let args = @json.parse(tool_call.function.arguments)
-      logger.info("PreToolCall", {
-        "name": tool_call.function.name.to_json(),
-        "args": args,
-      })
-    } catch {
-      error =>
-        logger.error("PreToolCall", {
+    PreToolCall(tool_call) =>
+      try {
+        let args = @json.parse(tool_call.function.arguments)
+        logger.info("PreToolCall", {
           "name": tool_call.function.name.to_json(),
-          "args": tool_call.function.arguments.to_json(),
-          "error": error.to_json(),
+          "args": args,
         })
-    }
-  })
-  agent.add_listener(PostToolCall, context => {
-    guard context.tool_call is Some(tool_call) else { return }
-    guard context.tool_call_result is Some(result) else { return }
-    guard context.tool_call_result_text is Some(text) else { return }
-    match result {
-      Error(error, output) => {
-        logger.info("PostToolCall", {
-          "name": tool_call.function.name.to_json(),
-          "output": output,
-          "error": error.to_json(),
-          "text": text.to_json(),
-        })
-        logger.error("Tool error", { "error": error.to_json() })
+      } catch {
+        error =>
+          logger.info("PreToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "args": tool_call.function.arguments.to_json(),
+            "error": error.to_json(),
+          })
       }
-      Ok(output) =>
-        logger.info("PostToolCall", {
-          "name": tool_call.function.name.to_json(),
-          "output": output,
-          "text": text.to_json(),
-        })
-    }
+    PostToolCall(tool_call, result~, rendered~) =>
+      match result {
+        Ok(output) =>
+          logger.info("PostToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "output": output.to_json(),
+            "text": rendered.to_json(),
+          })
+        Error(error, output) =>
+          logger.info("PostToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "output": output,
+            "error": error.to_json(),
+            "text": rendered.to_json(),
+          })
+      }
+    PreConversation => logger.info("PreConversation", {})
+    PostConversation => logger.info("PostConversation", {})
+    _ => ()
   })
-  agent.add_listener(ConversationStart, _ => logger.info("PreConversation", {}))
-  agent.add_listener(ConversationEnd, _ => logger.info("PostConversation", {}))
   agent.add_tool(
     @execute_command.execute_command,
     @job.Manager::new(cwd=agent.cwd),
@@ -119,12 +96,7 @@ pub fn Maria::close(self : Maria) -> Unit {
 
 ///|
 pub async fn Maria::start(self : Maria, prompt : String) -> Unit {
-  @async.with_task_group(group => {
-    group.spawn_bg(() => self.logger.start(), no_wait=true)
-    let user_message = @openai.user_message(content=prompt)
-    // TODO: move to event system
-    self.logger.info("MessageAdded", { "message": user_message.to_json() })
-    self.agent.add_message(user_message)
-    self.agent.start()
-  })
+  let user_message = @openai.user_message(content=prompt)
+  self.agent.add_message(user_message)
+  self.agent.start()
 }

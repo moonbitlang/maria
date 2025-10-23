@@ -1,43 +1,54 @@
 ///|
 /// Event type that occurs during agent conversation lifecycle.
-pub(all) enum Event {
-  ConversationStart
-  ConversationEnd
-  PreToolCall
-  PostToolCall
-  TokenCounted
-  RequestCompleted
-} derive(Eq, Hash)
+pub enum Event {
+  PreConversation
+  PostConversation
+  MessageAdded(@openai.ChatCompletionMessageParam)
+  PreToolCall(@openai.ChatCompletionMessageToolCall)
+  PostToolCall(
+    @openai.ChatCompletionMessageToolCall,
+    result~ : @tool.Result,
+    rendered~ : String
+  )
+  TokenCounted(Int)
+  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
+  RequestCompleted(
+    usage~ : @openai.CompletionUsage?,
+    message~ : @openai.ChatCompletionMessage
+  )
+}
 
 ///|
-pub struct EventContext {
-  usage : @openai.CompletionUsage?
-  message : @openai.ChatCompletionMessage?
-  origin_token_count : Int?
-  pruned_token_count : Int?
-  tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.Result?
-  tool_call_result_text : String?
-} derive(ToJson)
+priv struct EventTarget {
+  queue : @aqueue.Queue[Event]
+  listeners : Array[async (Event) -> Unit]
+}
 
 ///|
-fn EventContext::new(
-  usage? : @openai.CompletionUsage,
-  message? : @openai.ChatCompletionMessage,
-  origin_token_count? : Int,
-  pruned_token_count? : Int,
-  tool_call? : @openai.ChatCompletionMessageToolCall,
-  tool_call_result? : @tool.Result,
-  tool_call_result_text? : String,
-) -> EventContext {
-  EventContext::{
-    usage,
-    message,
-    origin_token_count,
-    pruned_token_count,
-    tool_call,
-    tool_call_result,
-    tool_call_result_text,
+fn EventTarget::new() -> EventTarget {
+  EventTarget::{ queue: @aqueue.Queue::new(), listeners: [] }
+}
+
+///|
+fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
+  self.queue.put(event)
+}
+
+///|
+fn EventTarget::add_listener(
+  self : EventTarget,
+  f : async (Event) -> Unit,
+) -> Unit {
+  self.listeners.push(f)
+}
+
+///|
+async fn EventTarget::start(self : EventTarget) -> Unit {
+  while true {
+    let event = self.queue.get()
+    for listener in self.listeners {
+      listener(event)
+    }
   }
 }
 
@@ -47,10 +58,11 @@ pub struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
+  priv logger : @pino.Logger
   priv tools : Map[String, @tool.Tool[Unit]]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
-  priv event_target : @event.Target[Event, EventContext]
+  priv event_target : EventTarget
   priv token_counter : @token.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
@@ -65,6 +77,7 @@ pub fn Agent::add_message(
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
   agent.queue.push(message)
+  agent.emit(MessageAdded(message))
 }
 
 ///|
@@ -109,6 +122,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
       usage=@openai.usage(include_=true),
     ),
   )
+  agent.emit(TokenCounted(origin_token_count))
   let messages = agent.context_pruner.prune_messages(messages)
   let pruned_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
@@ -118,10 +132,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
       usage=@openai.usage(include_=true),
     ),
   )
-  agent.emit(
-    TokenCounted,
-    EventContext::new(origin_token_count~, pruned_token_count~),
-  )
+  agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
   let messages = @cache.cache_messages(messages)
   let request = @openai.chat_completion(
     messages~,
@@ -131,10 +142,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let response = @openai.chat(model=agent.model, request)
   guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
-  agent.emit(
-    RequestCompleted,
-    EventContext::new(usage?=response.usage, message~),
-  )
+  agent.emit(RequestCompleted(usage=response.usage, message~))
   for message in staged {
     agent.history.add_message(message)
   }
@@ -154,7 +162,7 @@ async fn Agent::execute_tool(
       tool_call_id=tool_call.id,
     )
   }
-  agent.emit(PreToolCall, EventContext::new(tool_call~))
+  agent.emit(PreToolCall(tool_call))
   let arguments = @json.parse(tool_call.function.arguments) catch {
     error =>
       return @openai.tool_message(
@@ -164,14 +172,7 @@ async fn Agent::execute_tool(
   }
   let result = tool.call(arguments, ())
   let rendered = (tool.render)(result)
-  agent.emit(
-    PostToolCall,
-    EventContext::new(
-      tool_call~,
-      tool_call_result=result,
-      tool_call_result_text=rendered,
-    ),
-  )
+  agent.emit(PostToolCall(tool_call, result~, rendered~))
   @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
@@ -199,18 +200,22 @@ pub fn[T] Agent::add_tool(
 
 ///|
 pub async fn Agent::start(agent : Agent) -> Unit {
-  agent.emit(ConversationStart, EventContext::new())
-  while true {
-    let response = agent.call()
-    if response.tool_calls is [] {
-      break
+  @async.with_task_group(group => {
+    group.spawn_bg(() => agent.event_target.start(), no_wait=true)
+    group.spawn_bg(() => agent.logger.start(), no_wait=true)
+    agent.emit(PreConversation)
+    while true {
+      let response = agent.call()
+      if response.tool_calls is [] {
+        break
+      }
+      for i in 0..<response.tool_calls.length() {
+        let call = response.tool_calls[i]
+        agent.add_message(agent.execute_tool(call))
+      }
     }
-    for i in 0..<response.tool_calls.length() {
-      let call = response.tool_calls[i]
-      agent.add_message(agent.execute_tool(call))
-    }
-  }
-  agent.emit(ConversationEnd, EventContext::new())
+    agent.emit(PostConversation)
+  })
 }
 
 ///|
@@ -230,6 +235,10 @@ pub async fn new(
   model : @model.Model,
   rand? : @random.Rand,
   uuid? : @uuid.Generator,
+  logger? : @pino.Logger = @pino.logger(
+    "agent",
+    try! @pino.transport("file:.moonagent/log"),
+  ),
   cwd~ : StringView,
 ) -> Agent {
   let rand = match rand {
@@ -245,6 +254,7 @@ pub async fn new(
     @conversation.Manager::new(uuid~, cwd=path)
   }
   let agent = Agent::{
+    logger,
     rand,
     uuid,
     history: session_manager.new_conversation(name="history"),
@@ -252,7 +262,7 @@ pub async fn new(
     model,
     tools: {},
     queue: [],
-    event_target: @event.Target::new(),
+    event_target: EventTarget::new(),
     token_counter: @token.Counter::new(),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
@@ -263,12 +273,47 @@ pub async fn new(
 }
 
 ///|
-async fn Agent::emit(
-  agent : Agent,
-  kind : Event,
-  context : EventContext,
-) -> Unit {
-  agent.event_target.emit(kind, context)
+fn Agent::emit(agent : Agent, event : Event) -> Unit {
+  agent.event_target.emit(event)
+  match event {
+    TokenCounted(token_count) =>
+      agent.logger.info("TokenCounted", { "token_count": token_count.to_json() })
+    ContextPruned(origin_token_count~, pruned_token_count~) =>
+      agent.logger.info("ContextPruned", {
+        "origin_token_count": origin_token_count.to_json(),
+        "pruned_token_count": pruned_token_count.to_json(),
+      })
+    PreToolCall(tool_call) =>
+      agent.logger.info("PreToolCall", {
+        "name": tool_call.function.name.to_json(),
+        "args": tool_call.function.arguments.to_json(),
+      })
+    PostToolCall(tool_call, result~, rendered~) =>
+      match result {
+        Ok(output) =>
+          agent.logger.info("PostToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "output": output.to_json(),
+            "text": rendered.to_json(),
+          })
+        Error(error, output) =>
+          agent.logger.info("PostToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "output": output,
+            "error": error.to_json(),
+            "text": rendered.to_json(),
+          })
+      }
+    PreConversation => agent.logger.info("PreConversation", {})
+    PostConversation => agent.logger.info("PostConversation", {})
+    MessageAdded(message) =>
+      agent.logger.info("MessageAdded", { "message": message.to_json() })
+    RequestCompleted(usage~, message~) =>
+      agent.logger.info("RequestCompleted", {
+        "usage": usage.to_json(),
+        "message": message.to_json(),
+      })
+  }
 }
 
 ///|
@@ -277,14 +322,9 @@ async fn Agent::emit(
 /// Parameters:
 ///
 /// * `agent` : The agent to add the event listener to.
-/// * `kind` : The type of event to listen for.
 /// * `f` : The asynchronous callback function to execute when the event is
-///   triggered. The function receives an `EventContext` containing relevant
+///   triggered. The function receives an `Event` containing relevant
 ///   event data.
-pub fn Agent::add_listener(
-  agent : Agent,
-  kind : Event,
-  f : async (EventContext) -> Unit,
-) -> Unit {
-  agent.event_target.add_listener(kind, f)
+pub fn Agent::add_listener(agent : Agent, f : async (Event) -> Unit) -> Unit {
+  agent.event_target.add_listener(f)
 }

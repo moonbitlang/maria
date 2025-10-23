@@ -3,6 +3,7 @@ package "moonbitlang/maria/agent"
 
 import(
   "moonbitlang/core/random"
+  "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
   "moonbitlang/maria/openai"
@@ -10,7 +11,7 @@ import(
 )
 
 // Values
-async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, cwd~ : StringView) -> Agent
+async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, logger? : @pino.Logger, cwd~ : StringView) -> Agent
 
 // Errors
 
@@ -22,39 +23,22 @@ pub struct Agent {
   model : @model.Model
   // private fields
 }
-fn Agent::add_listener(Self, Event, async (EventContext) -> Unit) -> Unit
+fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit
 fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 fn[T] Agent::add_tool(Self, @tool.Tool[T], T) -> Unit
 fn Agent::close(Self) -> Unit
 async fn Agent::start(Self) -> Unit
 
-pub(all) enum Event {
-  ConversationStart
-  ConversationEnd
-  PreToolCall
-  PostToolCall
-  TokenCounted
-  RequestCompleted
+pub enum Event {
+  PreConversation
+  PostConversation
+  MessageAdded(@openai.ChatCompletionMessageParam)
+  PreToolCall(@openai.ChatCompletionMessageToolCall)
+  PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : @tool.Result, rendered~ : String)
+  TokenCounted(Int)
+  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
+  RequestCompleted(usage~ : @openai.CompletionUsage?, message~ : @openai.ChatCompletionMessage)
 }
-fn Event::equal(Self, Self) -> Bool // from trait `Eq`
-fn Event::hash(Self) -> Int // from trait `Hash`
-fn Event::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn Event::op_equal(Self, Self) -> Bool // from trait `Eq`
-impl Eq for Event
-impl Hash for Event
-
-pub struct EventContext {
-  usage : @openai.CompletionUsage?
-  message : @openai.ChatCompletionMessage?
-  origin_token_count : Int?
-  pruned_token_count : Int?
-  tool_call : @openai.ChatCompletionMessageToolCall?
-  tool_call_result : @tool.Result?
-  tool_call_result_text : String?
-}
-fn EventContext::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for EventContext
 
 // Type aliases
 

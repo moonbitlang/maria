@@ -130,10 +130,15 @@ async test "write_to_file/agentic" (t : @test.T) {
       safe_zone_tokens=200000,
     )
     let agent = @agent.new(model, cwd=taco.cwd.path())
-    agent.add_listener(PostToolCall, (event : @agent.EventContext) => taco.logger.info(
-      "",
-      event.to_json().as_object().unwrap_or({}),
-    ))
+    agent.add_listener(event => match event {
+      PostToolCall(tool_call, result~, rendered~) =>
+        taco.logger.info("PostToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "output": result.to_json(),
+          "text": rendered.to_json(),
+        })
+      _ => ()
+    })
     agent.add_tool(@write_to_file.write_to_file, manager)
     agent.add_message(
       @openai.user_message(

@@ -68,10 +68,15 @@ async test "search_files/agentic" (t : @test.T) {
     let file_manager = @file.manager(cwd=taco.cwd.path())
     agent.add_tool(@write_to_file.write_to_file, file_manager)
     agent.add_tool(@search_files.search_files, taco.cwd.path())
-    agent.add_listener(PostToolCall, (event : @agent.EventContext) => taco.logger.info(
-      "",
-      event.to_json().as_object().unwrap_or({}),
-    ))
+    agent.add_listener(event => match event {
+      PostToolCall(tool_call, result~, rendered~) =>
+        taco.logger.info("PostToolCall", {
+          "tool_call": tool_call.to_json(),
+          "tool_call_result": result.to_json(),
+          "tool_call_result_text": rendered.to_json(),
+        })
+      _ => ()
+    })
     agent.add_message(
       @openai.user_message(
         content=(
