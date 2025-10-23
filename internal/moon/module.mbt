@@ -1,39 +1,12 @@
 ///|
 pub struct Module {
-  path : String
-  name : String
-  priv source : String?
+  priv path : String
+  priv name : String
+  priv source : String
   priv packages : Map[String, Package]
   coverage : Coverage
-  modules : Array[Module]
   priv mut core : Module?
-  cakes : Map[String, Module]
-}
-
-///|
-impl @json.FromJson for Module with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Module raise @json.JsonDecodeError {
-  guard json is { "name": name, .. } else {
-    raise @json.JsonDecodeError((json_path, "Expected object with 'name'."))
-  }
-  let name : String = @json.from_json(name, path=json_path.add_key("name"))
-  let source : String? = if json is { "source": source, .. } {
-    Some(@json.from_json(source, path=json_path.add_key("source")))
-  } else {
-    None
-  }
-  Module::{
-    path: "",
-    name,
-    source,
-    packages: {},
-    coverage: { path: "" },
-    modules: [],
-    core: None,
-    cakes: {},
-  }
+  priv cakes : Map[String, Module]
 }
 
 ///|
@@ -52,11 +25,29 @@ async fn Module::core(self : Module) -> Module {
 async fn Module::new(path : String) -> Module {
   let path = @fs.resolve(path)
   let moon_mod_path = @path.join(path, "moon.mod.json")
-  let mod : Module = moon_mod_path
-    |> @fs.read_file
-    |> @json.parse
-    |> @json.from_json
-  { ..mod, path, coverage: { path, } }
+  let moon_mod_text = @fs.read_file(moon_mod_path)
+  let moon_mod_json = @json.parse(moon_mod_text)
+  guard moon_mod_json is Object({ "name": String(name), .. } as moon_mod_json) else {
+    raise Failure("Invalid moon.mod.json: expected object with 'name'.")
+  }
+  let source : String = if moon_mod_json is { "source": String(source), .. } {
+    if @path.is_absolute(source) {
+      source
+    } else {
+      @fs.resolve(@path.join(path, source))
+    }
+  } else {
+    path
+  }
+  Module::{
+    path,
+    name,
+    source,
+    packages: {},
+    coverage: { path, },
+    core: None,
+    cakes: {},
+  }
 }
 
 ///|
@@ -73,39 +64,12 @@ pub fn Module::name(self : Module) -> String {
 
 ///|
 pub fn Module::source(self : Module) -> String {
-  match self.source {
-    Some(source) => source
-    None => self.path
-  }
-}
-
-///|
-async fn Module::load_mod(
-  self : Module,
-  mod : Module,
-  dir : String,
-  visit~ : Set[String],
-) -> Unit {
-  if !@fs.exists(dir) {
-    return
-  }
-  let dir = @fs.resolve(dir)
-  let moon_mod_path = @path.join(dir, "moon.mod.json")
-  if @fs.exists(moon_mod_path) &&
-    @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
-    let mod = Module::new(dir)
-    self.modules.push(mod)
-    let mod_src = @path.join(dir, mod.source())
-    self.load_pkg(mod, mod_src, visit~)
-  } else {
-    self.load_pkg(mod, dir, visit~)
-  }
+  self.source
 }
 
 ///|
 async fn Module::load_pkg(
   self : Module,
-  mod : Module,
   dir : String,
   visit~ : Set[String],
 ) -> Unit {
@@ -117,30 +81,49 @@ async fn Module::load_pkg(
     return
   }
   visit.add(dir)
+
+  // Skip if this is the root module path.
+  if dir != self.path {
+    // If there is a moon.mod.json here, load it as a module.
+    let moon_mod_path = @path.join(dir, "moon.mod.json")
+    if @fs.exists(moon_mod_path) &&
+      @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
+      return
+    }
+  }
+
+  // If there is a moon.pkg.json here, load it as a package.
   let moon_pkg_path = @path.join(dir, "moon.pkg.json")
   if !@fs.exists_as_file(moon_pkg_path) {
     let entries = @fs.list_directory(dir)
     for entry in entries {
       if entry.kind is Directory {
-        self.load_pkg(mod, entry.path, visit~)
+        if entry.name is ".moonagent" {
+          continue
+        }
+        self.load_pkg(entry.path, visit~)
       }
     }
     return
   }
   let pkg_name = {
-    let rel = @path.relative(@path.join(self.path, mod.source()), dir)
+    let mod_src = @fs.resolve(self.source())
+    let rel = @path.relative(mod_src, dir)
     if rel is "." {
-      mod.name()
+      self.name()
     } else {
-      "\{mod.name()}/\{rel}"
+      "\{self.name()}/\{rel}"
     }
   }
   let pkg = Package::new(name=pkg_name, path=dir.to_string())
-  mod.add_package(pkg)
+  self.add_package(pkg)
   let entries = @fs.list_directory(dir)
   for entry in entries {
     if entry.kind is Directory {
-      self.load_mod(mod, entry.path, visit~)
+      if entry.name is ".moonagent" {
+        continue
+      }
+      self.load_pkg(entry.path, visit~)
     } else if entry.kind is Regular {
       if entry.name.has_suffix(".mbt") || entry.name.has_suffix(".mbt.md") {
         pkg.add_file(entry.path)
@@ -151,8 +134,8 @@ async fn Module::load_pkg(
 
 ///|
 async fn Module::scan(self : Module) -> Unit {
-  let src = @path.join(self.path, self.source())
-  self.load_pkg(self, src, visit=Set::new())
+  let visit : Set[String] = Set::new()
+  self.load_pkg(self.source, visit~)
 }
 
 ///|
@@ -168,52 +151,32 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
   if self.package_(name) is Some(package_) {
     return Some(package_)
   }
-  for module_ in self.modules {
-    if name.has_prefix(module_.name()) {
-      return module_.package_(name)
-    }
-  }
   let parts = @path.split(name).collect()
   guard parts is [author, module_, ..] else { return None }
   let mod_name = @path.join(author, module_)
-  match self.cakes.get(mod_name) {
-    Some(cake) => return cake.package_(name)
-    None => {
-      let cake_path = self.path
-        |> @path.join(".mooncakes")
-        |> @path.join(mod_name)
-      if !@fs.exists(cake_path) {
-        return None
-      }
-      let cake = Module::load(cake_path)
-      self.cakes[mod_name] = cake
-      return cake.package_(name)
-    }
+  if self.cakes.get(mod_name) is Some(cake_mod) {
+    return cake_mod.package_(name)
   }
+  let cakes_path = @path.join(self.path, ".mooncakes")
+  if !@fs.exists(cakes_path) {
+    self.install()
+  }
+  let cakes_path = @fs.resolve(cakes_path)
+  let mod_path = @path.join(cakes_path, mod_name)
+  if !@fs.exists(mod_path) {
+    return None
+  }
+  let cake_mod = Module::new(mod_path)
+  cake_mod.scan()
+  self.cakes[cake_mod.name()] = cake_mod
+  cake_mod.package_(name)
 }
 
 ///|
-pub async fn Module::find_module(self : Module, name : String) -> Module? {
-  if name == self.name {
-    return Some(self)
-  }
-  for module_ in self.modules {
-    if module_.name == name {
-      break Some(module_)
-    }
-  } else {
-    None
-  }
-}
-
-///|
-pub fn Module::packages(self : Module) -> Iter[Package] {
-  self.packages.values()
-}
-
-///|
-pub fn Module::modules(self : Module) -> Iter[Module] {
-  Iter::singleton(self).concat(self.modules.iter())
+pub fn Module::packages(self : Module) -> Iter[PackageView] {
+  self.packages
+  .values()
+  .map(pkg => PackageView::{ module_: self, name: pkg.name })
 }
 
 ///|
@@ -268,11 +231,11 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
 
 ///|
 pub async fn Module::diagnostics(self : Module) -> Iter[Diagnostic] {
-  let pkgs = self.packages.values().collect()
+  let packages = self.packages.values().collect()
   let mut diags = Iter::empty()
-  for i in 0..<pkgs.length() {
-    let pkg = pkgs[i]
-    diags = diags.concat(pkg.diagnostics())
+  for i in 0..<packages.length() {
+    let package_ = packages[i]
+    diags = diags.concat(package_.diagnostics())
   }
   diags
 }

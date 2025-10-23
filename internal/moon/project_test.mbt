@@ -29,18 +29,7 @@ async test "project" (t : @test.T) {
     )
     let _ = deps.add_file("moon.pkg.json", content=Json::object({}).stringify())
     let project = @moon.Module::load(mock.cwd.path())
-    let mod_names : Array[(String, Array[String])] = []
     @json.inspect(project.name(), content="example")
-    for mod in project.modules() {
-      mod_names.push(
-        (mod.name, mod.packages().map(pkg => pkg.name()).collect()),
-      )
-    }
-    @json.inspect(mod_names, content=[
-      ["example", ["example", "example/internal"]],
-      ["example-deps", ["example-deps"]],
-    ])
-    @json.inspect(project.find_module("non-existent") is None, content=true)
     let internal_package = project.find_package("example/internal")
     @json.inspect(mock.json(internal_package), content=[
       {

@@ -61,6 +61,13 @@ fn File::to_string(Self) -> String // from trait `Show`
 impl Show for File
 impl ToJson for File
 
+type Import
+fn Import::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Import::output(Self, &Logger) -> Unit // from trait `Show`
+fn Import::to_string(Self) -> String // from trait `Show`
+impl Show for Import
+impl @json.FromJson for Import
+
 pub enum Level {
   Error
   Warning
@@ -83,11 +90,7 @@ impl Show for Loc
 impl ToJson for Loc
 
 pub struct Module {
-  path : String
-  name : String
   coverage : Coverage
-  modules : Array[Module]
-  cakes : Map[String, Module]
   // private fields
 }
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
@@ -95,14 +98,12 @@ async fn Module::check_patch_insert(Self, String, String) -> Array[Diagnostic]
 async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[Diagnostic]
 async fn Module::diagnostics(Self) -> Iter[Diagnostic]
 fn Module::files(Self) -> Iter[File]
-async fn Module::find_module(Self, String) -> Self?
 async fn Module::find_package(Self, String) -> PackageView?
 async fn Module::install(Self) -> Unit
 async fn Module::load(String) -> Self
 async fn Module::locate_package(Self, String) -> Package
-fn Module::modules(Self) -> Iter[Self]
 fn Module::name(Self) -> String
-fn Module::packages(Self) -> Iter[Package]
+fn Module::packages(Self) -> Iter[PackageView]
 fn Module::source(Self) -> String
 async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Array[TestFailure]
 async fn Module::test_build_only(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Artifacts
@@ -123,8 +124,11 @@ pub struct PackageView {
   module_ : Module
   name : String
 }
+fn PackageView::files(Self) -> Iter[File]
 async fn PackageView::info(Self) -> Unit
 async fn PackageView::interface(Self) -> String
+fn PackageView::is_main(Self) -> Bool
+fn PackageView::name(Self) -> String
 fn PackageView::package_(Self) -> Package
 fn PackageView::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for PackageView
