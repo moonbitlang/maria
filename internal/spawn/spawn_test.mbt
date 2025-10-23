@@ -24,3 +24,17 @@ async test "Manager::wait" (t : @test.T) {
     @json.inspect(status, content=0)
   })
 }
+
+///|
+async test "spawn/env" {
+  let output = StringBuilder::new()
+  let status = @spawn.spawn(
+    "sh",
+    ["-c", "echo $TEST_ENV_VAR"],
+    stdout=output,
+    stderr=output,
+    env={ "TEST_ENV_VAR": "hello_world" },
+  )
+  @json.inspect(status, content=0)
+  @json.inspect(output.to_string(), content="hello_world\n")
+}
