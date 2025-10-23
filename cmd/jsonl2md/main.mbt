@@ -191,6 +191,21 @@ test "format_log_entry/RequestCompleted" {
     },
   }
   format_log_entry(log_entry, msg_cnt~, md_lines)
+  inspect(
+    md_lines.join("\n"),
+    content=(
+      #|# 1 Assistant: I am fine, thank you!
+      #|
+      #|I am fine, thank you!
+      #|
+      #|## Tool call argument: <get_weather>
+      #|
+      #|<location>
+      #|  New York
+      #|</location>
+      #|
+    ),
+  )
 }
 
 ///|

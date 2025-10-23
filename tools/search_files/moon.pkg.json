@@ -14,7 +14,7 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/tools/write_to_file"
+    "moonbitlang/maria/tools/write_to_file",
+    "moonbitlang/maria/internal/pino"
   ]
 }

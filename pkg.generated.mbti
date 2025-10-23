@@ -12,7 +12,7 @@ import(
 pub suberror ModelNotConfigured
 
 // Types and methods
-pub(all) struct Maria {
+pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
 }
