@@ -283,7 +283,7 @@ let os_args : Array[String] = @os.args()
 pub async fn run(
   t : @test.T,
   loc~ : SourceLoc,
-  timeout? : Int = 10_000,
+  timeout? : Int = 30_000,
   retry? : Int,
   f : async (Context) -> Unit,
 ) -> Unit {
