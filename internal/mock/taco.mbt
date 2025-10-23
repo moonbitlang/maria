@@ -246,10 +246,6 @@ pub async fn Directory::list(self : Directory) -> Array[Entry] {
 let os_args : Array[String] = @os.args()
 
 ///|
-#borrow(template)
-extern "c" fn fs_mkdtemp(template : Bytes) -> Int = "moonbit_maria_fs_mkdtemp"
-
-///|
 /// Runs a test function within an isolated mock environment with controlled
 /// resources and automatic cleanup.
 ///
@@ -303,49 +299,44 @@ pub async fn run(
     )
   }
   let pkg_path = parts.join(@path.sep.to_string())
-  let template : String = @path.join(os_tmpdir, "moonbit-taco-XXXXXXX")
-  let template = @encoding/utf8.encode(template)
-  let errno = fs_mkdtemp(template)
-  if errno != 0 {
-    raise @errno.Errno(errno)
-  }
-  let template = @encoding/utf8.decode(template)
-  let tmp_pkg_path = @path.join(template, pkg_path)
-  async fn run() -> Unit {
-    @async.with_timeout(timeout, () => @async.with_task_group(group => {
-      let cwd = directory(@path.join(tmp_pkg_path, t.name()))
-      let log_dir = os_cwd |> @path.join("__trajectories__")
-      @fs.mkdir(log_dir, permission=0o755) catch {
-        _ => ()
+  @mfs.with_temporary_directory(@path.join(os_tmpdir, "moonbit-taco-XXXXXXX"), tmpdir => {
+    let tmp_pkg_path = @path.join(tmpdir, pkg_path)
+    async fn run() -> Unit {
+      @async.with_timeout(timeout, () => @async.with_task_group(group => {
+        let cwd = directory(@path.join(tmp_pkg_path, t.name()))
+        let log_dir = os_cwd |> @path.join("__trajectories__")
+        @fs.mkdir(log_dir, permission=0o755) catch {
+          _ => ()
+        }
+        let logged = log_dir |> @path.join(t.name())
+        let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
+        group.spawn_bg(() => logger.start(), no_wait=true)
+        let clock = Clock::{ timestamp: 0 }
+        let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
+        let uuid = @uuid.generator(rand)
+        let file = loc.to_string().split(":").peek().unwrap().to_string()
+        let filter = Filter::new()
+        filter.add("file", file)
+        filter.add("cwd", cwd.path())
+        filter.add("env:HOME", directory(@os.home()).path())
+        if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
+          filter.add("env:OPENAI_API_KEY", api_key)
+        }
+        let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
+        group.add_defer(() => ctx.close())
+        f(ctx)
+      })) catch {
+        Skip(_) => ()
+        error => raise error
       }
-      let logged = log_dir |> @path.join(t.name())
-      let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
-      group.spawn_bg(() => logger.start(), no_wait=true)
-      let clock = Clock::{ timestamp: 0 }
-      let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
-      let uuid = @uuid.generator(rand)
-      let file = loc.to_string().split(":").peek().unwrap().to_string()
-      let filter = Filter::new()
-      filter.add("file", file)
-      filter.add("cwd", cwd.path())
-      filter.add("env:HOME", directory(@os.home()).path())
-      if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
-        filter.add("env:OPENAI_API_KEY", api_key)
-      }
-      let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
-      group.add_defer(() => ctx.close())
-      f(ctx)
-    })) catch {
-      Skip(_) => ()
-      error => raise error
     }
-  }
 
-  if retry is Some(retry) {
-    @async.retry(Immediate, max_retry=retry, run)
-  } else {
-    run()
-  }
+    if retry is Some(retry) {
+      @async.retry(Immediate, max_retry=retry, run)
+    } else {
+      run()
+    }
+  })
 }
 
 ///|
