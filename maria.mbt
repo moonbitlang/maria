@@ -5,27 +5,6 @@ pub(all) struct Maria {
 }
 
 ///|
-async fn load_model(
-  home~ : String,
-  cwd~ : String,
-  model? : String,
-) -> @model.Model? {
-  let model_loader = @model.Loader::new(home~, cwd~)
-  model_loader.load()
-  let api_key : String? = if @os.getenv("OPENAI_API_KEY") is (Some(_) as key) {
-    key
-  } else {
-    @os.getenv("OPENROUTER_API_KEY")
-  }
-  let name : String? = if model is (Some(_) as model) {
-    model
-  } else {
-    @os.getenv("MODEL_NAME")
-  }
-  return model_loader.get_model(name?, api_key?)
-}
-
-///|
 pub suberror ModelNotConfigured
 
 ///|
@@ -43,7 +22,7 @@ pub async fn Maria::new(
     None => @os.cwd()
     Some(cwd) => cwd
   }
-  guard load_model(home~, cwd~, model?) is Some(model) else {
+  guard @model.load_model(home~, cwd~, model?) is Some(model) else {
     raise ModelNotConfigured
   }
   let agent = @agent.new(model, cwd~)

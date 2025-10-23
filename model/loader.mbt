@@ -1,5 +1,5 @@
 ///|
-struct Loader {
+priv struct Loader {
   home : StringView
   cwd : StringView
   models : Array[Model]
@@ -15,7 +15,7 @@ struct Loader {
 ///
 /// Returns a Loader instance with an empty model cache that can be
 /// populated by calling `load`.
-pub fn Loader::new(home~ : StringView, cwd~ : StringView) -> Loader {
+fn Loader::new(home~ : StringView, cwd~ : StringView) -> Loader {
   Loader::{ home, cwd, models: [] }
 }
 
@@ -34,7 +34,7 @@ async fn Model::load_from_path(path : StringView) -> Array[Model] {
 /// current working directory first, then the user's home directory. If
 /// either file exists, the models defined there are appended to the
 /// loader's cache.
-pub async fn Loader::load(self : Loader) -> Unit {
+async fn Loader::load(self : Loader) -> Unit {
   let project = self.cwd
     |> @path.join(".moonagent")
     |> @path.join("models")
@@ -52,6 +52,27 @@ pub async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
+pub async fn load_model(
+  home~ : String,
+  cwd~ : String,
+  model? : String,
+) -> Model? {
+  let model_loader = Loader::new(home~, cwd~)
+  model_loader.load()
+  let api_key : String? = if @os.getenv("OPENAI_API_KEY") is (Some(_) as key) {
+    key
+  } else {
+    @os.getenv("OPENROUTER_API_KEY")
+  }
+  let name : String? = if model is (Some(_) as model) {
+    model
+  } else {
+    @os.getenv("MODEL_NAME")
+  }
+  return model_loader.get_model(name?, api_key?)
+}
+
+///|
 /// Retrieve a model from the loader's cache, optionally overriding
 /// selected fields.
 ///
@@ -63,7 +84,7 @@ pub async fn Loader::load(self : Loader) -> Unit {
 ///
 /// Returns the matching model with overrides applied, or `None` when no
 /// model is available.
-pub fn Loader::get_model(
+fn Loader::get_model(
   self : Loader,
   name? : String,
   api_key? : String,
