@@ -90,8 +90,6 @@ impl Show for Loc
 impl ToJson for Loc
 
 pub struct Module {
-  path : String
-  name : String
   coverage : Coverage
   // private fields
 }

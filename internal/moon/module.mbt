@@ -1,7 +1,7 @@
 ///|
 pub struct Module {
-  path : String
-  name : String
+  priv path : String
+  priv name : String
   priv source : String
   priv packages : Map[String, Package]
   coverage : Coverage
