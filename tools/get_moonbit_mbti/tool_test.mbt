@@ -4,9 +4,8 @@ async test "get_moonbit_mbti" (t : @test.T) {
     @moon.new(taco.cwd.path(), name="test_get_moonbit_mbti")
     let get_moonbit_mbti = @get_moonbit_mbti.new(taco.cwd.path())
     let result = get_moonbit_mbti.call({ "package": "moonbitlang/core/set" })
-    guard result.output() is String(output)
     inspect(
-      output,
+      result.output(),
       content=(
         #|// Generated using `moon info`, DON'T EDIT IT
         #|package "moonbitlang/core/set"

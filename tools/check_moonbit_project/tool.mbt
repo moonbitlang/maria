@@ -40,13 +40,22 @@ test "params ToJson" {
 }
 
 ///|
-priv struct CheckMoonbitProjectResult {
+pub struct CheckMoonbitProjectResult {
   diagnostics : Array[@moon.Diagnostic]
   diagnostic_limit : Int
-} derive(@json.FromJson, ToJson)
+  rendered_diagnostics : String
+} derive(ToJson, @json.FromJson)
 
 ///|
-pub fn new(cwd : String) -> @tool.Tool {
+pub impl Show for CheckMoonbitProjectResult with output(
+  self : CheckMoonbitProjectResult,
+  logger : &Logger,
+) -> Unit {
+  logger.write_string(self.rendered_diagnostics)
+}
+
+///|
+pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
   @tool.tool(
     description="Call MoonBit toolchain to check current MoonBit project, and report any errors. Optionally, you can provide a code snippet and a file path to check the code as if it were appended to that file.",
     name="check_moonbit_project",
@@ -76,7 +85,9 @@ pub fn new(cwd : String) -> @tool.Tool {
       },
       "required": ["project_path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(
+      args,
+    ) -> @tool.Result[CheckMoonbitProjectResult] noraise {
       let args : CheckMoonbitProjectParams = @json.from_json(args) catch {
         error =>
           return @tool.error(
@@ -120,32 +131,24 @@ pub fn new(cwd : String) -> @tool.Tool {
             )
         }
       }
-      @tool.ok(
-        CheckMoonbitProjectResult::{ diagnostics, diagnostic_limit }.to_json(),
-      )
-    }),
-    render=result => {
-      if result is Error(error, _) {
-        return "Error: \{error}"
-      }
-      let result : CheckMoonbitProjectResult = @json.from_json(result.output()) catch {
-        error => return "Error: Failed to parse result: \{error}"
-      }
-      let diagnostics = if result.diagnostics.length() < result.diagnostic_limit {
-        result.diagnostics[:]
-      } else {
-        result.diagnostics[:result.diagnostic_limit]
-      }
       if diagnostics.length() == 0 {
-        "MoonBit project check passed with no diagnostics found."
+        @tool.ok(CheckMoonbitProjectResult::{
+          diagnostics,
+          diagnostic_limit,
+          rendered_diagnostics: "MoonBit project check passed with no diagnostics found.",
+        })
       } else {
         let rendered_diagnostics = @moon.render_diagnostics(
           diagnostics,
-          limit=result.diagnostic_limit,
+          limit=diagnostic_limit,
         )
-        "MoonBit project check found the following diagnostics:\n\n" +
-        "\{rendered_diagnostics}"
+        @tool.ok(CheckMoonbitProjectResult::{
+          diagnostics,
+          diagnostic_limit,
+          rendered_diagnostics: "MoonBit project check found the following diagnostics:\n\n" +
+          "\{rendered_diagnostics}",
+        })
       }
-    },
+    }),
   )
 }

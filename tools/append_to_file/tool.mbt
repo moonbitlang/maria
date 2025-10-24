@@ -23,12 +23,17 @@ test {
 }
 
 ///|
-priv struct Result {
+struct Result {
   path : String
 } derive(@json.FromJson, ToJson)
 
 ///|
-pub fn new(cwd : String) -> @tool.Tool {
+pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
+  logger.write_string("Appended content to file at path: \{self.path}")
+}
+
+///|
+pub fn new(cwd : String) -> @tool.Tool[Result] {
   @tool.tool(
     description="Append content to a file at the specified path. If the file doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.",
     name="append_to_file",
@@ -51,7 +56,7 @@ pub fn new(cwd : String) -> @tool.Tool {
       },
       "required": ["path", "content"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[Result] noraise {
       let args : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}")
       }
@@ -88,16 +93,7 @@ pub fn new(cwd : String) -> @tool.Tool {
         error => return @tool.error("Failed to write to file: \{error}")
       }
       let result = Result::{ path, }
-      @tool.ok(result.to_json())
+      @tool.ok(result)
     }),
-    render=result => {
-      if result is Error(error, _) {
-        return "Error: \{error}"
-      }
-      let result : Result = @json.from_json(result.output()) catch {
-        error => return "Error: Failed to parse result: \{error}"
-      }
-      "Appended content to file at path: \{result.path}"
-    },
   )
 }

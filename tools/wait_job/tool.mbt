@@ -18,7 +18,7 @@ fn truncate_output(output : String, max_output_lines~ : Int) -> String {
 }
 
 ///|
-pub fn new(manager : @job.Manager) -> @tool.Tool {
+pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
   @tool.tool(
     description="Wait for a background job to complete and capture its output.",
     name="wait_job",
@@ -40,7 +40,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
       },
       "required": ["job_id", "timeout", "max_output_lines"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
       let params : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid parameters: \{error}")
       }
@@ -75,11 +75,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
       output.write_string(
         "Stderr:\n\{truncate_output(stderr, max_output_lines~)}\n",
       )
-      @tool.ok(output.to_string().to_json())
+      @tool.ok(output.to_string())
     }),
-    render=result => result
-      .output()
-      .as_string()
-      .unwrap_or("Failed to convert output to string."),
   )
 }

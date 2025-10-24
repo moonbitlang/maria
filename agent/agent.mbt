@@ -5,7 +5,7 @@ pub struct Agent {
   cwd : String
   model : @model.Model
   priv logger : @pino.Logger
-  priv tools : Map[String, @tool.Tool]
+  priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
   priv event_target : EventTarget
@@ -49,11 +49,12 @@ pub fn Agent::close(_ : Agent) -> Unit {
 async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let tools = []
   for name, tool in agent.tools {
+    let desc = tool.desc()
     tools.push(
       @openai.tool(
         name~,
-        description=tool.desc.description,
-        parameters=tool.desc.parameters,
+        description=desc.description,
+        parameters=desc.parameters,
       ),
     )
   }
@@ -117,8 +118,10 @@ async fn Agent::execute_tool(
         tool_call_id=tool_call.id,
       )
   }
-  let result = tool.call(arguments)
-  let rendered = (tool.render)(result)
+  let (result, rendered) = match tool.call(arguments) {
+    Ok((json, text)) => (Ok(json), text)
+    Error(error, text) => (Err(error), text)
+  }
   agent.emit(PostToolCall(tool_call, result~, rendered~))
   @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
@@ -126,11 +129,26 @@ async fn Agent::execute_tool(
 ///|
 pub fn Agent::add_tools(
   agent : Agent,
-  tools : Array[@tool.Tool],
+  tools : Array[@tool.AgentTool],
 ) -> Unit noraise {
   for tool in tools {
-    agent.tools[tool.desc.name] = tool
+    agent.tools[tool.desc().name] = tool
   }
+}
+
+///|
+/// Adds a tool to the agent's available tools collection.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to add the tool to.
+/// * `tool` : The tool to be added, which will be indexed by its name for
+///   future tool calls.
+pub fn[Output : ToJson + Show] Agent::add_tool(
+  agent : Agent,
+  tool : @tool.Tool[Output],
+) -> Unit noraise {
+  agent.tools[tool.desc.name] = tool.to_agent_tool()
 }
 
 ///|
@@ -228,13 +246,12 @@ fn Agent::emit(agent : Agent, event : Event) -> Unit {
         Ok(output) =>
           agent.logger.info("PostToolCall", {
             "name": tool_call.function.name.to_json(),
-            "output": output.to_json(),
+            "result": output.to_json(),
             "text": rendered.to_json(),
           })
-        Error(error, output) =>
+        Err(error) =>
           agent.logger.info("PostToolCall", {
             "name": tool_call.function.name.to_json(),
-            "output": output,
             "error": error.to_json(),
             "text": rendered.to_json(),
           })

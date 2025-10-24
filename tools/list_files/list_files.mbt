@@ -9,7 +9,7 @@ priv struct FileEntry {
 
 ///|
 /// Enhanced list_files result with metadata
-priv struct ListFilesResult {
+struct ListFilesResult {
   path : String
   entries : Array[FileEntry]
   total_count : Int
@@ -18,9 +18,12 @@ priv struct ListFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
-fn ListFilesResult::to_string(result : ListFilesResult) -> String {
+pub impl Show for ListFilesResult with output(
+  result : ListFilesResult,
+  logger : &Logger,
+) -> Unit {
   if result.total_count == 0 {
-    return "No files found."
+    return logger.write_string("No files found.")
   }
   let output = []
   output.push("Directory: \{result.path}")
@@ -42,7 +45,7 @@ fn ListFilesResult::to_string(result : ListFilesResult) -> String {
     let hidden_marker = if entry.is_hidden { " [hidden]" } else { "" }
     output.push("\{prefix} \{entry.name}\{size_info}\{hidden_marker}")
   }
-  output.join("\n")
+  logger.write_string(output.join("\n"))
 }
 
 ///|
@@ -104,26 +107,19 @@ let json_schema : Json = {
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool {
+pub fn new(manager : @file.Manager) -> @tool.Tool[ListFilesResult] {
   @tool.tool(
     description="List files in a directory",
     name="list_files",
     parameters=json_schema,
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[ListFilesResult] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Error: 'path' parameter is required")
       }
       let result = execute_list_files(manager, path) catch {
         error => return @tool.error("Error listing files: \{error}")
       }
-      @tool.ok(result.to_json())
+      @tool.ok(result)
     }),
-    render=result => try
-      (@json.from_json(result.output()) : ListFilesResult)
-    catch {
-      error => return "Error: Unexpected output format: \{error}"
-    } noraise {
-      list_result => return list_result.to_string()
-    },
   )
 }

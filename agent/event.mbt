@@ -7,7 +7,7 @@ pub enum Event {
   PreToolCall(@openai.ChatCompletionMessageToolCall)
   PostToolCall(
     @openai.ChatCompletionMessageToolCall,
-    result~ : @tool.Result,
+    result~ : Result[Json, Error],
     rendered~ : String
   )
   TokenCounted(Int)

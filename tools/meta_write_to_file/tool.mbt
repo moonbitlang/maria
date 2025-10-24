@@ -12,12 +12,25 @@ priv struct MetaWriteParams {
 }
 
 ///|
-priv struct MetaWriteToFileResult {
+pub struct MetaWriteToFileResult {
   path : String
   message : String
   diff : String
   learning_prompt : String?
 } derive(ToJson, FromJson)
+
+///|
+pub impl Show for MetaWriteToFileResult with output(
+  self : MetaWriteToFileResult,
+  logger : &Logger,
+) -> Unit {
+  let formatted = []
+  formatted.push("Path: \{self.path}")
+  formatted.push("Message: \{self.message}")
+  formatted.push("Diff: \{self.diff}")
+  let result = formatted.join("\n")
+  logger.write_string(result)
+}
 
 ///|
 /// Parse and validate meta_write_to_file parameters
@@ -143,7 +156,7 @@ async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
 
 ///|
 /// Tool for the sub-agent to submit fixed code segments
-fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool {
+fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.tool(
     name="submit_fixed_file",
     description="Submit the complete fixed file content for verification",
@@ -157,7 +170,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool {
       },
       "required": ["content"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
       guard args is { "content": String(content), .. } else {
         return @tool.error("Missing 'content' argument")
       }
@@ -180,18 +193,12 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool {
         error => @tool.error("Failed to write or verify file: \{error}", error~)
       }
     }),
-    render=result => {
-      guard result.output() is String(formatted) else {
-        return "Error: Unexpected output format"
-      }
-      formatted
-    },
   )
 }
 
 ///|
 /// Tool for the sub-agent to read current file content
-fn read_current_file_new(ctx : FixingContext) -> @tool.Tool {
+fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.tool(
     name="read_file",
     description="Read the current file content to understand what needs to be fixed",
@@ -205,7 +212,7 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool {
       },
       "required": ["path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Missing 'path' argument")
       }
@@ -222,18 +229,12 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool {
         error => @tool.error("Failed to read file: \{error}", error~)
       }
     }),
-    render=result => {
-      guard result.output() is String(formatted) else {
-        return "Error: Unexpected output format"
-      }
-      formatted
-    },
   )
 }
 
 ///|
 /// Tool for the sub-agent to signal completion
-fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool {
+fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
   let _ = ctx // Suppress unused warning
   @tool.tool(
     name="attempt_completion",
@@ -248,18 +249,12 @@ fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool {
       },
       "required": ["result"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
       guard args is { "result": String(result), .. } else {
         return @tool.error("Missing 'result' argument")
       }
       @tool.ok("Syntax fixing completed: \{result}")
     }),
-    render=result => {
-      guard result.output() is String(formatted) else {
-        return "Error: Unexpected output format"
-      }
-      formatted
-    },
   )
 }
 
@@ -342,9 +337,9 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
 
     // Add tools using factory functions
     subagent.add_tools([
-      read_current_file_new(ctx),
-      submit_fixed_file_new(ctx),
-      attempt_completion_new(ctx),
+      read_current_file_new(ctx).to_agent_tool(),
+      submit_fixed_file_new(ctx).to_agent_tool(),
+      attempt_completion_new(ctx).to_agent_tool(),
     ])
 
     // Add system message
@@ -375,7 +370,7 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
 async fn execute_meta_write_to_file(
   args : Json,
   agent : @agent.Agent,
-) -> @tool.Result noraise {
+) -> @tool.Result[MetaWriteToFileResult] noraise {
   // Parse and validate parameters
   let params = match parse_meta_write_params(args) {
     Some(params) => params
@@ -395,7 +390,8 @@ async fn execute_meta_write_to_file(
   try {
     // Step 1: Write the file using standard write_to_file logic
     // Implement write_to_file logic directly
-    let write_result = match (params.search, params.replace) {
+    let write_result : @tool.Result[String] = match
+      (params.search, params.replace) {
       (None, Some(replace)) =>
         // Replace entire file content
         try {
@@ -430,8 +426,10 @@ async fn execute_meta_write_to_file(
       (None, None) =>
         @tool.error("Either 'replace' content must be provided for new files")
     }
-    if write_result is Error(_, _) {
-      return write_result // Return early on error
+    // if write_result is Error(_, _) {
+    let write_result = match write_result {
+      Error(error, message) => return @tool.error(message, error~) // Return early on error
+      Ok(write_result) => write_result
     }
 
     // Step 1.5: Capture content immediately after initial write
@@ -456,8 +454,7 @@ async fn execute_meta_write_to_file(
         }
         let fixing_error = fix_syntax_errors(fixing_ctx)
         match fixing_error {
-          Some(error) =>
-            return @tool.error("\{write_result.output()}\n\{error}")
+          Some(error) => return @tool.error("\{write_result}\n\{error}")
           None => () // Continue
         }
       }
@@ -494,37 +491,27 @@ async fn execute_meta_write_to_file(
       } else {
         ""
       }
-      guard write_result.output() is String(write_msg) else {
-        return @tool.error("Unexpected write result format")
-      }
-      @tool.ok(
-        MetaWriteToFileResult::{
-          path: resolved_path,
-          message: write_msg,
-          diff: diff.diff_text,
-          learning_prompt: match learning_prompt {
-            "" => None
-            learning_prompt => Some(learning_prompt)
-          },
-        }.to_json(),
-      )
+      @tool.ok(MetaWriteToFileResult::{
+        path: resolved_path,
+        message: write_result,
+        diff: diff.diff_text,
+        learning_prompt: match learning_prompt {
+          "" => None
+          learning_prompt => Some(learning_prompt)
+        },
+      })
     } else {
       // Non-MoonBit files: show diff from initial write
       let final_content = @fs.read_file(resolved_path)
       let diff = generate_diff(
         initial_content, final_content, "Complete diff from initial write",
       )
-      guard write_result.output() is String(write_msg) else {
-        return @tool.error("Unexpected write result format")
-      }
-      @tool.ok(
-        MetaWriteToFileResult::{
-          path: resolved_path,
-          message: write_msg,
-          diff: diff.diff_text,
-          learning_prompt: None,
-        }.to_json(),
-      )
+      @tool.ok(MetaWriteToFileResult::{
+        path: resolved_path,
+        message: write_result,
+        diff: diff.diff_text,
+        learning_prompt: None,
+      })
     }
   } catch {
     error => @tool.error("Error in meta_write_to_file: \{error}", error~)
@@ -533,7 +520,7 @@ async fn execute_meta_write_to_file(
 
 ///|
 /// The meta_write_to_file tool definition
-pub fn new(agent : @agent.Agent) -> @tool.Tool {
+pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
   @tool.tool(
     description="Enhanced file writing tool that writes content to a file, automatically formats MoonBit files using moon fmt, checks for syntax errors with moon check, and spawns a sub-agent to fix any syntax errors found. This ensures that MoonBit files are always properly formatted and syntactically correct after writing. Returns diff comparison if final content differs from initial write.",
     name="meta_write_to_file",
@@ -559,21 +546,8 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool {
       },
       "required": ["path", "description"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[MetaWriteToFileResult] noraise {
       execute_meta_write_to_file(args, agent)
     }),
-    render=result => {
-      let meta_write_to_file_result : MetaWriteToFileResult = @json.from_json(
-        result.output(),
-      ) catch {
-        error => return "Error: Unexpected output format: \{error}"
-      }
-      let formatted = []
-      formatted.push("Path: \{meta_write_to_file_result.path}")
-      formatted.push("Message: \{meta_write_to_file_result.message}")
-      formatted.push("Diff: \{meta_write_to_file_result.diff}")
-      let result = formatted.join("\n")
-      result
-    },
   )
 }

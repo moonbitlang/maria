@@ -25,7 +25,8 @@ pub struct Agent {
 }
 fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit
 fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
-fn Agent::add_tools(Self, Array[@tool.Tool]) -> Unit
+fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
+fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit
 async fn Agent::start(Self) -> Unit
 
@@ -34,7 +35,7 @@ pub enum Event {
   PostConversation
   MessageAdded(@openai.ChatCompletionMessageParam)
   PreToolCall(@openai.ChatCompletionMessageToolCall)
-  PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : @tool.Result, rendered~ : String)
+  PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : Result[Json, Error], rendered~ : String)
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @openai.CompletionUsage?, message~ : @openai.ChatCompletionMessage)

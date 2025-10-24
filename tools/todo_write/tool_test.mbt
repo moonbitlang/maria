@@ -58,7 +58,7 @@ async test "todo_write/create/plain" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -216,7 +216,7 @@ async test "todo_write/create/<task>" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Created 7 new todo items
         #|
@@ -337,7 +337,7 @@ async test "todo_write/update" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Updated task: Updated first item
         #|
@@ -411,7 +411,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "is_new_creation": true,
     })
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -468,7 +468,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "is_new_creation": false,
     })
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Marked task as completed: First item
         #|
@@ -553,10 +553,7 @@ async test "todo_write/mark_progress" (t : @test.T) {
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
-    inspect(
-      (@todo_write.new(todo_list).render)(result),
-      content="Error: Unexpected output format",
-    )
+    inspect(result, content="Error: Task with ID 'nonexistent' not found.")
     let result = @todo_write.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "ac8a366d",
@@ -597,7 +594,7 @@ async test "todo_write/mark_progress" (t : @test.T) {
       },
     ])
     inspect(
-      (@todo_write.new(todo_list).render)(result),
+      result.output(),
       content=(
         #|✅ Operation completed: Marked task as in progress: First item
         #|

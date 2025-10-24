@@ -18,13 +18,16 @@ test "params ToJson" {
 }
 
 ///|
-priv struct CoverageResult {
+struct CoverageResult {
   content : String
 } derive(ToJson, FromJson)
 
 ///|
-fn CoverageResult::to_string(self : CoverageResult) -> String {
-  self.content
+pub impl Show for CoverageResult with output(
+  self : CoverageResult,
+  logger : &Logger,
+) -> Unit {
+  logger.write_string(self.content)
 }
 
 ///|
@@ -62,12 +65,12 @@ let json_schema : Json = {
 }
 
 ///|
-pub fn new(cwd : String) -> @tool.Tool {
+pub fn new(cwd : String) -> @tool.Tool[CoverageResult] {
   @tool.tool(
     description="Get coverage information for a MoonBit source file or project. If a specific file is provided, this tool analyzes that file and returns line-by-line coverage data. If the file is not found, it returns the coverage summary for the entire project.",
     name="get_moonbit_coverage",
     parameters=json_schema,
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[CoverageResult] noraise {
       let args : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}", error~)
       }
@@ -77,15 +80,8 @@ pub fn new(cwd : String) -> @tool.Tool {
         error =>
           @tool.error("Failed to get coverage information: \{error}", error~)
       } noraise {
-        x => @tool.ok(x.to_json())
+        x => @tool.ok(x)
       }
     }),
-    render=result => try
-      (@json.from_json(result.output()) : CoverageResult)
-    catch {
-      error => return "Error: Unexpected output format: \{error}"
-    } noraise {
-      coverage_result => return coverage_result.to_string()
-    },
   )
 }

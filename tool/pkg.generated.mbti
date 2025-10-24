@@ -2,29 +2,35 @@
 package "moonbitlang/maria/tool"
 
 // Values
-fn error(Json, error? : Error) -> Result
+fn[Output] error(String, error? : Error) -> Result[Output]
 
-fn ok(Json) -> Result
+fn[Output] ok(Output) -> Result[Output]
 
-fn tool(description~ : String, name~ : String, parameters~ : Json, ToolFn, render~ : async (Result) -> String noraise) -> Tool
+fn[Output] tool(description~ : String, name~ : String, parameters~ : Json, ToolFn[Output]) -> Tool[Output]
 
 // Errors
 
 // Types and methods
-pub enum Result {
-  Ok(Json)
-  Error(Error, Json)
-}
-fn Result::output(Self) -> Json
-fn Result::to_json(Self) -> Json // from trait `ToJson`
-impl ToJson for Result
+type AgentTool
+async fn AgentTool::call(Self, Json) -> Result[(Json, String)] noraise
+fn AgentTool::desc(Self) -> ToolDesc
 
-pub struct Tool {
+pub enum Result[Output] {
+  Ok(Output)
+  Error(Error, String)
+}
+fn[Output] Result::output(Self[Output]) -> Output raise
+fn[Output : ToJson] Result::to_json(Self[Output]) -> Json // from trait `ToJson`
+fn[Output : Show] Result::to_string(Self[Output]) -> String // from trait `Show`
+impl[Output : Show] Show for Result[Output]
+impl[Output : ToJson] ToJson for Result[Output]
+
+pub struct Tool[Output] {
   desc : ToolDesc
-  render : async (Result) -> String noraise
   // private fields
 }
-async fn Tool::call(Self, Json) -> Result noraise
+async fn[Output] Tool::call(Self[Output], Json) -> Result[Output] noraise
+fn[Output : ToJson + Show] Tool::to_agent_tool(Self[Output]) -> AgentTool
 
 pub struct ToolDesc {
   description : String
@@ -32,9 +38,9 @@ pub struct ToolDesc {
   parameters : Json
 }
 
-pub(all) struct ToolFn(async (Json) -> Result noraise)
+pub(all) struct ToolFn[Output](async (Json) -> Result[Output] noraise)
 #deprecated
-fn ToolFn::inner(Self) -> async (Json) -> Result noraise
+fn[Output] ToolFn::inner(Self[Output]) -> async (Json) -> Result[Output] noraise
 
 // Type aliases
 

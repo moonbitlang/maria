@@ -25,12 +25,15 @@ async test "write_to_file/replace" (t : @test.T) {
     let _ = taco.add_file("file.txt", content="Old content")
     @json.inspect(@read_file.new(manager).call({ "path": "file.txt" }), content=[
       "Ok",
-      {
-        "path": "file.txt",
-        "content": "Old content",
-        "start_line": 1,
-        "end_line": 1,
-      },
+      [
+        "ReadFileResult",
+        {
+          "path": "file.txt",
+          "content": "Old content",
+          "start_line": 1,
+          "end_line": 1,
+        },
+      ],
     ])
     let args : Json = {
       "path": "file.txt",
@@ -139,7 +142,7 @@ async test "write_to_file/agentic" (t : @test.T) {
         })
       _ => ()
     })
-    agent.add_tools([@write_to_file.new(manager)])
+    agent.add_tool(@write_to_file.new(manager))
     agent.add_message(
       @openai.user_message(
         content="Update line 2 in file.txt to say 'line 2 modified via agent'.",
