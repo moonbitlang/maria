@@ -1,58 +1,4 @@
 ///|
-/// Event type that occurs during agent conversation lifecycle.
-pub enum Event {
-  PreConversation
-  PostConversation
-  MessageAdded(@openai.ChatCompletionMessageParam)
-  PreToolCall(@openai.ChatCompletionMessageToolCall)
-  PostToolCall(
-    @openai.ChatCompletionMessageToolCall,
-    result~ : @tool.Result,
-    rendered~ : String
-  )
-  TokenCounted(Int)
-  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  RequestCompleted(
-    usage~ : @openai.CompletionUsage?,
-    message~ : @openai.ChatCompletionMessage
-  )
-}
-
-///|
-priv struct EventTarget {
-  queue : @aqueue.Queue[Event]
-  listeners : Array[async (Event) -> Unit]
-}
-
-///|
-fn EventTarget::new() -> EventTarget {
-  EventTarget::{ queue: @aqueue.Queue::new(), listeners: [] }
-}
-
-///|
-fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
-  self.queue.put(event)
-}
-
-///|
-fn EventTarget::add_listener(
-  self : EventTarget,
-  f : async (Event) -> Unit,
-) -> Unit {
-  self.listeners.push(f)
-}
-
-///|
-async fn EventTarget::start(self : EventTarget) -> Unit {
-  while true {
-    let event = self.queue.get()
-    for listener in self.listeners {
-      listener(event)
-    }
-  }
-}
-
-///|
 pub struct Agent {
   rand : @random.Rand
   uuid : @uuid.Generator
@@ -103,12 +49,13 @@ pub fn Agent::close(_ : Agent) -> Unit {
 async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let tools = []
   for name, tool in agent.tools {
-    let tool = @openai.tool(
-      name~,
-      description=tool.desc.description,
-      parameters=tool.desc.parameters,
+    tools.push(
+      @openai.tool(
+        name~,
+        description=tool.desc.description,
+        parameters=tool.desc.parameters,
+      ),
     )
-    tools.push(tool)
   }
   let staged = agent.queue
   agent.queue = []
@@ -134,12 +81,12 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   )
   agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
   let messages = @cache.cache_messages(messages)
-  let request = @openai.chat_completion(
-    messages~,
-    model=agent.model.name,
-    tools~,
+  // make a request
+
+  let response = @openai.chat(
+    model=agent.model,
+    @openai.chat_completion(messages~, model=agent.model.name, tools~),
   )
-  let response = @openai.chat(model=agent.model, request)
   guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
   agent.emit(RequestCompleted(usage=response.usage, message~))
@@ -177,21 +124,13 @@ async fn Agent::execute_tool(
 }
 
 ///|
-/// Adds a tool to the agent's available tools collection.
-///
-/// Parameters:
-///
-/// * `agent` : The agent instance to add the tool to.
-/// * `tool` : The tool to be added, which will be indexed by its name for
-///   future tool calls.
-pub fn Agent::add_tool(agent : Agent, tool : @tool.Tool) -> Unit noraise {
-  agent.tools[tool.desc.name] = @tool.tool(
-    description=tool.desc.description,
-    name=tool.desc.name,
-    parameters=tool.desc.parameters,
-    ToolFn((args : Json) => tool.call(args)),
-    render=tool.render,
-  )
+pub fn Agent::add_tools(
+  agent : Agent,
+  tools : Array[@tool.Tool],
+) -> Unit noraise {
+  for tool in tools {
+    agent.tools[tool.desc.name] = tool
+  }
 }
 
 ///|
@@ -205,8 +144,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       if response.tool_calls is [] {
         break
       }
-      for i in 0..<response.tool_calls.length() {
-        let call = response.tool_calls[i]
+      for call in response.tool_calls {
         agent.add_message(agent.execute_tool(call))
       }
     }
@@ -237,6 +175,7 @@ pub async fn new(
   ),
   cwd~ : StringView,
 ) -> Agent {
+  // FIXME:(upstream) function with error not allowed in optional expression
   let rand = match rand {
     Some(rand) => rand
     None => @rand.chacha8()

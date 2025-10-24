@@ -78,7 +78,9 @@ async fn process_segment(
 ) -> String? {
   let result = Ref::new(None)
   let subagent = @agent.new(model, cwd~)
-  subagent.add_tool(submit_moonbit_segment_new(Task::{ moon, segment, result }))
+  subagent.add_tools([
+    submit_moonbit_segment_new(Task::{ moon, segment, result }),
+  ])
   subagent.add_message(
     @openai.system_message(
       content=(

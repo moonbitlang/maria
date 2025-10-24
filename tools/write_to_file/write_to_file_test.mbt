@@ -139,7 +139,7 @@ async test "write_to_file/agentic" (t : @test.T) {
         })
       _ => ()
     })
-    agent.add_tool(@write_to_file.new(manager))
+    agent.add_tools([@write_to_file.new(manager)])
     agent.add_message(
       @openai.user_message(
         content="Update line 2 in file.txt to say 'line 2 modified via agent'.",

@@ -341,9 +341,11 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
     let subagent = @agent.new(ctx.parent_agent.model, cwd=ctx.cwd)
 
     // Add tools using factory functions
-    subagent.add_tool(read_current_file_new(ctx))
-    subagent.add_tool(submit_fixed_file_new(ctx))
-    subagent.add_tool(attempt_completion_new(ctx))
+    subagent.add_tools([
+      read_current_file_new(ctx),
+      submit_fixed_file_new(ctx),
+      attempt_completion_new(ctx),
+    ])
 
     // Add system message
     subagent.add_message(

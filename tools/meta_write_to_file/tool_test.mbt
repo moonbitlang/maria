@@ -23,9 +23,11 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.new(file_manager))
-    agent.add_tool(@read_file.new(file_manager))
-    agent.add_tool(@meta_write_to_file.new(agent))
+    agent.add_tools([
+      @write_to_file.new(file_manager),
+      @read_file.new(file_manager),
+      @meta_write_to_file.new(agent),
+    ])
     let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
       "path": "main.mbt",
       "replace": (
@@ -109,9 +111,11 @@ async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.new(file_manager))
-    agent.add_tool(@read_file.new(file_manager))
-    agent.add_tool(@meta_write_to_file.new(agent))
+    agent.add_tools([
+      @write_to_file.new(file_manager),
+      @read_file.new(file_manager),
+      @meta_write_to_file.new(agent),
+    ])
     let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
       "path": "main.mbt",
       "replace": (
@@ -285,9 +289,11 @@ async test "meta_write_to_file/search-replace" (t : @test.T) {
     )
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tool(@write_to_file.new(file_manager))
-    agent.add_tool(@read_file.new(file_manager))
-    agent.add_tool(@meta_write_to_file.new(agent))
+    agent.add_tools([
+      @write_to_file.new(file_manager),
+      @read_file.new(file_manager),
+      @meta_write_to_file.new(agent),
+    ])
     let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
       "path": "main.mbt",
       "search": (
