@@ -16,16 +16,21 @@ pub async fn render_diagnostics(
       Warning => warnings.push_back(d)
     }
   }
-  let limited_diagnostics = []
-  while limited_diagnostics.length() < limit {
-    if errors.pop_front() is Some(error) {
-      limited_diagnostics.push(error)
-      continue
+  let limited_diagnostics = if diagnostics.length() <= limit {
+    diagnostics.to_array()
+  } else {
+    let limited_diagnostics = []
+    while limited_diagnostics.length() < limit {
+      if errors.pop_front() is Some(error) {
+        limited_diagnostics.push(error)
+        continue
+      }
+      if warnings.pop_front() is Some(warning) {
+        limited_diagnostics.push(warning)
+        continue
+      }
     }
-    if warnings.pop_front() is Some(warning) {
-      limited_diagnostics.push(warning)
-      continue
-    }
+    limited_diagnostics
   }
   let diagnostic_texts = []
   for diagnostic in limited_diagnostics {

@@ -255,7 +255,7 @@ let os_args : Array[String] = @os.args()
 /// * `loc` : The source location where this function is called (automatically
 ///   filled by the compiler).
 /// * `timeout` (Optional) : timeout in milliseconds for the test execution
-///   (defaults to 10,000ms).
+///   (defaults to 30,000ms).
 /// * `retry` (Optional) : number of retry attempts if the test fails.
 /// * `f` : The async test function to execute, which receives a mock `Context`
 ///   with isolated filesystem, logger, clock, and other utilities.
@@ -325,10 +325,7 @@ pub async fn run(
         let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
         group.add_defer(() => ctx.close())
         f(ctx)
-      })) catch {
-        Skip(_) => ()
-        error => raise error
-      }
+      }))
     }
 
     if retry is Some(retry) {
@@ -337,13 +334,4 @@ pub async fn run(
       run()
     }
   })
-}
-
-///|
-priv suberror Skip String
-
-///|
-/// Aborts the current test flow without failing, marking it as skipped.
-pub fn[X] skip(message : String) -> X raise {
-  raise Skip(message)
 }

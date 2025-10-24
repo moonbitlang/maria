@@ -14,8 +14,6 @@ import(
 #callsite(autofill(loc))
 async fn run(@test.Test, loc~ : SourceLoc, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit
 
-fn[X] skip(String) -> X raise
-
 async fn[T] with_home(Directory, async () -> T) -> T
 
 // Errors
