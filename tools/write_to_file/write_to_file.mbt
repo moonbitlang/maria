@@ -46,7 +46,7 @@ impl @json.FromJson for WriteResultOperation with from_json(
 
 ///|
 /// Write operation result for structured JSON output
-priv struct WriteResult {
+struct WriteResult {
   path : String
   operation : WriteResultOperation
   bytes_written : Int
@@ -54,6 +54,11 @@ priv struct WriteResult {
   message : String
   content : String
 } derive(ToJson, FromJson)
+
+///|
+pub impl Show for WriteResult with output(self : WriteResult, logger : &Logger) -> Unit {
+  logger.write_string(self.message)
+}
 
 ///|
 /// Find a match in the haystack string using various matching strategies
@@ -174,7 +179,7 @@ test "find_match with fuzzy disabled works for exact substring" {
 async fn @file.Manager::execute_write_to_file(
   self : @file.Manager,
   args : Json,
-) -> @tool.Result noraise {
+) -> @tool.Result[WriteResult] noraise {
   // Parse required path parameter
   guard args is { "path": String(path), .. } else {
     return @tool.error("Error: 'path' parameter is required")
@@ -213,7 +218,7 @@ async fn @file.Manager::execute_write_to_file(
         message: "New file created and content written to \{path}",
         content: replace,
       }
-      @tool.ok(result.to_json())
+      @tool.ok(result)
     }
 
     // Read existing file content
@@ -269,14 +274,14 @@ async fn @file.Manager::execute_write_to_file(
       message: "Changes applied to \{path}",
       content,
     }
-    @tool.ok(result.to_json())
+    @tool.ok(result)
   } catch {
     error => @tool.error("Error writing to file: \{error}", error~)
   }
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool {
+pub fn new(manager : @file.Manager) -> @tool.Tool[WriteResult] {
   @tool.tool(
     description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
     name="write_to_file",
@@ -298,23 +303,8 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
       },
       "required": ["path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[WriteResult] noraise {
       manager.execute_write_to_file(args)
     }),
-    render=result => match result {
-      Ok(json) => {
-        let write_result : WriteResult = @json.from_json(json) catch {
-          error =>
-            return "Error: Unexpected output format: \{error}\n\{json.stringify(indent=2)}"
-        }
-        write_result.message
-      }
-      Error(error, json) =>
-        if json is String(message) {
-          message
-        } else {
-          error.to_string()
-        }
-    },
   )
 }

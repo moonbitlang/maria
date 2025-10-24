@@ -11,11 +11,11 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/tool",
     "moonbitlang/maria/tools/todo_read",
     "moonbitlang/maria/tools/todo_write",
     "moonbitlang/maria/tools/search_files",
     "moonbitlang/maria/prompt",
-    "moonbitlang/maria/job"
+    "moonbitlang/maria/job",
+    "moonbitlang/maria/tool"
   ]
 }

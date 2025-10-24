@@ -4,20 +4,44 @@ priv struct ReadFileResult {
   content : String
   start_line : Int
   end_line : Int
-} derive(ToJson)
+} derive(ToJson, @json.FromJson)
 
 ///|
 priv struct ReadDirectoryResult {
   path : String
   entries : Array[String]
   display : String
-} derive(ToJson)
+} derive(ToJson, @json.FromJson)
+
+///|
+enum ReadFileToolResult {
+  ReadFileResult(ReadFileResult)
+  ReadDirectoryResult(ReadDirectoryResult)
+} derive(ToJson, @json.FromJson)
+
+///|
+pub impl Show for ReadFileToolResult with output(
+  self : ReadFileToolResult,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    ReadDirectoryResult({ path, display, .. }) =>
+      logger.write_string("Directory: \{path}\nEntries:\n\{display}")
+    ReadFileResult({ path, content, start_line, end_line }) => {
+      let lines = content.split("\n").to_array()
+      let selected_lines = lines[start_line - 1:end_line]
+      let selected_content = selected_lines.join("\n")
+      let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
+      logger.write_string("File: \{path} (\{range_info})\n\{selected_content}")
+    }
+  }
+}
 
 ///|
 async fn execute_read_file_tool(
   manager : @file.Manager,
   args : Json,
-) -> @tool.Result noraise {
+) -> @tool.Result[ReadFileToolResult] noraise {
   // Parse required path parameter
   guard args is { "path": String(path), .. } else {
     return @tool.error("Error: 'path' parameter is required")
@@ -51,7 +75,9 @@ async fn execute_read_file_tool(
         _ => entry.name
       })
       let display = entries.join("\n")
-      return @tool.ok(ReadDirectoryResult::{ path, entries, display }.to_json())
+      return @tool.ok(
+        ReadDirectoryResult(ReadDirectoryResult::{ path, entries, display }),
+      )
     }
 
     // Open and read the file
@@ -87,7 +113,7 @@ async fn execute_read_file_tool(
       None => lines.length()
     }
     return @tool.ok(
-      ReadFileResult::{ path, content, start_line, end_line }.to_json(),
+      ReadFileResult(ReadFileResult::{ path, content, start_line, end_line }),
     )
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
@@ -95,7 +121,7 @@ async fn execute_read_file_tool(
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool {
+pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
   @tool.tool(
     description="Read the contents of a file at the specified path. Use this when you need to examine the contents of an existing file, for example to analyze code, review text files, or extract information from configuration files. For very large files (>30k tokens), the tool will automatically extract relevant sections based on the provided query to manage token usage efficiently. Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).",
     name="read_file",
@@ -117,33 +143,8 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
       },
       "required": ["path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[ReadFileToolResult] noraise {
       execute_read_file_tool(manager, args)
     }),
-    // Check if this is a directory listing
-    render=result => match result.output() {
-      { "path": String(path), "display": String(display), .. } =>
-        "Directory: \{path}\nEntries:\n\{display}"
-      {
-        "path": String(path),
-        "content": String(content),
-        "start_line": start_line,
-        "end_line": end_line,
-        ..
-      } => {
-        let start_line : Int = @json.from_json(start_line) catch {
-          error => return "Error parsing start_line from tool output: \{error}"
-        }
-        let end_line : Int = @json.from_json(end_line) catch {
-          error => return "Error parsing end_line from tool output: \{error}"
-        }
-        let lines = content.split("\n").to_array()
-        let selected_lines = lines[start_line - 1:end_line]
-        let selected_content = selected_lines.join("\n")
-        let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
-        "File: \{path} (\{range_info})\n\{selected_content}"
-      }
-      _ => "Error: Unexpected output format"
-    },
   )
 }

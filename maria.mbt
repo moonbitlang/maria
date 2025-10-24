@@ -57,10 +57,9 @@ pub async fn Maria::new(
             "output": output.to_json(),
             "text": rendered.to_json(),
           })
-        Error(error, output) =>
+        Err(error) =>
           logger.info("PostToolCall", {
             "name": tool_call.function.name.to_json(),
-            "output": output,
             "error": error.to_json(),
             "text": rendered.to_json(),
           })
@@ -73,13 +72,13 @@ pub async fn Maria::new(
   let file_manager = @file.manager(cwd~)
   let todo_list = @todo.list(uuid=agent.uuid, cwd=agent.cwd)
   agent.add_tools([
-    @execute_command.new(job_manager),
-    @list_files.new(file_manager),
-    @read_file.new(file_manager),
-    @write_to_file.new(file_manager),
-    @todo_read.new(todo_list),
-    @todo_write.new(todo_list),
-    @search_files.new(agent.cwd),
+    @execute_command.new(job_manager).to_agent_tool(),
+    @list_files.new(file_manager).to_agent_tool(),
+    @read_file.new(file_manager).to_agent_tool(),
+    @write_to_file.new(file_manager).to_agent_tool(),
+    @todo_read.new(todo_list).to_agent_tool(),
+    @todo_write.new(todo_list).to_agent_tool(),
+    @search_files.new(agent.cwd).to_agent_tool(),
   ])
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,

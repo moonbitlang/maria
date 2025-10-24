@@ -1,16 +1,97 @@
 ///|
-priv struct TodoWriteResult {
+struct TodoWriteResult {
   todos : Array[@todo.Item]
   message : String
   updated_todos : Array[@todo.Item]
   is_new_creation : Bool
-} derive(ToJson)
+} derive(ToJson, @json.FromJson)
+
+///|
+pub impl Show for TodoWriteResult with output(
+  self : TodoWriteResult,
+  logger : &Logger,
+) -> Unit {
+  let todos = self.todos
+  let action_performed = self.message
+  let updated_todos = self.updated_todos
+  let is_new_creation = self.is_new_creation
+  let output = []
+  output.push("✅ Operation completed: \{action_performed}\n")
+
+  // Status and priority icon helpers
+  fn get_status_icon(status : @todo.Status) -> String {
+    match status {
+      Completed => "✅"
+      InProgress => "🔄"
+      Pending => "⏳"
+    }
+  }
+
+  fn get_priority_icon(priority : @todo.Priority) -> String {
+    match priority {
+      High => "🔴"
+      Medium => "🟡"
+      Low => "🟢"
+    }
+  }
+
+  // Show newly created todos specifically for create action
+  if is_new_creation {
+    if updated_todos.length() > 0 {
+      output.push("📝 Newly created todos:")
+      for todo in updated_todos {
+        let priority_icon = get_priority_icon(todo.priority)
+        let status_icon = get_status_icon(todo.status)
+        output.push(
+          "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+        )
+      }
+    }
+  } else {
+    // Always show all todos
+    output.push("📝 Current todo list:")
+    for todo in todos {
+      let priority_icon = get_priority_icon(todo.priority)
+      let status_icon = get_status_icon(todo.status)
+      output.push(
+        "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+      )
+    }
+
+    // Highlight updated todos if provided
+    if updated_todos.length() > 0 {
+      output.push("\n✨ Updated items:")
+      for todo in updated_todos {
+        let priority_icon = get_priority_icon(todo.priority)
+        let status_icon = get_status_icon(todo.status)
+        output.push(
+          "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+        )
+      }
+    }
+  }
+  let total_todos = todos.length()
+  let mut pending_count = 0
+  let mut in_progress_count = 0
+  let mut completed_count = 0
+  for todo in todos {
+    match todo.status {
+      Pending => pending_count = pending_count + 1
+      InProgress => in_progress_count = in_progress_count + 1
+      Completed => completed_count = completed_count + 1
+    }
+  }
+  output.push(
+    "\n📊 Current summary: Total \{total_todos} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
+  )
+  logger.write_string(output.join("\n"))
+}
 
 ///|
 async fn @todo.List::execute_todo_write(
   self : @todo.List,
   args : Json,
-) -> @tool.Result noraise {
+) -> @tool.Result[TodoWriteResult] noraise {
   enum Action {
     Create
     AddTask
@@ -94,10 +175,10 @@ async fn @todo.List::execute_todo_write(
               self.save()
               let todos = self.todos()
               return @tool.ok({
-                "todos": todos.map(t => t.to_json()),
-                "message": "Created \{todos.length()} new todo items",
-                "updated_todos": todos.map(t => t.to_json()),
-                "is_new_creation": true,
+                todos,
+                message: "Created \{todos.length()} new todo items",
+                updated_todos: todos,
+                is_new_creation: true,
               })
             } catch {
               error =>
@@ -112,14 +193,12 @@ async fn @todo.List::execute_todo_write(
         let item = self.add_task(content, status~, priority~, notes~)
         try {
           self.save()
-          return @tool.ok(
-            TodoWriteResult::{
-              todos: self.todos().map(t => t),
-              message: "Added new task: \{item.content}",
-              updated_todos: [item],
-              is_new_creation: false,
-            }.to_json(),
-          )
+          return @tool.ok(TodoWriteResult::{
+            todos: self.todos().map(t => t),
+            message: "Added new task: \{item.content}",
+            updated_todos: [item],
+            is_new_creation: false,
+          })
         } catch {
           error =>
             return @tool.error("Failed to save new task: \{error}", error~)
@@ -166,14 +245,12 @@ async fn @todo.List::execute_todo_write(
         }
         try {
           self.save()
-          @tool.ok(
-            TodoWriteResult::{
-              todos: self.todos(),
-              message: action_message,
-              updated_todos,
-              is_new_creation: false,
-            }.to_json(),
-          )
+          @tool.ok(TodoWriteResult::{
+            todos: self.todos(),
+            message: action_message,
+            updated_todos,
+            is_new_creation: false,
+          })
         } catch {
           error =>
             return @tool.error("Failed to save task update: \{error}", error~)
@@ -186,7 +263,7 @@ async fn @todo.List::execute_todo_write(
 }
 
 ///|
-pub fn new(list : @todo.List) -> @tool.Tool {
+pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
   @tool.tool(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",
@@ -220,103 +297,9 @@ pub fn new(list : @todo.List) -> @tool.Tool {
       },
       "required": ["action"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[TodoWriteResult] noraise {
       list.execute_todo_write(args)
     }),
-    render=result => {
-      guard result.output()
-        is {
-          "todos": todos,
-          "message": String(action_performed),
-          "updated_todos": updated_todos,
-          "is_new_creation": is_new_creation,
-          ..
-        } else {
-        return "Error: Unexpected output format"
-      }
-      let todos : Array[@todo.Item] = @json.from_json(todos) catch {
-        error => return "Error: Failed to parse todos: \{error}"
-      }
-      let updated_todos : Array[@todo.Item] = @json.from_json(updated_todos) catch {
-        error => return "Error: Failed to parse updated_todos: \{error}"
-      }
-      let is_new_creation : Bool = @json.from_json(is_new_creation) catch {
-        error => return "Error: Failed to parse is_new_creation: \{error}"
-      }
-      if todos.length() == 0 {
-        return "Operation completed: \{action_performed}"
-      }
-      let output = []
-      output.push("✅ Operation completed: \{action_performed}\n")
-
-      // Status and priority icon helpers
-      fn get_status_icon(status : @todo.Status) -> String {
-        match status {
-          Completed => "✅"
-          InProgress => "🔄"
-          Pending => "⏳"
-        }
-      }
-
-      fn get_priority_icon(priority : @todo.Priority) -> String {
-        match priority {
-          High => "🔴"
-          Medium => "🟡"
-          Low => "🟢"
-        }
-      }
-
-      // Show newly created todos specifically for create action
-      if is_new_creation {
-        if updated_todos.length() > 0 {
-          output.push("📝 Newly created todos:")
-          for todo in updated_todos {
-            let priority_icon = get_priority_icon(todo.priority)
-            let status_icon = get_status_icon(todo.status)
-            output.push(
-              "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-            )
-          }
-        }
-      } else {
-        // Always show all todos
-        output.push("📝 Current todo list:")
-        for todo in todos {
-          let priority_icon = get_priority_icon(todo.priority)
-          let status_icon = get_status_icon(todo.status)
-          output.push(
-            "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-          )
-        }
-
-        // Highlight updated todos if provided
-        if updated_todos.length() > 0 {
-          output.push("\n✨ Updated items:")
-          for todo in updated_todos {
-            let priority_icon = get_priority_icon(todo.priority)
-            let status_icon = get_status_icon(todo.status)
-            output.push(
-              "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
-            )
-          }
-        }
-      }
-      let total_todos = todos.length()
-      let mut pending_count = 0
-      let mut in_progress_count = 0
-      let mut completed_count = 0
-      for todo in todos {
-        match todo.status {
-          Pending => pending_count = pending_count + 1
-          InProgress => in_progress_count = in_progress_count + 1
-          Completed => completed_count = completed_count + 1
-        }
-      }
-      output.push(
-        "\n📊 Current summary: Total \{total_todos} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
-      )
-      output.join("\n")
-    },
   )
 }
 

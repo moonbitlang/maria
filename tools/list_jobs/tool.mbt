@@ -1,10 +1,10 @@
 ///|
-pub fn new(manager : @job.Manager) -> @tool.Tool {
+pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
   @tool.tool(
     name="list_jobs",
     description="List all background jobs",
     parameters={ "type": "object", "properties": {}, "required": [] },
-    @tool.ToolFn(async fn(_args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(_args) -> @tool.Result[String] noraise {
       let jobs = manager.list() catch {
         error => return @tool.error("Failed to list background jobs: \{error}")
       }
@@ -25,11 +25,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
         }
         output.write_string("  Status: \{status_str}\n")
       }
-      @tool.ok(output.to_string().to_json())
+      @tool.ok(output.to_string())
     }),
-    render=result => result
-      .output()
-      .as_string()
-      .unwrap_or("Failed to convert output to string."),
   )
 }

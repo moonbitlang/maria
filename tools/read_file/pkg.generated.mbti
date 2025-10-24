@@ -2,16 +2,25 @@
 package "moonbitlang/maria/tools/read_file"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/file"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool
+fn new(@file.Manager) -> @tool.Tool[ReadFileToolResult]
 
 // Errors
 
 // Types and methods
+type ReadFileToolResult
+fn ReadFileToolResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ReadFileToolResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn ReadFileToolResult::to_json(Self) -> Json // from trait `ToJson`
+fn ReadFileToolResult::to_string(Self) -> String // from trait `Show`
+impl Show for ReadFileToolResult
+impl ToJson for ReadFileToolResult
+impl @json.FromJson for ReadFileToolResult
 
 // Type aliases
 

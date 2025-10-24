@@ -11,8 +11,8 @@ async test "search_files" (t : @test.T) {
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
     let result = @search_files.new(taco.cwd.path()).call(args)
-    @json.inspect(result, content=[
-      "Ok",
+    @json.inspect(result.output(), content=[
+      "SearchResultData",
       {
         "kind": "Regex",
         "query": "search files",
@@ -76,8 +76,8 @@ async test "search_files/agentic" (t : @test.T) {
     })
     let file_manager = @file.manager(cwd=taco.cwd.path())
     agent.add_tools([
-      @write_to_file.new(file_manager),
-      @search_files.new(taco.cwd.path()),
+      @write_to_file.new(file_manager).to_agent_tool(),
+      @search_files.new(taco.cwd.path()).to_agent_tool(),
     ])
     agent.add_message(
       @openai.user_message(

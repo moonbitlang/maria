@@ -2,17 +2,26 @@
 package "moonbitlang/maria/tools/search_files"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn new(String) -> @tool.Tool
+fn new(String) -> @tool.Tool[SearchFilesResult]
 
 let prompt : String
 
 // Errors
 
 // Types and methods
+type SearchFilesResult
+fn SearchFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn SearchFilesResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn SearchFilesResult::to_json(Self) -> Json // from trait `ToJson`
+fn SearchFilesResult::to_string(Self) -> String // from trait `Show`
+impl Show for SearchFilesResult
+impl ToJson for SearchFilesResult
+impl @json.FromJson for SearchFilesResult
 
 // Type aliases
 

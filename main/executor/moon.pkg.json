@@ -4,7 +4,6 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/openai",
     "moonbitlang/async/io",
-    "moonbitlang/maria",
-    "moonbitlang/maria/tool"
+    "moonbitlang/maria"
   ]
 }

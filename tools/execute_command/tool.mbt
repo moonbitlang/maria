@@ -4,7 +4,7 @@ priv suberror TimeoutError {
 } derive(ToJson, Show)
 
 ///|
-priv enum CommandResult {
+pub enum CommandResult {
   Foreground(
     command~ : String,
     status~ : Int,
@@ -17,7 +17,44 @@ priv enum CommandResult {
 } derive(@json.FromJson, ToJson)
 
 ///|
-pub fn new(ctx : @job.Manager) -> @tool.Tool {
+pub impl Show for CommandResult with output(
+  self : CommandResult,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    Foreground(command~, status~, output~, truncated~, total_lines~, ..) => {
+      let formatted = []
+      formatted.push("Command: \{command}")
+      formatted.push("Exit code: \{status}")
+      if truncated {
+        let newline_split = output.split("\n")
+        let output_lines_count = newline_split.collect().length()
+        formatted.push(
+          "Output: (first \{output_lines_count} of \{total_lines} lines)",
+        )
+        formatted.push(output)
+        if truncated {
+          formatted.push(
+            "... (truncated, try using redirection to pipe output to a file) ...",
+          )
+        } else {
+          ()
+        }
+      } else {
+        formatted.push("Output:")
+        formatted.push(output)
+      }
+      logger.write_string(formatted.join("\n"))
+    }
+    Background(command~, job_id~) =>
+      logger.write_string(
+        "Command: \{command}\nStarted in background with Job ID: \{job_id}",
+      )
+  }
+}
+
+///|
+pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
   @tool.tool(
     description="Execute an shell command with arguments and capture its output.",
     name="execute_command",
@@ -46,7 +83,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
       },
       "required": ["command", "timeout"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result noraise {
+    @tool.ToolFn(async fn(args) -> @tool.Result[CommandResult] noraise {
       guard args is { "command": String(command), .. } else {
         return @tool.error("Error: 'command' parameters is required")
       }
@@ -91,7 +128,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
       try {
         if background {
           let job = ctx.spawn(name=command, command~)
-          @tool.ok(CommandResult::Background(command~, job_id=job.id).to_json())
+          @tool.ok(CommandResult::Background(command~, job_id=job.id))
         } else {
           guard timeout is Some(timeout) else {
             return @tool.error(
@@ -125,7 +162,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
                 truncated~,
                 total_lines=lines.length(),
                 timeout~,
-              ).to_json(),
+              ),
             )
           })
           match result {
@@ -140,38 +177,5 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
         error => @tool.error("Error executing command: \{error}", error~)
       }
     }),
-    render=result => {
-      let cmd_result : CommandResult = @json.from_json(result.output()) catch {
-        error => return "Error: Unexpected output format: \{error}"
-      }
-      match cmd_result {
-        Foreground(command~, status~, output~, truncated~, total_lines~, ..) => {
-          let formatted = []
-          formatted.push("Command: \{command}")
-          formatted.push("Exit code: \{status}")
-          if truncated {
-            let newline_split = output.split("\n")
-            let output_lines_count = newline_split.collect().length()
-            formatted.push(
-              "Output: (first \{output_lines_count} of \{total_lines} lines)",
-            )
-            formatted.push(output)
-            if truncated {
-              formatted.push(
-                "... (truncated, try using redirection to pipe output to a file) ...",
-              )
-            } else {
-              ()
-            }
-          } else {
-            formatted.push("Output:")
-            formatted.push(output)
-          }
-          formatted.join("\n")
-        }
-        Background(command~, job_id~) =>
-          "Command: \{command}\nStarted in background with Job ID: \{job_id}"
-      }
-    },
   )
 }

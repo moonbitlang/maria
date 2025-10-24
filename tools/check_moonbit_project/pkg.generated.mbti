@@ -2,15 +2,29 @@
 package "moonbitlang/maria/tools/check_moonbit_project"
 
 import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/internal/moon"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn new(String) -> @tool.Tool
+fn new(String) -> @tool.Tool[CheckMoonbitProjectResult]
 
 // Errors
 
 // Types and methods
+pub struct CheckMoonbitProjectResult {
+  diagnostics : Array[@moon.Diagnostic]
+  diagnostic_limit : Int
+  rendered_diagnostics : String
+}
+fn CheckMoonbitProjectResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn CheckMoonbitProjectResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn CheckMoonbitProjectResult::to_json(Self) -> Json // from trait `ToJson`
+fn CheckMoonbitProjectResult::to_string(Self) -> String // from trait `Show`
+impl Show for CheckMoonbitProjectResult
+impl ToJson for CheckMoonbitProjectResult
+impl @json.FromJson for CheckMoonbitProjectResult
 
 // Type aliases
 
