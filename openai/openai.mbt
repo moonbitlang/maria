@@ -1,13 +1,4 @@
 ///|
-pub enum ChatCompletionServiceTier {
-  Auto
-  Default
-  Flex
-  Scale
-  Priority
-} derive(Show)
-
-///|
 impl @json.FromJson for ChatCompletionServiceTier with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -25,15 +16,6 @@ impl @json.FromJson for ChatCompletionServiceTier with from_json(
       raise @json.JsonDecodeError((json_path, "Unknown service tier: \{tier}"))
   }
 }
-
-///|
-typealias ChatCompletionServiceTier as ChatCompletionChunkServiceTier
-
-///|
-pub struct ChatCompletionChoiceLogprobs {
-  content : Array[ChatCompletionTokenLogprob]?
-  refusal : Array[ChatCompletionTokenLogprob]?
-} derive(Show)
 
 ///|
 impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
@@ -67,15 +49,6 @@ impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
   }
   ChatCompletionChoiceLogprobs::{ content, refusal }
 }
-
-///|
-/// Token logprob information
-pub struct ChatCompletionTokenLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-  top_logprobs : Array[ChatCompletionTopLogprob]
-} derive(Show)
 
 ///|
 impl @json.FromJson for ChatCompletionTokenLogprob with from_json(
@@ -113,14 +86,6 @@ impl @json.FromJson for ChatCompletionTokenLogprob with from_json(
 }
 
 ///|
-/// Top logprob information
-pub struct ChatCompletionTopLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-} derive(Show)
-
-///|
 impl @json.FromJson for ChatCompletionTopLogprob with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -149,12 +114,6 @@ impl @json.FromJson for ChatCompletionTopLogprob with from_json(
 }
 
 ///|
-pub struct Function {
-  arguments : String
-  name : String
-} derive(Show)
-
-///|
 impl ToJson for Function with to_json(self : Function) -> Json {
   { "name": self.name, "arguments": self.arguments }
 }
@@ -175,12 +134,6 @@ impl @json.FromJson for Function with from_json(
   }
   Function::{ arguments, name }
 }
-
-///|
-pub struct ChatCompletionMessageToolCall {
-  id : String
-  function : Function
-} derive(Show)
 
 ///|
 pub impl ToJson for ChatCompletionMessageToolCall with to_json(
@@ -211,11 +164,6 @@ impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
 }
 
 ///|
-pub enum ChatCompletionMessageRole {
-  Assistant
-} derive(Show)
-
-///|
 pub impl ToJson for ChatCompletionMessageRole with to_json(
   self : ChatCompletionMessageRole,
 ) -> Json {
@@ -223,15 +171,6 @@ pub impl ToJson for ChatCompletionMessageRole with to_json(
     Assistant => "assistant"
   }
 }
-
-///|
-pub struct ChatCompletionMessage {
-  content : String?
-  refusal : String?
-  role : ChatCompletionMessageRole
-  tool_calls : Array[ChatCompletionMessageToolCall]
-  function_call : ChatCompletionMessageFunctionCall?
-} derive(Show, ToJson)
 
 ///|
 #deprecated("Use ChatCompletionMessageToolCall instead")
@@ -341,15 +280,6 @@ pub impl @json.FromJson for ChatCompletionMessage with from_json(
 }
 
 ///|
-pub enum ChatCompletionChoiceFinishReason {
-  Stop
-  Length
-  ToolCalls
-  ContentFilter
-  FunctionCall
-} derive(Show)
-
-///|
 impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -369,14 +299,6 @@ impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
       )
   }
 }
-
-///|
-pub struct ChatCompletionChoice {
-  finish_reason : ChatCompletionChoiceFinishReason
-  index : Int
-  message : ChatCompletionMessage
-  logprobs : ChatCompletionChoiceLogprobs?
-} derive(Show)
 
 ///|
 impl @json.FromJson for ChatCompletionChoice with from_json(
@@ -423,11 +345,6 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
 }
 
 ///|
-pub struct CompletionTokensDetails {
-  reasoning_tokens : Int?
-} derive(Show, ToJson)
-
-///|
 impl @json.FromJson for CompletionTokensDetails with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -448,11 +365,6 @@ impl @json.FromJson for CompletionTokensDetails with from_json(
 }
 
 ///|
-pub struct CostDetails {
-  upstream_inference_cost : Double?
-} derive(Show, ToJson)
-
-///|
 impl @json.FromJson for CostDetails with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -471,12 +383,6 @@ impl @json.FromJson for CostDetails with from_json(
   }
   CostDetails::{ upstream_inference_cost, }
 }
-
-///|
-pub struct PromptTokensDetails {
-  cached_tokens : Int?
-  audio_tokens : Int?
-} derive(Show, ToJson)
 
 ///|
 impl @json.FromJson for PromptTokensDetails with from_json(
@@ -506,17 +412,6 @@ impl @json.FromJson for PromptTokensDetails with from_json(
   }
   PromptTokensDetails::{ cached_tokens, audio_tokens }
 }
-
-///|
-pub struct CompletionUsage {
-  completion_tokens : Int
-  completion_tokens_details : CompletionTokensDetails?
-  cost : Double?
-  cost_details : CostDetails?
-  prompt_tokens : Int
-  prompt_tokens_details : PromptTokensDetails?
-  total_tokens : Int
-} derive(Show, ToJson)
 
 ///|
 pub impl @json.FromJson for CompletionUsage with from_json(
@@ -589,11 +484,6 @@ pub impl @json.FromJson for CompletionUsage with from_json(
 }
 
 ///|
-pub struct CompletionUsageParam {
-  include_ : Bool
-}
-
-///|
 /// Create a usage tracking parameter for chat completions.
 ///
 /// Controls whether token usage information is included in the response.
@@ -609,18 +499,6 @@ pub fn usage(include_~ : Bool) -> CompletionUsageParam {
 ///|
 impl ToJson for CompletionUsageParam with to_json(self : CompletionUsageParam) -> Json {
   { "include": Json::boolean(self.include_) }
-}
-
-///|
-pub struct ChatCompletionParam {
-  model : String
-  messages : Array[ChatCompletionMessageParam]
-  tools : Array[ChatCompletionToolParam]
-  usage : CompletionUsageParam?
-  user : String?
-  max_tokens : Int?
-  temperature : Double?
-  response_format : ResponseFormat?
 }
 
 ///|
@@ -687,17 +565,6 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
 }
 
 ///|
-pub struct ChatCompletion {
-  id : String
-  choices : Array[ChatCompletionChoice]
-  created : Int
-  model : String
-  usage : CompletionUsage?
-  system_fingerprint : String?
-  service_tier : ChatCompletionServiceTier?
-} derive(Show)
-
-///|
 pub impl @json.FromJson for ChatCompletion with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -761,11 +628,6 @@ pub impl @json.FromJson for ChatCompletion with from_json(
     system_fingerprint,
     service_tier,
   }
-}
-
-///|
-pub enum ChatCompletionContentPartParam {
-  Text(ChatCompletionContentPartTextParam)
 }
 
 ///|
@@ -846,11 +708,6 @@ pub fn text_content_part(
 }
 
 ///|
-pub(all) enum CacheControl {
-  Ephemeral
-}
-
-///|
 pub impl ToJson for CacheControl with to_json(self : CacheControl) -> Json {
   match self {
     Ephemeral => { "type": "ephemeral" }
@@ -875,49 +732,6 @@ impl @json.FromJson for CacheControl with from_json(
         (json_path, "Unknown cache control type: \{type_}"),
       )
   }
-}
-
-///|
-pub struct ChatCompletionContentPartTextParam {
-  text : String
-  cache_control : CacheControl?
-}
-
-///|
-pub struct ChatCompletionSystemMessageParam {
-  content : Array[ChatCompletionContentPartParam]
-  name : String?
-}
-
-///|
-pub struct ChatCompletionUserMessageParam {
-  content : Array[ChatCompletionContentPartParam]
-  name : String?
-}
-
-///|
-typealias ChatCompletionMessageToolCall as ChatCompletionMessageToolCallParam
-
-///|
-pub struct ChatCompletionAssistantMessageParam {
-  content : Array[ChatCompletionContentPartParam]
-  name : String?
-  tool_calls : Array[ChatCompletionMessageToolCallParam]
-  function_call : ChatCompletionMessageFunctionCall?
-}
-
-///|
-pub struct ChatCompletionToolMessageParam {
-  content : Array[ChatCompletionContentPartParam]
-  tool_call_id : String
-}
-
-///|
-pub(all) enum ChatCompletionMessageParam {
-  System(ChatCompletionSystemMessageParam)
-  User(ChatCompletionUserMessageParam)
-  Assistant(ChatCompletionAssistantMessageParam)
-  Tool(ChatCompletionToolMessageParam)
 }
 
 ///|
@@ -1162,10 +976,7 @@ pub fn[T : ToChatCompletionMessageParamContent] system_message(
   content~ : T,
   name? : String,
 ) -> ChatCompletionMessageParam {
-  ChatCompletionMessageParam::System({
-    content: content.to_chat_completion_message_param_content(),
-    name,
-  })
+  System({ content: content.to_chat_completion_message_param_content(), name })
 }
 
 ///|
@@ -1185,10 +996,7 @@ pub fn[T : ToChatCompletionMessageParamContent] user_message(
   content~ : T,
   name? : String,
 ) -> ChatCompletionMessageParam {
-  ChatCompletionMessageParam::User({
-    content: content.to_chat_completion_message_param_content(),
-    name,
-  })
+  User({ content: content.to_chat_completion_message_param_content(), name })
 }
 
 ///|
@@ -1209,18 +1017,10 @@ pub fn[T : ToChatCompletionMessageParamContent] tool_message(
   content~ : T,
   tool_call_id~ : String,
 ) -> ChatCompletionMessageParam {
-  ChatCompletionMessageParam::Tool({
+  Tool({
     content: content.to_chat_completion_message_param_content(),
     tool_call_id,
   })
-}
-
-///|
-pub struct FunctionDefinition {
-  name : String
-  description : String
-  parameters : Json
-  strict : Bool?
 }
 
 ///|
@@ -1260,11 +1060,6 @@ pub fn tool(
 }
 
 ///|
-pub enum ChatCompletionToolParam {
-  Function(FunctionDefinition)
-}
-
-///|
 pub impl ToJson for ChatCompletionToolParam with to_json(
   self : ChatCompletionToolParam,
 ) -> Json {
@@ -1272,12 +1067,6 @@ pub impl ToJson for ChatCompletionToolParam with to_json(
     Function(function_definition) =>
       { "type": "function", "function": function_definition.to_json() }
   }
-}
-
-///|
-pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
-  arguments : String?
-  name : String?
 }
 
 ///|
@@ -1303,13 +1092,6 @@ impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with from
       raise @json.JsonDecodeError((json_path, "Expected 'name' to be a string"))
   }
   ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name }
-}
-
-///|
-pub struct ChatCompletionChunkChoiceDeltaToolCall {
-  index : Int
-  id : String?
-  function : ChatCompletionChunkChoiceDeltaToolCallFunction
 }
 
 ///|
@@ -1344,15 +1126,6 @@ impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCall with from_json(
 }
 
 ///|
-pub enum ChatCompletionRole {
-  Developer
-  System
-  User
-  Assistant
-  Tool
-}
-
-///|
 impl @json.FromJson for ChatCompletionRole with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -1361,20 +1134,13 @@ impl @json.FromJson for ChatCompletionRole with from_json(
     raise @json.JsonDecodeError((json_path, "Expected a string"))
   }
   match role {
-    "developer" => ChatCompletionRole::Developer
-    "system" => ChatCompletionRole::System
-    "user" => ChatCompletionRole::User
-    "assistant" => ChatCompletionRole::Assistant
-    "tool" => ChatCompletionRole::Tool
+    "developer" => Developer
+    "system" => System
+    "user" => User
+    "assistant" => Assistant
+    "tool" => Tool
     role => raise @json.JsonDecodeError((json_path, "Unknown role: \{role}"))
   }
-}
-
-///|
-pub struct ChatCompletionChunkChoiceDelta {
-  content : String?
-  role : ChatCompletionRole?
-  tool_calls : Array[ChatCompletionChunkChoiceDeltaToolCall]?
 }
 
 ///|
@@ -1417,13 +1183,6 @@ impl @json.FromJson for ChatCompletionChunkChoiceDelta with from_json(
     None => None
   }
   ChatCompletionChunkChoiceDelta::{ content, role, tool_calls }
-}
-
-///|
-pub struct ChatCompletionChunkChoice {
-  index : Int
-  delta : ChatCompletionChunkChoiceDelta
-  finish_reason : ChatCompletionChoiceFinishReason?
 }
 
 ///|
@@ -1566,21 +1325,6 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
     tool_calls,
     function_call: None,
   })
-}
-
-///|
-pub(all) enum ResponseFormat {
-  Text
-  JsonSchema(JsonSchema)
-  JsonObject
-}
-
-///|
-struct JsonSchema {
-  name : String
-  description : String?
-  schema : Map[String, Json]
-  strict : Bool?
 }
 
 ///|

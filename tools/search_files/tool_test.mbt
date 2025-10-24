@@ -75,8 +75,10 @@ async test "search_files/agentic" (t : @test.T) {
       _ => ()
     })
     let file_manager = @file.manager(cwd=taco.cwd.path())
-    agent.add_tool(@write_to_file.new(file_manager))
-    agent.add_tool(@search_files.new(taco.cwd.path()))
+    agent.add_tools([
+      @write_to_file.new(file_manager),
+      @search_files.new(taco.cwd.path()),
+    ])
     agent.add_message(
       @openai.user_message(
         content=(
