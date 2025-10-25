@@ -14,7 +14,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/file",
-    "moonbitlang/maria/tools/write_to_file",
+    "moonbitlang/maria/tools/replace_in_file",
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/regexp"
   ]
