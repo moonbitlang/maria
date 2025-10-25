@@ -20,7 +20,7 @@ async fn coverage_analyze(
     arguments.push(file)
   }
   let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd?)
+  let _ = @spawn.spawn("moon", arguments, stdout=output, cwd?)
   output.to_string()
 }
 
