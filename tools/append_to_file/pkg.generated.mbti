@@ -7,6 +7,8 @@ import(
 )
 
 // Values
+fn json_input(content~ : String, path~ : String, separator? : String) -> Json
+
 fn new(String) -> @tool.Tool[Result]
 
 // Errors
