@@ -18,7 +18,7 @@ on:
   pull_request:
     branches: ["main"]
     paths:
-      - "internal/tiktoken/**"
+      - "tiktoken/**"
 
 jobs:
   test:
@@ -37,7 +37,7 @@ jobs:
           python-version: "3.11"
 
       - name: Validate tiktoken
-        working-directory: ./internal/tiktoken
+        working-directory: ./tiktoken
         run: |
           uv sync
           uv run pytest ./scripts/validate.py -vv
