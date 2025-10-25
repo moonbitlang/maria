@@ -7,9 +7,9 @@ let original =
 async test "append_to_file" (t : @test.T) {
   @mock.run(t, taco => {
     @fs.write_to_file(@path.join(taco.cwd.path(), "file.txt"), original)
-    let args = params(path="file.txt", content="Line 3", separator="\n")
+    let args = json_input(path="file.txt", content="Line 3", separator="\n")
     let tool = new(taco.cwd.path())
-    let result = tool.call(args.to_json())
+    let result = tool.call(args)
     @json.inspect(taco.json(result.output()), content={
       "path": "(mock:cwd)/file.txt",
     })
