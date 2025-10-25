@@ -1,0 +1,50 @@
+{
+  "name": "maria",
+  "version": "0.1.0",
+  "description": "TypeScript bindings for the Maria agent executable",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run clean && npm run build",
+    "example": "npm run build && node dist/examples/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "maria",
+    "agent",
+    "ai",
+    "moonbit"
+  ],
+  "author": "MoonBit",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/moonbitlang/maria",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moonbitlang/maria.git",
+    "directory": "sdk/typescript"
+  },
+  "packageManager": "pnpm@10.13.1",
+  "dependencies": {
+    "openai": "^6.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
