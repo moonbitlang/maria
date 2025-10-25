@@ -137,11 +137,21 @@ fn format_log_entry(
       let content = openai_message_content(message)
         .trim(char_set=" \n\r\t")
         .to_string()
-      md_lines.push("# \{msg_cnt.val} \{role}: \{content}")
-      msg_cnt.val += 1
-      md_lines.push("")
-      md_lines.push(content)
-      md_lines.push("")
+      let title = content.split("\n").drop_while(line => line.is_blank()).peek()
+      if title is Some(title) {
+        md_lines.push("# \{msg_cnt.val} \{role}: \{title}")
+        msg_cnt.val += 1
+        md_lines.push("")
+        md_lines.push(content)
+        md_lines.push("")
+      } else {
+        md_lines.push("# \{msg_cnt.val} \{role}")
+        msg_cnt.val += 1
+        if !content.is_empty() {
+          md_lines.push(content)
+        }
+        md_lines.push("")
+      }
     }
     _ => ()
   }
@@ -226,6 +236,41 @@ test "format_log_entry/PostToolCall" {
       #|```
       #|The weather in New York is sunny.
       #|```
+      #|
+    ),
+  )
+}
+
+///|
+test "format_log_entry/MessageAdded with multiline tool content" {
+  let md_lines = []
+  let msg_cnt = Ref::new(1)
+  let log_entry : Json = {
+    "msg": "MessageAdded",
+    "message": {
+      "role": "tool",
+      "tool_call_id": "call_123",
+      "content": [
+        {
+          "type": "text",
+          "text": "✅ Operation completed: Marked task as completed\n\n📝 Current todo list:\n  🟡 ✅ [ea45749e] Create project structure\n  🟡 ⏳ [1efbf50f] Define data structures\n\n📊 Summary: Total 2 items",
+        },
+      ],
+    },
+  }
+  format_log_entry(log_entry, msg_cnt~, md_lines)
+  inspect(
+    md_lines.join("\n"),
+    content=(
+      #|# 1 Tool: ✅ Operation completed: Marked task as completed
+      #|
+      #|✅ Operation completed: Marked task as completed
+      #|
+      #|📝 Current todo list:
+      #|  🟡 ✅ [ea45749e] Create project structure
+      #|  🟡 ⏳ [1efbf50f] Define data structures
+      #|
+      #|📊 Summary: Total 2 items
       #|
     ),
   )
