@@ -93,17 +93,13 @@ async test "agent/single_tool_call" (t : @test.T) {
       ToolFn(args => {
         tool_called = true
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error({ "error": "Invalid arguments" })
+          return @tool.error("Invalid arguments")
         }
         let sum = a + b
         @tool.ok({ "result": sum })
       }),
-      render=result => match result {
-        Ok(output) => "Result: \{output}"
-        Error(_, output) => "Error: \{output}"
-      },
     )
-    agent.add_tools([calculator_tool])
+    agent.add_tools([calculator_tool.to_agent_tool()])
     agent.add_listener(event => match event {
       PreToolCall(tool_call) => tool_name = tool_call.function.name
       _ => ()
@@ -147,14 +143,10 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
       },
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error({ "error": "Invalid arguments" })
+          return @tool.error("Invalid arguments")
         }
         @tool.ok({ "result": a + b })
       }),
-      render=result => match result {
-        Ok(output) => output.stringify()
-        Error(_, output) => output.stringify()
-      },
     )
     let multiply_tool = @tool.tool(
       name="multiply",
@@ -166,16 +158,12 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
       },
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error({ "error": "Invalid arguments" })
+          return @tool.error("Invalid arguments")
         }
         @tool.ok({ "result": a * b })
       }),
-      render=result => match result {
-        Ok(output) => output.stringify()
-        Error(_, output) => output.stringify()
-      },
     )
-    agent.add_tools([add_tool, multiply_tool])
+    agent.add_tools([add_tool.to_agent_tool(), multiply_tool.to_agent_tool()])
     agent.add_listener(event => match event {
       PreToolCall(tool_call) => tool_calls.push(tool_call.function.name)
       _ => ()
@@ -254,8 +242,8 @@ async test "agent/file_operations" (t : @test.T) {
     // Add file management tools
     let file_manager = @file.manager(cwd=taco.cwd.path())
     agent.add_tools([
-      @write_to_file.new(file_manager),
-      @read_file.new(file_manager),
+      @write_to_file.new(file_manager).to_agent_tool(),
+      @read_file.new(file_manager).to_agent_tool(),
     ])
 
     // Track if files were created/read
@@ -339,25 +327,21 @@ async test "agent/tool_error_handling" (t : @test.T) {
       },
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error({ "error": "Invalid arguments" })
+          return @tool.error("Invalid arguments")
         }
         if b == 0.0 {
-          return @tool.error({ "error": "Division by zero" })
+          return @tool.error("Division by zero")
         }
         @tool.ok({ "result": a / b })
       }),
-      render=result => match result {
-        Ok(output) => output.stringify()
-        Error(_, output) => "Error: \{output.stringify()}"
-      },
     )
-    agent.add_tools([failing_tool])
+    agent.add_tools([failing_tool.to_agent_tool()])
     agent.add_listener(event => match event {
       PostToolCall(_, result~, rendered~) =>
         match result {
-          Error(_, _) => {
+          Err(_) => {
             error_encountered = true
-            inspect(rendered.contains("Error"), content="true")
+            inspect(rendered, content="Division by zero")
           }
           _ => ()
         }
@@ -392,26 +376,23 @@ async test "agent/batch_tool_registration" (t : @test.T) {
         description="First tool",
         parameters={ "type": "object", "properties": {} },
         ToolFn(_ => @tool.ok({ "result": "tool1" })),
-        render=_ => "tool1",
       ),
       @tool.tool(
         name="tool2",
         description="Second tool",
         parameters={ "type": "object", "properties": {} },
         ToolFn(_ => @tool.ok({ "result": "tool2" })),
-        render=_ => "tool2",
       ),
       @tool.tool(
         name="tool3",
         description="Third tool",
         parameters={ "type": "object", "properties": {} },
         ToolFn(_ => @tool.ok({ "result": "tool3" })),
-        render=_ => "tool3",
       ),
     ]
 
     // Register all tools at once
-    agent.add_tools(tools)
+    agent.add_tools(tools.map(fn(t) { t.to_agent_tool() }))
     let tool_names : Array[String] = []
     agent.add_listener(event => match event {
       PreToolCall(tool_call) => tool_names.push(tool_call.function.name)
