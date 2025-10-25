@@ -1,0 +1,7 @@
+{
+  "import": [
+    "moonbitlang/tiktoken/pcre2",
+    "moonbitlang/tiktoken/base64",
+    "myfreess/charclass/unicode"
+  ]
+}

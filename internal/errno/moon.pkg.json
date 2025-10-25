@@ -1,4 +1,4 @@
 {
-  "import": ["moonbitlang/maria/internal/c"],
+  "import": ["moonbitlang/tiktoken/c"],
   "native-stub": ["errno.c"]
 }
