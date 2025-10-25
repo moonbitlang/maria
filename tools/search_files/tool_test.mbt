@@ -76,7 +76,7 @@ async test "search_files/agentic" (t : @test.T) {
     })
     let file_manager = @file.manager(cwd=taco.cwd.path())
     agent.add_tools([
-      @write_to_file.new(file_manager).to_agent_tool(),
+      @replace_in_file.new(file_manager).to_agent_tool(),
       @search_files.new(taco.cwd.path()).to_agent_tool(),
     ])
     agent.add_message(

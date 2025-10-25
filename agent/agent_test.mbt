@@ -242,7 +242,7 @@ async test "agent/file_operations" (t : @test.T) {
     // Add file management tools
     let file_manager = @file.manager(cwd=taco.cwd.path())
     agent.add_tools([
-      @write_to_file.new(file_manager).to_agent_tool(),
+      @replace_in_file.new(file_manager).to_agent_tool(),
       @read_file.new(file_manager).to_agent_tool(),
     ])
 
@@ -252,7 +252,7 @@ async test "agent/file_operations" (t : @test.T) {
     agent.add_listener(event => match event {
       PreToolCall(tool_call) =>
         match tool_call.function.name {
-          "write_to_file" => file_written = true
+          "replace_in_file" => file_written = true
           "read_file" => _file_read = true
           _ => ()
         }
