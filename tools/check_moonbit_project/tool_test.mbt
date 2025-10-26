@@ -1,20 +1,22 @@
 ///|
 async test "check_moonbit_project" (t : @test.T) {
   @mock.run(t, taco => {
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "moon.mod.json"),
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "moon.pkg.json"),
-      Json::object({}).stringify(),
-    )
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "example.mbt"),
-      "///|\nlet x : Int = \"string\"",
-    )
-    let args = params(diagnostic_limit=10, project_path=taco.cwd.path())
-    let result = new(taco.cwd.path()).call(args.to_json())
+    taco.add_files([
+      (
+        "moon.mod.json",
+        { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      ),
+      ("moon.pkg.json", Json::object({}).stringify()),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|let x : Int = "string"
+        ),
+      ),
+    ])
+    let args = input_json(diagnostic_limit=10, project_path=taco.cwd.path())
+    let result = new(taco.cwd.path()).call(args)
     @json.inspect(taco.json(result), content=[
       "Ok",
       {
@@ -68,25 +70,38 @@ async test "check_moonbit_project" (t : @test.T) {
 ///|
 async test "check_moonbit_project/patch-insert" (t : @test.T) {
   @mock.run(t, taco => {
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "moon.mod.json"),
-      { "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "moon.pkg.json"),
-      Json::object({}).stringify(),
-    )
-    @fs.write_to_file(
-      @path.join(taco.cwd.path(), "example.mbt"),
-      "///|\nlet x : Int = \"string\"\n",
-    )
-    let args = params(
+    taco.add_files([
+      (
+        "moon.mod.json",
+        { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      ),
+      ("moon.pkg.json", Json::object({}).stringify()),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|let x : Int = "string"
+          #|
+        ),
+      ),
+    ])
+    let args = input_json(
       diagnostic_limit=10,
       project_path=taco.cwd.path(),
       patch_code="let y : String = 42",
       patch_file_name="example.mbt",
     )
-    let result = new(taco.cwd.path()).call(args.to_json())
+    let result = new(taco.cwd.path()).call(args)
+
+    // Note we don't really change the file
+    inspect(
+      @fs.read_file(@path.join(taco.cwd.path(), "example.mbt")),
+      content=(
+        #|///|
+        #|let x : Int = "string"
+        #|
+      ),
+    )
     @json.inspect(taco.json(result), content=[
       "Ok",
       {
