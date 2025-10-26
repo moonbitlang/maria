@@ -332,10 +332,7 @@ async test "meta_write_to_file/search-replace" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(
-      output.message,
-      content="Changes applied to main.mbt",
-    )
+    @json.inspect(output.message, content="Changes applied to main.mbt")
     let main_mbt_text = main_mbt_file.read().trim_space()
     @regexp.compile(regexp_string, flags="m").execute(main_mbt_text).matched()
     |> @json.inspect(content=true)

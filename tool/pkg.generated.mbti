@@ -2,34 +2,21 @@
 package "moonbitlang/maria/tool"
 
 // Values
-fn[Output] error(String, error? : Error) -> Result[Output]
-
-fn[Output] ok(Output) -> Result[Output]
-
-fn[Output] tool(description~ : String, name~ : String, parameters~ : Json, ToolFn[Output]) -> Tool[Output]
 
 // Errors
 
 // Types and methods
 type AgentTool
-async fn AgentTool::call(Self, Json) -> Result[(Json, String)] noraise
+async fn AgentTool::call(Self, Json) -> ToolResult[(Json, String)] noraise
 fn AgentTool::desc(Self) -> ToolDesc
-
-pub enum Result[Output] {
-  Ok(Output)
-  Error(Error, String)
-}
-fn[Output] Result::output(Self[Output]) -> Output raise
-fn[Output : ToJson] Result::to_json(Self[Output]) -> Json // from trait `ToJson`
-fn[Output : Show] Result::to_string(Self[Output]) -> String // from trait `Show`
-impl[Output : Show] Show for Result[Output]
-impl[Output : ToJson] ToJson for Result[Output]
 
 pub struct Tool[Output] {
   desc : ToolDesc
   // private fields
 }
-async fn[Output] Tool::call(Self[Output], Json) -> Result[Output] noraise
+async fn[Output] Tool::call(Self[Output], Json) -> ToolResult[Output] noraise
+#as_free_fn
+fn[Output] Tool::new(description~ : String, name~ : String, parameters~ : Json, ToolFn[Output]) -> Self[Output]
 fn[Output : ToJson + Show] Tool::to_agent_tool(Self[Output]) -> AgentTool
 
 pub struct ToolDesc {
@@ -38,9 +25,23 @@ pub struct ToolDesc {
   parameters : Json
 }
 
-pub(all) struct ToolFn[Output](async (Json) -> Result[Output] noraise)
+pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
 #deprecated
-fn[Output] ToolFn::inner(Self[Output]) -> async (Json) -> Result[Output] noraise
+fn[Output] ToolFn::inner(Self[Output]) -> async (Json) -> ToolResult[Output] noraise
+
+pub enum ToolResult[Output] {
+  Ok(Output)
+  Error(Error, String)
+}
+#as_free_fn
+fn[Output] ToolResult::error(String, error? : Error) -> Self[Output]
+#as_free_fn
+fn[Output] ToolResult::ok(Output) -> Self[Output]
+fn[Output : Show] ToolResult::output(Self[Output], &Logger) -> Unit // from trait `Show`
+fn[Output : ToJson] ToolResult::to_json(Self[Output]) -> Json // from trait `ToJson`
+fn[Output : Show] ToolResult::to_string(Self[Output]) -> String // from trait `Show`
+impl[Output : Show] Show for ToolResult[Output]
+impl[Output : ToJson] ToJson for ToolResult[Output]
 
 // Type aliases
 
