@@ -57,8 +57,11 @@ async test "todo_write/create/plain" (t : @test.T) {
         "is_new_creation": true,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -215,8 +218,11 @@ async test "todo_write/create/<task>" (t : @test.T) {
         "is_new_creation": true,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Created 7 new todo items
         #|
@@ -336,8 +342,11 @@ async test "todo_write/update" (t : @test.T) {
         "is_new_creation": false,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Updated task: Updated first item
         #|
@@ -370,7 +379,10 @@ async test "todo_write/mark_completed" (t : @test.T) {
       ),
       "priority": "medium",
     })
-    @json.inspect(result.output(), content={
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content={
       "todos": [
         {
           "content": "First item",
@@ -410,8 +422,11 @@ async test "todo_write/mark_completed" (t : @test.T) {
       ],
       "is_new_creation": true,
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -435,7 +450,10 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
-    @json.inspect(result.output(), content={
+    guard result is Ok(output) else {
+      fail("Expected Ok result")
+    }
+    @json.inspect(output, content={
       "todos": [
         {
           "content": "First item",
@@ -467,8 +485,11 @@ async test "todo_write/mark_completed" (t : @test.T) {
       ],
       "is_new_creation": false,
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Marked task as completed: First item
         #|
@@ -593,8 +614,11 @@ async test "todo_write/mark_progress" (t : @test.T) {
         "is_new_creation": false,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|✅ Operation completed: Marked task as in progress: First item
         #|

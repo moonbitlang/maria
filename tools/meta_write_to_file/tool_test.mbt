@@ -54,8 +54,11 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
       ),
       "description": "Add an enum Color with variants Red, Green, and Blue, a function to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     @json.inspect(
-      result.output().message,
+      output.message,
       content="File written successfully to main.mbt",
     )
     inspect(
@@ -140,8 +143,11 @@ async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
       ),
       "description": "Add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     @json.inspect(
-      result.output().message,
+      output.message,
       content="File written successfully to main.mbt",
     )
     let main_mbt_text = main_mbt_file.read().trim_space()
@@ -323,8 +329,11 @@ async test "meta_write_to_file/search-replace" (t : @test.T) {
       ),
       "description": "Remove existing placeholder content, then add an enum Color with variants Red, Green, and Blue, a method of Color to_string that converts a Color to its string representation, and a main function that prints the string representation of Color::Blue.",
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     @json.inspect(
-      result.output().message,
+      output.message,
       content="Changes applied to main.mbt",
     )
     let main_mbt_text = main_mbt_file.read().trim_space()

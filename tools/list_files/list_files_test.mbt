@@ -8,7 +8,11 @@ async test "list_files" (t : @test.T) {
       ("tool_test.mbt", "// test"),
     ])
     let tool = @list_files.new(manager)
-    @json.inspect(tool.call({ "path": "." }).output(), content={
+    let result = tool.call({ "path": "." })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content={
       "path": ".",
       "entries": [
         { "name": "tool.mbt", "kind": "file", "is_hidden": false },

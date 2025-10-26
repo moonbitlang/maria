@@ -19,7 +19,10 @@ async test "cat" (t : @test.T) {
     let _ = taco.add_file("file.txt", content="hello world")
     let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -49,7 +52,10 @@ async test "output-overflow" (t : @test.T) {
     })
     // For output-overflow case, we can't predict the exact UUID in the output_file path
     // So we'll check the structure and key fields, allowing flexibility for the UUID
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -69,7 +75,10 @@ async test "cd" (t : @test.T) {
     let _ = taco.add_file("file.txt", content="hello world")
     let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "Foreground",
       {
         "command": "cat file.txt",
@@ -88,7 +97,10 @@ async test "cd" (t : @test.T) {
       "command": "cd subdir && cat file.txt",
       "timeout": 5000,
     })
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "Foreground",
       {
         "command": "cd subdir && cat file.txt",
@@ -109,7 +121,10 @@ async test "background" (t : @test.T) {
     taco.group.spawn_bg(() => manager.start(), no_wait=true)
     let tool = @execute_command.new(manager)
     let result = tool.call({ "command": "sleep 2", "background": true })
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "Background",
       { "command": "sleep 2", "job_id": 0 },
     ])

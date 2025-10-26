@@ -33,7 +33,10 @@ async test "content" (t : @test.T) {
     let args : Json = { "path": "test.txt" }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "ReadFileResult",
       {
         "path": "test.txt",
@@ -42,8 +45,11 @@ async test "content" (t : @test.T) {
         "end_line": 4,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|File: test.txt (lines 1-4 (4 lines))
         #|line 1
@@ -72,7 +78,10 @@ async test "line_range" (t : @test.T) {
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "ReadFileResult",
       {
         "path": "lines.txt",
@@ -81,8 +90,11 @@ async test "line_range" (t : @test.T) {
         "end_line": 4,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|File: lines.txt (lines 2-4 (3 lines))
         #|line 2
@@ -103,7 +115,10 @@ async test "directory" (t : @test.T) {
     let args : Json = { "path": "." }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "ReadDirectoryResult",
       {
         "path": ".",
@@ -111,8 +126,11 @@ async test "directory" (t : @test.T) {
         "display": "subdir/\nfile1.txt\nfile2.txt",
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|Directory: .
         #|Entries:
@@ -148,7 +166,10 @@ async test "invalid-range" (t : @test.T) {
     let args : Json = { "path": "test.txt", "start_line": 2, "end_line": 1024 }
     let tool = new(manager)
     let result = tool.call(args)
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "ReadFileResult",
       {
         "path": "test.txt",
@@ -157,8 +178,11 @@ async test "invalid-range" (t : @test.T) {
         "end_line": 3,
       },
     ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      result.output(),
+      output,
       content=(
         #|File: test.txt (lines 2-3 (2 lines))
         #|line 2
