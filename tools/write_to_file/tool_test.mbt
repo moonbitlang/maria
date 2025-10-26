@@ -13,9 +13,7 @@ async test "write_to_file" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(taco.json(output), content={
-      "path": "(mock:cwd)/file.txt",
-    })
+    @json.inspect(taco.json(output), content={ "path": "(mock:cwd)/file.txt" })
     let final_content = @fs.read_file(@path.join(taco.cwd.path(), "file.txt"))
     inspect(
       final_content,
