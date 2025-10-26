@@ -3,105 +3,6 @@
 /// This is a MoonBit translation of the TypeScript meta_write_to_file tool
 
 ///|
-/// Parameters for the meta_write_to_file tool
-priv struct MetaWriteParams {
-  path : String
-  search : String?
-  replace : String?
-  description : String
-}
-
-///|
-pub struct MetaWriteToFileResult {
-  path : String
-  message : String
-  diff : String
-  learning_prompt : String?
-} derive(ToJson, FromJson)
-
-///|
-pub impl Show for MetaWriteToFileResult with output(
-  self : MetaWriteToFileResult,
-  logger : &Logger,
-) -> Unit {
-  let formatted = []
-  formatted.push("Path: \{self.path}")
-  formatted.push("Message: \{self.message}")
-  formatted.push("Diff: \{self.diff}")
-  let result = formatted.join("\n")
-  logger.write_string(result)
-}
-
-///|
-/// Parse and validate meta_write_to_file parameters
-fn parse_meta_write_params(args : Json) -> MetaWriteParams? {
-  guard args is { "path": String(path), "description": String(description), .. } else {
-    return None
-  }
-  let search = match args {
-    { "search": String(s), .. } => Some(s)
-    _ => None
-  }
-  let replace = match args {
-    { "replace": String(r), .. } => Some(r)
-    _ => None
-  }
-  Some(MetaWriteParams::{ path, search, replace, description })
-}
-
-///|
-/// Context needed for the syntax fixing sub-agent
-priv struct FixingContext {
-  file_path : String
-  cwd : String
-  description : String
-  syntax_errors : String
-  parent_agent : @agent.Agent
-}
-
-///|
-/// Result of diff comparison between two strings
-priv struct DiffResult {
-  has_changes : Bool
-  diff_text : String
-}
-
-///|
-/// Generate a diff between old and new content (simplified implementation)
-fn generate_diff(
-  old_content : String,
-  new_content : String,
-  title : String,
-) -> DiffResult {
-  if old_content == new_content {
-    return DiffResult::{ has_changes: false, diff_text: "" }
-  }
-
-  // Simple diff implementation - in a real implementation you'd use git diff
-  let diff_text = StringBuilder::new()
-  diff_text.write_string("\n\n**\{title}:**\n```diff\n")
-  let old_lines = old_content.split("\n").to_array()
-  let new_lines = new_content.split("\n").to_array()
-
-  // Simplified line-by-line diff
-  let max_lines = @cmp.maximum(old_lines.length(), new_lines.length())
-  for i = 0; i < max_lines; i = i + 1 {
-    let old_line = if i < old_lines.length() { old_lines[i] } else { "" }
-    let new_line = if i < new_lines.length() { new_lines[i] } else { "" }
-    if old_line != new_line {
-      if old_line != "" {
-        diff_text.write_string("-\{old_line}\n")
-      }
-      if new_line != "" {
-        diff_text.write_string("+\{new_line}\n")
-      }
-    }
-  }
-  diff_text.write_string("```")
-  DiffResult::{ has_changes: true, diff_text: diff_text.to_string() }
-}
-
-///|
 /// Check if a file is a MoonBit file based on extension
 fn is_moonbit_file(file_path : String) -> Bool {
   file_path.has_suffix(".mbt") || file_path.has_suffix(".mbt.md")
@@ -128,30 +29,22 @@ async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
 ///|
 /// Check syntax errors in a MoonBit file using moon check
 async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
+  let error_messages = []
   try {
     // Use the moon module's check functionality instead of direct spawn
     let mod = @moon.Module::load(cwd)
     mod.check()
-    let error_messages = []
     for diagnostic in mod.diagnostics() {
       // Filter for syntax errors (error codes 3xxx are syntax errors)
-      if diagnostic.error_code >= 3000 && diagnostic.error_code < 4000 {
-        match diagnostic.level {
-          @moon.Level::Error => {
-            let error_msg = StringBuilder::new()
-            error_msg.write_string(
-              "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}",
-            )
-            error_messages.push(error_msg.to_string())
-          }
-          _ => continue
-        }
+      if diagnostic.error_code is (3000..<4000) && diagnostic.level is Error {
+        let error_msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
+        error_messages.push(error_msg)
       }
     }
-    error_messages.join("\n")
   } catch {
-    _ => "" // Return empty string if check fails
+    _ => () // Return empty string if check fails
   }
+  error_messages.join("\n")
 }
 
 ///|
@@ -170,7 +63,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       },
       "required": ["content"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
+    async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "content": String(content), .. } else {
         return @tool.error("Missing 'content' argument")
       }
@@ -192,7 +85,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       } catch {
         error => @tool.error("Failed to write or verify file: \{error}", error~)
       }
-    }),
+    },
   )
 }
 
@@ -234,8 +127,7 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 
 ///|
 /// Tool for the sub-agent to signal completion
-fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
-  let _ = ctx // Suppress unused warning
+fn attempt_completion_new(_ : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
@@ -249,12 +141,12 @@ fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
       },
       "required": ["result"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
+    async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "result": String(result), .. } else {
         return @tool.error("Missing 'result' argument")
       }
       @tool.ok("Syntax fixing completed: \{result}")
-    }),
+    },
   )
 }
 
@@ -453,9 +345,8 @@ async fn execute_meta_write_to_file(
           parent_agent: agent,
         }
         let fixing_error = fix_syntax_errors(fixing_ctx)
-        match fixing_error {
-          Some(error) => return @tool.error("\{write_result}\n\{error}")
-          None => () // Continue
+        if fixing_error is Some(error) {
+          return @tool.error("\{write_result}\n\{error}")
         }
       }
 
@@ -470,24 +361,20 @@ async fn execute_meta_write_to_file(
 
       // Add syntax error learning prompt if there were syntax errors that got fixed
       let learning_prompt = if syntax_errors != "" && diff.has_changes {
-        let prompt = StringBuilder::new()
-        prompt.write_string("\n\n**⚠️ Syntax Error Learning Note:**\n")
-        prompt.write_string(
-          "The sub-agent has automatically fixed syntax errors in this MoonBit file. ",
-        )
-        prompt.write_string(
-          "Please review the changes above to understand what syntax issues were corrected. ",
-        )
-        prompt.write_string(
-          "Pay attention to these patterns to avoid similar syntax errors in future MoonBit code:\n\n",
-        )
-        prompt.write_string(
-          "Original syntax errors that were fixed:\n\{syntax_errors}\n\n",
-        )
-        prompt.write_string(
-          "Please learn from these corrections and apply proper MoonBit syntax in subsequent code generation.",
-        )
-        prompt.to_string()
+        let prompt =
+          $|
+          $|
+          $|**⚠️ Syntax Error Learning Note:**
+          $|The sub-agent has automatically fixed syntax errors in this MoonBit file.
+          $|Please review the changes above to understand what syntax issues were corrected.
+          $|Pay attention to these patterns to avoid similar syntax errors in future MoonBit code:
+          $|
+          $|Original syntax errors that were fixed:
+          $|\{syntax_errors}
+          $|
+          $|Please learn from these corrections and apply proper MoonBit syntax in subsequent code generation.
+          $|
+        prompt
       } else {
         ""
       }
@@ -546,7 +433,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
       },
       "required": ["path", "description"],
     },
-    @tool.ToolFn(async fn(
+    (async fn(
       args,
     ) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
       execute_meta_write_to_file(args, agent)
