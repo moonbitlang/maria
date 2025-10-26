@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/replace_in_file"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/file"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+fn new(@file.Manager) -> @tool.Tool[WriteResult]
+
+// Errors
+
+// Types and methods
+type WriteResult
+fn WriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn WriteResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn WriteResult::to_json(Self) -> Json // from trait `ToJson`
+fn WriteResult::to_string(Self) -> String // from trait `Show`
+impl Show for WriteResult
+impl ToJson for WriteResult
+impl @json.FromJson for WriteResult
+
+// Type aliases
+
+// Traits
+

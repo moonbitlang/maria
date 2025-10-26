@@ -1,9 +1,9 @@
 ///|
-async test "write_to_file/create" (t : @test.T) {
+async test "replace_in_file/create" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
-    let result = @write_to_file.new(manager).call(args)
+    let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
       "Ok",
       {
@@ -19,7 +19,7 @@ async test "write_to_file/create" (t : @test.T) {
 }
 
 ///|
-async test "write_to_file/replace" (t : @test.T) {
+async test "replace_in_file/replace" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
@@ -40,7 +40,7 @@ async test "write_to_file/replace" (t : @test.T) {
       "search": "Old content",
       "replace": "New content",
     }
-    let result = @write_to_file.new(manager).call(args)
+    let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
       "Ok",
       {
@@ -56,7 +56,7 @@ async test "write_to_file/replace" (t : @test.T) {
 }
 
 ///|
-async test "write_to_file/fail-to-match" (t : @test.T) {
+async test "replace_in_file/fail-to-match" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
@@ -65,7 +65,7 @@ async test "write_to_file/fail-to-match" (t : @test.T) {
       "search": "Non-matching content",
       "replace": "New content",
     }
-    let result = @write_to_file.new(manager).call(args)
+    let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
       "Error",
       [
@@ -77,7 +77,7 @@ async test "write_to_file/fail-to-match" (t : @test.T) {
 }
 
 ///|
-async test "write_to_file/search-replace" (t : @test.T) {
+async test "replace_in_file/search-replace" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
@@ -94,7 +94,7 @@ async test "write_to_file/search-replace" (t : @test.T) {
       "search": "line 2",
       "replace": "line 2 modified",
     }
-    let result = @write_to_file.new(manager).call(args)
+    let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
       "Ok",
       {
@@ -110,7 +110,7 @@ async test "write_to_file/search-replace" (t : @test.T) {
 }
 
 ///|
-async test "write_to_file/agentic" (t : @test.T) {
+async test "replace_in_file/agentic" (t : @test.T) {
   // TODO: add retries support
   @mock.run(timeout=60_000, retry=3, t, taco => {
     guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
@@ -142,7 +142,7 @@ async test "write_to_file/agentic" (t : @test.T) {
         })
       _ => ()
     })
-    agent.add_tool(@write_to_file.new(manager))
+    agent.add_tool(@replace_in_file.new(manager))
     agent.add_message(
       @openai.user_message(
         content="Update line 2 in file.txt to say 'line 2 modified via agent'.",
@@ -163,9 +163,9 @@ async test "write_to_file/agentic" (t : @test.T) {
 
 ///|
 /// does not make sense to test render separately as it's just returning the error message
-// async test "write_to_file/render" {
+// async test "replace_in_file/render" {
 //   @json.inspect(
-//     (@write_to_file.new("").render)(@tool.error("Some error occurred")),
+//     (@replace_in_file.new("").render)(@tool.error("Some error occurred")),
 //     content="Some error occurred",
 //   )
 // }

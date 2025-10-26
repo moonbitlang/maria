@@ -3,24 +3,25 @@ package "moonbitlang/maria/tools/write_to_file"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/file"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[WriteResult]
+fn json_input(content~ : String, path~ : String, separator? : String) -> Json
+
+fn new(String) -> @tool.Tool[Result]
 
 // Errors
 
 // Types and methods
-type WriteResult
-fn WriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn WriteResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn WriteResult::to_json(Self) -> Json // from trait `ToJson`
-fn WriteResult::to_string(Self) -> String // from trait `Show`
-impl Show for WriteResult
-impl ToJson for WriteResult
-impl @json.FromJson for WriteResult
+type Result
+fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn Result::output(Self, &Logger) -> Unit // from trait `Show`
+fn Result::to_json(Self) -> Json // from trait `ToJson`
+fn Result::to_string(Self) -> String // from trait `Show`
+impl Show for Result
+impl ToJson for Result
+impl @json.FromJson for Result
 
 // Type aliases
 
