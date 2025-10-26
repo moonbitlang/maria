@@ -433,10 +433,8 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
       },
       "required": ["path", "description"],
     },
-    (async fn(
-      args,
-    ) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
+    async fn(args) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
       execute_meta_write_to_file(args, agent)
-    }),
+    },
   )
 }
