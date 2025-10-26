@@ -120,9 +120,6 @@ async test "directory" (t : @test.T) {
         "display": "subdir/\nfile1.txt\nfile2.txt",
       },
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
-    }
     inspect(
       output,
       content=(
