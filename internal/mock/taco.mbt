@@ -129,14 +129,14 @@ impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
 ///|
 /// Serializes a value to JSON while masking sensitive fields with the current filter.
 pub fn[T : ToJson] Context::json(self : Context, value : T) -> Json {
-  Filterable::filter(self.filter, ToJson::to_json(value))
+  Filterable::filter(self.filter, value.to_json())
 }
 
 ///|
 /// Formats a value into a filtered string suited for deterministic snapshots.
 #alias(text)
 pub fn[T : Show] Context::show(self : Context, value : T) -> String {
-  Filterable::filter(self.filter, Show::to_string(value))
+  Filterable::filter(self.filter, value.to_string())
 }
 
 ///|

@@ -13,12 +13,17 @@ fn params(
   patch_file_name? : String,
   project_path~ : String,
 ) -> CheckMoonbitProjectParams {
-  CheckMoonbitProjectParams::{
-    diagnostic_limit,
-    patch_code,
-    patch_file_name,
-    project_path,
-  }
+  { diagnostic_limit, patch_code, patch_file_name, project_path }
+}
+
+///|
+pub fn input_json(
+  diagnostic_limit? : Int,
+  patch_code? : String,
+  patch_file_name? : String,
+  project_path~ : String,
+) -> Json {
+  params(diagnostic_limit?, patch_code?, patch_file_name?, project_path~).to_json()
 }
 
 ///|
@@ -55,39 +60,40 @@ pub impl Show for CheckMoonbitProjectResult with output(
 }
 
 ///|
+let schema : Json = {
+  "type": "object",
+  "properties": {
+    "diagnostic_limit": {
+      "type": "integer",
+      "description": "The maximum number of diagnostics to return. Default is 10.",
+      "default": 10,
+    },
+    "patch_code": {
+      "type": "string",
+      "description": "A code snippet to check as if it were appended to the file at 'patch_file'.",
+      "default": "",
+    },
+    "patch_file_name": {
+      "type": "string",
+      "description": "The file path to check the 'patch_code' against. If not provided, the code will be checked in isolation.",
+      "default": "",
+    },
+    "project_path": {
+      "type": "string",
+      "description": "The path to the MoonBit project to check. Defaults to the current working directory.",
+      "default": ".",
+    },
+  },
+  "required": ["project_path"],
+}
+
+///|
 pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
   @tool.tool(
     description="Call MoonBit toolchain to check current MoonBit project, and report any errors. Optionally, you can provide a code snippet and a file path to check the code as if it were appended to that file.",
     name="check_moonbit_project",
-    parameters={
-      "type": "object",
-      "properties": {
-        "diagnostic_limit": {
-          "type": "integer",
-          "description": "The maximum number of diagnostics to return. Default is 10.",
-          "default": 10,
-        },
-        "patch_code": {
-          "type": "string",
-          "description": "A code snippet to check as if it were appended to the file at 'patch_file'.",
-          "default": "",
-        },
-        "patch_file_name": {
-          "type": "string",
-          "description": "The file path to check the 'patch_code' against. If not provided, the code will be checked in isolation.",
-          "default": "",
-        },
-        "project_path": {
-          "type": "string",
-          "description": "The path to the MoonBit project to check. Defaults to the current working directory.",
-          "default": ".",
-        },
-      },
-      "required": ["project_path"],
-    },
-    @tool.ToolFn(async fn(
-      args,
-    ) -> @tool.Result[CheckMoonbitProjectResult] noraise {
+    parameters=schema,
+    async fn(args) -> @tool.Result[CheckMoonbitProjectResult] noraise {
       let args : CheckMoonbitProjectParams = @json.from_json(args) catch {
         error =>
           return @tool.error(
@@ -149,6 +155,6 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
           "\{rendered_diagnostics}",
         })
       }
-    }),
+    },
   )
 }
