@@ -11,7 +11,10 @@ async test "search_files" (t : @test.T) {
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
     let result = @search_files.new(taco.cwd.path()).call(args)
-    @json.inspect(result.output(), content=[
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content=[
       "SearchResultData",
       {
         "kind": "Regex",

@@ -13,8 +13,11 @@ async test "wait_job" (t : @test.T) {
       "timeout": 5000,
       "max_output_lines": 2,
     })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
     inspect(
-      mock.show(result.output()),
+      mock.show(output),
       content=(
         #|Job 0 completed with exit code 0
         #|Stdout ((mock:cwd)/.moonagent/jobs/0/stdout):

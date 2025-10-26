@@ -27,14 +27,6 @@ pub fn[Output] ToolResult::ok(output : Output) -> ToolResult[Output] {
 }
 
 ///|
-pub fn[Output] ToolResult::output(self : ToolResult[Output]) -> Output raise {
-  match self {
-    Ok(output) => output
-    Error(error, _) => raise error
-  }
-}
-
-///|
 pub impl[Output : Show] Show for ToolResult[Output] with output(
   self : ToolResult[Output],
   logger : &Logger,
