@@ -451,7 +451,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
       "task_id": "ac8a366d",
     })
     guard result is Ok(output) else {
-      fail("Expected Ok result")
+      fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content={
       "todos": [
