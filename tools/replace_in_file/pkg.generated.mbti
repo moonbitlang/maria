@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/tools/write_to_file"
+package "moonbitlang/maria/tools/replace_in_file"
 
 import(
   "moonbitlang/core/json"

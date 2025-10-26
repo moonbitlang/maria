@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/tools/append_to_file"
+package "moonbitlang/maria/tools/write_to_file"
 
 import(
   "moonbitlang/core/json"
@@ -7,6 +7,8 @@ import(
 )
 
 // Values
+fn json_input(content~ : String, path~ : String, separator? : String) -> Json
+
 fn new(String) -> @tool.Tool[Result]
 
 // Errors
