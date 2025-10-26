@@ -1,6 +1,6 @@
 ///|
 fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="submit_moonbit_segment",
     description="Submit a fixed MoonBit code segment for verification",
     parameters={
@@ -13,7 +13,7 @@ fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
       "required": ["segment"],
       "type": "object",
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       let { moon, segment, result } = task
       guard args is { "segment": patched, .. } else {
         return @tool.error("Missing 'segment' argument")
@@ -141,7 +141,7 @@ async fn process_segment(
 
 ///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="fix_moonbit_warnings",
     description="Fix all MoonBit warnings/errors in the given project directory by applying a batch suggestion to all relevant MoonBit top-level constructs.",
     parameters={
@@ -157,7 +157,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       },
       "required": ["description", "project_path"],
     },
-    @tool.ToolFn(async fn(args : Json) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args : Json) -> @tool.ToolResult[String] noraise {
       guard args
         is {
           "description": String(description),

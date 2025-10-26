@@ -157,7 +157,7 @@ async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
 ///|
 /// Tool for the sub-agent to submit fixed code segments
 fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="submit_fixed_file",
     description="Submit the complete fixed file content for verification",
     parameters={
@@ -170,7 +170,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       },
       "required": ["content"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "content": String(content), .. } else {
         return @tool.error("Missing 'content' argument")
       }
@@ -199,7 +199,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 ///|
 /// Tool for the sub-agent to read current file content
 fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="read_file",
     description="Read the current file content to understand what needs to be fixed",
     parameters={
@@ -212,7 +212,7 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       },
       "required": ["path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Missing 'path' argument")
       }
@@ -236,7 +236,7 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 /// Tool for the sub-agent to signal completion
 fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
   let _ = ctx // Suppress unused warning
-  @tool.tool(
+  @tool.new(
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
     parameters={
@@ -249,7 +249,7 @@ fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
       },
       "required": ["result"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "result": String(result), .. } else {
         return @tool.error("Missing 'result' argument")
       }
@@ -370,7 +370,7 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
 async fn execute_meta_write_to_file(
   args : Json,
   agent : @agent.Agent,
-) -> @tool.Result[MetaWriteToFileResult] noraise {
+) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
   // Parse and validate parameters
   let params = match parse_meta_write_params(args) {
     Some(params) => params
@@ -390,7 +390,7 @@ async fn execute_meta_write_to_file(
   try {
     // Step 1: Write the file using standard write_to_file logic
     // Implement write_to_file logic directly
-    let write_result : @tool.Result[String] = match
+    let write_result : @tool.ToolResult[String] = match
       (params.search, params.replace) {
       (None, Some(replace)) =>
         // Replace entire file content
@@ -521,7 +521,7 @@ async fn execute_meta_write_to_file(
 ///|
 /// The meta_write_to_file tool definition
 pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
-  @tool.tool(
+  @tool.new(
     description="Enhanced file writing tool that writes content to a file, automatically formats MoonBit files using moon fmt, checks for syntax errors with moon check, and spawns a sub-agent to fix any syntax errors found. This ensures that MoonBit files are always properly formatted and syntactically correct after writing. Returns diff comparison if final content differs from initial write.",
     name="meta_write_to_file",
     parameters={
@@ -546,7 +546,9 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
       },
       "required": ["path", "description"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[MetaWriteToFileResult] noraise {
+    @tool.ToolFn(async fn(
+      args,
+    ) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
       execute_meta_write_to_file(args, agent)
     }),
   )

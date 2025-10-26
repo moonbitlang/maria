@@ -79,7 +79,7 @@ async test "agent/single_tool_call" (t : @test.T) {
     let mut tool_name = ""
 
     // Add a simple calculator tool
-    let calculator_tool = @tool.tool(
+    let calculator_tool = @tool.new(
       name="add_numbers",
       description="Add two numbers together",
       parameters={
@@ -133,7 +133,7 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
     let tool_calls : Array[String] = []
 
     // Add multiple tools
-    let add_tool = @tool.tool(
+    let add_tool = @tool.new(
       name="add",
       description="Add two numbers",
       parameters={
@@ -148,7 +148,7 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
         @tool.ok({ "result": a + b })
       }),
     )
-    let multiply_tool = @tool.tool(
+    let multiply_tool = @tool.new(
       name="multiply",
       description="Multiply two numbers",
       parameters={
@@ -317,7 +317,7 @@ async test "agent/tool_error_handling" (t : @test.T) {
     let mut error_encountered = false
 
     // Add a tool that always fails
-    let failing_tool = @tool.tool(
+    let failing_tool = @tool.new(
       name="divide",
       description="Divide two numbers (will fail on division by zero)",
       parameters={
@@ -371,19 +371,19 @@ async test "agent/batch_tool_registration" (t : @test.T) {
 
     // Create multiple tools
     let tools = [
-      @tool.tool(
+      @tool.new(
         name="tool1",
         description="First tool",
         parameters={ "type": "object", "properties": {} },
         ToolFn(_ => @tool.ok({ "result": "tool1" })),
       ),
-      @tool.tool(
+      @tool.new(
         name="tool2",
         description="Second tool",
         parameters={ "type": "object", "properties": {} },
         ToolFn(_ => @tool.ok({ "result": "tool2" })),
       ),
-      @tool.tool(
+      @tool.new(
         name="tool3",
         description="Third tool",
         parameters={ "type": "object", "properties": {} },

@@ -267,7 +267,7 @@ pub impl Show for SearchFilesResult with output(
 async fn search_files_impl(
   args : Json,
   cwd : String,
-) -> @tool.Result[SearchFilesResult] noraise {
+) -> @tool.ToolResult[SearchFilesResult] noraise {
   // Extract parameters with validation
   match args {
     {
@@ -446,7 +446,7 @@ async fn search_files_impl(
 ///|
 /// Main search files tool implementation
 pub fn new(cwd : String) -> @tool.Tool[SearchFilesResult] {
-  @tool.tool(
+  @tool.new(
     description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
     name="search_files",
     parameters={
@@ -478,7 +478,7 @@ pub fn new(cwd : String) -> @tool.Tool[SearchFilesResult] {
       },
       "required": ["path", "regex", "kind"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[SearchFilesResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[SearchFilesResult] noraise {
       search_files_impl(args, cwd)
     }),
   )

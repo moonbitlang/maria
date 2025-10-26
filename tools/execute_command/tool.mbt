@@ -55,7 +55,7 @@ pub impl Show for CommandResult with output(
 
 ///|
 pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
-  @tool.tool(
+  @tool.new(
     description="Execute an shell command with arguments and capture its output.",
     name="execute_command",
     parameters={
@@ -83,7 +83,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       },
       "required": ["command", "timeout"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[CommandResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[CommandResult] noraise {
       guard args is { "command": String(command), .. } else {
         return @tool.error("Error: 'command' parameters is required")
       }

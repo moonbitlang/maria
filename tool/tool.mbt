@@ -12,21 +12,22 @@ pub struct Tool[Output] {
 }
 
 ///|
-pub(all) struct ToolFn[Output](async (Json) -> Result[Output] noraise)
+pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
 
 ///|
-pub enum Result[Output] {
+pub enum ToolResult[Output] {
   Ok(Output)
   Error(Error, String)
 } derive(ToJson)
 
 ///|
-pub fn[Output] ok(output : Output) -> Result[Output] {
+#as_free_fn
+pub fn[Output] ToolResult::ok(output : Output) -> ToolResult[Output] {
   Ok(output)
 }
 
 ///|
-pub fn[Output] Result::output(self : Result[Output]) -> Output raise {
+pub fn[Output] ToolResult::output(self : ToolResult[Output]) -> Output raise {
   match self {
     Ok(output) => output
     Error(error, _) => raise error
@@ -34,8 +35,8 @@ pub fn[Output] Result::output(self : Result[Output]) -> Output raise {
 }
 
 ///|
-pub impl[Output : Show] Show for Result[Output] with output(
-  self : Result[Output],
+pub impl[Output : Show] Show for ToolResult[Output] with output(
+  self : ToolResult[Output],
   logger : &Logger,
 ) -> Unit {
   match self {
@@ -50,15 +51,17 @@ pub impl[Output : Show] Show for Result[Output] with output(
 priv suberror ToolFailure String derive(ToJson)
 
 ///|
-pub fn[Output] error(
+#as_free_fn
+pub fn[Output] ToolResult::error(
   output : String,
   error? : Error = ToolFailure(output),
-) -> Result[Output] {
+) -> ToolResult[Output] {
   Error(error, output)
 }
 
 ///|
-pub fn[Output] tool(
+#as_free_fn
+pub fn[Output] Tool::new(
   description~ : String,
   name~ : String,
   parameters~ : Json,
@@ -71,7 +74,7 @@ pub fn[Output] tool(
 pub async fn[Output] Tool::call(
   tool : Tool[Output],
   args : Json,
-) -> Result[Output] noraise {
+) -> ToolResult[Output] noraise {
   (tool.f)(args)
 }
 
@@ -87,7 +90,7 @@ pub fn AgentTool::desc(self : AgentTool) -> ToolDesc {
 pub async fn AgentTool::call(
   self : AgentTool,
   args : Json,
-) -> Result[(Json, String)] noraise {
+) -> ToolResult[(Json, String)] noraise {
   self.0.call(args)
 }
 

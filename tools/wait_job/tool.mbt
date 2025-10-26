@@ -19,7 +19,7 @@ fn truncate_output(output : String, max_output_lines~ : Int) -> String {
 
 ///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     description="Wait for a background job to complete and capture its output.",
     name="wait_job",
     parameters={
@@ -40,7 +40,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
       },
       "required": ["job_id", "timeout", "max_output_lines"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       let params : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid parameters: \{error}")
       }
