@@ -64,11 +64,11 @@ pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
 
 ///|
 pub fn new(cwd : String) -> @tool.Tool[Result] {
-  @tool.tool(
+  @tool.new(
     description="Write content to a file at the specified path. If the file doesn't exist, it will be created. If the file exists, the content will be appended. This tool will automatically create any directories needed to write the file.",
     name="write_to_file",
     parameters=schema,
-    async fn(args) -> @tool.Result[Result] noraise {
+    async fn(args) -> @tool.ToolResult[Result] noraise {
       let { path, separator, content } : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}")
       }

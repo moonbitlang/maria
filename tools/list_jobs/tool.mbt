@@ -1,10 +1,10 @@
 ///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="list_jobs",
     description="List all background jobs",
     parameters={ "type": "object", "properties": {}, "required": [] },
-    @tool.ToolFn(async fn(_args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(_args) -> @tool.ToolResult[String] noraise {
       let jobs = manager.list() catch {
         error => return @tool.error("Failed to list background jobs: \{error}")
       }

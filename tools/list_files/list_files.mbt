@@ -108,11 +108,11 @@ let json_schema : Json = {
 
 ///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ListFilesResult] {
-  @tool.tool(
+  @tool.new(
     description="List files in a directory",
     name="list_files",
     parameters=json_schema,
-    @tool.ToolFn(async fn(args) -> @tool.Result[ListFilesResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[ListFilesResult] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Error: 'path' parameter is required")
       }

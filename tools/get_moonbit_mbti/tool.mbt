@@ -1,6 +1,6 @@
 ///|
 pub fn new(cwd : String) -> @tool.Tool[String] {
-  @tool.tool(
+  @tool.new(
     name="get_moonbit_mbti",
     description="Get Moonbit MBTI",
     parameters={
@@ -13,7 +13,7 @@ pub fn new(cwd : String) -> @tool.Tool[String] {
       },
       "required": ["package"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "package": String(pkg_name), .. } else {
         @tool.error(
           "Error: 'package' argument is required and must be a string.",

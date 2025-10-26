@@ -41,7 +41,7 @@ pub impl Show for ReadFileToolResult with output(
 async fn execute_read_file_tool(
   manager : @file.Manager,
   args : Json,
-) -> @tool.Result[ReadFileToolResult] noraise {
+) -> @tool.ToolResult[ReadFileToolResult] noraise {
   // Parse required path parameter
   guard args is { "path": String(path), .. } else {
     return @tool.error("Error: 'path' parameter is required")
@@ -122,7 +122,7 @@ async fn execute_read_file_tool(
 
 ///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
-  @tool.tool(
+  @tool.new(
     description="Read the contents of a file at the specified path. Use this when you need to examine the contents of an existing file, for example to analyze code, review text files, or extract information from configuration files. For very large files (>30k tokens), the tool will automatically extract relevant sections based on the provided query to manage token usage efficiently. Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).",
     name="read_file",
     parameters={
@@ -143,7 +143,9 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
       },
       "required": ["path"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[ReadFileToolResult] noraise {
+    @tool.ToolFn(async fn(
+      args,
+    ) -> @tool.ToolResult[ReadFileToolResult] noraise {
       execute_read_file_tool(manager, args)
     }),
   )

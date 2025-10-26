@@ -91,7 +91,7 @@ pub impl Show for TodoWriteResult with output(
 async fn @todo.List::execute_todo_write(
   self : @todo.List,
   args : Json,
-) -> @tool.Result[TodoWriteResult] noraise {
+) -> @tool.ToolResult[TodoWriteResult] noraise {
   enum Action {
     Create
     AddTask
@@ -264,7 +264,7 @@ async fn @todo.List::execute_todo_write(
 
 ///|
 pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
-  @tool.tool(
+  @tool.new(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",
     parameters={
@@ -297,7 +297,7 @@ pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
       },
       "required": ["action"],
     },
-    @tool.ToolFn(async fn(args) -> @tool.Result[TodoWriteResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult[TodoWriteResult] noraise {
       list.execute_todo_write(args)
     }),
   )
