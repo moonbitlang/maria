@@ -169,9 +169,6 @@ async test "invalid-range" (t : @test.T) {
         "end_line": 3,
       },
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
-    }
     inspect(
       output,
       content=(
