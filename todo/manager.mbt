@@ -203,51 +203,29 @@ pub fn List::get(self : List, index : Index) -> Item {
 
 ///|
 /// Remove common list prefixes from a line
-fn remove_list_prefixes(line : String) -> String {
-  let mut result = line
-
-  // Remove numbered list prefixes like "1. ", "2. ", etc.
-  if result.has_prefix("1.") ||
-    result.has_prefix("2.") ||
-    result.has_prefix("3.") ||
-    result.has_prefix("4.") ||
-    result.has_prefix("5.") ||
-    result.has_prefix("6.") ||
-    result.has_prefix("7.") ||
-    result.has_prefix("8.") ||
-    result.has_prefix("9.") {
-    let mut i = 0
-    while i < result.length() && result[i] >= '0' && result[i] <= '9' {
-      i = i + 1
+fn remove_list_prefixes(line : StringView) -> String {
+  let result = lexmatch line with longest {
+      ("[0-9]+.\w*", rest) => rest
+      ("-\w*", rest) => rest
+      ("\*\w*", rest) => rest
+      _ => line
     }
-    if i < result.length() && result[i] == '.' {
-      i = i + 1
-      while i < result.length() && result[i] == ' ' {
-        i = i + 1
-      }
-      try {
-        result = result[i:].to_string()
-      } catch {
-        _ => result = result
-      }
-    }
-  }
-
-  // Remove bullet prefixes like "- " and "* "
-  if result.has_prefix("- ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  } else if result.has_prefix("* ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  }
   result.trim(char_set=" \t\r\n").to_string()
+}
+
+///|
+test "remove_list_prefixes" {
+  @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
+  @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
+  @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
+  @json.inspect(
+    remove_list_prefixes("* Another bullet"),
+    content="Another bullet",
+  )
+  @json.inspect(
+    remove_list_prefixes("No prefix here"),
+    content="No prefix here",
+  )
 }
 
 ///|
@@ -265,11 +243,11 @@ pub fn List::parse(
   if task_matches.length() > 0 {
     // Found <task> tags, use them
     for task_content in task_matches {
-      let trimmed = task_content.trim(char_set=" \t\r\n").to_string()
+      let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
         let todo = self.item(
           id=self.generate_todo_id(),
-          trimmed,
+          trimmed.to_string(),
           notes?,
           priority~,
           status=Pending,
@@ -281,7 +259,7 @@ pub fn List::parse(
     // Fallback to line-by-line parsing
     let lines = content.trim(char_set=" \t\r\n").to_string().split("\n")
     for line in lines {
-      let trimmed_line = line.trim(char_set=" \t\r\n").to_string()
+      let trimmed_line = line.trim(char_set=" \t\r\n")
       if trimmed_line.length() == 0 {
         continue
       }
