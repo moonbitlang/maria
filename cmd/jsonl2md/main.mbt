@@ -133,6 +133,9 @@ fn format_log_entry(
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
       )
+      if message is Tool(_) {
+        return
+      }
       let role = openai_message_role(message)
       let content = openai_message_content(message)
         .trim(char_set=" \n\r\t")
@@ -259,21 +262,9 @@ test "format_log_entry/MessageAdded with multiline tool content" {
     },
   }
   format_log_entry(log_entry, msg_cnt~, md_lines)
-  inspect(
-    md_lines.join("\n"),
-    content=(
-      #|# 1 Tool: ✅ Operation completed: Marked task as completed
-      #|
-      #|✅ Operation completed: Marked task as completed
-      #|
-      #|📝 Current todo list:
-      #|  🟡 ✅ [ea45749e] Create project structure
-      #|  🟡 ⏳ [1efbf50f] Define data structures
-      #|
-      #|📊 Summary: Total 2 items
-      #|
-    ),
-  )
+  // The tool message should be ignored and produce no output, as the result
+  // is already logged in PostToolCall.
+  inspect(md_lines.join("\n"), content="")
 }
 
 ///|

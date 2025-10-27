@@ -26,48 +26,6 @@ pub async fn Maria::new(
     raise ModelNotConfigured
   }
   let agent = @agent.new(model, logger~, cwd~)
-  agent.add_listener(event => match event {
-    TokenCounted(token_count) =>
-      logger.info("TokenCounted", { "token_count": token_count.to_json() })
-    RequestCompleted(usage~, message~) =>
-      logger.info("RequestCompleted", {
-        "usage": usage.to_json(),
-        "message": message.to_json(),
-      })
-    PreToolCall(tool_call) =>
-      try {
-        let args = @json.parse(tool_call.function.arguments)
-        logger.info("PreToolCall", {
-          "name": tool_call.function.name.to_json(),
-          "args": args,
-        })
-      } catch {
-        error =>
-          logger.info("PreToolCall", {
-            "name": tool_call.function.name.to_json(),
-            "args": tool_call.function.arguments.to_json(),
-            "error": error.to_json(),
-          })
-      }
-    PostToolCall(tool_call, result~, rendered~) =>
-      match result {
-        Ok(output) =>
-          logger.info("PostToolCall", {
-            "name": tool_call.function.name.to_json(),
-            "output": output.to_json(),
-            "text": rendered.to_json(),
-          })
-        Err(error) =>
-          logger.info("PostToolCall", {
-            "name": tool_call.function.name.to_json(),
-            "error": error.to_json(),
-            "text": rendered.to_json(),
-          })
-      }
-    PreConversation => logger.info("PreConversation", {})
-    PostConversation => logger.info("PostConversation", {})
-    _ => ()
-  })
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
   let todo_list = @todo.list(uuid=agent.uuid, cwd=agent.cwd)

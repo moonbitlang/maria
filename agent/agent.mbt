@@ -237,10 +237,20 @@ fn Agent::emit(agent : Agent, event : Event) -> Unit {
         "pruned_token_count": pruned_token_count.to_json(),
       })
     PreToolCall(tool_call) =>
-      agent.logger.info("PreToolCall", {
-        "name": tool_call.function.name.to_json(),
-        "args": tool_call.function.arguments.to_json(),
-      })
+      try {
+        let args = @json.parse(tool_call.function.arguments)
+        agent.logger.info("PreToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "args": args,
+        })
+      } catch {
+        error =>
+          agent.logger.info("PreToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "args": tool_call.function.arguments.to_json(),
+            "error": error.to_json(),
+          })
+      }
     PostToolCall(tool_call, result~, rendered~) =>
       match result {
         Ok(output) =>
