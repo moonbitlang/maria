@@ -54,20 +54,21 @@ pub async fn generate_git_diff(
   modified~ : String,
 ) -> String {
   @fs.with_temporary_directory("maria-git-diff-XXXXXXX", tmpdir => {
-    let original_path = @path.join(tmpdir, "original.txt")
+    let original_path = @path.join(tmpdir, "original")
     @fs.write_to_file(original_path, original)
-    let modified_path = @path.join(tmpdir, "modified.txt")
+    let modified_path = @path.join(tmpdir, "modified")
     @fs.write_to_file(modified_path, modified)
     let output = StringBuilder::new()
     // TODO: add environment variable support
     @spawn.spawn(
       "git",
       [
-        "diff", "--no-ext-diff", "--no-index", "--no-index", "--no-prefix", "--unified=3",
-        original_path, modified_path,
+        "diff", "--no-ext-diff", "--no-index", "--no-prefix", "--unified=3", "original",
+        "modified",
       ],
       stdout=output,
       stderr=output,
+      cwd=tmpdir,
     )
     |> ignore()
     output.to_string()

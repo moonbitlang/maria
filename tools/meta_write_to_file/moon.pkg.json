@@ -7,7 +7,8 @@
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/moon",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/git"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
