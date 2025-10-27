@@ -133,6 +133,9 @@ fn format_log_entry(
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
       )
+      if message is Tool(_) {
+        return
+      }
       let role = openai_message_role(message)
       let content = openai_message_content(message)
         .trim(char_set=" \n\r\t")
