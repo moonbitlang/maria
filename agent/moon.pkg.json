@@ -16,7 +16,6 @@
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
-    "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/fs",
     "moonbitlang/maria/file",
     "moonbitlang/maria/tools/replace_in_file",

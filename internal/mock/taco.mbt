@@ -246,6 +246,25 @@ pub async fn Directory::list(self : Directory) -> Array[Entry] {
 let os_args : Array[String] = @os.args()
 
 ///|
+/// Retrieves the value of an environment variable, raising an error if it is
+/// not set or empty (unless `allow_empty` is true). The retrieved value is also
+/// added to the context's filter for masking in outputs.
+pub fn Context::getenv(
+  self : Context,
+  key : String,
+  allow_empty? : Bool = false,
+) -> String raise {
+  guard @os.getenv(key) is Some(value) else {
+    fail("Environment variable '\{key}' not set")
+  }
+  if !allow_empty && value is "" {
+    fail("Environment variable '\{key}' is empty")
+  }
+  self.filter.add("env:\{key}", value)
+  value
+}
+
+///|
 /// Runs a test function within an isolated mock environment with controlled
 /// resources and automatic cleanup.
 ///
@@ -319,7 +338,7 @@ pub async fn run(
         filter.add("file", file)
         filter.add("cwd", cwd.path())
         filter.add("env:HOME", directory(@os.home()).path())
-        if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
+        if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
           filter.add("env:OPENAI_API_KEY", api_key)
         }
         let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }

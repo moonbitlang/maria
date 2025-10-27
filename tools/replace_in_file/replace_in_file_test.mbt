@@ -113,9 +113,7 @@ async test "replace_in_file/search-replace" (t : @test.T) {
 async test "replace_in_file/agentic" (t : @test.T) {
   // TODO: add retries support
   @mock.run(timeout=60_000, retry=3, t, taco => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-      fail("OPENAI_API_KEY not set")
-    }
+    let api_key = taco.getenv("OPENAI_API_KEY")
     let manager = @file.manager(cwd=taco.cwd.path())
     let file = taco.add_file(
       "file.txt",

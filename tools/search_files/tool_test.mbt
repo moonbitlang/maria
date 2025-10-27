@@ -41,9 +41,7 @@ async test "search_files" (t : @test.T) {
 ///|
 async test "search_files/agentic" (t : @test.T) {
   @mock.run(t, timeout=300_000, taco => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-      fail("OPENAI_API_KEY not set")
-    }
+    let api_key = taco.getenv("OPENAI_API_KEY")
     taco.add_files([
       (
         "notes.txt",
