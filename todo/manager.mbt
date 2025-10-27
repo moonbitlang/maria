@@ -257,7 +257,7 @@ pub fn List::parse(
     }
   } else {
     // Fallback to line-by-line parsing
-    let lines = content.trim(char_set=" \t\r\n").to_string().split("\n")
+    let lines = content.trim(char_set=" \t\r\n").split("\n")
     for line in lines {
       let trimmed_line = line.trim(char_set=" \t\r\n")
       if trimmed_line.length() == 0 {
