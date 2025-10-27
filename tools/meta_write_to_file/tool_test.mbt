@@ -19,7 +19,7 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
       content=Json::object({ "is-main": true }).stringify(indent=2),
     )
     let main_mbt_file = mock.add_file("main.mbt")
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
@@ -108,7 +108,7 @@ async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
       content=Json::object({ "is-main": true }).stringify(indent=2),
     )
     let main_mbt_file = mock.add_file("main.mbt")
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
@@ -287,7 +287,7 @@ async test "meta_write_to_file/search-replace" (t : @test.T) {
         #|}
       ),
     )
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),

@@ -21,6 +21,7 @@ pub struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
+  logger : @pino.Logger
   // private fields
 }
 fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit

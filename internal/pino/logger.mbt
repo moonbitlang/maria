@@ -1,6 +1,6 @@
 ///|
 struct Logger {
-  tag : String
+  properties : Map[String, Json]
   level : Level
   transport : Transport
 }
@@ -11,7 +11,7 @@ pub fn logger(
   level? : Level = Info,
   transport : Transport,
 ) -> Logger {
-  Logger::{ tag, level, transport }
+  Logger::{ properties: { "tag": tag.to_json() }, level, transport }
 }
 
 ///|
@@ -41,8 +41,8 @@ pub async fn Logger::log(
   }
   let time_ms = @async.now()
   object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
-  if self.tag != "" {
-    object["tag"] = self.tag.to_json()
+  for k, v in self.properties {
+    object[k] = v
   }
   for k, v in content {
     object[k] = v
@@ -87,6 +87,17 @@ pub async fn Logger::debug(
 }
 
 ///|
-pub fn Logger::child(self : Logger, tag : String) -> Logger {
-  Logger::{ tag, level: self.level, transport: self.transport }
+pub fn Logger::child(self : Logger, properties : Map[String, Json]) -> Logger {
+  let child_properties = {}
+  for k, v in self.properties {
+    child_properties[k] = v
+  }
+  for k, v in properties {
+    child_properties[k] = v
+  }
+  Logger::{
+    properties: child_properties,
+    level: self.level,
+    transport: self.transport,
+  }
 }
