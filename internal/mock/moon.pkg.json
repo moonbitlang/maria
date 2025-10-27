@@ -12,6 +12,7 @@
     {
       "path": "moonbitlang/maria/internal/fs",
       "alias": "mfs"
-    }
+    },
+    "moonbitlang/maria/internal/spawn"
   ]
 }

@@ -82,17 +82,27 @@ pub async fn Context::add_directory(self : Context, name : String) -> Directory 
 
 ///|
 struct Filter {
-  keywords : Array[(String, String)]
+  text : Array[(String, String)]
+  json : Map[String, (Json) -> Json]
 }
 
 ///|
 fn Filter::new() -> Filter {
-  Filter::{ keywords: [] }
+  Filter::{ text: [], json: Map::new() }
 }
 
 ///|
-fn Filter::add(self : Filter, key : String, value : String) -> Unit {
-  self.keywords.push((key, value))
+fn Filter::add_text(self : Filter, key : String, value : String) -> Unit {
+  self.text.push((key, value))
+}
+
+///|
+fn Filter::add_json(
+  self : Filter,
+  key : String,
+  value : (Json) -> Json,
+) -> Unit {
+  self.json.set(key, value)
 }
 
 ///|
@@ -103,7 +113,7 @@ priv trait Filterable {
 ///|
 impl Filterable for String with filter(self : Filter, content : String) -> String {
   let mut content = content
-  for keyword in self.keywords {
+  for keyword in self.text {
     let (key, value) = keyword
     content = content.replace_all(old=value, new="(mock:\{key})")
   }
@@ -116,9 +126,13 @@ impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
     String(string) => Json::string(Filterable::filter(self, string))
     Array(array) => Json::array(array.map(e => Filterable::filter(self, e)))
     Object(old_object) => {
-      let new_object = {}
+      let new_object : Map[String, Json] = {}
       for k, v in old_object {
-        new_object[Filterable::filter(self, k)] = Filterable::filter(self, v)
+        if self.json.get(k) is Some(f) {
+          new_object[Filterable::filter(self, k)] = f(v)
+        } else {
+          new_object[Filterable::filter(self, k)] = Filterable::filter(self, v)
+        }
       }
       Json::object(new_object)
     }
@@ -260,7 +274,7 @@ pub fn Context::getenv(
   if !allow_empty && value is "" {
     fail("Environment variable '\{key}' is empty")
   }
-  self.filter.add("env:\{key}", value)
+  self.filter.add_text("env:\{key}", value)
   value
 }
 
@@ -335,11 +349,29 @@ pub async fn run(
         let uuid = @uuid.generator(rand)
         let file = loc.to_string().split(":").peek().unwrap().to_string()
         let filter = Filter::new()
-        filter.add("file", file)
-        filter.add("cwd", cwd.path())
-        filter.add("env:HOME", directory(@os.home()).path())
+        filter.add_text("file", file)
+        filter.add_text("cwd", cwd.path())
+        filter.add_text("env:HOME", directory(@os.home()).path())
+        filter.add_json("pid", json => if json == @spawn.getpid().to_json() {
+          "(mock:pid)"
+        } else {
+          json
+        })
+        let now = @clock.epoch.now()
+        fn filter_timestamp(json : Json) -> Json {
+          if json is Number(number, ..) &&
+            number >= now.to_double() &&
+            number <= (now + timeout.to_int64()).to_double() {
+            "(mock:timestamp)"
+          } else {
+            json
+          }
+        }
+
+        filter.add_json("time", filter_timestamp)
+        filter.add_text("hostname", @os.gethostname())
         if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
-          filter.add("env:OPENAI_API_KEY", api_key)
+          filter.add_text("env:OPENAI_API_KEY", api_key)
         }
         let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
         group.add_defer(() => ctx.close())
