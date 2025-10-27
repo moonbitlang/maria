@@ -76,11 +76,11 @@ test "json2xml" {
 }
 
 ///|
-fn format_log_entry(
+async fn format_log_entry(
   json : Json,
   msg_cnt~ : Ref[Int],
   md_lines : Array[String],
-) -> Unit raise {
+) -> Unit {
   match json {
     { "msg": "RequestCompleted", "message": message, .. } => {
       let message : @openai.ChatCompletionMessage = @json.from_json(message)
@@ -109,7 +109,55 @@ fn format_log_entry(
           md_lines.push("")
           try {
             let args = @json.parse(tool_call.function.arguments)
-            json2xml(args, md_lines)
+            if tool_call.function.name is "replace_in_file" {
+              match args {
+                {
+                  "path": String(path),
+                  "search": String(search),
+                  "replace": String(replace),
+                  ..
+                } => {
+                  md_lines.push("Replaced in file \{path}")
+                  md_lines.push("")
+                  md_lines.push("```diff")
+                  md_lines.push(
+                    @git.generate_git_diff(original=search, modified=replace),
+                  )
+                  md_lines.push("```")
+                }
+                { "path": String(path), "replace": String(replace), .. } => {
+                  let file_format = if path.has_suffix(".mbt") {
+                    Some("moonbit")
+                  } else if path.has_suffix(".json") {
+                    Some("json")
+                  } else if path.has_suffix(".md") {
+                    Some("markdown")
+                  } else {
+                    None
+                  }
+                  if file_format is Some(file_format) {
+                    md_lines.push("Written to file \{path}")
+                    md_lines.push("")
+                    if file_format is "markdown" {
+                      md_lines.push("````\{file_format}")
+                    } else {
+                      md_lines.push("```\{file_format}")
+                    }
+                    md_lines.push(replace)
+                    if file_format is "markdown" {
+                      md_lines.push("````")
+                    } else {
+                      md_lines.push("```")
+                    }
+                  } else {
+                    json2xml(args, md_lines)
+                  }
+                }
+                _ => json2xml(args, md_lines)
+              }
+            } else {
+              json2xml(args, md_lines)
+            }
           } catch {
             _ => {
               md_lines.push(tool_call.function.arguments)
@@ -124,16 +172,16 @@ fn format_log_entry(
       md_lines.push("# \{msg_cnt.val} Tool call result: <\{name}>")
       msg_cnt.val += 1
       md_lines.push("")
-      md_lines.push("```")
+      md_lines.push("````markdown")
       md_lines.push(text)
-      md_lines.push("```")
+      md_lines.push("````")
       md_lines.push("")
     }
     { "msg": "MessageAdded", "message": message, .. } => {
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
       )
-      if message is Tool(_) {
+      if message is (Tool(_) | System(_)) {
         return
       }
       let role = openai_message_role(message)
@@ -161,7 +209,7 @@ fn format_log_entry(
 }
 
 ///|
-test "format_log_entry/MessageAdded" {
+async test "format_log_entry/MessageAdded" {
   let md_lines = []
   let msg_cnt = Ref::new(1)
   let log_entry : Json = {
@@ -184,7 +232,7 @@ test "format_log_entry/MessageAdded" {
 }
 
 ///|
-test "format_log_entry/RequestCompleted" {
+async test "format_log_entry/RequestCompleted" {
   let md_lines = []
   let msg_cnt = Ref::new(1)
   let log_entry : Json = {
@@ -222,7 +270,7 @@ test "format_log_entry/RequestCompleted" {
 }
 
 ///|
-test "format_log_entry/PostToolCall" {
+async test "format_log_entry/PostToolCall" {
   let md_lines = []
   let msg_cnt = Ref::new(1)
   let log_entry : Json = {
@@ -236,16 +284,16 @@ test "format_log_entry/PostToolCall" {
     content=(
       #|# 1 Tool call result: <get_weather>
       #|
-      #|```
+      #|````markdown
       #|The weather in New York is sunny.
-      #|```
+      #|````
       #|
     ),
   )
 }
 
 ///|
-test "format_log_entry/MessageAdded with multiline tool content" {
+async test "format_log_entry/MessageAdded with multiline tool content" {
   let md_lines = []
   let msg_cnt = Ref::new(1)
   let log_entry : Json = {
@@ -264,6 +312,18 @@ test "format_log_entry/MessageAdded with multiline tool content" {
   format_log_entry(log_entry, msg_cnt~, md_lines)
   // The tool message should be ignored and produce no output, as the result
   // is already logged in PostToolCall.
+  inspect(md_lines.join("\n"), content="")
+  let log_entry : Json = {
+    "msg": "MessageAdded",
+    "message": {
+      "role": "system",
+      "content": [
+        { "type": "text", "text": "System maintenance scheduled at midnight." },
+      ],
+    },
+  }
+  format_log_entry(log_entry, msg_cnt~, md_lines)
+  // The system message should be ignored and produce no output.
   inspect(md_lines.join("\n"), content="")
 }
 
@@ -304,7 +364,7 @@ async fn main {
   let md_lines = []
   let msg_cnt = Ref::new(0)
   let jsonl_text = @fs.read_file(input_path)
-  for json_text in jsonl_text.split("\n") {
+  for json_text in jsonl_text.split("\n").collect() {
     if json_text.trim_space().is_empty() {
       continue
     }
