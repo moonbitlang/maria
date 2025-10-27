@@ -48,11 +48,8 @@ async fn main {
   )
   @fs.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")
-    @async.with_task_group(group => {
-      group.spawn_bg(() => logger.start(), no_wait=true)
-      let maria = @maria.Maria::new(logger~, cwd=tmpdir)
-      maria.start(prompt)
-    })
+    let maria = @maria.Maria::new(logger~, cwd=tmpdir)
+    maria.start(prompt)
     let zip_out = StringBuilder::new()
     let status = @spawn.spawn(
       "zip",

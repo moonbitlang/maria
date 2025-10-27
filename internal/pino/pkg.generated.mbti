@@ -32,12 +32,11 @@ impl Show for Level
 type Logger
 fn Logger::child(Self, String) -> Self
 fn Logger::close(Self) -> Unit
-fn Logger::debug(Self, StringView, Map[String, Json]) -> Unit
-fn Logger::error(Self, StringView, Map[String, Json]) -> Unit
-fn Logger::info(Self, StringView, Map[String, Json]) -> Unit
-fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
-async fn Logger::start(Self) -> Unit
-fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
+async fn Logger::debug(Self, StringView, Map[String, Json]) -> Unit
+async fn Logger::error(Self, StringView, Map[String, Json]) -> Unit
+async fn Logger::info(Self, StringView, Map[String, Json]) -> Unit
+async fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
+async fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
 
 type Transport
 fn Transport::console() -> Self
