@@ -98,6 +98,19 @@ pub async fn List::load(self : List) -> Unit {
 }
 
 ///|
+pub async fn List::save(self : List) -> Unit {
+  let todo_file_path = self.todo_file_path()
+  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
+  self.updated_at = get_current_timestamp(self.clock)
+  let json : Json = {
+    "created_at": self.created_at,
+    "todos": self.todos,
+    "updated_at": self.updated_at,
+  }
+  @fs.write_to_file(todo_file_path, json.stringify(indent=2))
+}
+
+///|
 /// Extract content from <task> tags (simplified implementation)
 fn extract_task_tags(content : String) -> Array[String] {
   let tasks = []
@@ -186,19 +199,6 @@ pub fn List::find(self : List, id : String) -> Index? {
 ///|
 pub fn List::get(self : List, index : Index) -> Item {
   self.todos[index.0]
-}
-
-///|
-pub async fn List::save(self : List) -> Unit {
-  let todo_file_path = self.todo_file_path()
-  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.updated_at = get_current_timestamp(self.clock)
-  let json : Json = {
-    "created_at": self.created_at,
-    "todos": self.todos,
-    "updated_at": self.updated_at,
-  }
-  @fs.write_to_file(todo_file_path, json.stringify(indent=2))
 }
 
 ///|
