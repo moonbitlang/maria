@@ -1,9 +1,7 @@
 ///|
 async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
   @mock.run(t, timeout=300_000, mock => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-      fail("OPENAI_API_KEY not set")
-    }
+    let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
@@ -92,9 +90,7 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
 ///|
 async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
   @mock.run(t, timeout=300_000, retry=3, mock => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-      fail("OPENAI_API_KEY not set")
-    }
+    let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
@@ -266,9 +262,7 @@ test "regexp" {
 ///|
 async test "meta_write_to_file/search-replace" (t : @test.T) {
   @mock.run(t, timeout=300_000, retry=3, mock => {
-    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-      fail("OPENAI_API_KEY not set")
-    }
+    let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
       api_key~,
       base_url="https://openrouter.ai/api/v1",
