@@ -6,6 +6,7 @@
     "moonbitlang/maria/internal/backtrace",
     "moonbitlang/maria/internal/fs",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/openai"
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/git"
   ]
 }
