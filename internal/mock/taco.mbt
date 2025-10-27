@@ -329,7 +329,6 @@ pub async fn run(
         }
         let logged = log_dir |> @path.join(t.name())
         let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
-        group.spawn_bg(() => logger.start(), no_wait=true)
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)

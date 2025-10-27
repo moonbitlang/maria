@@ -18,7 +18,7 @@ pub struct Agent {
 priv suberror EmptyChoices
 
 ///|
-pub fn Agent::add_message(
+pub async fn Agent::add_message(
   agent : Agent,
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
@@ -155,7 +155,6 @@ pub fn[Output : ToJson + Show] Agent::add_tool(
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
-    group.spawn_bg(() => agent.logger.start(), no_wait=true)
     agent.emit(PreConversation)
     while true {
       let response = agent.call()
@@ -226,7 +225,7 @@ pub async fn new(
 }
 
 ///|
-fn Agent::emit(agent : Agent, event : Event) -> Unit {
+async fn Agent::emit(agent : Agent, event : Event) -> Unit {
   agent.event_target.emit(event)
   match event {
     TokenCounted(token_count) =>
