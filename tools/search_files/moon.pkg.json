@@ -10,7 +10,6 @@
     "moonbitlang/async",
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/file",
-    "moonbitlang/maria/internal/os",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
