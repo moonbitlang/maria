@@ -4,7 +4,7 @@ pub struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
-  priv logger : @pino.Logger
+  logger : @pino.Logger
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
