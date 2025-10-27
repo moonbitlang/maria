@@ -19,6 +19,26 @@ on:
     branches: ["main"]
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install MoonBit
+        uses: ./.github/actions/install-moonbit
+        with:
+          channel: latest
+
+      - name: Inspect MoonBit version
+        run: |
+          moon version --all
+
+      - name: Check MoonBit code
+        run: |
+          moon check --deny-warn
+
   test:
     strategy:
       matrix:
