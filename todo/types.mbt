@@ -3,10 +3,15 @@ struct List {
   uuid : @uuid.Generator
   clock : &@clock.Clock
   cwd : String
-  mut todos : Array[Item]
+  mut items : Items
+}
+
+///|
+priv struct Items {
+  todos : Array[Item]
   mut created_at : String
   mut updated_at : String
-}
+} derive(ToJson, FromJson)
 
 ///|
 pub(all) enum Priority {

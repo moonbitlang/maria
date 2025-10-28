@@ -1,6 +1,6 @@
 ///|
 pub fn List::todos(self : List) -> Array[Item] {
-  self.todos.copy()
+  self.items.todos.copy()
 }
 
 ///|
@@ -54,13 +54,15 @@ pub fn list(
   clock? : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
 ) -> List raise {
-  List::{
+  {
     uuid,
     clock,
     cwd: cwd.to_string(),
-    todos: [],
-    created_at: get_current_timestamp(clock),
-    updated_at: get_current_timestamp(clock),
+    items: {
+      todos: [],
+      created_at: get_current_timestamp(clock),
+      updated_at: get_current_timestamp(clock),
+    },
   }
 }
 
@@ -75,37 +77,17 @@ fn List::todo_file_path(self : List) -> String {
 ///|
 pub async fn List::load(self : List) -> Unit {
   let path = self.todo_file_path()
-  if !@fs.exists(path) {
-    return
-  }
   let content = @fs.read_file(path)
   let json = @json.parse(content)
-  match json {
-    {
-      "created_at": String(created_at),
-      "todos": todos,
-      "updated_at": String(updated_at),
-      ..
-    } => {
-      self.created_at = created_at
-      let todos : Array[Item] = @json.from_json(todos)
-      self.todos = todos
-      self.updated_at = updated_at
-    }
-    _ => println("Invalid todo file format at \{path.to_string()}")
-  }
+  self.items = @json.from_json(json)
 }
 
 ///|
 pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.updated_at = get_current_timestamp(self.clock)
-  let json : Json = {
-    "created_at": self.created_at,
-    "todos": self.todos,
-    "updated_at": self.updated_at,
-  }
+  self.items.updated_at = get_current_timestamp(self.clock)
+  let json : Json = self.items.to_json()
   @fs.write_to_file(todo_file_path, json.stringify(indent=2))
 }
 
@@ -114,7 +96,7 @@ pub async fn List::save(self : List) -> Unit {
 fn extract_task_tags(content : String) -> Array[String] {
   let tasks = []
   let mut task = None
-  loop content.view() {
+  loop content[:] {
     [.. "<task>", .. rest] => {
       task = Some(StringBuilder::new())
       continue rest
@@ -139,12 +121,13 @@ fn extract_task_tags(content : String) -> Array[String] {
 
 ///|
 test "extract_task_tags" {
-  @json.inspect(
-    extract_task_tags(
-      "This is a test.\n<task>First task</task>\nSome text.\n<task>Second task</task>\nEnd.",
-    ),
-    content=["First task", "Second task"],
-  )
+  let tasks =
+    #|This is a test.
+    #|<task>First task</task>
+    #|Some text.
+    #|<task>Second task</task>
+    #|End.
+  @json.inspect(extract_task_tags(tasks), content=["First task", "Second task"])
 }
 
 ///|
@@ -160,15 +143,15 @@ pub fn List::add_task(
     [task, ..] => task
   }
   let item = self.item(content, status~, priority~, notes?)
-  self.todos.push(item)
-  self.updated_at = get_current_timestamp(self.clock)
+  self.items.todos.push(item)
+  self.items.updated_at = get_current_timestamp(self.clock)
   item
 }
 
 ///|
 pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
-  self.todos[index.0] = item
-  self.updated_at = get_current_timestamp(self.clock)
+  self.items.todos[index.0] = item
+  self.items.updated_at = get_current_timestamp(self.clock)
 }
 
 ///|
@@ -176,7 +159,7 @@ struct Index(Int)
 
 ///|
 pub fn List::find(self : List, id : String) -> Index? {
-  for i, todo in self.todos {
+  for i, todo in self.items.todos {
     if todo.id == id {
       return Some(Index(i))
     }
@@ -186,7 +169,7 @@ pub fn List::find(self : List, id : String) -> Index? {
 
 ///|
 pub fn List::get(self : List, index : Index) -> Item {
-  self.todos[index.0]
+  self.items.todos[index.0]
 }
 
 ///|
@@ -223,9 +206,9 @@ pub fn List::parse(
   priority~ : Priority,
   notes? : String,
 ) -> Unit raise {
-  self.todos.clear()
-  self.created_at = get_current_timestamp(self.clock)
-  self.updated_at = self.created_at
+  self.items.todos.clear()
+  self.items.created_at = get_current_timestamp(self.clock)
+  self.items.updated_at = self.items.created_at
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
@@ -239,7 +222,7 @@ pub fn List::parse(
           priority~,
           status=Pending,
         )
-        self.todos.push(todo)
+        self.items.todos.push(todo)
       }
     }
   } else {
@@ -255,7 +238,7 @@ pub fn List::parse(
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
         let todo = self.item(clean_line, notes?, priority~, status=Pending)
-        self.todos.push(todo)
+        self.items.todos.push(todo)
       }
     }
   }
