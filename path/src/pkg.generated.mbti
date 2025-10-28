@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "illusory0x0/path"
+package "moonbitlang/path"
 
 // Values
 
@@ -118,12 +118,12 @@ fn UnixPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn UnixPathComponent::to_json(Self) -> Json // from trait `ToJson`
 fn UnixPathComponent::to_string(Self) -> String // from trait `Show`
-impl IsString for UnixPathComponent
-impl PlatformPath for UnixPathComponent
 impl Eq for UnixPathComponent
 impl Hash for UnixPathComponent
 impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
+impl IsString for UnixPathComponent
+impl PlatformPath for UnixPathComponent
 
 pub(all) enum UnixPrefix {
   Root
@@ -171,12 +171,12 @@ fn WinPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn WinPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn WinPathComponent::to_json(Self) -> Json // from trait `ToJson`
 fn WinPathComponent::to_string(Self) -> String // from trait `Show`
-impl IsString for WinPathComponent
-impl PlatformPath for WinPathComponent
 impl Eq for WinPathComponent
 impl Hash for WinPathComponent
 impl Show for WinPathComponent
 impl ToJson for WinPathComponent
+impl IsString for WinPathComponent
+impl PlatformPath for WinPathComponent
 
 pub(all) enum WinPrefix {
   Root
