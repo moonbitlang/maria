@@ -111,7 +111,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ListFilesResult] {
   @tool.new(
     description="List files in a directory",
     name="list_files",
-    parameters=json_schema,
+    schema=json_schema,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[ListFilesResult] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Error: 'path' parameter is required")

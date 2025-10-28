@@ -18,28 +18,31 @@ fn truncate_output(output : String, max_output_lines~ : Int) -> String {
 }
 
 ///|
+let schema : Json = {
+  "type": "object",
+  "properties": {
+    "job_id": {
+      "type": "number",
+      "description": "The ID of the background job to wait for.",
+    },
+    "timeout": {
+      "type": "number",
+      "description": "The maximum time in milliseconds to wait for the job to complete. If the job does not complete within this time, an error is returned.",
+    },
+    "max_output_lines": {
+      "type": "number",
+      "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated.",
+    },
+  },
+  "required": ["job_id", "timeout", "max_output_lines"],
+}
+
+///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
   @tool.new(
     description="Wait for a background job to complete and capture its output.",
     name="wait_job",
-    parameters={
-      "type": "object",
-      "properties": {
-        "job_id": {
-          "type": "number",
-          "description": "The ID of the background job to wait for.",
-        },
-        "timeout": {
-          "type": "number",
-          "description": "The maximum time in milliseconds to wait for the job to complete. If the job does not complete within this time, an error is returned.",
-        },
-        "max_output_lines": {
-          "type": "number",
-          "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated.",
-        },
-      },
-      "required": ["job_id", "timeout", "max_output_lines"],
-    },
+    schema~,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       let params : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid parameters: \{error}")

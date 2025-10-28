@@ -92,7 +92,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
   @tool.new(
     description="Call MoonBit toolchain to check current MoonBit project, and report any errors. Optionally, you can provide a code snippet and a file path to check the code as if it were appended to that file.",
     name="check_moonbit_project",
-    parameters=schema,
+    schema~,
     async fn(args) -> @tool.ToolResult[CheckMoonbitProjectResult] noraise {
       let args : CheckMoonbitProjectParams = @json.from_json(args) catch {
         error =>

@@ -67,7 +67,7 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
   @tool.new(
     description="Write content to a file at the specified path. If the file doesn't exist, it will be created. If the file exists, the content will be appended. This tool will automatically create any directories needed to write the file.",
     name="write_to_file",
-    parameters=schema,
+    schema~,
     async fn(args) -> @tool.ToolResult[Result] noraise {
       let { path, separator, content } : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}")

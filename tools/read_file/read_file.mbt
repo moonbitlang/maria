@@ -121,28 +121,31 @@ async fn execute_read_file_tool(
 }
 
 ///|
+let schema : Json = {
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The path of the file to read, relative to the current working directory",
+    },
+    "start_line": {
+      "type": "number",
+      "description": "Optional starting line number (1-indexed, inclusive). When specified with end_line, only reads the specified line range.",
+    },
+    "end_line": {
+      "type": "number",
+      "description": "Optional ending line number (1-indexed, exclusive). When specified with start_line, only reads the specified line range.",
+    },
+  },
+  "required": ["path"],
+}
+
+///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
   @tool.new(
     description="Read the contents of a file at the specified path. Use this when you need to examine the contents of an existing file, for example to analyze code, review text files, or extract information from configuration files. For very large files (>30k tokens), the tool will automatically extract relevant sections based on the provided query to manage token usage efficiently. Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).",
     name="read_file",
-    parameters={
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "The path of the file to read, relative to the current working directory",
-        },
-        "start_line": {
-          "type": "number",
-          "description": "Optional starting line number (1-indexed, inclusive). When specified with end_line, only reads the specified line range.",
-        },
-        "end_line": {
-          "type": "number",
-          "description": "Optional ending line number (1-indexed, exclusive). When specified with start_line, only reads the specified line range.",
-        },
-      },
-      "required": ["path"],
-    },
+    schema~,
     @tool.ToolFn(async fn(
       args,
     ) -> @tool.ToolResult[ReadFileToolResult] noraise {

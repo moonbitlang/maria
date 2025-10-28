@@ -16,13 +16,13 @@ pub struct Tool[Output] {
 }
 async fn[Output] Tool::call(Self[Output], Json) -> ToolResult[Output] noraise
 #as_free_fn
-fn[Output] Tool::new(description~ : String, name~ : String, parameters~ : Json, ToolFn[Output]) -> Self[Output]
+fn[Output] Tool::new(description~ : String, name~ : String, schema~ : Json, ToolFn[Output]) -> Self[Output]
 fn[Output : ToJson + Show] Tool::to_agent_tool(Self[Output]) -> AgentTool
 
 pub struct ToolDesc {
   description : String
   name : String
-  parameters : Json
+  schema : Json
 }
 
 pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
