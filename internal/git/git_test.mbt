@@ -1,7 +1,11 @@
 ///|
 async test "clone" (t : @test.T) {
   @mock.run(t, taco => {
-    @git.clone("https://github.com/moonbitlang/maria.git", to=taco.cwd.path(), depth=1)
+    @git.clone(
+      "https://github.com/moonbitlang/maria.git",
+      to=taco.cwd.path(),
+      depth=1,
+    )
     let entries = taco.cwd.list().map((entry : @mock.Entry) => entry.name())
     @json.inspect(entries.contains("moon.mod.json"), content=true)
   })
@@ -53,16 +57,20 @@ async test "generate_git_diff" {
 
 ///|
 async test "clone_with_invalid_depth" (t : @test.T) {
-  @mock.run(t, taco => {
-    try {
-      @git.clone("https://github.com/moonbitlang/maria.git", to=taco.cwd.path(), depth=0)
-      @test.fail("Expected error for invalid depth")
-    } catch {
-      error => {
-        let error_str = error.to_string()
-        if !error_str.contains("depth must be a positive integer") {
-          @test.fail("Expected 'depth must be a positive integer' error, got: \{error_str}")
-        }
+  @mock.run(t, taco => try {
+    @git.clone(
+      "https://github.com/moonbitlang/maria.git",
+      to=taco.cwd.path(),
+      depth=0,
+    )
+    @test.fail("Expected error for invalid depth")
+  } catch {
+    error => {
+      let error_str = error.to_string()
+      if !error_str.contains("depth must be a positive integer") {
+        @test.fail(
+          "Expected 'depth must be a positive integer' error, got: \{error_str}",
+        )
       }
     }
   })

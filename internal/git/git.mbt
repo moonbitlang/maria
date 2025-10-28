@@ -3,7 +3,7 @@ pub async fn clone(
   url : String,
   to~ : StringView,
   cwd? : StringView,
-  depth? : Int
+  depth? : Int,
 ) -> Unit {
   let arguments : Array[StringView] = ["clone"]
   if depth is Some(d) {
