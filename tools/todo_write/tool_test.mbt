@@ -257,49 +257,21 @@ async test "todo_write/update" (t : @test.T) {
       ),
       "priority": "medium",
     })
-    @json.inspect(result, content=[
-      "Ok",
-      {
-        "todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.003Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "message": "Created 2 new todo items",
-        "updated_todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.003Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "is_new_creation": true,
-      },
-    ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(
+      output,
+      content=(
+        #|✅ Operation completed: Created 2 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🟡 ⏳ [ac8a366d] First item
+        #|  🟡 ⏳ [1ea1417c] Second item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
+      ),
+    )
     let result = @todo_write.new(todo_list).call({
       "action": "update",
       "task_id": "ac8a366d",
@@ -307,41 +279,6 @@ async test "todo_write/update" (t : @test.T) {
       "priority": "high",
       "content": "Updated first item",
     })
-    @json.inspect(result, content=[
-      "Ok",
-      {
-        "todos": [
-          {
-            "content": "Updated first item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "High",
-            "status": "InProgress",
-            "updated_at": "1970-01-01T00:00:00.006Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "message": "Updated task: Updated first item",
-        "updated_todos": [
-          {
-            "content": "Updated first item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "High",
-            "status": "InProgress",
-            "updated_at": "1970-01-01T00:00:00.006Z",
-          },
-        ],
-        "is_new_creation": false,
-      },
-    ])
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
@@ -382,49 +319,6 @@ async test "todo_write/mark_completed" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
-      "todos": [
-        {
-          "content": "First item",
-          "created_at": "1970-01-01T00:00:00.003Z",
-          "id": "ac8a366d",
-          "priority": "Medium",
-          "status": "Pending",
-          "updated_at": "1970-01-01T00:00:00.003Z",
-        },
-        {
-          "content": "Second item",
-          "created_at": "1970-01-01T00:00:00.004Z",
-          "id": "1ea1417c",
-          "priority": "Medium",
-          "status": "Pending",
-          "updated_at": "1970-01-01T00:00:00.004Z",
-        },
-      ],
-      "message": "Created 2 new todo items",
-      "updated_todos": [
-        {
-          "content": "First item",
-          "created_at": "1970-01-01T00:00:00.003Z",
-          "id": "ac8a366d",
-          "priority": "Medium",
-          "status": "Pending",
-          "updated_at": "1970-01-01T00:00:00.003Z",
-        },
-        {
-          "content": "Second item",
-          "created_at": "1970-01-01T00:00:00.004Z",
-          "id": "1ea1417c",
-          "priority": "Medium",
-          "status": "Pending",
-          "updated_at": "1970-01-01T00:00:00.004Z",
-        },
-      ],
-      "is_new_creation": true,
-    })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
-    }
     inspect(
       output,
       content=(
@@ -449,41 +343,6 @@ async test "todo_write/mark_completed" (t : @test.T) {
     let result = @todo_write.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
-    })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
-    }
-    @json.inspect(output, content={
-      "todos": [
-        {
-          "content": "First item",
-          "created_at": "1970-01-01T00:00:00.003Z",
-          "id": "ac8a366d",
-          "priority": "Medium",
-          "status": "Completed",
-          "updated_at": "1970-01-01T00:00:00.006Z",
-        },
-        {
-          "content": "Second item",
-          "created_at": "1970-01-01T00:00:00.004Z",
-          "id": "1ea1417c",
-          "priority": "Medium",
-          "status": "Pending",
-          "updated_at": "1970-01-01T00:00:00.004Z",
-        },
-      ],
-      "message": "Marked task as completed: First item",
-      "updated_todos": [
-        {
-          "content": "First item",
-          "created_at": "1970-01-01T00:00:00.003Z",
-          "id": "ac8a366d",
-          "priority": "Medium",
-          "status": "Completed",
-          "updated_at": "1970-01-01T00:00:00.006Z",
-        },
-      ],
-      "is_new_creation": false,
     })
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
@@ -522,49 +381,21 @@ async test "todo_write/mark_progress" (t : @test.T) {
       ),
       "priority": "medium",
     })
-    @json.inspect(result, content=[
-      "Ok",
-      {
-        "todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.003Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "message": "Created 2 new todo items",
-        "updated_todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.003Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "is_new_creation": true,
-      },
-    ])
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(
+      output,
+      content=(
+        #|✅ Operation completed: Created 2 new todo items
+        #|
+        #|📝 Newly created todos:
+        #|  🟡 ⏳ [ac8a366d] First item
+        #|  🟡 ⏳ [1ea1417c] Second item
+        #|
+        #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
+      ),
+    )
     let result = @todo_write.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "nonexistent",
@@ -579,41 +410,6 @@ async test "todo_write/mark_progress" (t : @test.T) {
       "action": "mark_progress",
       "task_id": "ac8a366d",
     })
-    @json.inspect(result, content=[
-      "Ok",
-      {
-        "todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "InProgress",
-            "updated_at": "1970-01-01T00:00:00.006Z",
-          },
-          {
-            "content": "Second item",
-            "created_at": "1970-01-01T00:00:00.004Z",
-            "id": "1ea1417c",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "1970-01-01T00:00:00.004Z",
-          },
-        ],
-        "message": "Marked task as in progress: First item",
-        "updated_todos": [
-          {
-            "content": "First item",
-            "created_at": "1970-01-01T00:00:00.003Z",
-            "id": "ac8a366d",
-            "priority": "Medium",
-            "status": "InProgress",
-            "updated_at": "1970-01-01T00:00:00.006Z",
-          },
-        ],
-        "is_new_creation": false,
-      },
-    ])
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
