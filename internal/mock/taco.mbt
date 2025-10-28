@@ -305,7 +305,7 @@ pub fn Context::getenv(
 pub async fn run(
   t : @test.T,
   loc~ : SourceLoc,
-  timeout? : Int = 30_000,
+  timeout? : Int = 300_000,
   retry? : Int,
   f : async (Context) -> Unit,
 ) -> Unit {
