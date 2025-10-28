@@ -22,7 +22,14 @@ pub async fn chat(
   request : Request,
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
   extra_body? : Map[String, Json] = {},
+  logger? : @pino.Logger,
 ) -> ChatCompletion {
+  if logger is Some(logger) {
+    logger.info("RequestSent", {
+      "model": { "name": model.name, "base_url": model.base_url },
+      "request": request.to_json(),
+    })
+  }
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
@@ -51,7 +58,21 @@ pub async fn chat(
         body[k] = v
       }
       let response = client.post(uri.path, Json::object(body))
-      guard response.code is (200..=299) else {
+      if logger is Some(logger) {
+    logger.info("ResponseReceived", {
+      "model": { "name": model.name, "base_url": model.base_url },
+      "response_code": response.code.to_json(),
+      "response_body": {
+        let text = response_body.text()
+        if (try? @json.parse(text)) is Ok(json) {
+          json
+        } else {
+          text.to_json()
+        }
+      },
+    })
+  }
+  guard response.code is (200..=299) else {
         raise HttpError(code=response.code, body=client.read_all().text())
       }
       if request.stream is Some(true) {
