@@ -95,6 +95,77 @@ fn Formatter::to_string(self : Formatter) -> String {
 }
 
 ///|
+async fn Formatter::format_tool_call(
+  self : Formatter,
+  tool_call : @openai.ChatCompletionMessageToolCall,
+) -> Unit {
+  self.lines.push("## Tool call argument: <\{tool_call.function.name}>")
+  self.lines.push("")
+  try {
+    let args = @json.parse(tool_call.function.arguments)
+    if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
+      match args {
+        {
+          "path": String(path),
+          "search": String(search),
+          "replace": String(replace),
+          ..
+        } => {
+          self.lines.push("Replacing in file \{path}")
+          self.lines.push("")
+          self.lines.push("```diff")
+          self.lines.push(
+            @git.generate_git_diff(original=search, modified=replace),
+          )
+          self.lines.push("```")
+        }
+        { "path": String(path), "replace": String(replace), .. } => {
+          let file_format = if path.has_suffix(".mbt") {
+            Some("moonbit")
+          } else if path.has_suffix(".json") {
+            Some("json")
+          } else if path.has_suffix(".md") {
+            Some("markdown")
+          } else {
+            None
+          }
+          if file_format is Some(file_format) {
+            self.lines.push("Writing to file \{path}")
+            self.lines.push("")
+            if file_format is "markdown" {
+              self.lines.push("````\{file_format}")
+            } else {
+              self.lines.push("```\{file_format}")
+            }
+            self.lines.push(replace)
+            if file_format is "markdown" {
+              self.lines.push("````")
+            } else {
+              self.lines.push("```")
+            }
+          } else {
+            json2xml(args, self.lines)
+          }
+        }
+        _ => json2xml(args, self.lines)
+      }
+    } else if tool_call.function.name is "submit_fixed_file" &&
+      args is { "content": String(content), .. } {
+      self.lines.push("Submitting fixed file content:")
+      self.lines.push("")
+      self.lines.push("```moonbit")
+      self.lines.push(content)
+      self.lines.push("```")
+    } else {
+      json2xml(args, self.lines)
+    }
+    self.lines.push("")
+  } catch {
+    _ => self.lines.push(tool_call.function.arguments)
+  }
+}
+
+///|
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   if self.id is None &&
     json is { "tool": { "name": String(name), "id": String(id), .. }, .. } {
@@ -146,66 +217,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       }
       if message.tool_calls.length() > 0 {
         for tool_call in message.tool_calls {
-          self.lines.push("## Tool call argument: <\{tool_call.function.name}>")
-          self.lines.push("")
-          try {
-            let args = @json.parse(tool_call.function.arguments)
-            if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
-              match args {
-                {
-                  "path": String(path),
-                  "search": String(search),
-                  "replace": String(replace),
-                  ..
-                } => {
-                  self.lines.push("Replaced in file \{path}")
-                  self.lines.push("")
-                  self.lines.push("```diff")
-                  self.lines.push(
-                    @git.generate_git_diff(original=search, modified=replace),
-                  )
-                  self.lines.push("```")
-                }
-                { "path": String(path), "replace": String(replace), .. } => {
-                  let file_format = if path.has_suffix(".mbt") {
-                    Some("moonbit")
-                  } else if path.has_suffix(".json") {
-                    Some("json")
-                  } else if path.has_suffix(".md") {
-                    Some("markdown")
-                  } else {
-                    None
-                  }
-                  if file_format is Some(file_format) {
-                    self.lines.push("Written to file \{path}")
-                    self.lines.push("")
-                    if file_format is "markdown" {
-                      self.lines.push("````\{file_format}")
-                    } else {
-                      self.lines.push("```\{file_format}")
-                    }
-                    self.lines.push(replace)
-                    if file_format is "markdown" {
-                      self.lines.push("````")
-                    } else {
-                      self.lines.push("```")
-                    }
-                  } else {
-                    json2xml(args, self.lines)
-                  }
-                }
-                _ => json2xml(args, self.lines)
-              }
-            } else {
-              json2xml(args, self.lines)
-            }
-          } catch {
-            _ => {
-              self.lines.push(tool_call.function.arguments)
-              continue
-            }
-          }
-          self.lines.push("")
+          self.format_tool_call(tool_call)
         }
       }
     }
