@@ -507,7 +507,8 @@ impl ToJson for CompletionUsageParam with to_json(self : CompletionUsageParam) -
 /// This function constructs a complete set of parameters for a chat completion
 /// request, including messages, tools, and various configuration options.
 ///
-/// # Parameters
+/// Parameters
+///
 /// - `model`: The model identifier (e.g., "gpt-4o-mini", "gpt-4-turbo")
 /// - `messages`: Array of messages forming the conversation history
 /// - `tools`: Optional array of function tools the model can call
@@ -692,14 +693,11 @@ impl @json.FromJson for ChatCompletionContentPartParam with from_json(
 /// Text content parts are the building blocks of message content in chat completions.
 /// They can optionally include cache control directives for prompt caching.
 ///
-/// # Parameters
+/// Parameters
 /// - `text`: The text content
 /// - `cache_control`: Optional cache control directive (currently only `Ephemeral` is supported)
 ///
-/// # Returns
-/// A `ChatCompletionContentPartParam` that can be included in message content
-///
-/// Returns a ChatCompletionContentPartParam representing plain text content.
+/// Returns a `ChatCompletionContentPartParam` that can be included in message content
 pub fn text_content_part(
   text : String,
   cache_control? : CacheControl,
@@ -962,15 +960,11 @@ pub impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamCo
 /// System messages set the behavior and context for the assistant. They are
 /// typically placed at the beginning of the conversation.
 ///
-/// # Type Parameters
-/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+/// Parameters
 ///
-/// # Parameters
 /// - `content`: The system message content
 /// - `name`: Optional name to identify the message author
 ///
-/// # Returns
-/// A `ChatCompletionMessageParam` with role "system"
 /// Returns a ChatCompletionMessageParam with role "system".
 pub fn[T : ToChatCompletionMessageParamContent] system_message(
   content~ : T,
@@ -984,10 +978,8 @@ pub fn[T : ToChatCompletionMessageParamContent] system_message(
 ///
 /// User messages represent input from the end user in the conversation.
 ///
-/// # Type Parameters
-/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+/// Parameters
 ///
-/// # Parameters
 /// - `content`: The user message content
 /// - `name`: Optional name to identify the user
 ///
@@ -1005,10 +997,8 @@ pub fn[T : ToChatCompletionMessageParamContent] user_message(
 /// Tool messages contain the results of function tool calls made by the assistant.
 /// They must reference a specific tool call ID from a previous assistant message.
 ///
-/// # Type Parameters
-/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
+/// Parameters
 ///
-/// # Parameters
 /// - `content`: The tool execution result
 /// - `tool_call_id`: The ID of the tool call this result corresponds to
 ///
@@ -1043,7 +1033,8 @@ impl ToJson for FunctionDefinition with to_json(self : FunctionDefinition) -> Js
 /// information. The model will decide when and how to call these functions
 /// based on the conversation context.
 ///
-/// # Parameters
+/// Parameters
+///
 /// - `name`: The name of the function tool
 /// - `description`: A description of what the function does (helps the model decide when to call it)
 /// - `parameters`: JSON schema describing the function's parameters
@@ -1301,10 +1292,7 @@ pub impl @json.FromJson for ChatCompletionChunk with from_json(
 /// text content and/or tool call requests. This function is useful when
 /// constructing multi-turn conversations or when replaying conversation history.
 ///
-/// # Type Parameters
-/// - `T`: Any type that can be converted to message content (String, StringView, etc.)
-///
-/// # Parameters
+/// Parameters
 /// - `content`: Optional content from the assistant
 /// - `tool_calls`: Optional array of tool calls the assistant made
 /// - `name`: Optional name to identify the assistant
@@ -1334,7 +1322,7 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
 /// JSON output conforming to a specific schema. The model will automatically
 /// structure its response to match the provided schema.
 ///
-/// # Parameters
+/// Parameters
 /// - `name`: A name for the schema (used for identification)
 /// - `schema`: JSON schema object defining the expected structure
 /// - `description`: Optional description of the schema's purpose
