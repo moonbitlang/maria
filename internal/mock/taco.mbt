@@ -330,7 +330,7 @@ pub async fn run(
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
-        let logged = log_dir |> @path.join(t.name())
+        let logged = log_dir |> @path.join("\{t.name()}.jsonl")
         let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
