@@ -4,7 +4,8 @@
     "moonbitlang/async/http",
     "moonbitlang/maria/internal/schema",
     "moonbitlang/async/io",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/pino"
   ],
   "test-import": [
     "moonbitlang/maria/internal/os"
