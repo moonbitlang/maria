@@ -233,17 +233,18 @@ fn build_fixing_user_message(
 /// Fix syntax errors using a sub-agent
 async fn fix_syntax_errors(ctx : FixingContext) -> String? {
   try {
+    let logger = ctx.parent_agent.logger.child({
+      "tool": {
+        "name": "meta_write_to_file",
+        "id": ctx.parent_agent.uuid.v4().to_json(),
+      },
+    })
+    logger.info("Starting syntax fixing sub-agent for file", {
+      "cwd": ctx.cwd.to_json(),
+      "file_path": ctx.file_path.to_json(),
+    })
     // Create sub-agent
-    let subagent = @agent.new(
-      ctx.parent_agent.model,
-      logger=ctx.parent_agent.logger.child({
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": ctx.parent_agent.uuid.v4().to_json(),
-        },
-      }),
-      cwd=ctx.cwd,
-    )
+    let subagent = @agent.new(ctx.parent_agent.model, logger~, cwd=ctx.cwd)
 
     // Add tools using factory functions
     subagent.add_tools([
