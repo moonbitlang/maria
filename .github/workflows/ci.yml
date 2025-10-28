@@ -18,8 +18,8 @@ on:
   pull_request:
     branches: ["main"]
 
-  paths-ignore:
-    - "path/**"
+    paths-ignore:
+      - "path/**"
     
 jobs:
   check:
