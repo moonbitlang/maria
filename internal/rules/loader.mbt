@@ -24,18 +24,24 @@ async fn Loader::load_rules_from_directory(
     is @fs.FileKind::Regular &&
     e.name.has_suffix(".md"))
   for rule_path in dir {
-    let name = @path.stem(rule_path.name).to_string()
-    self.rules[name] = Rule::parse(@fs.read_file(rule_path.path), source~)
+    let relative_path = "./" + rule_path.name
+    let path = @path.Path::parse(relative_path)
+    let file = path.file().unwrap()
+    self.rules[file.base] = Rule::parse(@fs.read_file(rule_path.path), source~)
   }
 }
 
 ///|
 pub async fn Loader::load(self : Loader) -> Unit {
-  let global_path = @os.home()
-    |> @path.join(".moonagent")
-    |> @path.join("rules")
+  let home_path = @path.Path::parse(@os.home() + "/")
+  let path_builder = @path.PathBuilder::from_path(home_path)
+  path_builder..add_directory(".moonagent")..add_directory("rules")
+  let global_path = path_builder.to_string()
   self.load_rules_from_directory(global_path, source=Global)
-  let local_path = self.cwd |> @path.join(".moonagent") |> @path.join("rules")
+  let cwd_path = @path.Path::parse(self.cwd + "/")
+  let path_builder = @path.PathBuilder::from_path(cwd_path)
+  path_builder..add_directory(".moonagent")..add_directory("rules")
+  let local_path = path_builder.to_string()
   self.load_rules_from_directory(local_path, source=Local)
 }
 
