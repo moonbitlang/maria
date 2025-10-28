@@ -138,11 +138,11 @@ async fn @todo.List::execute_todo_write(
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
+  self.load() catch {
+    error =>
+      return @tool.error("Error loading existing todo list: \{error}", error~)
+  }
   try {
-    self.load() catch {
-      error =>
-        return @tool.error("Error loading existing todo list: \{error}", error~)
-    }
     match action {
       Create =>
         match content {
