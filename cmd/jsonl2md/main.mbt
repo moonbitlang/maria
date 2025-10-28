@@ -76,7 +76,7 @@ test "json2xml" {
 }
 
 ///|
-struct Formatter {
+priv struct Formatter {
   path : String
   id : String?
   mut count : Int
