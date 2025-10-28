@@ -1,5 +1,6 @@
 ///|
-priv struct Loader {
+struct Loader {
+  logger : @pino.Logger
   home : StringView
   cwd : StringView
   models : Array[Model]
@@ -15,8 +16,14 @@ priv struct Loader {
 ///
 /// Returns a Loader instance with an empty model cache that can be
 /// populated by calling `load`.
-fn Loader::new(home~ : StringView, cwd~ : StringView) -> Loader {
-  Loader::{ home, cwd, models: [] }
+pub async fn Loader::new(
+  home~ : StringView,
+  cwd~ : StringView,
+  logger~ : @pino.Logger,
+) -> Loader {
+  let loader = Loader::{ home, cwd, models: [], logger }
+  loader.load()
+  loader
 }
 
 ///|
@@ -52,27 +59,6 @@ async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
-pub async fn load_model(
-  home~ : String,
-  cwd~ : String,
-  model? : String,
-) -> Model? {
-  let model_loader = Loader::new(home~, cwd~)
-  model_loader.load()
-  let api_key : String? = if @os.getenv("OPENAI_API_KEY") is (Some(_) as key) {
-    key
-  } else {
-    @os.getenv("OPENROUTER_API_KEY")
-  }
-  let name : String? = if model is (Some(_) as model) {
-    model
-  } else {
-    @os.getenv("MODEL_NAME")
-  }
-  return model_loader.get_model(name?, api_key?)
-}
-
-///|
 /// Retrieve a model from the loader's cache, optionally overriding
 /// selected fields.
 ///
@@ -84,12 +70,21 @@ pub async fn load_model(
 ///
 /// Returns the matching model with overrides applied, or `None` when no
 /// model is available.
-fn Loader::get_model(
+pub async fn Loader::get_model(
   self : Loader,
   name? : String,
   api_key? : String,
   base_url? : String,
 ) -> Model? {
+  let name : String? = match name {
+    Some(name) => Some(name)
+    None =>
+      if (try? @os.getenv("MODEL_NAME")) is Ok(Some(name)) {
+        Some(name)
+      } else {
+        None
+      }
+  }
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -101,8 +96,16 @@ fn Loader::get_model(
   } else {
     self.models.get(0)
   }
+  self.logger.info("ModelLoaded", {
+    "name": name.to_json(),
+    "model": model.to_json(),
+  })
   if model is Some(model) {
     let model = if api_key is Some(api_key) {
+      { ..model, api_key, }
+    } else if (try? @os.getenv("OPENAI_API_KEY")) is Ok(Some(api_key)) {
+      { ..model, api_key, }
+    } else if (try? @os.getenv("OPENROUTER_API_KEY")) is Ok(Some(api_key)) {
       { ..model, api_key, }
     } else {
       model
