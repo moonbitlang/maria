@@ -1,6 +1,17 @@
 ///|
-pub async fn clone(url : String, to~ : StringView, cwd? : StringView) -> Unit {
-  let arguments : Array[StringView] = ["clone", url, to]
+pub async fn clone(
+  url : String,
+  to~ : StringView,
+  cwd? : StringView,
+  depth? : Int
+) -> Unit {
+  let arguments : Array[StringView] = ["clone"]
+  if depth is Some(d) {
+    arguments.push("--depth")
+    arguments.push(d.to_string())
+  }
+  arguments.push(url)
+  arguments.push(to)
   let status = @spawn.spawn("git", arguments, cwd?)
   if status != 0 {
     fail("git clone failed with status code \{status}")

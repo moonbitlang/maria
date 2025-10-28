@@ -1,7 +1,7 @@
 ///|
 async test "clone" (t : @test.T) {
   @mock.run(t, taco => {
-    @git.clone("https://github.com/moonbitlang/maria.git", to=taco.cwd.path())
+    @git.clone("https://github.com/moonbitlang/maria.git", to=taco.cwd.path(), depth=1)
     let entries = taco.cwd.list().map((entry : @mock.Entry) => entry.name())
     @json.inspect(entries.contains("moon.mod.json"), content=true)
   })
