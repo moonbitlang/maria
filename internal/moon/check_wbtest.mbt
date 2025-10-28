@@ -1,5 +1,5 @@
 ///|
-async test (t : @test.T) {
+async test "check" (t : @test.T) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -37,6 +37,27 @@ async test (t : @test.T) {
           "start": { "col": 15, "line": 1 },
         },
         "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
+      },
+    ])
+  })
+}
+
+///|
+async test "check_syntax_of_file" (t : @test.T) {
+  @mock.run(t, mock => {
+    let file = mock.add_file("example.mbt")
+    file.write("let x :: Int = \"string\"")
+    let diagnostics = check_syntax_of_file(file.path())
+    @json.inspect(mock.json(diagnostics), content=[
+      {
+        "error_code": 3002,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 9, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 7, "line": 1 },
+        },
+        "message": "Parse error, unexpected token `::`, you may expect `=`.",
       },
     ])
   })

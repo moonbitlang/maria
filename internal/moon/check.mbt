@@ -145,3 +145,56 @@ async fn check(
   }
   diagnostics
 }
+
+///|
+async fn check_syntax_of_file(
+  path : String,
+  cwd? : StringView,
+) -> Array[Diagnostic] {
+  let output = StringBuilder::new()
+  let _ = @spawn.spawn(
+    "moonc",
+    [
+      "compile", "-no-intermediate-file", "-stop-after-parsing", "-error-format",
+      "json", path,
+    ],
+    stdout=output,
+    stderr=output,
+    cwd?,
+  )
+  let output = output.to_string()
+  let diagnostics = []
+  for line in output.split("\n") {
+    try {
+      let json = @json.parse(line.to_string())
+      let diagnostic : Diagnostic = @json.from_json(json)
+      diagnostics.push(diagnostic)
+    } catch {
+      _ => continue
+    }
+  }
+  diagnostics
+}
+
+///|
+/// Validates the syntax of MoonBit source code provided as a string by creating
+/// a temporary file and running syntax checking on it.
+///
+/// Parameters:
+///
+/// * `path` : Optional file path to use for error reporting. If not provided, a
+///   default temporary file name will be used in diagnostic messages.
+/// * `source` : The MoonBit source code to validate as a string.
+///
+/// Returns an array of `Diagnostic` objects containing any syntax errors or
+/// warnings found in the source code.
+pub async fn check_syntax_of_string(
+  path? : String = "source.mbt",
+  source : String,
+) -> Array[Diagnostic] {
+  @fs.with_temporary_directory("moonbit-moon-check-syntax-XXXXXXX", tmpdir => {
+    let file_path = @path.join(tmpdir, path)
+    @fs.write_to_file(file_path, source)
+    check_syntax_of_file(file_path)
+  })
+}
