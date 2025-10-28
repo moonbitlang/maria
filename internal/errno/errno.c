@@ -37,3 +37,9 @@ int32_t
 moonbit_maria_errno_get(void) {
   return errno;
 }
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_EEXIST(void) {
+  return EEXIST;
+}

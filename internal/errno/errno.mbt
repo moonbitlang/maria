@@ -11,6 +11,12 @@ extern "c" fn errno_ENAMETOOLONG() -> Int = "moonbit_maria_errno_ENAMETOOLONG"
 pub let enametoolong : Int = errno_ENAMETOOLONG()
 
 ///|
+extern "c" fn errno_EEXIST() -> Int = "moonbit_maria_errno_EEXIST"
+
+///|
+pub let eexist : Int = errno_EEXIST()
+
+///|
 pub(all) suberror Errno Int
 
 ///|

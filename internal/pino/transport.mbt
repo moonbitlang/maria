@@ -44,7 +44,10 @@ async fn mkdir(path : String) -> Unit {
   }
   for i in 0..<dirs.length() {
     let dir = dirs[dirs.length() - 1 - i]
-    @fs.mkdir(dir, permission=0o755)
+    @fs.mkdir(dir, permission=0o755) catch {
+      @os_error.OSError(errno, ..) if errno == @errno.eexist => ()
+      error => raise error
+    }
   }
 }
 
