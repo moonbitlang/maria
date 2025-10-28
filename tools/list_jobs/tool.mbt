@@ -1,9 +1,12 @@
 ///|
+let schema : Json = { "type": "object", "properties": {}, "required": [] }
+
+///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
   @tool.new(
     name="list_jobs",
     description="List all background jobs",
-    parameters={ "type": "object", "properties": {}, "required": [] },
+    schema~,
     @tool.ToolFn(async fn(_args) -> @tool.ToolResult[String] noraise {
       let jobs = manager.list() catch {
         error => return @tool.error("Failed to list background jobs: \{error}")

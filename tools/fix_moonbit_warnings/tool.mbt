@@ -1,18 +1,21 @@
 ///|
+let submit_schema : Json = {
+  "properties": {
+    "segment": {
+      "description": "The fixed MoonBit code segment",
+      "type": "string",
+    },
+  },
+  "required": ["segment"],
+  "type": "object",
+}
+
+///|
 fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
   @tool.new(
     name="submit_moonbit_segment",
     description="Submit a fixed MoonBit code segment for verification",
-    parameters={
-      "properties": {
-        "segment": {
-          "description": "The fixed MoonBit code segment",
-          "type": "string",
-        },
-      },
-      "required": ["segment"],
-      "type": "object",
-    },
+    schema=submit_schema,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       let { moon, segment, result } = task
       guard args is { "segment": patched, .. } else {
@@ -140,23 +143,26 @@ async fn process_segment(
 }
 
 ///|
+let schema : Json = {
+  "properties": {
+    "description": {
+      "description": "A description of the changes to be made to fix the warnings/errors.",
+      "type": "string",
+    },
+    "project_path": {
+      "description": "The path to the project directory containing the moon.mod.json file.",
+      "type": "string",
+    },
+  },
+  "required": ["description", "project_path"],
+}
+
+///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
   @tool.new(
     name="fix_moonbit_warnings",
     description="Fix all MoonBit warnings/errors in the given project directory by applying a batch suggestion to all relevant MoonBit top-level constructs.",
-    parameters={
-      "properties": {
-        "description": {
-          "description": "A description of the changes to be made to fix the warnings/errors.",
-          "type": "string",
-        },
-        "project_path": {
-          "description": "The path to the project directory containing the moon.mod.json file.",
-          "type": "string",
-        },
-      },
-      "required": ["description", "project_path"],
-    },
+    schema~,
     @tool.ToolFn(async fn(args : Json) -> @tool.ToolResult[String] noraise {
       guard args
         is {

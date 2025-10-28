@@ -283,7 +283,7 @@ pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
   @tool.new(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",
-    parameters=schema,
+    schema~,
     async fn(args) -> @tool.ToolResult[TodoWriteResult] noraise {
       list.execute_todo_write(args)
     },

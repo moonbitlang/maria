@@ -444,40 +444,43 @@ async fn search_files_impl(
 }
 
 ///|
+let schema : Json = {
+  "type": "object",
+  "properties": {
+    "context_lines": {
+      "type": "number",
+      "description": "Number of context lines to show before and after each match. Defaults to 2.",
+      "default": 2,
+    },
+    "file_pattern": {
+      "type": "string",
+      "description": "Glob pattern to filter files (e.g., '*.ts', '*.js', '*.py', etc.). Defaults to '*' to search all files.",
+      "default": "*",
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["regex", "moonbit_definition", "moonbit_references"],
+      "description": "The kind of search to perform. 'regex' performs traditional regex-based file content search. 'moonbit_definition' performs fuzzy symbolic search to find MoonBit symbol definitions - note that when using 'moonbit_definition', the regex parameter can be imprecise as the system will perform fuzzy search to find the most relevant symbols. 'moonbit_references' finds all references to a MoonBit symbol using the moon IDE tool.",
+    },
+    "path": {
+      "type": "string",
+      "description": "The path of the directory or file to search in, relative to the current working directory.",
+    },
+    "regex": {
+      "type": "string",
+      "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
+    },
+  },
+  "required": ["path", "regex", "kind"],
+}
+
+///|
 /// Main search files tool implementation
 pub fn new(cwd : String) -> @tool.Tool[SearchFilesResult] {
   @tool.new(
     description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
     name="search_files",
-    parameters={
-      "type": "object",
-      "properties": {
-        "context_lines": {
-          "type": "number",
-          "description": "Number of context lines to show before and after each match. Defaults to 2.",
-          "default": 2,
-        },
-        "file_pattern": {
-          "type": "string",
-          "description": "Glob pattern to filter files (e.g., '*.ts', '*.js', '*.py', etc.). Defaults to '*' to search all files.",
-          "default": "*",
-        },
-        "kind": {
-          "type": "string",
-          "enum": ["regex", "moonbit_definition", "moonbit_references"],
-          "description": "The kind of search to perform. 'regex' performs traditional regex-based file content search. 'moonbit_definition' performs fuzzy symbolic search to find MoonBit symbol definitions - note that when using 'moonbit_definition', the regex parameter can be imprecise as the system will perform fuzzy search to find the most relevant symbols. 'moonbit_references' finds all references to a MoonBit symbol using the moon IDE tool.",
-        },
-        "path": {
-          "type": "string",
-          "description": "The path of the directory or file to search in, relative to the current working directory.",
-        },
-        "regex": {
-          "type": "string",
-          "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
-        },
-      },
-      "required": ["path", "regex", "kind"],
-    },
+    schema~,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[SearchFilesResult] noraise {
       search_files_impl(args, cwd)
     }),

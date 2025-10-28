@@ -69,7 +69,7 @@ pub fn new(cwd : String) -> @tool.Tool[CoverageResult] {
   @tool.new(
     description="Get coverage information for a MoonBit source file or project. If a specific file is provided, this tool analyzes that file and returns line-by-line coverage data. If the file is not found, it returns the coverage summary for the entire project.",
     name="get_moonbit_coverage",
-    parameters=json_schema,
+    schema=json_schema,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[CoverageResult] noraise {
       let args : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}", error~)

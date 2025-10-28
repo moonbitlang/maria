@@ -1,18 +1,21 @@
 ///|
+let schema : Json = {
+  "type": "object",
+  "properties": {
+    "package": {
+      "type": "string",
+      "description": "The name of the package to analyze (e.g. 'moonbitlang/core/set`').",
+    },
+  },
+  "required": ["package"],
+}
+
+///|
 pub fn new(cwd : String) -> @tool.Tool[String] {
   @tool.new(
     name="get_moonbit_mbti",
     description="Get Moonbit MBTI",
-    parameters={
-      "type": "object",
-      "properties": {
-        "package": {
-          "type": "string",
-          "description": "The name of the package to analyze (e.g. 'moonbitlang/core/set`').",
-        },
-      },
-      "required": ["package"],
-    },
+    schema~,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "package": String(pkg_name), .. } else {
         @tool.error(
