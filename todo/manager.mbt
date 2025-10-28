@@ -77,6 +77,10 @@ fn List::todo_file_path(self : List) -> String {
 ///|
 pub async fn List::load(self : List) -> Unit {
   let path = self.todo_file_path()
+  guard @fs.exists(path) else {
+    // TODO: document we skip it
+    return
+  }
   let content = @fs.read_file(path)
   let json = @json.parse(content)
   self.items = @json.from_json(json)
