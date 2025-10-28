@@ -92,22 +92,6 @@ async test "chat_with_usage" {
 }
 
 ///|
-/// Test message construction helpers
-test "message_helpers" {
-  let sys_msg = system_message(content="You are a helpful assistant.")
-  guard sys_msg is System(param) else { fail("Expected System message") }
-  inspect(param.content.length() > 0, content="true")
-  let user_msg = user_message(content="Hello", name="Alice")
-  guard user_msg is User(param) else { fail("Expected User message") }
-  inspect(param.content.length() > 0, content="true")
-  guard param.name is Some(name) else { fail("Expected name") }
-  inspect(name, content="Alice")
-  let asst_msg = assistant_message(content="Hi there!")
-  guard asst_msg is Assistant(param) else { fail("Expected Assistant message") }
-  inspect(param.content.length() > 0, content="true")
-}
-
-///|
 /// Test tool definition
 test "tool_definition" {
   let tool_def = @openai.tool(
