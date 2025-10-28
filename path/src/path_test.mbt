@@ -214,6 +214,26 @@ test "Unix slashes normalization" {
 }
 
 ///|
+test "Windows multiple tailing backslashes normalization" {
+  let path = Path::parse("C:\\folder\\\\")
+  inspect(path, content="C:\\folder\\")
+  let path = Path::parse(".\\a\\b\\c\\\\\\")
+  inspect(path, content="a\\b\\c\\")
+  let path = Path::parse(".\\a\\b\\c\\\\\\")
+  inspect(path, content="a\\b\\c\\")
+}
+
+///|
+test "Unix multiple tailing slashes normalization" {
+  let path = Path::parse("/folder//")
+  inspect(path, content="/folder/")
+  let path = Path::parse("./a/b/c///")
+  inspect(path, content="a/b/c/")
+  let path = Path::parse("./a/b/c////")
+  inspect(path, content="a/b/c/")
+}
+
+///|
 test "edge cases" {
   let path = Path::parse("/")
   inspect(path, content="/")
