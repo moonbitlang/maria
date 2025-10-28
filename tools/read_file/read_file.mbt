@@ -121,7 +121,7 @@ async fn execute_read_file_tool(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "path": {
@@ -138,7 +138,7 @@ let schema : Json = {
     },
   },
   "required": ["path"],
-}
+})
 
 ///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {

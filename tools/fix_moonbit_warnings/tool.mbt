@@ -1,5 +1,5 @@
 ///|
-let submit_schema : Json = {
+let submit_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "properties": {
     "segment": {
       "description": "The fixed MoonBit code segment",
@@ -8,7 +8,7 @@ let submit_schema : Json = {
   },
   "required": ["segment"],
   "type": "object",
-}
+})
 
 ///|
 fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
@@ -143,7 +143,7 @@ async fn process_segment(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "properties": {
     "description": {
       "description": "A description of the changes to be made to fix the warnings/errors.",
@@ -155,7 +155,7 @@ let schema : Json = {
     },
   },
   "required": ["description", "project_path"],
-}
+})
 
 ///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {

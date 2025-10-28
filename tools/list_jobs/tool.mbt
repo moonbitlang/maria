@@ -1,5 +1,9 @@
 ///|
-let schema : Json = { "type": "object", "properties": {}, "required": [] }
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {},
+  "required": [],
+})
 
 ///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {

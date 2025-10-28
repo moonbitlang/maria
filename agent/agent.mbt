@@ -51,7 +51,11 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   for name, tool in agent.tools {
     let desc = tool.desc()
     tools.push(
-      @openai.tool(name~, description=desc.description, parameters=desc.schema),
+      @openai.tool(
+        name~,
+        description=desc.description,
+        parameters=desc.schema.to_json(),
+      ),
     )
   }
   let staged = agent.queue
