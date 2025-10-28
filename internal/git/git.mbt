@@ -7,6 +7,7 @@ pub async fn clone(
 ) -> Unit {
   let arguments : Array[StringView] = ["clone"]
   if depth is Some(d) {
+    guard d > 0 else { fail("depth must be a positive integer") }
     arguments.push("--depth")
     arguments.push(d.to_string())
   }
