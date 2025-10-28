@@ -3,6 +3,7 @@ package "moonbitlang/maria/openai"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/schema"
   "moonbitlang/maria/model"
 )
@@ -10,7 +11,7 @@ import(
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-async fn chat(model~ : @model.Model, ChatCompletionParam) -> ChatCompletion
+async fn chat(model~ : @model.Model, ChatCompletionParam, logger? : @pino.Logger) -> ChatCompletion
 
 fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat) -> ChatCompletionParam
 

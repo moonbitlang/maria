@@ -2,10 +2,11 @@
   "import": [
     "moonbitlang/async/fs",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/async/aqueue",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/spawn",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/async/os_error",
+    "moonbitlang/maria/internal/errno"
   ]
 }

@@ -10,13 +10,13 @@ async test "add_worktree" (t : @test.T) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
-      mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
-      |> @fs.read_file(),
-      content="Hello, Moonbit!",
-    )
+    let cwd = mock.cwd.path()
+    let path = @path.Path::parse(cwd + "/")
+    let path_builder = @path.PathBuilder::from_path(path)
+    path_builder.add_directory("worktree")
+    path_builder.set_file(base="file", extension="txt")
+    let content = @fs.read_file(path_builder.to_string())
+    @json.inspect(content, content="Hello, Moonbit!")
   })
 }
 
@@ -32,19 +32,21 @@ async test "add_worktree/new-branch" (t : @test.T) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
-      mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
-      |> @fs.read_file(),
-      content="Hello, Moonbit!",
-    )
+    let cwd = mock.cwd.path()
+    let path = @path.Path::parse(cwd + "/")
+    let path_builder = @path.PathBuilder::from_path(path)
+    path_builder.add_directory("worktree")
+    path_builder.set_file(base="file", extension="txt")
+    let content = @fs.read_file(path_builder.to_string())
+    @json.inspect(content, content="Hello, Moonbit!")
+    let path_builder = @path.PathBuilder::from_path(path)
+    path_builder.add_directory("worktree")
     let stdout = StringBuilder::new()
     @json.inspect(
       @spawn.spawn(
         "git",
         ["branch", "--show-current"],
-        cwd=mock.cwd.path() |> @path.join("worktree"),
+        cwd=path_builder.to_string(),
         stdout~,
       ),
       content=0,
@@ -95,13 +97,13 @@ async test "add_worktree/new-branch-with-commit" (t : @test.T) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
-      mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
-      |> @fs.read_file(),
-      content="Hello, Moonbit!",
-    )
+    let cwd = mock.cwd.path()
+    let path = @path.Path::parse(cwd + "/")
+    let path_builder = @path.PathBuilder::from_path(path)
+    path_builder.add_directory("worktree")
+    path_builder.set_file(base="file", extension="txt")
+    let content = @fs.read_file(path_builder.to_string())
+    @json.inspect(content, content="Hello, Moonbit!")
   })
 }
 
@@ -111,13 +113,15 @@ async test "with_worktree" (t : @test.T) {
     @git.init_(mock.cwd.path())
     let _ = mock.add_file("file.txt", content="Hello, Moonbit!")
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
-    @git.with_worktree("worktree", cwd=mock.cwd.path(), () => @json.inspect(
-      mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
-      |> @fs.read_file(),
-      content="Hello, Moonbit!",
-    ))
+    @git.with_worktree("worktree", cwd=mock.cwd.path(), () => {
+      let cwd = mock.cwd.path()
+      let path = @path.Path::parse(cwd + "/")
+      let path_builder = @path.PathBuilder::from_path(path)
+      path_builder.add_directory("worktree")
+      path_builder.set_file(base="file", extension="txt")
+      let content = @fs.read_file(path_builder.to_string())
+      @json.inspect(content, content="Hello, Moonbit!")
+    })
     let entries = mock.cwd.list().map((entry : @mock.Entry) => entry.name())
     @json.inspect(!entries.contains("worktree"), content=true)
   })

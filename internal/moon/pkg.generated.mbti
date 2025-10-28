@@ -6,6 +6,10 @@ import(
 )
 
 // Values
+async fn check_syntax_of_file(String, cwd? : StringView) -> Array[Diagnostic]
+
+async fn check_syntax_of_string(path? : String, String) -> Array[Diagnostic]
+
 async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
 async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, overlay? : Map[String, String]) -> String noraise

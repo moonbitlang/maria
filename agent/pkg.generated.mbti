@@ -21,10 +21,11 @@ pub struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
+  logger : @pino.Logger
   // private fields
 }
 fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit
-fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
+async fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit

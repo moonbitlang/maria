@@ -12,6 +12,8 @@
     {
       "path": "moonbitlang/maria/internal/fs",
       "alias": "mfs"
-    }
+    },
+    "moonbitlang/async/os_error",
+    "moonbitlang/maria/internal/errno"
   ]
 }

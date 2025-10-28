@@ -76,11 +76,18 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {},
+  "required": [],
+})
+
+///|
 pub fn new(list : @todo.List) -> @tool.Tool[TodoReadResult] {
   @tool.new(
     description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
     name="todo_read",
-    parameters={ "type": "object", "properties": {}, "required": [] },
+    schema~,
     @tool.ToolFn(async fn(_args) -> @tool.ToolResult[TodoReadResult] noraise {
       @tool.ok(TodoReadResult::{ todos: list.todos() })
     }),

@@ -18,6 +18,9 @@ on:
   pull_request:
     branches: ["main"]
 
+  paths-ignore:
+    - "path/**"
+    
 jobs:
   check:
     runs-on: ubuntu-latest

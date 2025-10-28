@@ -2,7 +2,7 @@
 pub struct ToolDesc {
   description : String
   name : String
-  parameters : Json
+  schema : JsonSchema
 }
 
 ///|
@@ -56,10 +56,10 @@ pub fn[Output] ToolResult::error(
 pub fn[Output] Tool::new(
   description~ : String,
   name~ : String,
-  parameters~ : Json,
+  schema~ : JsonSchema,
   f : ToolFn[Output],
 ) -> Tool[Output] {
-  Tool::{ desc: { description, name, parameters }, f }
+  Tool::{ desc: { description, name, schema }, f }
 }
 
 ///|

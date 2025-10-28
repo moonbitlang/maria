@@ -1,8 +1,7 @@
 ///|
 struct Logger {
-  tag : String
+  properties : Map[String, Json]
   level : Level
-  queue : @aqueue.Queue[Json]
   transport : Transport
 }
 
@@ -12,7 +11,7 @@ pub fn logger(
   level? : Level = Info,
   transport : Transport,
 ) -> Logger {
-  Logger::{ tag, level, queue: @aqueue.Queue::new(), transport }
+  Logger::{ properties: { "tag": tag.to_json() }, level, transport }
 }
 
 ///|
@@ -21,7 +20,7 @@ pub fn Logger::close(self : Logger) -> Unit {
 }
 
 ///|
-pub fn Logger::log(
+pub async fn Logger::log(
   self : Self,
   level : Level,
   message : StringView,
@@ -42,17 +41,17 @@ pub fn Logger::log(
   }
   let time_ms = @async.now()
   object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
-  if self.tag != "" {
-    object["tag"] = self.tag.to_json()
+  for k, v in self.properties {
+    object[k] = v
   }
   for k, v in content {
     object[k] = v
   }
-  self.queue.put(object.to_json())
+  self.transport.write(object.to_json())
 }
 
 ///|
-pub fn Logger::error(
+pub async fn Logger::error(
   self : Self,
   message : StringView,
   content : Map[String, Json],
@@ -61,7 +60,7 @@ pub fn Logger::error(
 }
 
 ///|
-pub fn Logger::warn(
+pub async fn Logger::warn(
   self : Self,
   message : StringView,
   content : Map[String, Json],
@@ -70,7 +69,7 @@ pub fn Logger::warn(
 }
 
 ///|
-pub fn Logger::info(
+pub async fn Logger::info(
   self : Self,
   message : StringView,
   content : Map[String, Json],
@@ -79,7 +78,7 @@ pub fn Logger::info(
 }
 
 ///|
-pub fn Logger::debug(
+pub async fn Logger::debug(
   self : Self,
   message : StringView,
   content : Map[String, Json],
@@ -88,21 +87,17 @@ pub fn Logger::debug(
 }
 
 ///|
-pub fn Logger::child(self : Logger, tag : String) -> Logger {
-  Logger::{
-    tag,
-    level: self.level,
-    queue: @aqueue.Queue::new(),
-    transport: self.transport,
+pub fn Logger::child(self : Logger, properties : Map[String, Json]) -> Logger {
+  let child_properties = {}
+  for k, v in self.properties {
+    child_properties[k] = v
   }
-}
-
-///|
-pub async fn Logger::start(self : Logger) -> Unit {
-  loop self.queue.get() {
-    json => {
-      self.transport.write(json)
-      continue self.queue.get()
-    }
+  for k, v in properties {
+    child_properties[k] = v
+  }
+  Logger::{
+    properties: child_properties,
+    level: self.level,
+    transport: self.transport,
   }
 }

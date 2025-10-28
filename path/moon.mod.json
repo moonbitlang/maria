@@ -1,0 +1,8 @@
+{
+  "name": "moonbitlang/path",
+  "version": "0.2.0",
+  "readme": "README.md",
+  "license": "Apache-2.0",
+  "source": "src",
+  "description": "A cross-platform path manipulation library for MoonBit that provides robust handling of both Unix and Windows file system paths with automatic format detection and type-safe path operations."
+}

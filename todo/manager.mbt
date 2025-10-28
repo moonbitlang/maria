@@ -1,96 +1,21 @@
 ///|
-/// Get current ISO timestamp
-fn get_current_timestamp(clock : &@clock.Clock) -> String raise {
-  let ms = clock.now()
-  let s = ms / 1000
-  let ns = ms % 1000 * 1_000_000
-  @time.unix(s, nanosecond=ns.to_int()).to_string()
-}
-
-///|
-struct List {
-  uuid : @uuid.Generator
-  clock : &@clock.Clock
-  cwd : String
-  mut todos : Array[Item]
-  mut created_at : String
-  mut updated_at : String
-}
-
-///|
 pub fn List::todos(self : List) -> Array[Item] {
   self.todos.copy()
 }
 
 ///|
-pub(all) enum Priority {
-  High
-  Medium
-  Low
-} derive(ToJson)
-
-///|
-impl @json.FromJson for Priority with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Priority raise @json.JsonDecodeError {
-  match json {
-    "High" | "high" => High
-    "Medium" | "medium" => Medium
-    "Low" | "low" => Low
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path, "Invalid Priority value: \{json}"),
-      )
-  }
-}
-
-///|
-pub(all) enum Status {
-  Pending
-  InProgress
-  Completed
-} derive(ToJson)
-
-///|
-impl @json.FromJson for Status with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Status raise @json.JsonDecodeError {
-  match json {
-    "pending" | "Pending" => Pending
-    "in_progress" | "InProgress" => InProgress
-    "completed" | "Completed" => Completed
-    _ =>
-      raise @json.JsonDecodeError((json_path, "Invalid Status value: \{json}"))
-  }
-}
-
-///|
-pub(all) struct Item {
-  content : String
-  created_at : String
-  id : String
-  notes : String?
-  priority : Priority
-  status : Status
-  updated_at : String
-} derive(ToJson, @json.FromJson)
-
-///|
 fn List::item(
   self : List,
-  id~ : String,
   content : String,
   status~ : Status,
   priority~ : Priority,
   notes? : String,
 ) -> Item raise {
   let now = get_current_timestamp(self.clock)
-  Item::{
+  {
     content,
     created_at: now,
-    id,
+    id: self.uuid.v4().to_string()[0:8].to_string(),
     notes,
     priority,
     status,
@@ -172,6 +97,19 @@ pub async fn List::load(self : List) -> Unit {
 }
 
 ///|
+pub async fn List::save(self : List) -> Unit {
+  let todo_file_path = self.todo_file_path()
+  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
+  self.updated_at = get_current_timestamp(self.clock)
+  let json : Json = {
+    "created_at": self.created_at,
+    "todos": self.todos,
+    "updated_at": self.updated_at,
+  }
+  @fs.write_to_file(todo_file_path, json.stringify(indent=2))
+}
+
+///|
 /// Extract content from <task> tags (simplified implementation)
 fn extract_task_tags(content : String) -> Array[String] {
   let tasks = []
@@ -221,13 +159,7 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = self.item(
-    id=self.generate_todo_id(),
-    content,
-    status~,
-    priority~,
-    notes?,
-  )
+  let item = self.item(content, status~, priority~, notes?)
   self.todos.push(item)
   self.updated_at = get_current_timestamp(self.clock)
   item
@@ -237,11 +169,6 @@ pub fn List::add_task(
 pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.todos[index.0] = item
   self.updated_at = get_current_timestamp(self.clock)
-}
-
-///|
-fn List::generate_todo_id(self : List) -> String raise {
-  self.uuid.v4().to_string()[0:8].to_string()
 }
 
 ///|
@@ -263,65 +190,30 @@ pub fn List::get(self : List, index : Index) -> Item {
 }
 
 ///|
-pub async fn List::save(self : List) -> Unit {
-  let todo_file_path = self.todo_file_path()
-  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.updated_at = get_current_timestamp(self.clock)
-  let json : Json = {
-    "created_at": self.created_at,
-    "todos": self.todos,
-    "updated_at": self.updated_at,
-  }
-  @fs.write_to_file(todo_file_path, json.stringify(indent=2))
+/// Remove common list prefixes from a line
+fn remove_list_prefixes(line : StringView) -> String {
+  let result = lexmatch line with longest {
+      ("[0-9]+.\w*", rest) => rest
+      ("-\w*", rest) => rest
+      ("\*\w*", rest) => rest
+      _ => line
+    }
+  result.trim(char_set=" \t\r\n").to_string()
 }
 
 ///|
-/// Remove common list prefixes from a line
-fn remove_list_prefixes(line : String) -> String {
-  let mut result = line
-
-  // Remove numbered list prefixes like "1. ", "2. ", etc.
-  if result.has_prefix("1.") ||
-    result.has_prefix("2.") ||
-    result.has_prefix("3.") ||
-    result.has_prefix("4.") ||
-    result.has_prefix("5.") ||
-    result.has_prefix("6.") ||
-    result.has_prefix("7.") ||
-    result.has_prefix("8.") ||
-    result.has_prefix("9.") {
-    let mut i = 0
-    while i < result.length() && result[i] >= '0' && result[i] <= '9' {
-      i = i + 1
-    }
-    if i < result.length() && result[i] == '.' {
-      i = i + 1
-      while i < result.length() && result[i] == ' ' {
-        i = i + 1
-      }
-      try {
-        result = result[i:].to_string()
-      } catch {
-        _ => result = result
-      }
-    }
-  }
-
-  // Remove bullet prefixes like "- " and "* "
-  if result.has_prefix("- ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  } else if result.has_prefix("* ") {
-    try {
-      result = result[2:].to_string()
-    } catch {
-      _ => result = result
-    }
-  }
-  result.trim(char_set=" \t\r\n").to_string()
+test "remove_list_prefixes" {
+  @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
+  @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
+  @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
+  @json.inspect(
+    remove_list_prefixes("* Another bullet"),
+    content="Another bullet",
+  )
+  @json.inspect(
+    remove_list_prefixes("No prefix here"),
+    content="No prefix here",
+  )
 }
 
 ///|
@@ -339,11 +231,10 @@ pub fn List::parse(
   if task_matches.length() > 0 {
     // Found <task> tags, use them
     for task_content in task_matches {
-      let trimmed = task_content.trim(char_set=" \t\r\n").to_string()
+      let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
         let todo = self.item(
-          id=self.generate_todo_id(),
-          trimmed,
+          trimmed.to_string(),
           notes?,
           priority~,
           status=Pending,
@@ -353,9 +244,9 @@ pub fn List::parse(
     }
   } else {
     // Fallback to line-by-line parsing
-    let lines = content.trim(char_set=" \t\r\n").to_string().split("\n")
+    let lines = content.trim(char_set=" \t\r\n").split("\n")
     for line in lines {
-      let trimmed_line = line.trim(char_set=" \t\r\n").to_string()
+      let trimmed_line = line.trim(char_set=" \t\r\n")
       if trimmed_line.length() == 0 {
         continue
       }
@@ -363,13 +254,7 @@ pub fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = self.item(
-          id=self.generate_todo_id(),
-          clean_line,
-          notes?,
-          priority~,
-          status=Pending,
-        )
+        let todo = self.item(clean_line, notes?, priority~, status=Pending)
         self.todos.push(todo)
       }
     }

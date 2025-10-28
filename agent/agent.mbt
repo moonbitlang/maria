@@ -4,7 +4,7 @@ pub struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
-  priv logger : @pino.Logger
+  logger : @pino.Logger
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
@@ -18,7 +18,7 @@ pub struct Agent {
 priv suberror EmptyChoices
 
 ///|
-pub fn Agent::add_message(
+pub async fn Agent::add_message(
   agent : Agent,
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
@@ -54,7 +54,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
       @openai.tool(
         name~,
         description=desc.description,
-        parameters=desc.parameters,
+        parameters=desc.schema.to_json(),
       ),
     )
   }
@@ -86,6 +86,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
 
   let response = @openai.chat(
     model=agent.model,
+    logger=agent.logger,
     @openai.chat_completion(messages~, model=agent.model.name, tools~),
   )
   guard response.choices is [choice, ..] else { raise EmptyChoices }
@@ -155,7 +156,6 @@ pub fn[Output : ToJson + Show] Agent::add_tool(
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
-    group.spawn_bg(() => agent.logger.start(), no_wait=true)
     agent.emit(PreConversation)
     while true {
       let response = agent.call()
@@ -226,7 +226,7 @@ pub async fn new(
 }
 
 ///|
-fn Agent::emit(agent : Agent, event : Event) -> Unit {
+async fn Agent::emit(agent : Agent, event : Event) -> Unit {
   agent.event_target.emit(event)
   match event {
     TokenCounted(token_count) =>
@@ -237,10 +237,20 @@ fn Agent::emit(agent : Agent, event : Event) -> Unit {
         "pruned_token_count": pruned_token_count.to_json(),
       })
     PreToolCall(tool_call) =>
-      agent.logger.info("PreToolCall", {
-        "name": tool_call.function.name.to_json(),
-        "args": tool_call.function.arguments.to_json(),
-      })
+      try {
+        let args = @json.parse(tool_call.function.arguments)
+        agent.logger.info("PreToolCall", {
+          "name": tool_call.function.name.to_json(),
+          "args": args,
+        })
+      } catch {
+        error =>
+          agent.logger.info("PreToolCall", {
+            "name": tool_call.function.name.to_json(),
+            "args": tool_call.function.arguments.to_json(),
+            "error": error.to_json(),
+          })
+      }
     PostToolCall(tool_call, result~, rendered~) =>
       match result {
         Ok(output) =>

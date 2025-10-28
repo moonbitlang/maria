@@ -18,30 +18,13 @@ pub impl Show for TodoWriteResult with output(
   let output = []
   output.push("✅ Operation completed: \{action_performed}\n")
 
-  // Status and priority icon helpers
-  fn get_status_icon(status : @todo.Status) -> String {
-    match status {
-      Completed => "✅"
-      InProgress => "🔄"
-      Pending => "⏳"
-    }
-  }
-
-  fn get_priority_icon(priority : @todo.Priority) -> String {
-    match priority {
-      High => "🔴"
-      Medium => "🟡"
-      Low => "🟢"
-    }
-  }
-
   // Show newly created todos specifically for create action
   if is_new_creation {
     if updated_todos.length() > 0 {
       output.push("📝 Newly created todos:")
       for todo in updated_todos {
-        let priority_icon = get_priority_icon(todo.priority)
-        let status_icon = get_status_icon(todo.status)
+        let priority_icon = todo.priority.icon()
+        let status_icon = todo.status.icon()
         output.push(
           "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
         )
@@ -51,8 +34,8 @@ pub impl Show for TodoWriteResult with output(
     // Always show all todos
     output.push("📝 Current todo list:")
     for todo in todos {
-      let priority_icon = get_priority_icon(todo.priority)
-      let status_icon = get_status_icon(todo.status)
+      let priority_icon = todo.priority.icon()
+      let status_icon = todo.status.icon()
       output.push(
         "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
       )
@@ -62,8 +45,8 @@ pub impl Show for TodoWriteResult with output(
     if updated_todos.length() > 0 {
       output.push("\n✨ Updated items:")
       for todo in updated_todos {
-        let priority_icon = get_priority_icon(todo.priority)
-        let status_icon = get_status_icon(todo.status)
+        let priority_icon = todo.priority.icon()
+        let status_icon = todo.status.icon()
         output.push(
           "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
         )
@@ -263,43 +246,47 @@ async fn @todo.List::execute_todo_write(
 }
 
 ///|
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "The action to perform: 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
+    },
+    "content": {
+      "type": "string",
+      "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
+    },
+    "task_id": {
+      "type": "string",
+      "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
+    },
+    "priority": {
+      "type": "string",
+      "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
+    },
+    "status": {
+      "type": "string",
+      "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or details about the task",
+    },
+  },
+  "required": ["action"],
+})
+
+///|
+/// @param list the todolist is shared globally
 pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
   @tool.new(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",
-    parameters={
-      "type": "object",
-      "properties": {
-        "action": {
-          "type": "string",
-          "description": "The action to perform: 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
-        },
-        "content": {
-          "type": "string",
-          "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
-        },
-        "task_id": {
-          "type": "string",
-          "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
-        },
-        "priority": {
-          "type": "string",
-          "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-        },
-        "status": {
-          "type": "string",
-          "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-        },
-        "notes": {
-          "type": "string",
-          "description": "Additional notes or details about the task",
-        },
-      },
-      "required": ["action"],
-    },
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[TodoWriteResult] noraise {
+    schema~,
+    async fn(args) -> @tool.ToolResult[TodoWriteResult] noraise {
       list.execute_todo_write(args)
-    }),
+    },
   )
 }
 

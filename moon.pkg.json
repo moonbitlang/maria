@@ -16,6 +16,7 @@
     "moonbitlang/maria/tools/search_files",
     "moonbitlang/maria/prompt",
     "moonbitlang/maria/job",
-    "moonbitlang/maria/tool"
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/tools/meta_write_to_file"
   ]
 }

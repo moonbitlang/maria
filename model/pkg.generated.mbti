@@ -3,14 +3,18 @@ package "moonbitlang/maria/model"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/internal/pino"
 )
 
 // Values
-async fn load_model(home~ : String, cwd~ : String, model? : String) -> Model?
 
 // Errors
 
 // Types and methods
+type Loader
+async fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
+async fn Loader::new(home~ : StringView, cwd~ : StringView, logger~ : @pino.Logger) -> Self
+
 pub struct Model {
   name : String
   description : String?

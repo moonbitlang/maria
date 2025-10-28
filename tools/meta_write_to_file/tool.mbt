@@ -27,52 +27,57 @@ async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
 }
 
 ///|
-/// Check syntax errors in a MoonBit file using moon check
-async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
-  let error_messages = []
-  try {
-    // Use the moon module's check functionality instead of direct spawn
-    let mod = @moon.Module::load(cwd)
-    mod.check()
-    for diagnostic in mod.diagnostics() {
-      // Filter for syntax errors (error codes 3xxx are syntax errors)
-      if diagnostic.error_code is (3000..<4000) && diagnostic.level is Error {
-        let error_msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
-        error_messages.push(error_msg)
-      }
-    }
-  } catch {
-    _ => () // Return empty string if check fails
+async fn render_diagnostics(diagnostics : Array[@moon.Diagnostic]) -> String {
+  let messages = []
+  for diagnostic in diagnostics {
+    let msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
+    messages.push(msg)
   }
-  error_messages.join("\n")
+  messages.join("\n")
+}
+
+///|
+async fn check_syntax_errors_of_string(
+  path~ : String,
+  content : String,
+) -> String {
+  render_diagnostics(@moon.check_syntax_of_string(path~, content))
+}
+
+///|
+async fn check_syntax_errors_of_file(path~ : String, cwd~ : String) -> String {
+  render_diagnostics(@moon.check_syntax_of_file(path, cwd~))
 }
 
 ///|
 /// Tool for the sub-agent to submit fixed code segments
+let submit_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "The complete fixed file content",
+    },
+  },
+  "required": ["content"],
+})
+
+///|
 fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="submit_fixed_file",
     description="Submit the complete fixed file content for verification",
-    parameters={
-      "type": "object",
-      "properties": {
-        "content": {
-          "type": "string",
-          "description": "The complete fixed file content",
-        },
-      },
-      "required": ["content"],
-    },
+    schema=submit_schema,
     async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "content": String(content), .. } else {
         return @tool.error("Missing 'content' argument")
       }
       try {
         // Write the fixed content to file
-        @fs.write_to_file(ctx.file_path, content)
-
-        // Check for syntax errors
-        let syntax_errors = check_syntax_errors(ctx.file_path, ctx.cwd)
+        let syntax_errors = check_syntax_errors_of_string(
+          path=ctx.file_path,
+          content,
+        )
         if syntax_errors == "" {
           @tool.ok(
             "File verification successful! The code compiles without syntax errors.",
@@ -91,20 +96,23 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 
 ///|
 /// Tool for the sub-agent to read current file content
+let read_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The file path to read (should match the target file)",
+    },
+  },
+  "required": ["path"],
+})
+
+///|
 fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="read_file",
     description="Read the current file content to understand what needs to be fixed",
-    parameters={
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "The file path to read (should match the target file)",
-        },
-      },
-      "required": ["path"],
-    },
+    schema=read_schema,
     @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "path": String(path), .. } else {
         return @tool.error("Missing 'path' argument")
@@ -127,20 +135,23 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 
 ///|
 /// Tool for the sub-agent to signal completion
+let completion_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {
+    "result": {
+      "type": "string",
+      "description": "Summary of the fixing result",
+    },
+  },
+  "required": ["result"],
+})
+
+///|
 fn attempt_completion_new(_ : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
-    parameters={
-      "type": "object",
-      "properties": {
-        "result": {
-          "type": "string",
-          "description": "Summary of the fixing result",
-        },
-      },
-      "required": ["result"],
-    },
+    schema=completion_schema,
     async fn(args) -> @tool.ToolResult[String] noraise {
       guard args is { "result": String(result), .. } else {
         return @tool.error("Missing 'result' argument")
@@ -225,7 +236,16 @@ fn build_fixing_user_message(
 async fn fix_syntax_errors(ctx : FixingContext) -> String? {
   try {
     // Create sub-agent
-    let subagent = @agent.new(ctx.parent_agent.model, cwd=ctx.cwd)
+    let subagent = @agent.new(
+      ctx.parent_agent.model,
+      logger=ctx.parent_agent.logger.child({
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": ctx.parent_agent.uuid.v4().to_json(),
+        },
+      }),
+      cwd=ctx.cwd,
+    )
 
     // Add tools using factory functions
     subagent.add_tools([
@@ -272,22 +292,18 @@ async fn execute_meta_write_to_file(
       )
   }
   let cwd = agent.cwd
-
-  // Resolve file path
   let resolved_path = if @path.is_absolute(params.path) {
     params.path
   } else {
     @path.join(cwd, params.path)
   }
   try {
-    // Step 1: Write the file using standard write_to_file logic
-    // Implement write_to_file logic directly
+    // Step 1: Write the file using standard <write_to_file> logic
+    // TODO: return @tool.error(...) directly
     let write_result : @tool.ToolResult[String] = match
       (params.search, params.replace) {
       (None, Some(replace)) =>
-        // Replace entire file content
         try {
-          // Create directory if it doesn't exist
           @fs.make_directory(@path.dirname(resolved_path), recursive=true)
           @fs.write_to_file(resolved_path, replace)
           @tool.ok("File written successfully to \{params.path}")
@@ -295,7 +311,6 @@ async fn execute_meta_write_to_file(
           error => @tool.error("Error writing to file: \{error}", error~)
         }
       (Some(search), replace_opt) =>
-        // Search and replace operation
         try {
           let content = @fs.read_file(resolved_path)
           let replace = match replace_opt {
@@ -318,22 +333,23 @@ async fn execute_meta_write_to_file(
       (None, None) =>
         @tool.error("Either 'replace' content must be provided for new files")
     }
-    // if write_result is Error(_, _) {
+
+    // Return early if write failed
     let write_result = match write_result {
-      Error(error, message) => return @tool.error(message, error~) // Return early on error
+      Error(error, message) => return @tool.error(message, error~)
       Ok(write_result) => write_result
     }
 
-    // Step 1.5: Capture content immediately after initial write
+    // Step 2: Capture content immediately after initial write
     let initial_content = @fs.read_file(resolved_path)
 
-    // Step 2: If it's a MoonBit file, format it and fix syntax if needed
+    // Step 3: If it's a MoonBit file, format it and fix syntax if needed
     if is_moonbit_file(resolved_path) {
       // Format the file
       format_moonbit_file(resolved_path, cwd)
 
       // Check for syntax errors (but skip fixing for .mbt.md files)
-      let syntax_errors = check_syntax_errors(resolved_path, cwd)
+      let syntax_errors = check_syntax_errors_of_file(path=resolved_path, cwd~)
       let is_markdown = resolved_path.has_suffix(".mbt.md")
       if syntax_errors != "" && !is_markdown {
         // Fix syntax errors using sub-agent
@@ -407,32 +423,35 @@ async fn execute_meta_write_to_file(
 
 ///|
 /// The meta_write_to_file tool definition
+let meta_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "The path of the file to write to, relative to the current working directory.",
+    },
+    "search": {
+      "type": "string",
+      "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
+    },
+    "replace": {
+      "type": "string",
+      "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
+    },
+    "description": {
+      "type": "string",
+      "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
+    },
+  },
+  "required": ["path", "description"],
+})
+
+///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {
   @tool.new(
     description="Enhanced file writing tool that writes content to a file, automatically formats MoonBit files using moon fmt, checks for syntax errors with moon check, and spawns a sub-agent to fix any syntax errors found. This ensures that MoonBit files are always properly formatted and syntactically correct after writing. Returns diff comparison if final content differs from initial write.",
     name="meta_write_to_file",
-    parameters={
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "The path of the file to write to, relative to the current working directory.",
-        },
-        "search": {
-          "type": "string",
-          "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
-        },
-        "replace": {
-          "type": "string",
-          "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
-        },
-        "description": {
-          "type": "string",
-          "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
-        },
-      },
-      "required": ["path", "description"],
-    },
+    schema=meta_schema,
     async fn(args) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
       execute_meta_write_to_file(args, agent)
     },

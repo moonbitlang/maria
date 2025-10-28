@@ -71,19 +71,20 @@ async test "agent/single_tool_call" (t : @test.T) {
     // Track tool calls
     let mut tool_called = false
     let mut tool_name = ""
+    let calculator_schema = @tool.JsonSchema::from_json({
+      "type": "object",
+      "properties": {
+        "a": { "type": "number", "description": "First number" },
+        "b": { "type": "number", "description": "Second number" },
+      },
+      "required": ["a", "b"],
+    })
 
     // Add a simple calculator tool
     let calculator_tool = @tool.new(
       name="add_numbers",
       description="Add two numbers together",
-      parameters={
-        "type": "object",
-        "properties": {
-          "a": { "type": "number", "description": "First number" },
-          "b": { "type": "number", "description": "Second number" },
-        },
-        "required": ["a", "b"],
-      },
+      schema=calculator_schema,
       ToolFn(args => {
         tool_called = true
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
@@ -123,16 +124,17 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
 
     // Track tool calls
     let tool_calls : Array[String] = []
+    let binary_op_schema = @tool.JsonSchema::from_json({
+      "type": "object",
+      "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
+      "required": ["a", "b"],
+    })
 
     // Add multiple tools
     let add_tool = @tool.new(
       name="add",
       description="Add two numbers",
-      parameters={
-        "type": "object",
-        "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
-        "required": ["a", "b"],
-      },
+      schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
           return @tool.error("Invalid arguments")
@@ -143,11 +145,7 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
     let multiply_tool = @tool.new(
       name="multiply",
       description="Multiply two numbers",
-      parameters={
-        "type": "object",
-        "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
-        "required": ["a", "b"],
-      },
+      schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
           return @tool.error("Invalid arguments")
@@ -299,16 +297,17 @@ async test "agent/tool_error_handling" (t : @test.T) {
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let mut error_encountered = false
+    let binary_op_schema = @tool.JsonSchema::from_json({
+      "type": "object",
+      "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
+      "required": ["a", "b"],
+    })
 
     // Add a tool that always fails
     let failing_tool = @tool.new(
       name="divide",
       description="Divide two numbers (will fail on division by zero)",
-      parameters={
-        "type": "object",
-        "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
-        "required": ["a", "b"],
-      },
+      schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
           return @tool.error("Invalid arguments")
@@ -350,25 +349,30 @@ async test "agent/batch_tool_registration" (t : @test.T) {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
+    let empty_schema = @tool.JsonSchema::from_json({
+      "type": "object",
+      "properties": {},
+      "required": [],
+    })
 
     // Create multiple tools
     let tools = [
       @tool.new(
         name="tool1",
         description="First tool",
-        parameters={ "type": "object", "properties": {} },
+        schema=empty_schema,
         ToolFn(_ => @tool.ok({ "result": "tool1" })),
       ),
       @tool.new(
         name="tool2",
         description="Second tool",
-        parameters={ "type": "object", "properties": {} },
+        schema=empty_schema,
         ToolFn(_ => @tool.ok({ "result": "tool2" })),
       ),
       @tool.new(
         name="tool3",
         description="Third tool",
-        parameters={ "type": "object", "properties": {} },
+        schema=empty_schema,
         ToolFn(_ => @tool.ok({ "result": "tool3" })),
       ),
     ]

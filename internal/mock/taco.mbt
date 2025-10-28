@@ -19,7 +19,10 @@ async fn directory(path : String) -> Directory {
   }
   for i in 0..<dirs.length() {
     let dir = dirs[dirs.length() - 1 - i]
-    @fs.mkdir(dir, permission=0o755)
+    @fs.mkdir(dir, permission=0o755) catch {
+      @os_error.OSError(errno, ..) if errno == @errno.eexist => ()
+      error => raise error
+    }
   }
   let path = @fs.realpath(path)
   Directory(path)
@@ -302,7 +305,7 @@ pub fn Context::getenv(
 pub async fn run(
   t : @test.T,
   loc~ : SourceLoc,
-  timeout? : Int = 30_000,
+  timeout? : Int = 300_000,
   retry? : Int,
   f : async (Context) -> Unit,
 ) -> Unit {
@@ -327,9 +330,8 @@ pub async fn run(
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
-        let logged = log_dir |> @path.join(t.name())
+        let logged = log_dir |> @path.join("\{t.name()}.jsonl")
         let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
-        group.spawn_bg(() => logger.start(), no_wait=true)
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)

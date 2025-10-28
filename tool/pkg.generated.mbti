@@ -10,19 +10,25 @@ type AgentTool
 async fn AgentTool::call(Self, Json) -> ToolResult[(Json, String)] noraise
 fn AgentTool::desc(Self) -> ToolDesc
 
+pub(all) struct JsonSchema(Json)
+fn JsonSchema::from_json(Json) -> Self
+#deprecated
+fn JsonSchema::inner(Self) -> Json
+fn JsonSchema::to_json(Self) -> Json
+
 pub struct Tool[Output] {
   desc : ToolDesc
   // private fields
 }
 async fn[Output] Tool::call(Self[Output], Json) -> ToolResult[Output] noraise
 #as_free_fn
-fn[Output] Tool::new(description~ : String, name~ : String, parameters~ : Json, ToolFn[Output]) -> Self[Output]
+fn[Output] Tool::new(description~ : String, name~ : String, schema~ : JsonSchema, ToolFn[Output]) -> Self[Output]
 fn[Output : ToJson + Show] Tool::to_agent_tool(Self[Output]) -> AgentTool
 
 pub struct ToolDesc {
   description : String
   name : String
-  parameters : Json
+  schema : JsonSchema
 }
 
 pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)

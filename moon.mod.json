@@ -9,6 +9,9 @@
     "moonbitlang/tiktoken": {
       "path": "tiktoken"
     }
+    "moonbitlang/path": {
+      "path": "path"
+    }
   },
   "readme": "README.md",
   "repository": "",
