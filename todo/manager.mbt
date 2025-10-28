@@ -6,17 +6,16 @@ pub fn List::todos(self : List) -> Array[Item] {
 ///|
 fn List::item(
   self : List,
-  id~ : String,
   content : String,
   status~ : Status,
   priority~ : Priority,
   notes? : String,
 ) -> Item raise {
   let now = get_current_timestamp(self.clock)
-  Item::{
+  {
     content,
     created_at: now,
-    id,
+    id: self.uuid.v4().to_string()[0:8].to_string(),
     notes,
     priority,
     status,
@@ -160,13 +159,7 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = self.item(
-    id=self.generate_todo_id(),
-    content,
-    status~,
-    priority~,
-    notes?,
-  )
+  let item = self.item(content, status~, priority~, notes?)
   self.todos.push(item)
   self.updated_at = get_current_timestamp(self.clock)
   item
@@ -176,11 +169,6 @@ pub fn List::add_task(
 pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.todos[index.0] = item
   self.updated_at = get_current_timestamp(self.clock)
-}
-
-///|
-fn List::generate_todo_id(self : List) -> String raise {
-  self.uuid.v4().to_string()[0:8].to_string()
 }
 
 ///|
@@ -246,7 +234,6 @@ pub fn List::parse(
       let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
         let todo = self.item(
-          id=self.generate_todo_id(),
           trimmed.to_string(),
           notes?,
           priority~,
@@ -267,13 +254,7 @@ pub fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = self.item(
-          id=self.generate_todo_id(),
-          clean_line,
-          notes?,
-          priority~,
-          status=Pending,
-        )
+        let todo = self.item(clean_line, notes?, priority~, status=Pending)
         self.todos.push(todo)
       }
     }
