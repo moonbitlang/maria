@@ -113,7 +113,10 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           tools: {},
         }
         self.tools.set(id, formatter)
+        self.lines.push("## Spawned subagent for tool: <\{name}>")
+        self.lines.push("")
         self.lines.push("[<\{name}> log](\{path})")
+        self.lines.push("")
         formatter.format_log_entry(json)
         return
       }
@@ -147,7 +150,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           self.lines.push("")
           try {
             let args = @json.parse(tool_call.function.arguments)
-            if tool_call.function.name is "replace_in_file" {
+            if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
               match args {
                 {
                   "path": String(path),
