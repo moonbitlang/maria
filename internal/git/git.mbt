@@ -54,9 +54,17 @@ pub async fn generate_git_diff(
   modified~ : String,
 ) -> String {
   @fs.with_temporary_directory("maria-git-diff-XXXXXXX", tmpdir => {
-    let original_path = @path.join(tmpdir, "original")
+    // concat `/` make path library parsing as directory
+    let path = @path.Path::parse(tmpdir + "/")
+    let path_builder = @path.PathBuilder::from_path(path)
+    // path_builder.set_file(base="")
+    path_builder.set_basename("original")
+    let original_path = path_builder.to_string()
+    path_builder.set_basename("modified")
+    let modified_path = path_builder.to_string()
+
+    // Here we can write two files concurrently
     @fs.write_to_file(original_path, original)
-    let modified_path = @path.join(tmpdir, "modified")
     @fs.write_to_file(modified_path, modified)
     let output = StringBuilder::new()
     // TODO: add environment variable support
