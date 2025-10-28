@@ -22,7 +22,8 @@ pub async fn Maria::new(
     None => @os.cwd()
     Some(cwd) => cwd
   }
-  guard @model.load_model(home~, cwd~, model?) is Some(model) else {
+  let loader = @model.Loader::new(home~, cwd~, logger~)
+  guard loader.get_model(name?=model) is Some(model) else {
     raise ModelNotConfigured
   }
   let agent = @agent.new(model, logger~, cwd~)
