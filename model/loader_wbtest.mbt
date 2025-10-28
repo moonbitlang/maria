@@ -80,7 +80,7 @@ async test "load" (t : @test.T) {
         "is_reasoning": false,
         "safe_zone_tokens": 131000,
         "max_output_tokens": 8192,
-        "api_key": "sk-9210d2610da64e2c80f3ec8f3e63779f",
+        "api_key": "sk-test",
       },
     ]
     let _ = project
@@ -96,37 +96,40 @@ async test "load" (t : @test.T) {
       logger=mock.logger,
     )
     loader.load()
-    @json.inspect(loader.get_model(), content=[
+    @json.inspect(mock.json(loader.get_model()), content=[
       {
         "name": "google/gemini-2.5-flash",
         "description": "google gemini 2.5 flash for long-context simple task",
         "model_name": "google/gemini-2.5-flash",
         "model_type": "saas/openai",
-        "api_key": "sk-test",
+        "api_key": "(mock:env:OPENAI_API_KEY)",
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 1000000,
         "supports_anthropic_prompt_caching": true,
       },
     ])
-    @json.inspect(loader.get_model(name="anthropic/claude-sonnet-4"), content=[
-      {
-        "name": "anthropic/claude-sonnet-4",
-        "description": "claude sonnet model for general tasks",
-        "model_name": "anthropic/claude-sonnet-4",
-        "model_type": "saas/openai",
-        "api_key": "sk-test",
-        "base_url": "https://openrouter.ai/api/v1",
-        "safe_zone_tokens": 128000,
-        "supports_anthropic_prompt_caching": true,
-      },
-    ])
-    @json.inspect(loader.get_model(name="qwen/qwen3-coder"), content=[
+    @json.inspect(
+      mock.json(loader.get_model(name="anthropic/claude-sonnet-4")),
+      content=[
+        {
+          "name": "anthropic/claude-sonnet-4",
+          "description": "claude sonnet model for general tasks",
+          "model_name": "anthropic/claude-sonnet-4",
+          "model_type": "saas/openai",
+          "api_key": "(mock:env:OPENAI_API_KEY)",
+          "base_url": "https://openrouter.ai/api/v1",
+          "safe_zone_tokens": 128000,
+          "supports_anthropic_prompt_caching": true,
+        },
+      ],
+    )
+    @json.inspect(mock.json(loader.get_model(name="qwen/qwen3-coder")), content=[
       {
         "name": "qwen/qwen3-coder",
         "description": "qwen coder",
         "model_name": "qwen/qwen3-coder",
         "model_type": "saas/openai",
-        "api_key": "sk-test",
+        "api_key": "(mock:env:OPENAI_API_KEY)",
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 256000,
         "supports_anthropic_prompt_caching": false,
