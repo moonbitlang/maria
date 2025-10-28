@@ -27,24 +27,26 @@ async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
 }
 
 ///|
-/// Check syntax errors in a MoonBit file using moon check
-async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
-  let error_messages = []
-  try {
-    // Use the moon module's check functionality instead of direct spawn
-    let mod = @moon.Module::load(cwd)
-    mod.check()
-    for diagnostic in mod.diagnostics() {
-      // Filter for syntax errors (error codes 3xxx are syntax errors)
-      if diagnostic.error_code is (3000..<4000) && diagnostic.level is Error {
-        let error_msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
-        error_messages.push(error_msg)
-      }
-    }
-  } catch {
-    _ => () // Return empty string if check fails
+async fn render_diagnostics(diagnostics : Array[@moon.Diagnostic]) -> String {
+  let messages = []
+  for diagnostic in diagnostics {
+    let msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
+    messages.push(msg)
   }
-  error_messages.join("\n")
+  messages.join("\n")
+}
+
+///|
+async fn check_syntax_errors_of_string(
+  path~ : String,
+  content : String,
+) -> String {
+  render_diagnostics(@moon.check_syntax_of_string(path~, content))
+}
+
+///|
+async fn check_syntax_errors_of_file(path~ : String, cwd~ : String) -> String {
+  render_diagnostics(@moon.check_syntax_of_file(path, cwd~))
 }
 
 ///|
@@ -72,10 +74,10 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       }
       try {
         // Write the fixed content to file
-        @fs.write_to_file(ctx.file_path, content)
-
-        // Check for syntax errors
-        let syntax_errors = check_syntax_errors(ctx.file_path, ctx.cwd)
+        let syntax_errors = check_syntax_errors_of_string(
+          path=ctx.file_path,
+          content,
+        )
         if syntax_errors == "" {
           @tool.ok(
             "File verification successful! The code compiles without syntax errors.",
@@ -290,22 +292,18 @@ async fn execute_meta_write_to_file(
       )
   }
   let cwd = agent.cwd
-
-  // Resolve file path
   let resolved_path = if @path.is_absolute(params.path) {
     params.path
   } else {
     @path.join(cwd, params.path)
   }
   try {
-    // Step 1: Write the file using standard write_to_file logic
-    // Implement write_to_file logic directly
+    // Step 1: Write the file using standard <write_to_file> logic
+    // TODO: return @tool.error(...) directly
     let write_result : @tool.ToolResult[String] = match
       (params.search, params.replace) {
       (None, Some(replace)) =>
-        // Replace entire file content
         try {
-          // Create directory if it doesn't exist
           @fs.make_directory(@path.dirname(resolved_path), recursive=true)
           @fs.write_to_file(resolved_path, replace)
           @tool.ok("File written successfully to \{params.path}")
@@ -313,7 +311,6 @@ async fn execute_meta_write_to_file(
           error => @tool.error("Error writing to file: \{error}", error~)
         }
       (Some(search), replace_opt) =>
-        // Search and replace operation
         try {
           let content = @fs.read_file(resolved_path)
           let replace = match replace_opt {
@@ -336,22 +333,23 @@ async fn execute_meta_write_to_file(
       (None, None) =>
         @tool.error("Either 'replace' content must be provided for new files")
     }
-    // if write_result is Error(_, _) {
+
+    // Return early if write failed
     let write_result = match write_result {
-      Error(error, message) => return @tool.error(message, error~) // Return early on error
+      Error(error, message) => return @tool.error(message, error~)
       Ok(write_result) => write_result
     }
 
-    // Step 1.5: Capture content immediately after initial write
+    // Step 2: Capture content immediately after initial write
     let initial_content = @fs.read_file(resolved_path)
 
-    // Step 2: If it's a MoonBit file, format it and fix syntax if needed
+    // Step 3: If it's a MoonBit file, format it and fix syntax if needed
     if is_moonbit_file(resolved_path) {
       // Format the file
       format_moonbit_file(resolved_path, cwd)
 
       // Check for syntax errors (but skip fixing for .mbt.md files)
-      let syntax_errors = check_syntax_errors(resolved_path, cwd)
+      let syntax_errors = check_syntax_errors_of_file(path=resolved_path, cwd~)
       let is_markdown = resolved_path.has_suffix(".mbt.md")
       if syntax_errors != "" && !is_markdown {
         // Fix syntax errors using sub-agent

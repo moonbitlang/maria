@@ -147,7 +147,18 @@ async fn check(
 }
 
 ///|
-async fn check_syntax_of_file(
+/// Validates the syntax of a MoonBit source file by running the MoonBit
+/// compiler in parse-only mode.
+///
+/// Parameters:
+///
+/// * `path` : The file path to the MoonBit source file to be checked.
+/// * `cwd` : Optional working directory from which to run the compiler. If not
+///   provided, uses the current working directory.
+///
+/// Returns an array of `Diagnostic` objects containing any syntax errors or
+/// warnings found in the file.
+pub async fn check_syntax_of_file(
   path : String,
   cwd? : StringView,
 ) -> Array[Diagnostic] {

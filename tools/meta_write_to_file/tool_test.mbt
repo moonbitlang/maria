@@ -1,4 +1,73 @@
 ///|
+async test "meta_write_to_file/create-file" (t : @test.T) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = @model.new(
+      api_key~,
+      base_url="https://openrouter.ai/api/v1",
+      name="qwen/qwen3-coder-plus",
+      safe_zone_tokens=200000,
+    )
+    let _ = mock.add_file(
+      "moon.mod.json",
+      content=Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
+      ),
+    )
+    let _ = mock.add_file(
+      "moon.pkg.json",
+      content=Json::object({ "is-main": true }).stringify(indent=2),
+    )
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let tool = @meta_write_to_file.new(agent)
+    agent.add_tool(tool)
+    let result = @tool.Tool::call(tool, {
+      "path": "main.mbt",
+      "replace": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+      ),
+      "description": "Create a main function that prints 'Hello, MoonBit!' to the console.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|Path: (mock:cwd)/main.mbt
+        #|Message: File written successfully to main.mbt
+        #|Diff: 
+        #|
+        #|**Changes made during formatting/fixing:**
+        #|```diff
+        #|diff --git original modified
+        #|index 8258f5d..c8bbf10 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,4 +1,4 @@
+        #| ///|
+        #| fn main {
+        #|   println("Hello, MoonBit!")
+        #|-}
+        #|\ No newline at end of file
+        #|+}
+        #|```
+      ),
+    )
+    inspect(
+      @fs.read_file(@path.join(mock.cwd.path(), "main.mbt")),
+      content=(
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+        #|
+      ),
+    )
+  })
+}
+
+///|
 async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
   @mock.run(t, timeout=300_000, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")

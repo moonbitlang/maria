@@ -9,6 +9,7 @@ async fn main {
   let cwd = @os.cwd()
   let mut prompt_file = None
   let mut log_file = None
+  let mut model = None
   loop args {
     ["--prompt-file", pf, .. args] => {
       if pf is ['-', ..] {
@@ -20,6 +21,10 @@ async fn main {
     }
     ["--log-file", lf, .. args] => {
       log_file = Some(lf)
+      continue args
+    }
+    ["--model", m, .. args] => {
+      model = Some(m)
       continue args
     }
     [unknown, ..] => {
@@ -48,7 +53,7 @@ async fn main {
   )
   @fs.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")
-    let maria = @maria.Maria::new(logger~, cwd=tmpdir)
+    let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
     maria.start(prompt)
     let zip_out = StringBuilder::new()
     let status = @spawn.spawn(

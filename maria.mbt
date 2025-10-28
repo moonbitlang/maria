@@ -38,6 +38,7 @@ pub async fn Maria::new(
     @todo_read.new(todo_list).to_agent_tool(),
     @todo_write.new(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
+    @meta_write_to_file.new(agent).to_agent_tool(),
   ])
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
