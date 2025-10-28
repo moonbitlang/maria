@@ -60,7 +60,7 @@ pub impl Show for CheckMoonbitProjectResult with output(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "diagnostic_limit": {
@@ -85,7 +85,7 @@ let schema : Json = {
     },
   },
   "required": ["project_path"],
-}
+})
 
 ///|
 pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {

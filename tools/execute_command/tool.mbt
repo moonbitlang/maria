@@ -54,7 +54,7 @@ pub impl Show for CommandResult with output(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "command": {
@@ -78,7 +78,7 @@ let schema : Json = {
     },
   },
   "required": ["command", "timeout"],
-}
+})
 
 ///|
 pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {

@@ -49,7 +49,7 @@ async fn check_syntax_errors(_file_path : String, cwd : String) -> String {
 
 ///|
 /// Tool for the sub-agent to submit fixed code segments
-let submit_schema : Json = {
+let submit_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "content": {
@@ -58,7 +58,7 @@ let submit_schema : Json = {
     },
   },
   "required": ["content"],
-}
+})
 
 ///|
 fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
@@ -94,7 +94,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 
 ///|
 /// Tool for the sub-agent to read current file content
-let read_schema : Json = {
+let read_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "path": {
@@ -103,7 +103,7 @@ let read_schema : Json = {
     },
   },
   "required": ["path"],
-}
+})
 
 ///|
 fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
@@ -133,7 +133,7 @@ fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 
 ///|
 /// Tool for the sub-agent to signal completion
-let completion_schema : Json = {
+let completion_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "result": {
@@ -142,7 +142,7 @@ let completion_schema : Json = {
     },
   },
   "required": ["result"],
-}
+})
 
 ///|
 fn attempt_completion_new(_ : FixingContext) -> @tool.Tool[String] {
@@ -425,7 +425,7 @@ async fn execute_meta_write_to_file(
 
 ///|
 /// The meta_write_to_file tool definition
-let meta_schema : Json = {
+let meta_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "path": {
@@ -446,7 +446,7 @@ let meta_schema : Json = {
     },
   },
   "required": ["path", "description"],
-}
+})
 
 ///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {

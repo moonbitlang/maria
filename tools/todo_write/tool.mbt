@@ -246,7 +246,7 @@ async fn @todo.List::execute_todo_write(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "action": {
@@ -275,7 +275,7 @@ let schema : Json = {
     },
   },
   "required": ["action"],
-}
+})
 
 ///|
 /// @param list the todolist is shared globally

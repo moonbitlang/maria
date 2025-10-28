@@ -71,14 +71,14 @@ async test "agent/single_tool_call" (t : @test.T) {
     // Track tool calls
     let mut tool_called = false
     let mut tool_name = ""
-    let calculator_schema : Json = {
+    let calculator_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": {
         "a": { "type": "number", "description": "First number" },
         "b": { "type": "number", "description": "Second number" },
       },
       "required": ["a", "b"],
-    }
+    })
 
     // Add a simple calculator tool
     let calculator_tool = @tool.new(
@@ -124,11 +124,11 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
 
     // Track tool calls
     let tool_calls : Array[String] = []
-    let binary_op_schema : Json = {
+    let binary_op_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
       "required": ["a", "b"],
-    }
+    })
 
     // Add multiple tools
     let add_tool = @tool.new(
@@ -297,11 +297,11 @@ async test "agent/tool_error_handling" (t : @test.T) {
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let mut error_encountered = false
-    let binary_op_schema : Json = {
+    let binary_op_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": { "a": { "type": "number" }, "b": { "type": "number" } },
       "required": ["a", "b"],
-    }
+    })
 
     // Add a tool that always fails
     let failing_tool = @tool.new(
@@ -349,11 +349,11 @@ async test "agent/batch_tool_registration" (t : @test.T) {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
-    let empty_schema : Json = {
+    let empty_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": {},
       "required": [],
-    }
+    })
 
     // Create multiple tools
     let tools = [

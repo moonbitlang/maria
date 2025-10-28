@@ -1,5 +1,5 @@
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "package": {
@@ -8,7 +8,7 @@ let schema : Json = {
     },
   },
   "required": ["package"],
-}
+})
 
 ///|
 pub fn new(cwd : String) -> @tool.Tool[String] {

@@ -18,7 +18,7 @@ fn truncate_output(output : String, max_output_lines~ : Int) -> String {
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "job_id": {
@@ -35,7 +35,7 @@ let schema : Json = {
     },
   },
   "required": ["job_id", "timeout", "max_output_lines"],
-}
+})
 
 ///|
 pub fn new(manager : @job.Manager) -> @tool.Tool[String] {

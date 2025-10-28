@@ -1,5 +1,5 @@
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "content": {
@@ -17,7 +17,7 @@ let schema : Json = {
     },
   },
   "required": ["path", "content"],
-}
+})
 
 ///|
 priv struct Params {

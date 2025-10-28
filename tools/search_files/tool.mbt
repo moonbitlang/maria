@@ -444,7 +444,7 @@ async fn search_files_impl(
 }
 
 ///|
-let schema : Json = {
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {
     "context_lines": {
@@ -472,7 +472,7 @@ let schema : Json = {
     },
   },
   "required": ["path", "regex", "kind"],
-}
+})
 
 ///|
 /// Main search files tool implementation

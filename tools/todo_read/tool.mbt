@@ -76,7 +76,11 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
-let schema : Json = { "type": "object", "properties": {}, "required": [] }
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {},
+  "required": [],
+})
 
 ///|
 pub fn new(list : @todo.List) -> @tool.Tool[TodoReadResult] {
