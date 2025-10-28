@@ -83,7 +83,7 @@ pub enum ChatCompletionChoiceFinishReason {
 ///|
 /// Single choice returned in a chat completion response.
 pub struct ChatCompletionChoice {
-  finish_reason : ChatCompletionChoiceFinishReason
+  finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessage
   logprobs : ChatCompletionChoiceLogprobs?

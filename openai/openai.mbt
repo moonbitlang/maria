@@ -18,6 +18,19 @@ impl @json.FromJson for ChatCompletionServiceTier with from_json(
 }
 
 ///|
+impl ToJson for ChatCompletionServiceTier with to_json(
+  self : ChatCompletionServiceTier,
+) -> Json {
+  match self {
+    Auto => "auto"
+    Default => "default"
+    Flex => "flex"
+    Scale => "scale"
+    Priority => "priority"
+  }
+}
+
+///|
 impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -48,6 +61,35 @@ impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
     None => None
   }
   ChatCompletionChoiceLogprobs::{ content, refusal }
+}
+
+///|
+impl ToJson for ChatCompletionChoiceLogprobs with to_json(
+  self : ChatCompletionChoiceLogprobs,
+) -> Json {
+  let json : Map[String, Json] = {}
+  if self.content is Some(content) {
+    json["content"] = content.to_json()
+  }
+  if self.refusal is Some(refusal) {
+    json["refusal"] = refusal.to_json()
+  }
+  Json::object(json)
+}
+
+///|
+impl ToJson for ChatCompletionTokenLogprob with to_json(
+  self : ChatCompletionTokenLogprob,
+) -> Json {
+  let json : Map[String, Json] = {
+    "token": Json::string(self.token),
+    "logprob": self.logprob.to_json(),
+  }
+  if self.bytes is Some(bytes) {
+    json["bytes"] = bytes.to_json()
+  }
+  json["top_logprobs"] = self.top_logprobs.to_json()
+  Json::object(json)
 }
 
 ///|
@@ -111,6 +153,20 @@ impl @json.FromJson for ChatCompletionTopLogprob with from_json(
     None => None
   }
   ChatCompletionTopLogprob::{ token, logprob, bytes }
+}
+
+///|
+impl ToJson for ChatCompletionTopLogprob with to_json(
+  self : ChatCompletionTopLogprob,
+) -> Json {
+  let json : Map[String, Json] = {
+    "token": Json::string(self.token),
+    "logprob": self.logprob.to_json(),
+  }
+  if self.bytes is Some(bytes) {
+    json["bytes"] = bytes.to_json()
+  }
+  Json::object(json)
 }
 
 ///|
@@ -280,6 +336,19 @@ pub impl @json.FromJson for ChatCompletionMessage with from_json(
 }
 
 ///|
+impl ToJson for ChatCompletionChoiceFinishReason with to_json(
+  self : ChatCompletionChoiceFinishReason,
+) -> Json {
+  match self {
+    Stop => "stop"
+    Length => "length"
+    ToolCalls => "tool_calls"
+    ContentFilter => "content_filter"
+    FunctionCall => "function_call"
+  }
+}
+
+///|
 impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -301,6 +370,21 @@ impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
 }
 
 ///|
+impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -> Json {
+  let json : Map[String, Json] = {
+    "index": self.index.to_json(),
+    "message": self.message.to_json(),
+  }
+  if self.finish_reason is Some(finish_reason) {
+    json["finish_reason"] = finish_reason.to_json()
+  }
+  if self.logprobs is Some(logprobs) {
+    json["logprobs"] = logprobs.to_json()
+  }
+  Json::object(json)
+}
+
+///|
 impl @json.FromJson for ChatCompletionChoice with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -308,13 +392,17 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
   guard json is Object(json) else {
     raise @json.JsonDecodeError((json_path, "Expected an object"))
   }
-  guard json.get("finish_reason") is Some(finish_reason) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'finish_reason' field"))
+  let finish_reason = match json.get("finish_reason") {
+    Some(Null) => None
+    Some(finish_reason) => {
+      let finish_reason : ChatCompletionChoiceFinishReason = @json.from_json(
+        finish_reason,
+        path=json_path.add_key("finish_reason"),
+      )
+      Some(finish_reason)
+    }
+    None => None
   }
-  let finish_reason : ChatCompletionChoiceFinishReason = @json.from_json(
-    finish_reason,
-    path=json_path.add_key("finish_reason"),
-  )
   guard json.get("index") is Some(Number(index, ..)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'index' field"))
   }
@@ -561,6 +649,26 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
   }
   if self.temperature is Some(temperature) {
     json["temperature"] = temperature.to_json()
+  }
+  Json::object(json)
+}
+
+///|
+pub impl ToJson for ChatCompletion with to_json(self : ChatCompletion) -> Json {
+  let json : Map[String, Json] = {
+    "id": Json::string(self.id),
+    "choices": self.choices.to_json(),
+    "created": self.created.to_json(),
+    "model": Json::string(self.model),
+  }
+  if self.usage is Some(usage) {
+    json["usage"] = usage.to_json()
+  }
+  if self.system_fingerprint is Some(fingerprint) {
+    json["system_fingerprint"] = Json::string(fingerprint)
+  }
+  if self.service_tier is Some(service_tier) {
+    json["service_tier"] = service_tier.to_json()
   }
   Json::object(json)
 }

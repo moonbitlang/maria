@@ -55,8 +55,10 @@ pub struct ChatCompletion {
 }
 fn ChatCompletion::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 fn ChatCompletion::output(Self, &Logger) -> Unit // from trait `Show`
+fn ChatCompletion::to_json(Self) -> Json // from trait `ToJson`
 fn ChatCompletion::to_string(Self) -> String // from trait `Show`
 impl Show for ChatCompletion
+impl ToJson for ChatCompletion
 impl @json.FromJson for ChatCompletion
 
 pub struct ChatCompletionAssistantMessageParam {
@@ -67,7 +69,7 @@ pub struct ChatCompletionAssistantMessageParam {
 }
 
 pub struct ChatCompletionChoice {
-  finish_reason : ChatCompletionChoiceFinishReason
+  finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessage
   logprobs : ChatCompletionChoiceLogprobs?
