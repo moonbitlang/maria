@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/read_multiple_files"
+
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/file"
+  "moonbitlang/maria/tool"
+)
+
+// Values
+fn new(@file.Manager) -> @tool.Tool[Array[ReadFileToolResult]]
+
+// Errors
+pub(all) suberror MultipleErrors Array[(Error, String)]
+fn MultipleErrors::output(Self, &Logger) -> Unit // from trait `Show`
+fn MultipleErrors::to_json(Self) -> Json // from trait `ToJson`
+fn MultipleErrors::to_string(Self) -> String // from trait `Show`
+impl Show for MultipleErrors
+impl ToJson for MultipleErrors
+
+// Types and methods
+type ReadFileToolResult
+fn ReadFileToolResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+fn ReadFileToolResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn ReadFileToolResult::to_json(Self) -> Json // from trait `ToJson`
+fn ReadFileToolResult::to_string(Self) -> String // from trait `Show`
+impl Show for ReadFileToolResult
+impl ToJson for ReadFileToolResult
+impl @json.FromJson for ReadFileToolResult
+
+// Type aliases
+
+// Traits
+
