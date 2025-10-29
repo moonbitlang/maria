@@ -22,15 +22,15 @@
 
 ///|
 /// used for `\p{L}``
-fnalias @unicode.is_alphabetic as is_letter
+using @unicode {is_alphabetic}
 
 ///|
 /// used for `\p{N}`
-fnalias @unicode.is_number
+using @unicode {is_number}
 
 ///|
 /// used for `\s`
-fnalias @unicode.is_whitespace as is_space
+using @unicode {is_whitespace}
 
 ///|
 priv suberror BackTracing derive(Show, ToJson)
@@ -168,7 +168,7 @@ fn cl100k_base_tokenize_part2(
   input : StringView,
 ) -> StringView raise BackTracing {
   fn predicate(ch : Char) -> Bool {
-    ch != '\u{000D}' && ch != '\n' && !is_letter(ch) && !is_number(ch)
+    ch != '\u{000D}' && ch != '\n' && !is_alphabetic(ch) && !is_number(ch)
   }
 
   let (non_letter_len, remaining_input) = match input {
@@ -176,7 +176,7 @@ fn cl100k_base_tokenize_part2(
     rest => (0, rest)
   }
   let letter_len = loop (0, remaining_input) {
-    (len, [ch, .. rest]) if is_letter(ch) =>
+    (len, [ch, .. rest]) if is_alphabetic(ch) =>
       continue (len + ch.utf16_len(), rest)
     (len, _) => break len
   }
@@ -281,7 +281,7 @@ fn cl100k_base_tokenize_part4(
   input : StringView,
 ) -> StringView raise BackTracing {
   fn predicate(ch : Char) -> Bool {
-    !is_space(ch) && !is_letter(ch) && !is_number(ch)
+    !is_whitespace(ch) && !is_alphabetic(ch) && !is_number(ch)
   }
 
   // Step 1: Optional space character [ ]?
@@ -349,7 +349,7 @@ fn cl100k_base_tokenize_part5(
 ) -> StringView raise BackTracing {
   // \s++$ means one or more whitespace characters at the end of string (possessive)
   let len = loop (0, input) {
-    (len, [ch, .. rest]) if is_space(ch) =>
+    (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
     (len, []) => break len // end of string
     (_, _) => break 0 // non-whitespace found, not at end
@@ -397,7 +397,7 @@ fn cl100k_base_tokenize_part6(
 ) -> StringView raise BackTracing {
   // \s*[\r\n] means zero or more whitespace followed by \r or \n
   let ws_len = loop (0, input) {
-    (len, [ch, .. rest]) if is_space(ch) =>
+    (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
     (len, _) => break len
   }
@@ -444,7 +444,8 @@ fn cl100k_base_tokenize_part7(
   input : StringView,
 ) -> StringView raise BackTracing {
   let len = loop (0, input) {
-    (len, [ch, lookahead, ..] as all) if is_space(ch) && is_space(lookahead) =>
+    (len, [ch, lookahead, ..] as all) if is_whitespace(ch) &&
+      is_whitespace(lookahead) =>
       continue (len + ch.utf16_len(), try! all[ch.utf16_len():])
     (len, _) => break len
   }
@@ -462,7 +463,7 @@ fn cl100k_base_tokenize_part8(
 ) -> StringView raise BackTracing {
   // \s means exactly one whitespace character
   match input {
-    [ch, ..] if is_space(ch) => try! input[0:ch.utf16_len()]
+    [ch, ..] if is_whitespace(ch) => try! input[0:ch.utf16_len()]
     _ => raise BackTracing
   }
 }
