@@ -12,7 +12,7 @@ fn claude_haiku_model(api_key : String) -> @model.Model {
 ///|
 /// Test basic agent initialization and configuration
 async test "agent/initialization" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -26,7 +26,7 @@ async test "agent/initialization" (t : @test.T) {
 ///|
 /// Test agent with a simple message-only interaction (no tools)
 async test "agent/simple_conversation" (t : @test.T) {
-  @mock.run(t, timeout=120_000, taco => {
+  @mock.run(t, timeout=120_000, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -63,7 +63,7 @@ async test "agent/simple_conversation" (t : @test.T) {
 ///|
 /// Test agent with a simple tool call
 async test "agent/single_tool_call" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -117,7 +117,7 @@ async test "agent/single_tool_call" (t : @test.T) {
 ///|
 /// Test agent with multiple tool calls in sequence
 async test "agent/multiple_tool_calls" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -177,7 +177,7 @@ async test "agent/multiple_tool_calls" (t : @test.T) {
 ///|
 /// Test agent event system
 async test "agent/event_system" (t : @test.T) {
-  @mock.run(t, timeout=120_000, taco => {
+  @mock.run(t, timeout=120_000, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -220,7 +220,7 @@ async test "agent/event_system" (t : @test.T) {
 ///|
 /// Test agent with file operations
 async test "agent/file_operations" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -265,7 +265,7 @@ async test "agent/file_operations" (t : @test.T) {
 ///|
 /// Test agent token counting and context pruning
 async test "agent/token_management" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -292,7 +292,7 @@ async test "agent/token_management" (t : @test.T) {
 ///|
 /// Test agent with error handling in tools
 async test "agent/tool_error_handling" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -345,7 +345,7 @@ async test "agent/tool_error_handling" (t : @test.T) {
 ///|
 /// Test agent with batch tool registration
 async test "agent/batch_tool_registration" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
@@ -401,7 +401,7 @@ async test "agent/batch_tool_registration" (t : @test.T) {
 ///|
 /// Test agent conversation history persistence
 async test "agent/conversation_history" (t : @test.T) {
-  @mock.run(t, taco => {
+  @mock.run(t, retry=3, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
     let agent = @agent.new(model, cwd=taco.cwd.path())
