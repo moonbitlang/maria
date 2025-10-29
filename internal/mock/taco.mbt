@@ -316,7 +316,6 @@ pub async fn run(
   f : async (Context) -> Unit,
 ) -> Unit {
   let os_cwd = @os.cwd()
-  let os_tmpdir = @os.tmpdir()
   let exec = os_args[0]
   let exec = @path.relative(os_cwd, exec)
   let exec_parts = @path.split(exec).collect()
@@ -327,7 +326,8 @@ pub async fn run(
     )
   }
   let pkg_path = parts.join(@path.sep.to_string())
-  @mfs.with_temporary_directory(@path.join(os_tmpdir, "moonbit-taco-XXXXXXX"), tmpdir => {
+  // `@mfs.with_temporary_directory` internally joins the `@os.tmpdir()` path
+  @mfs.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
     let tmp_pkg_path = @path.join(tmpdir, pkg_path)
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
