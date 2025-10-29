@@ -1,5 +1,5 @@
 ///|
-async test "meta_write_to_file/create-file" (t : @test.T) {
+async test "create-file" (t : @test.T) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
@@ -68,7 +68,51 @@ async test "meta_write_to_file/create-file" (t : @test.T) {
 }
 
 ///|
-async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
+async test "no-op-if-non-moonbit" (t : @test.T) {
+  @mock.run(t, timeout=300_000, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = @model.new(
+      api_key~,
+      base_url="https://openrouter.ai/api/v1",
+      name="qwen/qwen3-coder-plus",
+      safe_zone_tokens=200000,
+    )
+    let moon_mod_file = mock.add_file("moon.mod.json")
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
+    agent.add_tools([
+      @replace_in_file.new(file_manager).to_agent_tool(),
+      @read_file.new(file_manager).to_agent_tool(),
+      @meta_write_to_file.new(agent).to_agent_tool(),
+    ])
+    let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
+      "path": "moon.mod.json",
+      "replace": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
+      ),
+      "description": "Update the moon.mod.json file to ensure it has the correct name and version.",
+    })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(
+      output.message,
+      content="File written successfully to moon.mod.json",
+    )
+    inspect(
+      moon_mod_file.read().trim_space(),
+      content=(
+        #|{
+        #|  "name": "example",
+        #|  "version": "0.1.0"
+        #|}
+      ),
+    )
+  })
+}
+
+///|
+async test "no-op-if-no-syntax-error" (t : @test.T) {
   @mock.run(t, timeout=300_000, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
@@ -157,7 +201,7 @@ async test "meta_write_to_file/no-op-if-no-syntax-error" (t : @test.T) {
 }
 
 ///|
-async test "meta_write_to_file/fix-syntax-error" (t : @test.T) {
+async test "fix-syntax-error" (t : @test.T) {
   @mock.run(t, timeout=300_000, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
@@ -329,7 +373,7 @@ test "regexp" {
 }
 
 ///|
-async test "meta_write_to_file/search-replace" (t : @test.T) {
+async test "search-replace" (t : @test.T) {
   @mock.run(t, timeout=300_000, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = @model.new(
