@@ -281,21 +281,21 @@ fn Formatter::format_post_tool_call(
       ("execute_command", ["Foreground", { "command": String(command), .. }, ..]
       ) =>
         self.lines.push(
-          "## \{self.count} Tool call result: <\{name} command=\{command.escape()}>",
+          "# \{self.count} Tool call result: <\{name} command=\{command.escape()}>",
         )
       ("list_files", { "path": String(path), .. })
       | ("read_file", ["ReadFileResult", { "path": String(path), .. }, ..])
       | ("replace_in_file", { "path": String(path), .. })
       | ("meta_write_to_file", { "path": String(path), .. }) =>
         self.lines.push(
-          "## \{self.count} Tool call result: <\{name} path=\{path.escape()}>",
+          "# \{self.count} Tool call result: <\{name} path=\{path.escape()}>",
         )
-      _ => self.lines.push("## \{self.count} Tool call result: <\{name}>")
+      _ => self.lines.push("# \{self.count} Tool call result: <\{name}>")
     }
   } else if result is Some(Err(_)) {
-    self.lines.push("## \{self.count} Tool call error: <\{name}>")
+    self.lines.push("# \{self.count} Tool call error: <\{name}>")
   } else {
-    self.lines.push("## \{self.count} Tool call result: <\{name}>")
+    self.lines.push("# \{self.count} Tool call result: <\{name}>")
   }
   self.count += 1
   self.lines.push("")

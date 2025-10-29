@@ -10,7 +10,7 @@ async test "format_log_entry/PostToolCall" {
   inspect(
     formatter.to_string(),
     content=(
-      #|## 1 Tool call result: <get_weather>
+      #|# 1 Tool call result: <get_weather>
       #|
       #|````markdown
       #|The weather in New York is sunny.
@@ -37,7 +37,7 @@ async test "format_log_entry/PostToolCall-with-result" {
   inspect(
     formatter.to_string(),
     content=(
-      #|## 1 Tool call result: <get_weather>
+      #|# 1 Tool call result: <get_weather>
       #|
       #|````markdown
       #|The weather in New York is sunny.
@@ -60,7 +60,7 @@ async test "format_log_entry/PostToolCall-with-error" {
   inspect(
     formatter.to_string(),
     content=(
-      #|## 1 Tool call error: <get_weather>
+      #|# 1 Tool call error: <get_weather>
       #|
       #|````markdown
       #|Error: Location not found.
