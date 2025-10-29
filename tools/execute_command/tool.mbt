@@ -112,8 +112,8 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
             )
           }
           let timeout = timeout.to_int()
+          let output = StringBuilder::new()
           let result = @async.with_timeout_opt(timeout, () => {
-            let output = StringBuilder::new()
             let status = @spawn.spawn(
               "sh",
               ["-c", command],
@@ -145,7 +145,18 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
             Some(result) => result
             None => {
               let error = TimeoutError(command~, timeout~)
-              @tool.error("Timeout when executing command", error~)
+              let output = output.to_string()
+              if output.is_blank() {
+                @tool.error(
+                  "Timeout when executing command \{command} after \{timeout} ms",
+                  error~,
+                )
+              } else {
+                @tool.error(
+                  "Timeout when executing command \{command} after \{timeout} ms with following output:\n\{output.to_string()}",
+                  error~,
+                )
+              }
             }
           }
         }
