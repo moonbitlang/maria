@@ -4,7 +4,6 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/internal/fs",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/async",
@@ -19,8 +18,5 @@
     "moonbitlang/maria/tools/replace_in_file",
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/regexp"
-  ],
-  "wbtest-import": [
-    "moonbitlang/maria/internal/mock"
   ]
 }

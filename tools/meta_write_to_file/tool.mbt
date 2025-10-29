@@ -5,24 +5,14 @@
 ///|
 /// Check if a file is a MoonBit file based on extension
 fn is_moonbit_file(file_path : String) -> Bool {
-  file_path.has_suffix(".mbt") || file_path.has_suffix(".mbt.md")
+  file_path.has_suffix(".mbt")
 }
 
 ///|
 /// Format a MoonBit file using moon fmt
-async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
-  try {
-    let output = StringBuilder::new()
-    let _ = @spawn.spawn(
-      "moon",
-      ["fmt", file_path],
-      stdout=output,
-      stderr=output,
-      cwd~,
-    )
-    // Ignore formatting errors for now
-  } catch {
-    _ => () // Silently ignore formatting errors
+async fn format_moonbit_source(source : String) -> String noraise {
+  @moon.format_string(source) catch {
+    _ => source // Return original source if formatting fails
   }
 }
 
@@ -30,26 +20,14 @@ async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
 const DiagnosticLimit : Int = 10
 
 ///|
-async fn check_syntax_errors_of_string(
+async fn render_diagnostics(
   path~ : String,
   content : String,
+  diagnostics : Array[@moon.Diagnostic],
 ) -> String {
   let overlay = {}
   overlay[path] = content
-  @moon.render_diagnostics(
-    @moon.check_syntax_of_string(path~, content),
-    limit=DiagnosticLimit,
-    overlay~,
-  )
-}
-
-///|
-async fn check_syntax_errors_of_file(path~ : String, cwd~ : String) -> String {
-  @moon.render_diagnostics(
-    @moon.check_syntax_of_file(path, cwd~),
-    limit=DiagnosticLimit,
-    cwd~,
-  )
+  @moon.render_diagnostics(diagnostics, limit=DiagnosticLimit, overlay~)
 }
 
 ///|
@@ -77,15 +55,18 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       }
       try {
         // Write the fixed content to file
-        let syntax_errors = check_syntax_errors_of_string(
-          path=ctx.file_path,
-          content,
-        )
-        if syntax_errors == "" {
+        let diagnostics = @moon.check_syntax_of_string(path=ctx.path, content)
+        if diagnostics.is_empty() {
+          ctx.content = content
           @tool.ok(
             "File verification successful! The code compiles without syntax errors.",
           )
         } else {
+          let syntax_errors = render_diagnostics(
+            path=ctx.path,
+            content,
+            diagnostics,
+          )
           @tool.error(
             "File verification failed with syntax errors:\n\{syntax_errors}",
           )
@@ -94,45 +75,6 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
         error => @tool.error("Failed to write or verify file: \{error}", error~)
       }
     },
-  )
-}
-
-///|
-/// Tool for the sub-agent to read current file content
-let read_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "path": {
-      "type": "string",
-      "description": "The file path to read (should match the target file)",
-    },
-  },
-  "required": ["path"],
-})
-
-///|
-fn read_current_file_new(ctx : FixingContext) -> @tool.Tool[String] {
-  @tool.new(
-    name="read_file",
-    description="Read the current file content to understand what needs to be fixed",
-    schema=read_schema,
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
-      guard args is { "path": String(path), .. } else {
-        return @tool.error("Missing 'path' argument")
-      }
-
-      // Only allow reading the target file for security
-      // Simple string comparison for security
-      if path != ctx.file_path {
-        return @tool.error("Can only read the target file being fixed")
-      }
-      try {
-        let content = @fs.read_file(ctx.file_path)
-        @tool.ok("File content:\n\{content}")
-      } catch {
-        error => @tool.error("Failed to read file: \{error}", error~)
-      }
-    }),
   )
 }
 
@@ -150,7 +92,7 @@ let completion_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 })
 
 ///|
-fn attempt_completion_new(_ : FixingContext) -> @tool.Tool[String] {
+fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
@@ -159,7 +101,8 @@ fn attempt_completion_new(_ : FixingContext) -> @tool.Tool[String] {
       guard args is { "result": String(result), .. } else {
         return @tool.error("Missing 'result' argument")
       }
-      @tool.ok("Syntax fixing completed: \{result}")
+      ctx.result = Some(result)
+      @tool.ok("Syntax fixing completed successfully.")
     },
   )
 }
@@ -210,13 +153,13 @@ fn build_fixing_system_message() -> String {
 /// Create a user message for the syntax fixing sub-agent
 fn build_fixing_user_message(
   description : String,
-  file_path : String,
+  file_content : String,
   syntax_errors : String,
 ) -> String {
   (
     $|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n
     $|**Task Description:**\n\{description}\n\n
-    $|**File Path:** \{file_path}\n\n
+    $|**File Content:**\n```moonbit\{file_content}```\n\n
     $|**Current Syntax Errors:**\n\{syntax_errors}\n\n
     $|**Your Task:**\n
     $|1. Use `read_file` to examine the current file contents\n
@@ -236,48 +179,40 @@ fn build_fixing_user_message(
 
 ///|
 /// Fix syntax errors using a sub-agent
-async fn fix_syntax_errors(ctx : FixingContext) -> String? {
-  try {
-    // Create sub-agent
-    let subagent = @agent.new(
-      ctx.parent_agent.model,
-      logger=ctx.parent_agent.logger.child({
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": ctx.parent_agent.uuid.v4().to_json(),
-        },
-      }),
-      cwd=ctx.cwd,
-    )
+async fn fix_syntax_errors(ctx : FixingContext) -> Unit {
+  // Create sub-agent
+  let subagent = @agent.new(
+    ctx.parent_agent.model,
+    logger=ctx.parent_agent.logger.child({
+      "tool": {
+        "name": "meta_write_to_file",
+        "id": ctx.parent_agent.uuid.v4().to_json(),
+      },
+    }),
+    cwd=ctx.cwd,
+  )
 
-    // Add tools using factory functions
-    subagent.add_tools([
-      read_current_file_new(ctx).to_agent_tool(),
-      submit_fixed_file_new(ctx).to_agent_tool(),
-      attempt_completion_new(ctx).to_agent_tool(),
-    ])
+  // Add tools using factory functions
+  subagent.add_tools([
+    submit_fixed_file_new(ctx).to_agent_tool(),
+    attempt_completion_new(ctx).to_agent_tool(),
+  ])
 
-    // Add system message
-    subagent.add_message(
-      @openai.system_message(content=build_fixing_system_message()),
-    )
+  // Add system message
+  subagent.add_message(
+    @openai.system_message(content=build_fixing_system_message()),
+  )
 
-    // Add user message
-    let user_message = build_fixing_user_message(
-      ctx.description,
-      ctx.file_path,
-      ctx.syntax_errors,
-    )
-    subagent.add_message(@openai.user_message(content=user_message))
+  // Add user message
+  let user_message = build_fixing_user_message(
+    ctx.description,
+    ctx.content,
+    ctx.syntax_errors,
+  )
+  subagent.add_message(@openai.user_message(content=user_message))
 
-    // Start the sub-agent with a timeout (5 minutes)
-    @async.with_timeout(300_000, () => subagent.start()) catch {
-      _ => return Some("Syntax fixing timed out after 5 minutes")
-    }
-    None // Success
-  } catch {
-    error => Some("Failed to fix syntax errors: \{error}")
-  }
+  // Start the sub-agent with a timeout (5 minutes)
+  @async.with_timeout(300_000, () => subagent.start())
 }
 
 ///|
@@ -288,8 +223,7 @@ async fn execute_replace_in_file(
   match (params.search, params.replace) {
     (None, Some(replace)) =>
       try {
-        @fs.make_directory(@path.dirname(resolved_path), recursive=true)
-        @fs.write_to_file(resolved_path, replace)
+        mkdir_then_write(resolved_path, replace)
         @tool.ok("File written successfully to \{params.path}")
       } catch {
         error => @tool.error("Error writing to file: \{error}", error~)
@@ -301,6 +235,7 @@ async fn execute_replace_in_file(
           Some(r) => r
           None => ""
         }
+        // TODO: unify search strategy with replace_in_file tool
         match content.find(search) {
           None => @tool.error("Search content not found in file: \{search}")
           Some(pos) => {
@@ -317,6 +252,12 @@ async fn execute_replace_in_file(
     (None, None) =>
       @tool.error("Either 'replace' content must be provided for new files")
   }
+}
+
+///|
+async fn mkdir_then_write(path : String, content : String) -> Unit {
+  @fs.make_directory(@path.dirname(path), recursive=true, exists_ok=true)
+  @fs.write_to_file(path, content)
 }
 
 ///|
@@ -340,49 +281,89 @@ async fn execute_meta_write_to_file(
     @path.join(cwd, params.path)
   }
   try {
-    // Step 1: Write the file using standard <write_to_file> logic
-    // TODO: return @tool.error(...) directly
-    let write_result : @tool.ToolResult[String] = execute_replace_in_file(
-      params, resolved_path,
-    )
-
-    // Return early if write failed
-    let write_result = match write_result {
-      Error(error, message) => return @tool.error(message, error~)
-      Ok(write_result) => write_result
-    }
-
-    // Step 2: Capture content immediately after initial write
-    let initial_content = @fs.read_file(resolved_path)
-
-    // Step 3: If it's a MoonBit file, format it and fix syntax if needed
+    // If it's a MoonBit file, format it and fix syntax if needed
     if is_moonbit_file(resolved_path) {
-      // Format the file
-      format_moonbit_file(resolved_path, cwd)
-
-      // Check for syntax errors (but skip fixing for .mbt.md files)
-      let syntax_errors = check_syntax_errors_of_file(path=resolved_path, cwd~)
-      let is_markdown = resolved_path.has_suffix(".mbt.md")
-      if syntax_errors != "" && !is_markdown {
-        // Fix syntax errors using sub-agent
-        let fixing_ctx = FixingContext::{
-          file_path: resolved_path,
-          cwd,
-          description: params.description,
-          syntax_errors,
-          parent_agent: agent,
+      // Calculate initial content by applying search/replace
+      let initial_content = match (params.search, params.replace) {
+        (None, Some(replace)) => replace
+        (Some(search), replace_opt) => {
+          let file_content = @fs.read_file(resolved_path)
+          let replace = match replace_opt {
+            Some(r) => r
+            None => ""
+          }
+          match file_content.find(search) {
+            None =>
+              return @tool.error("Search content not found in file: \{search}")
+            Some(pos) => {
+              let before = file_content[0:pos].to_string()
+              let after = file_content[pos + search.length():].to_string()
+              before + replace + after
+            }
+          }
         }
-        let fixing_error = fix_syntax_errors(fixing_ctx)
-        if fixing_error is Some(error) {
-          return @tool.error("\{write_result}\n\{error}")
-        }
+        (None, None) =>
+          return @tool.error(
+            "Either 'replace' content must be provided for new files",
+          )
       }
 
-      // Step 3: Re-format the file after fixing
-      format_moonbit_file(resolved_path, cwd)
+      // Format the source, even if there are syntax errors, as some syntax
+      // errors can be auto-corrected by the formatter.
+      let formatted_content = format_moonbit_source(initial_content)
 
-      // Step 4: Compare final content with initial content
-      let final_content = @fs.read_file(resolved_path)
+      // Check for syntax errors (but skip fixing for .mbt.md files)
+      let diagnostics = @moon.check_syntax_of_string(
+        // Use params.path for better readability in diagnostics
+        path=params.path,
+        formatted_content,
+      )
+
+      // If there is no syntax error, write the file and return
+      if diagnostics.is_empty() {
+        mkdir_then_write(resolved_path, formatted_content)
+        let diff = generate_diff(
+          initial_content, formatted_content, "Changes made during formatting",
+        )
+        return @tool.ok(MetaWriteToFileResult::{
+          path: resolved_path,
+          message: if params.search is Some(_) {
+            "Changes applied and formatted successfully to \{params.path}"
+          } else {
+            "File written and formatted successfully to \{params.path}"
+          },
+          diff: diff.diff_text,
+          learning_prompt: None,
+        })
+      }
+
+      // If there are syntax errors, fix them using sub-agent
+      let syntax_errors = render_diagnostics(
+        path=params.path,
+        formatted_content,
+        diagnostics,
+      )
+      let fixing_ctx = FixingContext::{
+        path: params.path,
+        cwd,
+        result: None,
+        content: formatted_content,
+        description: params.description,
+        syntax_errors,
+        parent_agent: agent,
+      }
+      fix_syntax_errors(fixing_ctx) catch {
+        error =>
+          return @tool.error("Failed to fix syntax errors: \{error}", error~)
+      }
+
+      // Re-format the file after fixing syntax errors
+      let final_content = format_moonbit_source(fixing_ctx.content)
+
+      // Write final content to file
+      mkdir_then_write(resolved_path, final_content)
+
+      // Compare final content with initial content and generate diff
       let diff = generate_diff(
         initial_content, final_content, "Changes made during formatting/fixing",
       )
@@ -390,25 +371,30 @@ async fn execute_meta_write_to_file(
       // Add syntax error learning prompt if there were syntax errors that got fixed
       let learning_prompt = if syntax_errors != "" && diff.has_changes {
         let prompt =
-          $|
-          $|
           $|**⚠️ Syntax Error Learning Note:**
+          $|
           $|The sub-agent has automatically fixed syntax errors in this MoonBit file.
-          $|Please review the changes above to understand what syntax issues were corrected.
+          $|Please review the changes to understand what syntax issues were corrected.
           $|Pay attention to these patterns to avoid similar syntax errors in future MoonBit code:
           $|
           $|Original syntax errors that were fixed:
+          $|
           $|\{syntax_errors}
           $|
-          $|Please learn from these corrections and apply proper MoonBit syntax in subsequent code generation.
+          $|Summary of fixes applied:
           $|
+          $|\{fixing_ctx.result.unwrap_or_default()}
         prompt
       } else {
         ""
       }
       @tool.ok(MetaWriteToFileResult::{
         path: resolved_path,
-        message: write_result,
+        message: if params.search is Some(_) {
+          "Changes applied and formatted successfully to \{params.path}"
+        } else {
+          "File written and formatted successfully to \{params.path}"
+        },
         diff: diff.diff_text,
         learning_prompt: match learning_prompt {
           "" => None
@@ -416,15 +402,20 @@ async fn execute_meta_write_to_file(
         },
       })
     } else {
-      // Non-MoonBit files: show diff from initial write
-      let final_content = @fs.read_file(resolved_path)
-      let diff = generate_diff(
-        initial_content, final_content, "Complete diff from initial write",
+      // Non-MoonBit files: call replace_in_file directly
+      let write_result : @tool.ToolResult[String] = execute_replace_in_file(
+        params, resolved_path,
       )
+
+      // Return early if write failed
+      let write_result = match write_result {
+        Error(error, message) => return @tool.error(message, error~)
+        Ok(write_result) => write_result
+      }
       @tool.ok(MetaWriteToFileResult::{
         path: resolved_path,
         message: write_result,
-        diff: diff.diff_text,
+        diff: "",
         learning_prompt: None,
       })
     }

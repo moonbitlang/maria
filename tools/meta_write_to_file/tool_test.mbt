@@ -35,10 +35,10 @@ async test "create-file" (t : @test.T) {
       mock.show(result),
       content=(
         #|Path: (mock:cwd)/main.mbt
-        #|Message: File written successfully to main.mbt
+        #|Message: File written and formatted successfully to main.mbt
         #|Diff: 
         #|
-        #|**Changes made during formatting/fixing:**
+        #|**Changes made during formatting:**
         #|```diff
         #|diff --git original modified
         #|index 8258f5d..c8bbf10 100644
@@ -170,7 +170,7 @@ async test "no-op-if-no-syntax-error" (t : @test.T) {
     }
     @json.inspect(
       output.message,
-      content="File written successfully to main.mbt",
+      content="File written and formatted successfully to main.mbt",
     )
     inspect(
       main_mbt_file.read().trim_space(),
@@ -257,7 +257,7 @@ async test "fix-syntax-error" (t : @test.T) {
     }
     @json.inspect(
       output.message,
-      content="File written successfully to main.mbt",
+      content="File written and formatted successfully to main.mbt",
     )
     let main_mbt_text = main_mbt_file.read().trim_space()
     @regexp.compile(regexp_string, flags="m").execute(main_mbt_text).matched()
@@ -439,7 +439,10 @@ async test "search-replace" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output.message, content="Changes applied to main.mbt")
+    inspect(
+      output.message,
+      content="Changes applied and formatted successfully to main.mbt",
+    )
     let main_mbt_text = main_mbt_file.read().trim_space()
     @regexp.compile(regexp_string, flags="m").execute(main_mbt_text).matched()
     |> @json.inspect(content=true)
