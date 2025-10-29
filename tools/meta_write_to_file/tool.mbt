@@ -281,6 +281,45 @@ async fn fix_syntax_errors(ctx : FixingContext) -> String? {
 }
 
 ///|
+async fn execute_replace_in_file(
+  params : MetaWriteParams,
+  resolved_path : String,
+) -> @tool.ToolResult[String] noraise {
+  match (params.search, params.replace) {
+    (None, Some(replace)) =>
+      try {
+        @fs.make_directory(@path.dirname(resolved_path), recursive=true)
+        @fs.write_to_file(resolved_path, replace)
+        @tool.ok("File written successfully to \{params.path}")
+      } catch {
+        error => @tool.error("Error writing to file: \{error}", error~)
+      }
+    (Some(search), replace_opt) =>
+      try {
+        let content = @fs.read_file(resolved_path)
+        let replace = match replace_opt {
+          Some(r) => r
+          None => ""
+        }
+        match content.find(search) {
+          None => @tool.error("Search content not found in file: \{search}")
+          Some(pos) => {
+            let before = content[0:pos].to_string()
+            let after = content[pos + search.length():].to_string()
+            let new_content = before + replace + after
+            @fs.write_to_file(resolved_path, new_content)
+            @tool.ok("Changes applied to \{params.path}")
+          }
+        }
+      } catch {
+        error => @tool.error("Error writing to file: \{error}", error~)
+      }
+    (None, None) =>
+      @tool.error("Either 'replace' content must be provided for new files")
+  }
+}
+
+///|
 /// Execute the meta_write_to_file operation
 async fn execute_meta_write_to_file(
   args : Json,
@@ -303,39 +342,9 @@ async fn execute_meta_write_to_file(
   try {
     // Step 1: Write the file using standard <write_to_file> logic
     // TODO: return @tool.error(...) directly
-    let write_result : @tool.ToolResult[String] = match
-      (params.search, params.replace) {
-      (None, Some(replace)) =>
-        try {
-          @fs.make_directory(@path.dirname(resolved_path), recursive=true)
-          @fs.write_to_file(resolved_path, replace)
-          @tool.ok("File written successfully to \{params.path}")
-        } catch {
-          error => @tool.error("Error writing to file: \{error}", error~)
-        }
-      (Some(search), replace_opt) =>
-        try {
-          let content = @fs.read_file(resolved_path)
-          let replace = match replace_opt {
-            Some(r) => r
-            None => ""
-          }
-          match content.find(search) {
-            None => @tool.error("Search content not found in file: \{search}")
-            Some(pos) => {
-              let before = content[0:pos].to_string()
-              let after = content[pos + search.length():].to_string()
-              let new_content = before + replace + after
-              @fs.write_to_file(resolved_path, new_content)
-              @tool.ok("Changes applied to \{params.path}")
-            }
-          }
-        } catch {
-          error => @tool.error("Error writing to file: \{error}", error~)
-        }
-      (None, None) =>
-        @tool.error("Either 'replace' content must be provided for new files")
-    }
+    let write_result : @tool.ToolResult[String] = execute_replace_in_file(
+      params, resolved_path,
+    )
 
     // Return early if write failed
     let write_result = match write_result {
