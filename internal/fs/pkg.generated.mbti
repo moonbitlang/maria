@@ -10,7 +10,7 @@ async fn kind(StringView) -> FileKind
 
 async fn list_directory(StringView) -> Array[DirectoryEntry]
 
-async fn make_directory(StringView, recursive? : Bool) -> Unit
+async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
 
 async fn read_file(StringView) -> String
 
