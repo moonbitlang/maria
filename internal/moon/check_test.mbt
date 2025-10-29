@@ -42,6 +42,28 @@ async test "check_syntax_of_string" {
 }
 
 ///|
+async test "check_syntax_of_string-nested-path" {
+  let diagnostics = check_syntax_of_string(
+    path=@path.join("src", "main.mbt"),
+    (
+      #|let x : Int = "string",
+    ),
+  )
+  @json.inspect(diagnostics, content=[
+    {
+      "error_code": 3002,
+      "level": "Error",
+      "loc": {
+        "end": { "col": 24, "line": 1 },
+        "path": "main.mbt",
+        "start": { "col": 24, "line": 1 },
+      },
+      "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
+    },
+  ])
+}
+
+///|
 async test "check_syntax_of_file" (t : @test.T) {
   @mock.run(t, mock => {
     let file = mock.add_file("example.mbt")
