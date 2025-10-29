@@ -38,3 +38,50 @@ async test "spawn/env" {
   @json.inspect(status, content=0)
   @json.inspect(output.to_string(), content="hello_world\n")
 }
+
+///|
+async test "redirect-stdin" {
+  let stdout = StringBuilder::new()
+  let status = @spawn.spawn("cat", [], stdin="Hello, World!\n", stdout~)
+  @json.inspect(status, content=0)
+  inspect(
+    stdout.to_string(),
+    content=(
+      #|Hello, World!
+      #|
+    ),
+  )
+  let merged = StringBuilder::new()
+  let status = @spawn.spawn(
+    "cat",
+    [],
+    stdin="Hello, World!\n",
+    stdout=merged,
+    stderr=merged,
+  )
+  @json.inspect(status, content=0)
+  inspect(
+    stdout.to_string(),
+    content=(
+      #|Hello, World!
+      #|
+    ),
+  )
+  let stderr = StringBuilder::new()
+  let status = @spawn.spawn(
+    "sh",
+    ["-c", "cat 1>&2"],
+    stdin="Hello, world!\n",
+    stderr~,
+  )
+  @json.inspect(status, content=0)
+  inspect(
+    stderr.to_string(),
+    content=(
+      #|Hello, world!
+      #|
+    ),
+  )
+  let status = @spawn.spawn("cat", [], stdin="Hello, world!\n")
+  @json.inspect(status, content=0)
+}
