@@ -3,6 +3,7 @@ fn parse_windows_relative_path(
   s : StringView,
   start~ : Int,
   root_eliminate~ : Bool,
+  kind~ : PathKind,
 ) -> (WinDirectory, WinFile?) raise PathError {
   let mut rest = s
   let directory : Array[WinPathComponent] = []
@@ -44,9 +45,22 @@ fn parse_windows_relative_path(
       }
       // pattern: <dot>
       "\." => break None
-      (("[^\\]+" as base) "\." ("[^.\\]+" as extension)) =>
-        break Some(WinFile::new(base~, extension~))
-      ("[^\\.]+" as base) => break Some(WinFile::new(base~))
+      ((("[^\\]+" as base) "\." ("[^.\\]+" as extension)) as filename) =>
+        match kind {
+          File => break Some(WinFile::new(base~, extension~))
+          Directory => {
+            directory.push(WinPathComponent::from(filename, start~))
+            break None
+          }
+        }
+      ("[^\\.]+" as base) =>
+        match kind {
+          File => break Some(WinFile::new(base~))
+          Directory => {
+            directory.push(WinPathComponent::from(base, start~))
+            break None
+          }
+        }
       "$" => break None
       _ => raise PathError(start~, message="Invalid Windows path")
     }
@@ -59,6 +73,7 @@ fn parse_unix_relative_path(
   s : StringView,
   start~ : Int,
   root_eliminate~ : Bool,
+  kind~ : PathKind,
 ) -> (UnixDirectory, UnixFile?) raise PathError {
   let mut rest = s
   let directory : Array[UnixPathComponent] = []
@@ -101,8 +116,23 @@ fn parse_unix_relative_path(
       // pattern: <dot>
       "\." => break None
       (("[^/]+" as base) "\." ("[^/]+" as extension)) =>
-        break Some(UnixFile::new(base~, extension~))
-      ("[^/.]+" as base) => break Some(UnixFile::new(base~))
+        match kind {
+          File => break Some(UnixFile::new(base~, extension~))
+          Directory => {
+            directory.push(
+              UnixPathComponent::from(base + "." + extension, start~),
+            )
+            break None
+          }
+        }
+      ("[^/.]+" as base) =>
+        match kind {
+          File => break Some(UnixFile::new(base~))
+          Directory => {
+            directory.push(UnixPathComponent::from(base, start~))
+            break None
+          }
+        }
       "$" => break None
       _ => raise PathError(start~, message="Invalid Unix path")
     }
@@ -121,7 +151,10 @@ fn win_path(
 
 ///|
 /// Parsing path from string used prefix based detection to determine the path format style (Windows/Unix)
-pub fn Path::parse(path : StringView) -> Path raise PathError {
+pub fn Path::parse(
+  path : StringView,
+  kind? : PathKind = File,
+) -> Path raise PathError {
   lexmatch path with longest {
     //-----------------------------------------------------------------------------
     // without <rest_of_path>
@@ -186,6 +219,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(
         prefix=VerbatimSymlink(symlink=symlink.to_string()),
@@ -211,6 +245,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(
         prefix=VerbatimUNC(
@@ -233,6 +268,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(
         prefix=UNC(
@@ -249,6 +285,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()), directory~, file?)
     }
@@ -261,6 +298,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(prefix=DeviceNS(device=device.to_string()), directory~, file?)
     }
@@ -272,6 +310,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
@@ -289,6 +328,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=true,
+        kind~,
       )
       win_path(prefix=VolumeLetter(letter), directory~, file?)
     }
@@ -300,6 +340,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=false,
+        kind~,
       )
       win_path(directory~, file?)
     }
@@ -310,6 +351,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         path,
         start=0,
         root_eliminate=false,
+        kind~,
       )
       win_path(directory~, file?)
     }
@@ -322,6 +364,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
         root_eliminate=false,
+        kind~,
       )
       UPath(UnixPath::new(directory~, file?))
     }
@@ -332,6 +375,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         path,
         start=0,
         root_eliminate=false,
+        kind~,
       )
       UPath(UnixPath::new(directory~, file?))
     }
@@ -345,6 +389,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=1,
         root_eliminate=true,
+        kind~,
       )
       win_path(prefix=Root, directory~, file?)
     }
@@ -358,6 +403,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=1,
         root_eliminate=true,
+        kind~,
       )
       UPath(UnixPath::new(prefix=Root, directory~, file?))
     }
@@ -368,6 +414,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         rest,
         start=1,
         root_eliminate=true,
+        kind~,
       )
       UPath(UnixPath::new(prefix=SlashSlash, directory~, file?))
     }
