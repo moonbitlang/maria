@@ -40,75 +40,118 @@ fn Formatter::to_string(self : Formatter) -> String raise {
 }
 
 ///|
-/// Formats tool call from a MessageAdded log entry.
-async fn Formatter::format_tool_call(
+fn Formatter::format_tool_call_as_xml(
   self : Formatter,
-  tool_call : @openai.ChatCompletionMessageToolCall,
+  name : String,
+  args : Json,
 ) -> Unit {
-  self.lines.push("## Tool call argument: <\{tool_call.function.name}>")
+  // Some heuristic formatting for common tool call arguments
+  if args is { "path": String(path), .. } {
+    self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+  } else if args is { "command": String(command), .. } {
+    self.lines.push(
+      "## Tool call argument: <\{name} command=\{command.escape()}>",
+    )
+  } else {
+    self.lines.push("## Tool call argument: <\{name}>")
+  }
   self.lines.push("")
-  try {
-    let args = @json.parse(tool_call.function.arguments)
-    if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
-      match args {
-        {
-          "path": String(path),
-          "search": String(search),
-          "replace": String(replace),
-          ..
-        } => {
-          self.lines.push("Replacing in file \{path}")
-          self.lines.push("")
-          self.lines.push("```diff")
-          self.lines.push(
-            @git.generate_git_diff(original=search, modified=replace),
-          )
-          self.lines.push("```")
-        }
-        { "path": String(path), "replace": String(replace), .. } => {
-          let file_format = if path.has_suffix(".mbt") {
-            Some("moonbit")
-          } else if path.has_suffix(".json") {
-            Some("json")
-          } else if path.has_suffix(".md") {
-            Some("markdown")
-          } else {
-            None
-          }
-          if file_format is Some(file_format) {
-            self.lines.push("Writing to file \{path}")
-            self.lines.push("")
-            if file_format is "markdown" {
-              self.lines.push("````\{file_format}")
-            } else {
-              self.lines.push("```\{file_format}")
-            }
-            self.lines.push(replace)
-            if file_format is "markdown" {
-              self.lines.push("````")
-            } else {
-              self.lines.push("```")
-            }
-          } else {
-            json2xml(args, self.lines)
-          }
-        }
-        _ => json2xml(args, self.lines)
+  json2xml(args, self.lines)
+}
+
+///|
+async fn Formatter::format_replace_in_file(
+  self : Formatter,
+  name : String,
+  args : Json,
+) -> Unit {
+  match args {
+    {
+      "path": String(path),
+      "search": String(search),
+      "replace": String(replace),
+      ..
+    } => {
+      self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+      self.lines.push("")
+      self.lines.push("```diff")
+      self.lines.push(@git.generate_git_diff(original=search, modified=replace))
+      self.lines.push("```")
+    }
+    { "path": String(path), "replace": String(replace), .. } => {
+      self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+      self.lines.push("")
+      let file_format = if path.has_suffix(".mbt") {
+        "moonbit"
+      } else if path.has_suffix(".json") {
+        "json"
+      } else if path.has_suffix(".md") {
+        "markdown"
+      } else {
+        "plaintext"
       }
-    } else if tool_call.function.name is "submit_fixed_file" &&
-      args is { "content": String(content), .. } {
+      self.lines.push("")
+      if file_format is "markdown" {
+        self.lines.push("````\{file_format}")
+        self.lines.push(replace)
+        self.lines.push("````")
+      } else {
+        self.lines.push("```\{file_format}")
+        self.lines.push(replace)
+        self.lines.push("```")
+      }
+    }
+    _ => self.format_tool_call_as_xml(name, args)
+  }
+}
+
+///|
+fn Formatter::format_submit_fixed_file(
+  self : Formatter,
+  name : String,
+  args : Json,
+) -> Unit {
+  match args {
+    { "content": String(content), .. } => {
+      self.lines.push("## Tool call argument: <\{name}>")
+      self.lines.push("")
       self.lines.push("Submitting fixed file content:")
       self.lines.push("")
       self.lines.push("```moonbit")
       self.lines.push(content)
       self.lines.push("```")
-    } else {
-      json2xml(args, self.lines)
     }
-    self.lines.push("")
-  } catch {
-    _ => self.lines.push(tool_call.function.arguments)
+    _ => self.format_tool_call_as_xml(name, args)
   }
+}
+
+///|
+/// Formats tool call from a MessageAdded log entry.
+async fn Formatter::format_tool_call(
+  self : Formatter,
+  tool_call : @openai.ChatCompletionMessageToolCall,
+) -> Unit {
+  try @json.parse(tool_call.function.arguments) catch {
+    error => {
+      self.lines.push("## Tool call argument: <\{tool_call.function.name}>")
+      self.lines.push("")
+      self.lines.push("Failed to parse tool call arguments as JSON: \{error}")
+      self.lines.push("")
+      self.lines.push("```json")
+      self.lines.push(tool_call.function.arguments)
+      self.lines.push("```")
+    }
+  } noraise {
+    args =>
+      if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
+        self.format_replace_in_file(tool_call.function.name, args)
+      } else if tool_call.function.name is "submit_fixed_file" {
+        self.format_submit_fixed_file(tool_call.function.name, args)
+      } else {
+        self.format_tool_call_as_xml(tool_call.function.name, args)
+      }
+  }
+  self.lines.push("")
 }
 
 ///|
