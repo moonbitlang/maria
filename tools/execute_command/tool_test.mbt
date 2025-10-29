@@ -7,7 +7,7 @@ async test "timeout" (t : @test.T) {
       content=[
         "Error",
         ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-        "Timeout when executing command",
+        "Timeout when executing command sleep after 1 ms",
       ],
     )
   }))
