@@ -1,5 +1,6 @@
 ///|
 priv struct Formatter {
+  recover_diagnostics : Bool
   /// Output markdown file path.
   path : String
   /// Tool ID if this is a sub-formatter.
@@ -13,15 +14,25 @@ priv struct Formatter {
 }
 
 ///|
-fn Formatter::new(path : String) -> Formatter {
-  Formatter::{ path, id: None, count: 1, lines: [], tools: {} }
+fn Formatter::new(
+  path : String,
+  recover_diagnostics? : Bool = false,
+) -> Formatter {
+  Formatter::{
+    recover_diagnostics,
+    path,
+    id: None,
+    count: 1,
+    lines: [],
+    tools: {},
+  }
 }
 
 ///|
 fn Formatter::to_string(self : Formatter) -> String raise {
   let string = self.lines.join("\n")
   // Recover diagnostics only if this is a sub-formatter
-  if self.id is Some(_) {
+  if self.id is Some(_) && self.recover_diagnostics {
     return recover_diagnostics(string)
   } else {
     return string
@@ -232,6 +243,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         // in the main log.
         let path = "\{self.path}-\{id}.md"
         let formatter = Formatter::{
+          recover_diagnostics: self.recover_diagnostics,
           path,
           id: Some(id),
           count: 1,
