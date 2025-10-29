@@ -240,12 +240,14 @@ async fn Agent::emit(agent : Agent, event : Event) -> Unit {
       try {
         let args = @json.parse(tool_call.function.arguments)
         agent.logger.info("PreToolCall", {
+          "tool_call": tool_call.to_json(),
           "name": tool_call.function.name.to_json(),
           "args": args,
         })
       } catch {
         error =>
           agent.logger.info("PreToolCall", {
+            "tool_call": tool_call.to_json(),
             "name": tool_call.function.name.to_json(),
             "args": tool_call.function.arguments.to_json(),
             "error": error.to_json(),
@@ -255,12 +257,14 @@ async fn Agent::emit(agent : Agent, event : Event) -> Unit {
       match result {
         Ok(output) =>
           agent.logger.info("PostToolCall", {
+            "tool_call": tool_call.to_json(),
             "name": tool_call.function.name.to_json(),
             "result": output.to_json(),
             "text": rendered.to_json(),
           })
         Err(error) =>
           agent.logger.info("PostToolCall", {
+            "tool_call": tool_call.to_json(),
             "name": tool_call.function.name.to_json(),
             "error": error.to_json(),
             "text": rendered.to_json(),
