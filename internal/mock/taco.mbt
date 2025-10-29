@@ -313,7 +313,7 @@ pub async fn run(
   loc~ : SourceLoc,
   timeout? : Int = 300_000,
   retry? : Int,
-  f : async (Context) -> Unit,
+  action : async (Context) -> Unit,
 ) -> Unit {
   let os_cwd = @os.cwd()
   let exec = os_args[0]
@@ -343,15 +343,16 @@ pub async fn run(
         let uuid = @uuid.generator(rand)
         let file = loc.to_string().split(":").peek().unwrap().to_string()
         let filter = Filter::new()
-        filter.add("file", file)
-        filter.add("cwd", cwd.path())
-        filter.add("env:HOME", directory(@os.home()).path())
+        filter
+        ..add("file", file)
+        ..add("cwd", cwd.path())
+        ..add("env:HOME", directory(@os.home()).path())
         if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
           filter.add("env:OPENAI_API_KEY", api_key)
         }
         let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
         group.add_defer(() => ctx.close())
-        f(ctx)
+        action(ctx)
       }))
     }
 
