@@ -30,10 +30,14 @@ async test "get_moonbit_mbti" (t : @test.T) {
         #|fn[K] Set::each(Self[K], (K) -> Unit raise?) -> Unit raise?
         #|fn[K] Set::eachi(Self[K], (Int, K) -> Unit raise?) -> Unit raise?
         #|fn[K : Hash + Eq] Set::equal(Self[K], Self[K]) -> Bool // from trait `Eq`
+        #|#alias(of, deprecated)
+        #|#as_free_fn(of, deprecated)
         #|#as_free_fn
-        #|fn[K : Hash + Eq] Set::from_array(Array[K]) -> Self[K]
+        #|fn[K : Hash + Eq] Set::from_array(ArrayView[K]) -> Self[K]
         #|#as_free_fn
         #|fn[K : Hash + Eq] Set::from_iter(Iter[K]) -> Self[K]
+        #|#as_free_fn
+        #|fn[K : Hash + Eq] Set::from_iterator(Iterator[K]) -> Self[K]
         #|#deprecated
         #|fn[K : Hash + Eq] Set::insert(Self[K], K) -> Unit
         #|fn[K : Hash + Eq] Set::intersection(Self[K], Self[K]) -> Self[K]
@@ -42,6 +46,7 @@ async test "get_moonbit_mbti" (t : @test.T) {
         #|fn[K : Hash + Eq] Set::is_subset(Self[K], Self[K]) -> Bool
         #|fn[K : Hash + Eq] Set::is_superset(Self[K], Self[K]) -> Bool
         #|fn[K] Set::iter(Self[K]) -> Iter[K]
+        #|fn[K] Set::iterator(Self[K]) -> Iterator[K]
         #|fn[K : Hash + Eq] Set::land(Self[K], Self[K]) -> Self[K] // from trait `BitAnd`
         #|#alias(size, deprecated)
         #|fn[K] Set::length(Self[K]) -> Int
@@ -49,8 +54,6 @@ async test "get_moonbit_mbti" (t : @test.T) {
         #|fn[K : Hash + Eq] Set::lxor(Self[K], Self[K]) -> Self[K] // from trait `BitXOr`
         #|#as_free_fn
         #|fn[K] Set::new(capacity? : Int) -> Self[K]
-        #|#as_free_fn
-        #|fn[K : Hash + Eq] Set::of(FixedArray[K]) -> Self[K]
         #|#deprecated
         #|fn[K : Hash + Eq] Set::op_equal(Self[K], Self[K]) -> Bool // from trait `Eq`
         #|#deprecated
@@ -78,6 +81,7 @@ async test "get_moonbit_mbti" (t : @test.T) {
         #|// Traits
         #|
         #|
+
       ),
     )
   })

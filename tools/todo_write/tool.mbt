@@ -142,106 +142,96 @@ async fn @todo.List::execute_todo_write(
     error =>
       return @tool.error("Error loading existing todo list: \{error}", error~)
   }
-  try {
-    match action {
-      Create =>
-        match content {
-          None =>
-            return @tool.error("Error: Content is required for creating todos.")
-          Some(content) => {
-            // Clear existing todos and create new ones
-            self.parse(content, priority~, notes?) catch {
-              error =>
-                return @tool.error("Error parsing content: \{error}", error~)
-            }
-            try {
-              self.save()
-              let todos = self.todos()
-              return @tool.ok({
-                todos,
-                message: "Created \{todos.length()} new todo items",
-                updated_todos: todos,
-                is_new_creation: true,
-              })
-            } catch {
-              error =>
-                return @tool.error("Failed to save todo list: \{error}", error~)
-            }
+  match action {
+    Create =>
+      match content {
+        None =>
+          return @tool.error("Error: Content is required for creating todos.")
+        Some(content) => {
+          // Clear existing todos and create new ones
+          self.parse(content, priority~, notes?)
+          try {
+            self.save()
+            let todos = self.todos()
+            return @tool.ok({
+              todos,
+              message: "Created \{todos.length()} new todo items",
+              updated_todos: todos,
+              is_new_creation: true,
+            })
+          } catch {
+            error =>
+              return @tool.error("Failed to save todo list: \{error}", error~)
           }
-        }
-      AddTask => {
-        guard content is Some(content) else {
-          return @tool.error("Error: Content is required for adding a task.")
-        }
-        let item = self.add_task(content, status~, priority~, notes~)
-        try {
-          self.save()
-          return @tool.ok(TodoWriteResult::{
-            todos: self.todos().map(t => t),
-            message: "Added new task: \{item.content}",
-            updated_todos: [item],
-            is_new_creation: false,
-          })
-        } catch {
-          error =>
-            return @tool.error("Failed to save new task: \{error}", error~)
         }
       }
-      Update | MarkProgress | MarkCompleted => {
-        guard task_id is Some(task_id) else {
-          return @tool.error(
-            "Error: Task ID is required for update operations.",
-          )
-        }
-        guard self.find(task_id) is Some(task_index) else {
-          return @tool.error("Error: Task with ID '\{task_id}' not found.")
-        }
-        let todo = self.get(task_index)
-        // Apply specific action
-        let updated_todos = []
-        let action_message = match action {
-          MarkProgress => {
-            let updated_todo = self.update_item(todo, status=InProgress)
-            updated_todos.push(updated_todo)
-            self.update_task(task_index, updated_todo)
-            "Marked task as in progress: \{updated_todo.content}"
-          }
-          MarkCompleted => {
-            let updated_todo = self.update_item(todo, status=Completed)
-            updated_todos.push(updated_todo)
-            self.update_task(task_index, updated_todo)
-            "Marked task as completed: \{updated_todo.content}"
-          }
-          Update => {
-            let updated_todo = self.update_item(
-              todo,
-              content?,
-              status~,
-              priority~,
-              notes~,
-            )
-            updated_todos.push(updated_todo)
-            self.update_task(task_index, updated_todo)
-            "Updated task: \{updated_todo.content}"
-          }
-          _ => abort("unreachable")
-        }
-        try {
-          self.save()
-          @tool.ok(TodoWriteResult::{
-            todos: self.todos(),
-            message: action_message,
-            updated_todos,
-            is_new_creation: false,
-          })
-        } catch {
-          error =>
-            return @tool.error("Failed to save task update: \{error}", error~)
-        }
+    AddTask => {
+      guard content is Some(content) else {
+        return @tool.error("Error: Content is required for adding a task.")
+      }
+      let item = self.add_task(content, status~, priority~, notes~)
+      try {
+        self.save()
+        return @tool.ok(TodoWriteResult::{
+          todos: self.todos().map(t => t),
+          message: "Added new task: \{item.content}",
+          updated_todos: [item],
+          is_new_creation: false,
+        })
+      } catch {
+        error => return @tool.error("Failed to save new task: \{error}", error~)
       }
     }
-  } catch {
-    error => @tool.error("Error in todo write operation: \{error}", error~)
+    Update | MarkProgress | MarkCompleted => {
+      guard task_id is Some(task_id) else {
+        return @tool.error("Error: Task ID is required for update operations.")
+      }
+      guard self.find(task_id) is Some(task_index) else {
+        return @tool.error("Error: Task with ID '\{task_id}' not found.")
+      }
+      let todo = self.get(task_index)
+      // Apply specific action
+      let updated_todos = []
+      let action_message = match action {
+        MarkProgress => {
+          let updated_todo = self.update_item(todo, status=InProgress)
+          updated_todos.push(updated_todo)
+          self.update_task(task_index, updated_todo)
+          "Marked task as in progress: \{updated_todo.content}"
+        }
+        MarkCompleted => {
+          let updated_todo = self.update_item(todo, status=Completed)
+          updated_todos.push(updated_todo)
+          self.update_task(task_index, updated_todo)
+          "Marked task as completed: \{updated_todo.content}"
+        }
+        Update => {
+          let updated_todo = self.update_item(
+            todo,
+            content?,
+            status~,
+            priority~,
+            notes~,
+          )
+          updated_todos.push(updated_todo)
+          self.update_task(task_index, updated_todo)
+          "Updated task: \{updated_todo.content}"
+        }
+        _ => abort("unreachable")
+      }
+      try {
+        self.save()
+        @tool.ok(TodoWriteResult::{
+          todos: self.todos(),
+          message: action_message,
+          updated_todos,
+          is_new_creation: false,
+        })
+      } catch {
+        error =>
+          return @tool.error("Failed to save task update: \{error}", error~)
+      }
+    }
   }
 }
 

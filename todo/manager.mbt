@@ -4,18 +4,25 @@ pub fn List::todos(self : List) -> Array[Item] {
 }
 
 ///|
+fn Config::uuid(self : Config) -> String {
+  self.uuid.v4().to_string()[0:8].to_string() catch {
+    err => "UUID error: \{err}"
+  }
+}
+
+///|
 fn List::item(
   self : List,
   content : String,
   status~ : Status,
   priority~ : Priority,
   notes? : String,
-) -> Item raise {
+) -> Item {
   let now = self.config.now()
   {
     content,
     created_at: now,
-    id: self.config.uuid.v4().to_string()[0:8].to_string(),
+    id: self.config.uuid(),
     notes,
     priority,
     status,
@@ -23,9 +30,11 @@ fn List::item(
   }
 }
 
+///|
 fn Config::now(self : Config) -> String {
   self.clock.now_str()
 }
+
 ///|
 pub fn List::update_item(
   self : List,
@@ -82,9 +91,7 @@ pub async fn List::load(self : List) -> Unit {
     // TODO: document we skip it
     return
   }
-  let content = @fs.read_file(path)
-  let json = @json.parse(content)
-  self.items = @json.from_json(json)
+  self.items = @json.from_json(@json.parse(@fs.read_file(path)))
 }
 
 ///|
@@ -92,8 +99,7 @@ pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.config.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.items.updated_at = self.config.now()
-  let json : Json = self.items.to_json()
-  @fs.write_to_file(todo_file_path, json.stringify(indent=2))
+  @fs.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
 }
 
 ///|
@@ -142,7 +148,7 @@ pub fn List::add_task(
   status? : Status = Pending,
   priority? : Priority = Medium,
   notes? : String? = None,
-) -> Item raise {
+) -> Item {
   let content = match extract_task_tags(content) {
     [] => content
     [task, ..] => task
@@ -210,7 +216,7 @@ pub fn List::parse(
   content : String,
   priority~ : Priority,
   notes? : String,
-) -> Unit raise {
+) -> Unit {
   self.items.todos.clear()
   self.items.created_at = self.config.now()
   self.items.updated_at = self.items.created_at
