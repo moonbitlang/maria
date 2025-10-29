@@ -1,11 +1,11 @@
 {
   "import": [
     "moonbitlang/async/fs",
-    "moonbitlang/maria/internal/path",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/errno",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/async/os_error"
+    "moonbitlang/async/os_error",
+    "moonbitlang/path"
   ],
   "test-import": [
     "moonbitlang/async",
