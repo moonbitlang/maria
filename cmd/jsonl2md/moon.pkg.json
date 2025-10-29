@@ -8,5 +8,8 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/git"
+  ],
+  "overrides": [
+    "moonbitlang/maria/internal/abort"
   ]
 }
