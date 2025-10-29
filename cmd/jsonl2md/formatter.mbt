@@ -1,23 +1,46 @@
 ///|
 priv struct Formatter {
+  recover_diagnostics : Bool
+  /// Output markdown file path.
   path : String
+  /// Tool ID if this is a sub-formatter.
   id : String?
+  /// Number of messages in this log.
   mut count : Int
+  /// Formatted lines.
   lines : Array[String]
+  /// Tool-specific logs are formatted using sub-formatters.
   tools : Map[String, Formatter]
 }
 
 ///|
-fn Formatter::new(path : String) -> Formatter {
-  Formatter::{ path, id: None, count: 1, lines: [], tools: {} }
+fn Formatter::new(
+  path : String,
+  recover_diagnostics? : Bool = false,
+) -> Formatter {
+  Formatter::{
+    recover_diagnostics,
+    path,
+    id: None,
+    count: 1,
+    lines: [],
+    tools: {},
+  }
 }
 
 ///|
-fn Formatter::to_string(self : Formatter) -> String {
-  self.lines.join("\n")
+fn Formatter::to_string(self : Formatter) -> String raise {
+  let string = self.lines.join("\n")
+  // Recover diagnostics only if this is a sub-formatter
+  if self.id is Some(_) && self.recover_diagnostics {
+    return recover_diagnostics(string)
+  } else {
+    return string
+  }
 }
 
 ///|
+/// Formats tool call from a MessageAdded log entry.
 async fn Formatter::format_tool_call(
   self : Formatter,
   tool_call : @openai.ChatCompletionMessageToolCall,
@@ -89,17 +112,138 @@ async fn Formatter::format_tool_call(
 }
 
 ///|
+/// Number of context lines to show for recovered diagnostics. 1 means 1 line
+/// before and 1 line after.
+const ContextLines = 1
+
+///|
+/// Recovers diagnostic context from file content embedded in the log.
+fn recover_diagnostics(content : String) -> String raise {
+  let lines = content.split("\n").collect()
+  // 1. Collect source
+  let source = StringBuilder::new()
+  // Matches lines like this
+  //
+  // `````
+  // # 3 Tool call result: <read_file>
+  //
+  // ````markdown
+  // File content:
+  // <moonbit-source>
+  // `````
+  loop lines[:] {
+    [title, "", "````markdown", "File content:", .. rest] if title.has_suffix(
+        "Tool call result: <read_file>",
+      ) =>
+      continue source~: loop rest {
+          ["````", .. rest] => break rest
+          [line, .. rest] => {
+            source.write_string([..line, '\n'])
+            continue source~ rest
+          }
+          [] => break []
+        }
+    [_, .. rest] => continue rest
+    [] => break
+  }
+  let source_lines = source.to_string().split("\n").collect()
+  // 2. Recover diagnostics
+  let recovered = []
+  loop lines[:] {
+    [] => break
+    [line, .. rest] => {
+      recovered.push(line)
+      // Matches
+      // error[<code>]: <file>:<line>:<column>: ...
+      lexmatch line with longest {
+        (
+          "error\["
+          "\d{4}"
+          "\]:\s+"
+          "[^:]*"
+          ":"
+          ("\d+" as line)
+          ":"
+          ("\d+" as column)
+          ":\s+",
+          _
+        ) => {
+          let line = @strconv.parse_int(line) - 1
+          let context_start = @cmp.maximum(0, line - ContextLines)
+          let context_end = @cmp.minimum(
+            source_lines.length() - 1,
+            line + ContextLines,
+          )
+          let column = @strconv.parse_int(column)
+          let line_number = (line + 1).to_string()
+          let line_number_width = (line + 1).to_string().length()
+          let indent = " ".repeat(line_number_width)
+          for i in context_start..<line {
+            recovered.push("\{indent} │\{source_lines[i]}")
+          }
+          recovered.push("\{line_number} │\{source_lines[line]}")
+          let padding = " ".repeat(column - 1)
+          recovered.push("\{indent} │\{padding}^")
+          for i in (line + 1)..=context_end {
+            recovered.push("\{indent} │\{source_lines[i]}")
+          }
+        }
+        _ => ()
+      }
+      continue rest
+    }
+  }
+  recovered.join("\n")
+}
+
+///|
+/// Formats a MessageAdded log entry.
+async fn Formatter::format_message_added(
+  self : Formatter,
+  message : @openai.ChatCompletionMessageParam,
+) -> Unit {
+  if message is (Tool(_) | System(_)) {
+    return
+  }
+  let role = openai_message_role(message)
+  let content = openai_message_content(message)
+    .trim(char_set=" \n\r\t")
+    .to_string()
+  let title = content.split("\n").drop_while(line => line.is_blank()).peek()
+  if title is Some(title) {
+    self.lines.push("# \{self.count} \{role}: \{title}")
+    self.count += 1
+    self.lines.push("")
+    self.lines.push(content)
+    self.lines.push("")
+  } else {
+    self.lines.push("# \{self.count} \{role}")
+    self.count += 1
+    if !content.is_empty() {
+      self.lines.push(content)
+    }
+    self.lines.push("")
+  }
+}
+
+///|
+/// Formats a log entry from JSON.
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   if self.id is None &&
     json is { "tool": { "name": String(name), "id": String(id), .. }, .. } {
+    // If we found a log entry with "tool" field, delegate to sub-formatter,
+    // create if there is no matching sub-formatter.
     match self.tools.get(id) {
       Some(formatter) => {
         formatter.format_log_entry(json)
         return
       }
       None => {
+        // No sub-formatter found, create a new one and link to the sub-log file
+        // in the main log.
         let path = "\{self.path}-\{id}.md"
         let formatter = Formatter::{
+          recover_diagnostics: self.recover_diagnostics,
           path,
           id: Some(id),
           count: 1,
@@ -157,28 +301,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
       )
-      if message is (Tool(_) | System(_)) {
-        return
-      }
-      let role = openai_message_role(message)
-      let content = openai_message_content(message)
-        .trim(char_set=" \n\r\t")
-        .to_string()
-      let title = content.split("\n").drop_while(line => line.is_blank()).peek()
-      if title is Some(title) {
-        self.lines.push("# \{self.count} \{role}: \{title}")
-        self.count += 1
-        self.lines.push("")
-        self.lines.push(content)
-        self.lines.push("")
-      } else {
-        self.lines.push("# \{self.count} \{role}")
-        self.count += 1
-        if !content.is_empty() {
-          self.lines.push(content)
-        }
-        self.lines.push("")
-      }
+      self.format_message_added(message)
     }
     _ => ()
   }

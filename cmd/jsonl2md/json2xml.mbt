@@ -1,4 +1,14 @@
 ///|
+/// Converts a JSON value to XML format and appends the result to an output
+/// array.
+///
+/// Parameters:
+///
+/// * `json` : The JSON value to convert to XML format.
+/// * `indent` : The number of spaces to use for indentation (defaults to 0).
+/// * `output` : The array to append the XML lines to.
+///
+/// Returns nothing as this function writes directly to the `output` array.
 fn json2xml(json : Json, indent? : Int = 0, output : Array[String]) -> Unit {
   match json {
     Object(object) =>

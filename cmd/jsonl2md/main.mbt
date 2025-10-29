@@ -8,9 +8,14 @@ async fn main {
   }
   let mut input_path = None
   let mut output_path = None
+  let mut recover_diagnostics = false
   loop args {
     ["--output" | "-o", path, .. args] => {
       output_path = Some(path)
+      continue args
+    }
+    ["--recover-diagnostics", .. args] => {
+      recover_diagnostics = true
       continue args
     }
     [['-', ..] as option, ..] => {
@@ -32,7 +37,7 @@ async fn main {
   } else {
     @path.stem(input_path).to_string() + ".md"
   }
-  let formatter = Formatter::new(output_path)
+  let formatter = Formatter::new(output_path, recover_diagnostics~)
   let jsonl_text = @fs.read_file(input_path)
   for json_text in jsonl_text.split("\n").collect() {
     if json_text.trim_space().is_empty() {
