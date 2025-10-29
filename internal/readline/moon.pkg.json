@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/async/pipe",
+    "moonbitlang/async/stdio",
     "moonbitlang/maria/internal/readline/csi",
     "moonbitlang/async/aqueue",
     "moonbitlang/async",

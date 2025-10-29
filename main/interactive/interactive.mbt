@@ -26,7 +26,7 @@ pub async fn interactive(prompt? : String, model? : String) -> Unit {
     if prompt is Some(prompt) {
       maria.start(prompt)
     } else {
-      let rl = @readline.interface(input=@pipe.stdin, output=@pipe.stdout)
+      let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
       rl.set_prompt("$ ")
       group.spawn_bg(() => rl.start())
       while true {

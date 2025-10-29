@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/async",
     "moonbitlang/maria/internal/readline",
-    "moonbitlang/async/pipe",
+    "moonbitlang/async/stdio",
     "moonbitlang/maria",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/openai"

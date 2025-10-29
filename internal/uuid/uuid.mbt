@@ -170,40 +170,46 @@ pub fn parse(hex : StringView) -> Uuid raise ParseError {
 }
 
 ///|
-let hex_table : FixedArray[Char] = [
-  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
-]
+// let hex_table : ReadOnlyArray[Char] = [
+//   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
+// ]
+let hex_table : Bytes = b"0123456789abcdef"
 
 ///|
 pub fn Uuid::to_string(self : Uuid) -> String {
   let builder = StringBuilder::new(size_hint=36)
   let mut hi = self.hi
   for _ in 0..<8 {
-    builder.write_char(hex_table[(hi >> 60).to_int()])
+    builder.write_char(hex_table[(hi >> 60).to_int()].to_char())
     hi = hi << 4
   }
   builder.write_char('-')
   for _ in 0..<4 {
-    builder.write_char(hex_table[(hi >> 60).to_int()])
+    builder.write_char(hex_table[(hi >> 60).to_int()].to_char())
     hi = hi << 4
   }
   builder.write_char('-')
   for _ in 0..<4 {
-    builder.write_char(hex_table[(hi >> 60).to_int()])
+    builder.write_char(hex_table[(hi >> 60).to_int()].to_char())
     hi = hi << 4
   }
   builder.write_char('-')
   let mut lo = self.lo
   for _ in 0..<4 {
-    builder.write_char(hex_table[(lo >> 60).to_int()])
+    builder.write_char(hex_table[(lo >> 60).to_int()].to_char())
     lo = lo << 4
   }
   builder.write_char('-')
   for _ in 0..<12 {
-    builder.write_char(hex_table[(lo >> 60).to_int()])
+    builder.write_char(hex_table[(lo >> 60).to_int()].to_char())
     lo = lo << 4
   }
   builder.to_string()
+}
+
+///|
+test {
+  inspect(b'a'.to_char(), content="a")
 }
 
 ///|
