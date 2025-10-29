@@ -14,7 +14,7 @@ priv struct ReadDirectoryResult {
 } derive(ToJson, @json.FromJson)
 
 ///|
-enum ReadFileToolResult {
+priv enum ReadFileToolResult {
   ReadFileResult(ReadFileResult)
   ReadDirectoryResult(ReadDirectoryResult)
 } derive(ToJson, @json.FromJson)
@@ -22,7 +22,7 @@ enum ReadFileToolResult {
 ///|
 /// 
 /// wrapper type in order to override the Show trait result 
-pub(all) struct ReadMultipleFilesResult(Array[ReadFileToolResult]) derive (
+struct ReadMultipleFilesResult(Array[ReadFileToolResult]) derive (
   ToJson,
   @json.FromJson,
 )
@@ -36,7 +36,7 @@ pub impl Show for ReadMultipleFilesResult with output(self, logger) {
 }
 
 ///|
-pub impl Show for ReadFileToolResult with output(
+impl Show for ReadFileToolResult with output(
   self : ReadFileToolResult,
   logger : &Logger,
 ) -> Unit {
@@ -137,7 +137,7 @@ async fn execute_read_file_tool(
 }
 
 ///|
-pub(all) suberror MultipleErrors Array[(Error, String)] derive(Show, ToJson)
+priv suberror MultipleErrors Array[(Error, String)] derive(Show, ToJson)
 
 ///|
 fn to_path(rdr : ReadFileToolResult) -> String {
