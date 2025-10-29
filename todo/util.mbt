@@ -1,14 +1,4 @@
 ///|
-/// Get current ISO timestamp
-/// FIXME:(upstream): `Self` type with dyn trait does not work
-fn &@clock.Clock::current_timestamp(clock : &@clock.Clock) -> String raise {
-  let ms = clock.now()
-  let s = ms / 1000
-  let ns = ms % 1000 * 1_000_000
-  @time.unix(s, nanosecond=ns.to_int()).to_string()
-}
-
-///|
 pub fn Priority::icon(self : Priority) -> String {
   match self {
     High => "🔴"

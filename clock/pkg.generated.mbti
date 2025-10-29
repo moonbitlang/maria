@@ -9,6 +9,7 @@ let epoch : Epoch
 // Types and methods
 type Epoch
 fn Epoch::now(Self) -> Int64 // from trait `Clock`
+fn Epoch::now_str(Self) -> String // from trait `Clock`
 impl Clock for Epoch
 
 // Type aliases
@@ -16,5 +17,6 @@ impl Clock for Epoch
 // Traits
 pub(open) trait Clock {
   now(Self) -> Int64
+  now_str(Self) -> String
 }
 

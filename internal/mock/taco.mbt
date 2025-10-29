@@ -41,6 +41,12 @@ impl @clock.Clock for Clock with now(self : Clock) -> Int64 {
 }
 
 ///|
+impl @clock.Clock for Clock with now_str(self : Clock) -> String {
+  let t = self.now()
+  "Tick:\{t}"
+}
+
+///|
 pub struct Context {
   cwd : Directory
   logger : @pino.Logger
