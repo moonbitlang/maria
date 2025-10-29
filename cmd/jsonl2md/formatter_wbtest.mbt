@@ -10,10 +10,60 @@ async test "format_log_entry/PostToolCall" {
   inspect(
     formatter.to_string(),
     content=(
-      #|# 1 Tool call result: <get_weather>
+      #|## 1 Tool call result: <get_weather>
       #|
       #|````markdown
       #|The weather in New York is sunny.
+      #|````
+      #|
+    ),
+  )
+}
+
+///|
+async test "format_log_entry/PostToolCall-with-result" {
+  let formatter = Formatter::new("test.md")
+  let log_entry : Json = {
+    "msg": "PostToolCall",
+    "name": "get_weather",
+    "result": {
+      "location": "New York",
+      "temperature": "25°C",
+      "condition": "Sunny",
+    },
+    "text": "The weather in New York is sunny.",
+  }
+  formatter.format_log_entry(log_entry)
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|## 1 Tool call result: <get_weather>
+      #|
+      #|````markdown
+      #|The weather in New York is sunny.
+      #|````
+      #|
+    ),
+  )
+}
+
+///|
+async test "format_log_entry/PostToolCall-with-error" {
+  let formatter = Formatter::new("test.md")
+  let log_entry : Json = {
+    "msg": "PostToolCall",
+    "name": "get_weather",
+    "error": { "message": "Location not found." },
+    "text": "Error: Location not found.",
+  }
+  formatter.format_log_entry(log_entry)
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|## 1 Tool call error: <get_weather>
+      #|
+      #|````markdown
+      #|Error: Location not found.
       #|````
       #|
     ),
