@@ -18,8 +18,6 @@ async test "check_syntax_errors_of_string" {
       #|error[3002]: a.mbt: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
       #| 6 │ }
       #|   │  
-      #|
-      #|There are 2 more error(s) not shown due to diagnostic limit.
     ),
   )
 }
@@ -48,8 +46,6 @@ async test "check_syntax_errors_of_file" (t : @test.T) {
         #|error[3002]: b.mbt: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
         #| 6 │ }
         #|   │  
-        #|
-        #|There are 2 more error(s) not shown due to diagnostic limit.
       ),
     )
   })
