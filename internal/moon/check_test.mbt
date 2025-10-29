@@ -1,0 +1,63 @@
+///|
+async test "check_syntax_of_string" {
+  @json.inspect(
+    @moon.check_syntax_of_string(
+      (
+        #|let x : Int = "string",
+      ),
+    ),
+    content=[
+      {
+        "error_code": 3002,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 24, "line": 1 },
+          "path": "source.mbt",
+          "start": { "col": 24, "line": 1 },
+        },
+        "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
+      },
+    ],
+  )
+  @json.inspect(
+    @moon.check_syntax_of_string(
+      path="main.mbt",
+      (
+        #|let x : Int = "string",
+      ),
+    ),
+    content=[
+      {
+        "error_code": 3002,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 24, "line": 1 },
+          "path": "main.mbt",
+          "start": { "col": 24, "line": 1 },
+        },
+        "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
+      },
+    ],
+  )
+}
+
+///|
+async test "check_syntax_of_file" (t : @test.T) {
+  @mock.run(t, mock => {
+    let file = mock.add_file("example.mbt")
+    file.write("let x :: Int = \"string\"")
+    let diagnostics = check_syntax_of_file(file.path())
+    @json.inspect(mock.json(diagnostics), content=[
+      {
+        "error_code": 3002,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 9, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 7, "line": 1 },
+        },
+        "message": "Parse error, unexpected token `::`, you may expect `=`.",
+      },
+    ])
+  })
+}
