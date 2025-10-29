@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[Array[ReadFileToolResult]]
+fn new(@file.Manager) -> @tool.Tool[ReadMultipleFilesResult]
 
 // Errors
 pub(all) suberror MultipleErrors Array[(Error, String)]
@@ -27,6 +27,17 @@ fn ReadFileToolResult::to_string(Self) -> String // from trait `Show`
 impl Show for ReadFileToolResult
 impl ToJson for ReadFileToolResult
 impl @json.FromJson for ReadFileToolResult
+
+pub(all) struct ReadMultipleFilesResult(Array[ReadFileToolResult])
+fn ReadMultipleFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
+#deprecated
+fn ReadMultipleFilesResult::inner(Self) -> Array[ReadFileToolResult]
+fn ReadMultipleFilesResult::output(Self, &Logger) -> Unit // from trait `Show`
+fn ReadMultipleFilesResult::to_json(Self) -> Json // from trait `ToJson`
+fn ReadMultipleFilesResult::to_string(Self) -> String // from trait `Show`
+impl Show for ReadMultipleFilesResult
+impl ToJson for ReadMultipleFilesResult
+impl @json.FromJson for ReadMultipleFilesResult
 
 // Type aliases
 
