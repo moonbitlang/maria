@@ -2,7 +2,7 @@
 pub async fn list() -> Unit {
   let cwd = @os.cwd()
   let uuid = @uuid.generator(@rand.chacha8())
-  let manager = @conversation.Manager::new(uuid~, cwd~)
+  let manager = @conv.Manager::new(uuid~, cwd~)
   for i, id in manager.list() {
     let conversation = manager.load(id)
     guard conversation is Some(conversation) else { continue }
@@ -25,7 +25,7 @@ pub async fn show(args : ArrayView[String]) -> Unit {
   }
   let cwd = @os.cwd()
   let uuid = @uuid.generator(@rand.chacha8())
-  let manager = @conversation.Manager::new(uuid~, cwd~)
+  let manager = @conv.Manager::new(uuid~, cwd~)
   let conversation = manager.load(id)
   guard conversation is Some(conversation) else { return }
   if output is Some(output) {
