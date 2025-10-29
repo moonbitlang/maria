@@ -14,6 +14,30 @@ async test "timeout" (t : @test.T) {
 }
 
 ///|
+async test "timeout-with-partial-output" (t : @test.T) {
+  @mock.run(t, mock => @async.with_task_group(_ => {
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
+    // This command outputs 'a', sleeps, outputs 'b', sleeps, outputs 'c'
+    // With a 1500ms timeout, we should see 'a' and possibly 'b' in the output
+    let result = tool.call({
+      "command": "sh -c 'echo a; sleep 1; echo b; sleep 1; echo c'",
+      "timeout": 1500,
+    })
+    guard result is Error(_, message) else {
+      fail("Expected Error result but got: \{result}")
+    }
+    // Verify the error message contains the timeout information
+    if not(message.contains("Timeout when executing command")) {
+      fail("Expected timeout error message but got: \{message}")
+    }
+    // Verify that partial output is included in the error message
+    if not(message.contains("a")) {
+      fail("Expected partial output 'a' in error message but got: \{message}")
+    }
+  }))
+}
+
+///|
 async test "cat" (t : @test.T) {
   @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
