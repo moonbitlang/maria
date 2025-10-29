@@ -223,25 +223,9 @@ async fn @file.Manager::execute_replace_in_file(
 
     // Read existing file content
     let content = match search {
-      None => {
-        // Ensure the file has been read before writing
-        guard self.access.get(resolved_path) is Some(access) else {
-          return @tool.error(
-            "Error: File must be read before writing to ensure consistency",
-          )
-        }
-
-        // Check if file has been modified since last read
-        let stat = @fs.stat(resolved_path)
-        if stat.mtime() > access {
-          return @tool.error(
-            "Error: File has been modified since last read, please read it again before writing",
-          )
-        }
-
+      None =>
         // No search provided, replace entire file content
         replace
-      }
       Some(search_content) => {
         let content = @fs.read_file(resolved_path)
         // Search and replace operation
