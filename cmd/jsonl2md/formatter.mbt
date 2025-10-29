@@ -1,10 +1,14 @@
 ///|
 priv struct Formatter {
+  /// Output markdown file path.
   path : String
+  /// Tool ID if this is a sub-formatter.
   id : String?
+  /// Number of messages in this log.
   mut count : Int
+  /// Formatted lines.
   lines : Array[String]
-  // Tool-specific logs are formatted using sub-formatters.
+  /// Tool-specific logs are formatted using sub-formatters.
   tools : Map[String, Formatter]
 }
 
@@ -16,6 +20,7 @@ fn Formatter::new(path : String) -> Formatter {
 ///|
 fn Formatter::to_string(self : Formatter) -> String raise {
   let string = self.lines.join("\n")
+  // Recover diagnostics only if this is a sub-formatter
   if self.id is Some(_) {
     return recover_diagnostics(string)
   } else {
@@ -24,6 +29,7 @@ fn Formatter::to_string(self : Formatter) -> String raise {
 }
 
 ///|
+/// Formats tool call from a MessageAdded log entry.
 async fn Formatter::format_tool_call(
   self : Formatter,
   tool_call : @openai.ChatCompletionMessageToolCall,
@@ -100,6 +106,7 @@ async fn Formatter::format_tool_call(
 const ContextLines = 1
 
 ///|
+/// Recovers diagnostic context from file content embedded in the log.
 fn recover_diagnostics(content : String) -> String raise {
   let lines = content.split("\n").collect()
   // 1. Collect source
@@ -135,6 +142,8 @@ fn recover_diagnostics(content : String) -> String raise {
     [] => break
     [line, .. rest] => {
       recovered.push(line)
+      // Matches
+      // error[<code>]: <file>:<line>:<column>: ...
       lexmatch line with longest {
         (
           "error\["
@@ -177,6 +186,7 @@ fn recover_diagnostics(content : String) -> String raise {
 }
 
 ///|
+/// Formats a MessageAdded log entry.
 async fn Formatter::format_message_added(
   self : Formatter,
   message : @openai.ChatCompletionMessageParam,
@@ -206,15 +216,20 @@ async fn Formatter::format_message_added(
 }
 
 ///|
+/// Formats a log entry from JSON.
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   if self.id is None &&
     json is { "tool": { "name": String(name), "id": String(id), .. }, .. } {
+    // If we found a log entry with "tool" field, delegate to sub-formatter,
+    // create if there is no matching sub-formatter.
     match self.tools.get(id) {
       Some(formatter) => {
         formatter.format_log_entry(json)
         return
       }
       None => {
+        // No sub-formatter found, create a new one and link to the sub-log file
+        // in the main log.
         let path = "\{self.path}-\{id}.md"
         let formatter = Formatter::{
           path,
