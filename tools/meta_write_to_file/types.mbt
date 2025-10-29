@@ -18,8 +18,11 @@ pub struct MetaWriteToFileResult {
 ///|
 /// Context needed for the syntax fixing sub-agent
 priv struct FixingContext {
-  file_path : String
+  path : String
   cwd : String
+  mut result : String?
+  /// Stores the fixed file content
+  mut content : String
   description : String
   syntax_errors : String
   parent_agent : @agent.Agent
