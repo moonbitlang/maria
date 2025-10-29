@@ -3,6 +3,7 @@ pub async fn render_diagnostics(
   diagnostics : ArrayView[Diagnostic],
   limit~ : Int,
   overlay? : Map[String, String] = {},
+  cwd? : String,
 ) -> String noraise {
   let cache = {}
   for k, v in overlay {
@@ -16,21 +17,18 @@ pub async fn render_diagnostics(
       Warning => warnings.push_back(d)
     }
   }
-  let limited_diagnostics = if diagnostics.length() <= limit {
-    diagnostics.to_array()
-  } else {
-    let limited_diagnostics = []
-    while limited_diagnostics.length() < limit {
-      if errors.pop_front() is Some(error) {
-        limited_diagnostics.push(error)
-        continue
-      }
-      if warnings.pop_front() is Some(warning) {
-        limited_diagnostics.push(warning)
-        continue
-      }
+  let limited_diagnostics = []
+  while limited_diagnostics.length() < limit {
+    if errors.pop_front() is Some(error) {
+      limited_diagnostics.push(error)
+      continue
     }
-    limited_diagnostics
+    if warnings.pop_front() is Some(warning) {
+      limited_diagnostics.push(warning)
+      continue
+    }
+    // No more diagnostics, stop processing
+    break
   }
   let diagnostic_texts = []
   for diagnostic in limited_diagnostics {
@@ -52,6 +50,11 @@ pub async fn render_diagnostics(
     let lines = match cache.get(path) {
       Some(content) => content
       None => {
+        let path = if cwd is Some(cwd) && !@path.is_absolute(path) {
+          @path.join(cwd, path)
+        } else {
+          path
+        }
         let content = @fs.read_file(path) catch {
           error => {
             message_lines.push("  (error reading file: \{error})")

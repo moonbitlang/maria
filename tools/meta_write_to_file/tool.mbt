@@ -27,26 +27,29 @@ async fn format_moonbit_file(file_path : String, cwd : String) -> Unit {
 }
 
 ///|
-async fn render_diagnostics(diagnostics : Array[@moon.Diagnostic]) -> String {
-  let messages = []
-  for diagnostic in diagnostics {
-    let msg = "error[\{diagnostic.error_code.to_string().pad_start(4, '0')}]: \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}: \{diagnostic.message}"
-    messages.push(msg)
-  }
-  messages.join("\n")
-}
+const DiagnosticLimit : Int = 10
 
 ///|
 async fn check_syntax_errors_of_string(
   path~ : String,
   content : String,
 ) -> String {
-  render_diagnostics(@moon.check_syntax_of_string(path~, content))
+  let overlay = {}
+  overlay[path] = content
+  @moon.render_diagnostics(
+    @moon.check_syntax_of_string(path~, content),
+    limit=DiagnosticLimit,
+    overlay~,
+  )
 }
 
 ///|
 async fn check_syntax_errors_of_file(path~ : String, cwd~ : String) -> String {
-  render_diagnostics(@moon.check_syntax_of_file(path, cwd~))
+  @moon.render_diagnostics(
+    @moon.check_syntax_of_file(path, cwd~),
+    limit=DiagnosticLimit,
+    cwd~,
+  )
 }
 
 ///|
