@@ -11,11 +11,11 @@ fn List::item(
   priority~ : Priority,
   notes? : String,
 ) -> Item raise {
-  let now = self.clock.current_timestamp()
+  let now = self.config.clock.now_str()
   {
     content,
     created_at: now,
-    id: self.uuid.v4().to_string()[0:8].to_string(),
+    id: self.config.uuid.v4().to_string()[0:8].to_string(),
     notes,
     priority,
     status,
@@ -31,8 +31,8 @@ pub fn List::update_item(
   notes? : String?,
   status? : Status,
   priority? : Priority,
-) -> Item raise {
-  let mut updated = { ..item, updated_at: self.clock.current_timestamp() }
+) -> Item {
+  let mut updated = { ..item, updated_at: self.config.clock.now_str() }
   if content is Some(content) {
     updated = { ..updated, content, }
   }
@@ -53,22 +53,20 @@ pub fn list(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
-) -> List raise {
+) -> List {
   {
-    uuid,
-    clock,
-    cwd: cwd.to_string(),
+    config: { uuid, clock, cwd: cwd.to_string() },
     items: {
       todos: [],
-      created_at: clock.current_timestamp(),
-      updated_at: clock.current_timestamp(),
+      created_at: clock.now_str(),
+      updated_at: clock.now_str(),
     },
   }
 }
 
 ///|
 fn List::todo_file_path(self : List) -> String {
-  return self.cwd
+  return self.config.cwd
     |> @path.join(".moonagent")
     |> @path.join("todos")
     |> @path.join("current_session.json")
@@ -90,7 +88,7 @@ pub async fn List::load(self : List) -> Unit {
 pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.items.updated_at = self.clock.current_timestamp()
+  self.items.updated_at = self.config.clock.now_str()
   let json : Json = self.items.to_json()
   @fs.write_to_file(todo_file_path, json.stringify(indent=2))
 }
@@ -148,14 +146,14 @@ pub fn List::add_task(
   }
   let item = self.item(content, status~, priority~, notes?)
   self.items.todos.push(item)
-  self.items.updated_at = self.clock.current_timestamp()
+  self.items.updated_at = self.config.clock.now_str()
   item
 }
 
 ///|
-pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
+pub fn List::update_task(self : List, index : Index, item : Item) -> Unit {
   self.items.todos[index.0] = item
-  self.items.updated_at = self.clock.current_timestamp()
+  self.items.updated_at = self.config.clock.now_str()
 }
 
 ///|
@@ -211,7 +209,7 @@ pub fn List::parse(
   notes? : String,
 ) -> Unit raise {
   self.items.todos.clear()
-  self.items.created_at = self.clock.current_timestamp()
+  self.items.created_at = self.config.clock.now_str()
   self.items.updated_at = self.items.created_at
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)

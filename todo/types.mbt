@@ -1,9 +1,14 @@
 ///|
 struct List {
+  config : Config
+  mut items : Items
+}
+
+///|
+priv struct Config {
   uuid : @uuid.Generator
   clock : &@clock.Clock
   cwd : String
-  mut items : Items
 }
 
 ///|
