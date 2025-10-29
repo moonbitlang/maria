@@ -1,6 +1,7 @@
 ///|
 /// Get current ISO timestamp
-fn get_current_timestamp(clock : &@clock.Clock) -> String raise {
+/// FIXME:(upstream): `Self` type with dyn trait does not work
+fn &@clock.Clock::current_timestamp(clock : &@clock.Clock) -> String raise {
   let ms = clock.now()
   let s = ms / 1000
   let ns = ms % 1000 * 1_000_000
