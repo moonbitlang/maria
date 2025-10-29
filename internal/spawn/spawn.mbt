@@ -6,10 +6,11 @@
 ///
 /// * `command` : The command to execute.
 /// * `arguments` : An array of command-line arguments to pass to the command.
-/// * `stderr` : Optional logger to capture standard error output.
-/// * `stdout` : Optional logger to capture standard output.
-/// * `cwd` : Optional working directory for the spawned process.
-/// * `env` : Optional map of environment variables to set for the spawned
+/// * `stdin` (optional) : string to be provided as standard input to the process.
+/// * `stderr` (optional) : logger to capture standard error output.
+/// * `stdout` (optional) : logger to capture standard output.
+/// * `cwd` (optional) : working directory for the spawned process.
+/// * `env` (optional) : map of environment variables to set for the spawned
 ///   process.
 ///
 /// Returns the exit status code of the spawned process.
