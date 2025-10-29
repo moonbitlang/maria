@@ -19,5 +19,8 @@
     "moonbitlang/maria/tools/replace_in_file",
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/regexp"
+  ],
+  "wbtest-import": [
+    "moonbitlang/maria/internal/mock"
   ]
 }

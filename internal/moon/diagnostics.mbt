@@ -3,6 +3,7 @@ pub async fn render_diagnostics(
   diagnostics : ArrayView[Diagnostic],
   limit~ : Int,
   overlay? : Map[String, String] = {},
+  cwd? : String,
 ) -> String noraise {
   let cache = {}
   for k, v in overlay {
@@ -52,6 +53,11 @@ pub async fn render_diagnostics(
     let lines = match cache.get(path) {
       Some(content) => content
       None => {
+        let path = if cwd is Some(cwd) && !@path.is_absolute(path) {
+          @path.join(cwd, path)
+        } else {
+          path
+        }
         let content = @fs.read_file(path) catch {
           error => {
             message_lines.push("  (error reading file: \{error})")
