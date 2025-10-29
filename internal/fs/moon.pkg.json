@@ -4,7 +4,8 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/errno",
-    "moonbitlang/maria/internal/os"
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/async/os_error"
   ],
   "test-import": [
     "moonbitlang/async",
