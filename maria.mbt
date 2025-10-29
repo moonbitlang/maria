@@ -34,6 +34,7 @@ pub async fn Maria::new(
     @execute_command.new(job_manager).to_agent_tool(),
     @list_files.new(file_manager).to_agent_tool(),
     @read_file.new(file_manager).to_agent_tool(),
+    @read_multiple_files.new(file_manager).to_agent_tool(),
     @replace_in_file.new(file_manager).to_agent_tool(),
     @todo_read.new(todo_list).to_agent_tool(),
     @todo_write.new(todo_list).to_agent_tool(),
@@ -42,6 +43,7 @@ pub async fn Maria::new(
   ])
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
+    @read_multiple_files.prompt,
   ].join("\n")
   let system_message = @openai.system_message(content=system_prompt)
   agent.add_message(system_message)

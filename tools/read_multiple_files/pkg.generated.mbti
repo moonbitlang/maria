@@ -10,6 +10,8 @@ import(
 // Values
 fn new(@file.Manager) -> @tool.Tool[ReadMultipleFilesResult]
 
+let prompt : String
+
 // Errors
 
 // Types and methods

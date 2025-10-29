@@ -194,3 +194,19 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ReadMultipleFilesResult] {
     }),
   )
 }
+
+///|
+pub let prompt : String =
+  #|# read_multiple_files
+  #|
+  #|## Purpose
+  #|
+  #|- Read the contents of multiple files at once to gather information efficiently
+  #|
+  #|## When to Use
+  #|
+  #|Use this tool when you need to examine the contents of several files, to
+  #|analyze code, review text files, or extract information from configuration files.
+  #|
+  #|This tool is especially useful when you just gather basic information about
+  #|a directly using <list_files> tool.
