@@ -118,3 +118,13 @@ test "relative" {
 test "resolve" {
 
 }
+
+///|
+test "choose second if absolute" {
+  let p = "/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/"
+  let q = "/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/moonbit-taco-XXXXXXX"
+  inspect(
+    @path.join(p, q),
+    content="/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/moonbit-taco-XXXXXXX",
+  )
+}
