@@ -24,6 +24,7 @@
 pub async fn spawn(
   command : StringView,
   arguments : Array[StringView],
+  stdin? : String,
   stderr? : &Logger,
   stdout? : &Logger,
   cwd? : StringView,
@@ -32,50 +33,67 @@ pub async fn spawn(
   let command = command.to_string()
   let arguments = arguments.map(arg => arg.to_string())
   let cwd = cwd.map(_.to_string())
-  match (stdout, stderr) {
-    (Some(stdout), Some(stderr)) if physical_equal(stdout, stderr) => {
-      let (status, data) = @process.collect_output_merged(
-        command,
-        arguments,
-        cwd?,
-        extra_env?=env,
-      )
-      stdout.write_string(data.text())
-      status
+  @async.with_task_group(group => {
+    let stdin = match stdin {
+      Some(content) => {
+        let (stdin, pipe) = @process.write_to_process()
+        group.spawn_bg(() => {
+          pipe.write(content)
+          pipe.close()
+        })
+        Some(stdin)
+      }
+      None => None
     }
-    (Some(stdout), Some(stderr)) => {
-      let (status, out_data, err_data) = @process.collect_output(
-        command,
-        arguments,
-        cwd?,
-        extra_env?=env,
-      )
-      stdout.write_string(out_data.text())
-      stderr.write_string(err_data.text())
-      status
+    match (stdout, stderr) {
+      (Some(stdout), Some(stderr)) if physical_equal(stdout, stderr) => {
+        let (status, data) = @process.collect_output_merged(
+          command,
+          arguments,
+          cwd?,
+          stdin?,
+          extra_env?=env,
+        )
+        stdout.write_string(data.text())
+        status
+      }
+      (Some(stdout), Some(stderr)) => {
+        let (status, out_data, err_data) = @process.collect_output(
+          command,
+          arguments,
+          cwd?,
+          stdin?,
+          extra_env?=env,
+        )
+        stdout.write_string(out_data.text())
+        stderr.write_string(err_data.text())
+        status
+      }
+      (Some(stdout), None) => {
+        let (status, out_data) = @process.collect_stdout(
+          command,
+          arguments,
+          cwd?,
+          stdin?,
+          extra_env?=env,
+        )
+        stdout.write_string(out_data.text())
+        status
+      }
+      (None, Some(stderr)) => {
+        let (status, err_data) = @process.collect_stderr(
+          command,
+          arguments,
+          cwd?,
+          stdin?,
+          extra_env?=env,
+        )
+        stderr.write_string(err_data.text())
+        status
+      }
+      (None, None) => @process.run(command, arguments, cwd?, extra_env?=env)
     }
-    (Some(stdout), None) => {
-      let (status, out_data) = @process.collect_stdout(
-        command,
-        arguments,
-        cwd?,
-        extra_env?=env,
-      )
-      stdout.write_string(out_data.text())
-      status
-    }
-    (None, Some(stderr)) => {
-      let (status, err_data) = @process.collect_stderr(
-        command,
-        arguments,
-        cwd?,
-        extra_env?=env,
-      )
-      stderr.write_string(err_data.text())
-      status
-    }
-    (None, None) => @process.run(command, arguments, cwd?, extra_env?=env)
-  }
+  })
 }
 
 ///|
