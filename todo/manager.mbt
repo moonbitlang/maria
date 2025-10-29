@@ -3,25 +3,44 @@ pub fn List::todos(self : List) -> Array[Item] {
   self.items.todos.copy()
 }
 
-///|
-fn List::item(
-  self : List,
-  content : String,
-  status~ : Status,
-  priority~ : Priority,
+fn Item::new(
+  clock~ : String,
+  content~ : String,
+  id~ : String,
   notes? : String,
-) -> Item raise {
-  let now = get_current_timestamp(self.clock)
+  priority~ : Priority,
+  status~ : Status,
+) -> Item {
+  
   {
     content,
-    created_at: now,
-    id: self.uuid.v4().to_string()[0:8].to_string(),
+    created_at: clock,
+    id,
     notes,
     priority,
     status,
-    updated_at: now,
+    updated_at: clock,
   }
 }
+///|
+// fn List::item(
+//   self : List,
+//   content : String,
+//   status~ : Status,
+//   priority~ : Priority,
+//   notes? : String,
+// ) -> Item raise {
+//   let now = get_current_timestamp(self.clock)
+//   {
+//     content,
+//     created_at: now,
+//     id: self.uuid.v4().to_string()[0:8].to_string(),
+//     notes,
+//     priority,
+//     status,
+//     updated_at: now,
+//   }
+// }
 
 ///|
 pub fn List::update_item(
@@ -146,7 +165,17 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = self.item(content, status~, priority~, notes?)
+  // let item = self.item(content, status~, priority~, notes?)
+  let clock = get_current_timestamp(self.clock)
+  let id = self.uuid.v4().to_string()[0:8].to_string()
+  let item = Item::new(
+    clock~,
+    content=content,
+    id~,
+    notes?,
+    priority~,
+    status~,
+  )
   self.items.todos.push(item)
   self.items.updated_at = get_current_timestamp(self.clock)
   item
@@ -203,16 +232,8 @@ test "remove_list_prefixes" {
   )
 }
 
-///|
-pub fn List::parse(
-  self : List,
-  content : String,
-  priority~ : Priority,
-  notes? : String,
-) -> Unit raise {
-  self.items.todos.clear()
-  self.items.created_at = get_current_timestamp(self.clock)
-  self.items.updated_at = self.items.created_at
+fn Items::parse(content : String, priority~ : Priority, notes? : String, clock~ : String, id~ : String) -> Items {
+  let todos: Array[Item] = []
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
@@ -220,13 +241,15 @@ pub fn List::parse(
     for task_content in task_matches {
       let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
-        let todo = self.item(
-          trimmed.to_string(),
+        let todo = Item::new(
+          clock~,
+          content = trimmed.to_string(),
+          id~,
           notes?,
           priority~,
-          status=Pending,
+          status = Pending,
         )
-        self.items.todos.push(todo)
+        todos.push(todo)
       }
     }
   } else {
@@ -241,9 +264,75 @@ pub fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = self.item(clean_line, notes?, priority~, status=Pending)
-        self.items.todos.push(todo)
+        let todo = Item::new(
+          clock~,
+          content = clean_line,
+          id~,
+          notes?,
+          priority~,
+          status = Pending,
+        )
+        todos.push(todo)
       }
     }
   }
+  {todos, created_at: clock, updated_at: clock}
+}
+///|
+pub fn List::parse(
+  self : List,
+  content : String,
+  priority~ : Priority,
+  notes? : String,
+) -> Unit raise {
+  let clock = get_current_timestamp(self.clock)
+  let id = self.uuid.v4().to_string()[0:8].to_string()
+  self.items = Items::parse(content, priority~, notes?, clock~, id~)
+  // let clock = get_current_timestamp(self.clock)
+  // self.items.todos.clear()
+  // self.items.created_at = clock
+  // self.items.updated_at = self.items.created_at
+  // // First, try to parse <task> tags
+  // let task_matches = extract_task_tags(content)
+  // if task_matches.length() > 0 {
+  //   // Found <task> tags, use them
+  //   for task_content in task_matches {
+  //     let trimmed = task_content.trim(char_set=" \t\r\n")
+  //     if trimmed.length() > 0 {
+  //       let todo = Item::new(
+  //         clock~,
+  //         content = trimmed.to_string(),
+  //         id = self.uuid.v4().to_string()[0:8].to_string(),
+  //         notes?,
+  //         priority~,
+  //         status = Pending,
+  //       )
+  //       self.items.todos.push(todo)
+  //     }
+  //   }
+  // } else {
+  //   // Fallback to line-by-line parsing
+  //   let lines = content.trim(char_set=" \t\r\n").split("\n")
+  //   for line in lines {
+  //     let trimmed_line = line.trim(char_set=" \t\r\n")
+  //     if trimmed_line.length() == 0 {
+  //       continue
+  //     }
+
+  //     // Remove common prefixes like "1.", "- ", "* ", etc.
+  //     let clean_line = remove_list_prefixes(trimmed_line)
+  //     if clean_line.length() > 0 {
+  //       // let todo = self.item(clean_line, notes?, priority~, status=Pending)
+  //       let todo = Item::new(
+  //         clock~,
+  //         content = clean_line,
+  //         id = self.uuid.v4().to_string()[0:8].to_string(),
+  //         notes?,
+  //         priority~,
+  //         status = Pending,
+  //       )
+  //       self.items.todos.push(todo)
+  //     }
+  //   }
+  // }
 }
