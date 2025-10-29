@@ -1,5 +1,5 @@
 ///|
-async fn @pipe.PipeWrite::writeln(self : @pipe.PipeWrite, str : String) -> Unit {
+async fn @stdio.Output::writeln(self : @stdio.Output, str : String) -> Unit {
   self.write(str + "\n")
 }
 
@@ -13,14 +13,14 @@ pub async fn execute(prompt~ : String, model? : String) -> Unit {
           "method": "maria.agent.conversation_start",
           "params": {},
         }
-        @pipe.stdout.writeln(response.stringify())
+        @stdio.stdout.writeln(response.stringify())
       }
       RequestCompleted(usage~, message~) => {
         let response : Json = {
           "method": "maria.agent.request_completed",
           "params": { "usage": usage.to_json(), "message": message.to_json() },
         }
-        @pipe.stdout.writeln(response.stringify())
+        @stdio.stdout.writeln(response.stringify())
       }
       PostToolCall(tool_call, result~, rendered~) => {
         let response : Json = {
@@ -31,7 +31,7 @@ pub async fn execute(prompt~ : String, model? : String) -> Unit {
             "text": rendered.to_json(),
           },
         }
-        @pipe.stdout.writeln(response.stringify())
+        @stdio.stdout.writeln(response.stringify())
       }
       _ => ()
     })

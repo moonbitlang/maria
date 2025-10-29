@@ -68,8 +68,8 @@ fn Events::new() -> Events {
 
 ///|
 struct Interface {
-  input : @pipe.PipeRead
-  output : @pipe.PipeWrite
+  input : @stdio.Input
+  output : @stdio.Output
   mut line : BytesView
   mut previous_line : BytesView
   mut is_multiline : Bool
@@ -101,8 +101,8 @@ struct Interface {
 
 ///|
 pub fn interface(
-  input~ : @pipe.PipeRead,
-  output? : @pipe.PipeWrite = @pipe.stdout,
+  input~ : @stdio.Input,
+  output? : @stdio.Output = @stdio.stdout,
 ) -> Interface raise {
   @tty.set_raw_mode(input.fd())
   Interface::{
@@ -189,8 +189,8 @@ async fn Interface::write_move_cursor(
 }
 
 ///|
-async fn @pipe.PipeWrite::cursor_to(
-  self : @pipe.PipeWrite,
+async fn @stdio.Output::cursor_to(
+  self : @stdio.Output,
   col~ : Int,
   row? : Int,
 ) -> Unit {
@@ -217,7 +217,7 @@ async fn @pipe.PipeWrite::cursor_to(
 }
 
 ///|
-async fn @pipe.PipeWrite::clear_screen_down(self : @pipe.PipeWrite) -> Unit {
+async fn @stdio.Output::clear_screen_down(self : @stdio.Output) -> Unit {
   self.write(@csi.ClearScreenDown)
 }
 
