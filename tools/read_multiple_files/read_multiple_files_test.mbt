@@ -70,43 +70,44 @@ async test "content" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
+      "ReadMultipleFilesResult",
       [
-        "ReadFileResult",
-        {
-          "path": "bar.txt",
-          "content": "line 1 hello world\nline 2 apple\nline 3 orange\nline 4",
-          "start_line": 1,
-          "end_line": 4,
-        },
-      ],
-      [
-        "ReadFileResult",
-        {
-          "path": "foo.txt",
-          "content": "line 1\nline 2\nline 3\nline 4",
-          "start_line": 1,
-          "end_line": 4,
-        },
+        [
+          "ReadFileResult",
+          {
+            "path": "bar.txt",
+            "content": "line 1 hello world\nline 2 apple\nline 3 orange\nline 4",
+            "start_line": 1,
+            "end_line": 4,
+          },
+        ],
+        [
+          "ReadFileResult",
+          {
+            "path": "foo.txt",
+            "content": "line 1\nline 2\nline 3\nline 4",
+            "start_line": 1,
+            "end_line": 4,
+          },
+        ],
       ],
     ])
     inspect(
-      output[0],
+      output,
       content=(
         #|File: bar.txt (lines 1-4 (4 lines))
         #|line 1 hello world
         #|line 2 apple
         #|line 3 orange
         #|line 4
-      ),
-    )
-    inspect(
-      output[1],
-      content=(
+        #|
         #|File: foo.txt (lines 1-4 (4 lines))
         #|line 1
         #|line 2
         #|line 3
         #|line 4
+        #|
+        #|
       ),
     )
   })
@@ -145,41 +146,42 @@ async test "line_range" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
+      "ReadMultipleFilesResult",
       [
-        "ReadFileResult",
-        {
-          "path": "bar.txt",
-          "content": "line 1 hello world\nline 2 apple\nline 3 orange\nline 4",
-          "start_line": 1,
-          "end_line": 3,
-        },
-      ],
-      [
-        "ReadFileResult",
-        {
-          "path": "foo.txt",
-          "content": "line 1\nline 2\nline 3\nline 4\nline 5",
-          "start_line": 2,
-          "end_line": 4,
-        },
+        [
+          "ReadFileResult",
+          {
+            "path": "bar.txt",
+            "content": "line 1 hello world\nline 2 apple\nline 3 orange\nline 4",
+            "start_line": 1,
+            "end_line": 3,
+          },
+        ],
+        [
+          "ReadFileResult",
+          {
+            "path": "foo.txt",
+            "content": "line 1\nline 2\nline 3\nline 4\nline 5",
+            "start_line": 2,
+            "end_line": 4,
+          },
+        ],
       ],
     ])
     inspect(
-      output[0],
+      output,
       content=(
         #|File: bar.txt (lines 1-3 (3 lines))
         #|line 1 hello world
         #|line 2 apple
         #|line 3 orange
-      ),
-    )
-    inspect(
-      output[1],
-      content=(
+        #|
         #|File: foo.txt (lines 2-4 (3 lines))
         #|line 2
         #|line 3
         #|line 4
+        #|
+        #|
       ),
     )
   })
@@ -199,23 +201,28 @@ async test "directory" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
+      "ReadMultipleFilesResult",
       [
-        "ReadDirectoryResult",
-        {
-          "path": ".",
-          "entries": ["subdir/", "file1.txt", "file2.txt"],
-          "display": "subdir/\nfile1.txt\nfile2.txt",
-        },
+        [
+          "ReadDirectoryResult",
+          {
+            "path": ".",
+            "entries": ["subdir/", "file1.txt", "file2.txt"],
+            "display": "subdir/\nfile1.txt\nfile2.txt",
+          },
+        ],
       ],
     ])
     inspect(
-      output[0],
+      output,
       content=(
         #|Directory: .
         #|Entries:
         #|subdir/
         #|file1.txt
         #|file2.txt
+        #|
+        #|
       ),
     )
   })
@@ -313,22 +320,27 @@ async test "invalid-range" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
+      "ReadMultipleFilesResult",
       [
-        "ReadFileResult",
-        {
-          "path": "test.txt",
-          "content": "line 1\nline 2\nline 3",
-          "start_line": 2,
-          "end_line": 3,
-        },
+        [
+          "ReadFileResult",
+          {
+            "path": "test.txt",
+            "content": "line 1\nline 2\nline 3",
+            "start_line": 2,
+            "end_line": 3,
+          },
+        ],
       ],
     ])
     inspect(
-      output[0],
+      output,
       content=(
         #|File: test.txt (lines 2-3 (2 lines))
         #|line 2
         #|line 3
+        #|
+        #|
       ),
     )
   })
@@ -352,42 +364,46 @@ async test "read multiple mixed files" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
+      "ReadMultipleFilesResult",
       [
-        "ReadDirectoryResult",
-        { "path": "subdir", "entries": ["file3.txt"], "display": "file3.txt" },
-      ],
-      [
-        "ReadFileResult",
-        {
-          "path": "file1.txt",
-          "content": "content1",
-          "start_line": 1,
-          "end_line": 1,
-        },
-      ],
-      [
-        "ReadFileResult",
-        {
-          "path": "file2.txt",
-          "content": "content2",
-          "start_line": 1,
-          "end_line": 1,
-        },
+        [
+          "ReadDirectoryResult",
+          { "path": "subdir", "entries": ["file3.txt"], "display": "file3.txt" },
+        ],
+        [
+          "ReadFileResult",
+          {
+            "path": "file1.txt",
+            "content": "content1",
+            "start_line": 1,
+            "end_line": 1,
+          },
+        ],
+        [
+          "ReadFileResult",
+          {
+            "path": "file2.txt",
+            "content": "content2",
+            "start_line": 1,
+            "end_line": 1,
+          },
+        ],
       ],
     ])
     inspect(
-      output[0],
+      output,
       content=(
         #|Directory: subdir
         #|Entries:
         #|file3.txt
-      ),
-    )
-    inspect(
-      output[1],
-      content=(
+        #|
         #|File: file1.txt (lines 1-1 (1 lines))
         #|content1
+        #|
+        #|File: file2.txt (lines 1-1 (1 lines))
+        #|content2
+        #|
+        #|
       ),
     )
   })

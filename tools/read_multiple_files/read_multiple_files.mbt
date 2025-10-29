@@ -20,6 +20,22 @@ enum ReadFileToolResult {
 } derive(ToJson, @json.FromJson)
 
 ///|
+/// 
+/// wrapper type in order to override the Show trait result 
+pub(all) struct ReadMultipleFilesResult(Array[ReadFileToolResult]) derive (
+  ToJson,
+  @json.FromJson,
+)
+
+///|
+pub impl Show for ReadMultipleFilesResult with output(self, logger) {
+  for content in self.0 {
+    logger.write_object(content)
+    logger.write_string("\n\n")
+  }
+}
+
+///|
 pub impl Show for ReadFileToolResult with output(
   self : ReadFileToolResult,
   logger : &Logger,
@@ -135,7 +151,7 @@ fn to_path(rdr : ReadFileToolResult) -> String {
 async fn execute_read_multiple_files_tool(
   manager : @file.Manager,
   args : Json,
-) -> @tool.ToolResult[Array[ReadFileToolResult]] noraise {
+) -> @tool.ToolResult[ReadMultipleFilesResult] noraise {
   guard args is Array(paths_json) else {
     return @tool.error("Error: parameter is required be array of `FileContent`")
   }
@@ -150,14 +166,14 @@ async fn execute_read_multiple_files_tool(
   }
   if errs.is_empty() {
     results.sort_by_key(to_path)
-    @tool.ok(results)
+    @tool.ok(ReadMultipleFilesResult(results))
   } else {
     @tool.error(errs.map(x => x.1).join("\n"), error=MultipleErrors(errs))
   }
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool[Array[ReadFileToolResult]] {
+pub fn new(manager : @file.Manager) -> @tool.Tool[ReadMultipleFilesResult] {
   let description =
     #| Read the contents of multiple files at the specified paths.
     #| Use this when you need to examine the contents of existing files,
@@ -173,7 +189,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[Array[ReadFileToolResult]] {
     schema~,
     @tool.ToolFn(async fn(
       args,
-    ) -> @tool.ToolResult[Array[ReadFileToolResult]] noraise {
+    ) -> @tool.ToolResult[ReadMultipleFilesResult] noraise {
       execute_read_multiple_files_tool(manager, args)
     }),
   )
