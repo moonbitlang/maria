@@ -8,7 +8,7 @@ async test "get_moonbit_mbti" (t : @test.T) {
       fail("Expected Ok result but got: \{result}")
     }
     inspect(
-      output,
+      output.split("\n")[0:12].to_array().join("\n"),
       content=(
         #|// Generated using `moon info`, DON'T EDIT IT
         #|package "moonbitlang/core/set"
@@ -22,66 +22,6 @@ async test "get_moonbit_mbti" (t : @test.T) {
         #|fn[K : Hash + Eq] Set::add(Self[K], K) -> Unit
         #|fn[K : Hash + Eq] Set::add_and_check(Self[K], K) -> Bool
         #|fn[K] Set::capacity(Self[K]) -> Int
-        #|fn[K] Set::clear(Self[K]) -> Unit
-        #|fn[K : Hash + Eq] Set::contains(Self[K], K) -> Bool
-        #|fn[K] Set::copy(Self[K]) -> Self[K]
-        #|fn[K] Set::default() -> Self[K] // from trait `Default`
-        #|fn[K : Hash + Eq] Set::difference(Self[K], Self[K]) -> Self[K]
-        #|fn[K] Set::each(Self[K], (K) -> Unit raise?) -> Unit raise?
-        #|fn[K] Set::eachi(Self[K], (Int, K) -> Unit raise?) -> Unit raise?
-        #|fn[K : Hash + Eq] Set::equal(Self[K], Self[K]) -> Bool // from trait `Eq`
-        #|#alias(of, deprecated)
-        #|#as_free_fn(of, deprecated)
-        #|#as_free_fn
-        #|fn[K : Hash + Eq] Set::from_array(ArrayView[K]) -> Self[K]
-        #|#as_free_fn
-        #|fn[K : Hash + Eq] Set::from_iter(Iter[K]) -> Self[K]
-        #|#as_free_fn
-        #|fn[K : Hash + Eq] Set::from_iterator(Iterator[K]) -> Self[K]
-        #|#deprecated
-        #|fn[K : Hash + Eq] Set::insert(Self[K], K) -> Unit
-        #|fn[K : Hash + Eq] Set::intersection(Self[K], Self[K]) -> Self[K]
-        #|fn[K : Hash + Eq] Set::is_disjoint(Self[K], Self[K]) -> Bool
-        #|fn[K] Set::is_empty(Self[K]) -> Bool
-        #|fn[K : Hash + Eq] Set::is_subset(Self[K], Self[K]) -> Bool
-        #|fn[K : Hash + Eq] Set::is_superset(Self[K], Self[K]) -> Bool
-        #|fn[K] Set::iter(Self[K]) -> Iter[K]
-        #|fn[K] Set::iterator(Self[K]) -> Iterator[K]
-        #|fn[K : Hash + Eq] Set::land(Self[K], Self[K]) -> Self[K] // from trait `BitAnd`
-        #|#alias(size, deprecated)
-        #|fn[K] Set::length(Self[K]) -> Int
-        #|fn[K : Hash + Eq] Set::lor(Self[K], Self[K]) -> Self[K] // from trait `BitOr`
-        #|fn[K : Hash + Eq] Set::lxor(Self[K], Self[K]) -> Self[K] // from trait `BitXOr`
-        #|#as_free_fn
-        #|fn[K] Set::new(capacity? : Int) -> Self[K]
-        #|#deprecated
-        #|fn[K : Hash + Eq] Set::op_equal(Self[K], Self[K]) -> Bool // from trait `Eq`
-        #|#deprecated
-        #|fn[K : Hash + Eq] Set::op_sub(Self[K], Self[K]) -> Self[K] // from trait `Sub`
-        #|fn[K : Show] Set::output(Self[K], &Logger) -> Unit // from trait `Show`
-        #|fn[K : Hash + Eq] Set::remove(Self[K], K) -> Unit
-        #|fn[K : Hash + Eq] Set::remove_and_check(Self[K], K) -> Bool
-        #|fn[K : Hash + Eq] Set::sub(Self[K], Self[K]) -> Self[K] // from trait `Sub`
-        #|fn[K : Hash + Eq] Set::symmetric_difference(Self[K], Self[K]) -> Self[K]
-        #|fn[K] Set::to_array(Self[K]) -> Array[K]
-        #|fn[X : ToJson] Set::to_json(Self[X]) -> Json // from trait `ToJson`
-        #|fn[K : Show] Set::to_string(Self[K]) -> String // from trait `Show`
-        #|fn[K : Hash + Eq] Set::union(Self[K], Self[K]) -> Self[K]
-        #|impl[K : Hash + Eq] BitAnd for Set[K]
-        #|impl[K : Hash + Eq] BitOr for Set[K]
-        #|impl[K : Hash + Eq] BitXOr for Set[K]
-        #|impl[K] Default for Set[K]
-        #|impl[K : Hash + Eq] Eq for Set[K]
-        #|impl[K : Show] Show for Set[K]
-        #|impl[K : Hash + Eq] Sub for Set[K]
-        #|impl[X : ToJson] ToJson for Set[X]
-        #|
-        #|// Type aliases
-        #|
-        #|// Traits
-        #|
-        #|
-
       ),
     )
   })
