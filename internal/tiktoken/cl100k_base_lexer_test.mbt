@@ -5,9 +5,6 @@ priv struct SplitItem {
 } derive(ToJson)
 
 ///|
-typealias Map[String, SplitItem] as SplitResult
-
-///|
 test "snapshot testing" (t : @test.T) {
   let inputs : Map[String, String] = {
     "basic hello world": "hello world ",
@@ -96,8 +93,8 @@ test {
 ///|
 fn test_regex_and_byte_pair_merge(
   inputs : Map[String, String],
-) -> SplitResult raise {
-  let result : SplitResult = {}
+) -> Map[String, SplitItem] raise {
+  let result = {}
   let cl100k_base = @tiktoken.cl100k_base(pcre2=false)
   for key, text in inputs {
     if !text.iter().all(Char::is_ascii) {
