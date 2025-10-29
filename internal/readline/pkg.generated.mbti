@@ -2,11 +2,11 @@
 package "moonbitlang/maria/internal/readline"
 
 import(
-  "moonbitlang/async/pipe"
+  "moonbitlang/async/stdio"
 )
 
 // Values
-fn interface(input~ : @pipe.PipeRead, output? : @pipe.PipeWrite) -> Interface raise
+fn interface(input~ : @stdio.Input, output? : @stdio.Output) -> Interface raise
 
 // Errors
 pub suberror Aborted {
