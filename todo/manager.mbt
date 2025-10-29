@@ -11,7 +11,7 @@ fn List::item(
   priority~ : Priority,
   notes? : String,
 ) -> Item raise {
-  let now = get_current_timestamp(self.clock)
+  let now = self.clock.current_timestamp()
   {
     content,
     created_at: now,
@@ -32,7 +32,7 @@ pub fn List::update_item(
   status? : Status,
   priority? : Priority,
 ) -> Item raise {
-  let mut updated = { ..item, updated_at: get_current_timestamp(self.clock) }
+  let mut updated = { ..item, updated_at: self.clock.current_timestamp() }
   if content is Some(content) {
     updated = { ..updated, content, }
   }
@@ -60,8 +60,8 @@ pub fn list(
     cwd: cwd.to_string(),
     items: {
       todos: [],
-      created_at: get_current_timestamp(clock),
-      updated_at: get_current_timestamp(clock),
+      created_at: clock.current_timestamp(),
+      updated_at: clock.current_timestamp(),
     },
   }
 }
@@ -90,7 +90,7 @@ pub async fn List::load(self : List) -> Unit {
 pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
-  self.items.updated_at = get_current_timestamp(self.clock)
+  self.items.updated_at = self.clock.current_timestamp()
   let json : Json = self.items.to_json()
   @fs.write_to_file(todo_file_path, json.stringify(indent=2))
 }
@@ -148,14 +148,14 @@ pub fn List::add_task(
   }
   let item = self.item(content, status~, priority~, notes?)
   self.items.todos.push(item)
-  self.items.updated_at = get_current_timestamp(self.clock)
+  self.items.updated_at = self.clock.current_timestamp()
   item
 }
 
 ///|
 pub fn List::update_task(self : List, index : Index, item : Item) -> Unit raise {
   self.items.todos[index.0] = item
-  self.items.updated_at = get_current_timestamp(self.clock)
+  self.items.updated_at = self.clock.current_timestamp()
 }
 
 ///|
@@ -211,7 +211,7 @@ pub fn List::parse(
   notes? : String,
 ) -> Unit raise {
   self.items.todos.clear()
-  self.items.created_at = get_current_timestamp(self.clock)
+  self.items.created_at = self.clock.current_timestamp()
   self.items.updated_at = self.items.created_at
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
