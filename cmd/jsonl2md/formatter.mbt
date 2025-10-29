@@ -273,22 +273,29 @@ async fn Formatter::format_message_added(
 fn Formatter::format_post_tool_call(
   self : Formatter,
   name : String,
-  result : Json,
+  result? : Result[Json, Json],
   text : String,
 ) -> Unit {
-  match (name, result) {
-    ("execute_command", ["Foreground", { "command": String(command), .. }, ..]) =>
-      self.lines.push(
-        "## \{self.count} Tool call result: <\{name} command=\{command.escape()}>",
-      )
-    ("list_files", { "path": String(path), .. })
-    | ("read_file", ["ReadFileResult", { "path": String(path), .. }, ..])
-    | ("replace_in_file", { "path": String(path), .. })
-    | ("meta_write_to_file", { "path": String(path), .. }) =>
-      self.lines.push(
-        "## \{self.count} Tool call result: <\{name} path=\{path.escape()}>",
-      )
-    _ => self.lines.push("## \{self.count} Tool call result: <\{name}>")
+  if result is Some(Ok(result)) {
+    match (name, result) {
+      ("execute_command", ["Foreground", { "command": String(command), .. }, ..]
+      ) =>
+        self.lines.push(
+          "## \{self.count} Tool call result: <\{name} command=\{command.escape()}>",
+        )
+      ("list_files", { "path": String(path), .. })
+      | ("read_file", ["ReadFileResult", { "path": String(path), .. }, ..])
+      | ("replace_in_file", { "path": String(path), .. })
+      | ("meta_write_to_file", { "path": String(path), .. }) =>
+        self.lines.push(
+          "## \{self.count} Tool call result: <\{name} path=\{path.escape()}>",
+        )
+      _ => self.lines.push("## \{self.count} Tool call result: <\{name}>")
+    }
+  } else if result is Some(Err(_)) {
+    self.lines.push("## \{self.count} Tool call error: <\{name}>")
+  } else {
+    self.lines.push("## \{self.count} Tool call result: <\{name}>")
   }
   self.count += 1
   self.lines.push("")
@@ -360,13 +367,14 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         }
       }
     }
-    {
-      "msg": "PostToolCall",
-      "name": String(name),
-      "result": result,
-      "text": String(text),
-      ..
-    } => self.format_post_tool_call(name, result, text)
+    { "msg": "PostToolCall", "name": String(name), "text": String(text), .. } =>
+      if json is { "result": result, .. } {
+        self.format_post_tool_call(name, result=Ok(result), text)
+      } else if json is { "error": error, .. } {
+        self.format_post_tool_call(name, result=Err(error), text)
+      } else {
+        self.format_post_tool_call(name, text)
+      }
     { "msg": "MessageAdded", "message": message, .. } => {
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
