@@ -158,22 +158,35 @@ fn build_fixing_user_message(
 ) -> String {
   (
     $|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n
-    $|**Task Description:**\n\{description}\n\n
-    $|**File Content:**\n```moonbit\{file_content}```\n\n
-    $|**Current Syntax Errors:**\n\{syntax_errors}\n\n
-    $|**Your Task:**\n
-    $|1. Use `read_file` to examine the current file contents\n
-    $|2. Use `submit_fixed_file` to provide the complete fixed file content\n
-    $|3. Only fix syntax errors - do not change logic unless absolutely necessary\n
-    $|4. Continue until all syntax errors are fixed\n
-    $|5. Call `attempt_completion` when done\n\n
-    $|**Guidelines:**\n
-    $|- Focus only on fixing syntax errors, not improving code quality\n
-    $|- Preserve the original intent and functionality of the code, as much as possible\n
-    $|- Use proper MoonBit syntax and conventions\n
-    $|- If you cannot fix an error, explain why clearly\n
-    $|- When syntax check passes, call `attempt_completion` immediately\n\n
-    $|Please start by using `read_file` to examine the current file, then use `submit_fixed_file` to fix the syntax errors.
+    $|**Task Description:**
+    $|
+    $|\{description}
+    $|
+    $|**File Content:**
+    $|
+    $|```moonbit
+    $|\{file_content}
+    $|```
+    $|
+    $|**Current Syntax Errors:**
+    $|
+    $|\{syntax_errors}
+    $|
+    $|**Your Task:**
+    $|
+    $|1. Analyze the syntax errors and understand what needs to be fixed
+    $|2. Use `submit_fixed_file` to provide the complete fixed file content
+    $|3. Only fix syntax errors - do not change logic unless absolutely necessary
+    $|4. Continue until all syntax errors are fixed
+    $|5. Call `attempt_completion` when done
+    $|
+    $|**Guidelines:**
+    $|
+    $|- Focus only on fixing syntax errors, not improving code quality
+    $|- Preserve the original intent and functionality of the code, as much as possible
+    $|- Use proper MoonBit syntax and conventions
+    $|- If you cannot fix an error, explain why clearly
+    $|- When syntax check passes, call `attempt_completion` immediately
   )
 }
 
