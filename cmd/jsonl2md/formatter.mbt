@@ -245,13 +245,26 @@ async fn Formatter::format_message_added(
   self : Formatter,
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
-  if message is (Tool(_) | System(_)) {
+  // Tool is already handled when formatting PostToolCall
+  if message is Tool(_) {
     return
   }
   let role = openai_message_role(message)
   let content = openai_message_content(message)
     .trim(char_set=" \n\r\t")
     .to_string()
+  if message is System(_) {
+    self.lines.push("# \{self.count} \{role}")
+    self.count += 1
+    self.lines.push("")
+    // We need to wrap the system message in code fence to avoid polluting the
+    // markdown structure.
+    self.lines.push("````markdown")
+    self.lines.push(content)
+    self.lines.push("````")
+    self.lines.push("")
+    return
+  }
   let title = content.split("\n").drop_while(line => line.is_blank()).peek()
   if title is Some(title) {
     self.lines.push("# \{self.count} \{role}: \{title}")
@@ -380,6 +393,12 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         message,
       )
       self.format_message_added(message)
+    }
+    { "msg": "ModelLoaded", "name": String(name) | [String(name)], .. } => {
+      self.lines.push("# System information")
+      self.lines.push("")
+      self.lines.push("Model: \{name}")
+      self.lines.push("")
     }
     _ => ()
   }
