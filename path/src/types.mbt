@@ -203,3 +203,9 @@ enum PathBuilder {
     mut extension~ : UnixPathComponent?
   )
 }
+
+///|
+pub(all) enum PathKind {
+  File
+  Directory
+}

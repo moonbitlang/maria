@@ -248,3 +248,19 @@ test "edge cases" {
   let path = Path::parse("///")
   inspect(path, content="/")
 }
+
+///|
+test "Unix path kinds" {
+  let path = Path::parse("./a", kind=Directory)
+  inspect(path, content="a/")
+  let path = Path::parse("./a", kind=File)
+  inspect(path, content="a")
+}
+
+///|
+test "Windows path kinds" {
+  let path = Path::parse(".\\a", kind=Directory)
+  inspect(path, content="a\\")
+  let path = Path::parse(".\\a", kind=File)
+  inspect(path, content="a")
+}

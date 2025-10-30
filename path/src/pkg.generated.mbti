@@ -66,7 +66,7 @@ fn Path::is_root_path(Self) -> Bool
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::output(Self, &Logger) -> Unit // from trait `Show`
-fn Path::parse(StringView) -> Self raise PathError
+fn Path::parse(StringView, kind? : PathKind) -> Self raise PathError
 fn Path::prefix(Self) -> String
 fn Path::to_json(Self) -> Json // from trait `ToJson`
 fn Path::to_string(Self) -> String // from trait `Show`
@@ -86,6 +86,11 @@ fn PathBuilder::set_file(Self, base~ : StringView, extension~ : StringView) -> U
 fn PathBuilder::to_path(Self) -> Path
 fn PathBuilder::to_string(Self) -> String // from trait `Show`
 impl Show for PathBuilder
+
+pub(all) enum PathKind {
+  File
+  Directory
+}
 
 pub struct UnixPath {
   prefix : UnixPrefix
