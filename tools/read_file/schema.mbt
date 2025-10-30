@@ -8,7 +8,7 @@ priv struct ReadFileInput {
 ///|
 /// The schema is derived from the types above
 /// TODO: automate this process
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+let schema : @tool.JsonSchema = {
   "type": "object",
   "properties": {
     "path": {
@@ -25,4 +25,4 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
     },
   },
   "required": ["path"],
-})
+}
