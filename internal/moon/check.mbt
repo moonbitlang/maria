@@ -130,9 +130,9 @@ async fn check(
   }
   arguments.push("--directory")
   arguments.push(cwd)
-  let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd~)
-  let output = output.to_string()
+  let stdout = StringBuilder::new()
+  let _ = @spawn.spawn("moon", arguments, stdout~, cwd~)
+  let output = stdout.to_string()
   let diagnostics = []
   for line in output.split("\n") {
     try {
@@ -162,18 +162,17 @@ pub async fn check_syntax_of_file(
   path : String,
   cwd? : StringView,
 ) -> Array[Diagnostic] {
-  let output = StringBuilder::new()
+  let stderr = StringBuilder::new()
   let _ = @spawn.spawn(
     "moonc",
     [
       "compile", "-no-intermediate-file", "-stop-after-parsing", "-error-format",
       "json", path,
     ],
-    stdout=output,
-    stderr=output,
+    stderr~,
     cwd?,
   )
-  let output = output.to_string()
+  let output = stderr.to_string()
   let diagnostics = []
   for line in output.split("\n") {
     try {
