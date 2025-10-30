@@ -60,7 +60,7 @@ async test "format_log_entry/PostToolCall-with-error" {
   inspect(
     formatter.to_string(),
     content=(
-      #|# 1 Tool call error: <get_weather>
+      #|# 1 ❌ Tool call error: <get_weather>
       #|
       #|````markdown
       #|Error: Location not found.
