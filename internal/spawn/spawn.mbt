@@ -35,65 +35,42 @@ pub async fn spawn(
   let arguments = arguments.map(arg => arg.to_string())
   let cwd = cwd.map(_.to_string())
   @async.with_task_group(group => {
-    let stdin = match stdin {
-      Some(content) => {
-        let (stdin, pipe) = @process.write_to_process()
-        group.spawn_bg(() => {
-          pipe.write(content)
-          pipe.close()
-        })
-        Some(stdin)
-      }
-      None => None
+    fn redirect_input(content : String) -> &@process.ProcessInput raise {
+      let (stdin, pipe) = @process.write_to_process()
+      group.spawn_bg(() => {
+        pipe.write(content)
+        pipe.close()
+      })
+      stdin
     }
-    match (stdout, stderr) {
-      (Some(stdout), Some(stderr)) if physical_equal(stdout, stderr) => {
-        let (status, data) = @process.collect_output_merged(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(data.text())
-        status
-      }
-      (Some(stdout), Some(stderr)) => {
-        let (status, out_data, err_data) = @process.collect_output(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(out_data.text())
-        stderr.write_string(err_data.text())
-        status
-      }
-      (Some(stdout), None) => {
-        let (status, out_data) = @process.collect_stdout(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(out_data.text())
-        status
-      }
-      (None, Some(stderr)) => {
-        let (status, err_data) = @process.collect_stderr(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stderr.write_string(err_data.text())
-        status
-      }
-      (None, None) => @process.run(command, arguments, cwd?, extra_env?=env)
+
+    fn redirect_output(logger : &Logger) -> &@process.ProcessOutput raise {
+      let (pipe, stdout) = @process.read_from_process()
+      let buf : FixedArray[Byte] = FixedArray::make(1024, 0)
+      group.spawn_bg(() => loop pipe.read(buf) {
+        0 => break
+        n => {
+          logger.write_string(
+            @encoding/utf8.decode(buf.unsafe_reinterpret_as_bytes()[0:n]),
+          )
+          continue pipe.read(buf)
+        }
+      })
+      stdout
     }
+
+    let stdin = stdin.map(redirect_input)
+    let stdout = stdout.map(redirect_output)
+    let stderr = stderr.map(redirect_output)
+    @process.run(
+      command,
+      arguments,
+      stdin?,
+      stdout?,
+      stderr?,
+      cwd?,
+      extra_env?=env,
+    )
   })
 }
 
