@@ -306,7 +306,7 @@ fn Formatter::format_post_tool_call(
       _ => self.lines.push("# \{self.count} Tool call result: <\{name}>")
     }
   } else if result is Some(Err(_)) {
-    self.lines.push("# \{self.count} Tool call error: <\{name}>")
+    self.lines.push("# \{self.count} ❌ Tool call error: <\{name}>")
   } else {
     self.lines.push("# \{self.count} Tool call result: <\{name}>")
   }
@@ -343,7 +343,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           tools: {},
         }
         self.tools.set(id, formatter)
-        self.lines.push("## Spawned subagent for tool: <\{name}>")
+        self.lines.push("## 🤖 Spawned subagent for tool: <\{name}>")
         self.lines.push("")
         self.lines.push("[<\{name}> log](\{path})")
         self.lines.push("")

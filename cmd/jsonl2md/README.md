@@ -24,8 +24,8 @@ Each line is an independent JSON object. Empty lines are ignored. The tool curre
 	- Content trimmed of surrounding whitespace. Title line uses first non-blank line of `content`. If blank, just role.
 	- Each tool call with `{ "function": { "name": <name>, "arguments": <json-string> } }` is rendered as a second‑level heading: `## Tool call argument: <name>` plus a formatted argument body.
 3. `PostToolCall`
-	- Fields: `msg`, `name`, `text`
-	- Rendered as: `# <n> Tool call result: <name>` and a fenced code block containing `text`.
+	- Fields: `msg`, `name`, `text`, optional `result` or `error`
+	- Rendered as: `# <n> ✓ Tool call result: <name>` (or `# <n> ❌ Tool call error: <name>` if error) and a fenced code block containing `text`.
 
 Messages are numbered sequentially starting from 1 (internal counter starts at 0 and increments after each rendered block).
 
@@ -57,7 +57,7 @@ Here is more detail.
   New York
 </location>
 
-# 3 Tool call result: <get_weather>
+# 3 ✓ Tool call result: <get_weather>
 
 ```
 {
