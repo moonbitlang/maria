@@ -11,5 +11,8 @@
   ],
   "overrides": [
     "moonbitlang/maria/internal/abort"
+  ],
+  "wbtest-import": [
+    "moonbitlang/maria/internal/mock"
   ]
 }
