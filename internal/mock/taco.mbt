@@ -168,7 +168,7 @@ pub async fn Directory::add_file(
   basename : String,
   content? : String = "",
 ) -> File {
-  // TODO
+  // TODO: use PathKind specify File or Directory determine how to parse path in `#248` draft PR
   let dir = @path.Path::parse(self.0 + "/")
   let path_builder = @path.PathBuilder::from_path(dir)
   path_builder.set_basename(basename)
@@ -185,7 +185,7 @@ pub async fn Directory::add_directory(
   self : Directory,
   directory : String,
 ) -> Directory {
-  // TODO
+  // TODO: use PathKind specify File or Directory determine how to parse path in `#248` draft PR
   let dir = @path.Path::parse(self.0 + "/")
   let path_builder = @path.PathBuilder::from_path(dir)
   path_builder.add_directory(directory)
@@ -354,7 +354,7 @@ pub async fn run(
     }
     // end 
     async fn run() -> Unit {
-      // TODO: need to refactor later 
+      // TODO: need to refactor later, because The logic for `log` and `cwd` is mixed up here.
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
         //  let log_dir = os_cwd |> @path.join("__trajectories__")
         let os_cwd_path = @path.Path::parse(os_cwd + "/")
