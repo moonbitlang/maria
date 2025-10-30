@@ -6,6 +6,7 @@ pub async fn render_diagnostics(
   overlay? : Map[String, String] = {},
   cwd? : String,
 ) -> String noraise {
+  // TODO(refactor): this function is very complex, consider breaking it up into smaller functions
   let cache = {}
   for k, v in overlay {
     cache[k] = v.split("\n").collect()
@@ -65,10 +66,18 @@ pub async fn render_diagnostics(
     let lines = match cache.get(path) {
       Some(content) => content
       None => {
-        let path = if cwd is Some(cwd) && !@path.is_absolute(path) {
-          @path.join(cwd, path)
-        } else {
-          path
+        let path = try {
+          let ppath = @path.Path::parse(path)
+          if cwd is Some(cwd) && !ppath.is_absolute() {
+            let cwd_path = @path.Path::parse(cwd, kind=Directory)
+            let path_builder = @path.PathBuilder::from_path(cwd_path)
+            path_builder.add_directory(path)
+            path_builder.to_string()
+          } else {
+            path
+          }
+        } catch {
+          _ => path
         }
         let content = @fs.read_file(path) catch {
           error => {
