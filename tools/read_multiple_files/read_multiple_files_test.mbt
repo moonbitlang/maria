@@ -2,7 +2,7 @@
 async test "nonexistent" (t : @test.T) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
-    let args : Json = [{ "path": "nonexistent.txt" }]
+    let args : Json = { "files": [{ "path": "nonexistent.txt" }] }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
     inspect(
@@ -63,7 +63,9 @@ async test "content" (t : @test.T) {
         #|line 4
       ),
     )
-    let args : Json = [{ "path": "foo.txt" }, { "path": "bar.txt" }]
+    let args : Json = {
+      "files": [{ "path": "foo.txt" }, { "path": "bar.txt" }],
+    }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
     guard result is Ok(output) else {
@@ -136,10 +138,12 @@ async test "line_range" (t : @test.T) {
         #|line 4
       ),
     )
-    let args : Json = [
-      { "path": "foo.txt", "start_line": 2, "end_line": 4 },
-      { "path": "bar.txt", "start_line": 1, "end_line": 3 },
-    ]
+    let args : Json = {
+      "files": [
+        { "path": "foo.txt", "start_line": 2, "end_line": 4 },
+        { "path": "bar.txt", "start_line": 1, "end_line": 3 },
+      ],
+    }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
     guard result is Ok(output) else {
@@ -194,7 +198,7 @@ async test "directory" (t : @test.T) {
     taco.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
     let subdir = taco.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
-    let args : Json = [{ "path": "." }]
+    let args : Json = { "files": [{ "path": "." }] }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
     guard result is Ok(output) else {
@@ -259,11 +263,13 @@ async test "invalid-range" (t : @test.T) {
         #|line 4
       ),
     )
-    let args : Json = [
-      { "path": "test.txt", "start_line": 3, "end_line": 2 },
-      { "path": "foo.txt", "start_line": 1, "end_line": 2 },
-      { "path": "bar.txt", "start_line": 3, "end_line": 2 },
-    ]
+    let args : Json = {
+      "files": [
+        { "path": "test.txt", "start_line": 3, "end_line": 2 },
+        { "path": "foo.txt", "start_line": 1, "end_line": 2 },
+        { "path": "bar.txt", "start_line": 3, "end_line": 2 },
+      ],
+    }
     let result = new(manager).call(args)
     inspect(
       result,
@@ -291,7 +297,7 @@ async test "invalid-range" (t : @test.T) {
         #|]
       ),
     )
-    let args : Json = [{ "path": "test.txt", "start_line": 0 }]
+    let args : Json = { "files": [{ "path": "test.txt", "start_line": 0 }] }
     let result = new(manager).call(args)
     inspect(
       result,
@@ -311,9 +317,9 @@ async test "invalid-range" (t : @test.T) {
         #|]
       ),
     )
-    let args : Json = [
-      { "path": "test.txt", "start_line": 2, "end_line": 1024 },
-    ]
+    let args : Json = {
+      "files": [{ "path": "test.txt", "start_line": 2, "end_line": 1024 }],
+    }
     let tool = new(manager)
     let result = tool.call(args)
     guard result is Ok(output) else {
@@ -353,11 +359,13 @@ async test "read multiple mixed files" (t : @test.T) {
     taco.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
     let subdir = taco.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
-    let args : Json = [
-      { "path": "file1.txt" },
-      { "path": "file2.txt" },
-      { "path": "subdir" },
-    ]
+    let args : Json = {
+      "files": [
+        { "path": "file1.txt" },
+        { "path": "file2.txt" },
+        { "path": "subdir" },
+      ],
+    }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
     guard result is Ok(output) else {

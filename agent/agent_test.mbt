@@ -426,3 +426,77 @@ async test "agent/conversation_history" (t : @test.T) {
     inspect(message_count >= 2, content="true")
   })
 }
+
+///|
+/// Test agent with read multiple files
+async test "agent/read_multiple_files" (t : @test.T) {
+  @mock.run(t, retry=3, taco => {
+    let api_key = taco.getenv("OPENAI_API_KEY")
+    let model = claude_haiku_model(api_key)
+    let agent = @agent.new(model, cwd=taco.cwd.path(), logger=taco.logger)
+
+    // Add file management tools
+    let file_manager = @file.manager(cwd=taco.cwd.path())
+    agent.add_tools([
+      @read_multiple_files.new(file_manager).to_agent_tool(),
+      @replace_in_file.new(file_manager).to_agent_tool(),
+    ])
+
+    // Track if files were created/read
+    let mut file_written = false
+    let mut multiple_files_read = false
+    agent.add_listener(event => match event {
+      PreToolCall(tool_call) =>
+        match tool_call.function.name {
+          "replace_in_file" => file_written = true
+          "read_multiple_files" => multiple_files_read = true
+          _ => ()
+        }
+      _ => ()
+    })
+    let args1 : Json = {
+      "files": [
+        { "path": "foo.txt", "start_line": 1, "end_line": 3 },
+        { "path": "bar.txt", "start_line": 2, "end_line": 4 },
+      ],
+    }
+    let args2 : Json = {
+      "files": [{ "path": "foo.txt" }, { "path": "bar.txt" }],
+    }
+    let system_prompt =
+      $| # read_multiple_files 
+      $|
+      $| This tool allows you to read multiple files at once.
+      $| 
+      $| read_multiple_files parameters: should be the typescript type `{ files : { path : string; start_line?: number; end_line?: number }[] }`
+      $|
+      $| ## examples 
+      $|
+      $| e.g. \{args1.stringify()}
+      $|
+      $| e.g. \{args2.stringify()}
+      $|
+      $|
+    agent.add_message(@openai.system_message(content=system_prompt))
+    // Ask agent to create and read a file
+    let content =
+      #| Create a file called 'foo.txt' with the content 'Hello, Foo!'.
+      #| Create a file called 'bar.txt' with the content 'Hello, Bar!'.
+      #| Then read both files concat write to 'foo_bar.txt'
+      #|
+    agent.add_message(@openai.user_message(content~))
+    agent.start()
+
+    // Verify file operations occurred
+    inspect(file_written, content="true")
+    inspect(multiple_files_read, content="true")
+    // Verify file was actually created
+    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "foo.txt"))
+    inspect(file_content.contains("Foo"), content="true")
+    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "bar.txt"))
+    inspect(file_content.contains("Bar"), content="true")
+    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "foo_bar.txt"))
+    inspect(file_content.contains("Foo"), content="true")
+    inspect(file_content.contains("Bar"), content="true")
+  })
+}

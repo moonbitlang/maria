@@ -152,8 +152,10 @@ async fn execute_read_multiple_files_tool(
   manager : @file.Manager,
   args : Json,
 ) -> @tool.ToolResult[ReadMultipleFilesResult] noraise {
-  guard args is Array(paths_json) else {
-    return @tool.error("Error: parameter is required be array of `FileContent`")
+  guard args is { "files": Array(paths_json), .. } else {
+    return @tool.error(
+      "Error: parameter is required be object with 'files' key, value is an array of { path: string; start_line?: number; end_line?: number; }",
+    )
   }
   let results = []
   let errs = []
