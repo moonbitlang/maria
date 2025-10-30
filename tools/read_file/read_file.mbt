@@ -1,23 +1,10 @@
 ///|
-priv struct ReadFileResult {
+struct ReadFileToolResult {
   path : String
   content : String
   start_line : Int
   end_line : Int
-} derive(ToJson, @json.FromJson)
-
-///|
-priv struct ReadDirectoryResult {
-  path : String
-  entries : Array[String]
-  display : String
-} derive(ToJson, @json.FromJson)
-
-///|
-enum ReadFileToolResult {
-  ReadFileResult(ReadFileResult)
-  ReadDirectoryResult(ReadDirectoryResult)
-} derive(ToJson, @json.FromJson)
+} derive(ToJson, FromJson)
 
 ///|
 pub impl Show for ReadFileToolResult with output(
@@ -25,9 +12,9 @@ pub impl Show for ReadFileToolResult with output(
   logger : &Logger,
 ) -> Unit {
   match self {
-    ReadDirectoryResult({ path, display, .. }) =>
-      logger.write_string("Directory: \{path}\nEntries:\n\{display}")
-    ReadFileResult({ path, content, start_line, end_line }) => {
+    // ReadDirectoryResult({ path, display, .. }) =>
+    //   logger.write_string("Directory: \{path}\nEntries:\n\{display}")
+    { path, content, start_line, end_line } => {
       let lines = content.split("\n").to_array()
       let selected_lines = lines[start_line - 1:end_line]
       let selected_content = selected_lines.join("\n")
@@ -38,21 +25,48 @@ pub impl Show for ReadFileToolResult with output(
 }
 
 ///|
+priv struct ReadFileInput {
+  path : String
+  start_line : Int?
+  end_line : Int?
+} derive(FromJson, ToJson)
+
+///|
+test "ReadFileInput::from_json" {
+  let json1 : Json = { "path": "example.mbt", "start_line": 5, "end_line": 10 }
+
+  // ReadFileInput::from_json(@json.parse(json), "")
+  let data : ReadFileInput = @json.from_json(json1)
+  @json.inspect(data, content={
+    "path": "example.mbt",
+    "start_line": 5,
+    "end_line": 10,
+  })
+  let json2 : Json = { "path": "example.mbt" }
+  let data2 : ReadFileInput = @json.from_json(json2)
+  @json.inspect(data2, content={ "path": "example.mbt" })
+  let json3 : Json = { "path": "example.mbt", "start_line": 2 }
+  let data3 : ReadFileInput = @json.from_json(json3)
+  @json.inspect(data3, content={ "path": "example.mbt", "start_line": 2 })
+  let json4 : Json = { "path": "x", "end_line": 2 }
+  @json.inspect((@json.from_json(json4) : ReadFileInput), content={
+    "path": "x",
+    "end_line": 2,
+  })
+}
+
+///|
 async fn execute_read_file_tool(
   manager : @file.Manager,
   args : Json,
 ) -> @tool.ToolResult[ReadFileToolResult] noraise {
   // Parse required path parameter
-  guard args is { "path": String(path), .. } else {
-    return @tool.error("Error: 'path' parameter is required")
-  }
-  let start_line : Int? = match args {
-    { "start_line": Number(n, ..), .. } => Some(n.to_int())
-    _ => None
-  }
-  let end_line : Int? = match args {
-    { "end_line": Number(n, ..), .. } => Some(n.to_int())
-    _ => None
+  let { path, start_line, end_line } : ReadFileInput = @json.from_json(args) catch {
+    error =>
+      return @tool.error(
+        "Error: Invalid arguments provided to read_file tool: \{error}",
+        error~,
+      )
   }
   try {
     // Resolve file path
@@ -68,16 +82,7 @@ async fn execute_read_file_tool(
       return @tool.error("Error reading file: File not found: \{path}")
     }
     if @fs.kind(resolved_path) is Directory {
-      let entries = @fs.list_directory(resolved_path).map(entry => match
-        entry.kind {
-        Directory => "\{entry.name}\{@path.sep}"
-        Regular => entry.name
-        _ => entry.name
-      })
-      let display = entries.join("\n")
-      return @tool.ok(
-        ReadDirectoryResult(ReadDirectoryResult::{ path, entries, display }),
-      )
+      return @tool.error("Error reading file: Path is a directory: \{path}")
     }
 
     // Open and read the file
@@ -112,33 +117,11 @@ async fn execute_read_file_tool(
       }
       None => lines.length()
     }
-    return @tool.ok(
-      ReadFileResult(ReadFileResult::{ path, content, start_line, end_line }),
-    )
+    return @tool.ok({ path, content, start_line, end_line })
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
   }
 }
-
-///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "path": {
-      "type": "string",
-      "description": "The path of the file to read, relative to the current working directory",
-    },
-    "start_line": {
-      "type": "number",
-      "description": "Optional starting line number (1-indexed, inclusive). When specified with end_line, only reads the specified line range.",
-    },
-    "end_line": {
-      "type": "number",
-      "description": "Optional ending line number (1-indexed, exclusive). When specified with start_line, only reads the specified line range.",
-    },
-  },
-  "required": ["path"],
-})
 
 ///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
