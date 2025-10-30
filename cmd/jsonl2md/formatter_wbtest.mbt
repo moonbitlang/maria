@@ -169,6 +169,14 @@ async test "format_log_entry/RequestCompleted" {
       #|  New York
       #|</location>
       #|
+      #|### Original JSON payload
+      #|
+      #|```json
+      #|{
+      #|  "location": "New York"
+      #|}
+      #|```
+      #|
     ),
   )
 }
