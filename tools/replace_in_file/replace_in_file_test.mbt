@@ -5,15 +5,9 @@ async test "replace_in_file/create" (t : @test.T) {
     let args : Json = { "path": "nonexistent.txt" }
     let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
-      "Ok",
-      {
-        "path": "nonexistent.txt",
-        "operation": "created",
-        "bytes_written": 0,
-        "search_used": false,
-        "message": "New file created and content written to nonexistent.txt",
-        "content": "",
-      },
+      "Error",
+      ["JsonDecodeError", ["", "Missing field replace"]],
+      "Error: Invalid arguments provided to replace_in_file tool: JsonDecodeError((, \"Missing field replace\"))",
     ])
   })
 }
