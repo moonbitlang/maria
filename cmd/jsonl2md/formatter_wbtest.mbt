@@ -101,7 +101,17 @@ async test "format_log_entry/MessageAdded with multiline tool content" {
   }
   formatter.format_log_entry(log_entry)
   // The system message should be ignored and produce no output.
-  inspect(formatter.to_string(), content="")
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|# 1 System
+      #|
+      #|````markdown
+      #|System maintenance scheduled at midnight.
+      #|````
+      #|
+    ),
+  )
 }
 
 ///|
@@ -1277,6 +1287,42 @@ test "recover_diagnostics" {
       #|  }
       #|}
       #|````
+      #|
+    ),
+  )
+}
+
+///|
+async test "ModelLoaded" {
+  let log_entry : Json = {
+    "level": 30,
+    "pid": 49303,
+    "msg": "ModelLoaded",
+    "hostname": "Haoxiangs-MacBook-Pro.local",
+    "time": 1761731846381,
+    "tag": "maria_test",
+    "name": ["qwen/qwen3-coder-plus"],
+    "model": [
+      {
+        "name": "qwen/qwen3-coder-plus",
+        "description": "Qwen coder",
+        "model_name": "qwen/qwen3-coder-plus",
+        "model_type": "saas/openai",
+        "api_key": "sk-test",
+        "base_url": "https://openrouter.ai/api/v1",
+        "safe_zone_tokens": 256000,
+        "supports_anthropic_prompt_caching": false,
+      },
+    ],
+  }
+  let formatter = Formatter::new("test.md")
+  formatter.format_log_entry(log_entry)
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|# System information
+      #|
+      #|Model: qwen/qwen3-coder-plus
       #|
     ),
   )
