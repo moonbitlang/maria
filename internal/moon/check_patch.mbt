@@ -24,7 +24,8 @@ pub async fn Module::check_patch_replace(
 ) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
-    let file_stem = @path.stem(segment.file.path())
+    let path = @path.Path::parse(segment.file.path())
+    let file_stem = path.file().unwrap().base
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_string("patch")
     for pat in ["_test", "_wbtest"] {
@@ -36,7 +37,10 @@ pub async fn Module::check_patch_replace(
     patch_name_index.write_string(".json")
     let patch_name_index = patch_name_index.to_string()
     let mangled_file_stem = file_stem.replace_all(old="/", new="-")
-    let patch_path = @path.join(target_dir, patch_name_index)
+    let target_dir_path = @path.Path::parse(target_dir, kind=Directory)
+    let path_builder = @path.PathBuilder::from_path(target_dir_path)
+    path_builder.set_basename(patch_name_index)
+    let patch_path = path_builder.to_string()
     let patch_name = "patch-\{mangled_file_stem}-replace-\{segment.index}.\{patch_name_index}"
     let patch = {
       drops: [Drop::{ file: segment.file.path(), index: segment.index }],
@@ -64,15 +68,11 @@ pub async fn Module::check_patch_insert(
 ) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(file_path)
-    let file_base = @path.basename(file_path)
-    let file_base_stem = @path.stem(file_base)
-    let file_stem = @path.stem(file_path)
+    let file_stem = file_path
+    let path = @path.Path::parse(file_path)
+    let file_base_stem = path.file().unwrap().base
     let patch_name_index = StringBuilder::new()
-    patch_name_index.write_substring(
-      file_base_stem.data(),
-      file_base_stem.start_offset(),
-      file_base_stem.length(),
-    )
+    patch_name_index.write_string(file_base_stem)
     for pat in ["_test", "_wbtest"] {
       if file_stem.has_suffix(pat) {
         patch_name_index.write_string(pat)
@@ -82,7 +82,10 @@ pub async fn Module::check_patch_insert(
     patch_name_index.write_string(".json")
     let patch_name_index = patch_name_index.to_string()
     let mangled_file_stem = file_stem.replace_all(old="/", new="-")
-    let patch_path = @path.join(target_dir, patch_name_index)
+    let target_dir_path = @path.Path::parse(target_dir, kind=Directory)
+    let path_builder = @path.PathBuilder::from_path(target_dir_path)
+    path_builder.set_basename(patch_name_index)
+    let patch_path = path_builder.to_string()
     let patch_name = "patch-\{mangled_file_stem}-insert.\{patch_name_index}"
     let patch = { drops: [], patches: [Patched::{ content, name: patch_name }] }
     @fs.write_to_file(patch_path, patch.to_json().stringify())

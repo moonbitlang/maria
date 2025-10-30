@@ -51,24 +51,23 @@ async test "Coverage::report" (t : @test.T) {
         #|
       ),
     )
+    // TODO: wait for https://github.com/moonbitlang/maria/pull/248
+    let cwd_path = @path.Path::parse(taco.cwd.path() + "/")
+    let path_builder = @path.PathBuilder::from_path(cwd_path)
+    path_builder.set_file(base="coverage", extension="json")
+    let coverage_path = path_builder.to_string()
     @json.inspect(
-      moon.coverage.report(
-        format=Coveralls,
-        output_file=@path.join(taco.cwd.path(), "coverage.json"),
-      ),
+      moon.coverage.report(format=Coveralls, output_file=coverage_path),
     )
-    @json.inspect(
-      @json.parse(@fs.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
-      content={
-        "source_files": [
-          {
-            "name": "example.mbt",
-            "source_digest": "fd5f82b005628fbe3ba4a2a8e641f974",
-            "coverage": [null, null, 1, 1, 0, 0, null, 0, null, null],
-          },
-        ],
-      },
-    )
+    @json.inspect(@json.parse(@fs.read_file(coverage_path)), content={
+      "source_files": [
+        {
+          "name": "example.mbt",
+          "source_digest": "fd5f82b005628fbe3ba4a2a8e641f974",
+          "coverage": [null, null, 1, 1, 0, 0, null, 0, null, null],
+        },
+      ],
+    })
   })
 }
 

@@ -40,7 +40,10 @@ pub impl ToJson for Package with to_json(self : Package) -> Json {
 
 ///|
 async fn Package::new(path~ : String, name~ : String) -> Package {
-  let moon_pkg_path = @path.join(path, "moon.pkg.json")
+  let package_dir_path = @path.Path::parse(path + "/")
+  let path_builder = @path.PathBuilder::from_path(package_dir_path)
+  path_builder.set_file(base="moon.pkg", extension="json")
+  let moon_pkg_path = path_builder.to_string()
   let import_ = []
   let test_import = []
   let wbtest_import = []
@@ -153,14 +156,22 @@ pub async fn Package::check(
 
 ///|
 pub async fn Package::interface(self : Package) -> String? {
-  let mbti_path = @path.join(self.path, "pkg.generated.mbti")
+  // TODO: wait for `#248` draft PR 
+  let dir_path = @path.Path::parse(self.path + "/")
+  let path_builder = @path.PathBuilder::from_path(dir_path)
+  path_builder.set_file(base="pkg.generated", extension="mbti")
+  let mbti_path = path_builder.to_string()
   if @fs.exists(mbti_path) {
     Some(@fs.read_file(mbti_path))
   } else {
     let entries = @fs.list_directory(self.path)
     for entry in entries {
       if entry.kind is Regular && entry.name.has_suffix(".mbti") {
-        return Some(@fs.read_file(@path.join(self.path, entry.name)))
+        let dir_path = @path.Path::parse(self.path + "/")
+        let path_builder = @path.PathBuilder::from_path(dir_path)
+        path_builder.set_basename(entry.name)
+        let path = path_builder.to_string()
+        return Some(@fs.read_file(path))
       }
     } else {
       None

@@ -50,7 +50,7 @@ async test "check_syntax_of_string" {
 ///|
 async test "check_syntax_of_string-nested-path" {
   let diagnostics = check_syntax_of_string(
-    path=@path.join("src", "main.mbt"),
+    path="src/main.mbt",
     (
       #|let x : Int = "string",
     ),

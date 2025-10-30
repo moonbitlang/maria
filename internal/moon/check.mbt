@@ -8,10 +8,20 @@ async fn check(
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
-      if @path.is_absolute(cwd) {
-        cwd
-      } else {
-        @path.join(@os.cwd(), cwd)
+      try {
+        let cwd_path = @path.Path::parse(cwd)
+        if cwd_path.is_absolute() {
+          cwd
+        } else {
+          let os_cwd = @path.Path::parse(@os.cwd())
+          let path_builder = @path.PathBuilder::from_path(os_cwd)
+          for dir in cwd_path.directory() {
+            path_builder.add_directory(dir)
+          }
+          path_builder.to_string()
+        }
+      } catch {
+        _ => cwd
       }
   }
   let arguments : Array[StringView] = ["check", "--output-json"]
@@ -82,8 +92,32 @@ pub async fn check_syntax_of_string(
   source : String,
 ) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moonbit-moon-check-syntax-XXXXXXX", tmpdir => {
-    let file_path = @path.join(tmpdir, path)
-    @fs.make_directory(@path.dirname(file_path), recursive=true, exists_ok=true)
+    let (dir_path, file_path) : (String, String) = try {
+      let path = @path.Path::parse(path)
+      if path.is_absolute() {
+        (path.prefix() + path.directory()[:].join("/"), path.to_string())
+      } else {
+        let tmpdir_path = @path.Path::parse(tmpdir, kind=Directory)
+        let path_builder = @path.PathBuilder::from_path(tmpdir_path)
+        for dir in path.directory() {
+          path_builder.add_directory(dir)
+        }
+        let dir_path = path_builder.to_string(kind=File)
+        match path.file() {
+          Some(file) => path_builder.set_basename(file.to_string())
+          None => ()
+        }
+        (dir_path, path_builder.to_string())
+      }
+    } catch {
+      _ => {
+        let tmpdir_path = @path.Path::parse(tmpdir, kind=Directory)
+        let path_builder = @path.PathBuilder::from_path(tmpdir_path)
+        path_builder.set_basename(path)
+        (tmpdir, path_builder.to_string())
+      }
+    }
+    @fs.make_directory(dir_path, recursive=true, exists_ok=true)
     @fs.write_to_file(file_path, source)
     check_syntax_of_file(file_path)
   })
