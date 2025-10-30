@@ -340,7 +340,12 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       None => {
         // No sub-formatter found, create a new one and link to the sub-log file
         // in the main log.
-        let path = "\{self.path}-\{id}.md"
+        let dirname = @path.dirname(self.path)
+        let filename = {
+          let basename = @path.basename(self.path)
+          "\{basename}-\{id}.md"
+        }
+        let path = @path.join(dirname, filename)
         let formatter = Formatter::{
           recover_diagnostics: self.recover_diagnostics,
           path,
@@ -352,7 +357,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         self.tools.set(id, formatter)
         self.lines.push("## 🤖 Spawned subagent for tool: <\{name}>")
         self.lines.push("")
-        self.lines.push("[<\{name}> log](\{path})")
+        self.lines.push("[<\{name}> log](\{filename})")
         self.lines.push("")
         formatter.format_log_entry(json)
         return

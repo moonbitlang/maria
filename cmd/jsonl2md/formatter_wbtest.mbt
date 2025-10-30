@@ -1335,3 +1335,196 @@ async test "ModelLoaded" {
     ),
   )
 }
+
+///|
+async test "subagent" (t : @test.T) {
+  @mock.run(t, mock => {
+    let log_entries : Array[Json] = [
+      {
+        "msg": "MessageAdded",
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
+        },
+        "message": {
+          "role": "user",
+          "content": "You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n\n**Task Description:**\n\nCreate JSON lexer implementation\n\n**File Content:**\n\n```moonbit\n///|\n/// JSON lexer for tokenizing input strings\nstruct Lexer {\n  input : String\n  position : Int\n  read_position : Int\n  ch : Char?\n}\n\n///|\nfn new_lexer(input : String) -> Lexer {\n  let lexer = { input, position: 0, read_position: 0, ch: None }\n  read_char(lexer)\n  lexer\n}\n```\n\n**Current Syntax Errors:**\n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 87 │       Some(ch) if ch is ('0'..'9' | '.' | '-' | '+' | 'e' | 'E') => {\n    │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 94 │   }\n    │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 130 │ }\n     │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 137 │       Some(ch) if ch is ('a'..'z' | 'A'..'Z' | '_') => {\n     │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 144 │   }\n     │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `?`, you may expect `;` or `}`.\n 189 │           read_string(lexer)?\n     │                             ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `=>`.\n 191 │         '0'..'9' | '-' => {\n     │            ^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token character, you may expect id (lowercase start).\n 194 │         'a'..'z' | 'A'..'Z' | '_' => {\n     │              ^^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token id (uppercase start), you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.\n 203 │     None => {\n     │     ^^^^\n\n**Your Task:**\n\n1. Analyze the syntax errors and understand what needs to be fixed\n2. Use `submit_fixed_file` to provide the complete fixed file content\n3. Only fix syntax errors - do not change logic unless absolutely necessary\n4. Continue until all syntax errors are fixed\n5. Call `attempt_completion` when done\n\n**Guidelines:**\n\n- Focus only on fixing syntax errors, not improving code quality\n- Preserve the original intent and functionality of the code, as much as possible\n- Use proper MoonBit syntax and conventions\n- If you cannot fix an error, explain why clearly\n- When syntax check passes, call `attempt_completion` immediately",
+        },
+      },
+      {
+        "msg": "PreConversation",
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
+        },
+      },
+      {
+        "msg": "MessageAdded",
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
+        },
+        "message": {
+          "role": "tool",
+          "content": [{ "type": "text", "text": "Unknown tool: read_file" }],
+          "tool_call_id": "call_802ee514f832463d96132b67",
+        },
+      },
+      {
+        "msg": "PostToolCall",
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
+        },
+        "name": "submit_fixed_file",
+        "error": [
+          "ToolFailure", "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
+        ],
+        "text": "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
+      },
+      {
+        "msg": "MessageAdded",
+        "tool": {
+          "name": "meta_write_to_file",
+          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
+        },
+        "message": {
+          "role": "tool",
+          "content": [
+            {
+              "type": "text",
+              "text": "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
+            },
+          ],
+          "tool_call_id": "call_55cce74b1c784a6cb81034e8",
+        },
+      },
+    ]
+    let formatter = Formatter::new(@path.join(mock.cwd.path(), "dir/log.md"))
+    for entry in log_entries {
+      formatter.format_log_entry(entry)
+    }
+    inspect(
+      formatter.to_string(),
+      content=(
+        #|## 🤖 Spawned subagent for tool: <meta_write_to_file>
+        #|
+        #|[<meta_write_to_file> log](log.md-d9a50da2-c4d2-4177-8af4-f6a38d284e49.md)
+        #|
+      ),
+    )
+    inspect(
+      formatter.tools.values().collect().map(tool => tool.to_string())[0],
+      content=(
+        #|# 1 User: You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.
+        #|
+        #|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.
+        #|
+        #|
+        #|**Task Description:**
+        #|
+        #|Create JSON lexer implementation
+        #|
+        #|**File Content:**
+        #|
+        #|```moonbit
+        #|///|
+        #|/// JSON lexer for tokenizing input strings
+        #|struct Lexer {
+        #|  input : String
+        #|  position : Int
+        #|  read_position : Int
+        #|  ch : Char?
+        #|}
+        #|
+        #|///|
+        #|fn new_lexer(input : String) -> Lexer {
+        #|  let lexer = { input, position: 0, read_position: 0, ch: None }
+        #|  read_char(lexer)
+        #|  lexer
+        #|}
+        #|```
+        #|
+        #|**Current Syntax Errors:**
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.
+        #| 45 │ }
+        #|    │ ^
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.
+        #| 87 │       Some(ch) if ch is ('0'..'9' | '.' | '-' | '+' | 'e' | 'E') => {
+        #|    │                             ^^
+        #|
+        #|error[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.
+        #| 94 │   }
+        #|    │    
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.
+        #| 130 │ }
+        #|     │ ^
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.
+        #| 137 │       Some(ch) if ch is ('a'..'z' | 'A'..'Z' | '_') => {
+        #|     │                             ^^
+        #|
+        #|error[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.
+        #| 144 │   }
+        #|     │    
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token `?`, you may expect `;` or `}`.
+        #| 189 │           read_string(lexer)?
+        #|     │                             ^
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `=>`.
+        #| 191 │         '0'..'9' | '-' => {
+        #|     │            ^^
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token character, you may expect id (lowercase start).
+        #| 194 │         'a'..'z' | 'A'..'Z' | '_' => {
+        #|     │              ^^^
+        #|
+        #|error[3002]: lexer.mbt: Parse error, unexpected token id (uppercase start), you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+        #| 203 │     None => {
+        #|     │     ^^^^
+        #|
+        #|**Your Task:**
+        #|
+        #|1. Analyze the syntax errors and understand what needs to be fixed
+        #|2. Use `submit_fixed_file` to provide the complete fixed file content
+        #|3. Only fix syntax errors - do not change logic unless absolutely necessary
+        #|4. Continue until all syntax errors are fixed
+        #|5. Call `attempt_completion` when done
+        #|
+        #|**Guidelines:**
+        #|
+        #|- Focus only on fixing syntax errors, not improving code quality
+        #|- Preserve the original intent and functionality of the code, as much as possible
+        #|- Use proper MoonBit syntax and conventions
+        #|- If you cannot fix an error, explain why clearly
+        #|- When syntax check passes, call `attempt_completion` immediately
+        #|
+        #|# 2 ❌ Tool call error: <submit_fixed_file>
+        #|
+        #|````markdown
+        #|File verification failed with syntax errors:
+        #|error[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.
+        #| 45 │ }
+        #|    │ ^
+        #|
+        #|error[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.
+        #| 103 │   }
+        #|     │    
+        #|
+        #|error[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.
+        #| 139 │   }
+        #|     │    
+        #|
+        #|error[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.
+        #| 159 │   }
+        #|     │    
+        #|````
+        #|
+      ),
+    )
+  })
+}
