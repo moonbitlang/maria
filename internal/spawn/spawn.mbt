@@ -26,8 +26,8 @@ pub async fn spawn(
   command : StringView,
   arguments : Array[StringView],
   stdin? : String,
-  stderr? : &Logger,
   stdout? : &Logger,
+  stderr? : &Logger,
   cwd? : StringView,
   env? : Map[String, String],
 ) -> Int {
@@ -50,9 +50,8 @@ pub async fn spawn(
       group.spawn_bg(() => loop pipe.read(buf) {
         0 => break
         n => {
-          logger.write_string(
-            @encoding/utf8.decode(buf.unsafe_reinterpret_as_bytes()[0:n]),
-          )
+          let bytes = buf.unsafe_reinterpret_as_bytes()[0:n]
+          logger.write_string(@encoding/utf8.decode(bytes))
           continue pipe.read(buf)
         }
       })
@@ -60,6 +59,11 @@ pub async fn spawn(
     }
 
     let stdin = stdin.map(redirect_input)
+    if stdout is Some(stdout) &&
+      stderr is Some(stderr) &&
+      physical_equal(stdout, stderr) {
+      abort("Cannot redirect both stdout and stderr to the same logger")
+    }
     let stdout = stdout.map(redirect_output)
     let stderr = stderr.map(redirect_output)
     @process.run(
