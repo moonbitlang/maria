@@ -50,8 +50,8 @@ pub async fn render_diagnostics(
     let lines = match cache.get(path) {
       Some(content) => content
       None => {
-        let path = if cwd is Some(cwd) && !@path.is_absolute(path) {
-          @path.join(cwd, path)
+        let path = if cwd is Some(cwd) && !@ipath.is_absolute(path) {
+          @ipath.join(cwd, path)
         } else {
           path
         }

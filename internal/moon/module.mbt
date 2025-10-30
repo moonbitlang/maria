@@ -14,7 +14,7 @@ async fn Module::core(self : Module) -> Module {
   if self.core is Some(core) {
     core
   } else {
-    let core = Module::new(home() |> @path.join("lib") |> @path.join("core"))
+    let core = Module::new(home() |> @ipath.join("lib") |> @ipath.join("core"))
     core.scan()
     self.core = Some(core)
     core
@@ -24,17 +24,17 @@ async fn Module::core(self : Module) -> Module {
 ///|
 async fn Module::new(path : String) -> Module {
   let path = @fs.resolve(path)
-  let moon_mod_path = @path.join(path, "moon.mod.json")
+  let moon_mod_path = @ipath.join(path, "moon.mod.json")
   let moon_mod_text = @fs.read_file(moon_mod_path)
   let moon_mod_json = @json.parse(moon_mod_text)
   guard moon_mod_json is Object({ "name": String(name), .. } as moon_mod_json) else {
     raise Failure("Invalid moon.mod.json: expected object with 'name'.")
   }
   let source : String = if moon_mod_json is { "source": String(source), .. } {
-    if @path.is_absolute(source) {
+    if @ipath.is_absolute(source) {
       source
     } else {
-      @fs.resolve(@path.join(path, source))
+      @fs.resolve(@ipath.join(path, source))
     }
   } else {
     path
@@ -85,7 +85,7 @@ async fn Module::load_pkg(
   // Skip if this is the root module path.
   if dir != self.path {
     // If there is a moon.mod.json here, load it as a module.
-    let moon_mod_path = @path.join(dir, "moon.mod.json")
+    let moon_mod_path = @ipath.join(dir, "moon.mod.json")
     if @fs.exists(moon_mod_path) &&
       @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
       return
@@ -93,7 +93,7 @@ async fn Module::load_pkg(
   }
 
   // If there is a moon.pkg.json here, load it as a package.
-  let moon_pkg_path = @path.join(dir, "moon.pkg.json")
+  let moon_pkg_path = @ipath.join(dir, "moon.pkg.json")
   if !@fs.exists_as_file(moon_pkg_path) {
     let entries = @fs.list_directory(dir)
     for entry in entries {
@@ -108,7 +108,7 @@ async fn Module::load_pkg(
   }
   let pkg_name = {
     let mod_src = @fs.resolve(self.source())
-    let rel = @path.relative(mod_src, dir)
+    let rel = @ipath.relative(mod_src, dir)
     if rel is "." {
       self.name()
     } else {
@@ -151,18 +151,18 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
   if self.package_(name) is Some(package_) {
     return Some(package_)
   }
-  let parts = @path.split(name).collect()
+  let parts = @ipath.split(name).collect()
   guard parts is [author, module_, ..] else { return None }
-  let mod_name = @path.join(author, module_)
+  let mod_name = @ipath.join(author, module_)
   if self.cakes.get(mod_name) is Some(cake_mod) {
     return cake_mod.package_(name)
   }
-  let cakes_path = @path.join(self.path, ".mooncakes")
+  let cakes_path = @ipath.join(self.path, ".mooncakes")
   if !@fs.exists(cakes_path) {
     self.install()
   }
   let cakes_path = @fs.resolve(cakes_path)
-  let mod_path = @path.join(cakes_path, mod_name)
+  let mod_path = @ipath.join(cakes_path, mod_name)
   if !@fs.exists(mod_path) {
     return None
   }
@@ -192,9 +192,9 @@ pub fn Module::files(self : Module) -> Iter[File] {
 
 ///|
 pub async fn Module::locate_package(self : Module, file : String) -> Package {
-  let dir = @path.dirname(file)
+  let dir = @ipath.dirname(file)
   let src = self.source()
-  let pkg_name = match @path.relative(src, dir) {
+  let pkg_name = match @ipath.relative(src, dir) {
     "" | "." => self.name()
     rel => "\{self.name()}/\{rel}"
   }

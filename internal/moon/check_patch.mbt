@@ -24,7 +24,7 @@ pub async fn Module::check_patch_replace(
 ) -> Array[Diagnostic] {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
-    let file_stem = @path.stem(segment.file.path())
+    let file_stem = @ipath.stem(segment.file.path())
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_string("patch")
     for pat in ["_test", "_wbtest"] {
@@ -36,7 +36,7 @@ pub async fn Module::check_patch_replace(
     patch_name_index.write_string(".json")
     let patch_name_index = patch_name_index.to_string()
     let mangled_file_stem = file_stem.replace_all(old="/", new="-")
-    let patch_path = @path.join(target_dir, patch_name_index)
+    let patch_path = @ipath.join(target_dir, patch_name_index)
     let patch_name = "patch-\{mangled_file_stem}-replace-\{segment.index}.\{patch_name_index}"
     let patch = {
       drops: [Drop::{ file: segment.file.path(), index: segment.index }],
@@ -64,9 +64,9 @@ pub async fn Module::check_patch_insert(
 ) -> Array[Diagnostic] {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(file_path)
-    let file_base = @path.basename(file_path)
-    let file_base_stem = @path.stem(file_base)
-    let file_stem = @path.stem(file_path)
+    let file_base = @ipath.basename(file_path)
+    let file_base_stem = @ipath.stem(file_base)
+    let file_stem = @ipath.stem(file_path)
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_substring(
       file_base_stem.data(),
@@ -82,7 +82,7 @@ pub async fn Module::check_patch_insert(
     patch_name_index.write_string(".json")
     let patch_name_index = patch_name_index.to_string()
     let mangled_file_stem = file_stem.replace_all(old="/", new="-")
-    let patch_path = @path.join(target_dir, patch_name_index)
+    let patch_path = @ipath.join(target_dir, patch_name_index)
     let patch_name = "patch-\{mangled_file_stem}-insert.\{patch_name_index}"
     let patch = { drops: [], patches: [Patched::{ content, name: patch_name }] }
     @fs.write_to_file(patch_path, patch.to_json().stringify())

@@ -109,10 +109,10 @@ async fn check(
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
-      if @path.is_absolute(cwd) {
+      if @ipath.is_absolute(cwd) {
         cwd
       } else {
-        @path.join(@os.cwd(), cwd)
+        @ipath.join(@os.cwd(), cwd)
       }
   }
   let arguments : Array[StringView] = ["check", "--output-json"]
@@ -204,8 +204,8 @@ pub async fn check_syntax_of_string(
   source : String,
 ) -> Array[Diagnostic] {
   @fs.with_temporary_directory("moonbit-moon-check-syntax-XXXXXXX", tmpdir => {
-    let file_path = @path.join(tmpdir, path)
-    @fs.make_directory(@path.dirname(file_path), recursive=true, exists_ok=true)
+    let file_path = @ipath.join(tmpdir, path)
+    @fs.make_directory(@ipath.dirname(file_path), recursive=true, exists_ok=true)
     @fs.write_to_file(file_path, source)
     check_syntax_of_file(file_path)
   })

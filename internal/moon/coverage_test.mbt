@@ -54,11 +54,11 @@ async test "Coverage::report" (t : @test.T) {
     @json.inspect(
       moon.coverage.report(
         format=Coveralls,
-        output_file=@path.join(taco.cwd.path(), "coverage.json"),
+        output_file=@ipath.join(taco.cwd.path(), "coverage.json"),
       ),
     )
     @json.inspect(
-      @json.parse(@fs.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
+      @json.parse(@fs.read_file(@ipath.join(taco.cwd.path(), "coverage.json"))),
       content={
         "source_files": [
           {

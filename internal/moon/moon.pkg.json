@@ -2,7 +2,11 @@
   "import": [
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/fs",
-    "moonbitlang/maria/internal/path",
+    {
+      "path": "moonbitlang/maria/internal/path",
+      "alias": "ipath"
+    },
+    "moonbitlang/path",
     "moonbitlang/maria/internal/os"
   ],
   "test-import": [
