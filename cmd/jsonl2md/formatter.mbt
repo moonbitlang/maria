@@ -394,6 +394,12 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       )
       self.format_message_added(message)
     }
+    { "msg": "ModelLoaded", "name": String(name) | [String(name)], .. } => {
+      self.lines.push("# System information")
+      self.lines.push("")
+      self.lines.push("Model: \{name}")
+      self.lines.push("")
+    }
     _ => ()
   }
 }
