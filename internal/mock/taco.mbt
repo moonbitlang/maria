@@ -348,33 +348,23 @@ pub async fn run(
   @mfs.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
     let tmpdir_path = @path.Path::parse(tmpdir + "/")
     let tmpdir_path_builder = @path.PathBuilder::from_path(tmpdir_path)
-    // let tmp_pkg_path = @path.join(tmpdir, pkg_path)
     for part in parts {
       tmpdir_path_builder.add_directory(part)
     }
-    // end 
     async fn run() -> Unit {
       // TODO: need to refactor later, because The logic for `log` and `cwd` is mixed up here.
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
-        //  let log_dir = os_cwd |> @path.join("__trajectories__")
         let os_cwd_path = @path.Path::parse(os_cwd + "/")
         let os_cwd_path_builder = @path.PathBuilder::from_path(os_cwd_path)
         os_cwd_path_builder.add_directory("__trajectories__")
         let log_dir = os_cwd_path_builder.to_string()
-        // end 
-
-        // let logged = log_dir |> @path.join("\{t.name()}.jsonl")
         let test_name = t.name()
         // make the test_name be the valid path component
         let mangle_name = test_name.replace_all(old="/", new=":")
         os_cwd_path_builder.set_file(base=mangle_name, extension="jsonl")
         let logged = os_cwd_path_builder.to_string()
-        // end 
-
-        // let cwd = directory(@path.join(tmp_pkg_path, t.name()))
         tmpdir_path_builder.add_directory(mangle_name)
         let cwd = directory(tmpdir_path_builder.to_string())
-        // end 
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
