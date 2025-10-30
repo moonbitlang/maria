@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/path",
     "moonbitlang/async/fs",
     "moonbitlang/async",
     "moonbitlang/maria/internal/os",
@@ -12,8 +12,6 @@
     {
       "path": "moonbitlang/maria/internal/fs",
       "alias": "mfs"
-    },
-    "moonbitlang/async/os_error",
-    "moonbitlang/maria/internal/errno"
+    }
   ]
 }
