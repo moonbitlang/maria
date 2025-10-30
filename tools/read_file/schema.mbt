@@ -1,4 +1,13 @@
 ///|
+priv struct ReadFileInput {
+  path : String
+  start_line : Int?
+  end_line : Int?
+} derive(FromJson, ToJson)
+
+///|
+/// The schema is derived from the types above
+/// TODO: automate this process
 let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
   "properties": {

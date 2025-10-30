@@ -25,13 +25,6 @@ pub impl Show for ReadFileToolResult with output(
 }
 
 ///|
-priv struct ReadFileInput {
-  path : String
-  start_line : Int?
-  end_line : Int?
-} derive(FromJson, ToJson)
-
-///|
 test "ReadFileInput::from_json" {
   let json1 : Json = { "path": "example.mbt", "start_line": 5, "end_line": 10 }
 

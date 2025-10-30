@@ -103,13 +103,10 @@ async test "directory" (t : @test.T) {
     let args : Json = { "path": "." }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    guard result is Error(_,s) else {
+    guard result is Error(_, s) else {
       fail("Expected Ok result but got: \{result}")
     }
-    inspect(
-      s,
-      content="Error reading file: Path is a directory: .",
-    )
+    inspect(s, content="Error reading file: Path is a directory: .")
   })
 }
 
