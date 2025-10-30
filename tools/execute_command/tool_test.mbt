@@ -26,14 +26,18 @@ async test "timeout-with-partial-output" (t : @test.T) {
     guard result is Error(_, message) else {
       fail("Expected Error result but got: \{result}")
     }
-    // Verify the error message contains the timeout information
-    if not(message.contains("Timeout when executing command")) {
-      fail("Expected timeout error message but got: \{message}")
-    }
-    // Verify that partial output is included in the error message
-    if not(message.contains("a")) {
-      fail("Expected partial output 'a' in error message but got: \{message}")
-    }
+    inspect(
+      message,
+      content=(
+        #|Timeout when executing command sh -c 'echo a; sleep 1; echo b; sleep 1; echo c' after 1500 ms with following output:
+        #|
+        #|```
+        #|a
+        #|b
+        #|
+        #|```
+      ),
+    )
   }))
 }
 

@@ -180,7 +180,13 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
                 )
               } else {
                 @tool.error(
-                  "Timeout when executing command \{command} after \{timeout} ms with following output:\n\{output.to_string()}",
+                  (
+                    $|Timeout when executing command \{command} after \{timeout} ms with following output:
+                    $|
+                    $|```
+                    $|\{output.to_string()}
+                    $|```
+                  ),
                   error~,
                 )
               }
