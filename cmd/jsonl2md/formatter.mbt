@@ -142,7 +142,7 @@ async fn Formatter::format_tool_call(
       self.lines.push("```")
     }
   } noraise {
-    args =>
+    args => {
       if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
         self.format_replace_in_file(tool_call.function.name, args)
       } else if tool_call.function.name is "submit_fixed_file" {
@@ -150,6 +150,13 @@ async fn Formatter::format_tool_call(
       } else {
         self.format_tool_call_as_xml(tool_call.function.name, args)
       }
+      self.lines.push("")
+      self.lines.push("### Original JSON payload")
+      self.lines.push("")
+      self.lines.push("```json")
+      self.lines.push(args.stringify(indent=2))
+      self.lines.push("```")
+    }
   }
   self.lines.push("")
 }
