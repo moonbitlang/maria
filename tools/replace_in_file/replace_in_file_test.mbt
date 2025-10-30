@@ -25,15 +25,12 @@ async test "replace_in_file/replace" (t : @test.T) {
     let _ = taco.add_file("file.txt", content="Old content")
     @json.inspect(@read_file.new(manager).call({ "path": "file.txt" }), content=[
       "Ok",
-      [
-        "ReadFileResult",
-        {
-          "path": "file.txt",
-          "content": "Old content",
-          "start_line": 1,
-          "end_line": 1,
-        },
-      ],
+      {
+        "path": "file.txt",
+        "content": "Old content",
+        "start_line": 1,
+        "end_line": 1,
+      },
     ])
     let args : Json = {
       "path": "file.txt",

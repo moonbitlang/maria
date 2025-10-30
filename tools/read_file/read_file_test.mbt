@@ -36,15 +36,12 @@ async test "content" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "ReadFileResult",
-      {
-        "path": "test.txt",
-        "content": "line 1\nline 2\nline 3\nline 4",
-        "start_line": 1,
-        "end_line": 4,
-      },
-    ])
+    @json.inspect(output, content={
+      "path": "test.txt",
+      "content": "line 1\nline 2\nline 3\nline 4",
+      "start_line": 1,
+      "end_line": 4,
+    })
     inspect(
       output,
       content=(
@@ -78,15 +75,12 @@ async test "line_range" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "ReadFileResult",
-      {
-        "path": "lines.txt",
-        "content": "line 1\nline 2\nline 3\nline 4\nline 5",
-        "start_line": 2,
-        "end_line": 4,
-      },
-    ])
+    @json.inspect(output, content={
+      "path": "lines.txt",
+      "content": "line 1\nline 2\nline 3\nline 4\nline 5",
+      "start_line": 2,
+      "end_line": 4,
+    })
     inspect(
       output,
       content=(
@@ -109,27 +103,10 @@ async test "directory" (t : @test.T) {
     let args : Json = { "path": "." }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    guard result is Ok(output) else {
+    guard result is Error(_, s) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "ReadDirectoryResult",
-      {
-        "path": ".",
-        "entries": ["subdir/", "file1.txt", "file2.txt"],
-        "display": "subdir/\nfile1.txt\nfile2.txt",
-      },
-    ])
-    inspect(
-      output,
-      content=(
-        #|Directory: .
-        #|Entries:
-        #|subdir/
-        #|file1.txt
-        #|file2.txt
-      ),
-    )
+    inspect(s, content="Error reading file: Path is a directory: .")
   })
 }
 
@@ -160,15 +137,12 @@ async test "invalid-range" (t : @test.T) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "ReadFileResult",
-      {
-        "path": "test.txt",
-        "content": "line 1\nline 2\nline 3",
-        "start_line": 2,
-        "end_line": 3,
-      },
-    ])
+    @json.inspect(output, content={
+      "path": "test.txt",
+      "content": "line 1\nline 2\nline 3",
+      "start_line": 2,
+      "end_line": 3,
+    })
     inspect(
       output,
       content=(
