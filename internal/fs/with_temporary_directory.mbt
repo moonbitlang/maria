@@ -1,6 +1,18 @@
 ///|
 #borrow(template)
-extern "c" fn fs_mkdtemp(template : Bytes) -> Int = "moonbit_maria_fs_mkdtemp"
+extern "c" fn fs_mkdtemp(template : FixedArray[Byte]) -> Int = "moonbit_maria_fs_mkdtemp"
+
+///|
+fn mkdtemp(bytes : Bytes) -> Bytes raise @errno.Errno {
+  let buffer = bytes.to_fixedarray()
+  let errno = fs_mkdtemp(buffer)
+  if errno != 0 {
+    raise @errno.Errno(errno)
+  } else {
+    // move the buffer ownership to Bytes
+    buffer.unsafe_reinterpret_as_bytes()
+  }
+}
 
 ///|
 pub async fn[T] with_temporary_directory(
@@ -19,22 +31,18 @@ pub async fn[T] with_temporary_directory(
     @path.PathError(_) => template
   }
   let template = @encoding/utf8.encode(utf16_path_template)
-  // FIXME: `fs_mkdtemp` modifies the `template` is unexpected behavior.
-  let errno = fs_mkdtemp(template)
-  if errno != 0 {
-    raise @errno.Errno(errno)
-  }
-  let utf16_template = @encoding/utf8.decode(template)
-  try f(utf16_template) catch {
+  let unique_dir = mkdtemp(template)
+  let utf16_unique_dir = @encoding/utf8.decode(unique_dir)
+  try f(utf16_unique_dir) catch {
     error => {
-      @fs.rmdir(utf16_template, recursive=true) catch {
+      @fs.rmdir(utf16_unique_dir, recursive=true) catch {
         _ => ()
       }
       raise error
     }
   } noraise {
     value => {
-      @fs.rmdir(utf16_template, recursive=true) catch {
+      @fs.rmdir(utf16_unique_dir, recursive=true) catch {
         _ => ()
       }
       value
