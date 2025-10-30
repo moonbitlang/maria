@@ -40,7 +40,21 @@ pub async fn render_diagnostics(
     }
     let path = diagnostic.loc.path.trim_space().to_string()
     if path != "" {
-      metadata.write_string(": \{diagnostic.loc.path}")
+      if diagnostic.loc.start.line == diagnostic.loc.end.line {
+        if diagnostic.loc.start.col == diagnostic.loc.end.col {
+          metadata.write_string(
+            ": \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}",
+          )
+        } else {
+          metadata.write_string(
+            ": \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}-\{diagnostic.loc.end.col}",
+          )
+        }
+      } else {
+        metadata.write_string(
+          ": \{diagnostic.loc.path}:\{diagnostic.loc.start.line}:\{diagnostic.loc.start.col}-\{diagnostic.loc.end.line}:\{diagnostic.loc.end.col}",
+        )
+      }
     }
     let message_lines = ["\{metadata}: \{diagnostic.message}"]
     if path == "" {
@@ -102,7 +116,7 @@ pub async fn render_diagnostics(
       let number_width = line_number.length()
       let number_padding = " ".repeat(number_width)
       let caret_text = "^".repeat(
-        diagnostic.loc.end.col - diagnostic.loc.start.col,
+        @cmp.maximum(diagnostic.loc.end.col - diagnostic.loc.start.col, 1),
       )
       let text_padding = " ".repeat(diagnostic.loc.start.col - 1)
       message_lines.push(" \{number_padding} │ \{text_padding}\{caret_text}")
