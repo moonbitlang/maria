@@ -9,9 +9,8 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria",
     "moonbitlang/maria/internal/backtrace",
-    "moonbitlang/maria/internal/spawn"
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/maria/internal/path"
   ],
-  "overrides": [
-    "moonbitlang/maria/internal/abort"
-  ]
+  "overrides": ["moonbitlang/maria/internal/abort"]
 }

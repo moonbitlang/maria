@@ -1,14 +1,22 @@
 ///|
+priv enum Destination {
+  File(String)
+  Directory(String)
+}
+
+///|
 async fn main {
   @backtrace.initialize()
   let args = @os.args()
   guard args is [_, .. args] else {
-    println("Usage: test --prompt-file <prompt-file> [--log-file <log-file>]")
+    println(
+      "Usage: test --prompt-file <prompt-file> [--log-file <log-file>|--log-dir <log-dir>]",
+    )
     return
   }
   let cwd = @os.cwd()
   let mut prompt_file = None
-  let mut log_file = None
+  let mut destination = None
   let mut model = None
   loop args {
     ["--prompt-file", pf, .. args] => {
@@ -20,7 +28,21 @@ async fn main {
       continue args
     }
     ["--log-file", lf, .. args] => {
-      log_file = Some(lf)
+      if destination is None {
+        destination = Some(Destination::File(lf))
+      } else {
+        println("Error: Only one of --log-file or --log-dir can be specified")
+        return
+      }
+      continue args
+    }
+    ["--log-dir", ld, .. args] => {
+      if destination is None {
+        destination = Some(Destination::Directory(ld))
+      } else {
+        println("Error: Only one of --log-file or --log-dir can be specified")
+        return
+      }
       continue args
     }
     ["--model", m, .. args] => {
@@ -28,7 +50,7 @@ async fn main {
       continue args
     }
     [unknown, ..] => {
-      println("Error: Unknown argument: \{unknown}")
+      println("Error: Unknown option: \{unknown}")
       return
     }
     [] => ()
@@ -42,10 +64,19 @@ async fn main {
   let timestamp = @time.unix(clock.now() / 1000)
     .to_plain_date_time()
     .to_string()
-  let log_file = if log_file is Some(log_file) {
-    log_file
-  } else {
-    "maria_test_\{timestamp}.jsonl"
+  let destination = match destination {
+    Some(dest) => dest
+    None => Destination::Directory(@path.join("logs", timestamp))
+  }
+  let (log_file, gen_dir) = match destination {
+    File(file) => (file, @path.stem(file))
+    Directory(dir) => (@path.join(dir, "log.jsonl"), @path.join(dir, "cwd"))
+  }
+  if @fs.exists(log_file) {
+    fail("Log file \{log_file} already exists")
+  }
+  if @fs.exists(gen_dir) {
+    fail("Generated directory \{gen_dir} already exists")
   }
   let logger = @pino.logger(
     "maria_test",
@@ -55,18 +86,9 @@ async fn main {
     println("Running test in temporary directory: \{tmpdir}")
     let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
     maria.start(prompt)
-    let zip_out = StringBuilder::new()
-    let status = @spawn.spawn(
-      "zip",
-      ["-r", "maria_test_\{timestamp}.zip", tmpdir],
-      stdout=zip_out,
-      stderr=zip_out,
-      cwd~,
-    )
+    let status = @spawn.spawn("cp", ["-r", tmpdir, gen_dir], cwd~)
     if status != 0 {
-      fail(
-        "Failed to create zip archive of test directory (\{status}):\n\{zip_out.to_string()}",
-      )
+      fail("Failed to copy generated files from \{tmpdir} to \{gen_dir}")
     }
   })
 }
