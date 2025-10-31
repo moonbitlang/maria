@@ -209,3 +209,10 @@ pub(all) enum PathKind {
   File
   Directory
 }
+
+///|
+pub(all) enum PathStyle {
+  Win
+  Unix
+  Unknown
+} derive(Show)

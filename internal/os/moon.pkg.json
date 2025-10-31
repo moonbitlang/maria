@@ -1,7 +1,9 @@
 {
   "import": [
     "moonbitlang/maria/internal/errno",
-    "moonbitlang/maria/internal/c"
+    "moonbitlang/maria/internal/c",
+    "moonbitlang/path",
+    "moonbitlang/x/sys"
   ],
   "native-stub": ["os.c"]
 }
