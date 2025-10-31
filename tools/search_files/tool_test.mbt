@@ -39,6 +39,99 @@ async test "search_files" (t : @test.T) {
 }
 
 ///|
+async test "search_files-moon-definition" (t : @test.T) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        { "name": "username/example", "version": "0.1.0" }
+        .to_json()
+        .stringify(indent=2),
+      ),
+      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
+      (
+        "main.mbt",
+        (
+          #|///|
+          #|pub fn greet(name : String) -> String {
+          #|  println("Hello, \{name}!")
+          #|}
+        ),
+      ),
+    ])
+    let args : Json = {
+      "path": ".",
+      "regex": "@username/example greet",
+      "kind": "moonbit_definition",
+    }
+    let result = @search_files.new(mock.cwd.path()).call(args)
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(mock.json(output), content=[
+      "MoonbitToolResult",
+      {
+        "kind": "MoonbitDefinition",
+        "query": "@username/example greet",
+        "path": ".",
+        "working_directory": "(mock:cwd)",
+        "output": "Search completed using fuzzy symbolic search for MoonBit definitions.\nNote: The search pattern \"@username/example greet\" was used for fuzzy matching of symbol names.\n\nThere are total 1 symbols match query '@username/example greet':\nTop 1 best-matching symbols:\n\n`pub fn greet` in package username/example at (mock:cwd)/main.mbt:1-4:\n        ^^^^^             ^^^^^^^^^^^^^^^^\n1 | ///|\n  | pub fn greet(name : String) -> String {\n  |   println(\"Hello, \\{name}!\")\n  | }\n\n",
+        "message": "Search completed using fuzzy symbolic search for MoonBit definitions.",
+      },
+    ])
+  })
+}
+
+///|
+async test "search_files-moon-references" (t : @test.T) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        { "name": "username/example", "version": "0.1.0" }
+        .to_json()
+        .stringify(indent=2),
+      ),
+      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
+      (
+        "main.mbt",
+        (
+          #|///|
+          #|pub fn greet(name : String) -> String {
+          #|  println("Hello, \{name}!")
+          #|}
+          #|
+          #|fn main {
+          #|  greet("World")
+          #|  greet("MoonBit")
+          #|}
+        ),
+      ),
+    ])
+    let args : Json = {
+      "path": ".",
+      "regex": "@username/example greet",
+      "kind": "moonbit_references",
+    }
+    let result = @search_files.new(mock.cwd.path()).call(args)
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(mock.json(output), content=[
+      "MoonbitToolResult",
+      {
+        "kind": "MoonbitReferences",
+        "query": "@username/example greet",
+        "path": ".",
+        "working_directory": "(mock:cwd)",
+        "output": "Search completed using MoonBit IDE find-references tool.\nQuery: \"@username/example greet\"\nWorking directory: (mock:cwd)\n\n`pub fn greet` in package username/example at (mock:cwd)/main.mbt:1-4:\n        ^^^^^             ^^^^^^^^^^^^^^^^\n1 | ///|\n  | pub fn greet(name : String) -> String {\n  |   println(\"Hello, \\{name}!\")\n  | }\n\nFound 5 references of this symbol:\n(mock:cwd)/main.mbt:2:8-2:13:\n  | ///|\n2 | pub fn greet(name : String) -> String {\n  |        ^^^^^\n  |   println(\"Hello, \\{name}!\")\n  | }\n\n(mock:cwd)/main.mbt:7:3-7:8:\n  | }\n  | \n  | fn main {\n7 |   greet(\"World\")\n  |   ^^^^^\n  |   greet(\"MoonBit\")\n  | }\n\n(mock:cwd)/main.mbt:8:3-8:8:\n  | \n  | fn main {\n  |   greet(\"World\")\n8 |   greet(\"MoonBit\")\n  |   ^^^^^\n  | }\n\n(mock:cwd)/main.mbt:7:3-7:8:\n  | }\n  | \n  | fn main {\n7 |   greet(\"World\")\n  |   ^^^^^\n  |   greet(\"MoonBit\")\n  | }\n\n(mock:cwd)/main.mbt:8:3-8:8:\n  | \n  | fn main {\n  |   greet(\"World\")\n8 |   greet(\"MoonBit\")\n  |   ^^^^^\n  | }\n\n",
+        "message": "Search completed using MoonBit IDE find-references tool.",
+      },
+    ])
+  })
+}
+
+///|
 async test "search_files/agentic" (t : @test.T) {
   @mock.run(t, timeout=300_000, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")

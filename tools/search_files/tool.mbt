@@ -129,7 +129,7 @@ async fn goto_definition(
   let output = StringBuilder::new()
   let status = @spawn.spawn(
     "moon",
-    ["ide", "goto-definition", query],
+    ["ide", "goto-definition", "-query", query],
     stdout=output,
     stderr=output,
     cwd=working_dir,
@@ -138,16 +138,14 @@ async fn goto_definition(
       raise SearchError::MoonAnalysisError(query~, error=error.to_string())
   }
   if status != 0 {
-    raise SearchError::MoonAnalysisError(
-      query~,
-      error="moon ide goto-definition failed with exit code \{status}",
-    )
-  }
-  let result = output.to_string()
-  if result.is_empty() {
-    "No matching symbols found for query '\{query}'"
+    output.to_string()
   } else {
-    "Search completed using fuzzy symbolic search for MoonBit definitions.\nNote: The search pattern \"\{query}\" was used for fuzzy matching of symbol names.\n\n\{result}"
+    (
+      $|Search completed using fuzzy symbolic search for MoonBit definitions.
+      $|Note: The search pattern "\{query}" was used for fuzzy matching of symbol names.
+      $|
+      $|\{output.to_string()}
+    )
   }
 }
 
@@ -160,7 +158,7 @@ async fn find_references(
   let output = StringBuilder::new()
   let status = @spawn.spawn(
     "moon",
-    ["ide", "find-references", query],
+    ["ide", "find-references", "-query", query],
     stdout=output,
     stderr=output,
     cwd=working_dir,
