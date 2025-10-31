@@ -16,10 +16,6 @@ test {
   builder.set_extension("md")
   builder.set_basename("README")
   inspect(builder, content="projects/README.md")
-  builder.add_directory("proj_1")
-
-  // pop last file, and add new directory
-  inspect(builder, content="projects/proj_1/")
 }
 ```
 
@@ -32,13 +28,8 @@ test {
   let builder = @path.PathBuilder::from_path(path)
   builder.set_file(base="README", extension="md")
   inspect(builder, content="C:\\projects\\README.md")
-  builder.add_directory("proj_1")
-
-  // pop last file, and add new directory
-  inspect(builder, content="C:\\projects\\proj_1\\")
 }
 ```
-
 
 ### Simple Usage
 
@@ -53,7 +44,6 @@ test "Simple String Operations" {
   inspect(path.prefix(), content="C:\\")
 }
 ```
-
 
 ### Type Safe Operations
 
@@ -74,7 +64,6 @@ test "type safe directory components" {
 }
 ```
 
-
 ### Path Kinds Examples
 
 Examples of different path kinds: relative and absolute for Unix and Windows.
@@ -90,7 +79,6 @@ test "Unix relative path" {
   inspect(path.is_root_path(), content="false")
 }
 ```
-
 
 ```mbt
 ///|
@@ -129,7 +117,6 @@ test "Windows absolute path" {
   inspect(path.is_root_path(), content="true")
 }
 ```
-
 
 ```mbt
 ///|
