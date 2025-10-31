@@ -1,13 +1,4 @@
 ///|
-/// Result of a successful match operation, containing position and length information
-priv struct MatchResult {
-  /// The starting position of the match in the original content
-  position : Int
-  /// The length of the matched content
-  length : Int
-} derive(ToJson)
-
-///|
 priv enum WriteResultOperation {
   Created
   Updated
@@ -78,7 +69,7 @@ async fn @file.Manager::execute_replace_in_file(
       Some(search_content) => {
         let content = @fs.read_file(resolved_path)
         // Search and replace operation
-        match find_match(content, search_content) {
+        match @fuzzy.find_match(content, search_content) {
           None =>
             return @tool.error(
               "Search content not found in file (tried all matching strategies): \{search_content}",

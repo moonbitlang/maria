@@ -3,7 +3,8 @@
     "moonbitlang/maria/file",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/fs",
-    "moonbitlang/maria/internal/path"
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/fuzzy"
   ],
   "test-import": [
     "moonbitlang/async",

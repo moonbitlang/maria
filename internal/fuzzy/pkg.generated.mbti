@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/fuzzy"
+
+// Values
+fn find_match(String, String, fuzzy_match? : Bool) -> MatchResult?
+
+// Errors
+
+// Types and methods
+pub struct MatchResult {
+  position : Int
+  length : Int
+}
+impl ToJson for MatchResult
+
+// Type aliases
+
+// Traits
+
