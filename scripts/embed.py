@@ -26,7 +26,7 @@ class Manifest:
         for line in text.splitlines():
             lines.append(f"  #|{line}")
         lines.append("")
-        self.destination.write_text("".join(lines))
+        self.destination.write_text("\n".join(lines))
         print(f"EMBED {self.source} -> {self.destination}")
 
 

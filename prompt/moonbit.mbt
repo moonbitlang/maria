@@ -110,7 +110,7 @@ pub let moonbit : String =
   #|///|
   #|///  match + loops are expressions
   #|test "everything is expression in MoonBit" {
-  #|  // tuple  
+  #|  // tuple
   #|  let (n, opt) = (1, MySome(2))
   #|  // if expressions return values
   #|  let msg : String = if n > 0 { "pos" } else { "non-pos" }
@@ -121,7 +121,7 @@ pub let moonbit : String =
   #|    }
   #|    MyNone => 0
   #|  }
-  #|  let status = Ok(10)
+  #|  let status : Result[Int, String] = Ok(10)
   #|  // match expressions return values
   #|  let description = match status {
   #|    Ok(value) => "Success: \{value}"
@@ -196,7 +196,7 @@ pub let moonbit : String =
   #|test "inspect test" {
   #|  let result = sum(1, 2)
   #|  inspect(result, content="3")
-  #|  // The `content` can be auto-corrected by running `moon test --update`  
+  #|  // The `content` can be auto-corrected by running `moon test --update`
   #|  let point = Point::{ x: 10, y: 20 }
   #|  // For complex structures, use @json.inspect for better readability:
   #|  @json.inspect(point, content={ "x": 10, "y": 20 })
@@ -210,9 +210,11 @@ pub let moonbit : String =
   #|
   #|```moonbit
   #|///|
-  #|test "int and char literal" {  
-  #|  let a0  = 1 // a is Int by default
-  #|  let (int, uint, uint16, int64, byte) : (Int, UInt, UInt16, Int64, Byte) = (1, 1, 1, 1, 1) 
+  #|test "int and char literal" {
+  #|  let a0 = 1 // a is Int by default
+  #|  let (int, uint, uint16, int64, byte) : (Int, UInt, UInt16, Int64, Byte) = (
+  #|    1, 1, 1, 1, 1,
+  #|  )
   #|  assert_eq(int, uint16.to_int())
   #|  // when the type is known, the literal can be overloaded
   #|  let a1 : Int = 'b' // this also works, a5 will be the unicode value
@@ -241,14 +243,17 @@ pub let moonbit : String =
   #|///|
   #|test "array literal" {
   #|  let a0 : Array[Int] = [1, 2, 3] // resizable
-  #|  let a1 : FixedArray[Int] = [1, 2, 3] // Array literal overloading
+  #|  // Array literal overloading
+  #|  let a1 : FixedArray[Int] = [1, 2, 3]
+  #|  let a2 : ReadOnlyArray[Int] = [1, 2, 3]
+  #|  let a3 : ArrayView[Int] = [1, 2, 3]
   #|}
   #|```
   #|
   #|## String
   #|
   #|MoonBit's String is immutable utf16 encoded, `s[i]` returns an integer (code units),
-  #|`s.get(i)` returns `Option[Int]`, `s.get_char(i)` returns `Option[Char]`. 
+  #|`s.get(i)` returns `Option[Int]`, `s.get_char(i)` returns `Option[Char]`.
   #|Since MoonBit supports char literal overloading, you can write code snippets like this:
   #|
   #|```moonbit
@@ -268,7 +273,7 @@ pub let moonbit : String =
   #|  // s[0] == eq_char // ❌ Won't compile - eq_char is not a literal, lhs is Int while rhs is Char
   #|  // Use: s[0] == '=' or s.get_char(0) == Some(eq_char)
   #|  let bytes = @encoding/utf8.encode("中文") // utf8 encode package is in stdlib
-  #|  assert_eq(bytes, [0xe4, 0xb8, 0xad, 0xe6, 0x96, 0x87]) 
+  #|  assert_eq(bytes, [0xe4, 0xb8, 0xad, 0xe6, 0x96, 0x87])
   #|  let s2 : String = @encoding/utf8.decode(bytes) // decode utf8 bytes back to String
   #|  assert_eq(s2, "中文")
   #|}
@@ -366,7 +371,7 @@ pub let moonbit : String =
   #|}
   #|```
   #|
-  #|## View Types 
+  #|## View Types
   #|
   #|**Key Concept**: View types (`StringView`, `BytesView`, `ArrayView[T]`) are zero-copy, non-owning read-only slices created with the `[:]` syntax. They don't allocate memory and are ideal for passing sub-sequences without copying data.
   #|
@@ -376,23 +381,23 @@ pub let moonbit : String =
   #|
   #|**Important**: StringView slice is slightly different due to unicode safety:
   #|`s[a:b]` may raise an error at surrogate boundaries (UTF-16 encoding edge case). You have two options:
+  #|
   #|- Use `try! s[a:b]` if you're certain the boundaries are valid (crashes on invalid boundaries)
   #|- Let the error propagate to the caller for proper handling
   #|
   #|**When to use views**:
+  #|
   #|- Pattern matching with rest patterns (`[first, .. rest]`)
   #|- Passing slices to functions without allocation overhead
   #|- Avoiding unnecessary copies of large sequences
   #|
   #|Convert back with `.to_string()`, `.to_bytes()`, or `.to_array()` when you need ownership.
   #|
-  #|
   #|## Complex Types
   #|
   #|```moonbit
   #|///|
-  #|///  Type aliases use 'typealias'
-  #|typealias Int as UserId // Int is aliased to UserId - no runtime overhead
+  #|type UserId = Int // Int is aliased to UserId - like symlink
   #|
   #|///|
   #|///  Tuple-struct for callback
@@ -412,7 +417,7 @@ pub let moonbit : String =
   #|struct Addr {
   #|  host : String
   #|  port : Int
-  #|} derive(Show, Eq, ToJson)
+  #|} derive(Show, Eq, ToJson, FromJson)
   #|
   #|///|
   #|/// Structural types with literal syntax
@@ -453,10 +458,16 @@ pub let moonbit : String =
   #|
   #|```moonbit
   #|///|
-  #|struct Coordinate { x : Int; y : Int } derive(Show, Eq, ToJson)
+  #|struct Coordinate {
+  #|  x : Int
+  #|  y : Int
+  #|} derive(Show, Eq, ToJson)
   #|
   #|///|
-  #|enum Status { Active; Inactive } derive(Show, Eq, Compare)
+  #|enum Status {
+  #|  Active
+  #|  Inactive
+  #|} derive(Show, Eq, Compare)
   #|```
   #|
   #|**Best practice**: Always derive `Show` and `Eq` for data types. Add `ToJson` if you plan to test them with `@json.inspect()`.
@@ -583,7 +594,7 @@ pub let moonbit : String =
   #|```moonbit
   #|///|
   #|test "functional for loop" {
-  #|  // For loop with multiple loop variables, 
+  #|  // For loop with multiple loop variables,
   #|  // i and j are loop state
   #|  let sum_result : Int = for i = 0, sum = 0 {
   #|    if i <= 10 {
@@ -624,7 +635,7 @@ pub let moonbit : String =
   #|///|
   #|/// Only type checked, skipped in test runs
   #|/// we can skip tests during prototyping and remove it when we fixed it
-  #|#skip 
+  #|#skip
   #|test "use function with label and optional parameter" {
   #|  // Call with named arguments in any order
   #|  let win1 : Window = create_window(title="App", height=400, width=1024)
@@ -639,7 +650,7 @@ pub let moonbit : String =
   #|
   #|## Checked Errors
   #|
-  #|MoonBit uses **checked** error-throwing functions, not unchecked exceptions, 
+  #|MoonBit uses **checked** error-throwing functions, not unchecked exceptions,
   #|it is recommended to use `raise` for functions and use `Result` in testing.
   #|
   #|```moonbit
@@ -862,9 +873,7 @@ pub let moonbit : String =
   #|pub(open) trait Extendable {}
   #|```
   #|
-  #|
   #|# Best Practices and Reference
-  #|
   #|
   #|## Common Pitfalls to Avoid
   #|
@@ -877,10 +886,9 @@ pub let moonbit : String =
   #|7. Don't forget to handle array bounds - use get() for safe access
   #|8. Don't mix up String indexing (returns Int). Use `for char in s {...}` for char iteration
   #|9. Don't forget @package prefix when calling functions from other packages
-  #|10. Don't use ++ or -- (not supported), use `i = i + 1` or  `i += 1`
+  #|10. Don't use ++ or -- (not supported), use `i = i + 1` or `i += 1`
   #|11. **Don't add explicit `try` for error-raising functions** - errors propagate automatically (unlike Swift)
   #|12. **Legacy syntax**: Older code may use `function_name!(...)` or `function_name(...)?` - these are deprecated; use normal calls and `try?` for Result conversion
-  #|
   #|
   #|# MoonBit Build System - Essential Guide
   #|
@@ -951,13 +959,14 @@ pub let moonbit : String =
   #|
   #|```json
   #|{
-  #|  "name": "username/hello",        // Required format for published modules
+  #|  "name": "username/hello", // Required format for published modules
   #|  "version": "0.1.0",
-  #|  "source": ".",                   // Source directory(optional, default: ".")
-  #|  "repository": "",                // Git repository URL
-  #|  "keywords": [],                  // Search keywords
-  #|  "description": "...",            // Module description
-  #|  "deps": {                        // Dependencies from mooncakes.io, using`moon add` to add dependencies
+  #|  "source": ".", // Source directory(optional, default: ".")
+  #|  "repository": "", // Git repository URL
+  #|  "keywords": [], // Search keywords
+  #|  "description": "...", // Module description
+  #|  "deps": {
+  #|    // Dependencies from mooncakes.io, using`moon add` to add dependencies
   #|    "moonbitlang/x": "0.4.6"
   #|  }
   #|}
@@ -991,6 +1000,7 @@ pub let moonbit : String =
   #|  tested package
   #|
   #|**Package Alias Rules**:
+  #|
   #|- Import `"username/hello/liba"` → use `@liba.function()` (default alias is last path segment)
   #|- Import with custom alias `{"path": "moonbitlang/x/encoding", "alias": "enc"}` → use `@enc.function()`
   #|- In `_test.mbt` or `_wbtest.mbt` files, the package being tested is auto-imported
@@ -1009,7 +1019,7 @@ pub let moonbit : String =
   #|To add a new package `fib` under `.`:
   #|
   #|1. Create directory: `./fib/`
-  #|2. Add `./fib/moon.pkg.json`: `{}` -- Minimal valid moon.pkg.json 
+  #|2. Add `./fib/moon.pkg.json`: `{}` -- Minimal valid moon.pkg.json
   #|3. Add `.mbt` files with your code
   #|4. Import in dependent packages:
   #|
@@ -1051,31 +1061,32 @@ pub let moonbit : String =
   #|
   #|```json
   #|{
-  #|  "link": true,  // Enable linking for this package
+  #|  "link": true, // Enable linking for this package
   #|  // OR for advanced cases:
   #|  "link": {
   #|    "wasm": {
-  #|      "exports": ["hello", "foo:bar"],     // Export functions
-  #|      "heap-start-address": 1024,         // Memory layout
-  #|      "import-memory": {                   // Import external memory
+  #|      "exports": ["hello", "foo:bar"], // Export functions
+  #|      "heap-start-address": 1024, // Memory layout
+  #|      "import-memory": {
+  #|        // Import external memory
   #|        "module": "env",
   #|        "name": "memory"
   #|      },
-  #|      "export-memory-name": "memory"       // Export memory with name
+  #|      "export-memory-name": "memory" // Export memory with name
   #|    },
   #|    "wasm-gc": {
   #|      "exports": ["hello"],
-  #|      "use-js-builtin-string": true,      // JS String Builtin support
-  #|      "imported-string-constants": "_"     // String namespace
+  #|      "use-js-builtin-string": true, // JS String Builtin support
+  #|      "imported-string-constants": "_" // String namespace
   #|    },
   #|    "js": {
   #|      "exports": ["hello"],
-  #|      "format": "esm"                      // "esm", "cjs", or "iife"
+  #|      "format": "esm" // "esm", "cjs", or "iife"
   #|    },
   #|    "native": {
-  #|      "cc": "gcc",                         // C compiler
-  #|      "cc-flags": "-O2 -DMOONBIT",         // Compile flags
-  #|      "cc-link-flags": "-s"                // Link flags
+  #|      "cc": "gcc", // C compiler
+  #|      "cc-flags": "-O2 -DMOONBIT", // Compile flags
+  #|      "cc-link-flags": "-s" // Link flags
   #|    }
   #|  }
   #|}
@@ -1087,7 +1098,7 @@ pub let moonbit : String =
   #|
   #|```json
   #|{
-  #|  "warn-list": "-2-29"  // Disable unused variable (2) & unused package (29)
+  #|  "warn-list": "-2-29" // Disable unused variable (2) & unused package (29)
   #|}
   #|```
   #|
@@ -1152,28 +1163,27 @@ pub let moonbit : String =
   #|The MoonBit code in docstring will be type checked and tested automatically.
   #|(using `moon test --update`)
   #|
-  #|
   #|# Development Workflow
   #|
   #|## MoonBit Tips
   #|
-  #|- MoonBit code is organized in files/block style. 
-  #|  A package is composed of a list of files, their order does not matter, 
+  #|- MoonBit code is organized in files/block style.
+  #|  A package is composed of a list of files, their order does not matter,
   #|  keep them separate so that it is easy to focus on critical parts.
   #|
   #|  Each block is separated by `///|`, the order of each block is irrelevant too. You can process
-  #|  block by block independently. 
-  #|  
+  #|  block by block independently.
+  #|
   #|  You are encouraged to generate code in a block-by-block manner.
-  #|  
-  #|  You are encouraged to search and replace block by block instead of 
+  #|
+  #|  You are encouraged to search and replace block by block instead of
   #|  replacing the whole file.
   #|
   #|  You are encouraged to keep each file focused.
   #|
-  #|- SPLIT the large file into small files, the order does not matter.  
+  #|- SPLIT the large file into small files, the order does not matter.
   #|
-  #|- Try to keep deprecated blocks in file called `deprecated.mbt`  in each
+  #|- Try to keep deprecated blocks in file called `deprecated.mbt` in each
   #|  directory.
   #|
   #|- `moon fmt` is used to format your code properly.
@@ -1203,7 +1213,6 @@ pub let moonbit : String =
   #|- In the toplevel directory, there is a `moon.mod.json` file describing the
   #|  module and metadata.
   #|
-  #|
   #|## MoonBit Package `README` Generation Guide
   #|
   #|- Output `README.mbt.md` in the package directory; `*.mbt.md` files including runnable MoonBit `test { ... }` blocks will be tested by `moon test`, and symlink it to `README.md` to produce verifiable `README.md` file.
@@ -1221,128 +1230,11 @@ pub let moonbit : String =
   #|- **Snapshots**: Prefer `inspect(value, content="...")`. If unknown, write `inspect(value)` and run `moon test --update` (or `moon test -u`).
   #|  - Use regular `inspect()` for simple values (uses `Show` trait)
   #|  - Use `@json.inspect()` for complex nested structures (uses `ToJson` trait, produces more readable output)
-  #|  - It is encouraged to `inspect` or `@json.inspect` the whole return value of a function if 
-  #|  the whole return value is not huge, this makes test simple. You need `impl (Show|ToJson) for YourType` or `derive (Show, ToJson)`.
+  #|  - It is encouraged to `inspect` or `@json.inspect` the whole return value of a function if
+  #|    the whole return value is not huge, this makes test simple. You need `impl (Show|ToJson) for YourType` or `derive (Show, ToJson)`.
   #|  - **Update workflow**: After changing code that affects output, run `moon test --update` to regenerate snapshots, then review the diffs in your test files (the `content=` parameter will be updated automatically).
   #|- Grouping: Combine related checks in one `test { ... }` block for speed and clarity.
   #|- Panics: Name test with prefix `test "panic ..." {...}`; if the call returns a value, wrap it with `ignore(...)` to silence warnings.
   #|- Errors: Use `try? f()` to get `Result[...]` and `inspect` it when a function may raise.
   #|- Verify: Run `moon test` (or `-u` to update snapshots) and `moon fmt` afterwards.
-  #|
-  #|## Code Navigation with `moon ide`
-  #|
-  #|**ALWAYS use `moon ide` for code navigation in MoonBit projects instead of manual file searching, grep, or semantic search.**
-  #|
-  #|This tool provides two essential commands for precise code exploration:
-  #|
-  #|### Core Commands
-  #|
-  #|- `moon ide goto-definition` - Find where a symbol is defined
-  #|- `moon ide find-references` - Find all usages of a symbol
-  #|
-  #|### Query System
-  #|
-  #|Symbol lookup uses a two-part query system for precise results:
-  #|
-  #|#### 1. Symbol Name Query (`-query`)
-  #|
-  #|Fuzzy search for symbol names with package filtering support:
-  #|
-  #|```bash
-  #|# Find any symbol named 'symbol'
-  #|moon ide goto-definition -query 'symbol'
-  #|
-  #|# Find methods of a specific type
-  #|moon ide goto-definition -query 'Type::method'
-  #|
-  #|# Find trait method implementations
-  #|moon ide goto-definition -query 'Trait for Type with method'
-  #|
-  #|# Find symbol in specific package using @pkg prefix
-  #|moon ide goto-definition -query '@moonbitlang/x encode'
-  #|
-  #|# Find symbol in multiple packages (searches in pkg1 OR pkg2)
-  #|moon ide goto-definition -query '@username/mymodule/pkg1 @username/mymodule/pkg2 helper'
-  #|
-  #|# Find symbol in nested package
-  #|moon ide goto-definition -query '@username/mymodule/mypkg helper'
-  #|```
-  #|
-  #|**Supported symbols**: functions, constants, let bindings, types, structs, enums, traits
-  #|
-  #|**Package filtering**: Prefix your query with `@package_name` to scope the search. Multiple `@pkg` prefixes create an OR condition.
-  #|
-  #|#### 2. Tag-based Filtering (`-tags`)
-  #|
-  #|Pre-filter symbols by characteristics before name matching:
-  #|
-  #|**Visibility tags**:
-  #|
-  #|- `pub` - Public symbols
-  #|- `pub all` - Public structs with all public fields
-  #|- `pub open` - Public traits with all methods public
-  #|- `priv` - Private symbols
-  #|
-  #|**Symbol type tags**:
-  #|
-  #|- `type` - Type definitions (struct, enum, typealias, abstract)
-  #|- `error` - Error type definitions
-  #|- `enum` - Enum definitions and variants
-  #|- `struct` - Struct definitions
-  #|- `alias` - Type/function/trait aliases
-  #|- `let` - Top-level let bindings
-  #|- `const` - Constant definitions
-  #|- `fn` - Function definitions
-  #|- `trait` - Trait definitions
-  #|- `impl` - Trait implementations
-  #|- `test` - Named test functions
-  #|
-  #|**Combine tags with logical operators**:
-  #|
-  #|```bash
-  #|# Public functions only
-  #|moon ide goto-definition -tags 'pub fn' -query 'my_func'
-  #|
-  #|# Functions or constants
-  #|moon ide goto-definition -tags 'fn | const' -query 'helper'
-  #|
-  #|# Public functions or constants
-  #|moon ide goto-definition -tags 'pub (fn | const)' -query 'api'
-  #|
-  #|# Public types or traits
-  #|moon ide goto-definition -tags 'pub (type | trait)' -query 'MyType'
-  #|```
-  #|
-  #|### Practical Examples
-  #|
-  #|```bash
-  #|# Find public function definition
-  #|moon ide goto-definition -tags 'pub fn' -query 'maximum'
-  #|
-  #|# Find all references to a struct
-  #|moon ide find-references -tags 'struct' -query 'Rectangle'
-  #|
-  #|# Find trait implementations
-  #|moon ide goto-definition -tags 'impl' -query 'Show for MyType'
-  #|
-  #|# Find errors in specific package
-  #|moon ide goto-definition -tags 'error' -query '@mymodule/parser ParseError'
-  #|
-  #|# Find symbol across multiple packages
-  #|moon ide goto-definition -query '@moonbitlang/x @moonbitlang/core encode'
-  #|
-  #|# Combine package filtering with tags
-  #|moon ide goto-definition -tags 'pub fn' -query '@username/myapp helper'
-  #|```
-  #|
-  #|### Query Processing
-  #|
-  #|The tool processes queries in this order:
-  #|
-  #|1. Filter symbols by `-tags` conditions
-  #|2. Extract package scope from `@pkg` prefixes in `-query`
-  #|3. Fuzzy match remaining symbols by name
-  #|4. Return top 3 best matches with location information
-  #|
-  #|**Best Practice**: Start with `-tags` to reduce noise, then use `@pkg` prefixes in `-query` to scope by package for precise navigation.
   #|
