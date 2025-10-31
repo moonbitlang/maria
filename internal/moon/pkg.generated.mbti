@@ -14,7 +14,7 @@ async fn format_string(String) -> String
 
 async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
-async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
 
 // Errors
 
