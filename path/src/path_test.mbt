@@ -256,3 +256,15 @@ test "Windows path kinds" {
   let path = Path::parse(".\\a", kind=File)
   inspect(path, content="a")
 }
+
+///|
+test "Unix path prefix with `.`" {
+  let path = @path.Path::parse("./.moon", kind=Directory)
+  inspect(path, content=".moon/")
+}
+
+///|
+test "Windows path prefix with `.`" {
+  let path = @path.Path::parse(".\\.moon", kind=Directory)
+  inspect(path, content=".moon\\")
+}
