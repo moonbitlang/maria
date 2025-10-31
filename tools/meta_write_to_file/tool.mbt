@@ -27,7 +27,12 @@ async fn render_diagnostics(
 ) -> String {
   let overlay = {}
   overlay[@path.basename(path).to_string()] = content
-  @moon.render_diagnostics(diagnostics, limit=DiagnosticLimit, overlay~)
+  @moon.render_diagnostics(
+    diagnostics,
+    context=1,
+    limit=DiagnosticLimit,
+    overlay~,
+  )
 }
 
 ///|

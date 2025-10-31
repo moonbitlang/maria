@@ -9,6 +9,7 @@ async test "render_diagnostics" {
     render_diagnostics(path~, content, diagnostics),
     content=(
       #|error[3002]: json_parser.mbt:2:24: Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+      #|   │ ///|
       #| 2 │ let x : Int = "String",
       #|   │                        ^
     ),
