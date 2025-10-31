@@ -65,11 +65,11 @@ fn Path::is_relative(Self) -> Bool
 fn Path::is_root_path(Self) -> Bool
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Path::output(Self, &Logger) -> Unit // from trait `Show`
+fn Path::output(Self, &Logger, kind? : PathKind) -> Unit
 fn Path::parse(StringView, kind? : PathKind) -> Self raise PathError
 fn Path::prefix(Self) -> String
 fn Path::to_json(Self) -> Json // from trait `ToJson`
-fn Path::to_string(Self) -> String // from trait `Show`
+fn Path::to_string(Self, kind? : PathKind) -> String
 impl Eq for Path
 impl Hash for Path
 impl Show for Path
@@ -79,12 +79,12 @@ type PathBuilder
 fn PathBuilder::add_directory(Self, StringView) -> Unit raise PathError
 fn PathBuilder::copy(Self) -> Self
 fn PathBuilder::from_path(Path) -> Self
-fn PathBuilder::output(Self, &Logger) -> Unit // from trait `Show`
+fn PathBuilder::output(Self, &Logger, kind? : PathKind) -> Unit
 fn PathBuilder::set_basename(Self, StringView) -> Unit raise PathError
 fn PathBuilder::set_extension(Self, StringView) -> Unit raise PathError
 fn PathBuilder::set_file(Self, base~ : StringView, extension~ : StringView) -> Unit raise PathError
 fn PathBuilder::to_path(Self) -> Path
-fn PathBuilder::to_string(Self) -> String // from trait `Show`
+fn PathBuilder::to_string(Self, kind? : PathKind) -> String
 impl Show for PathBuilder
 
 pub(all) enum PathKind {
@@ -106,9 +106,9 @@ fn UnixPath::is_root_path(Self) -> Bool
 fn UnixPath::new(prefix? : UnixPrefix, directory~ : Directory[UnixPathComponent], file? : File[UnixPathComponent]) -> Self
 #deprecated
 fn UnixPath::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn UnixPath::output(Self, &Logger) -> Unit // from trait `Show`
+fn UnixPath::output(Self, &Logger, kind? : PathKind) -> Unit
 fn UnixPath::to_json(Self) -> Json // from trait `ToJson`
-fn UnixPath::to_string(Self) -> String // from trait `Show`
+fn UnixPath::to_string(Self, kind? : PathKind) -> String
 impl Eq for UnixPath
 impl Hash for UnixPath
 impl Show for UnixPath
@@ -159,9 +159,9 @@ fn WinPath::is_root_path(Self) -> Bool
 fn WinPath::new(prefix? : WinPrefix, directory~ : Directory[WinPathComponent], file? : File[WinPathComponent]) -> Self
 #deprecated
 fn WinPath::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn WinPath::output(Self, &Logger) -> Unit // from trait `Show`
+fn WinPath::output(Self, &Logger, kind? : PathKind) -> Unit
 fn WinPath::to_json(Self) -> Json // from trait `ToJson`
-fn WinPath::to_string(Self) -> String // from trait `Show`
+fn WinPath::to_string(Self, kind? : PathKind) -> String
 impl Eq for WinPath
 impl Hash for WinPath
 impl Show for WinPath
