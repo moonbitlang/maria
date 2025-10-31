@@ -14,3 +14,11 @@ async test "retry" (t : @test.T) {
     }
   })
 }
+
+///|
+async test "moon_home" (t : @test.T) {
+  @mock.run(t, mock => inspect(
+    mock.show(mock.moon_home),
+    content="(mock:env:MOON_HOME)",
+  ))
+}
