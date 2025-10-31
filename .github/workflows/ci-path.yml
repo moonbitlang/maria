@@ -15,13 +15,12 @@
 name: ci-path
 
 on:
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
+  workflow_dispatch:
+
   pull_request:
     branches: ["main"]
         
-    # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
-    workflow_dispatch:
-
-
     paths:
       - "path/**"
 
