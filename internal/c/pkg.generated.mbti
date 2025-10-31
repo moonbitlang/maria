@@ -20,10 +20,10 @@ fn strlen(Pointer[Byte]) -> UInt64
 #external
 pub type Null
 
+#alias(Ptr)
 #external
 pub type Pointer[_]
 fn[T, U] Pointer::cast(Self[T]) -> Self[U]
-fn[T] Pointer::equal(Self[T], Self[T]) -> Bool // from trait `Eq`
 fn[T] Pointer::is_null(Self[T]) -> Bool
 fn[T : Load] Pointer::load(Self[T], offset? : Int) -> T
 fn[T] Pointer::null() -> Self[T]
@@ -34,7 +34,6 @@ fn[T : Store] Pointer::store(Self[T], offset? : Int, T) -> Unit
 impl[T] Eq for Pointer[T]
 
 // Type aliases
-pub typealias Pointer as Ptr
 
 // Traits
 pub(open) trait Load {

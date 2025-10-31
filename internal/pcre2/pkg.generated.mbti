@@ -10,8 +10,6 @@ pub suberror Pcre2Error {
   Compile(String, Int, UInt64)
   Code(Int)
 }
-fn Pcre2Error::output(Self, &Logger) -> Unit // from trait `Show`
-fn Pcre2Error::to_string(Self) -> String // from trait `Show`
 impl Show for Pcre2Error
 
 // Types and methods

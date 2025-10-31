@@ -20,10 +20,6 @@ pub struct CheckMoonbitProjectResult {
   diagnostic_limit : Int
   rendered_diagnostics : String
 }
-fn CheckMoonbitProjectResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn CheckMoonbitProjectResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn CheckMoonbitProjectResult::to_json(Self) -> Json // from trait `ToJson`
-fn CheckMoonbitProjectResult::to_string(Self) -> String // from trait `Show`
 impl Show for CheckMoonbitProjectResult
 impl ToJson for CheckMoonbitProjectResult
 impl @json.FromJson for CheckMoonbitProjectResult

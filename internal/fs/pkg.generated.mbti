@@ -34,15 +34,6 @@ pub struct DirectoryEntry {
   name : String
   kind : FileKind
 }
-fn DirectoryEntry::compare(Self, Self) -> Int // from trait `Compare`
-fn DirectoryEntry::equal(Self, Self) -> Bool // from trait `Eq`
-fn DirectoryEntry::hash(Self) -> Int // from trait `Hash`
-fn DirectoryEntry::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn DirectoryEntry::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn DirectoryEntry::output(Self, &Logger) -> Unit // from trait `Show`
-fn DirectoryEntry::to_json(Self) -> Json // from trait `ToJson`
-fn DirectoryEntry::to_string(Self) -> String // from trait `Show`
 impl Compare for DirectoryEntry
 impl Eq for DirectoryEntry
 impl Hash for DirectoryEntry
@@ -59,15 +50,6 @@ pub enum FileKind {
   BlockDevice
   CharDevice
 }
-fn FileKind::compare(Self, Self) -> Int // from trait `Compare`
-fn FileKind::equal(Self, Self) -> Bool // from trait `Eq`
-fn FileKind::hash(Self) -> Int // from trait `Hash`
-fn FileKind::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn FileKind::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn FileKind::output(Self, &Logger) -> Unit // from trait `Show`
-fn FileKind::to_json(Self) -> Json // from trait `ToJson`
-fn FileKind::to_string(Self) -> String // from trait `Show`
 impl Compare for FileKind
 impl Eq for FileKind
 impl Hash for FileKind

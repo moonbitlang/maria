@@ -16,9 +16,6 @@ fn get() -> Int
 
 // Errors
 pub(all) suberror Errno Int
-fn Errno::output(Self, &Logger) -> Unit // from trait `Show`
-fn Errno::to_json(Self) -> Json // from trait `ToJson`
-fn Errno::to_string(Self) -> String // from trait `Show`
 impl Show for Errno
 impl ToJson for Errno
 

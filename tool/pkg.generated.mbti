@@ -43,9 +43,6 @@ pub enum ToolResult[Output] {
 fn[Output] ToolResult::error(String, error? : Error) -> Self[Output]
 #as_free_fn
 fn[Output] ToolResult::ok(Output) -> Self[Output]
-fn[Output : Show] ToolResult::output(Self[Output], &Logger) -> Unit // from trait `Show`
-fn[Output : ToJson] ToolResult::to_json(Self[Output]) -> Json // from trait `ToJson`
-fn[Output : Show] ToolResult::to_string(Self[Output]) -> String // from trait `Show`
 impl[Output : Show] Show for ToolResult[Output]
 impl[Output : ToJson] ToJson for ToolResult[Output]
 

@@ -19,10 +19,6 @@ pub struct MetaWriteToFileResult {
   diff : String
   learning_prompt : String?
 }
-fn MetaWriteToFileResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn MetaWriteToFileResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn MetaWriteToFileResult::to_json(Self) -> Json // from trait `ToJson`
-fn MetaWriteToFileResult::to_string(Self) -> String // from trait `Show`
 impl Show for MetaWriteToFileResult
 impl ToJson for MetaWriteToFileResult
 impl @json.FromJson for MetaWriteToFileResult
