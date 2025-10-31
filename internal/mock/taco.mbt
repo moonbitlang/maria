@@ -42,6 +42,7 @@ pub struct Context {
   uuid : @uuid.Generator
   filter : Filter
   group : @async.TaskGroup[Unit]
+  moon_home : String
 }
 
 ///|
@@ -332,7 +333,7 @@ pub async fn run(
   let exec_path = @path.Path::parse(exec)
   let os_cwd_path = @path.Path::parse(os_cwd + "/")
   // Warning: this refactor change the original behavior
-  // 
+  //
   // remove the os_cwd prefix, extract parts from `target/native/debug/...parts` or `target/native/release/...parts`
   let exec_parts = loop (exec_path.directory()[:], os_cwd_path.directory()[:]) {
     ([x, .. xs], [y, .. ys]) if x == y => continue (xs, ys)
@@ -373,15 +374,34 @@ pub async fn run(
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)
         let file = loc.to_string().split(":").peek().unwrap().to_string()
+        // setup filter
+        let home = @os.home()
+        let home_path = @path.Path::parse(home + "/")
+        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.PathBuilder::from_path(
+            home_path,
+          )
+          ..add_directory(".moon")
+          .to_path()
+          .to_string(kind=File))
         let filter = Filter::new()
         filter
         ..add("file", file)
         ..add("cwd", cwd.path())
+        ..add("env:MOON_HOME", moon_home)
         ..add("env:HOME", directory(@os.home()).path())
         if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
           filter.add("env:OPENAI_API_KEY", api_key)
         }
-        let ctx = Context::{ cwd, logger, clock, rand, uuid, filter, group }
+        let ctx = Context::{
+          cwd,
+          logger,
+          clock,
+          rand,
+          uuid,
+          filter,
+          group,
+          moon_home,
+        }
         group.add_defer(() => ctx.close())
         action(ctx)
       }))
