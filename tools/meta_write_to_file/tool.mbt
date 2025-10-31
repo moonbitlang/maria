@@ -253,12 +253,11 @@ async fn execute_replace_in_file(
           Some(r) => r
           None => ""
         }
-        // TODO: unify search strategy with replace_in_file tool
-        match content.find(search) {
+        match @fuzzy.find_match(content, search) {
           None => @tool.error("Search content not found in file: \{search}")
-          Some(pos) => {
-            let before = content[0:pos].to_string()
-            let after = content[pos + search.length():].to_string()
+          Some(match_result) => {
+            let before = content[0:match_result.position].to_string()
+            let after = content[match_result.position + match_result.length:].to_string()
             let new_content = before + replace + after
             @fs.write_to_file(resolved_path, new_content)
             @tool.ok("Changes applied to \{params.path}")
@@ -310,12 +309,13 @@ async fn execute_meta_write_to_file(
             Some(r) => r
             None => ""
           }
-          match file_content.find(search) {
+          match @fuzzy.find_match(file_content, search) {
             None =>
               return @tool.error("Search content not found in file: \{search}")
-            Some(pos) => {
-              let before = file_content[0:pos].to_string()
-              let after = file_content[pos + search.length():].to_string()
+            Some(match_result) => {
+              let before = file_content[0:match_result.position].to_string()
+              let after = file_content[match_result.position +
+              match_result.length:].to_string()
               before + replace + after
             }
           }
