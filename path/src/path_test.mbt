@@ -268,3 +268,23 @@ test "Windows path prefix with `.`" {
   let path = @path.Path::parse(".\\.moon", kind=Directory)
   inspect(path, content=".moon\\")
 }
+
+///|
+test "Windows parsing path components without prefix hint via specify style" {
+  let path = Path::parse("file.txt", style=Win)
+  inspect(path, content="file.txt")
+  inspect(path is WPath(_), content="true")
+  let path = Path::parse("dir", kind=Directory, style=Win)
+  inspect(path is WPath(_), content="true")
+  inspect(path, content="dir\\")
+}
+
+///|
+test "Unix parsing path components without prefix hint via specify style" {
+  let path = Path::parse("file.txt", style=Unix)
+  inspect(path, content="file.txt")
+  inspect(path is UPath(_), content="true")
+  let path = Path::parse("dir", kind=Directory, style=Unix)
+  inspect(path is UPath(_), content="true")
+  inspect(path, content="dir/")
+}

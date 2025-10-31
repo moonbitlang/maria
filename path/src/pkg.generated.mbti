@@ -43,7 +43,7 @@ fn Path::is_absolute(Self) -> Bool
 fn Path::is_relative(Self) -> Bool
 fn Path::is_root_path(Self) -> Bool
 fn Path::output(Self, &Logger, kind? : PathKind) -> Unit
-fn Path::parse(StringView, kind? : PathKind) -> Self raise PathError
+fn Path::parse(StringView, kind? : PathKind, style? : PathStyle) -> Self raise PathError
 fn Path::prefix(Self) -> String
 fn Path::to_string(Self, kind? : PathKind) -> String
 impl Eq for Path
