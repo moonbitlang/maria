@@ -11,6 +11,8 @@ priv struct Formatter {
   lines : Array[String]
   /// Tool-specific logs are formatted using sub-formatters.
   tools : Map[String, Formatter]
+  /// Versions of fixed files submitted in this subagent.
+  submit_fixed_files : Array[String]
 }
 
 ///|
@@ -25,6 +27,7 @@ fn Formatter::new(
     count: 1,
     lines: [],
     tools: {},
+    submit_fixed_files: [],
   }
 }
 
@@ -106,7 +109,7 @@ async fn Formatter::format_replace_in_file(
 }
 
 ///|
-fn Formatter::format_submit_fixed_file(
+async fn Formatter::format_submit_fixed_file(
   self : Formatter,
   name : String,
   args : Json,
@@ -117,9 +120,21 @@ fn Formatter::format_submit_fixed_file(
       self.lines.push("")
       self.lines.push("Submitting fixed file content:")
       self.lines.push("")
-      self.lines.push("```moonbit")
-      self.lines.push(content)
-      self.lines.push("```")
+      if self.submit_fixed_files.last() is Some(last_content) {
+        self.submit_fixed_files.push(content)
+        let diff = @git.generate_git_diff(
+          original=last_content,
+          modified=content,
+        )
+        self.lines.push("```diff")
+        self.lines.push(diff)
+        self.lines.push("```")
+      } else {
+        self.submit_fixed_files.push(content)
+        self.lines.push("```moonbit")
+        self.lines.push(content)
+        self.lines.push("```")
+      }
     }
     _ => self.format_tool_call_as_xml(name, args)
   }
@@ -287,6 +302,26 @@ async fn Formatter::format_message_added(
     }
     self.lines.push("")
   }
+  if self.id is Some(_) && message is User(_) {
+    let lines = []
+    loop content.split("\n").collect()[:] {
+      ["**File Content:**", "", "```moonbit", .. rest] =>
+        continue source~: loop rest {
+            ["```", .. rest] => break rest
+            [line, .. rest] => {
+              lines.push(line)
+              continue source~ rest
+            }
+            [] => break []
+          }
+      [_, .. rest] => continue rest
+      [] => break
+    }
+    let original_content = lines.join("\n")
+    if !original_content.is_blank() {
+      self.submit_fixed_files.push(original_content)
+    }
+  }
 }
 
 ///|
@@ -353,6 +388,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           count: 1,
           lines: [],
           tools: {},
+          submit_fixed_files: [],
         }
         self.tools.set(id, formatter)
         self.lines.push("## 🤖 Spawned subagent for tool: <\{name}>")
