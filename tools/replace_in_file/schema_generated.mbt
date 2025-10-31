@@ -1,6 +1,6 @@
 ///|
 #json.generated
-pub fn Input::get_schema() -> Json {
+fn Input::get_schema() -> Json {
   {
     "type": "object",
     "properties": {
@@ -20,4 +20,3 @@ pub fn Input::get_schema() -> Json {
     "required": ["path", "replace"],
   }
 }
-

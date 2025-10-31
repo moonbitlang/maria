@@ -384,7 +384,7 @@ impl @syntax.IterVisitor for Env with visit_Impl_TopTypeDef(self, decl) {
       quantifiers: @list.empty(),
       return_type: Some(json_ty),
       error_type: NoErrorType,
-      vis: Pub(attr=None, loc~),
+      vis: Default,
       attrs: @list.from_array([attr_generated]),
       doc: @syntax.DocString::empty(),
     }

@@ -1,7 +1,7 @@
 {
   "pre-build": [
     {
-      "command": "moon -C external/derive_json_schema run external/derive_json_schema/main.mbt -- tools/replace_in_file/schema.mbt -o tools/replace_in_file/schema_generated.mbt",
+      "command": "moon -C external/derive_json_schema run external/derive_json_schema/main.mbt -- tools/replace_in_file/schema.mbt -o tools/replace_in_file/schema_generated.mbt && moonfmt -w tools/replace_in_file/schema_generated.mbt",
       "input": "schema.mbt",
       "output": "schema_generated.mbt"
     }
