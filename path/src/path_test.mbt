@@ -98,23 +98,11 @@ test "WinPrefix::VolumeLetter" {
 }
 
 ///|
-test "Windows relative path" {
-  let path = Path::parse(".\\folder\\file")
-  inspect(path, content="folder\\file")
-}
-
-///|
 test "Windows relative root path" {
   let path = Path::parse("\\folder\\file")
   inspect(path, content="\\folder\\file")
   let path = Path::parse("\\..\\folder\\file")
   inspect(path, content="\\folder\\file")
-}
-
-///|
-test "Unix relative path" {
-  let path = Path::parse("./folder/file")
-  inspect(path, content="folder/file")
 }
 
 ///|
@@ -163,6 +151,8 @@ test "Windows path normalization" {
 
 ///|
 test "Unix relative path" {
+  let path = Path::parse("./folder/file")
+  inspect(path, content="folder/file")
   let path = Path::parse("containers/finger_tree")
   inspect(path, content="containers/finger_tree")
   let path = Path::parse("containers/finger_tree/finger_tree.mbt")
@@ -171,6 +161,8 @@ test "Unix relative path" {
 
 ///|
 test "Windows relative path" {
+  let path = Path::parse(".\\folder\\file")
+  inspect(path, content="folder\\file")
   let path = Path::parse("containers\\finger_tree")
   inspect(path, content="containers\\finger_tree")
   let path = Path::parse("containers\\finger_tree\\finger_tree.mbt")

@@ -126,35 +126,103 @@ pub impl Show for WinPrefix with output(self, logger) {
 }
 
 ///|
-pub impl Show for WinPath with output(self, logger) {
+pub fn WinPath::output(
+  self : WinPath,
+  logger : &Logger,
+  kind? : PathKind = Directory,
+) -> Unit {
   let { prefix, directory, file } = self
   logger.write_object(prefix)
-  for component in directory {
-    logger.write_object(component)
-    logger.write_char(BackSlash)
+  match (file, kind) {
+    (Some(file), _) => {
+      for component in directory {
+        logger.write_object(component)
+        logger.write_char(BackSlash)
+      }
+      logger.write_object(file)
+    }
+    (None, Directory) =>
+      for component in directory {
+        logger.write_object(component)
+        logger.write_char(BackSlash)
+      }
+    // output directory without tailing backslash
+    (None, File) =>
+      match directory[:] {
+        [] => ()
+        [x, .. xs] => {
+          logger.write_object(x)
+          for x in xs {
+            logger.write_char(BackSlash)
+            logger.write_object(x)
+          }
+        }
+      }
   }
-  if file is Some(file) {
-    logger.write_object(file)
-  }
+}
+
+///|
+pub impl Show for WinPath with output(self, logger) {
+  WinPath::output(self, logger)
 }
 
 ///|
 const Slash = '/'
 
 ///|
-pub impl Show for UnixPath with output(self, logger) {
+pub fn UnixPath::output(
+  self : UnixPath,
+  logger : &Logger,
+  kind? : PathKind = Directory,
+) -> Unit {
   let { prefix, directory, file } = self
   match prefix {
     Root => logger.write_char(Slash)
     SlashSlash => logger.write_string("//")
     None => ()
   }
-  for component in directory {
-    logger.write_object(component)
-    logger.write_char(Slash)
+  match (file, kind) {
+    (Some(file), _) => {
+      for component in directory {
+        logger.write_object(component)
+        logger.write_char(Slash)
+      }
+      logger.write_object(file)
+    }
+    (None, Directory) =>
+      for component in directory {
+        logger.write_object(component)
+        logger.write_char(Slash)
+      }
+    // output directory without tailing slash
+    (None, File) =>
+      match directory[:] {
+        [] => ()
+        [x, .. xs] => {
+          logger.write_object(x)
+          for x in xs {
+            logger.write_char(Slash)
+            logger.write_object(x)
+          }
+        }
+      }
   }
-  if file is Some(file) {
-    logger.write_object(file)
+}
+
+///|
+pub impl Show for UnixPath with output(self, logger) {
+  UnixPath::output(self, logger)
+}
+
+///|
+pub fn Path::output(
+  self : Path,
+  logger : &Logger,
+  kind? : PathKind = Directory,
+) -> Unit {
+  match self {
+    UPath(path) => UnixPath::output(path, logger, kind~)
+    WPath(path) => WinPath::output(path, logger, kind~)
   }
 }
 
@@ -167,7 +235,11 @@ pub impl Show for Path with output(self, logger) {
 }
 
 ///|
-pub impl Show for PathBuilder with output(self, logger) {
+pub fn PathBuilder::output(
+  self : PathBuilder,
+  logger : &Logger,
+  kind? : PathKind = Directory,
+) -> Unit {
   match self {
     UPathBuilder(prefix~, directory~, basename~, extension~) => {
       match prefix {
@@ -175,33 +247,113 @@ pub impl Show for PathBuilder with output(self, logger) {
         SlashSlash => logger.write_string("//")
         None => ()
       }
-      for component in directory {
-        logger.write_object(component)
-        logger.write_char(Slash)
-      }
-      if basename is Some(base) {
-        logger.write_object(base)
-        if extension is Some(ext) {
-          logger.write_string(".")
-          logger.write_object(ext)
+      match (basename, kind) {
+        (Some(basename), _) => {
+          for component in directory {
+            logger.write_object(component)
+            logger.write_char(Slash)
+          }
+          logger.write_object(basename)
+          if extension is Some(ext) {
+            logger.write_string(".")
+            logger.write_object(ext)
+          }
         }
+        (None, Directory) =>
+          for component in directory {
+            logger.write_object(component)
+            logger.write_char(Slash)
+          }
+        // output directory without tailing slash
+        (None, File) =>
+          match directory[:] {
+            [] => ()
+            [x, .. xs] => {
+              logger.write_object(x)
+              for x in xs {
+                logger.write_char(Slash)
+                logger.write_object(x)
+              }
+            }
+          }
       }
     }
     WPathBuilder(prefix~, directory~, basename~, extension~) => {
       logger.write_object(prefix)
-      for component in directory {
-        logger.write_object(component)
-        logger.write_char(BackSlash)
-      }
-      if basename is Some(base) {
-        logger.write_object(base)
-        if extension is Some(ext) {
-          logger.write_string(".")
-          logger.write_object(ext)
+      match (basename, kind) {
+        (Some(basename), _) => {
+          for component in directory {
+            logger.write_object(component)
+            logger.write_char(BackSlash)
+          }
+          logger.write_object(basename)
+          if extension is Some(ext) {
+            logger.write_string(".")
+            logger.write_object(ext)
+          }
         }
+        (None, Directory) =>
+          for component in directory {
+            logger.write_object(component)
+            logger.write_char(BackSlash)
+          }
+        // output directory without tailing backslash
+        (None, File) =>
+          match directory[:] {
+            [] => ()
+            [x, .. xs] => {
+              logger.write_object(x)
+              for x in xs {
+                logger.write_char(BackSlash)
+                logger.write_object(x)
+              }
+            }
+          }
       }
     }
   }
+}
+
+///|
+pub impl Show for PathBuilder with output(self, logger) {
+  PathBuilder::output(self, logger)
+}
+
+///|
+pub fn Path::to_string(self : Path, kind? : PathKind = Directory) -> String {
+  let logger = StringBuilder::new()
+  Path::output(self, logger, kind~)
+  logger.to_string()
+}
+
+///|
+pub fn WinPath::to_string(
+  self : WinPath,
+  kind? : PathKind = Directory,
+) -> String {
+  let logger = StringBuilder::new()
+  WinPath::output(self, logger, kind~)
+  logger.to_string()
+}
+
+///|
+pub fn UnixPath::to_string(
+  self : UnixPath,
+  kind? : PathKind = Directory,
+) -> String {
+  let logger = StringBuilder::new()
+  UnixPath::output(self, logger, kind~)
+  logger.to_string()
+}
+
+///|
+pub fn PathBuilder::to_string(
+  self : PathBuilder,
+  kind? : PathKind = Directory,
+) -> String {
+  let logger = StringBuilder::new()
+  PathBuilder::output(self, logger, kind~)
+  logger.to_string()
 }
 
 ///|
@@ -263,4 +415,14 @@ test "windows path" {
     directory=Directory::new(["folder"]),
   )
   inspect(path, content="\\\\.\\COM56\\folder\\")
+}
+
+///|
+test "to_string specify File format" {
+  let path = Path::parse("./a/b/")
+  inspect(path, content="a/b/")
+  inspect(path.to_string(kind=File), content="a/b")
+  let path = Path::parse("C:\\a\\b\\")
+  inspect(path, content="C:\\a\\b\\")
+  inspect(path.to_string(kind=File), content="C:\\a\\b")
 }
