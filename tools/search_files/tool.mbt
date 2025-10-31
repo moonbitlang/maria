@@ -269,210 +269,167 @@ async fn search_files_impl(
   cwd : String,
 ) -> @tool.ToolResult[SearchFilesResult] noraise {
   // Extract parameters with validation
-  match args {
-    {
+  guard args
+    is {
       "path": String(search_path),
       "regex": String(search_pattern),
       "kind": String(kind_str),
       ..
-    } => {
-      let context_lines = match args {
-        { "context_lines": Number(cl, ..), .. } => Int::max(0, cl.to_int())
-        _ => 2
-      }
-      let file_pattern = match args {
-        { "file_pattern": String(fp), .. } => fp
-        _ => "*"
-      }
+    } else {
+    return @tool.error(
+      "Error: 'path', 'regex' and 'kind' parameters are required",
+    )
+  }
+  let context_lines = match args {
+    { "context_lines": Number(cl, ..), .. } => Int::max(0, cl.to_int())
+    _ => 2
+  }
+  let file_pattern = match args {
+    { "file_pattern": String(fp), .. } => fp
+    _ => "*"
+  }
 
-      // Parse search kind
-      match SearchKind::from_string(kind_str) {
-        Some(search_kind) => {
-          // Resolve search path
-          let absolute_search_path = if @path.is_absolute(search_path) {
-            search_path
-          } else {
-            @path.join(cwd, search_path)
-          }
-          try {
-            // Handle MoonBit symbol searches
-            match search_kind {
-              MoonbitDefinition => {
-                let path_result = check_path(absolute_search_path)
-                let exists = path_result.0
-                let is_file = path_result.1
-                if not(exists) {
-                  @tool.error("Error: Directory not found: \{search_path}")
-                } else if is_file {
-                  @tool.error(
-                    "Error: Path must be a directory for MoonBit definition search: \{search_path}",
-                  )
-                } else {
-                  let output = goto_definition(
-                    search_pattern, absolute_search_path,
-                  )
-                  let message = if output.contains("No matching symbols found") {
-                    "No matching symbols found for query '\{search_pattern}'"
-                  } else {
-                    "Search completed using fuzzy symbolic search for MoonBit definitions."
-                  }
-                  let result = MoonbitToolResult::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    working_directory: absolute_search_path,
-                    output,
-                    message,
-                  }
-                  @tool.ok(MoonbitToolResult(result))
-                }
-              }
-              MoonbitReferences => {
-                let path_result = check_path(absolute_search_path)
-                let exists = path_result.0
-                let is_file = path_result.1
-                if not(exists) {
-                  @tool.error("Error: Directory not found: \{search_path}")
-                } else if is_file {
-                  @tool.error(
-                    "Error: Path must be a directory for MoonBit references search: \{search_path}",
-                  )
-                } else {
-                  let output = find_references(
-                    search_pattern, absolute_search_path,
-                  )
-                  let message = if output.contains("No references found") {
-                    "No references found for query '\{search_pattern}'"
-                  } else {
-                    "Search completed using MoonBit IDE find-references tool."
-                  }
-                  let result = MoonbitToolResult::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    working_directory: absolute_search_path,
-                    output,
-                    message,
-                  }
-                  @tool.ok(MoonbitToolResult(result))
-                }
-              }
-              Regex => {
-                // Validate path exists
-                let path_result = check_path(absolute_search_path)
-                let exists = path_result.0
-                let is_file = path_result.1
-                if not(exists) {
-                  @tool.error("Error: Search path not found: \{search_path}")
-                } else {
-                  // Compile regex
-                  let regex_result = @regexp.compile(search_pattern) catch {
-                    error =>
-                      return @tool.error("Invalid regex pattern: \{error}")
-                  }
-
-                  // Collect files to search
-                  let files_to_search = if is_file {
-                    [absolute_search_path]
-                  } else {
-                    collect_files_recursive(
-                      absolute_search_path, file_pattern, cwd,
-                    )
-                  }
-
-                  // Search through files
-                  let all_results = []
-                  for file_path in files_to_search {
-                    let file_results = search_in_file(
-                      file_path, regex_result, context_lines, cwd,
-                    )
-                    all_results.append(file_results)
-                  }
-
-                  // Limit to 200 results if needed
-                  let truncated = all_results.length() > 200
-                  let limited_results = if truncated {
-                    let limited = []
-                    for i = 0; i < 200; i = i + 1 {
-                      limited.push(all_results[i])
-                    }
-                    limited
-                  } else {
-                    all_results
-                  }
-                  let message = if all_results.length() == 0 {
-                    "No matches found."
-                  } else if truncated {
-                    "Search completed. Found \{all_results.length()} matches, showing only the first 200."
-                  } else {
-                    "Search completed. Found \{all_results.length()} matches."
-                  }
-                  let result = SearchResultData::{
-                    kind: search_kind,
-                    query: search_pattern,
-                    path: search_path,
-                    file_pattern,
-                    context_lines,
-                    total_matches: all_results.length(),
-                    results: limited_results,
-                    truncated,
-                    message,
-                  }
-                  @tool.ok(SearchResultData(result))
-                }
-              }
-            }
-          } catch {
-            SearchError::FileReadError(path~, error~) =>
-              @tool.error("Could not read file '\{path}': \{error}")
-            SearchError::MoonAnalysisError(query~, error~) =>
-              @tool.error(
-                "Error performing MoonBit analysis for '\{query}': \{error}",
-              )
-            error => @tool.error("Error searching files: \{error}", error~)
-          }
-        }
-        None =>
+  // Parse search kind
+  guard SearchKind::from_string(kind_str) is Some(search_kind) else {
+    @tool.error(
+      "Error: Invalid search kind '\{kind_str}'. Must be 'regex', 'moonbit_definition', or 'moonbit_references'",
+    )
+  }
+  // Resolve search path
+  let absolute_search_path = if @path.is_absolute(search_path) {
+    search_path
+  } else {
+    @path.join(cwd, search_path)
+  }
+  try {
+    // Handle MoonBit symbol searches
+    match search_kind {
+      MoonbitDefinition => {
+        let path_result = check_path(absolute_search_path)
+        let exists = path_result.0
+        let is_file = path_result.1
+        if not(exists) {
+          @tool.error("Error: Directory not found: \{search_path}")
+        } else if is_file {
           @tool.error(
-            "Error: Invalid search kind '\{kind_str}'. Must be 'regex', 'moonbit_definition', or 'moonbit_references'",
+            "Error: Path must be a directory for MoonBit definition search: \{search_path}",
           )
+        } else {
+          let output = goto_definition(search_pattern, absolute_search_path)
+          let message = if output.contains("No matching symbols found") {
+            "No matching symbols found for query '\{search_pattern}'"
+          } else {
+            "Search completed using fuzzy symbolic search for MoonBit definitions."
+          }
+          let result = MoonbitToolResult::{
+            kind: search_kind,
+            query: search_pattern,
+            path: search_path,
+            working_directory: absolute_search_path,
+            output,
+            message,
+          }
+          @tool.ok(MoonbitToolResult(result))
+        }
+      }
+      MoonbitReferences => {
+        let path_result = check_path(absolute_search_path)
+        let exists = path_result.0
+        let is_file = path_result.1
+        if not(exists) {
+          @tool.error("Error: Directory not found: \{search_path}")
+        } else if is_file {
+          @tool.error(
+            "Error: Path must be a directory for MoonBit references search: \{search_path}",
+          )
+        } else {
+          let output = find_references(search_pattern, absolute_search_path)
+          let message = if output.contains("No references found") {
+            "No references found for query '\{search_pattern}'"
+          } else {
+            "Search completed using MoonBit IDE find-references tool."
+          }
+          let result = MoonbitToolResult::{
+            kind: search_kind,
+            query: search_pattern,
+            path: search_path,
+            working_directory: absolute_search_path,
+            output,
+            message,
+          }
+          @tool.ok(MoonbitToolResult(result))
+        }
+      }
+      Regex => {
+        // Validate path exists
+        let path_result = check_path(absolute_search_path)
+        let exists = path_result.0
+        let is_file = path_result.1
+        if not(exists) {
+          @tool.error("Error: Search path not found: \{search_path}")
+        } else {
+          // Compile regex
+          let regex_result = @regexp.compile(search_pattern) catch {
+            error => return @tool.error("Invalid regex pattern: \{error}")
+          }
+
+          // Collect files to search
+          let files_to_search = if is_file {
+            [absolute_search_path]
+          } else {
+            collect_files_recursive(absolute_search_path, file_pattern, cwd)
+          }
+
+          // Search through files
+          let all_results = []
+          for file_path in files_to_search {
+            let file_results = search_in_file(
+              file_path, regex_result, context_lines, cwd,
+            )
+            all_results.append(file_results)
+          }
+
+          // Limit to 200 results if needed
+          let truncated = all_results.length() > 200
+          let limited_results = if truncated {
+            let limited = []
+            for i = 0; i < 200; i = i + 1 {
+              limited.push(all_results[i])
+            }
+            limited
+          } else {
+            all_results
+          }
+          let message = if all_results.length() == 0 {
+            "No matches found."
+          } else if truncated {
+            "Search completed. Found \{all_results.length()} matches, showing only the first 200."
+          } else {
+            "Search completed. Found \{all_results.length()} matches."
+          }
+          let result = SearchResultData::{
+            kind: search_kind,
+            query: search_pattern,
+            path: search_path,
+            file_pattern,
+            context_lines,
+            total_matches: all_results.length(),
+            results: limited_results,
+            truncated,
+            message,
+          }
+          @tool.ok(SearchResultData(result))
+        }
       }
     }
-    _ =>
-      @tool.error("Error: 'path', 'regex' and 'kind' parameters are required")
+  } catch {
+    SearchError::FileReadError(path~, error~) =>
+      @tool.error("Could not read file '\{path}': \{error}")
+    SearchError::MoonAnalysisError(query~, error~) =>
+      @tool.error("Error performing MoonBit analysis for '\{query}': \{error}")
+    error => @tool.error("Error searching files: \{error}", error~)
   }
 }
-
-///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "context_lines": {
-      "type": "number",
-      "description": "Number of context lines to show before and after each match. Defaults to 2.",
-      "default": 2,
-    },
-    "file_pattern": {
-      "type": "string",
-      "description": "Glob pattern to filter files (e.g., '*.ts', '*.js', '*.py', etc.). Defaults to '*' to search all files.",
-      "default": "*",
-    },
-    "kind": {
-      "type": "string",
-      "enum": ["regex", "moonbit_definition", "moonbit_references"],
-      "description": "The kind of search to perform. 'regex' performs traditional regex-based file content search. 'moonbit_definition' performs fuzzy symbolic search to find MoonBit symbol definitions - note that when using 'moonbit_definition', the regex parameter can be imprecise as the system will perform fuzzy search to find the most relevant symbols. 'moonbit_references' finds all references to a MoonBit symbol using the moon IDE tool.",
-    },
-    "path": {
-      "type": "string",
-      "description": "The path of the directory or file to search in, relative to the current working directory.",
-    },
-    "regex": {
-      "type": "string",
-      "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
-    },
-  },
-  "required": ["path", "regex", "kind"],
-})
 
 ///|
 /// Main search files tool implementation
