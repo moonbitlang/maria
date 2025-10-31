@@ -70,3 +70,91 @@ async test "render_diagnostics" (t : @test.T) {
     )
   })
 }
+
+///|
+async test "render-diagnostics-context" (t : @test.T) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
+      ),
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
+      ),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|fn skip_whitespace(lexer : Lexer) -> Unit {
+          #|  loop {
+          #|    match lexer.ch {
+          #|      Some(' ' | '\t' | '\r' | '\n') => { read_char(lexer) }
+          #|      _ => { break }
+          #|    }
+          #|  }
+          #|}
+        ),
+      ),
+    ])
+    let moon = @moon.Module::load(mock.cwd.path())
+    moon.check()
+    let diagnostics = moon.diagnostics().collect()
+    inspect(
+      mock.show(@moon.render_diagnostics(diagnostics, context=1, limit=10)),
+      content=(
+        #|error[4032]: (mock:cwd)/example.mbt:2:28-33: The type Lexer is undefined.
+        #|   │ ///|
+        #| 2 │ fn skip_whitespace(lexer : Lexer) -> Unit {
+        #|   │                            ^^^^^
+        #|   │   loop {
+        #|
+        #|error[4021]: (mock:cwd)/example.mbt:5:43-52: The value identifier read_char is unbound.
+        #|   │     match lexer.ch {
+        #| 5 │       Some(' ' | '\t' | '\r' | '\n') => { read_char(lexer) }
+        #|   │                                           ^^^^^^^^^
+        #|   │       _ => { break }
+        #|
+        #|error[4102]: (mock:cwd)/example.mbt:6:14-19: 'break' outside of a loop
+        #|   │       Some(' ' | '\t' | '\r' | '\n') => { read_char(lexer) }
+        #| 6 │       _ => { break }
+        #|   │              ^^^^^
+        #|   │     }
+        #|
+        #|error[3002]: (mock:cwd)/example.mbt:9:1-2: Parse error, unexpected token `}`, you may expect `{`.
+        #|   │   }
+        #| 9 │ }
+        #|   │ ^
+        #|
+        #|warning[0001]: (mock:cwd)/example.mbt:2:4-19: Warning: Unused function 'skip_whitespace'
+        #|   │ ///|
+        #| 2 │ fn skip_whitespace(lexer : Lexer) -> Unit {
+        #|   │    ^^^^^^^^^^^^^^^
+        #|   │   loop {
+        #|
+        #|warning[0018]: (mock:cwd)/example.mbt:3:3-9:2: Warning: There is no [continue] in this loop expression, so [loop] is useless here.
+        #|   │ fn skip_whitespace(lexer : Lexer) -> Unit {
+        #| 3 │   loop {
+        #|   │   ^^^^^^
+        #|   ┆
+        #| 9 │ }
+        #|   │ ^
+      ),
+    )
+    inspect(
+      mock.show(@moon.render_diagnostics(diagnostics, limit=1)),
+      content=(
+        #|error[4032]: (mock:cwd)/example.mbt:2:28-33: The type Lexer is undefined.
+        #| 2 │ fn skip_whitespace(lexer : Lexer) -> Unit {
+        #|   │                            ^^^^^
+        #|
+        #|There are 3 more error(s) and 2 more warning(s) not shown due to diagnostic limit.
+      ),
+    )
+  })
+}

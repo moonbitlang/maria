@@ -2,6 +2,7 @@
 pub async fn render_diagnostics(
   diagnostics : ArrayView[Diagnostic],
   limit~ : Int,
+  context? : Int = 0,
   overlay? : Map[String, String] = {},
   cwd? : String,
 ) -> String noraise {
@@ -82,19 +83,25 @@ pub async fn render_diagnostics(
       }
     }
     if diagnostic.loc.start.line != diagnostic.loc.end.line {
-      let number_width = @cmp.maximum(
-        diagnostic.loc.start.line.to_string().length(),
-        diagnostic.loc.end.line.to_string().length(),
+      let start_line = diagnostic.loc.start.line
+      let end_line = diagnostic.loc.end.line
+      let start_line_number = start_line.to_string()
+      let end_line_number = end_line.to_string()
+      let context_start_line = @cmp.maximum(1, start_line - context)
+      let context_end_line = @cmp.minimum(
+        lines.length() - 1,
+        end_line + context,
       )
-      let start_line_number = diagnostic.loc.start.line
-        .to_string()
-        .pad_start(number_width, ' ')
-      let end_line_number = diagnostic.loc.end.line
-        .to_string()
-        .pad_start(number_width, ' ')
+      let number_width = context_end_line.to_string().length()
+      let number_padding = " ".repeat(number_width)
+      let start_line_number = start_line_number.pad_start(number_width, ' ')
+      let end_line_number = end_line_number.pad_start(number_width, ' ')
+      for i in context_start_line..<start_line {
+        let line_text = lines[i - 1]
+        message_lines.push(" \{number_padding} │ \{line_text}")
+      }
       let start_line_text = lines[diagnostic.loc.start.line - 1]
       message_lines.push(" \{start_line_number} │ \{start_line_text}")
-      let number_padding = " ".repeat(number_width)
       let text_padding = " ".repeat(diagnostic.loc.start.col - 1)
       let start_line_carets = "^".repeat(
         start_line_text.length() - diagnostic.loc.start.col + 1,
@@ -109,17 +116,35 @@ pub async fn render_diagnostics(
       message_lines.push(" \{end_line_number} │ \{end_line_text}")
       let end_line_carets = "^".repeat(diagnostic.loc.end.col - 1)
       message_lines.push(" \{number_padding} │ \{end_line_carets}")
+      for i in (end_line + 1)..=context_end_line {
+        let line_text = lines[i - 1]
+        message_lines.push(" \{number_padding} │ \{line_text}")
+      }
     } else {
-      let line_number = diagnostic.loc.start.line.to_string()
-      let line_text = lines[diagnostic.loc.start.line - 1]
-      message_lines.push(" \{line_number} │ \{line_text}")
-      let number_width = line_number.length()
+      let start_line = diagnostic.loc.start.line
+      let context_start_line = @cmp.maximum(1, start_line - context)
+      let context_end_line = @cmp.minimum(
+        lines.length() - 1,
+        start_line + context,
+      )
+      let number_width = context_end_line.to_string().length()
       let number_padding = " ".repeat(number_width)
+      for i in context_start_line..<start_line {
+        let line_text = lines[i - 1]
+        message_lines.push(" \{number_padding} │ \{line_text}")
+      }
+      let start_line_number = start_line.to_string()
+      let start_line_text = lines[start_line - 1]
+      message_lines.push(" \{start_line_number} │ \{start_line_text}")
       let caret_text = "^".repeat(
         @cmp.maximum(diagnostic.loc.end.col - diagnostic.loc.start.col, 1),
       )
       let text_padding = " ".repeat(diagnostic.loc.start.col - 1)
       message_lines.push(" \{number_padding} │ \{text_padding}\{caret_text}")
+      for i in (start_line + 1)..=context_end_line {
+        let line_text = lines[i - 1]
+        message_lines.push(" \{number_padding} │ \{line_text}")
+      }
     }
     diagnostic_texts.push(message_lines.join("\n"))
   }
