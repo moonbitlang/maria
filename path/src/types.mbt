@@ -116,16 +116,16 @@ pub struct File[Component] {
 } derive(ToJson, Hash, Eq)
 
 ///|
-pub typealias Directory[WinPathComponent] as WinDirectory
+pub type WinDirectory = Directory[WinPathComponent]
 
 ///|
-pub typealias Directory[UnixPathComponent] as UnixDirectory
+pub type UnixDirectory = Directory[UnixPathComponent]
 
 ///|
-pub typealias File[WinPathComponent] as WinFile
+pub type WinFile = File[WinPathComponent]
 
 ///|
-pub typealias File[UnixPathComponent] as UnixFile
+pub type UnixFile = File[UnixPathComponent]
 
 ///|
 struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
