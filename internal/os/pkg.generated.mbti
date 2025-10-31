@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/os"
 
+import(
+  "moonbitlang/path"
+)
+
 // Values
 fn args() -> Array[String]
 
@@ -13,6 +17,8 @@ fn getenv(StringView) -> String? raise
 fn gethostname() -> String raise
 
 fn home() -> String raise
+
+let path_style : @path.PathStyle
 
 fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
 

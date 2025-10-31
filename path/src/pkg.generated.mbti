@@ -68,6 +68,13 @@ pub(all) enum PathKind {
   Directory
 }
 
+pub(all) enum PathStyle {
+  Win
+  Unix
+  Unknown
+}
+impl Show for PathStyle
+
 pub struct UnixPath {
   prefix : UnixPrefix
   directory : Directory[UnixPathComponent]
