@@ -151,6 +151,24 @@ fn build_fixing_system_message() -> String {
     #|6. Call `attempt_completion` when done.
     #|
     #|Your goal is to provide a corrected MoonBit file that compiles without syntax errors.
+    #|
+    #|===
+    #|
+    #|COMMON SYNTAX ERRORS AND FIXES
+    #|
+    #|1. Wrongly added question marks to express error propagation - Errors in MoonBit are propagated by default, so question marks are not needed. Remove them to fix such errors.
+    #|
+    #|   - ❌ Incorrect: `let parsed_string = parse_string(source)?`
+    #|   - ✅ Correct: `let parsed_string = parse_string(source)`
+    #|
+    #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. Use `for { ... }` or `while true { ... }` instead.
+    #|
+    #|3. Invalid use of range pattern, commonly seen as `a..b`. For now, MoonBit only supports the following two kinds of range pattern:
+    #|
+    #|   - Inclusive range: `start..=end`
+    #|   - Exclusive range: `start..<end`
+    #|
+    #|   The syntax errors often arise when using just `..` without `=` or `<`. Replace `..` with either `..=` or `..<` as appropriate.
   )
 }
 
