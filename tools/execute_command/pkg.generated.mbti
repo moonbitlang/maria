@@ -17,10 +17,6 @@ pub enum CommandResult {
   Foreground(command~ : String, status~ : Int, output~ : String, truncated~ : Bool, total_lines~ : Int, timeout~ : Int)
   Background(command~ : String, job_id~ : @job.Id)
 }
-fn CommandResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn CommandResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn CommandResult::to_json(Self) -> Json // from trait `ToJson`
-fn CommandResult::to_string(Self) -> String // from trait `Show`
 impl Show for CommandResult
 impl ToJson for CommandResult
 impl @json.FromJson for CommandResult

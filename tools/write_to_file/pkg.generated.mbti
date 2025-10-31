@@ -15,10 +15,6 @@ fn new(String) -> @tool.Tool[Result]
 
 // Types and methods
 type Result
-fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Result::output(Self, &Logger) -> Unit // from trait `Show`
-fn Result::to_json(Self) -> Json // from trait `ToJson`
-fn Result::to_string(Self) -> String // from trait `Show`
 impl Show for Result
 impl ToJson for Result
 impl @json.FromJson for Result

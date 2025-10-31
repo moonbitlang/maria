@@ -21,7 +21,6 @@ fn Pruner::new(safe_zone_tokens~ : Int) -> Self raise
 fn Pruner::prune_messages(Self, Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Array[@openai.ChatCompletionMessageParam] raise
 
 type Range
-fn Range::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 impl @json.FromJson for Range
 
 // Type aliases

@@ -5,9 +5,6 @@ package "moonbitlang/maria/cmd/main/argument"
 
 // Errors
 pub(all) suberror InvalidArgument String
-fn InvalidArgument::output(Self, &Logger) -> Unit // from trait `Show`
-fn InvalidArgument::to_json(Self) -> Json // from trait `ToJson`
-fn InvalidArgument::to_string(Self) -> String // from trait `Show`
 impl Show for InvalidArgument
 impl ToJson for InvalidArgument
 

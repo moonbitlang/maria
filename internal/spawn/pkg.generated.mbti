@@ -35,14 +35,6 @@ async fn Manager::start(Self) -> Unit
 async fn Manager::wait(Self, Pid) -> Int
 
 type Pid
-fn Pid::equal(Self, Self) -> Bool // from trait `Eq`
-fn Pid::hash(Self) -> Int // from trait `Hash`
-fn Pid::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn Pid::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Pid::output(Self, &Logger) -> Unit // from trait `Show`
-fn Pid::to_json(Self) -> Json // from trait `ToJson`
-fn Pid::to_string(Self) -> String // from trait `Show`
 impl Eq for Pid
 impl Hash for Pid
 impl Show for Pid

@@ -15,10 +15,6 @@ let prompt : String
 
 // Types and methods
 type SearchFilesResult
-fn SearchFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn SearchFilesResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn SearchFilesResult::to_json(Self) -> Json // from trait `ToJson`
-fn SearchFilesResult::to_string(Self) -> String // from trait `Show`
 impl Show for SearchFilesResult
 impl ToJson for SearchFilesResult
 impl @json.FromJson for SearchFilesResult

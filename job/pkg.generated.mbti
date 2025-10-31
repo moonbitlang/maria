@@ -12,15 +12,6 @@ pub suberror InvalidJobId Id
 
 // Types and methods
 type Id
-fn Id::equal(Self, Self) -> Bool // from trait `Eq`
-fn Id::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Id::hash(Self) -> Int // from trait `Hash`
-fn Id::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#deprecated
-fn Id::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Id::output(Self, &Logger) -> Unit // from trait `Show`
-fn Id::to_json(Self) -> Json // from trait `ToJson`
-fn Id::to_string(Self) -> String // from trait `Show`
 impl Eq for Id
 impl Hash for Id
 impl Show for Id
@@ -38,7 +29,6 @@ pub struct Job {
   // private fields
 }
 fn Job::status(Self) -> Int?
-fn Job::to_json(Self) -> Json // from trait `ToJson`
 async fn Job::wait(Self) -> Int
 impl ToJson for Job
 

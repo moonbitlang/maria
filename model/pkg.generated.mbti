@@ -25,10 +25,8 @@ pub struct Model {
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
 }
-fn Model::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
 #as_free_fn
 fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
-fn Model::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Model
 impl @json.FromJson for Model
 
@@ -39,8 +37,6 @@ pub(all) enum Provider {
 pub(all) enum Type {
   SaaS(Provider)
 }
-fn Type::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn Type::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Type
 impl @json.FromJson for Type
 

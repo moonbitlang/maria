@@ -13,10 +13,6 @@ fn new(String) -> @tool.Tool[CoverageResult]
 
 // Types and methods
 type CoverageResult
-fn CoverageResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn CoverageResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn CoverageResult::to_json(Self) -> Json // from trait `ToJson`
-fn CoverageResult::to_string(Self) -> String // from trait `Show`
 impl Show for CoverageResult
 impl ToJson for CoverageResult
 impl @json.FromJson for CoverageResult

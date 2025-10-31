@@ -14,10 +14,6 @@ fn new(@file.Manager) -> @tool.Tool[ListFilesResult]
 
 // Types and methods
 type ListFilesResult
-fn ListFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError // from trait `@json.FromJson`
-fn ListFilesResult::output(Self, &Logger) -> Unit // from trait `Show`
-fn ListFilesResult::to_json(Self) -> Json // from trait `ToJson`
-fn ListFilesResult::to_string(Self) -> String // from trait `Show`
 impl Show for ListFilesResult
 impl ToJson for ListFilesResult
 impl @json.FromJson for ListFilesResult

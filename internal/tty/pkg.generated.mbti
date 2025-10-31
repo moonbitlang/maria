@@ -16,7 +16,6 @@ pub struct Size {
   row : Int
   col : Int
 }
-fn Size::to_json(Self) -> Json // from trait `ToJson`
 impl ToJson for Size
 
 // Type aliases

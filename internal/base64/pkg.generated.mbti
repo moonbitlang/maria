@@ -10,8 +10,6 @@ fn encode(BytesView, url_safe? : Bool) -> String
 pub suberror DecodeError {
   InvalidChar(Char)
 }
-fn DecodeError::output(Self, &Logger) -> Unit // from trait `Show`
-fn DecodeError::to_string(Self) -> String // from trait `Show`
 impl Show for DecodeError
 
 // Types and methods
