@@ -36,7 +36,7 @@ async test "replace_in_file/replace" (t : @test.T) {
       "Ok",
       {
         "path": "file.txt",
-        "operation": "updated",
+        "operation": "Updated",
         "bytes_written": 11,
         "search_used": true,
         "message": "Changes applied to file.txt",
@@ -90,7 +90,7 @@ async test "replace_in_file/search-replace" (t : @test.T) {
       "Ok",
       {
         "path": "file.txt",
-        "operation": "updated",
+        "operation": "Updated",
         "bytes_written": 36,
         "search_used": true,
         "message": "Changes applied to file.txt",
