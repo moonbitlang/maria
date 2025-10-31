@@ -1,10 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/main/conversation"
+package "moonbitlang/maria/cmd/main/migrator"
 
 // Values
-async fn list() -> Unit
-
-async fn show(ArrayView[String]) -> Unit
+async fn migrate(ArrayView[String]) -> Unit
 
 // Errors
 
