@@ -154,6 +154,7 @@ fn win_path(
 pub fn Path::parse(
   path : StringView,
   kind? : PathKind = File,
+  style? : PathStyle = Unknown,
 ) -> Path raise PathError {
   lexmatch path with longest {
     //-----------------------------------------------------------------------------
@@ -418,7 +419,28 @@ pub fn Path::parse(
       )
       UPath(UnixPath::new(prefix=SlashSlash, directory~, file?))
     }
-    _ => raise PathError(start=0, message="Invalid path format")
+    non_prefix_hint_path =>
+      match style {
+        Unix => {
+          let (directory, file) = parse_unix_relative_path(
+            non_prefix_hint_path,
+            start=0,
+            root_eliminate=false,
+            kind~,
+          )
+          UPath(UnixPath::new(directory~, file?))
+        }
+        Win => {
+          let (directory, file) = parse_windows_relative_path(
+            non_prefix_hint_path,
+            start=0,
+            root_eliminate=false,
+            kind~,
+          )
+          win_path(directory~, file?)
+        }
+        Unknown => raise PathError(start=0, message="Invalid path format")
+      }
   }
 }
 
