@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/main/executor"
+package "moonbitlang/maria/cmd/main/executor"
 
 // Values
 async fn execute(prompt~ : String, model? : String) -> Unit

@@ -1,7 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/main"
+package "moonbitlang/maria/cmd/main/conversation"
 
 // Values
+async fn list() -> Unit
+
+async fn show(ArrayView[String]) -> Unit
 
 // Errors
 
