@@ -45,7 +45,7 @@ fn parse_windows_relative_path(
       }
       // pattern: <dot>
       "\." => break None
-      ((("[^\\]+" as base) "\." ("[^.\\]+" as extension)) as filename) =>
+      ((("\.?[^\\]+" as base) "\." ("[^.\\]+" as extension)) as filename) =>
         match kind {
           File => break Some(WinFile::new(base~, extension~))
           Directory => {
@@ -53,7 +53,7 @@ fn parse_windows_relative_path(
             break None
           }
         }
-      ("[^\\.]+" as base) =>
+      ("\.?[^\\.]+" as base) =>
         match kind {
           File => break Some(WinFile::new(base~))
           Directory => {
@@ -115,7 +115,7 @@ fn parse_unix_relative_path(
       }
       // pattern: <dot>
       "\." => break None
-      (("[^/]+" as base) "\." ("[^/]+" as extension)) =>
+      (("\.?[^/]+" as base) "\." ("[^/]+" as extension)) =>
         match kind {
           File => break Some(UnixFile::new(base~, extension~))
           Directory => {
@@ -125,7 +125,7 @@ fn parse_unix_relative_path(
             break None
           }
         }
-      ("[^/.]+" as base) =>
+      ("\.?[^/.]+" as base) =>
         match kind {
           File => break Some(UnixFile::new(base~))
           Directory => {
