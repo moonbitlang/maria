@@ -9,7 +9,8 @@
     "moonbitlang/async",
     "moonbitlang/maria/internal/git",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/internal/uuid"
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/fuzzy"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

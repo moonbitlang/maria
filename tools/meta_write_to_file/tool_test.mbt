@@ -448,3 +448,78 @@ async test "search-replace" (t : @test.T) {
     |> @json.inspect(content=true)
   })
 }
+
+///|
+async test "fuzzy-search" (t : @test.T) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = @model.new(
+      api_key~,
+      base_url="https://openrouter.ai/api/v1",
+      name="qwen/qwen3-coder-plus",
+      safe_zone_tokens=200000,
+    )
+    let _ = mock.add_file(
+      "moon.mod.json",
+      content=Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
+      ),
+    )
+    let _ = mock.add_file(
+      "moon.pkg.json",
+      content=Json::object({ "is-main": true }).stringify(indent=2),
+    )
+    let main_mbt_file = mock.add_file(
+      "main.mbt",
+      content=(
+        #|fn main {
+        #|  println("Hello, world!")
+        #|
+        #|  println("This is a test.")
+        #|}
+      ),
+    )
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
+    agent.add_tools([
+      @replace_in_file.new(file_manager).to_agent_tool(),
+      @read_file.new(file_manager).to_agent_tool(),
+      @meta_write_to_file.new(agent).to_agent_tool(),
+    ])
+    let result = @tool.Tool::call(@meta_write_to_file.new(agent), {
+      "path": "main.mbt",
+      "search": (
+        #|fn main {
+        #|  println("Hello, world!")    
+        #|  
+        #|  println("This is a test.")    
+        #|}
+      ),
+      "replace": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+        #|
+      ),
+      "description": "Remove the second println statement from the main function in main.mbt.",
+    })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(
+      output.message,
+      content="Changes applied and formatted successfully to main.mbt",
+    )
+    let main_mbt_text = main_mbt_file.read().trim_space()
+    inspect(
+      main_mbt_text,
+      content=(
+        #|///|
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+      ),
+    )
+  })
+}
