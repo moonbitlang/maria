@@ -4,6 +4,7 @@ pub enum Event {
   PreConversation
   PostConversation
   MessageAdded(@openai.ChatCompletionMessageParam)
+  ToolAdded(@tool.ToolDesc)
   PreToolCall(@openai.ChatCompletionMessageToolCall)
   PostToolCall(
     @openai.ChatCompletionMessageToolCall,

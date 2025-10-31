@@ -128,13 +128,20 @@ async fn Agent::execute_tool(
 }
 
 ///|
-pub fn Agent::add_tools(
+pub async fn Agent::add_tools(
   agent : Agent,
   tools : Array[@tool.AgentTool],
-) -> Unit noraise {
+) -> Unit {
   for tool in tools {
-    agent.tools[tool.desc().name] = tool
+    agent.add_agent_tool(tool)
   }
+}
+
+///|
+async fn Agent::add_agent_tool(agent : Agent, tool : @tool.AgentTool) -> Unit {
+  let desc = tool.desc()
+  agent.tools[desc.name] = tool
+  agent.emit(ToolAdded(desc))
 }
 
 ///|
@@ -145,11 +152,11 @@ pub fn Agent::add_tools(
 /// * `agent` : The agent instance to add the tool to.
 /// * `tool` : The tool to be added, which will be indexed by its name for
 ///   future tool calls.
-pub fn[Output : ToJson + Show] Agent::add_tool(
+pub async fn[Output : ToJson + Show] Agent::add_tool(
   agent : Agent,
   tool : @tool.Tool[Output],
-) -> Unit noraise {
-  agent.tools[tool.desc.name] = tool.to_agent_tool()
+) -> Unit {
+  agent.add_agent_tool(tool.to_agent_tool())
 }
 
 ///|
@@ -274,6 +281,14 @@ async fn Agent::emit(agent : Agent, event : Event) -> Unit {
     PostConversation => agent.logger.info("PostConversation", {})
     MessageAdded(message) =>
       agent.logger.info("MessageAdded", { "message": message.to_json() })
+    ToolAdded(tool_desc) =>
+      agent.logger.info("ToolAdded", {
+        "tool": {
+          "name": tool_desc.name,
+          "description": tool_desc.description,
+          "schema": tool_desc.schema.to_json(),
+        },
+      })
     RequestCompleted(usage~, message~) =>
       agent.logger.info("RequestCompleted", {
         "usage": usage.to_json(),
