@@ -1,13 +1,9 @@
 ///|
 async test "create-file" (t : @test.T) {
   @mock.run(t, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key="")
+    // this tool requires agent to fix syntax errors, but the direct call just works
+    // so the agent is not running
     mock.add_files([
       (
         "moon.mod.json",
@@ -69,13 +65,8 @@ async test "create-file" (t : @test.T) {
 ///|
 async test "no-op-if-non-moonbit" (t : @test.T) {
   @mock.run(t, timeout=300_000, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key="")
+    // no agent needed since no syntax fixing is required
     let moon_mod_file = mock.add_file("moon.mod.json") // empty file
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -86,8 +77,8 @@ async test "no-op-if-non-moonbit" (t : @test.T) {
     ])
     let result = @tool.call(@meta_write_to_file.new(agent), {
       "path": "moon.mod.json",
-      "replace": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-        indent=2,
+      "replace": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
       "description": "Update the moon.mod.json file to ensure it has the correct name and version.",
     })
@@ -101,10 +92,7 @@ async test "no-op-if-non-moonbit" (t : @test.T) {
     inspect(
       moon_mod_file.read().trim_space(),
       content=(
-        #|{
-        #|  "name": "example",
-        #|  "version": "0.1.0"
-        #|}
+        #|{ "name": "example", "version": "0.1.0" }
       ),
     )
   })
@@ -113,21 +101,20 @@ async test "no-op-if-non-moonbit" (t : @test.T) {
 ///|
 async test "no-op-if-no-syntax-error" (t : @test.T) {
   @mock.run(t, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key="")
     mock.add_files([
       (
         "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
+        (
+          #| { "name": "example", "version": "0.1.0" }
         ),
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+      (
+        "moon.pkg.json",
+        (
+          #|{ "is-main": true }
+        ),
+      ),
     ])
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
@@ -202,12 +189,7 @@ async test "no-op-if-no-syntax-error" (t : @test.T) {
 async test "fix-syntax-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key~)
     mock.add_files([
       (
         "moon.mod.json",
@@ -243,6 +225,7 @@ async test "fix-syntax-error" (t : @test.T) {
         #|}
         #|
         #|fn main() {
+        #|
         #|  let color : Color = Blue
         #|  println(color.to_string())
         #|}
@@ -258,136 +241,54 @@ async test "fix-syntax-error" (t : @test.T) {
     )
     // TODO: verify the content is correct by running the program?
     let main_mbt_text = main_mbt_file.read().trim_space()
-    @regexp.compile(regexp_string, flags="m").execute(main_mbt_text).matched()
-    |> @json.inspect(content=true)
+    // The output is formatted, so we expect it will be resonasbly stable
+    inspect(
+      main_mbt_text,
+      content=(
+        #|///|
+        #|enum Color {
+        #|  Red
+        #|  Green
+        #|  Blue
+        #|}
+        #|
+        #|///|
+        #|fn Color::to_string(self : Color) -> String {
+        #|  match self {
+        #|    Red => "red"
+        #|    Green => "green"
+        #|    Blue => "blue"
+        #|  }
+        #|}
+        #|
+        #|///|
+        #|fn main {
+        #|  let color : Color = Blue
+        #|  println(color.to_string())
+        #|}
+      ),
+    )
   })
-}
-
-///|
-let regexp_string : String =
-  #|\/\/\/\|\s*
-  #|enum Color \{\s*
-  #|  Red\s*
-  #|  Green\s*
-  #|  Blue\s*
-  #|\}\s*
-  #|\s*
-  #|\/\/\/\|\s*
-  #|fn Color::to_string\(self : Color\) -> String \{\s*
-  #|  match self \{\s*
-  #|    (Color::)?Red => "red"\s*
-  #|    (Color::)?Green => "green"\s*
-  #|    (Color::)?Blue => "blue"\s*
-  #|  \}\s*
-  #|\}\s*
-  #|\s*
-  #|\/\/\/\|\s*
-  #|fn main \{\s*
-  #|  let color : Color = (Color::)?Blue\s*
-  #|  println\(color\.to_string\(\)\)\s*
-  #|\}\s*
-
-///|
-test "regexp" {
-  let regexp = @regexp.compile(regexp_string, flags="m")
-  regexp
-  .execute(
-    (
-      #|///|
-      #|enum Color {
-      #|  Red
-      #|  Green
-      #|  Blue
-      #|}
-      #|
-      #|///|
-      #|fn Color::to_string(self : Color) -> String {
-      #|  match self {
-      #|    Red => "red"
-      #|    Green => "green"
-      #|    Blue => "blue"
-      #|  }
-      #|}
-    ),
-  )
-  .matched()
-  |> @json.inspect(content=false)
-  regexp
-  .execute(
-    (
-      #|///|
-      #|enum Color {
-      #|  Red
-      #|  Green
-      #|  Blue
-      #|}
-      #|
-      #|///|
-      #|fn Color::to_string(self : Color) -> String {
-      #|  match self {
-      #|    Red => "red"
-      #|    Green => "green"
-      #|    Blue => "blue"
-      #|  }
-      #|}
-      #|
-      #|///|
-      #|fn main {
-      #|  let color : Color = Blue
-      #|  println(color.to_string())
-      #|}
-    ),
-  )
-  .matched()
-  |> @json.inspect(content=true)
-  regexp
-  .execute(
-    (
-      #|///|
-      #|enum Color {
-      #|  Red
-      #|  Green
-      #|  Blue
-      #|}
-      #|
-      #|///|
-      #|fn Color::to_string(self : Color) -> String {
-      #|  match self {
-      #|    Color::Red => "red"
-      #|    Color::Green => "green"
-      #|    Color::Blue => "blue"
-      #|  }
-      #|}
-      #|
-      #|///|
-      #|fn main {
-      #|  let color : Color = Color::Blue
-      #|  println(color.to_string())
-      #|}
-    ),
-  )
-  .matched()
-  |> @json.inspect(content=true)
 }
 
 ///|
 async test "search-replace" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key~)
     mock.add_files([
       (
         "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
+        (
+          #|{ "name": "example", "version": "0.1.0" }
         ),
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+      (
+        "moon.pkg.json",
+        (
+          #|{ "is-main": true }
+        ),
+      ),
     ])
     let main_mbt_file = mock.add_file(
       "main.mbt",
@@ -441,29 +342,53 @@ async test "search-replace" (t : @test.T) {
       content="Changes applied and formatted successfully to main.mbt",
     )
     let main_mbt_text = main_mbt_file.read().trim_space()
-    @regexp.compile(regexp_string, flags="m").execute(main_mbt_text).matched()
-    |> @json.inspect(content=true)
+    inspect(
+      main_mbt_text,
+      content=(
+        #|///|
+        #|enum Color {
+        #|  Red
+        #|  Green
+        #|  Blue
+        #|}
+        #|
+        #|///|
+        #|fn Color::to_string(self : Color) -> String {
+        #|  match self {
+        #|    Red => "red"
+        #|    Green => "green"
+        #|    Blue => "blue"
+        #|  }
+        #|}
+        #|
+        #|///|
+        #|fn main {
+        #|  let color : Color = Blue
+        #|  println(color.to_string())
+        #|}
+      ),
+    )
   })
 }
 
 ///|
 async test "fuzzy-search" (t : @test.T) {
   @mock.run(t, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = @model.open_router_model(api_key="")
+    // no syntax error triggered
     mock.add_files([
       (
         "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
+        (
+          #|{ "name": "example", "version": "0.1.0" }
         ),
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+      (
+        "moon.pkg.json",
+        (
+          #|{ "is-main": true }
+        ),
+      ),
     ])
     let main_mbt_file = mock.add_file(
       "main.mbt",

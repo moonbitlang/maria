@@ -58,3 +58,18 @@ pub fn Model::new(
     supports_anthropic_prompt_caching,
   }
 }
+
+///|
+/// Deafult to qwen3-coder-plus model on OpenRouter
+/// for testing
+pub fn open_router_model(  
+  api_key~ : String,
+  name~ : String = "qwen/qwen3-coder-plus",
+) -> Model {
+  Model::new(
+    api_key~,
+    base_url = "https://openrouter.ai/api/v1",
+    name~,
+    safe_zone_tokens = 200_000,
+  )
+}  
