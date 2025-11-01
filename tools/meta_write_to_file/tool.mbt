@@ -36,27 +36,17 @@ async fn render_diagnostics(
 }
 
 ///|
-/// Tool for the sub-agent to submit fixed code segments
-let submit_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "content": {
-      "type": "string",
-      "description": "The complete fixed file content",
-    },
-  },
-  "required": ["content"],
-})
-
-///|
 fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="submit_fixed_file",
     description="Submit the complete fixed file content for verification",
     schema=submit_schema,
     async fn(args) -> @tool.ToolResult[String] noraise {
-      guard args is { "content": String(content), .. } else {
-        return @tool.error("Missing 'content' argument")
+      let { content } : InputSubmit = @json.from_json(args) catch {
+        err =>
+          return @tool.error(
+            "Invalid arguments provided to submit_fixed_file: \{err}",
+          )
       }
       try {
         // Write the fixed content to file
@@ -84,27 +74,17 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 }
 
 ///|
-/// Tool for the sub-agent to signal completion
-let completion_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "result": {
-      "type": "string",
-      "description": "Summary of the fixing result",
-    },
-  },
-  "required": ["result"],
-})
-
-///|
 fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
     schema=completion_schema,
     async fn(args) -> @tool.ToolResult[String] noraise {
-      guard args is { "result": String(result), .. } else {
-        return @tool.error("Missing 'result' argument")
+      let { result } : InputCompletion = @json.from_json(args) catch {
+        err =>
+          return @tool.error(
+            "Invalid arguments provided to attempt_completion: \{err}",
+          )
       }
       ctx.result = Some(result)
       @tool.ok("Syntax fixing completed successfully.")
@@ -161,12 +141,26 @@ fn build_fixing_system_message() -> String {
     #|   - ❌ Incorrect: `let parsed_string = parse_string(source)?`
     #|   - ✅ Correct: `let parsed_string = parse_string(source)`
     #|
-    #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. Use `for { ... }` or `while true { ... }` instead.
+    #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. 
+    #|
+    #|   - ❌ Incorrect: `loop { ... }`
+    #|   - ✅ Correct: `for { ... }`
+    #|   - ✅ Correct: `while true { ... }`
+    #|
     #|
     #|3. Invalid use of range pattern, commonly seen as `a..b`. For now, MoonBit only supports the following two kinds of range pattern:
     #|
-    #|   - Inclusive range: `start..=end`
-    #|   - Exclusive range: `start..<end`
+    #|   - ❌ Incorrect: `for i in a..b { ...}`
+    #|   - ✅ Correct:  `for i in start..=end { ... }` // right closed
+    #|   - ✅ Correct:  `for i in start..<end { ... }` // right open
+    #| 
+    #|   - ❌ Incorrect: `match a { 'a'..'z' => ... }
+    #|   - ✅ Correct: `match a { 'a'..='z' => ... }
+    #|   - ✅ Correct: `match a { 'a'..<'z' => ... }
+    #|
+    #|   - ❌ Incorrect: `if a is 'a'..'z' { ... }`
+    #|   - ✅ Correct: `if a is 'a'..='z' { ... }`
+    #|   - ✅ Correct: `if a is 'a'..<'z' { ... }`
     #|
     #|   The syntax errors often arise when using just `..` without `=` or `<`. Replace `..` with either `..=` or `..<` as appropriate.
   )
@@ -301,12 +295,11 @@ async fn execute_meta_write_to_file(
   args : Json,
   agent : @agent.Agent,
 ) -> @tool.ToolResult[MetaWriteToFileResult] noraise {
-  // Parse and validate parameters
-  let params = match parse_meta_write_params(args) {
-    Some(params) => params
-    None =>
+  let params : MetaWriteParams = @json.from_json(args) catch {
+    error =>
       return @tool.error(
-        "Error: Invalid parameters. Required: 'path' and 'description'",
+        "Error: Invalid arguments provided to meta_write_to_file tool: \{error}",
+        error~,
       )
   }
   let cwd = agent.cwd
@@ -459,31 +452,6 @@ async fn execute_meta_write_to_file(
     error => @tool.error("Error in meta_write_to_file: \{error}", error~)
   }
 }
-
-///|
-/// The meta_write_to_file tool definition
-let meta_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "path": {
-      "type": "string",
-      "description": "The path of the file to write to, relative to the current working directory.",
-    },
-    "search": {
-      "type": "string",
-      "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
-    },
-    "replace": {
-      "type": "string",
-      "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
-    },
-    "description": {
-      "type": "string",
-      "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
-    },
-  },
-  "required": ["path", "description"],
-})
 
 ///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[MetaWriteToFileResult] {

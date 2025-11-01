@@ -1,13 +1,4 @@
 ///|
-/// Parameters for the meta_write_to_file tool
-priv struct MetaWriteParams {
-  path : String
-  search : String?
-  replace : String?
-  description : String
-}
-
-///|
 pub struct MetaWriteToFileResult {
   path : String
   message : String
