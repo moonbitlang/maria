@@ -55,24 +55,18 @@ pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
 }
 
 ///|
-/// When PathBuilder contains filename add_directory would pop this filename, and then add directory in its parent directory
+/// When PathBuilder contains filename this function would panic
 pub fn PathBuilder::add_directory(
   self : PathBuilder,
   directory : StringView,
 ) -> Unit raise PathError {
   match self {
     WPathBuilder(_) as path => {
-      if path.basename is Some(_) {
-        path.basename = None
-        path.extension = None
-      }
+      guard path.basename is None && path.extension is None
       path.directory.push(PlatformPath::from(directory))
     }
     UPathBuilder(_) as path => {
-      if path.basename is Some(_) {
-        path.basename = None
-        path.extension = None
-      }
+      guard path.basename is None && path.extension is None
       path.directory.push(PlatformPath::from(directory))
     }
   }
