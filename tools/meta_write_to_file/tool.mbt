@@ -161,12 +161,26 @@ fn build_fixing_system_message() -> String {
     #|   - ❌ Incorrect: `let parsed_string = parse_string(source)?`
     #|   - ✅ Correct: `let parsed_string = parse_string(source)`
     #|
-    #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. Use `for { ... }` or `while true { ... }` instead.
+    #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. 
+    #|
+    #|   - ❌ Incorrect: `loop { ... }`
+    #|   - ✅ Correct: `for { ... }`
+    #|   - ✅ Correct: `while true { ... }`
+    #|
     #|
     #|3. Invalid use of range pattern, commonly seen as `a..b`. For now, MoonBit only supports the following two kinds of range pattern:
     #|
-    #|   - Inclusive range: `start..=end`
-    #|   - Exclusive range: `start..<end`
+    #|   - ❌ Incorrect: `for i in a..b { ...}`
+    #|   - ✅ Correct:  `for i in start..=end { ... }` // right closed
+    #|   - ✅ Correct:  `for i in start..<end { ... }` // right open
+    #| 
+    #|   - ❌ Incorrect: `match a { 'a'..'z' => ... }
+    #|   - ✅ Correct: `match a { 'a'..='z' => ... }
+    #|   - ✅ Correct: `match a { 'a'..<'z' => ... }
+    #|
+    #|   - ❌ Incorrect: `if a is 'a'..'z' { ... }`
+    #|   - ✅ Correct: `if a is 'a'..='z' { ... }`
+    #|   - ✅ Correct: `if a is 'a'..<'z' { ... }`
     #|
     #|   The syntax errors often arise when using just `..` without `=` or `<`. Replace `..` with either `..=` or `..<` as appropriate.
   )
