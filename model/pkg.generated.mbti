@@ -7,6 +7,7 @@ import(
 )
 
 // Values
+fn open_router_model(api_key~ : String, name? : String) -> Model
 
 // Errors
 
