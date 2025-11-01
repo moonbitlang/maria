@@ -20,6 +20,7 @@ pub struct Tool[Output] {
   desc : ToolDesc
   // private fields
 }
+#as_free_fn
 async fn[Output] Tool::call(Self[Output], Json) -> ToolResult[Output] noraise
 #as_free_fn
 fn[Output] Tool::new(description~ : String, name~ : String, schema~ : JsonSchema, ToolFn[Output]) -> Self[Output]
