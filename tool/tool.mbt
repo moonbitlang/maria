@@ -70,6 +70,8 @@ pub fn[Output] Tool::new(
 }
 
 ///|
+// TODO(upstream): `as_free_fn` completion not need parens 
+#as_free_fn
 pub async fn[Output] Tool::call(
   tool : Tool[Output],
   args : Json,
