@@ -1,0 +1,11 @@
+{
+  "import": [
+    "moonbitlang/parser/syntax",
+    "moonbitlang/parser/attribute",
+    "moonbitlang/parser/basic",
+    "moonbitlang/x/fs",
+    "moonbitlang/parser",
+    "moonbitlang/formatter"
+  ],
+  "is-main": true
+}

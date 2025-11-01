@@ -21,9 +21,13 @@ let schema : @tool.JsonSchema = {
 }
 
 ///|
+#json.schema
 priv struct Input {
+  /// The path of the file to write to, relative to the current working directory.
   path : String
+  /// The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.
   replace : String
+  /// The content to search for. If not provided, the entire file will be replaced with the replace content.
   search : String?
 } derive(FromJson, ToJson)
 

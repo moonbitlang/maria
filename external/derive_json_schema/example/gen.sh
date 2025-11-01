@@ -1,0 +1,1 @@
+moon run ../main.mbt -- input.mbt -o output.mbt

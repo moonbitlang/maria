@@ -1,0 +1,14 @@
+{
+  "name": "Yoorkin/derive_json_schema",
+  "version": "0.1.0",
+  "deps": {
+    "moonbitlang/formatter": "0.1.0",
+    "moonbitlang/parser": "0.1.11",
+    "moonbitlang/x": "0.4.35"
+  },
+  "readme": "README.mbt.md",
+  "repository": "",
+  "license": "Apache-2.0",
+  "keywords": [],
+  "description": ""
+}

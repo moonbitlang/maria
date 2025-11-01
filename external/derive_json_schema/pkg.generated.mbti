@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Yoorkin/derive_json_schema"
+
+import(
+  "moonbitlang/core/list"
+  "moonbitlang/parser/syntax"
+)
+
+// Values
+fn derive_json_schema(@list.List[@syntax.Impl]) -> @list.List[@syntax.Impl]
+
+// Errors
+
+// Types and methods
+type Constant
+
+type Property
+
+type Schema
+
+// Type aliases
+
+// Traits
+
