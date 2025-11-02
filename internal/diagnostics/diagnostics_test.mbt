@@ -166,6 +166,72 @@ async test "render-diagnostics-context" (t : @test.T) {
 }
 
 ///|
+async test "render-diagnostics-overlay" (t : @test.T) {
+  @mock.run(t, mock => {
+    let diagnostics = @diagnostics.Diagnostics::new()
+    diagnostics.push({
+      error_code: 1234,
+      level: @diagnostics.Error,
+      loc: {
+        start: { line: 2, col: 5 },
+        end: { line: 2, col: 6 },
+        path: "virtual.mbt",
+      },
+      message: "Example error",
+    })
+    let overlay = {}
+    overlay["virtual.mbt"] = (
+      #|///|
+      #|/// Example MoonBit code
+      #|let x : Int = 1
+      #|let y : Int = 2
+    )
+    inspect(
+      mock.show(diagnostics.render(limit=1, overlay~, context=2)),
+      content=(
+        #|error[1234]: virtual.mbt:2:5-6: Example error
+        #|   │ ///|
+        #| 2 │ /// Example MoonBit code
+        #|   │     ^
+        #|   │ let x : Int = 1
+      ),
+    )
+  })
+}
+
+///|
+async test "render-diagnostics-context-lines" (t : @test.T) {
+  @mock.run(t, mock => {
+    let diagnostics = @diagnostics.Diagnostics::new()
+    diagnostics.push(@diagnostics.Diagnostic::{
+      error_code: 1234,
+      level: @diagnostics.Error,
+      loc: @diagnostics.Loc::{
+        start: @diagnostics.Pos::{ line: 2, col: 5 },
+        end: @diagnostics.Pos::{ line: 2, col: 6 },
+        path: "virtual.mbt",
+      },
+      message: "Example error",
+    })
+    let overlay = {}
+    overlay["virtual.mbt"] = (
+      #|let x : Int = 1
+      #|let y : Int = 2
+      #|let z : Int = 3
+    )
+    inspect(
+      mock.show(diagnostics.render(context=1, limit=1, overlay~)),
+      content=(
+        #|error[1234]: virtual.mbt:2:5-6: Example error
+        #|   │ let x : Int = 1
+        #| 2 │ let y : Int = 2
+        #|   │     ^
+      ),
+    )
+  })
+}
+
+///|
 test "from_jsonl - single diagnostic" {
   let jsonl =
     #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
