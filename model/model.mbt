@@ -60,7 +60,7 @@ pub fn Model::new(
 }
 
 ///|
-/// Deafult to qwen3-coder-plus model on OpenRouter
+/// Default to qwen3-coder-plus model on OpenRouter
 /// for testing
 pub fn open_router_model(
   api_key~ : String,
