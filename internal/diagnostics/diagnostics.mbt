@@ -1,6 +1,21 @@
 ///|
+pub type Diagnostics = Array[Diagnostic]
+
+///|
+pub fn from_jsonl(jsonl : StringView) -> Array[Diagnostic] raise {
+  let diagnostics = []
+  for line in jsonl.split("\n") {
+    let line = line.trim_space()
+    guard line != "" else { continue }
+    let json : Diagnostic = @json.from_json(@json.parse(line))
+    diagnostics.push(json)
+  }
+  diagnostics
+}
+
+///|
 pub async fn render_diagnostics(
-  diagnostics : ArrayView[Diagnostic],
+  diagnostics : Diagnostics,
   limit~ : Int,
   context? : Int = 0,
   overlay? : Map[String, String] = {},

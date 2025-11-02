@@ -60,7 +60,7 @@ async fn check(
 pub async fn check_syntax_of_file(
   path : String,
   cwd? : StringView,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   let output = StringBuilder::new()
   let _ = @spawn.spawn(
     "moonc",
@@ -72,18 +72,7 @@ pub async fn check_syntax_of_file(
     stderr=output,
     cwd?,
   )
-  let output = output.to_string()
-  let diagnostics = []
-  for line in output.split("\n") {
-    try {
-      let json = @json.parse(line.to_string())
-      let diagnostic : @diagnostics.Diagnostic = @json.from_json(json)
-      diagnostics.push(diagnostic)
-    } catch {
-      _ => continue
-    }
-  }
-  diagnostics
+  @diagnostics.from_jsonl(output.to_string())
 }
 
 ///|
@@ -101,7 +90,7 @@ pub async fn check_syntax_of_file(
 pub async fn check_syntax_of_string(
   path? : String = "source.mbt",
   source : String,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moonbit-moon-check-syntax-XXXXXXX", tmpdir => {
     let file_path = @path.join(tmpdir, path)
     @fs.make_directory(@path.dirname(file_path), recursive=true, exists_ok=true)

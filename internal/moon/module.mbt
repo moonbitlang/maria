@@ -233,11 +233,9 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
 pub async fn Module::diagnostics(
   self : Module,
 ) -> Iter[@diagnostics.Diagnostic] {
-  let packages = self.packages.values().collect()
   let mut diags = Iter::empty()
-  for i in 0..<packages.length() {
-    let package_ = packages[i]
-    diags = diags.concat(package_.diagnostics())
+  for _, pkg in self.packages {
+    diags = diags.concat(pkg.diagnostics())
   }
   diags
 }

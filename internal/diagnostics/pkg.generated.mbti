@@ -21,7 +21,10 @@ impl Show for Diagnostic
 impl ToJson for Diagnostic
 impl @json.FromJson for Diagnostic
 
-pub enum Level {
+pub(all) struct Diagnostics {
+  diagnostics : Array[Diagnostic]
+}
+
 pub(all) enum Level {
   Error
   Warning
