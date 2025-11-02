@@ -6,9 +6,7 @@ import(
 )
 
 // Values
-fn from_jsonl(StringView) -> Array[Diagnostic] raise
-
-async fn render_diagnostics(Array[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+fn from_jsonl(StringView) -> Diagnostics
 
 // Errors
 
@@ -22,6 +20,21 @@ pub(all) struct Diagnostic {
 impl Show for Diagnostic
 impl ToJson for Diagnostic
 impl @json.FromJson for Diagnostic
+
+pub struct Diagnostics(Array[Diagnostic])
+fn Diagnostics::append(Self, Self) -> Unit
+fn Diagnostics::clear(Self) -> Unit
+fn Diagnostics::filter_map(Self, (Diagnostic) -> Diagnostic?) -> Self
+#deprecated
+fn Diagnostics::inner(Self) -> Array[Diagnostic]
+fn Diagnostics::is_empty(Self) -> Bool
+fn Diagnostics::iterator(Self) -> Iterator[Diagnostic]
+fn Diagnostics::length(Self) -> Int
+fn Diagnostics::new() -> Self
+fn Diagnostics::push(Self, Diagnostic) -> Unit
+async fn Diagnostics::render(Self, limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+impl Show for Diagnostics
+impl ToJson for Diagnostics
 
 pub(all) enum Level {
   Error
@@ -49,7 +62,6 @@ impl ToJson for Pos
 impl @json.FromJson for Pos
 
 // Type aliases
-pub type Diagnostics = Array[Diagnostic]
 
 // Traits
 

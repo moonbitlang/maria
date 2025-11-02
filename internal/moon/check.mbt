@@ -4,7 +4,7 @@ async fn check(
   patch_file? : StringView,
   target_dir? : StringView,
   cwd? : StringView,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
@@ -32,17 +32,7 @@ async fn check(
   let output = StringBuilder::new()
   let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd~)
   let output = output.to_string()
-  let diagnostics = []
-  for line in output.split("\n") {
-    try {
-      let json = @json.parse(line.to_string())
-      let diagnostic : @diagnostics.Diagnostic = @json.from_json(json)
-      diagnostics.push(diagnostic)
-    } catch {
-      _ => continue
-    }
-  }
-  diagnostics
+  @diagnostics.from_jsonl(output)
 }
 
 ///|

@@ -230,12 +230,10 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
 }
 
 ///|
-pub async fn Module::diagnostics(
-  self : Module,
-) -> Iter[@diagnostics.Diagnostic] {
-  let mut diags = Iter::empty()
+pub async fn Module::diagnostics(self : Module) -> @diagnostics.Diagnostics {
+  let diags = @diagnostics.Diagnostics::new()
   for _, pkg in self.packages {
-    diags = diags.concat(pkg.diagnostics())
+    diags.append(pkg.diagnostics())
   }
   diags
 }

@@ -46,10 +46,10 @@ test "params ToJson" {
 
 ///|
 pub struct CheckMoonbitProjectResult {
-  diagnostics : Array[@diagnostics.Diagnostic]
+  diagnostics : @diagnostics.Diagnostics
   diagnostic_limit : Int
   rendered_diagnostics : String
-} derive(ToJson, @json.FromJson)
+} derive(ToJson)
 
 ///|
 pub impl Show for CheckMoonbitProjectResult with output(
@@ -128,7 +128,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
       } else {
         try {
           moon.check()
-          moon.diagnostics().collect()
+          moon.diagnostics()
         } catch {
           error =>
             return @tool.error(
@@ -144,10 +144,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
           rendered_diagnostics: "MoonBit project check passed with no diagnostics found.",
         })
       } else {
-        let rendered_diagnostics = @diagnostics.render_diagnostics(
-          diagnostics,
-          limit=diagnostic_limit,
-        )
+        let rendered_diagnostics = diagnostics.render(limit=diagnostic_limit)
         @tool.ok(CheckMoonbitProjectResult::{
           diagnostics,
           diagnostic_limit,

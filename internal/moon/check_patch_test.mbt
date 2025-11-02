@@ -27,9 +27,11 @@ async test "check_patch" (t : @test.T) {
     @json.inspect(files, content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
-        "segments": [{ "start": 0, "end": 2, "diagnostics": [] }],
-        "diagnostics": [],
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
+        "segments": [
+          { "start": 0, "end": 2, "diagnostics": ["Diagnostics", []] },
+        ],
+        "diagnostics": ["Diagnostics", []],
       },
     ])
     moon.check()
@@ -37,56 +39,62 @@ async test "check_patch" (t : @test.T) {
     @json.inspect(taco.json(files), content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
         "segments": [
           {
             "start": 0,
             "end": 2,
             "diagnostics": [
-              {
-                "error_code": 2,
-                "level": "Warning",
-                "loc": {
-                  "end": { "col": 6, "line": 2 },
-                  "path": "(mock:cwd)/example.mbt",
-                  "start": { "col": 5, "line": 2 },
+              "Diagnostics",
+              [
+                {
+                  "error_code": 2,
+                  "level": "Warning",
+                  "loc": {
+                    "end": { "col": 6, "line": 2 },
+                    "path": "(mock:cwd)/example.mbt",
+                    "start": { "col": 5, "line": 2 },
+                  },
+                  "message": "Warning: Unused variable 'x'",
                 },
-                "message": "Warning: Unused variable 'x'",
-              },
-              {
-                "error_code": 4014,
-                "level": "Error",
-                "loc": {
-                  "end": { "col": 23, "line": 2 },
-                  "path": "(mock:cwd)/example.mbt",
-                  "start": { "col": 15, "line": 2 },
+                {
+                  "error_code": 4014,
+                  "level": "Error",
+                  "loc": {
+                    "end": { "col": 23, "line": 2 },
+                    "path": "(mock:cwd)/example.mbt",
+                    "start": { "col": 15, "line": 2 },
+                  },
+                  "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
                 },
-                "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
-              },
+              ],
             ],
           },
         ],
         "diagnostics": [
-          {
-            "error_code": 2,
-            "level": "Warning",
-            "loc": {
-              "end": { "col": 6, "line": 2 },
-              "path": "(mock:cwd)/example.mbt",
-              "start": { "col": 5, "line": 2 },
+          "Diagnostics",
+          [
+            {
+              "error_code": 2,
+              "level": "Warning",
+              "loc": {
+                "end": { "col": 6, "line": 2 },
+                "path": "(mock:cwd)/example.mbt",
+                "start": { "col": 5, "line": 2 },
+              },
+              "message": "Warning: Unused variable 'x'",
             },
-            "message": "Warning: Unused variable 'x'",
-          },
-          {
-            "error_code": 4014,
-            "level": "Error",
-            "loc": {
-              "end": { "col": 23, "line": 2 },
-              "path": "(mock:cwd)/example.mbt",
-              "start": { "col": 15, "line": 2 },
+            {
+              "error_code": 4014,
+              "level": "Error",
+              "loc": {
+                "end": { "col": 23, "line": 2 },
+                "path": "(mock:cwd)/example.mbt",
+                "start": { "col": 15, "line": 2 },
+              },
+              "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
             },
-            "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
-          },
+          ],
         ],
       },
     ])
@@ -103,16 +111,19 @@ async test "check_patch" (t : @test.T) {
     @json.inspect(
       taco.json(moon.check_patch_replace(segment, "///|\nlet x : String = 100")),
       content=[
-        {
-          "error_code": 4014,
-          "level": "Error",
-          "loc": {
-            "end": { "col": 21, "line": 2 },
-            "path": "(mock:cwd)/example.mbt",
-            "start": { "col": 18, "line": 2 },
+        "Diagnostics",
+        [
+          {
+            "error_code": 4014,
+            "level": "Error",
+            "loc": {
+              "end": { "col": 21, "line": 2 },
+              "path": "(mock:cwd)/example.mbt",
+              "start": { "col": 18, "line": 2 },
+            },
+            "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",
           },
-          "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",
-        },
+        ],
       ],
     )
   })

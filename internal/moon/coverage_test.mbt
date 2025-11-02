@@ -41,7 +41,7 @@ async test "Coverage::report" (t : @test.T) {
     ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics().collect(), content=[])
+    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
     @json.inspect(
       moon.coverage.report(format=Summary),
@@ -115,7 +115,7 @@ async test "Coverage::analyze" (t : @test.T) {
     ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics().collect(), content=[])
+    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
     @json.inspect(
       moon.coverage.analyze(),
@@ -187,7 +187,7 @@ async test "Coverage::clean" (t : @test.T) {
     ])
     let moon = @moon.Module::load(taco.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics().collect(), content=[])
+    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
     @json.inspect(
       moon.coverage.report(format=Summary),

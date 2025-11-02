@@ -1,26 +1,83 @@
 ///|
-pub type Diagnostics = Array[Diagnostic]
+pub struct Diagnostics(Array[Diagnostic]) derive(ToJson, Show)
 
 ///|
-pub fn from_jsonl(jsonl : StringView) -> Array[Diagnostic] raise {
+pub fn Diagnostics::new() -> Self {
+  []
+}
+
+///|
+pub fn Diagnostics::clear(self : Diagnostics) -> Unit {
+  self.0.clear()
+}
+
+///|
+pub fn Diagnostics::append(
+  self : Diagnostics,
+  diagnostic : Diagnostics,
+) -> Unit {
+  self.0.append(diagnostic.0)
+}
+
+///|
+pub fn Diagnostics::push(self : Diagnostics, diagnostic : Diagnostic) -> Unit {
+  self.0.push(diagnostic)
+}
+
+///|
+pub fn Diagnostics::filter_map(
+  self : Diagnostics,
+  f : (Diagnostic) -> Diagnostic?,
+) -> Diagnostics {
+  self.0.filter_map(f)
+}
+
+///|
+pub fn Diagnostics::length(self : Diagnostics) -> Int {
+  self.0.length()
+}
+
+///|
+pub fn Diagnostics::is_empty(self : Diagnostics) -> Bool {
+  self.0.is_empty()
+}
+
+///|
+pub fn Diagnostics::iterator(self : Diagnostics) -> Iterator[Diagnostic] {
+  self.0.iterator()
+}
+
+///|
+pub fn from_jsonl(jsonl : StringView) -> Diagnostics {
   let diagnostics = []
   for line in jsonl.split("\n") {
     let line = line.trim_space()
-    guard line != "" else { continue }
-    let json : Diagnostic = @json.from_json(@json.parse(line))
-    diagnostics.push(json)
+    try {
+      let json = @json.parse(line)
+      // TODO: fail on json decoding??
+      let diag : Diagnostic = @json.from_json(json) catch {
+        error =>
+          fail(
+            "Failed to parse diagnostic from JSON: \{error} (line: '\{line}')",
+          )
+      }
+      diagnostics.push(diag)
+    } catch {
+      _ => () // continue
+    }
   }
   diagnostics
 }
 
 ///|
-pub async fn render_diagnostics(
+pub async fn Diagnostics::render(
   diagnostics : Diagnostics,
   limit~ : Int,
   context? : Int = 0,
   overlay? : Map[String, String] = {},
   cwd? : String,
 ) -> String noraise {
+  let diagnostics = diagnostics.0
   let cache = {}
   for k, v in overlay {
     cache[k] = v.split("\n").collect()

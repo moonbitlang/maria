@@ -7,16 +7,19 @@ async test "check_syntax_of_string" {
       ),
     ),
     content=[
-      {
-        "error_code": 3002,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 24, "line": 1 },
-          "path": "source.mbt",
-          "start": { "col": 24, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 3002,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 24, "line": 1 },
+            "path": "source.mbt",
+            "start": { "col": 24, "line": 1 },
+          },
+          "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
         },
-        "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
-      },
+      ],
     ],
   )
   @json.inspect(
@@ -27,16 +30,19 @@ async test "check_syntax_of_string" {
       ),
     ),
     content=[
-      {
-        "error_code": 3002,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 24, "line": 1 },
-          "path": "main.mbt",
-          "start": { "col": 24, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 3002,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 24, "line": 1 },
+            "path": "main.mbt",
+            "start": { "col": 24, "line": 1 },
+          },
+          "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
         },
-        "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
-      },
+      ],
     ],
   )
 }
@@ -50,16 +56,19 @@ async test "check_syntax_of_string-nested-path" {
     ),
   )
   @json.inspect(diagnostics, content=[
-    {
-      "error_code": 3002,
-      "level": "Error",
-      "loc": {
-        "end": { "col": 24, "line": 1 },
-        "path": "main.mbt",
-        "start": { "col": 24, "line": 1 },
+    "Diagnostics",
+    [
+      {
+        "error_code": 3002,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 24, "line": 1 },
+          "path": "main.mbt",
+          "start": { "col": 24, "line": 1 },
+        },
+        "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
       },
-      "message": "Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.",
-    },
+    ],
   ])
 }
 
@@ -70,16 +79,19 @@ async test "check_syntax_of_file" (t : @test.T) {
     file.write("let x :: Int = \"string\"")
     let diagnostics = check_syntax_of_file(file.path())
     @json.inspect(mock.json(diagnostics), content=[
-      {
-        "error_code": 3002,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 9, "line": 1 },
-          "path": "example.mbt",
-          "start": { "col": 7, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 3002,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 9, "line": 1 },
+            "path": "example.mbt",
+            "start": { "col": 7, "line": 1 },
+          },
+          "message": "Parse error, unexpected token `::`, you may expect `=`.",
         },
-        "message": "Parse error, unexpected token `::`, you may expect `=`.",
-      },
+      ],
     ])
   })
 }

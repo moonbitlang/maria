@@ -147,7 +147,7 @@ pub async fn Package::check(
   patch_file? : StringView,
   target_dir? : StringView,
   cwd~ : StringView,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   check(package_path=self.path, patch_file?, target_dir?, cwd~)
 }
 
@@ -169,10 +169,10 @@ pub async fn Package::interface(self : Package) -> String? {
 }
 
 ///|
-fn Package::diagnostics(self : Package) -> Iter[@diagnostics.Diagnostic] {
-  let mut diagnostics = Iter::empty()
+fn Package::diagnostics(self : Package) -> @diagnostics.Diagnostics {
+  let diagnostics = @diagnostics.Diagnostics::new()
   for file in self.files.values() {
-    diagnostics = diagnostics.concat(file.diagnostics())
+    diagnostics.append(file.diagnostics())
   }
   diagnostics
 }

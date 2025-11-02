@@ -24,9 +24,11 @@ async test "replace-segment" (t : @test.T) {
     @json.inspect(files, content=[
       {
         "content": "///|\nlet x : Int = 42",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
-        "segments": [{ "start": 0, "end": 2, "diagnostics": [] }],
-        "diagnostics": [],
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
+        "segments": [
+          { "start": 0, "end": 2, "diagnostics": ["Diagnostics", []] },
+        ],
+        "diagnostics": ["Diagnostics", []],
       },
     ])
     let file = files[0]
@@ -43,9 +45,11 @@ async test "replace-segment" (t : @test.T) {
     @json.inspect(files, content=[
       {
         "content": "///|\nlet y : Int = 100\n",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
-        "segments": [{ "start": 0, "end": 3, "diagnostics": [] }],
-        "diagnostics": [],
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
+        "segments": [
+          { "start": 0, "end": 3, "diagnostics": ["Diagnostics", []] },
+        ],
+        "diagnostics": ["Diagnostics", []],
       },
     ])
     @json.inspect(
