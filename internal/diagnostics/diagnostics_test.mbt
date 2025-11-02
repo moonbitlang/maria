@@ -14,7 +14,13 @@ async test "render_diagnostics" (t : @test.T) {
           #|{ }
         ),
       ),
-      ("example.mbt", "let x : Int = \"string\""),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|let x : Int = "string"
+        ),
+      ),
       (
         "example2.mbt",
         (
@@ -30,10 +36,10 @@ async test "render_diagnostics" (t : @test.T) {
     inspect(
       mock.show(@diagnostics.render_diagnostics(diagnostics, limit=10)),
       content=(
-        #|error[4014]: (mock:cwd)/example.mbt:1:15-23: Expr Type Mismatch
+        #|error[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch
         #|        has type : String
         #|        wanted   : Int
-        #| 1 │ let x : Int = "string"
+        #| 2 │ let x : Int = "string"
         #|   │               ^^^^^^^^
         #|
         #|error[3003]: (mock:cwd)/example2.mbt:1:8-10: Unused parameter list for the main function. The syntax is `fn main { ... }`
@@ -47,8 +53,8 @@ async test "render_diagnostics" (t : @test.T) {
         #| 3 │ }
         #|   │ ^
         #|
-        #|warning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'x'
-        #| 1 │ let x : Int = "string"
+        #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning: Unused variable 'x'
+        #| 2 │ let x : Int = "string"
         #|   │     ^
         #|
         #|warning[0002]: (mock:cwd)/example2.mbt:2:7-8: Warning: Unused variable 'y'
@@ -59,10 +65,10 @@ async test "render_diagnostics" (t : @test.T) {
     inspect(
       mock.show(@diagnostics.render_diagnostics(diagnostics, limit=1)),
       content=(
-        #|error[4014]: (mock:cwd)/example.mbt:1:15-23: Expr Type Mismatch
+        #|error[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch
         #|        has type : String
         #|        wanted   : Int
-        #| 1 │ let x : Int = "string"
+        #| 2 │ let x : Int = "string"
         #|   │               ^^^^^^^^
         #|
         #|There are 2 more error(s) and 2 more warning(s) not shown due to diagnostic limit.
