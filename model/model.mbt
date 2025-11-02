@@ -88,6 +88,22 @@ pub(all) enum CommonModels {
   /// Starting at $3/M input tokens
   /// Starting at $15/M output tokens
   ClaudeSonnet4_5
+  /// https://openrouter.ai/openai/gpt-5-codex
+  /// $1.25/M input tokens
+  /// $10/M output tokens
+  Gpt5Codex
+  /// https://openrouter.ai/openai/gpt-5
+  /// $1.25/M input tokens
+  /// $10/M output tokens
+  Gpt5
+  /// https://openrouter.ai/openai/gpt-5-mini
+  /// $0.25/M input tokens
+  /// $2/M output tokens
+  Gpt5Mini
+  /// https://openrouter.ai/openai/gpt-5-nano
+  /// $0.05/M input tokens
+  /// $0.40/M output tokens
+  Gpt5Nano
 }
 // qwen/qwen3-coder-flash
 
@@ -100,6 +116,10 @@ impl Show for CommonModels with output(self : CommonModels, logger : &Logger) ->
     GrokCodeFast1 => logger.write_string("x-ai/grok-code-fast-1")
     ClaudeHaiku4_5 => logger.write_string("anthropic/claude-haiku-4.5")
     ClaudeSonnet4_5 => logger.write_string("anthropic/claude-sonnet-4.5")
+    Gpt5Codex => logger.write_string("openai/gpt-5-codex")
+    Gpt5 => logger.write_string("openai/gpt-5")
+    Gpt5Mini => logger.write_string("openai/gpt-5-mini")
+    Gpt5Nano => logger.write_string("openai/gpt-5-nano")
   }
 }
 
@@ -108,7 +128,7 @@ impl Show for CommonModels with output(self : CommonModels, logger : &Logger) ->
 /// for testing
 pub fn open_router_model(
   api_key~ : String,
-  name? : CommonModels = GrokCodeFast1,
+  name? : CommonModels = Qwen3CoderPlus,
 ) -> Model {
   Model::new(
     api_key~,
