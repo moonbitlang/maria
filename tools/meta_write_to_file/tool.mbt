@@ -27,8 +27,7 @@ async fn render_diagnostics(
 ) -> String {
   let overlay = {}
   overlay[@path.basename(path).to_string()] = content
-  @diagnostics.render_diagnostics(
-    diagnostics,
+  diagnostics.render(
     context=1,
     limit=DiagnosticLimit,
     overlay~,

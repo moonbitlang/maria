@@ -70,8 +70,7 @@ pub fn from_jsonl(jsonl : StringView) -> Diagnostics {
 }
 
 ///|
-#as_free_fn
-pub async fn Diagnostics::render_diagnostics(
+pub async fn Diagnostics::render(
   diagnostics : Diagnostics,
   limit~ : Int,
   context? : Int = 0,

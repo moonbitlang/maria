@@ -34,7 +34,7 @@ async test "render_diagnostics" (t : @test.T) {
     moon.check()
     let diagnostics = moon.diagnostics()
     inspect(
-      mock.show(@diagnostics.render_diagnostics(diagnostics, limit=10)),
+      mock.show(diagnostics.render(limit=10)),
       content=(
         #|error[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch
         #|        has type : String
@@ -63,7 +63,7 @@ async test "render_diagnostics" (t : @test.T) {
       ),
     )
     inspect(
-      mock.show(@diagnostics.render_diagnostics(diagnostics, limit=1)),
+      mock.show(diagnostics.render(limit=1)),
       content=(
         #|error[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch
         #|        has type : String
@@ -113,7 +113,7 @@ async test "render-diagnostics-context" (t : @test.T) {
     let diagnostics = moon.diagnostics()
     inspect(
       mock.show(
-        @diagnostics.render_diagnostics(diagnostics, context=1, limit=10),
+        diagnostics.render(context=1, limit=10),
       ),
       content=(
         #|error[4032]: (mock:cwd)/example.mbt:2:28-33: The type Lexer is undefined.
@@ -155,7 +155,7 @@ async test "render-diagnostics-context" (t : @test.T) {
       ),
     )
     inspect(
-      mock.show(@diagnostics.render_diagnostics(diagnostics, limit=1)),
+      mock.show(diagnostics.render(limit=1)),
       content=(
         #|error[4032]: (mock:cwd)/example.mbt:2:28-33: The type Lexer is undefined.
         #| 2 │ fn skip_whitespace(lexer : Lexer) -> Unit {

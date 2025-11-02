@@ -36,8 +36,8 @@ fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
       }
       let overlay = {}
       overlay[diagnostic.loc.path] = patched
-      let rendered_diagnostics = @diagnostics.render_diagnostics(
-        diagnostics,
+      let rendered_diagnostics = diagnostics.render(
+        context=1,
         limit=10,
         overlay~,
       )
@@ -126,7 +126,7 @@ async fn process_segment(
     user_message.write_string(
       (
         $|**Errors:**
-        $|\{@diagnostics.render_diagnostics(segment.diagnostics(), limit=10)}
+        $|\{segment.diagnostics().render(context=1, limit=10)}
         $|
       ),
     )
