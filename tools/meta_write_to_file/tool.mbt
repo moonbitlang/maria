@@ -144,7 +144,6 @@ fn build_fixing_system_message() -> String {
     #|2. Incorrectly use `loop { ... }` to express infinite loops, which is not valid in MoonBit. 
     #|
     #|   - ❌ Incorrect: `loop { ... }`
-    #|   - ✅ Correct: `for { ... }`
     #|   - ✅ Correct: `while true { ... }`
     #|
     #|
@@ -163,6 +162,85 @@ fn build_fixing_system_message() -> String {
     #|   - ✅ Correct: `if a is 'a'..<'z' { ... }`
     #|
     #|   The syntax errors often arise when using just `..` without `=` or `<`. Replace `..` with either `..=` or `..<` as appropriate.
+    #|
+    #|4. The trait syntax in MoonBit is different from Rust:
+    #|
+    #|   - ❌ Incorrect:
+    #|     ```moonbit
+    #|        pub impl Display for MyType {  
+    #|          fn display(self: MyType) -> String {  
+    #|            ...  
+    #|          }  
+    #|          fn another_method(self: MyType) -> Unit {  
+    #|            ... 
+    #|          } 
+    #|        } 
+    #|     ```
+    #|   - ✅ Correct:
+    #|     ```moonbit
+    #|        pub impl Display for MyType with display(
+    #|          self: MyType, // type annotation is optional here
+    #|        ) -> String {  
+    #|          ...  
+    #|        } 
+    #|        pub impl Display for MyType with another_method(
+    #|          self: MyType, // type annotation is optional here
+    #|        ) -> Unit {  
+    #|          ... 
+    #|        }
+    #|     ```
+    #|  5. Type associated function in MoonBit is different from Rust:
+    #|   - ❌ Incorrect:
+    #|     ```moonbit
+    #|        pub impl MyType {  
+    #|          fn new() -> MyType {  
+    #|            ...  
+    #|          }  
+    #|          fn speak(Self) -> String {  
+    #|            ... 
+    #|          } 
+    #|        } 
+    #|     ```
+    #|   - ✅ Correct:
+    #|     ```moonbit
+    #|        pub MyType::new() -> MyType {  
+    #|          ...  
+    #|        } 
+    #|        pub MyType::speak(Self) -> Self {  
+    #|          self.name + " says hello!"
+    #|        }
+    #|     ```
+    #|  6. Record creation is different from Rust struct instantiation:
+    #|   - ❌ Incorrect:
+    #|     ```moonbit
+    #|        let person = Person {
+    #|          name: "Alice",
+    #|          age: 30,
+    #|        }
+    #|     ```
+    #|   - ✅ Correct:
+    #|     ```moonbit
+    #|        let person = Person::{ // `::` is needed
+    #|          name: "Alice",
+    #|          age: 30, 
+    #|        }
+    #|     ```
+    #| 7. Unlike Rust, Enum variant is not needed to be associated with type in pattern matching:
+    #|   Both
+    #|     ```moonbit
+    #|        match shape {
+    #|          Shape::Circle(radius) => ...
+    #|          Shape::Square(side) => ...
+    #|        }
+    #|     ```
+    #|   and
+    #|     ```moonbit
+    #|        match shape {
+    #|          Circle(radius) => ...
+    #|          Square(side) => ...
+    #|        }
+    #|     ```
+    #|   are correct syntax, only when the type is ambiguous, the variant needs to be associated with type.
   )
 }
 
