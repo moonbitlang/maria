@@ -269,9 +269,11 @@ fn build_fixing_user_message(
     $|
     $|**Your Task:**
     $|
-    $|1. Analyze the syntax errors and understand what needs to be fixed
-    $|2. Use `submit_fixed_file` to provide the complete fixed file content
-    $|3. Only fix syntax errors - do not change logic unless absolutely necessary
+    $|1. ONLY FIX SYNTAX ERRORS - DO NOT CHANGE THE BEHAVIOR
+    $|2. Analyze the syntax errors and understand what needs to be fixed
+    $|   All syntax errors are already reported, don't try to fix syntax errors not reported,
+    $|   it may be your hallucination if you think there are more syntax errors.
+    $|3. Use `submit_fixed_file` to provide the complete fixed file content    
     $|4. Continue until all syntax errors are fixed
     $|5. Call `attempt_completion` when done
     $|
@@ -389,7 +391,7 @@ async fn execute_meta_write_to_file(
       let initial_content = match params.search {
         None => replace
         Some(search) => {
-          let file_content = @fs.read_file(resolved_path)          
+          let file_content = @fs.read_file(resolved_path)
           match @fuzzy.find_match(file_content, search) {
             None =>
               return @tool.error("Search content not found in file: \{search}")
