@@ -17,7 +17,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/file",
     "moonbitlang/maria/tools/replace_in_file",
-    "moonbitlang/maria/tools/read_file",
-    "moonbitlang/regexp"
+    "moonbitlang/maria/tools/read_file"
+    
   ]
 }
