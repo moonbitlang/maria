@@ -49,14 +49,14 @@ let meta_schema : @tool.JsonSchema = {
     },
     "replace": {
       "type": "string",
-      "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is not provided, the matched content will be deleted.",
+      "description": "The content to replace with. If search is not provided, this will be the entire file content. If replace is empty string, the matched content will be deleted.",
     },
     "description": {
       "type": "string",
       "description": "A natural language description of what you're trying to accomplish with this file write operation. This helps the sub-agent understand the intent when fixing syntax errors.",
     },
   },
-  "required": ["path", "description"],
+  "required": ["path", "description", "replace"],
 }
 
 ///|
@@ -64,6 +64,6 @@ let meta_schema : @tool.JsonSchema = {
 priv struct MetaWriteParams {
   path : String
   search : String?
-  replace : String?
+  replace : String
   description : String
 } derive(FromJson)
