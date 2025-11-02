@@ -206,12 +206,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
                   segment.replace(updated)
                   segments_updated += 1
                 }
-              }) catch {
-                error =>
-                  println(
-                    "Warning: Failed to process segment in file \{file.path()}: \{error}",
-                  )
-              }
+              })
             }
             files_updated += 1
           }
