@@ -32,8 +32,7 @@ fn Diagnostics::iterator(Self) -> Iterator[Diagnostic]
 fn Diagnostics::length(Self) -> Int
 fn Diagnostics::new() -> Self
 fn Diagnostics::push(Self, Diagnostic) -> Unit
-#as_free_fn
-async fn Diagnostics::render_diagnostics(Self, limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+async fn Diagnostics::render(Self, limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
 impl Show for Diagnostics
 impl ToJson for Diagnostics
 

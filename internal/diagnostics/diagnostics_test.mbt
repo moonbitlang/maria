@@ -112,9 +112,7 @@ async test "render-diagnostics-context" (t : @test.T) {
     moon.check()
     let diagnostics = moon.diagnostics()
     inspect(
-      mock.show(
-        diagnostics.render(context=1, limit=10),
-      ),
+      mock.show(diagnostics.render(context=1, limit=10)),
       content=(
         #|error[4032]: (mock:cwd)/example.mbt:2:28-33: The type Lexer is undefined.
         #|   │ ///|
