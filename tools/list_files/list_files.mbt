@@ -95,31 +95,20 @@ async fn execute_list_files(
 }
 
 ///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "path": {
-      "type": "string",
-      "description": "The path to list files from, relative to the current working directory",
-    },
-  },
-  "required": ["path"],
-})
-
-///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ListFilesResult] {
   @tool.new(
     description="List files in a directory",
     name="list_files",
     schema~,
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[ListFilesResult] noraise {
-      guard args is { "path": String(path), .. } else {
-        return @tool.error("Error: 'path' parameter is required")
+    async fn(args) -> @tool.ToolResult[ListFilesResult] noraise {
+      let { path } : InputPath = @json.from_json(args) catch {
+        // TODO(upstream): weird error when missing `_ => `
+        _ => return @tool.error("Error: 'path' parameter is required")
       }
       let result = execute_list_files(manager, path) catch {
         error => return @tool.error("Error listing files: \{error}")
       }
       @tool.ok(result)
-    }),
+    },
   )
 }
