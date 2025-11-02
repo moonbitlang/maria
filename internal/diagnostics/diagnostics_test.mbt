@@ -166,3 +166,94 @@ async test "render-diagnostics-context" (t : @test.T) {
     )
   })
 }
+
+///|
+test "from_jsonl - single diagnostic" {
+  let jsonl =
+    #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
+  let diagnostics = @diagnostics.from_jsonl(jsonl)
+  inspect(diagnostics.length(), content="1")
+  inspect(diagnostics[0].error_code, content="4014")
+  inspect(diagnostics[0].level, content="Error")
+  inspect(diagnostics[0].loc.path, content="example.mbt")
+  inspect(diagnostics[0].message, content="Expr Type Mismatch")
+}
+
+///|
+test "from_jsonl - multiple diagnostics" {
+  let jsonl =
+    #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
+    #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
+    #|{"error_code":3003,"level":"error","loc":{"end":{"col":10,"line":2},"path":"main.mbt","start":{"col":8,"line":2}},"message":"Parse error"}
+  let diagnostics = @diagnostics.from_jsonl(jsonl)
+  inspect(diagnostics.length(), content="3")
+  inspect(diagnostics[0].error_code, content="4014")
+  inspect(diagnostics[1].error_code, content="2")
+  inspect(diagnostics[2].error_code, content="3003")
+}
+
+///|
+test "from_jsonl - empty string" {
+  let jsonl = ""
+  let diagnostics = @diagnostics.from_jsonl(jsonl)
+  inspect(diagnostics.length(), content="0")
+}
+
+///|
+test "from_jsonl - empty lines" {
+  let jsonl =
+    #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
+    #|
+    #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
+  let diagnostics = @diagnostics.from_jsonl(jsonl)
+  inspect(diagnostics.length(), content="2")
+  inspect(diagnostics[0].error_code, content="4014")
+  inspect(diagnostics[1].error_code, content="2")
+}
+
+///|
+test "from_jsonl - whitespace handling" {
+  let jsonl =
+    #|  {"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}  
+    #|
+    #|  {"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}  
+  let diagnostics = @diagnostics.from_jsonl(jsonl)
+  inspect(diagnostics.length(), content="2")
+}
+
+///|
+test "from_jsonl - round trip" {
+  let original : Array[@diagnostics.Diagnostic] = [
+    @diagnostics.Diagnostic::{
+      error_code: 4014,
+      level: @diagnostics.Error,
+      loc: @diagnostics.Loc::{
+        end: @diagnostics.Pos::{ col: 23, line: 1 },
+        path: "example.mbt",
+        start: @diagnostics.Pos::{ col: 15, line: 1 },
+      },
+      message: "Expr Type Mismatch",
+    },
+    @diagnostics.Diagnostic::{
+      error_code: 2,
+      level: @diagnostics.Warning,
+      loc: @diagnostics.Loc::{
+        end: @diagnostics.Pos::{ col: 6, line: 1 },
+        path: "test.mbt",
+        start: @diagnostics.Pos::{ col: 5, line: 1 },
+      },
+      message: "Warning: Unused variable",
+    },
+  ]
+  let jsonl_str = original
+    .iter()
+    .map(fn(d) { d.to_json().stringify() })
+    .to_array()
+    .join("\n")
+  let parsed = @diagnostics.from_jsonl(jsonl_str)
+  inspect(parsed.length(), content="2")
+  inspect(parsed[0].error_code, content="4014")
+  inspect(parsed[0].level, content="Error")
+  inspect(parsed[1].error_code, content="2")
+  inspect(parsed[1].level, content="Warning")
+}
