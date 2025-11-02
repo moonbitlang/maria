@@ -235,7 +235,7 @@ async fn render_diagnostic_entry(
     }
   }
   let rendered_lines = render_range_lines(diagnostic, lines, context)
-  message_lines.append(rendered_lines)  
+  message_lines.append(rendered_lines)
   message_lines.join("\n")
 }
 
