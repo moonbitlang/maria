@@ -144,7 +144,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
           rendered_diagnostics: "MoonBit project check passed with no diagnostics found.",
         })
       } else {
-        let rendered_diagnostics = @moon.render_diagnostics(
+        let rendered_diagnostics = @diagnostics.render_diagnostics(
           diagnostics,
           limit=diagnostic_limit,
         )

@@ -6,7 +6,9 @@ import(
 )
 
 // Values
-async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+fn from_jsonl(StringView) -> Array[Diagnostic] raise
+
+async fn render_diagnostics(Array[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
 
 // Errors
 
@@ -21,12 +23,13 @@ impl Show for Diagnostic
 impl ToJson for Diagnostic
 impl @json.FromJson for Diagnostic
 
-pub enum Level {
+pub(all) enum Level {
   Error
   Warning
 }
 impl Show for Level
 impl ToJson for Level
+impl @json.FromJson for Level
 
 pub(all) struct Loc {
   end : Pos
@@ -35,6 +38,7 @@ pub(all) struct Loc {
 }
 impl Show for Loc
 impl ToJson for Loc
+impl @json.FromJson for Loc
 
 pub(all) struct Pos {
   col : Int
@@ -42,8 +46,10 @@ pub(all) struct Pos {
 }
 impl Show for Pos
 impl ToJson for Pos
+impl @json.FromJson for Pos
 
 // Type aliases
+pub type Diagnostics = Array[Diagnostic]
 
 // Traits
 
