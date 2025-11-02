@@ -241,7 +241,7 @@ async test "fix-syntax-error" (t : @test.T) {
     )
     // TODO: verify the content is correct by running the program?
     let main_mbt_text = main_mbt_file.read().trim_space()
-    // The output is formatted, so we expect it will be resonasbly stable
+    // The output is formatted, so we expect it will be reasonably stable
     inspect(
       main_mbt_text,
       content=(
