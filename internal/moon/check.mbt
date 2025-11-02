@@ -1,111 +1,10 @@
 ///|
-pub enum Level {
-  Error
-  Warning
-} derive(Show, ToJson)
-
-///|
-impl @json.FromJson for Level with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Level raise @json.JsonDecodeError {
-  match json {
-    "error" => Level::Error
-    "warning" => Level::Warning
-    _ =>
-      raise @json.JsonDecodeError((json_path, "Expected 'error' or 'warning'."))
-  }
-}
-
-///|
-pub struct Pos {
-  col : Int
-  line : Int
-} derive(Show, ToJson)
-
-///|
-impl @json.FromJson for Pos with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Pos raise @json.JsonDecodeError {
-  guard json is { "col": col, "line": line, .. } else {
-    raise @json.JsonDecodeError(
-      (json_path, "Expected object with 'col' and 'line'."),
-    )
-  }
-  let col : Int = @json.from_json(col, path=json_path.add_key("col"))
-  let line : Int = @json.from_json(line, path=json_path.add_key("line"))
-  Pos::{ col, line }
-}
-
-///|
-pub struct Loc {
-  end : Pos
-  path : String
-  start : Pos
-} derive(Show, ToJson)
-
-///|
-impl @json.FromJson for Loc with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Loc raise @json.JsonDecodeError {
-  guard json is { "end": end, "path": path, "start": start, .. } else {
-    raise @json.JsonDecodeError(
-      (json_path, "Expected object with 'end', 'path' and 'start'."),
-    )
-  }
-  let end : Pos = @json.from_json(end, path=json_path.add_key("end"))
-  let path : String = @json.from_json(path, path=json_path.add_key("path"))
-  let start : Pos = @json.from_json(start, path=json_path.add_key("start"))
-  Loc::{ end, path, start }
-}
-
-///|
-pub struct Diagnostic {
-  error_code : Int
-  level : Level
-  loc : Loc
-  message : String
-} derive(Show, ToJson)
-
-///|
-pub impl @json.FromJson for Diagnostic with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Diagnostic raise @json.JsonDecodeError {
-  guard json
-    is {
-      "error_code": error_code,
-      "level": level,
-      "loc": loc,
-      "message": message,
-      ..
-    } else {
-    raise @json.JsonDecodeError(
-      (json_path, "Expected object with 'error_code'."),
-    )
-  }
-  let error_code : Int = @json.from_json(
-    error_code,
-    path=json_path.add_key("error_code"),
-  )
-  let level : Level = @json.from_json(level, path=json_path.add_key("level"))
-  let loc : Loc = @json.from_json(loc, path=json_path.add_key("loc"))
-  let message : String = @json.from_json(
-    message,
-    path=json_path.add_key("message"),
-  )
-  Diagnostic::{ error_code, level, loc, message }
-}
-
-///|
 async fn check(
   package_path? : StringView,
   patch_file? : StringView,
   target_dir? : StringView,
   cwd? : StringView,
-) -> Array[Diagnostic] {
+) -> Array[@diagnostics.Diagnostic] {
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
@@ -137,7 +36,7 @@ async fn check(
   for line in output.split("\n") {
     try {
       let json = @json.parse(line.to_string())
-      let diagnostic : Diagnostic = @json.from_json(json)
+      let diagnostic : @diagnostics.Diagnostic = @json.from_json(json)
       diagnostics.push(diagnostic)
     } catch {
       _ => continue
@@ -161,7 +60,7 @@ async fn check(
 pub async fn check_syntax_of_file(
   path : String,
   cwd? : StringView,
-) -> Array[Diagnostic] {
+) -> Array[@diagnostics.Diagnostic] {
   let output = StringBuilder::new()
   let _ = @spawn.spawn(
     "moonc",
@@ -178,7 +77,7 @@ pub async fn check_syntax_of_file(
   for line in output.split("\n") {
     try {
       let json = @json.parse(line.to_string())
-      let diagnostic : Diagnostic = @json.from_json(json)
+      let diagnostic : @diagnostics.Diagnostic = @json.from_json(json)
       diagnostics.push(diagnostic)
     } catch {
       _ => continue
@@ -202,7 +101,7 @@ pub async fn check_syntax_of_file(
 pub async fn check_syntax_of_string(
   path? : String = "source.mbt",
   source : String,
-) -> Array[Diagnostic] {
+) -> Array[@diagnostics.Diagnostic] {
   @fs.with_temporary_directory("moonbit-moon-check-syntax-XXXXXXX", tmpdir => {
     let file_path = @path.join(tmpdir, path)
     @fs.make_directory(@path.dirname(file_path), recursive=true, exists_ok=true)

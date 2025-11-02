@@ -3,7 +3,7 @@ package "moonbitlang/maria/tools/check_moonbit_project"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/internal/moon"
+  "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/tool"
 )
 
@@ -16,7 +16,7 @@ fn new(String) -> @tool.Tool[CheckMoonbitProjectResult]
 
 // Types and methods
 pub struct CheckMoonbitProjectResult {
-  diagnostics : Array[@moon.Diagnostic]
+  diagnostics : Array[@diagnostics.Diagnostic]
   diagnostic_limit : Int
   rendered_diagnostics : String
 }

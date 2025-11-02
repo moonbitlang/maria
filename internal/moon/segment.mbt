@@ -2,7 +2,7 @@
 priv struct Segment {
   offset : Int
   length : Int
-  diagnostics : Array[Diagnostic]
+  diagnostics : Array[@diagnostics.Diagnostic]
 } derive(Show)
 
 ///|
@@ -37,7 +37,9 @@ pub impl ToJson for SegmentView with to_json(self : SegmentView) -> Json {
 }
 
 ///|
-pub fn SegmentView::diagnostics(self : SegmentView) -> Array[Diagnostic] {
+pub fn SegmentView::diagnostics(
+  self : SegmentView,
+) -> Array[@diagnostics.Diagnostic] {
   self.file.segments[self.index].diagnostics
 }
 
