@@ -38,9 +38,15 @@ async test "project" (t : @test.T) {
         "files": {
           "(mock:cwd)/internal/internal.mbt": {
             "content": "///|\nlet value : Int = 37",
-            "header": { "start": 0, "end": 0, "diagnostics": [] },
-            "segments": [{ "start": 0, "end": 2, "diagnostics": [] }],
-            "diagnostics": [],
+            "header": {
+              "start": 0,
+              "end": 0,
+              "diagnostics": ["Diagnostics", []],
+            },
+            "segments": [
+              { "start": 0, "end": 2, "diagnostics": ["Diagnostics", []] },
+            ],
+            "diagnostics": ["Diagnostics", []],
           },
         },
       },

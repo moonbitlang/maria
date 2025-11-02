@@ -18,7 +18,7 @@ pub impl ToJson for File with to_json(self : File) -> Json {
     "content": self.content,
     "header": self.segments[0],
     "segments": self.segments[1:],
-    "diagnostics": self.diagnostics().collect(),
+    "diagnostics": self.diagnostics(),
   }
 }
 
@@ -94,10 +94,10 @@ fn File::clear_diagnostics(self : File) -> Unit {
 }
 
 ///|
-fn File::diagnostics(self : File) -> Iter[@diagnostics.Diagnostic] {
-  let mut diagnostics = Iter::empty()
+fn File::diagnostics(self : File) -> @diagnostics.Diagnostics {
+  let diagnostics = @diagnostics.Diagnostics::new()
   for segment in self.segments {
-    diagnostics = diagnostics.concat(segment.diagnostics.iter())
+    diagnostics.append(segment.diagnostics)
   }
   diagnostics
 }

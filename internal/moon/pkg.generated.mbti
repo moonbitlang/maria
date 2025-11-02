@@ -7,9 +7,9 @@ import(
 )
 
 // Values
-async fn check_syntax_of_file(String, cwd? : StringView) -> Array[@diagnostics.Diagnostic]
+async fn check_syntax_of_file(String, cwd? : StringView) -> @diagnostics.Diagnostics
 
-async fn check_syntax_of_string(path? : String, String) -> Array[@diagnostics.Diagnostic]
+async fn check_syntax_of_string(path? : String, String) -> @diagnostics.Diagnostics
 
 async fn format_string(String) -> String
 
@@ -55,9 +55,9 @@ pub struct Module {
   // private fields
 }
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
-async fn Module::check_patch_insert(Self, String, String) -> Array[@diagnostics.Diagnostic]
-async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[@diagnostics.Diagnostic]
-async fn Module::diagnostics(Self) -> Iter[@diagnostics.Diagnostic]
+async fn Module::check_patch_insert(Self, String, String) -> @diagnostics.Diagnostics
+async fn Module::check_patch_replace(Self, SegmentView, String) -> @diagnostics.Diagnostics
+async fn Module::diagnostics(Self) -> @diagnostics.Diagnostics
 fn Module::files(Self) -> Iter[File]
 async fn Module::find_package(Self, String) -> PackageView?
 async fn Module::install(Self) -> Unit
@@ -71,7 +71,7 @@ async fn Module::test_build_only(Self, target_dir? : String, package_? : String,
 
 type Package
 fn Package::add_diagnostic(Self, @diagnostics.Diagnostic) -> Unit
-async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd~ : StringView) -> Array[@diagnostics.Diagnostic]
+async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd~ : StringView) -> @diagnostics.Diagnostics
 async fn Package::interface(Self) -> String?
 fn Package::name(Self) -> String
 fn Package::path(Self) -> String
@@ -92,7 +92,7 @@ impl ToJson for PackageView
 
 type SegmentView
 fn SegmentView::content(Self) -> String
-fn SegmentView::diagnostics(Self) -> Array[@diagnostics.Diagnostic]
+fn SegmentView::diagnostics(Self) -> @diagnostics.Diagnostics
 async fn SegmentView::replace(Self, String) -> Unit
 impl ToJson for SegmentView
 

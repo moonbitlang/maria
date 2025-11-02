@@ -32,7 +32,7 @@ async test "render_diagnostics" (t : @test.T) {
     ])
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    let diagnostics = moon.diagnostics().collect()
+    let diagnostics = moon.diagnostics()
     inspect(
       mock.show(@diagnostics.render_diagnostics(diagnostics, limit=10)),
       content=(
@@ -110,7 +110,7 @@ async test "render-diagnostics-context" (t : @test.T) {
     ])
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    let diagnostics = moon.diagnostics().collect()
+    let diagnostics = moon.diagnostics()
     inspect(
       mock.show(
         @diagnostics.render_diagnostics(diagnostics, context=1, limit=10),
@@ -172,11 +172,21 @@ test "from_jsonl - single diagnostic" {
   let jsonl =
     #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  inspect(diagnostics.length(), content="1")
-  inspect(diagnostics[0].error_code, content="4014")
-  inspect(diagnostics[0].level, content="Error")
-  inspect(diagnostics[0].loc.path, content="example.mbt")
-  inspect(diagnostics[0].message, content="Expr Type Mismatch")
+  @json.inspect(diagnostics, content=[
+    "Diagnostics",
+    [
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch",
+      },
+    ],
+  ])
 }
 
 ///|
@@ -186,17 +196,48 @@ test "from_jsonl - multiple diagnostics" {
     #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
     #|{"error_code":3003,"level":"error","loc":{"end":{"col":10,"line":2},"path":"main.mbt","start":{"col":8,"line":2}},"message":"Parse error"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  inspect(diagnostics.length(), content="3")
-  inspect(diagnostics[0].error_code, content="4014")
-  inspect(diagnostics[1].error_code, content="2")
-  inspect(diagnostics[2].error_code, content="3003")
+  @json.inspect(diagnostics, content=[
+    "Diagnostics",
+    [
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch",
+      },
+      {
+        "error_code": 2,
+        "level": "Warning",
+        "loc": {
+          "end": { "col": 6, "line": 1 },
+          "path": "test.mbt",
+          "start": { "col": 5, "line": 1 },
+        },
+        "message": "Warning: Unused variable",
+      },
+      {
+        "error_code": 3003,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 10, "line": 2 },
+          "path": "main.mbt",
+          "start": { "col": 8, "line": 2 },
+        },
+        "message": "Parse error",
+      },
+    ],
+  ])
 }
 
 ///|
 test "from_jsonl - empty string" {
   let jsonl = ""
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  inspect(diagnostics.length(), content="0")
+  @json.inspect(diagnostics, content=["Diagnostics", []])
 }
 
 ///|
@@ -206,9 +247,31 @@ test "from_jsonl - empty lines" {
     #|
     #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  inspect(diagnostics.length(), content="2")
-  inspect(diagnostics[0].error_code, content="4014")
-  inspect(diagnostics[1].error_code, content="2")
+  @json.inspect(diagnostics, content=[
+    "Diagnostics",
+    [
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch",
+      },
+      {
+        "error_code": 2,
+        "level": "Warning",
+        "loc": {
+          "end": { "col": 6, "line": 1 },
+          "path": "test.mbt",
+          "start": { "col": 5, "line": 1 },
+        },
+        "message": "Warning: Unused variable",
+      },
+    ],
+  ])
 }
 
 ///|
@@ -218,7 +281,31 @@ test "from_jsonl - whitespace handling" {
     #|
     #|  {"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}  
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  inspect(diagnostics.length(), content="2")
+  @json.inspect(diagnostics, content=[
+    "Diagnostics",
+    [
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch",
+      },
+      {
+        "error_code": 2,
+        "level": "Warning",
+        "loc": {
+          "end": { "col": 6, "line": 1 },
+          "path": "test.mbt",
+          "start": { "col": 5, "line": 1 },
+        },
+        "message": "Warning: Unused variable",
+      },
+    ],
+  ])
 }
 
 ///|
@@ -251,9 +338,29 @@ test "from_jsonl - round trip" {
     .to_array()
     .join("\n")
   let parsed = @diagnostics.from_jsonl(jsonl_str)
-  inspect(parsed.length(), content="2")
-  inspect(parsed[0].error_code, content="4014")
-  inspect(parsed[0].level, content="Error")
-  inspect(parsed[1].error_code, content="2")
-  inspect(parsed[1].level, content="Warning")
+  @json.inspect(parsed, content=[
+    "Diagnostics",
+    [
+      {
+        "error_code": 4014,
+        "level": "Error",
+        "loc": {
+          "end": { "col": 23, "line": 1 },
+          "path": "example.mbt",
+          "start": { "col": 15, "line": 1 },
+        },
+        "message": "Expr Type Mismatch",
+      },
+      {
+        "error_code": 2,
+        "level": "Warning",
+        "loc": {
+          "end": { "col": 6, "line": 1 },
+          "path": "test.mbt",
+          "start": { "col": 5, "line": 1 },
+        },
+        "message": "Warning: Unused variable",
+      },
+    ],
+  ])
 }

@@ -23,7 +23,7 @@ const DiagnosticLimit : Int = 10
 async fn render_diagnostics(
   path~ : String,
   content : String,
-  diagnostics : Array[@diagnostics.Diagnostic],
+  diagnostics : @diagnostics.Diagnostics,
 ) -> String {
   let overlay = {}
   overlay[@path.basename(path).to_string()] = content

@@ -21,7 +21,7 @@ pub async fn Module::check_patch_replace(
   self : Module,
   segment : SegmentView,
   content : String,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
     let file_stem = @path.stem(segment.file.path())
@@ -61,7 +61,7 @@ pub async fn Module::check_patch_insert(
   self : Module,
   file_path : String,
   content : String,
-) -> Array[@diagnostics.Diagnostic] {
+) -> @diagnostics.Diagnostics {
   @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(file_path)
     let file_base = @path.basename(file_path)

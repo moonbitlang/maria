@@ -18,26 +18,29 @@ async test "check" (t : @test.T) {
     ])
     let diagnostics = check(cwd=taco.cwd.path())
     @json.inspect(taco.json(diagnostics), content=[
-      {
-        "error_code": 2,
-        "level": "Warning",
-        "loc": {
-          "end": { "col": 6, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 5, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 2,
+          "level": "Warning",
+          "loc": {
+            "end": { "col": 6, "line": 1 },
+            "path": "(mock:cwd)/example.mbt",
+            "start": { "col": 5, "line": 1 },
+          },
+          "message": "Warning: Unused variable 'x'",
         },
-        "message": "Warning: Unused variable 'x'",
-      },
-      {
-        "error_code": 4014,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 23, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 15, "line": 1 },
+        {
+          "error_code": 4014,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 23, "line": 1 },
+            "path": "(mock:cwd)/example.mbt",
+            "start": { "col": 15, "line": 1 },
+          },
+          "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
         },
-        "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
-      },
+      ],
     ])
   })
 }
@@ -49,16 +52,19 @@ async test "check_syntax_of_file" (t : @test.T) {
     file.write("let x :: Int = \"string\"")
     let diagnostics = check_syntax_of_file(file.path())
     @json.inspect(mock.json(diagnostics), content=[
-      {
-        "error_code": 3002,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 9, "line": 1 },
-          "path": "example.mbt",
-          "start": { "col": 7, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 3002,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 9, "line": 1 },
+            "path": "example.mbt",
+            "start": { "col": 7, "line": 1 },
+          },
+          "message": "Parse error, unexpected token `::`, you may expect `=`.",
         },
-        "message": "Parse error, unexpected token `::`, you may expect `=`.",
-      },
+      ],
     ])
   })
 }

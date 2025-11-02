@@ -2,7 +2,6 @@
 package "moonbitlang/maria/tools/check_moonbit_project"
 
 import(
-  "moonbitlang/core/json"
   "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/tool"
 )
@@ -16,13 +15,12 @@ fn new(String) -> @tool.Tool[CheckMoonbitProjectResult]
 
 // Types and methods
 pub struct CheckMoonbitProjectResult {
-  diagnostics : Array[@diagnostics.Diagnostic]
+  diagnostics : @diagnostics.Diagnostics
   diagnostic_limit : Int
   rendered_diagnostics : String
 }
 impl Show for CheckMoonbitProjectResult
 impl ToJson for CheckMoonbitProjectResult
-impl @json.FromJson for CheckMoonbitProjectResult
 
 // Type aliases
 

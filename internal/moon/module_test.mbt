@@ -21,9 +21,11 @@ async test "files" (t : @test.T) {
     @json.inspect(files, content=[
       {
         "content": "///|\nlet x : Int = 42",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
-        "segments": [{ "start": 0, "end": 2, "diagnostics": [] }],
-        "diagnostics": [],
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
+        "segments": [
+          { "start": 0, "end": 2, "diagnostics": ["Diagnostics", []] },
+        ],
+        "diagnostics": ["Diagnostics", []],
       },
     ])
     moon.check()
@@ -31,36 +33,42 @@ async test "files" (t : @test.T) {
     @json.inspect(taco.json(files), content=[
       {
         "content": "///|\nlet x : Int = 42",
-        "header": { "start": 0, "end": 0, "diagnostics": [] },
+        "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
         "segments": [
           {
             "start": 0,
             "end": 2,
             "diagnostics": [
-              {
-                "error_code": 2,
-                "level": "Warning",
-                "loc": {
-                  "end": { "col": 6, "line": 2 },
-                  "path": "(mock:cwd)/example.mbt",
-                  "start": { "col": 5, "line": 2 },
+              "Diagnostics",
+              [
+                {
+                  "error_code": 2,
+                  "level": "Warning",
+                  "loc": {
+                    "end": { "col": 6, "line": 2 },
+                    "path": "(mock:cwd)/example.mbt",
+                    "start": { "col": 5, "line": 2 },
+                  },
+                  "message": "Warning: Unused variable 'x'",
                 },
-                "message": "Warning: Unused variable 'x'",
-              },
+              ],
             ],
           },
         ],
         "diagnostics": [
-          {
-            "error_code": 2,
-            "level": "Warning",
-            "loc": {
-              "end": { "col": 6, "line": 2 },
-              "path": "(mock:cwd)/example.mbt",
-              "start": { "col": 5, "line": 2 },
+          "Diagnostics",
+          [
+            {
+              "error_code": 2,
+              "level": "Warning",
+              "loc": {
+                "end": { "col": 6, "line": 2 },
+                "path": "(mock:cwd)/example.mbt",
+                "start": { "col": 5, "line": 2 },
+              },
+              "message": "Warning: Unused variable 'x'",
             },
-            "message": "Warning: Unused variable 'x'",
-          },
+          ],
         ],
       },
     ])
@@ -107,9 +115,13 @@ async test "interface" (t : @test.T) {
         "files": {
           "(mock:cwd)/example.mbt": {
             "content": "let x : Int = 42",
-            "header": { "start": 0, "end": 1, "diagnostics": [] },
+            "header": {
+              "start": 0,
+              "end": 1,
+              "diagnostics": ["Diagnostics", []],
+            },
             "segments": [],
-            "diagnostics": [],
+            "diagnostics": ["Diagnostics", []],
           },
         },
       },
@@ -149,28 +161,31 @@ async test "diagnostics" (t : @test.T) {
     let _ = taco.add_file("example.mbt", content="let x : Int = \"string\"")
     let moon = Module::load(taco.cwd.path())
     moon.check()
-    let diagnostics = moon.diagnostics().collect()
+    let diagnostics = moon.diagnostics()
     @json.inspect(taco.json(diagnostics), content=[
-      {
-        "error_code": 2,
-        "level": "Warning",
-        "loc": {
-          "end": { "col": 6, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 5, "line": 1 },
+      "Diagnostics",
+      [
+        {
+          "error_code": 2,
+          "level": "Warning",
+          "loc": {
+            "end": { "col": 6, "line": 1 },
+            "path": "(mock:cwd)/example.mbt",
+            "start": { "col": 5, "line": 1 },
+          },
+          "message": "Warning: Unused variable 'x'",
         },
-        "message": "Warning: Unused variable 'x'",
-      },
-      {
-        "error_code": 4014,
-        "level": "Error",
-        "loc": {
-          "end": { "col": 23, "line": 1 },
-          "path": "(mock:cwd)/example.mbt",
-          "start": { "col": 15, "line": 1 },
+        {
+          "error_code": 4014,
+          "level": "Error",
+          "loc": {
+            "end": { "col": 23, "line": 1 },
+            "path": "(mock:cwd)/example.mbt",
+            "start": { "col": 15, "line": 1 },
+          },
+          "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
         },
-        "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
-      },
+      ],
     ])
   })
 }

@@ -28,7 +28,7 @@ fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
       let diagnostics = moon.check_patch_replace(segment, patched) catch {
         error => return @tool.error("Failed to check patch: \{error}", error~)
       }
-      guard diagnostics is [diagnostic, ..] else {
+      guard diagnostics is Diagnostics([diagnostic, ..]) else {
         result.val = Some(patched)
         @tool.ok(
           "The submitted code segment has been verified to compile without errors.",
@@ -122,7 +122,7 @@ async fn process_segment(
       $|
     ),
   )
-  if !segment.diagnostics().is_empty() {
+  if segment.diagnostics().length() != 0 {
     user_message.write_string(
       (
         $|**Errors:**
