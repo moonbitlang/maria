@@ -229,18 +229,20 @@ fn build_fixing_system_message() -> String {
     #|   Both
     #|     ```moonbit
     #|        match shape {
-    #|          Shape::Circle(radius) => ...
-    #|          Shape::Square(side) => ...
+    #|          Shape::Circle(radius) => Shape::Circle(radius + 1) 
+    #|          Shape::Square(side) => Shape::Square(side + 1)
     #|        }
     #|     ```
     #|   and
     #|     ```moonbit
     #|        match shape {
-    #|          Circle(radius) => ...
-    #|          Square(side) => ...
+    #|          Circle(radius) => Circle(radius + 1)
+    #|          Square(side) => Square(side + 1)
     #|        }
     #|     ```
-    #|   are correct syntax, only when the type is ambiguous, the variant needs to be associated with type.
+    #|   are correct syntax, only when the type is ambiguous, the variant needs to be associated with type,
+    #|   in this case, this is type error, it is not your responsibility to fix type errors.
+    #|
   )
 }
 
