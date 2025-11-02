@@ -7,11 +7,24 @@ import(
 )
 
 // Values
-fn open_router_model(api_key~ : String, name? : String) -> Model
+fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
 
 // Errors
 
 // Types and methods
+pub(all) enum CommonModels {
+  Qwen3CoderPlus
+  Qwen3CoderFlash
+  Grok4Fast
+  GrokCodeFast1
+  ClaudeHaiku4_5
+  ClaudeSonnet4_5
+  Gpt5Codex
+  Gpt5
+  Gpt5Mini
+  Gpt5Nano
+}
+
 type Loader
 async fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
 async fn Loader::new(home~ : StringView, cwd~ : StringView, logger~ : @pino.Logger) -> Self
