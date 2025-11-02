@@ -46,7 +46,7 @@ test "params ToJson" {
 
 ///|
 pub struct CheckMoonbitProjectResult {
-  diagnostics : Array[@moon.Diagnostic]
+  diagnostics : Array[@diagnostics.Diagnostic]
   diagnostic_limit : Int
   rendered_diagnostics : String
 } derive(ToJson, @json.FromJson)

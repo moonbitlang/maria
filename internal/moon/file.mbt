@@ -94,7 +94,7 @@ fn File::clear_diagnostics(self : File) -> Unit {
 }
 
 ///|
-fn File::diagnostics(self : File) -> Iter[Diagnostic] {
+fn File::diagnostics(self : File) -> Iter[@diagnostics.Diagnostic] {
   let mut diagnostics = Iter::empty()
   for segment in self.segments {
     diagnostics = diagnostics.concat(segment.diagnostics.iter())
@@ -103,7 +103,10 @@ fn File::diagnostics(self : File) -> Iter[Diagnostic] {
 }
 
 ///|
-fn File::add_diagnostic(self : File, diagnostic : Diagnostic) -> Unit {
+fn File::add_diagnostic(
+  self : File,
+  diagnostic : @diagnostics.Diagnostic,
+) -> Unit {
   guard diagnostic.loc.path == self.path else {
     abort("Diagnostic path does not match file path")
   }

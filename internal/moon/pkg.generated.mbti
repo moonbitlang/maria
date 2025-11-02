@@ -3,18 +3,19 @@ package "moonbitlang/maria/internal/moon"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/internal/diagnostics"
 )
 
 // Values
-async fn check_syntax_of_file(String, cwd? : StringView) -> Array[Diagnostic]
+async fn check_syntax_of_file(String, cwd? : StringView) -> Array[@diagnostics.Diagnostic]
 
-async fn check_syntax_of_string(path? : String, String) -> Array[Diagnostic]
+async fn check_syntax_of_string(path? : String, String) -> Array[@diagnostics.Diagnostic]
 
 async fn format_string(String) -> String
 
 async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
 
-async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+async fn render_diagnostics(ArrayView[@diagnostics.Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
 
 // Errors
 
@@ -37,16 +38,6 @@ pub(all) enum CoverageFormat {
 }
 impl Show for CoverageFormat
 
-pub struct Diagnostic {
-  error_code : Int
-  level : Level
-  loc : Loc
-  message : String
-}
-impl Show for Diagnostic
-impl ToJson for Diagnostic
-impl @json.FromJson for Diagnostic
-
 type File
 fn File::header(Self) -> SegmentView
 fn File::lines(Self) -> Array[StringView]
@@ -61,29 +52,14 @@ type Import
 impl Show for Import
 impl @json.FromJson for Import
 
-pub enum Level {
-  Error
-  Warning
-}
-impl Show for Level
-impl ToJson for Level
-
-pub struct Loc {
-  end : Pos
-  path : String
-  start : Pos
-}
-impl Show for Loc
-impl ToJson for Loc
-
 pub struct Module {
   coverage : Coverage
   // private fields
 }
 async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
-async fn Module::check_patch_insert(Self, String, String) -> Array[Diagnostic]
-async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[Diagnostic]
-async fn Module::diagnostics(Self) -> Iter[Diagnostic]
+async fn Module::check_patch_insert(Self, String, String) -> Array[@diagnostics.Diagnostic]
+async fn Module::check_patch_replace(Self, SegmentView, String) -> Array[@diagnostics.Diagnostic]
+async fn Module::diagnostics(Self) -> Iter[@diagnostics.Diagnostic]
 fn Module::files(Self) -> Iter[File]
 async fn Module::find_package(Self, String) -> PackageView?
 async fn Module::install(Self) -> Unit
@@ -96,8 +72,8 @@ async fn Module::test_(Self, target_dir? : String, package_? : String, file? : S
 async fn Module::test_build_only(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Artifacts
 
 type Package
-fn Package::add_diagnostic(Self, Diagnostic) -> Unit
-async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd~ : StringView) -> Array[Diagnostic]
+fn Package::add_diagnostic(Self, @diagnostics.Diagnostic) -> Unit
+async fn Package::check(Self, patch_file? : StringView, target_dir? : StringView, cwd~ : StringView) -> Array[@diagnostics.Diagnostic]
 async fn Package::interface(Self) -> String?
 fn Package::name(Self) -> String
 fn Package::path(Self) -> String
@@ -116,16 +92,9 @@ fn PackageView::name(Self) -> String
 fn PackageView::package_(Self) -> Package
 impl ToJson for PackageView
 
-pub struct Pos {
-  col : Int
-  line : Int
-}
-impl Show for Pos
-impl ToJson for Pos
-
 type SegmentView
 fn SegmentView::content(Self) -> String
-fn SegmentView::diagnostics(Self) -> Array[Diagnostic]
+fn SegmentView::diagnostics(Self) -> Array[@diagnostics.Diagnostic]
 async fn SegmentView::replace(Self, String) -> Unit
 impl ToJson for SegmentView
 
@@ -133,6 +102,13 @@ type TestFailure
 impl ToJson for TestFailure
 
 // Type aliases
+pub using @diagnostics {type Diagnostic}
+
+pub using @diagnostics {type Level}
+
+pub using @diagnostics {type Loc}
+
+pub using @diagnostics {type Pos}
 
 // Traits
 

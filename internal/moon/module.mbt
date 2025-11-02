@@ -230,7 +230,9 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
 }
 
 ///|
-pub async fn Module::diagnostics(self : Module) -> Iter[Diagnostic] {
+pub async fn Module::diagnostics(
+  self : Module,
+) -> Iter[@diagnostics.Diagnostic] {
   let packages = self.packages.values().collect()
   let mut diags = Iter::empty()
   for i in 0..<packages.length() {

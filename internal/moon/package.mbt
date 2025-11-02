@@ -129,7 +129,10 @@ fn Package::files(self : Package) -> Iter[File] {
 }
 
 ///|
-pub fn Package::add_diagnostic(self : Package, diagnostic : Diagnostic) -> Unit {
+pub fn Package::add_diagnostic(
+  self : Package,
+  diagnostic : @diagnostics.Diagnostic,
+) -> Unit {
   guard self.files.get(diagnostic.loc.path) is Some(file) else {
     println(
       "Warning: Diagnostic path \{diagnostic.loc.path} not found in package \{self.name}",
@@ -144,7 +147,7 @@ pub async fn Package::check(
   patch_file? : StringView,
   target_dir? : StringView,
   cwd~ : StringView,
-) -> Array[Diagnostic] {
+) -> Array[@diagnostics.Diagnostic] {
   check(package_path=self.path, patch_file?, target_dir?, cwd~)
 }
 
@@ -166,7 +169,7 @@ pub async fn Package::interface(self : Package) -> String? {
 }
 
 ///|
-fn Package::diagnostics(self : Package) -> Iter[Diagnostic] {
+fn Package::diagnostics(self : Package) -> Iter[@diagnostics.Diagnostic] {
   let mut diagnostics = Iter::empty()
   for file in self.files.values() {
     diagnostics = diagnostics.concat(file.diagnostics())

@@ -1,0 +1,49 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/diagnostics"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+async fn render_diagnostics(ArrayView[Diagnostic], limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+
+// Errors
+
+// Types and methods
+pub(all) struct Diagnostic {
+  error_code : Int
+  level : Level
+  loc : Loc
+  message : String
+}
+impl Show for Diagnostic
+impl ToJson for Diagnostic
+impl @json.FromJson for Diagnostic
+
+pub enum Level {
+  Error
+  Warning
+}
+impl Show for Level
+impl ToJson for Level
+
+pub(all) struct Loc {
+  end : Pos
+  path : String
+  start : Pos
+}
+impl Show for Loc
+impl ToJson for Loc
+
+pub(all) struct Pos {
+  col : Int
+  line : Int
+}
+impl Show for Pos
+impl ToJson for Pos
+
+// Type aliases
+
+// Traits
+
