@@ -102,13 +102,6 @@ type TestFailure
 impl ToJson for TestFailure
 
 // Type aliases
-pub using @diagnostics {type Diagnostic}
-
-pub using @diagnostics {type Level}
-
-pub using @diagnostics {type Loc}
-
-pub using @diagnostics {type Pos}
 
 // Traits
 
