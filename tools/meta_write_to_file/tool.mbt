@@ -332,21 +332,18 @@ async fn execute_replace_in_file(
   params : MetaWriteParams,
   resolved_path : String,
 ) -> @tool.ToolResult[String] noraise {
-  match (params.search, params.replace) {
-    (None, Some(replace)) =>
+  let replace = params.replace
+  match params.search {
+    None =>
       try {
         mkdir_then_write(resolved_path, replace)
         @tool.ok("File written successfully to \{params.path}")
       } catch {
         error => @tool.error("Error writing to file: \{error}", error~)
       }
-    (Some(search), replace_opt) =>
+    Some(search) =>
       try {
         let content = @fs.read_file(resolved_path)
-        let replace = match replace_opt {
-          Some(r) => r
-          None => ""
-        }
         match @fuzzy.find_match(content, search) {
           None => @tool.error("Search content not found in file: \{search}")
           Some(match_result) => {
@@ -360,8 +357,6 @@ async fn execute_replace_in_file(
       } catch {
         error => @tool.error("Error writing to file: \{error}", error~)
       }
-    (None, None) =>
-      @tool.error("Either 'replace' content must be provided for new files")
   }
 }
 
@@ -394,14 +389,11 @@ async fn execute_meta_write_to_file(
     // If it's a MoonBit file, format it and fix syntax if needed
     if is_moonbit_file(resolved_path) {
       // Calculate initial content by applying search/replace
-      let initial_content = match (params.search, params.replace) {
-        (None, Some(replace)) => replace
-        (Some(search), replace_opt) => {
+      let replace = params.replace
+      let initial_content = match params.search {
+        None => replace
+        Some(search) => {
           let file_content = @fs.read_file(resolved_path)
-          let replace = match replace_opt {
-            Some(r) => r
-            None => ""
-          }
           match @fuzzy.find_match(file_content, search) {
             None =>
               return @tool.error("Search content not found in file: \{search}")
@@ -413,10 +405,6 @@ async fn execute_meta_write_to_file(
             }
           }
         }
-        (None, None) =>
-          return @tool.error(
-            "Either 'replace' content must be provided for new files",
-          )
       }
 
       // Format the source, even if there are syntax errors, as some syntax
@@ -499,7 +487,7 @@ async fn execute_meta_write_to_file(
       } else {
         ""
       }
-      @tool.ok(MetaWriteToFileResult::{
+      @tool.ok({
         path: resolved_path,
         message: if params.search is Some(_) {
           "Changes applied and formatted successfully to \{params.path}"
@@ -523,7 +511,7 @@ async fn execute_meta_write_to_file(
         Error(error, message) => return @tool.error(message, error~)
         Ok(write_result) => write_result
       }
-      @tool.ok(MetaWriteToFileResult::{
+      @tool.ok({
         path: resolved_path,
         message: write_result,
         diff: "",
