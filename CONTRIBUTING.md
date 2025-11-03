@@ -178,7 +178,7 @@ Looking for a place to contribute? Here are some suggestions:
 Check out issues tagged with:
 - **`feature`**: New features that need implementation
 - **`help-wanted`**: Issues that are ready for community contributions
-- **`good-first-issue`**: Beginner-friendly issues (if available)
+- **`good-first-issue`**: Beginner-friendly issues
 
 Browse the [issue tracker](https://github.com/moonbitlang/maria/issues) and look for these labels to find issues that match your interests and skill level.
 
