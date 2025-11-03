@@ -18,14 +18,7 @@ def main():
     target = f"{platform.system().lower()}-{platform.machine().lower()}"
     subprocess.run(["moon", "build", "--target", "native", "--release"], check=True)
     main_exe = (
-        Path.cwd()
-        / "target"
-        / "native"
-        / "release"
-        / "build"
-        / "cmd"
-        / "main"
-        / "main.exe"
+        Path.cwd() / "target" / "native" / "release" / "build" / "sdk" / "sdk.exe"
     )
     copy_file(main_exe, Path("sdk") / "python" / "maria" / "bin" / f"{target}.exe")
     copy_file(main_exe, Path("sdk") / "nodejs" / "bin" / f"{target}.exe")
