@@ -119,6 +119,14 @@ fn render_single_line_range(
   context : Int,
 ) -> Array[String] {
   let rendered = []
+  fn render_line(number : String, text : StringView) -> Unit {
+    if text is "" {
+      rendered.push(" \{number} │")
+    } else {
+      rendered.push(" \{number} │ \{text}")
+    }
+  }
+
   let start_line = diagnostic.loc.start.line
   let context_start_line = @cmp.maximum(1, start_line - context)
   let context_end_line = @cmp.minimum(lines.length() - 1, start_line + context)
@@ -126,11 +134,11 @@ fn render_single_line_range(
   let number_padding = " ".repeat(number_width)
   for i in context_start_line..<start_line {
     let line_text = lines[i - 1]
-    rendered.push(" \{number_padding} │ \{line_text}")
+    render_line(number_padding, line_text)
   }
   let start_line_number = start_line.to_string()
   let start_line_text = lines[start_line - 1]
-  rendered.push(" \{start_line_number} │ \{start_line_text}")
+  render_line(start_line_number, start_line_text)
   let caret_text = "^".repeat(
     @cmp.maximum(diagnostic.loc.end.col - diagnostic.loc.start.col, 1),
   )
@@ -138,7 +146,7 @@ fn render_single_line_range(
   rendered.push(" \{number_padding} │ \{text_padding}\{caret_text}")
   for i in (start_line + 1)..=context_end_line {
     let line_text = lines[i - 1]
-    rendered.push(" \{number_padding} │ \{line_text}")
+    render_line(number_padding, line_text)
   }
   rendered
 }
@@ -150,6 +158,14 @@ fn render_multi_line_range(
   context : Int,
 ) -> Array[String] {
   let rendered = []
+  fn render_line(number : String, text : StringView) -> Unit {
+    if text is "" {
+      rendered.push(" \{number} │")
+    } else {
+      rendered.push(" \{number} │ \{text}")
+    }
+  }
+
   let start_line = diagnostic.loc.start.line
   let end_line = diagnostic.loc.end.line
   let start_line_number = start_line.to_string()
@@ -162,10 +178,10 @@ fn render_multi_line_range(
   let end_line_number = end_line_number.pad_start(number_width, ' ')
   for i in context_start_line..<start_line {
     let line_text = lines[i - 1]
-    rendered.push(" \{number_padding} │ \{line_text}")
+    render_line(number_padding, line_text)
   }
   let start_line_text = lines[start_line - 1]
-  rendered.push(" \{start_line_number} │ \{start_line_text}")
+  render_line(start_line_number, start_line_text)
   let text_padding = " ".repeat(diagnostic.loc.start.col - 1)
   let start_line_carets = "^".repeat(
     start_line_text.length() - diagnostic.loc.start.col + 1,
@@ -175,12 +191,12 @@ fn render_multi_line_range(
     rendered.push(" \{number_padding} ┆")
   }
   let end_line_text = lines[end_line - 1]
-  rendered.push(" \{end_line_number} │ \{end_line_text}")
+  render_line(end_line_number, end_line_text)
   let end_line_carets = "^".repeat(diagnostic.loc.end.col - 1)
   rendered.push(" \{number_padding} │ \{end_line_carets}")
   for i in (end_line + 1)..=context_end_line {
     let line_text = lines[i - 1]
-    rendered.push(" \{number_padding} │ \{line_text}")
+    render_line(number_padding, line_text)
   }
   rendered
 }
