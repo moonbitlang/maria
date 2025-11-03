@@ -50,7 +50,6 @@ async test "generate_git_diff" {
       #|+line 3
       #|+line 4 added
       #|\ No newline at end of file
-      #|
     ),
   )
 }

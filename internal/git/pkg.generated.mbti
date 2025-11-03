@@ -8,7 +8,7 @@ async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) -> Uni
 
 async fn commit(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Unit
 
-async fn generate_git_diff(original~ : String, modified~ : String) -> String
+async fn generate_git_diff(original~ : String, modified~ : String, line_number? : Bool) -> String
 
 async fn init_(String) -> Unit
 

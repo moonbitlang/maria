@@ -64,6 +64,7 @@ pub async fn commit(
 pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
+  line_number? : Bool = false,
 ) -> String {
   @fs.with_temporary_directory("maria-git-diff-XXXXXXX", tmpdir => {
     // concat `/` make path library parsing as directory
@@ -90,6 +91,11 @@ pub async fn generate_git_diff(
       cwd=tmpdir,
     )
     |> ignore()
-    output.to_string()
+    let output = output.to_string().trim_space().to_string()
+    if line_number {
+      add_line_number_to_diff(output)
+    } else {
+      output
+    }
   })
 }

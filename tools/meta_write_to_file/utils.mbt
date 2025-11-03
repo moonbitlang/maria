@@ -16,6 +16,6 @@ async fn generate_diff(
   diff_text.write_string(
     @git.generate_git_diff(original=old_content, modified=new_content),
   )
-  diff_text.write_string("```")
+  diff_text.write_string("\n```")
   DiffResult::{ has_changes: true, diff_text: diff_text.to_string() }
 }

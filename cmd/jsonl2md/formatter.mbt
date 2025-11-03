@@ -93,7 +93,6 @@ async fn Formatter::format_replace_in_file(
       } else {
         "plaintext"
       }
-      self.lines.push("")
       if file_format is "markdown" {
         self.lines.push("````\{file_format}")
         self.lines.push(replace)
@@ -125,6 +124,7 @@ async fn Formatter::format_submit_fixed_file(
         let diff = @git.generate_git_diff(
           original=last_content,
           modified=content,
+          line_number=true,
         )
         self.lines.push("```diff")
         self.lines.push(diff)
