@@ -24,6 +24,7 @@ pub(all) enum CommonModels {
   Gpt5Mini
   Gpt5Nano
 }
+impl Show for CommonModels
 
 type Loader
 async fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?

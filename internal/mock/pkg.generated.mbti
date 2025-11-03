@@ -8,6 +8,7 @@ import(
   "moonbitlang/maria/clock"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
+  "moonbitlang/maria/model"
 )
 
 // Values
@@ -34,6 +35,7 @@ async fn Context::add_file(Self, String, content? : String) -> File
 async fn Context::add_files(Self, Array[(String, String)]) -> Unit
 fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
 fn[T : ToJson] Context::json(Self, T) -> Json
+fn Context::model(Self, name? : @model.CommonModels) -> @model.Model raise
 #alias(text)
 fn[T : Show] Context::show(Self, T) -> String
 
