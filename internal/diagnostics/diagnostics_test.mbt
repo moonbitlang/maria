@@ -428,3 +428,122 @@ test "from_jsonl - round trip" {
     ],
   ])
 }
+
+///|
+async test "render_empty_line" (t : @test.T) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
+      ),
+      (
+        "moon.pkg.json",
+        (
+          #|{ }
+        ),
+      ),
+      (
+        "example.mbt",
+        (
+          #|struct Point {
+          #|  x : Int
+          #|  y : Int
+          #|}
+          #|
+          #|fn Point::new(x~ : Int, y~ : Int) -> Point {
+          #|  Point { x, y }
+          #|}
+          #|
+          #|#load
+          #|
+          #|/// Well
+          #|fn main {
+          #|  println("Hello, World!")
+          #|}
+        ),
+      ),
+    ])
+    let moon = @moon.Module::load(mock.cwd.path())
+    moon.check()
+    let diagnostics = moon.diagnostics()
+    inspect(
+      mock.show(diagnostics.render(context=1, limit=10)),
+      content=(
+        #|error[4021]: (mock:cwd)/example.mbt:7:3-8: The value identifier Point is unbound.
+        #|   │ fn Point::new(x~ : Int, y~ : Int) -> Point {
+        #| 7 │   Point { x, y }
+        #|   │   ^^^^^
+        #|   │ }
+        #|
+        #|error[3002]: (mock:cwd)/example.mbt:7:9-10: Parse error, unexpected token `{`, you may expect `;` or `}`.
+        #|   │ fn Point::new(x~ : Int, y~ : Int) -> Point {
+        #| 7 │   Point { x, y }
+        #|   │         ^
+        #|   │ }
+        #|
+        #|error[3002]: (mock:cwd)/example.mbt:10:1-6: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+        #|    │
+        #| 10 │ #load
+        #|    │ ^^^^^
+        #|    │
+        #|
+        #|error[3002]: (mock:cwd)/example.mbt:11:2: Parse error, expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`. Did you forget to indent the local `fn`?
+        #|    │ #load
+        #| 11 │
+        #|    │  ^
+        #|    │ /// Well
+        #|
+        #|error[4069]: (mock:cwd)/example.mbt:13:1-15:2: Unexpected main function in the non-main package.
+        #|    │ /// Well
+        #| 13 │ fn main {
+        #|    │ ^^^^^^^^^
+        #|    ┆
+        #| 15 │ }
+        #|    │ ^
+        #|
+        #|warning[0004]: (mock:cwd)/example.mbt:1:8-13: Warning: The type 'Point' does not occur in public signature of current package, consider marking it as `priv`.
+        #| 1 │ struct Point {
+        #|   │        ^^^^^
+        #|   │   x : Int
+        #|
+        #|warning[0009]: (mock:cwd)/example.mbt:1:8-13: Warning: The struct Point is never constructed
+        #| 1 │ struct Point {
+        #|   │        ^^^^^
+        #|   │   x : Int
+        #|
+        #|warning[0007]: (mock:cwd)/example.mbt:2:3-4: Warning: Field 'x' is never read
+        #|   │ struct Point {
+        #| 2 │   x : Int
+        #|   │   ^
+        #|   │   y : Int
+        #|
+        #|warning[0007]: (mock:cwd)/example.mbt:3:3-4: Warning: Field 'y' is never read
+        #|   │   x : Int
+        #| 3 │   y : Int
+        #|   │   ^
+        #|   │ }
+        #|
+        #|warning[0001]: (mock:cwd)/example.mbt:6:11-14: Warning: Unused function 'new'
+        #|   │
+        #| 6 │ fn Point::new(x~ : Int, y~ : Int) -> Point {
+        #|   │           ^^^
+        #|   │   Point { x, y }
+        #|
+        #|There are 3 more warning(s) not shown due to diagnostic limit.
+      ),
+    )
+    inspect(
+      mock.show(diagnostics.render(limit=1)),
+      content=(
+        #|error[4021]: (mock:cwd)/example.mbt:7:3-8: The value identifier Point is unbound.
+        #| 7 │   Point { x, y }
+        #|   │   ^^^^^
+        #|
+        #|There are 4 more error(s) and 8 more warning(s) not shown due to diagnostic limit.
+      ),
+    )
+  })
+}
