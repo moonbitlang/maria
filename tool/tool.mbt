@@ -3,7 +3,7 @@ pub struct ToolDesc {
   description : String
   name : String
   schema : JsonSchema
-}
+} derive(ToJson)
 
 ///|
 pub struct Tool[Output] {

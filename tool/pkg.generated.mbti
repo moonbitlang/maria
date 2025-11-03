@@ -14,7 +14,7 @@ pub(all) struct JsonSchema(Json)
 fn JsonSchema::from_json(Json) -> Self
 #deprecated
 fn JsonSchema::inner(Self) -> Json
-fn JsonSchema::to_json(Self) -> Json
+impl ToJson for JsonSchema
 
 pub struct Tool[Output] {
   desc : ToolDesc
@@ -31,6 +31,7 @@ pub struct ToolDesc {
   name : String
   schema : JsonSchema
 }
+impl ToJson for ToolDesc
 
 pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
 #deprecated
