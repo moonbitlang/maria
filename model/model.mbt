@@ -105,7 +105,10 @@ pub(all) enum CommonModels {
 }
 
 ///|
-impl Show for CommonModels with output(self : CommonModels, logger : &Logger) -> Unit {
+pub impl Show for CommonModels with output(
+  self : CommonModels,
+  logger : &Logger,
+) -> Unit {
   match self {
     Qwen3CoderPlus => logger.write_string("qwen/qwen3-coder-plus")
     Qwen3CoderFlash => logger.write_string("qwen/qwen3-coder-flash")

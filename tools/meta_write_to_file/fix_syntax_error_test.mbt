@@ -1,8 +1,7 @@
 ///|
 async test "fix-syntax-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -87,8 +86,7 @@ async test "fix-syntax-error" (t : @test.T) {
 ///|
 async test "search-replace" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -187,8 +185,7 @@ async test "search-replace" (t : @test.T) {
 ///|
 async test "fix-question-mark-error-propagation" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -248,8 +245,7 @@ async test "fix-question-mark-error-propagation" (t : @test.T) {
 ///|
 async test "fix-loop-syntax-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -307,8 +303,7 @@ async test "fix-loop-syntax-error" (t : @test.T) {
 ///|
 async test "fix-range-pattern-for-loop-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -361,8 +356,7 @@ async test "fix-range-pattern-for-loop-error" (t : @test.T) {
 ///|
 async test "fix-range-pattern-match-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -421,8 +415,7 @@ async test "fix-range-pattern-match-error" (t : @test.T) {
 ///|
 async test "fix-range-pattern-if-is-error" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
@@ -484,8 +477,7 @@ async test "fix-range-pattern-if-is-error" (t : @test.T) {
 ///|
 async test "fix-multiple-syntax-errors" (t : @test.T) {
   @mock.run(t, retry=3, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
-    let model = @model.open_router_model(api_key~)
+    let model = mock.model()
     mock.add_files([
       (
         "moon.mod.json",
