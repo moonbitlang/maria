@@ -1,7 +1,8 @@
-import { spawn } from "child_process";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { platform, arch } from "os";
+import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { arch, platform } from "node:os";
+import { createInterface } from "node:readline";
 import { Notification } from "./events";
 
 function getSystem(): string {
@@ -26,32 +27,19 @@ export class Maria {
       throw new Error("Failed to spawn Maria process: stdout is null");
     }
 
-    let buffer = "";
+    const rl = createInterface({
+      input: process.stdout,
+      crlfDelay: Infinity,
+    });
 
-    for await (const chunk of process.stdout) {
-      buffer += chunk.toString();
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            const notification: Notification = JSON.parse(line);
-            yield notification;
-          } catch (error) {
-            throw new Error(`Failed to parse notification: ${line}`);
-          }
+    for await (const line of rl) {
+      if (line.trim()) {
+        try {
+          const notification: Notification = JSON.parse(line);
+          yield notification;
+        } catch (error) {
+          throw new Error(`Failed to parse notification: ${line}`);
         }
-      }
-    }
-
-    // Process any remaining data in buffer
-    if (buffer.trim()) {
-      try {
-        const notification: Notification = JSON.parse(buffer);
-        yield notification;
-      } catch (error) {
-        throw new Error(`Failed to parse notification: ${buffer}`);
       }
     }
 
