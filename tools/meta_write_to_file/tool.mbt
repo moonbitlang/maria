@@ -324,9 +324,9 @@ async fn execute_meta_write_to_file(
           $|Summary of fixes applied:
           $|
           $|\{fixing_ctx.result.unwrap_or_default()}
-        prompt
+        Some(prompt)
       } else {
-        ""
+        None
       }
       @tool.ok({
         path: resolved_path,
@@ -336,10 +336,7 @@ async fn execute_meta_write_to_file(
           "File written and formatted successfully to \{params.path}"
         },
         diff: diff.diff_text,
-        learning_prompt: match learning_prompt {
-          "" => None
-          learning_prompt => Some(learning_prompt)
-        },
+        learning_prompt,
       })
     } else {
       // Non-MoonBit files: call replace_in_file directly
