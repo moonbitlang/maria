@@ -9,6 +9,7 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/clock",
     "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/model",
     {
       "path": "moonbitlang/maria/internal/fs",
       "alias": "mfs"
