@@ -21,6 +21,8 @@ test "dirname" {
 ///|
 test "basename" {
   @json.inspect(@path.basename("a/b/c.jpg"), content="c.jpg")
+  @json.inspect(@path.basename("a/b/c/"), content="c")
+  @json.inspect(@path.basename("a"), content="a")
 }
 
 ///|
