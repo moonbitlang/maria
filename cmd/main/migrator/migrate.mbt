@@ -59,12 +59,14 @@ async fn Migrator::migrate(self : Migrator, cwd~ : String) -> Unit {
     |> @path.join("repos")
     |> @path.join(src_name)
   for loop_index in 1..=self.max_while_loop {
-    if !@fs.exists(dst_path) {
-      @moon.new(name=dst_name, dst_name)
+    let dst_exists = @fs.exists(dst_path) catch { error => @errortrace.reraise(error) }
+    if !dst_exists {
+      @moon.new(name=dst_name, dst_name) catch { error => @errortrace.reraise(error) }
     }
-    if !@fs.exists(src_path) {
+    let src_exists = @fs.exists(src_path) catch { error => @errortrace.reraise(error) }
+    if !src_exists {
       println("cloning repository \{self.repo} into \{src_path}...")
-      @git.clone(self.repo, to=src_path, cwd=dst_path)
+      @git.clone(self.repo, to=src_path, cwd=dst_path) catch { error => @errortrace.reraise(error) }
     }
     println("cloned into \{src_path}")
     let maria = @maria.Maria::new()

@@ -3,7 +3,8 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/diagnostics"
+    "moonbitlang/maria/internal/diagnostics",
+    "moonbitlang/maria/internal/errortrace"
   ],
   "test-import": [
     "moonbitlang/async",

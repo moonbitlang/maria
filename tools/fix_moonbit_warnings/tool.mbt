@@ -25,7 +25,9 @@ fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
         error =>
           return @tool.error("Invalid 'segment' argument: \{error}", error~)
       }
-      let diagnostics = moon.check_patch_replace(segment, patched) catch {
+      let diagnostics = try {
+        moon.check_patch_replace(segment, patched) catch { error => @errortrace.reraise(error) }
+      } catch {
         error => return @tool.error("Failed to check patch: \{error}", error~)
       }
       guard diagnostics is Diagnostics([diagnostic, ..]) else {

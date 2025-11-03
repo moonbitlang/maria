@@ -78,26 +78,30 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
         @path.join(cwd, path)
       }
       let separator = separator.unwrap_or("\n")
-      let content_to_append = if (@fs.exists(path) catch {
-          error =>
-            return @tool.error("Failed to check if file exists: \{error}")
-        }) {
-        let existing_content = @fs.read_file(path) catch {
-          error => return @tool.error("Failed to read existing file: \{error}")
+      try {
+        let path_exists = @fs.exists(path) catch {
+          error => @errortrace.reraise(error)
         }
-        if existing_content.is_empty() {
-          content
+        let content_to_append = if path_exists {
+          let existing_content = @fs.read_file(path) catch {
+            error => @errortrace.reraise(error)
+          }
+          if existing_content.is_empty() {
+            content
+          } else {
+            existing_content + separator + content
+          }
         } else {
-          existing_content + separator + content
+          content
         }
-      } else {
-        content
+        let _ = @fs.write_to_file(path, content_to_append) catch {
+          error => @errortrace.reraise(error)
+        }
+        let result = Result::{ path, }
+        @tool.ok(result)
+      } catch {
+        error => @tool.error("Error: \{error}", error~)
       }
-      let _ = @fs.write_to_file(path, content_to_append) catch {
-        error => return @tool.error("Failed to write to file: \{error}")
-      }
-      let result = Result::{ path, }
-      @tool.ok(result)
     },
   )
 }

@@ -2,7 +2,8 @@
   "import": [
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/moon"
+    "moonbitlang/maria/internal/moon",
+    "moonbitlang/maria/internal/errortrace"
   ],
   "wbtest-import": [
     "moonbitlang/async",

@@ -6,6 +6,7 @@
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/git",
     "moonbitlang/maria",
-    "moonbitlang/maria/internal/os"
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/errortrace"
   ]
 }

@@ -59,7 +59,7 @@ async fn main {
     println("Error: --prompt-file is required")
     return
   }
-  let prompt = @fs.read_file(prompt_file)
+  let prompt = @fs.read_file(prompt_file) catch { error => @errortrace.reraise(error) }
   let clock = @clock.epoch
   let timestamp = @time.unix(clock.now() / 1000)
     .to_plain_date_time()
@@ -72,10 +72,12 @@ async fn main {
     File(file) => (file, @path.stem(file))
     Directory(dir) => (@path.join(dir, "log.jsonl"), @path.join(dir, "cwd"))
   }
-  if @fs.exists(log_file) {
+  let log_file_exists = @fs.exists(log_file) catch { error => @errortrace.reraise(error) }
+  if log_file_exists {
     fail("Log file \{log_file} already exists")
   }
-  if @fs.exists(gen_dir) {
+  let gen_dir_exists = @fs.exists(gen_dir) catch { error => @errortrace.reraise(error) }
+  if gen_dir_exists {
     fail("Generated directory \{gen_dir} already exists")
   }
   let logger = @pino.logger(
@@ -90,5 +92,5 @@ async fn main {
     if status != 0 {
       fail("Failed to copy generated files from \{tmpdir} to \{gen_dir}")
     }
-  })
+  }) catch { error => @errortrace.reraise(error) }
 }

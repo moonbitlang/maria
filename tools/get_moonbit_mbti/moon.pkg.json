@@ -1,4 +1,4 @@
 {
-  "import": ["moonbitlang/maria/tool", "moonbitlang/maria/internal/moon"],
+  "import": ["moonbitlang/maria/tool", "moonbitlang/maria/internal/moon", "moonbitlang/maria/internal/errortrace"],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }

@@ -11,7 +11,9 @@ fn is_moonbit_file(file_path : String) -> Bool {
 ///|
 /// Format a MoonBit file using moon fmt
 async fn format_moonbit_source(source : String) -> String noraise {
-  @moon.format_string(source) catch {
+  try {
+    @moon.format_string(source) catch { error => @errortrace.reraise(error) }
+  } catch {
     _ => source // Return original source if formatting fails
   }
 }
@@ -45,7 +47,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
       }
       try {
         // Write the fixed content to file
-        let diagnostics = @moon.check_syntax_of_string(path=ctx.path, content)
+        let diagnostics = @moon.check_syntax_of_string(path=ctx.path, content) catch { error => @errortrace.reraise(error) }
         if diagnostics.is_empty() {
           ctx.content = content
           @tool.ok(
@@ -184,14 +186,14 @@ async fn execute_replace_in_file(
       }
     Some(search) =>
       try {
-        let content = @fs.read_file(resolved_path)
+        let content = @fs.read_file(resolved_path) catch { error => @errortrace.reraise(error) }
         match @fuzzy.find_match(content, search) {
           None => @tool.error("Search content not found in file: \{search}")
           Some(match_result) => {
             let before = content[0:match_result.position].to_string()
             let after = content[match_result.position + match_result.length:].to_string()
             let new_content = before + replace + after
-            @fs.write_to_file(resolved_path, new_content)
+            @fs.write_to_file(resolved_path, new_content) catch { error => @errortrace.reraise(error) }
             @tool.ok("Changes applied to \{params.path}")
           }
         }
@@ -203,8 +205,8 @@ async fn execute_replace_in_file(
 
 ///|
 async fn mkdir_then_write(path : String, content : String) -> Unit {
-  @fs.make_directory(@path.dirname(path), recursive=true, exists_ok=true)
-  @fs.write_to_file(path, content)
+  @fs.make_directory(@path.dirname(path), recursive=true, exists_ok=true) catch { error => @errortrace.reraise(error) }
+  @fs.write_to_file(path, content) catch { error => @errortrace.reraise(error) }
 }
 
 ///|
@@ -234,7 +236,7 @@ async fn execute_meta_write_to_file(
       let initial_content = match params.search {
         None => replace
         Some(search) => {
-          let file_content = @fs.read_file(resolved_path)
+          let file_content = @fs.read_file(resolved_path) catch { error => @errortrace.reraise(error) }
           match @fuzzy.find_match(file_content, search) {
             None =>
               return @tool.error("Search content not found in file: \{search}")
@@ -257,7 +259,7 @@ async fn execute_meta_write_to_file(
         // Use params.path for better readability in diagnostics
         path=params.path,
         formatted_content,
-      )
+      ) catch { error => @errortrace.reraise(error) }
 
       // If there is no syntax error, write the file and return
       if diagnostics.is_empty() {

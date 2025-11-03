@@ -95,11 +95,11 @@ pub async fn Manager::spawn(
     |> @path.join(".moonagent")
     |> @path.join("jobs")
     |> @path.join("\{id.0}")
-  @fs.make_directory(jobs_dir, recursive=true)
+  @fs.make_directory(jobs_dir, recursive=true) catch { error => @errortrace.reraise(error) }
   let stdout_path = jobs_dir |> @path.join("stdout")
-  @fs.FileRead::create(stdout_path).close()
+  @fs.FileRead::create(stdout_path).close() catch { error => @errortrace.reraise(error) }
   let stderr_path = jobs_dir |> @path.join("stderr")
-  @fs.FileRead::create(stderr_path).close()
+  @fs.FileRead::create(stderr_path).close() catch { error => @errortrace.reraise(error) }
   let process = self.process.spawn(
     "sh",
     ["-c", command],

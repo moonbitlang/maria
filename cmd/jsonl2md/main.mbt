@@ -38,7 +38,7 @@ async fn main {
     @path.stem(input_path).to_string() + ".md"
   }
   let formatter = Formatter::new(output_path, recover_diagnostics~)
-  let jsonl_text = @fs.read_file(input_path)
+  let jsonl_text = @fs.read_file(input_path) catch { error => @errortrace.reraise(error) }
   for json_text in jsonl_text.split("\n").collect() {
     if json_text.trim_space().is_empty() {
       continue
@@ -51,9 +51,9 @@ async fn main {
     }
     formatter.format_log_entry(json)
   }
-  @fs.make_directory(@path.dirname(output_path))
-  @fs.write_to_file(output_path, formatter.to_string())
+  @fs.make_directory(@path.dirname(output_path)) catch { error => @errortrace.reraise(error) }
+  @fs.write_to_file(output_path, formatter.to_string()) catch { error => @errortrace.reraise(error) }
   for tool_formatter in formatter.tools.values().collect() {
-    @fs.write_to_file(tool_formatter.path, tool_formatter.to_string())
+    @fs.write_to_file(tool_formatter.path, tool_formatter.to_string()) catch { error => @errortrace.reraise(error) }
   }
 }

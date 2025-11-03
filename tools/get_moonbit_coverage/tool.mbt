@@ -41,10 +41,10 @@ async fn execute_get_moonbit_coverage(
   } else {
     @path.join(cwd, project_path)
   }
-  let moon = @moon.Module::load(resolved_project_path)
+  let moon = @moon.Module::load(resolved_project_path) catch { error => @errortrace.reraise(error) }
   match file {
-    Some(file) => CoverageResult::{ content: moon.coverage.analyze(file~) }
-    None => CoverageResult::{ content: moon.coverage.report(format=Summary) }
+    Some(file) => CoverageResult::{ content: moon.coverage.analyze(file~) catch { error => @errortrace.reraise(error) } }
+    None => CoverageResult::{ content: moon.coverage.report(format=Summary) catch { error => @errortrace.reraise(error) } }
   }
 }
 
