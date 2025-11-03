@@ -32,7 +32,7 @@ pub fn basename(path : StringView) -> StringView {
     path => path
   }
   loop path.view() {
-    [] => "."
+    [] => path
     [.., '/'] as view => path.view(start_offset=view.end_offset())
     [.. view, _] => continue view
   }
