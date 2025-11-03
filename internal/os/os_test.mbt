@@ -33,3 +33,21 @@ test "tmpdir" {
 test "gethostname" {
   ignore(@os.gethostname())
 }
+
+///|
+async test "exit" {
+  let args = @os.args()
+  match args {
+    [exec, args] => {
+      if exec.has_suffix(".c") {
+        return
+      }
+      @json.inspect(@spawn.spawn(exec, [args, "42"]), content=42)
+    }
+    [_, _, exit_code] => {
+      @os.exit(@strconv.parse_int(exit_code))
+      fail("unreachable")
+    }
+    _ => fail("Invalid arguments")
+  }
+}

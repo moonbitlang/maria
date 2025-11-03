@@ -109,3 +109,9 @@ moonbit_maria_os_chdir(moonbit_bytes_t path) {
     return 0;
   }
 }
+
+MOONBIT_FFI_EXPORT
+void
+moonbit_maria_os_exit(int32_t code) {
+  exit(code);
+}
