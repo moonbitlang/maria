@@ -5,5 +5,9 @@
     "moonbitlang/path",
     "moonbitlang/x/sys"
   ],
-  "native-stub": ["os.c"]
+  "native-stub": ["os.c"],
+  "test-import": [
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/async"
+  ]
 }

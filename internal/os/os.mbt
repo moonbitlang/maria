@@ -188,3 +188,12 @@ pub fn chdir(path : StringView) -> Unit raise {
     raise @errno.Errno(result)
   }
 }
+
+///|
+extern "c" fn os_exit(code : Int) = "exit"
+
+///|
+pub fn[X] exit(code : Int) -> X {
+  os_exit(code)
+  panic()
+}
