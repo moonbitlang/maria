@@ -191,3 +191,23 @@ async test "search_files/agentic" (t : @test.T) {
     )
   })
 }
+
+///|
+async test "search_files/with tilde expension" (t : @test.T) {
+  @mock.run(t, taco => {
+    let args : Json = {
+      "path": "~/.moon/lib/core",
+      "regex": "parse.*Double",
+      "kind": "regex",
+      "file_pattern": "*.mbti",
+    }
+    let result = @search_files.new(taco.cwd.path()).call(args)
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    let result = output.to_string()
+    assert_true(result.contains("parse_decimal"))
+    assert_true(result.contains("parse_double"))
+    assert_true(result.contains("parse_int"))
+  })
+}

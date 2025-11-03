@@ -286,6 +286,19 @@ async fn search_files_impl(
     { "file_pattern": String(fp), .. } => fp
     _ => "*"
   }
+  // both [bash tilde expansion](https://www.gnu.org/software/bash/manual/html_node/Tilde-Expansion.html) 
+  // and [fish Home directory expansion](https://fishshell.com/docs/2.3/index.html)'s behaviors is very complex.
+  // 
+  // in order to to keep behavior simple, here just replace the first `~` in the string with HOME directory.
+  //
+  let search_path = if search_path.length() > 0 && search_path[0] == '~' {
+    let os_home = @os.home() catch {
+      _ => return @tool.error("failed to get HOME directory")
+    }
+    search_path.replace(old="~", new=os_home)
+  } else {
+    search_path
+  }
 
   // Parse search kind
   guard SearchKind::from_string(kind_str) is Some(search_kind) else {
