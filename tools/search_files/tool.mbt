@@ -41,7 +41,7 @@ async fn collect_files_recursive(
   base_dir : String,
 ) -> Array[String] {
   let results = []
-  let entries = @fs.list_directory(directory)
+  let entries = @fs.list_directory(directory) catch { error => @errortrace.reraise(error) }
   for entry in entries {
     let full_path = @path.join(directory, entry.name)
     match entry.kind {

@@ -87,19 +87,20 @@ fn Config::todo_file_path(self : Config) -> String {
 ///|
 pub async fn List::load(self : List) -> Unit {
   let path = self.config.todo_file_path()
-  guard @fs.exists(path) else {
+  let path_exists = @fs.exists(path) catch { error => @errortrace.reraise(error) }
+  guard path_exists else {
     // TODO: document we skip it
     return
   }
-  self.items = @json.from_json(@json.parse(@fs.read_file(path)))
+  self.items = @json.from_json(@json.parse(@fs.read_file(path) catch { error => @errortrace.reraise(error) }))
 }
 
 ///|
 pub async fn List::save(self : List) -> Unit {
   let todo_file_path = self.config.todo_file_path()
-  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
+  @fs.make_directory(@path.dirname(todo_file_path), recursive=true) catch { error => @errortrace.reraise(error) }
   self.items.updated_at = self.config.now()
-  @fs.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
+  @fs.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2)) catch { error => @errortrace.reraise(error) }
 }
 
 ///|

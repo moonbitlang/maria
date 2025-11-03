@@ -28,7 +28,7 @@ pub async fn Loader::new(
 
 ///|
 async fn Model::load_from_path(path : StringView) -> Array[Model] {
-  let text = @fs.read_file(path)
+  let text = @fs.read_file(path) catch { error => @errortrace.reraise(error) }
   let json = @json.parse(text)
   @json.from_json(json)
 }
@@ -46,14 +46,16 @@ async fn Loader::load(self : Loader) -> Unit {
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
-  if @fs.exists(project) {
+  let project_exists = @fs.exists(project) catch { error => @errortrace.reraise(error) }
+  if project_exists {
     self.models.append(Model::load_from_path(project))
   }
   let user = self.home
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
-  if @fs.exists(user) {
+  let user_exists = @fs.exists(user) catch { error => @errortrace.reraise(error) }
+  if user_exists {
     self.models.append(Model::load_from_path(user))
   }
 }

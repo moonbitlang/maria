@@ -80,11 +80,14 @@ async fn execute_read_file_tool(
     let resolved_path = @path.resolve(resolved_path)
 
     // Check if file exists
-    if !@fs.exists(resolved_path) {
+    let file_exists = @fs.exists(resolved_path) catch { error => @errortrace.reraise(error) }
+    if !file_exists {
       return @tool.error("Error reading file: File not found: \{path}")
     }
-    if @fs.kind(resolved_path) is Directory {
-      let entries = @fs.list_directory(resolved_path).map(entry => match
+    let file_kind = @fs.kind(resolved_path) catch { error => @errortrace.reraise(error) }
+    if file_kind is Directory {
+      let dir_entries = @fs.list_directory(resolved_path) catch { error => @errortrace.reraise(error) }
+      let entries = dir_entries.map(entry => match
         entry.kind {
         Directory => "\{entry.name}\{@path.sep}"
         Regular => entry.name
@@ -97,10 +100,10 @@ async fn execute_read_file_tool(
     }
 
     // Open and read the file
-    let content = @fs.read_file(resolved_path)
+    let content = @fs.read_file(resolved_path) catch { error => @errortrace.reraise(error) }
 
     // Update access time
-    let stat = @fs.stat(resolved_path)
+    let stat = @fs.stat(resolved_path) catch { error => @errortrace.reraise(error) }
     manager.access[resolved_path] = stat.atime()
 
     // Process line range parameters

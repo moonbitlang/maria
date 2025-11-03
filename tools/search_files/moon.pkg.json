@@ -4,7 +4,8 @@
     "moonbitlang/maria/internal/fs",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/spawn",
-    "moonbitlang/regexp"
+    "moonbitlang/regexp",
+    "moonbitlang/maria/internal/errortrace"
   ],
   "test-import": [
     "moonbitlang/async",

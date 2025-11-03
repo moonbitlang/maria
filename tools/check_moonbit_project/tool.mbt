@@ -107,7 +107,9 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
         @path.join(cwd, args.project_path)
       }
       let diagnostic_limit = args.diagnostic_limit.unwrap_or(10)
-      let moon = @moon.Module::load(resolved_project_path) catch {
+      let moon = try {
+        @moon.Module::load(resolved_project_path) catch { error => @errortrace.reraise(error) }
+      } catch {
         error =>
           return @tool.error(
             "Error: Failed to load project at '\{resolved_project_path}': \{error}",
@@ -121,13 +123,15 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
         } else {
           @path.join(resolved_project_path, file_path)
         }
-        moon.check_patch_insert(resolved_file_path, code) catch {
+        try {
+          moon.check_patch_insert(resolved_file_path, code) catch { error => @errortrace.reraise(error) }
+        } catch {
           error =>
             return @tool.error("Error: Failed to check patch: \{error}", error~)
         }
       } else {
         try {
-          moon.check()
+          moon.check() catch { error => @errortrace.reraise(error) }
           moon.diagnostics()
         } catch {
           error =>

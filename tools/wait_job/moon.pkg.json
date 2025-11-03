@@ -3,7 +3,8 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/job",
     "moonbitlang/async",
-    "moonbitlang/maria/internal/fs"
+    "moonbitlang/maria/internal/fs",
+    "moonbitlang/maria/internal/errortrace"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock"

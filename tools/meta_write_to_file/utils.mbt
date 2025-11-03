@@ -14,7 +14,7 @@ async fn generate_diff(
   let diff_text = StringBuilder::new()
   diff_text.write_string("\n\n**\{title}:**\n```diff\n")
   diff_text.write_string(
-    @git.generate_git_diff(original=old_content, modified=new_content),
+    @git.generate_git_diff(original=old_content, modified=new_content) catch { error => @errortrace.reraise(error) },
   )
   diff_text.write_string("```")
   DiffResult::{ has_changes: true, diff_text: diff_text.to_string() }

@@ -78,7 +78,7 @@ async fn Formatter::format_replace_in_file(
       self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
       self.lines.push("")
       self.lines.push("```diff")
-      self.lines.push(@git.generate_git_diff(original=search, modified=replace))
+      self.lines.push(@git.generate_git_diff(original=search, modified=replace) catch { error => @errortrace.reraise(error) })
       self.lines.push("```")
     }
     { "path": String(path), "replace": String(replace), .. } => {
@@ -125,7 +125,7 @@ async fn Formatter::format_submit_fixed_file(
         let diff = @git.generate_git_diff(
           original=last_content,
           modified=content,
-        )
+        ) catch { error => @errortrace.reraise(error) }
         self.lines.push("```diff")
         self.lines.push(diff)
         self.lines.push("```")

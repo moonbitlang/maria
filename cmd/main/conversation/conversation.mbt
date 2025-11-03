@@ -30,7 +30,7 @@ pub async fn show(args : ArrayView[String]) -> Unit {
   guard conversation is Some(conversation) else { return }
   if output is Some(output) {
     if output.has_suffix(".md") {
-      @fs.write_to_file(output, conversation.export_to_markdown())
+      @fs.write_to_file(output, conversation.export_to_markdown()) catch { error => @errortrace.reraise(error) }
     }
   } else {
     let lines = conversation.display(show_messages=true)
