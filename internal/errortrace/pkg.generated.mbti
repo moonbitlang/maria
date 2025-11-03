@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/error"
+package "moonbitlang/maria/internal/errortrace"
 
 // Values
 #callsite(autofill(loc))
