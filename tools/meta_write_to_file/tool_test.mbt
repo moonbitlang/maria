@@ -29,9 +29,8 @@ async test "create-file" (t : @test.T) {
     inspect(
       mock.show(result),
       content=(
-        #|Path: (mock:cwd)/main.mbt
-        #|Message: File written and formatted successfully to main.mbt
-        #|Diff: 
+        #|File written and formatted successfully to main.mbt
+        #|
         #|
         #|**Changes made during formatting:**
         #|```diff
@@ -47,6 +46,7 @@ async test "create-file" (t : @test.T) {
         #|\ No newline at end of file
         #|+}
         #|```
+        #|
       ),
     )
     inspect(
