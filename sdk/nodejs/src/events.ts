@@ -1,8 +1,8 @@
-import {
+import type {
   ChatCompletionMessage,
   ChatCompletionMessageToolCall,
 } from "openai/resources/chat/completions";
-import { CompletionUsage } from "openai/resources";
+import type { CompletionUsage } from "openai/resources";
 
 export interface RequestCompletedParams {
   usage: CompletionUsage;

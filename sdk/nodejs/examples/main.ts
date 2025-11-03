@@ -1,4 +1,4 @@
-import { Maria } from "../src/index";
+import { Maria } from "maria";
 
 async function main() {
   const maria = new Maria();
