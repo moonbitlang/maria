@@ -11,7 +11,9 @@ import(
 pub suberror InvalidJobId Id
 
 // Types and methods
-type Id
+pub(all) struct Id(Int)
+#deprecated
+fn Id::inner(Self) -> Int
 impl Eq for Id
 impl Hash for Id
 impl Show for Id
