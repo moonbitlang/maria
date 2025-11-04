@@ -592,7 +592,7 @@ async test "render_diagnostics_with_context_2" (t : @test.T) {
         #|error[3800]: (mock:cwd)/main.mbt:9:17-18: Expecting a newline or `;` here, but encountered `,`.
         #|    │ fn Color::to_string(self : Color) -> String {
         #|    │   match self {
-        #| 9 │     Red => "red",
+        #|  9 │     Red => "red",
         #|    │                 ^
         #|    │     Green => "green",
         #|    │     Blue => "blue",
@@ -627,7 +627,6 @@ async test "render_diagnostics_with_context_2" (t : @test.T) {
         #|   │   ^^^^^
         #|   │   Blue
         #|   │ }
-
       ),
     )
   })
