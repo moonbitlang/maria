@@ -9,7 +9,19 @@
 /// Returns match result if exact match found, None otherwise
 fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
   match haystack.find(needle) {
-    Some(position) => Some(MatchResult::{ position, length: needle.length() })
+    Some(position) => {
+      // Calculate line numbers for the match
+      let before_match = try! haystack[0:position].to_string()
+      let start_line = before_match.split("\n").to_array().length() - 1
+      let needle_lines = needle.split("\n").to_array().length()
+      let end_line = start_line + needle_lines - 1
+      Some(MatchResult::{
+        position,
+        length: needle.length(),
+        start_line,
+        end_line,
+      })
+    }
     None => None
   }
 }
@@ -56,7 +68,14 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
     } else {
       0
     }
-    MatchResult::{ position, length: matched_content.length() }
+    let start_line = start
+    let end_line = start + needle_lines.length() - 1
+    MatchResult::{
+      position,
+      length: matched_content.length(),
+      start_line,
+      end_line,
+    }
   }
 
   // Compare lines ignoring whitespace
