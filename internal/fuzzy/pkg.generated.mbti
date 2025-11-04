@@ -10,6 +10,8 @@ fn find_match(String, String) -> MatchResult?
 pub struct MatchResult {
   position : Int
   length : Int
+  start_line : Int
+  end_line : Int
 }
 impl ToJson for MatchResult
 
