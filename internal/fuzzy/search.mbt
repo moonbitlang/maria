@@ -1,35 +1,41 @@
 ///|
-/// Find a match in the haystack string using various matching strategies
+/// Exact string match
 ///
-/// Implements three matching strategies in order:
-/// 1. Direct match: Exact string comparison
-/// 2. Line-by-line: Compare each line ignoring leading/trailing whitespace
-/// 3. First/last line match: For blocks ≥3 lines, match first and last lines
+/// Parameters:
 ///
-/// @param haystack The string to search in
-/// @param needle The string to search for
-/// @param fuzzy_match Whether to use fuzzy matching strategies (default: true)
-/// @return Match result containing position and length, or None if no match found
-pub fn find_match(
-  haystack : String,
-  needle : String,
-  fuzzy_match? : Bool = true,
-) -> MatchResult? {
-  // Strategy 1: Direct match
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result if exact match found, None otherwise
+fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
   match haystack.find(needle) {
-    None =>
-      // Continue to fuzzy matching if enabled
-      if !fuzzy_match {
-        return None
-      }
-    Some(exact_match) =>
-      return Some(MatchResult::{
-        position: exact_match,
+    Some(position) => {
+      // Calculate line numbers for the match
+      let before_match = try! haystack[0:position].to_string()
+      let start_line = before_match.split("\n").to_array().length() - 1
+      let needle_lines = needle.split("\n").to_array().length()
+      let end_line = start_line + needle_lines - 1
+      Some(MatchResult::{
+        position,
         length: needle.length(),
+        start_line,
+        end_line,
       })
+    }
+    None => None
   }
+}
 
-  // Prepare for line-based fuzzy matches
+///|
+/// Line-by-line fuzzy match (ignoring leading/trailing whitespace)
+///
+/// Parameters:
+///
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result if fuzzy match found, `None` otherwise
+fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
   let haystack_lines = haystack.split("\n").to_array()
   let needle_lines = needle.split("\n").to_array()
   let trimmed_haystack_lines = haystack_lines.map(fn(line) {
@@ -42,8 +48,11 @@ pub fn find_match(
   /// Create a match result starting from a specific line index
   /// Calculates the exact position and length of the match in the original content
   ///
-  /// @param start Starting line index in the haystack
-  /// @return Match result with position and length
+  /// Parameters:
+  ///
+  /// * `start`: Starting line index in the haystack
+  ///
+  /// Returns match result with position and length
   fn fuzzy_match_from_line(start : Int) -> MatchResult {
     let matched_lines = []
     for i = start; i < start + needle_lines.length(); i = i + 1 {
@@ -59,10 +68,17 @@ pub fn find_match(
     } else {
       0
     }
-    MatchResult::{ position, length: matched_content.length() }
+    let start_line = start
+    let end_line = start + needle_lines.length() - 1
+    MatchResult::{
+      position,
+      length: matched_content.length(),
+      start_line,
+      end_line,
+    }
   }
 
-  // Strategy 2: Line-by-line comparison ignoring whitespace
+  // Compare lines ignoring whitespace
   for i = 0; i <= haystack_lines.length() - needle_lines.length(); i = i + 1 {
     let mut line_matches = true
     for j = 0; j < needle_lines.length(); j = j + 1 {
@@ -76,4 +92,27 @@ pub fn find_match(
     }
   }
   None
+}
+
+///|
+/// Find a match in the haystack string using various matching strategies
+///
+/// Implements multiple matching strategies in order:
+/// 1. Direct match: Exact string comparison
+/// 2. Line-by-line: Compare each line ignoring leading/trailing whitespace
+///
+/// Parameters:
+///
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result containing position and length, or None if no match found
+pub fn find_match(haystack : String, needle : String) -> MatchResult? {
+  // Strategy 1: Exact match
+  if try_exact_match(haystack, needle) is Some(result) {
+    return Some(result)
+  }
+
+  // Strategy 2: Line-by-line comparison ignoring whitespace
+  try_line_by_line_match(haystack, needle)
 }
