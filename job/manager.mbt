@@ -45,7 +45,7 @@ pub struct Manager {
 }
 
 ///|
-struct Id(Int) derive(Hash, Eq)
+pub(all) struct Id(Int) derive(Hash, Eq)
 
 ///|
 pub impl Show for Id with output(self : Id, logger : &Logger) -> Unit {

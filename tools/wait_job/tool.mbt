@@ -1,6 +1,6 @@
 ///|
 priv struct Params {
-  job_id : @job.Id
+  job_id : Int
   timeout : Int
   max_output_lines : Int
 } derive(@json.FromJson)
@@ -48,7 +48,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
         error => return @tool.error("Invalid parameters: \{error}")
       }
       let { job_id, timeout, max_output_lines } = params
-      guard manager.get(job_id) is Some(job) else {
+      guard manager.get(@job.Id(job_id)) is Some(job) else {
         return @tool.error("Job with ID \{job_id} does not exist")
       }
       let status = @async.with_timeout_opt(timeout, () => job.wait()) catch {
