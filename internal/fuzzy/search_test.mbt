@@ -22,6 +22,17 @@ test "find_match line-by-line with whitespace" {
   @json.inspect(@fuzzy.find_match(haystack, needle), content=[
     { "position": 0, "length": 21, "start_line": 0, "end_line": 1 },
   ])
+  let haystack =
+    #|line 1
+    #|line 2
+    #|line 3
+    #|line 4
+  let needle =
+    #|line 2  
+    #|  line 3
+  @json.inspect(@fuzzy.find_match(haystack, needle), content=[
+    { "position": 7, "length": 13, "start_line": 1, "end_line": 2 },
+  ])
 }
 
 ///|
