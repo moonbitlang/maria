@@ -1,3 +1,4 @@
+///|
 #json.schema
 priv struct Params {
   /// The action to perform: 
@@ -10,7 +11,7 @@ priv struct Params {
   action : String
   /// The task content or description (required for create, add_task actions). 
   /// Can contain <task>...</task> tags for structured input.
-  content: String?
+  content : String?
   /// The ID of the task to update (required for update, mark_progress, mark_completed actions)
   task_id : String?
   /// Task priority level: 'high', 'medium', 'low' (default: 'medium')
@@ -24,4 +25,3 @@ priv struct Params {
   /// Additional notes or details about the task
   notes : String?
 } derive(ToJson)
-
