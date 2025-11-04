@@ -152,8 +152,6 @@ async test {
 ///|
 const DiagnosticLimit : Int = 10
 
-
-
 ///|
 fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
   @tool.new(
@@ -172,9 +170,6 @@ fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
     },
   )
 }
-
-
-
 
 ///|
 async fn execute_replace_in_file(
