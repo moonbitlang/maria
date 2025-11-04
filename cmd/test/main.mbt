@@ -84,11 +84,15 @@ async fn main {
   )
   @fs.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")
-    let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
-    maria.start(prompt)
-    let status = @spawn.spawn("cp", ["-r", tmpdir, gen_dir], cwd~)
-    if status != 0 {
-      fail("Failed to copy generated files from \{tmpdir} to \{gen_dir}")
-    }
+    @async.with_task_group(group => {
+      group.add_defer(() => @async.protect_from_cancel(() => {
+        let status = @spawn.spawn("cp", ["-r", tmpdir, gen_dir], cwd~)
+        if status != 0 {
+          fail("Failed to copy generated files from \{tmpdir} to \{gen_dir}")
+        }
+      }))
+      let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
+      maria.start(prompt)
+    })
   })
 }
