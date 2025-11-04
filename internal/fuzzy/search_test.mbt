@@ -22,12 +22,3 @@ test "find_match no match found" {
   let needle = "Not found"
   @json.inspect(@fuzzy.find_match(haystack, needle), content=null)
 }
-
-///|
-test "find_match with fuzzy disabled works for exact substring" {
-  let haystack = "  Hello world  "
-  let needle = "Hello world"
-  @json.inspect(@fuzzy.find_match(haystack, needle, fuzzy_match=false), content=[
-    { "position": 2, "length": 11 },
-  ])
-}

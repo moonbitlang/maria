@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/fuzzy"
 
 // Values
-fn find_match(String, String, fuzzy_match? : Bool) -> MatchResult?
+fn find_match(String, String) -> MatchResult?
 
 // Errors
 

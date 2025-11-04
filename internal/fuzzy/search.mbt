@@ -1,9 +1,12 @@
 ///|
-/// Strategy 1: Direct/exact string match
+/// Exact string match
 ///
-/// @param haystack The string to search in
-/// @param needle The string to search for
-/// @return Match result if exact match found, None otherwise
+/// Parameters:
+///
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result if exact match found, None otherwise
 fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
   match haystack.find(needle) {
     Some(position) => Some(MatchResult::{ position, length: needle.length() })
@@ -12,11 +15,14 @@ fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
 }
 
 ///|
-/// Strategy 2: Line-by-line fuzzy match (ignoring leading/trailing whitespace)
+/// Line-by-line fuzzy match (ignoring leading/trailing whitespace)
 ///
-/// @param haystack The string to search in
-/// @param needle The string to search for
-/// @return Match result if fuzzy match found, None otherwise
+/// Parameters:
+///
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result if fuzzy match found, `None` otherwise
 fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
   let haystack_lines = haystack.split("\n").to_array()
   let needle_lines = needle.split("\n").to_array()
@@ -30,8 +36,11 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
   /// Create a match result starting from a specific line index
   /// Calculates the exact position and length of the match in the original content
   ///
-  /// @param start Starting line index in the haystack
-  /// @return Match result with position and length
+  /// Parameters:
+  ///
+  /// * `start`: Starting line index in the haystack
+  ///
+  /// Returns match result with position and length
   fn fuzzy_match_from_line(start : Int) -> MatchResult {
     let matched_lines = []
     for i = start; i < start + needle_lines.length(); i = i + 1 {
@@ -73,19 +82,16 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
 /// 1. Direct match: Exact string comparison
 /// 2. Line-by-line: Compare each line ignoring leading/trailing whitespace
 ///
-/// @param haystack The string to search in
-/// @param needle The string to search for
-/// @param fuzzy_match Whether to use fuzzy matching strategies (default: true)
-/// @return Match result containing position and length, or None if no match found
-pub fn find_match(
-  haystack : String,
-  needle : String,
-  fuzzy_match? : Bool = true,
-) -> MatchResult? {
-  // Strategy 1: Direct match
-  match try_exact_match(haystack, needle) {
-    Some(result) => return Some(result)
-    None => if !fuzzy_match { return None }
+/// Parameters:
+///
+/// * `haystack`: The string to search in
+/// * `needle`: The string to search for
+///
+/// Returns match result containing position and length, or None if no match found
+pub fn find_match(haystack : String, needle : String) -> MatchResult? {
+  // Strategy 1: Exact match
+  if try_exact_match(haystack, needle) is Some(result) {
+    return Some(result)
   }
 
   // Strategy 2: Line-by-line comparison ignoring whitespace
