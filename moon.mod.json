@@ -2,7 +2,7 @@
   "name": "moonbitlang/maria",
   "version": "0.1.0",
   "deps": {
-    "moonbitlang/async": "0.10.4",
+    "moonbitlang/async": "0.10.5",
     "moonbitlang/x": "0.4.34",
     "moonbitlang/regexp": "0.3.1",
     "myfreess/charclass": "0.1.3",
