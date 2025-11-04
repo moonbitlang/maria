@@ -136,7 +136,7 @@ fn render_single_line_range(
     let line_text = lines[i - 1]
     render_line(number_padding, line_text)
   }
-  let start_line_number = start_line.to_string()
+  let start_line_number = start_line.to_string().pad_start(number_width, ' ')
   let start_line_text = lines[start_line - 1]
   render_line(start_line_number, start_line_text)
   let caret_text = "^".repeat(

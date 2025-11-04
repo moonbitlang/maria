@@ -111,7 +111,7 @@ async test "render_diagnostics" {
       #|    │ }
       #|    │
       #|    │ fn Color::to_string(self : Color) -> String {
-      #| 8 │   switch self {
+      #|  8 │   switch self {
       #|    │          ^^^^
       #|    │     Red => "red",
       #|    │     Green => "green",
