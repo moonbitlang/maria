@@ -3,6 +3,7 @@
 fn Input::get_schema() -> Json {
   {
     "type": "object",
+    "required": ["path", "replace"],
     "properties": {
       "path": {
         "type": "string",
@@ -17,6 +18,5 @@ fn Input::get_schema() -> Json {
         "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
       },
     },
-    "required": ["path", "replace"],
   }
 }

@@ -3,13 +3,14 @@
 fn Params::get_schema() -> Json {
   {
     "type": "object",
+    "required": ["action"],
     "properties": {
       "action": {
         "type": "string",
-        "description": "The action to perform: \n- 'create': create new todo list\n- 'add_task': add single task\n- 'update': update existing task\n- 'mark_progress': mark task as in progress\n- 'mark_completed': mark task as completed",
         "enum": [
           "create", "add_task", "update", "mark_progress", "mark_completed",
         ],
+        "description": "The action to perform: \n- 'create': create new todo list\n- 'add_task': add single task\n- 'update': update existing task\n- 'mark_progress': mark task as in progress\n- 'mark_completed': mark task as completed",
       },
       "content": {
         "type": "string",
@@ -21,21 +22,20 @@ fn Params::get_schema() -> Json {
       },
       "priority": {
         "type": "string",
-        "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-        "default": "medium",
         "enum": ["high", "medium", "low"],
+        "default": "medium",
+        "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
       },
       "status": {
         "type": "string",
-        "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-        "default": "pending",
         "enum": ["pending", "in_progress", "completed"],
+        "default": "pending",
+        "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
       },
       "notes": {
         "type": "string",
         "description": "Additional notes or details about the task",
       },
     },
-    "required": ["action"],
   }
 }

@@ -10,7 +10,7 @@
   ],
   "pre-build": [
     {
-      "command": "cat $input | wasmer run moonbitlang/derive_json_schema@0.1.3 | moonfmt - > $output",
+      "command": "$mod_dir/scripts/derive_json_schema.sh $input $output",
       "input": "types.mbt",
       "output": "types_derived.mbt"
     }

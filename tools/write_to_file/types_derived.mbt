@@ -3,6 +3,7 @@
 fn Params::get_schema() -> Json {
   {
     "type": "object",
+    "required": ["content", "path"],
     "properties": {
       "content": {
         "type": "string",
@@ -14,10 +15,9 @@ fn Params::get_schema() -> Json {
       },
       "separator": {
         "type": "string",
-        "description": "Optional separator to add between existing content and new content (default: newline).",
         "default": "\n",
+        "description": "Optional separator to add between existing content and new content (default: newline).",
       },
     },
-    "required": ["content", "path"],
   }
 }
