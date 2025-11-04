@@ -547,3 +547,88 @@ async test "render_empty_line" (t : @test.T) {
     )
   })
 }
+
+///|
+async test "render_diagnostics_with_context_2" (t : @test.T) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+          indent=2,
+        ),
+      ),
+      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+      (
+        "main.mbt",
+        (
+          #|enum Color {
+          #|  Red
+          #|  Green
+          #|  Blue
+          #|}
+          #|
+          #|fn Color::to_string(self : Color) -> String {
+          #|  match self {
+          #|    Red => "red",
+          #|    Green => "green",
+          #|    Blue => "blue",
+          #|  }
+          #|}
+          #|
+          #|fn main {
+          #|  let color : Color = Blue
+          #|  println(color.to_string())
+          #|}
+        ),
+      ),
+    ])
+    let moon = @moon.Module::load(mock.cwd.path())
+    moon.check()
+    let diagnostics = moon.diagnostics()
+    inspect(
+      mock.show(diagnostics.render(context=2, limit=10)),
+      content=(
+        #|error[3800]: (mock:cwd)/main.mbt:9:17-18: Expecting a newline or `;` here, but encountered `,`.
+        #|    │ fn Color::to_string(self : Color) -> String {
+        #|    │   match self {
+        #| 9 │     Red => "red",
+        #|    │                 ^
+        #|    │     Green => "green",
+        #|    │     Blue => "blue",
+        #|
+        #|error[3800]: (mock:cwd)/main.mbt:10:21-22: Expecting a newline or `;` here, but encountered `,`.
+        #|    │   match self {
+        #|    │     Red => "red",
+        #| 10 │     Green => "green",
+        #|    │                     ^
+        #|    │     Blue => "blue",
+        #|    │   }
+        #|
+        #|error[3800]: (mock:cwd)/main.mbt:11:19-20: Expecting a newline or `;` here, but encountered `,`.
+        #|    │     Red => "red",
+        #|    │     Green => "green",
+        #| 11 │     Blue => "blue",
+        #|    │                   ^
+        #|    │   }
+        #|    │ }
+        #|
+        #|warning[0006]: (mock:cwd)/main.mbt:2:3-6: Warning: Variant 'Red' is never constructed
+        #|   │ enum Color {
+        #| 2 │   Red
+        #|   │   ^^^
+        #|   │   Green
+        #|   │   Blue
+        #|
+        #|warning[0006]: (mock:cwd)/main.mbt:3:3-8: Warning: Variant 'Green' is never constructed
+        #|   │ enum Color {
+        #|   │   Red
+        #| 3 │   Green
+        #|   │   ^^^^^
+        #|   │   Blue
+        #|   │ }
+
+      ),
+    )
+  })
+}
