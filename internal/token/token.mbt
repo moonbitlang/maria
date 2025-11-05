@@ -1,7 +1,7 @@
 ///|
 struct Counter {
-  mut overhead : Int
-  mut tools : Bool
+  overhead : Int
+  // mut tools : Bool
   encoding : @tiktoken.Encoding
 }
 
@@ -22,7 +22,11 @@ const ToolOverhead : Int = 20
 ///
 /// Throws an error if the cl100k\_base encoding cannot be initialized.
 pub fn Counter::new() -> Counter raise {
-  { overhead: SystemOverhead, tools: false, encoding: @tiktoken.cl100k_base() }
+  {
+    overhead: SystemOverhead,
+    // tools: false, 
+    encoding: @tiktoken.cl100k_base(),
+  }
 }
 
 ///|
@@ -137,7 +141,8 @@ test "tool" {
 }
 
 ///|
-pub fn Counter::add_tool(
+#cfg(false)
+fn Counter::add_tool(
   self : Counter,
   tool : @openai.ChatCompletionToolParam,
 ) -> Unit raise {
