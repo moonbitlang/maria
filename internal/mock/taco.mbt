@@ -337,7 +337,7 @@ pub fn Context::model(
 /// Example:
 ///
 /// ```moonbit async
-/// async test (t : @test.T) {
+/// async test (t : @test.Test) {
 ///   @mock.run(t, ctx => {
 ///     let file = ctx.add_file("test.txt", content="Hello, World!")
 ///     let content = file.read()
@@ -347,7 +347,7 @@ pub fn Context::model(
 /// ```
 #callsite(autofill(loc))
 pub async fn run(
-  t : @test.T,
+  t : @test.Test,
   loc~ : SourceLoc,
   timeout? : Int = 300_000,
   retry? : Int,

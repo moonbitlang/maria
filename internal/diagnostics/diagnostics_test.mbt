@@ -1,5 +1,5 @@
 ///|
-async test "render_diagnostics" (t : @test.T) {
+async test "render_diagnostics" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -78,7 +78,7 @@ async test "render_diagnostics" (t : @test.T) {
 }
 
 ///|
-async test "render-diagnostics-context" (t : @test.T) {
+async test "render-diagnostics-context" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -166,7 +166,7 @@ async test "render-diagnostics-context" (t : @test.T) {
 }
 
 ///|
-async test "render-diagnostics-overlay" (t : @test.T) {
+async test "render-diagnostics-overlay" (t : @test.Test) {
   @mock.run(t, mock => {
     let diagnostics = @diagnostics.Diagnostics::new()
     diagnostics.push({
@@ -200,7 +200,7 @@ async test "render-diagnostics-overlay" (t : @test.T) {
 }
 
 ///|
-async test "render-diagnostics-context-lines" (t : @test.T) {
+async test "render-diagnostics-context-lines" (t : @test.Test) {
   @mock.run(t, mock => {
     let diagnostics = @diagnostics.Diagnostics::new()
     diagnostics.push(@diagnostics.Diagnostic::{
@@ -430,7 +430,7 @@ test "from_jsonl - round trip" {
 }
 
 ///|
-async test "render_empty_line" (t : @test.T) {
+async test "render_empty_line" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -549,7 +549,7 @@ async test "render_empty_line" (t : @test.T) {
 }
 
 ///|
-async test "render_diagnostics_with_context_2" (t : @test.T) {
+async test "render_diagnostics_with_context_2" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (

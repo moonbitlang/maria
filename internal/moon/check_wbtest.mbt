@@ -1,5 +1,5 @@
 ///|
-async test "check" (t : @test.T) {
+async test "check" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -46,7 +46,7 @@ async test "check" (t : @test.T) {
 }
 
 ///|
-async test "check_syntax_of_file" (t : @test.T) {
+async test "check_syntax_of_file" (t : @test.Test) {
   @mock.run(t, mock => {
     let file = mock.add_file("example.mbt")
     file.write("let x :: Int = \"string\"")

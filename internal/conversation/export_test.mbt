@@ -1,5 +1,5 @@
 ///|
-async test "export_to_markdown" (t : @test.T) {
+async test "export_to_markdown" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(taco.rand),

@@ -1,5 +1,5 @@
 ///|
-async test "retry" (t : @test.T) {
+async test "retry" (t : @test.Test) {
   try {
     @mock.run(t, retry=3, _ => assert_false(true))
     fail("should have failed")
@@ -16,7 +16,7 @@ async test "retry" (t : @test.T) {
 }
 
 ///|
-async test "moon_home" (t : @test.T) {
+async test "moon_home" (t : @test.Test) {
   @mock.run(t, mock => inspect(
     mock.show(mock.moon_home),
     content="(mock:env:MOON_HOME)",

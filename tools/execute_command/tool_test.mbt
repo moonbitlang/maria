@@ -1,5 +1,5 @@
 ///|
-async test "timeout" (t : @test.T) {
+async test "timeout" (t : @test.Test) {
   @mock.run(t, mock => @async.with_task_group(_ => {
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     @json.inspect(
@@ -14,7 +14,7 @@ async test "timeout" (t : @test.T) {
 }
 
 ///|
-async test "cat" (t : @test.T) {
+async test "cat" (t : @test.Test) {
   @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
     let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
@@ -37,7 +37,7 @@ async test "cat" (t : @test.T) {
 }
 
 ///|
-async test "output-overflow" (t : @test.T) {
+async test "output-overflow" (t : @test.Test) {
   @mock.run(t, taco => {
     let lines = []
     for i = 0; i < 100; i = i + 1 {
@@ -70,7 +70,7 @@ async test "output-overflow" (t : @test.T) {
 }
 
 ///|
-async test "cd" (t : @test.T) {
+async test "cd" (t : @test.Test) {
   @mock.run(t, taco => {
     let _ = taco.add_file("file.txt", content="hello world")
     let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
@@ -115,7 +115,7 @@ async test "cd" (t : @test.T) {
 }
 
 ///|
-async test "background" (t : @test.T) {
+async test "background" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @job.Manager::new(cwd=taco.cwd.path())
     taco.group.spawn_bg(() => manager.start(), no_wait=true)

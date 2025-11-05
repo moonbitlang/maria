@@ -1,5 +1,5 @@
 ///|
-async test "list_files" (t : @test.T) {
+async test "list_files" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     taco.add_files([
@@ -27,7 +27,7 @@ async test "list_files" (t : @test.T) {
 }
 
 ///|
-async test "list_files_invalid_symlink" (t : @test.T) {
+async test "list_files_invalid_symlink" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     taco.add_files([("file1.txt", "content1")])

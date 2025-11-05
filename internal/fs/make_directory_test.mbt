@@ -1,5 +1,5 @@
 ///|
-async test "make_directory" (t : @test.T) {
+async test "make_directory" (t : @test.Test) {
   @mock.run(t, taco => {
     let path = @path.Path::parse(taco.cwd.path() + "/")
     let path_builder = @path.PathBuilder::from_path(path)

@@ -1,5 +1,5 @@
 ///|
-async test "clone" (t : @test.T) {
+async test "clone" (t : @test.Test) {
   @mock.run(t, taco => {
     @git.clone(
       "https://github.com/moonbitlang/maria.git",
@@ -12,7 +12,7 @@ async test "clone" (t : @test.T) {
 }
 
 ///|
-async test "commit" (t : @test.T) {
+async test "commit" (t : @test.Test) {
   if @os.getenv("CI") is None {
     @mock.run(t, taco => {
       @git.init_(taco.cwd.path())
@@ -55,7 +55,7 @@ async test "generate_git_diff" {
 }
 
 ///|
-async test "clone_with_invalid_depth" (t : @test.T) {
+async test "clone_with_invalid_depth" (t : @test.Test) {
   @mock.run(t, taco => try {
     @git.clone(
       "https://github.com/moonbitlang/maria.git",

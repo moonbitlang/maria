@@ -1,5 +1,5 @@
 ///|
-async test "create-file" (t : @test.T) {
+async test "create-file" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = @model.open_router_model(api_key="")
     // this tool requires agent to fix syntax errors, but the direct call just works
@@ -63,7 +63,7 @@ async test "create-file" (t : @test.T) {
 }
 
 ///|
-async test "no-op-if-non-moonbit" (t : @test.T) {
+async test "no-op-if-non-moonbit" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
     let model = @model.open_router_model(api_key="")
     // no agent needed since no syntax fixing is required
@@ -99,7 +99,7 @@ async test "no-op-if-non-moonbit" (t : @test.T) {
 }
 
 ///|
-async test "no-op-if-no-syntax-error" (t : @test.T) {
+async test "no-op-if-no-syntax-error" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = @model.open_router_model(api_key="")
     mock.add_files([
@@ -186,7 +186,7 @@ async test "no-op-if-no-syntax-error" (t : @test.T) {
 }
 
 ///|
-async test "fuzzy-search" (t : @test.T) {
+async test "fuzzy-search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = @model.open_router_model(api_key="")
     // no syntax error triggered

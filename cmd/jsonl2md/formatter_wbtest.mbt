@@ -1339,7 +1339,7 @@ async test "ModelLoaded" {
 }
 
 ///|
-async test "subagent" (t : @test.T) {
+async test "subagent" (t : @test.Test) {
   @mock.run(t, mock => {
     let log_entries : Array[Json] = [
       {

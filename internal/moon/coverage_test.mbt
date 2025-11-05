@@ -1,5 +1,5 @@
 ///|
-async test "Coverage::report" (t : @test.T) {
+async test "Coverage::report" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -73,7 +73,7 @@ async test "Coverage::report" (t : @test.T) {
 }
 
 ///|
-async test "Coverage::analyze" (t : @test.T) {
+async test "Coverage::analyze" (t : @test.Test) {
   @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (
@@ -145,7 +145,7 @@ async test "Coverage::analyze" (t : @test.T) {
 }
 
 ///|
-async test "Coverage::clean" (t : @test.T) {
+async test "Coverage::clean" (t : @test.Test) {
   @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (

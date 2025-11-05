@@ -1,5 +1,5 @@
 ///|
-async test "add_worktree" (t : @test.T) {
+async test "add_worktree" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
     let _ = mock.add_file("file.txt", content="Hello, Moonbit!")
@@ -21,7 +21,7 @@ async test "add_worktree" (t : @test.T) {
 }
 
 ///|
-async test "add_worktree/new-branch" (t : @test.T) {
+async test "add_worktree/new-branch" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
     let _ = mock.add_file("file.txt", content="Hello, Moonbit!")
@@ -78,7 +78,7 @@ pub async fn rev_parse(commit : String, cwd? : StringView) -> String {
 }
 
 ///|
-async test "add_worktree/new-branch-with-commit" (t : @test.T) {
+async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
     let file = mock.add_file("file.txt", content="Hello, Moonbit!")
@@ -108,7 +108,7 @@ async test "add_worktree/new-branch-with-commit" (t : @test.T) {
 }
 
 ///|
-async test "with_worktree" (t : @test.T) {
+async test "with_worktree" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
     let _ = mock.add_file("file.txt", content="Hello, Moonbit!")

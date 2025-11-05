@@ -1,5 +1,5 @@
 ///|
-async test "moon_run" (t : @test.T) {
+async test "moon_run" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       ("moon.pkg.json", Json::object({ "is_main": true }).stringify(indent=2)),

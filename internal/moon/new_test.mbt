@@ -1,5 +1,5 @@
 ///|
-async test "new" (t : @test.T) {
+async test "new" (t : @test.Test) {
   @mock.run(t, taco => {
     @moon.new(user="moonbitlang", name="maria_test", ".", cwd=taco.cwd.path())
     let entries = @fs.list_directory(taco.cwd.path())

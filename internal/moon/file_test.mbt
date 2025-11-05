@@ -1,5 +1,5 @@
 ///|
-async test "replace-segment" (t : @test.T) {
+async test "replace-segment" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (

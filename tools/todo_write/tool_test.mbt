@@ -1,5 +1,5 @@
 ///|
-async test "todo_write/create/plain" (t : @test.T) {
+async test "todo_write/create/plain" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(
       clock=taco.clock,
@@ -76,7 +76,7 @@ async test "todo_write/create/plain" (t : @test.T) {
 }
 
 ///|
-async test "todo_write/create/<task>" (t : @test.T) {
+async test "todo_write/create/<task>" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(
       clock=taco.clock,
@@ -242,7 +242,7 @@ async test "todo_write/create/<task>" (t : @test.T) {
 }
 
 ///|
-async test "todo_write/update" (t : @test.T) {
+async test "todo_write/update" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(
       clock=taco.clock,
@@ -301,7 +301,7 @@ async test "todo_write/update" (t : @test.T) {
 }
 
 ///|
-async test "todo_write/mark_completed" (t : @test.T) {
+async test "todo_write/mark_completed" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(
       clock=taco.clock,
@@ -366,7 +366,7 @@ async test "todo_write/mark_completed" (t : @test.T) {
 }
 
 ///|
-async test "todo_write/mark_progress" (t : @test.T) {
+async test "todo_write/mark_progress" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(
       clock=taco.clock,
