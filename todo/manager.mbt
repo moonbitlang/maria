@@ -16,10 +16,12 @@ fn Item::new(
   notes? : String,
   priority~ : Priority,
   status~ : Status,
-  config : Config,
+  // config : Config,
+  created_at~ : String,
+  id~ : String,
 ) -> Item {
-  let now = config.now()
-  let id = config.uuid()
+  let now = created_at
+  let id = id
   { content, created_at: now, id, notes, priority, status, updated_at: now }
 }
 
@@ -51,6 +53,11 @@ pub fn Item::update(
 ///|
 pub fn List::now(self : List) -> String {
   self.config.now()
+}
+
+///|
+pub fn List::uuid(self : List) -> String {
+  self.config.uuid()
 }
 
 ///|
@@ -146,9 +153,16 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = Item::new(content~, notes?, priority~, status~, self.config)
+  let item = Item::new(
+    content~,
+    notes?,
+    priority~,
+    status~,
+    created_at=self.now(),
+    id=self.config.uuid(),
+  )
   self.items.todos.push(item)
-  self.items.updated_at = self.config.now()
+  self.items.updated_at = self.now()
   item
 }
 
@@ -222,7 +236,8 @@ pub fn List::parse(
           notes?,
           priority~,
           status=Pending,
-          self.config,
+          created_at=self.now(),
+          id=self.uuid(),
         )
         self.items.todos.push(todo)
       }
@@ -244,7 +259,9 @@ pub fn List::parse(
           notes?,
           priority~,
           status=Pending,
-          self.config,
+          // self.config,
+          created_at=self.now(),
+          id=self.uuid(),
         )
         self.items.todos.push(todo)
       }
