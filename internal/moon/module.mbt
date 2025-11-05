@@ -255,3 +255,8 @@ async fn Module::info(self : Module, package_~ : String) -> Unit {
 pub async fn Module::install(self : Module) -> Unit {
   install(cwd=self.path)
 }
+
+///|
+pub async fn Module::run(self : Module) -> (Int, String) {
+  run(cwd=self.path)
+}
