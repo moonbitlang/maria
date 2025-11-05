@@ -102,6 +102,18 @@ pub(all) enum CommonModels {
   /// $0.05/M input tokens
   /// $0.40/M output tokens
   Gpt5Nano
+  /// https://openrouter.ai/moonshotai/kimi-k2-0905
+  /// $0.39/M input tokens
+  /// $1.90/M output tokens
+  KimiK2_0905
+  /// https://openrouter.ai/z-ai/glm-4.6
+  /// $0.40/M input tokens
+  /// $1.75/M output tokens
+  Glm4_6
+  /// https://openrouter.ai/minimax/minimax-m2
+  /// $0.15/M input tokens
+  /// $0.45/M output tokens
+  MinimaxM2
 }
 
 ///|
@@ -120,6 +132,9 @@ pub impl Show for CommonModels with output(
     Gpt5 => logger.write_string("openai/gpt-5")
     Gpt5Mini => logger.write_string("openai/gpt-5-mini")
     Gpt5Nano => logger.write_string("openai/gpt-5-nano")
+    KimiK2_0905 => logger.write_string("moonshotai/kimi-k2-0905")
+    Glm4_6 => logger.write_string("z-ai/glm-4.6")
+    MinimaxM2 => logger.write_string("minimax/minimax-m2")
   }
 }
 
