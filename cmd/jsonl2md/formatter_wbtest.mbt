@@ -1330,6 +1330,8 @@ async test "ModelLoaded" {
     content=(
       #|# System information
       #|
+      #|00:00:00
+      #|
       #|Model: qwen/qwen3-coder-plus
       #|
     ),
@@ -1527,4 +1529,78 @@ async test "subagent" (t : @test.T) {
       ),
     )
   })
+}
+
+///|
+async test "timestamp" {
+  let entries : Array[Json] = [
+    {
+      "level": 30,
+      "pid": 92341,
+      "msg": "ModelLoaded",
+      "hostname": "Haoxiangs-MacBook-Pro.local",
+      "time": 1762239992779,
+      "tag": "maria_test",
+      "name": ["qwen/qwen3-coder-plus"],
+      "model": [
+        {
+          "name": "qwen/qwen3-coder-plus",
+          "description": "Qwen coder",
+          "model_name": "qwen/qwen3-coder-plus",
+          "model_type": "saas/openai",
+          "api_key": "sk-test",
+          "base_url": "https://openrouter.ai/api/v1",
+          "safe_zone_tokens": 256000,
+          "supports_anthropic_prompt_caching": false,
+        },
+      ],
+    },
+    {
+      "level": 30,
+      "pid": 92341,
+      "msg": "PostToolCall",
+      "hostname": "Haoxiangs-MacBook-Pro.local",
+      "time": 1762240682834,
+      "tag": "maria_test",
+      "tool_call": {
+        "id": "call_10c97dd001b24eb9ad869657",
+        "function": {
+          "name": "meta_write_to_file",
+          "arguments": "{\"path\": \"toml_parser/src/moon.pkg.json\", \"replace\": \"{\\n  \\\"import\\\": []\\n}\", \"description\": \"Updating the package configuration\"}",
+        },
+        "type": "function",
+      },
+      "name": "meta_write_to_file",
+      "result": {
+        "path": "toml_parser/src/moon.pkg.json",
+        "message": "File written successfully to toml_parser/src/moon.pkg.json",
+        "diff": "",
+      },
+      "text": "File written successfully to toml_parser/src/moon.pkg.json\n",
+    },
+  ]
+  let formatter = Formatter::new("test.md")
+  for entry in entries {
+    formatter.format_log_entry(entry)
+  }
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|# System information
+      #|
+      #|00:00:00
+      #|
+      #|Model: qwen/qwen3-coder-plus
+      #|
+      #|# 1 Tool call result: <meta_write_to_file path="toml_parser/src/moon.pkg.json">
+      #|
+      #|00:11:30
+      #|
+      #|````markdown
+      #|File written successfully to toml_parser/src/moon.pkg.json
+      #|
+      #|````
+      #|
+    ),
+  )
 }
