@@ -78,33 +78,46 @@ fn Encoding::lookup(
 }
 
 ///|
-fn Encoding::rank(self : Encoding, tokens : Array[Int]) -> Int {
-  let ranks = Array::new()
-  for i = 0; i < tokens.length() - 1; i = i + 1 {
-    let l = tokens[i]
-    let r = tokens[i + 1]
-    let l = self.decoder.get(l).unwrap()
-    let r = self.decoder.get(r).unwrap()
-    let rank = match self.encoder.get(l + r) {
-      Some(merge) => merge
-      None => @int.max_value
-    }
-    ranks.push(rank)
-  }
-  arg_min(ranks)
-}
-
-///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
-  for index = self.rank(tokens); index != -1; index = self.rank(tokens) {
-    let l = tokens[index]
-    let r = tokens[index + 1]
-    let l = self.decoder.get(l).unwrap()
-    let r = self.decoder.get(r).unwrap()
-    let merge = l + r
-    let merge = self.encoder.get(merge).unwrap()
-    tokens[index] = merge
-    tokens.remove(index + 1) |> ignore()
+  let encoded = tokens.map(t => self.decoder.at(t))
+  let rank = Array::make(encoded.length() - 1, @int.max_value)
+  for i = 0; i < encoded.length() - 1; i = i + 1 {
+    let l = encoded[i]
+    let r = encoded[i + 1]
+    if self.encoder.get(l + r) is Some(index) {
+      rank[i] = index
+    }
+  }
+  let mut min = arg_min(rank)
+  while min != -1 {
+    let merge = encoded[min] + encoded[min + 1]
+    encoded[min] = merge
+    encoded.remove(min + 1) |> ignore()
+    let merge_token = self.encoder.at(merge)
+    tokens[min] = merge_token
+    tokens.remove(min + 1) |> ignore()
+    rank.remove(min) |> ignore()
+    // merge left
+    if min > 0 {
+      let l = encoded[min - 1]
+      let r = encoded[min]
+      if self.encoder.get(l + r) is Some(index) {
+        rank[min - 1] = index
+      } else {
+        rank[min - 1] = @int.max_value
+      }
+    }
+    // merge right
+    if min < encoded.length() - 1 {
+      let l = encoded[min]
+      let r = encoded[min + 1]
+      if self.encoder.get(l + r) is Some(index) {
+        rank[min] = index
+      } else {
+        rank[min] = @int.max_value
+      }
+    }
+    min = arg_min(rank)
   }
 }
 
