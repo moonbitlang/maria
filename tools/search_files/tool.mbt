@@ -529,6 +529,25 @@ pub let prompt : String =
   #|
   #|## ⚠️ Critical: MoonBit Definition Search Query Format
   #|
+  #|The search query is of the following format:
+  #|
+  #|```
+  #|<pkg-queries> <name-query>
+  #|```
+  #|
+  #|Where:
+  #|  <pkg-queries>   Space-separated package name patterns (e.g. '@username/module')
+  #|  <name-query>    Symbol or method search pattern
+  #|
+  #|Examples:
+  #|  - "@moonbitlang/async run"          Find any symbol named 'run' in package 'moonbitlang/async'
+  #|  - "@list @array fold_left"          Find any symbol named 'fold_left' in package 'list' or 'array'
+  #|
+  #|Name query patterns:
+  #|  symbol                Find any symbol named 'symbol'
+  #|  Type::method          Find methods of a specific type
+  #|  Trait for Type with method  Find trait method implementations
+  #|
   #|**When using `kind: "moonbit_definition"`, the `regex` parameter is NOT treated as a regular expression!**
   #|
   #|- ✅ **Correct**: `"regex": "Array::length"` - Simple symbol name
