@@ -469,7 +469,9 @@ fn cl100k_base_tokenize_part8(
 }
 
 ///|
-let cl100k_base_parts : FixedArray[(StringView) -> StringView raise BackTracing] = [
+let cl100k_base_parts : ReadOnlyArray[
+  (StringView) -> StringView raise BackTracing,
+] = [
   cl100k_base_tokenize_part1, cl100k_base_tokenize_part2, cl100k_base_tokenize_part3,
   cl100k_base_tokenize_part4, cl100k_base_tokenize_part5, cl100k_base_tokenize_part6,
   cl100k_base_tokenize_part7, cl100k_base_tokenize_part8,
