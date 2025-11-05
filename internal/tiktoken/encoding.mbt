@@ -1,7 +1,7 @@
 ///|
 struct Encoding {
   encoder : Map[Bytes, Int]
-  decoder : Array[Bytes]
+  decoder : FixedArray[Bytes]
   special_encoder : Map[String, Int]
   special_decoder : Map[Int, Bytes]
   pattern : Pattern
@@ -30,14 +30,7 @@ pub fn Encoding::new(
   pattern~ : Pattern,
 ) -> Encoding {
   let encoder : Map[Bytes, Int] = {}
-  // Find max rank to size the array
-  let mut max_rank = 0
-  for _, rank in mergeable_ranks {
-    if rank > max_rank {
-      max_rank = rank
-    }
-  }
-  let decoder = Array::make(max_rank + 1, Bytes::new(0))
+  let decoder = FixedArray::make(mergeable_ranks.length(), b"")
   for piece, rank in mergeable_ranks {
     encoder[piece] = rank
     decoder[rank] = piece
