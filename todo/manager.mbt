@@ -37,20 +37,14 @@ pub fn Item::update(
   priority? : Priority,
   updated_at~ : String,
 ) -> Item {
-  let mut updated = { ..self, updated_at, }
-  if content is Some(content) {
-    updated = { ..updated, content, }
+  {
+    ..self, // id and some other fields remain the same
+    content: content.unwrap_or(self.content),
+    notes: notes.unwrap_or(self.notes),
+    status: status.unwrap_or(self.status),
+    priority: priority.unwrap_or(self.priority),
+    updated_at,
   }
-  if notes is Some(notes) {
-    updated = { ..updated, notes, }
-  }
-  if status is Some(status) {
-    updated = { ..updated, status, }
-  }
-  if priority is Some(priority) {
-    updated = { ..updated, priority, }
-  }
-  updated
 }
 
 ///|
