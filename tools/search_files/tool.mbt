@@ -558,6 +558,8 @@ pub let prompt : String =
   #|  "fibonacci"
   #|- ❌ **Incorrect**: `"regex": "Array.*length"` - This will search for a symbol
   #|  literally containing "Array.*length", not symbols matching the pattern
+  #|- ❌ **Incorrect**: `"regex": "@int.max_value"` - This is not a valid MoonBit
+  #|  definition search query, as will cause the tool to fail.
   #|
   #|The fuzzy search will automatically find partial matches, so there's no need for
   #|regex syntax when using `moonbit_definition` kind.
