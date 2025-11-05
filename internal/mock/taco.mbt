@@ -72,6 +72,23 @@ pub async fn Context::add_files(
 }
 
 ///|
+/// TODO(upstream): implement symlink()
+pub async fn Context::add_symlink(
+  self : Context,
+  link : String,
+  to~ : String,
+) -> Unit {
+  let dir = @path.Path::parse(self.cwd.0 + "/")
+  let path_builder = @path.PathBuilder::from_path(dir)
+  path_builder.set_basename(link)
+  let link_path = path_builder.to_string()
+  let status = @process.run("ln", ["-s", to, link_path])
+  guard status is 0 else {
+    fail("Failed to create symlink '\{link_path}' -> '\{to}'")
+  }
+}
+
+///|
 /// Creates a subdirectory relative to the mock workspace root and returns it.
 pub async fn Context::add_directory(self : Context, name : String) -> Directory {
   self.cwd.add_directory(name)
