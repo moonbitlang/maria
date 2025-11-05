@@ -1,5 +1,5 @@
 ///|
-async test "replace_in_file/create" (t : @test.T) {
+async test "replace_in_file/create" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
@@ -13,7 +13,7 @@ async test "replace_in_file/create" (t : @test.T) {
 }
 
 ///|
-async test "replace_in_file/replace" (t : @test.T) {
+async test "replace_in_file/replace" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
@@ -47,7 +47,7 @@ async test "replace_in_file/replace" (t : @test.T) {
 }
 
 ///|
-async test "replace_in_file/fail-to-match" (t : @test.T) {
+async test "replace_in_file/fail-to-match" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file("file.txt", content="Old content")
@@ -68,7 +68,7 @@ async test "replace_in_file/fail-to-match" (t : @test.T) {
 }
 
 ///|
-async test "replace_in_file/search-replace" (t : @test.T) {
+async test "replace_in_file/search-replace" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @file.manager(cwd=taco.cwd.path())
     let _ = taco.add_file(
@@ -101,7 +101,7 @@ async test "replace_in_file/search-replace" (t : @test.T) {
 }
 
 ///|
-async test "replace_in_file/agentic" (t : @test.T) {
+async test "replace_in_file/agentic" (t : @test.Test) {
   // TODO: add retries support
   @mock.run(timeout=60_000, retry=3, t, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")

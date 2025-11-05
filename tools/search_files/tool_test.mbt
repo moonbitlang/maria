@@ -1,5 +1,5 @@
 ///|
-async test "search_files" (t : @test.T) {
+async test "search_files" (t : @test.Test) {
   @mock.run(t, taco => {
     let _ = taco.add_file(
       "notes.txt",
@@ -39,7 +39,7 @@ async test "search_files" (t : @test.T) {
 }
 
 ///|
-async test "search_files-moon-definition" (t : @test.T) {
+async test "search_files-moon-definition" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -83,7 +83,7 @@ async test "search_files-moon-definition" (t : @test.T) {
 }
 
 ///|
-async test "search_files-moon-references" (t : @test.T) {
+async test "search_files-moon-references" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -132,7 +132,7 @@ async test "search_files-moon-references" (t : @test.T) {
 }
 
 ///|
-async test "search_files/agentic" (t : @test.T) {
+async test "search_files/agentic" (t : @test.Test) {
   @mock.run(t, timeout=300_000, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     taco.add_files([
@@ -193,7 +193,7 @@ async test "search_files/agentic" (t : @test.T) {
 }
 
 ///|
-async test "search_files/with tilde expension" (t : @test.T) {
+async test "search_files/with tilde expension" (t : @test.Test) {
   @mock.run(t, taco => {
     let args : Json = {
       "path": "~/.moon/lib/core",

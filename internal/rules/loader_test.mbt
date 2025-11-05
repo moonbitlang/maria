@@ -1,5 +1,5 @@
 ///|
-async test "Loader::load" (t : @test.T) {
+async test "Loader::load" (t : @test.Test) {
   @mock.run(t, taco => {
     let home = taco.cwd
     @mock.with_home(home, () => {

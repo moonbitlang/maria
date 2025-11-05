@@ -1,5 +1,5 @@
 ///|
-async test "Manager::spawn" (t : @test.T) {
+async test "Manager::spawn" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
@@ -20,7 +20,7 @@ async test "Manager::spawn" (t : @test.T) {
 }
 
 ///|
-async test "Manager::wait" (t : @test.T) {
+async test "Manager::wait" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)

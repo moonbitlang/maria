@@ -1,5 +1,5 @@
 ///|
-async test "get_moonbit_mbti" (t : @test.T) {
+async test "get_moonbit_mbti" (t : @test.Test) {
   @mock.run(t, taco => {
     @moon.new(taco.cwd.path(), name="test_get_moonbit_mbti")
     let get_moonbit_mbti = @get_moonbit_mbti.new(taco.cwd.path())

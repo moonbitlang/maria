@@ -1,5 +1,5 @@
 ///|
-async test "list_directory" (t : @test.T) {
+async test "list_directory" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
     let subdir = taco.add_directory("subdir")
@@ -13,7 +13,7 @@ async test "list_directory" (t : @test.T) {
 }
 
 ///|
-async test "should_handle_symlink_when_listing_directory" (t : @test.T) {
+async test "should_handle_symlink_when_listing_directory" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([("file1.txt", "content1")])
     taco.add_symlink("link_to_file1.txt", to="file1.txt")

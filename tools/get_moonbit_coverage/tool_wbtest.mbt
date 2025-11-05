@@ -1,5 +1,5 @@
 ///|
-async test "get_moonbit_coverage" (t : @test.T) {
+async test "get_moonbit_coverage" (t : @test.Test) {
   @mock.run(t, timeout=300_000, taco => {
     taco.add_files([
       (

@@ -1,5 +1,5 @@
 ///|
-async test "impl ToJson for Conversation" (t : @test.T) {
+async test "impl ToJson for Conversation" (t : @test.Test) {
   @mock.run(t, taco => {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(taco.rand),

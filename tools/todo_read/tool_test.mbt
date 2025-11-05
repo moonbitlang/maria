@@ -39,7 +39,7 @@ fn[T : ToJson] drop_id_and_time(json : T) -> Json {
 }
 
 ///|
-async test "todo_read" (t : @test.T) {
+async test "todo_read" (t : @test.Test) {
   @mock.run(t, taco => {
     let todo_list = @todo.list(uuid=taco.uuid, cwd=taco.cwd.path())
     let read_tool = @todo_read.new(todo_list)

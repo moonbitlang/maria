@@ -1,5 +1,5 @@
 ///|
-async test "project" (t : @test.T) {
+async test "project" (t : @test.Test) {
   @mock.run(t, mock => {
     let _ = mock.add_file(
       "moon.mod.json",

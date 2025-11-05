@@ -1,5 +1,5 @@
 ///|
-async test "load" (t : @test.T) {
+async test "load" (t : @test.Test) {
   @mock.run(t, mock => {
     let home = mock.cwd
     let home_models : Json = [

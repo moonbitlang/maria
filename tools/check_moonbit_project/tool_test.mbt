@@ -1,5 +1,5 @@
 ///|
-async test "check_moonbit_project" (t : @test.T) {
+async test "check_moonbit_project" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -69,7 +69,7 @@ async test "check_moonbit_project" (t : @test.T) {
 }
 
 ///|
-async test "check_moonbit_project/patch-insert" (t : @test.T) {
+async test "check_moonbit_project/patch-insert" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (

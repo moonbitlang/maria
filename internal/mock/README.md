@@ -21,7 +21,7 @@ Call `@mock.run(t, ctx => { ... })` inside an `async test` to receive a
 retry logic; see `taco.mbt` for the full contract.
 
 ```moonbit async
-async test "writes file" (t : @test.T) {
+async test "writes file" (t : @test.Test) {
   @mock.run(t, async ctx => {
     let file = ctx.add_file("output.txt", content="hello")
     let text = file.read()
@@ -49,7 +49,7 @@ monotonic mock clock you can advance manually), `ctx.rand` (deterministic RNG),
 and `ctx.uuid` (deterministic UUID generator built on that RNG).
 
 ```moonbit async
-async test "context helpers" (t : @test.T) {
+async test "context helpers" (t : @test.Test) {
   @mock.run(t, async ctx => {
     let config_dir = ctx.add_directory("config")
     ctx.add_file("config/app.json", content="{\"port\": 8080}")

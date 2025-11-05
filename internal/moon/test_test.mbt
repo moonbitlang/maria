@@ -1,5 +1,5 @@
 ///|
-async test "test" (t : @test.T) {
+async test "test" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (

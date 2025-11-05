@@ -5,7 +5,7 @@ priv struct SplitItem {
 } derive(ToJson)
 
 ///|
-test "snapshot testing" (t : @test.T) {
+test "snapshot testing" (t : @test.Test) {
   let inputs : Map[String, String] = {
     "basic hello world": "hello world ",
     "mixed unicode and emoji": "hello world 你好 🐫32 ",

@@ -1,5 +1,5 @@
 ///|
-async test "goto_definition" (t : @test.T) {
+async test "goto_definition" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -49,7 +49,7 @@ async test "goto_definition" (t : @test.T) {
 }
 
 ///|
-async test "find_references" (t : @test.T) {
+async test "find_references" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (

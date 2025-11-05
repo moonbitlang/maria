@@ -1,5 +1,5 @@
 ///|
-async test "fix-syntax-error" (t : @test.T) {
+async test "fix-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -84,7 +84,7 @@ async test "fix-syntax-error" (t : @test.T) {
 }
 
 ///|
-async test "search-replace" (t : @test.T) {
+async test "search-replace" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -183,7 +183,7 @@ async test "search-replace" (t : @test.T) {
 }
 
 ///|
-async test "fix-question-mark-error-propagation" (t : @test.T) {
+async test "fix-question-mark-error-propagation" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -243,7 +243,7 @@ async test "fix-question-mark-error-propagation" (t : @test.T) {
 }
 
 ///|
-async test "fix-loop-syntax-error" (t : @test.T) {
+async test "fix-loop-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -301,7 +301,7 @@ async test "fix-loop-syntax-error" (t : @test.T) {
 }
 
 ///|
-async test "fix-range-pattern-for-loop-error" (t : @test.T) {
+async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -354,7 +354,7 @@ async test "fix-range-pattern-for-loop-error" (t : @test.T) {
 }
 
 ///|
-async test "fix-range-pattern-match-error" (t : @test.T) {
+async test "fix-range-pattern-match-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -413,7 +413,7 @@ async test "fix-range-pattern-match-error" (t : @test.T) {
 }
 
 ///|
-async test "fix-range-pattern-if-is-error" (t : @test.T) {
+async test "fix-range-pattern-if-is-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([
@@ -475,7 +475,7 @@ async test "fix-range-pattern-if-is-error" (t : @test.T) {
 }
 
 ///|
-async test "fix-multiple-syntax-errors" (t : @test.T) {
+async test "fix-multiple-syntax-errors" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
     mock.add_files([

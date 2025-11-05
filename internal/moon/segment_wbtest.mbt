@@ -1,5 +1,5 @@
 ///|
-async test "segment" (t : @test.T) {
+async test "segment" (t : @test.Test) {
   @mock.run(t, mock => {
     let file = mock.add_file(
       "example.mbt",

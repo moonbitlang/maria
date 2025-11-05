@@ -1,5 +1,5 @@
 ///|
-async test "files" (t : @test.T) {
+async test "files" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -89,7 +89,7 @@ async test "files" (t : @test.T) {
 }
 
 ///|
-async test "interface" (t : @test.T) {
+async test "interface" (t : @test.Test) {
   @mock.run(t, taco => {
     taco.add_files([
       (
@@ -151,7 +151,7 @@ async test "interface" (t : @test.T) {
 }
 
 ///|
-async test "diagnostics" (t : @test.T) {
+async test "diagnostics" (t : @test.Test) {
   @mock.run(t, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
@@ -191,7 +191,7 @@ async test "diagnostics" (t : @test.T) {
 }
 
 ///|
-async test "interface/core" (t : @test.T) {
+async test "interface/core" (t : @test.Test) {
   @mock.run(t, mock => {
     let _ = mock.add_file(
       "moon.mod.json",
@@ -224,7 +224,7 @@ async test "interface/core" (t : @test.T) {
 }
 
 ///|
-async test "packages" (t : @test.T) {
+async test "packages" (t : @test.Test) {
   @mock.run(t, taco => {
     let _ = taco.add_file(
       "moon.mod.json",
