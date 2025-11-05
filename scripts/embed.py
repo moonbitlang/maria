@@ -1,5 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
+import subprocess
 
 
 @dataclass
@@ -42,6 +43,7 @@ manifests = [
 
 
 def main():
+    subprocess.run(["git", "submodule", "update", "--init", "--recursive"], check=True)
     for manifest in manifests:
         manifest.embed()
 
