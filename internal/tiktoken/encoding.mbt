@@ -79,45 +79,45 @@ fn Encoding::lookup(
 
 ///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
-  let encoded = tokens.map(t => self.decoder[t])
-  let rank = Array::make(encoded.length() - 1, @int.max_value)
-  for i = 0; i < encoded.length() - 1; i = i + 1 {
-    let l = encoded[i]
-    let r = encoded[i + 1]
-    if self.encoder.get(l + r) is Some(index) {
-      rank[i] = index
+  let pieces = tokens.map(t => self.decoder[t])
+  let rank = Array::make(pieces.length() - 1, @int.max_value)
+  for i = 0; i < pieces.length() - 1; i = i + 1 {
+    let l = pieces[i]
+    let r = pieces[i + 1]
+    if self.encoder.get(l + r) is Some(token) {
+      rank[i] = token
     }
   }
-  let mut min = arg_min(rank)
-  while min != -1 {
-    let merge = encoded[min] + encoded[min + 1]
-    encoded[min] = merge
-    encoded.remove(min + 1) |> ignore()
+  let mut index = arg_min(rank)
+  while index != -1 {
+    let merge = pieces[index] + pieces[index + 1]
+    pieces[index] = merge
+    pieces.remove(index + 1) |> ignore()
     let merge_token = self.encoder.at(merge)
-    tokens[min] = merge_token
-    tokens.remove(min + 1) |> ignore()
-    rank.remove(min) |> ignore()
+    tokens[index] = merge_token
+    tokens.remove(index + 1) |> ignore()
+    rank.remove(index) |> ignore()
     // merge left
-    if min > 0 {
-      let l = encoded[min - 1]
-      let r = encoded[min]
-      if self.encoder.get(l + r) is Some(index) {
-        rank[min - 1] = index
+    if index > 0 {
+      let l = pieces[index - 1]
+      let r = pieces[index]
+      if self.encoder.get(l + r) is Some(token) {
+        rank[index - 1] = token
       } else {
-        rank[min - 1] = @int.max_value
+        rank[index - 1] = @int.max_value
       }
     }
     // merge right
-    if min < encoded.length() - 1 {
-      let l = encoded[min]
-      let r = encoded[min + 1]
-      if self.encoder.get(l + r) is Some(index) {
-        rank[min] = index
+    if index < pieces.length() - 1 {
+      let l = pieces[index]
+      let r = pieces[index + 1]
+      if self.encoder.get(l + r) is Some(token) {
+        rank[index] = token
       } else {
-        rank[min] = @int.max_value
+        rank[index] = @int.max_value
       }
     }
-    min = arg_min(rank)
+    index = arg_min(rank)
   }
 }
 
