@@ -36,6 +36,7 @@ fn List::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
 async fn List::save(Self) -> Unit
 fn List::todos(Self) -> Array[Item]
 fn List::update_task(Self, Int, Item) -> Unit
+fn List::uuid(Self) -> String
 
 pub(all) enum Priority {
   High

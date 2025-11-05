@@ -215,15 +215,14 @@ test "remove_list_prefixes" {
 }
 
 ///|
-pub fn List::parse(
-  self : List,
+fn Items::parse(
   content : String,
   priority~ : Priority,
   notes? : String,
-) -> Unit {
-  self.items.todos.clear()
-  self.items.created_at = self.config.now()
-  self.items.updated_at = self.items.created_at
+  config~ : Config,
+) -> Items {
+  let now = config.now()
+  let items = Items::{ todos: [], created_at: now, updated_at: now }
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
@@ -236,10 +235,10 @@ pub fn List::parse(
           notes?,
           priority~,
           status=Pending,
-          created_at=self.now(),
-          id=self.uuid(),
+          created_at=config.now(),
+          id=config.uuid(),
         )
-        self.items.todos.push(todo)
+        items.todos.push(todo)
       }
     }
   } else {
@@ -260,11 +259,22 @@ pub fn List::parse(
           priority~,
           status=Pending,
           // self.config,
-          created_at=self.now(),
-          id=self.uuid(),
+          created_at=config.now(),
+          id=config.uuid(),
         )
-        self.items.todos.push(todo)
+        items.todos.push(todo)
       }
     }
   }
+  items
+}
+
+///|
+pub fn List::parse(
+  self : List,
+  content : String,
+  priority~ : Priority,
+  notes? : String,
+) -> Unit {
+  self.items = Items::parse(content, priority~, notes?, config=self.config)
 }
