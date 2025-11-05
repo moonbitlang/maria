@@ -1,7 +1,7 @@
 ///|
 struct Encoding {
   encoder : Map[Bytes, Int]
-  decoder : Map[Int, Bytes]
+  decoder : FixedArray[Bytes]
   special_encoder : Map[String, Int]
   special_decoder : Map[Int, Bytes]
   pattern : Pattern
@@ -30,7 +30,7 @@ pub fn Encoding::new(
   pattern~ : Pattern,
 ) -> Encoding {
   let encoder : Map[Bytes, Int] = {}
-  let decoder = {}
+  let decoder = FixedArray::make(mergeable_ranks.length(), b"")
   for piece, rank in mergeable_ranks {
     encoder[piece] = rank
     decoder[rank] = piece
@@ -78,33 +78,46 @@ fn Encoding::lookup(
 }
 
 ///|
-fn Encoding::rank(self : Encoding, tokens : Array[Int]) -> Int {
-  let ranks = Array::new()
-  for i = 0; i < tokens.length() - 1; i = i + 1 {
-    let l = tokens[i]
-    let r = tokens[i + 1]
-    let l = self.decoder.get(l).unwrap()
-    let r = self.decoder.get(r).unwrap()
-    let rank = match self.encoder.get(l + r) {
-      Some(merge) => merge
-      None => @int.max_value
-    }
-    ranks.push(rank)
-  }
-  arg_min(ranks)
-}
-
-///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
-  for index = self.rank(tokens); index != -1; index = self.rank(tokens) {
-    let l = tokens[index]
-    let r = tokens[index + 1]
-    let l = self.decoder.get(l).unwrap()
-    let r = self.decoder.get(r).unwrap()
-    let merge = l + r
-    let merge = self.encoder.get(merge).unwrap()
-    tokens[index] = merge
+  let pieces = tokens.map(t => self.decoder[t])
+  let rank = Array::make(pieces.length() - 1, @int.max_value)
+  for i = 0; i < pieces.length() - 1; i = i + 1 {
+    let l = pieces[i]
+    let r = pieces[i + 1]
+    if self.encoder.get(l + r) is Some(token) {
+      rank[i] = token
+    }
+  }
+  let mut index = arg_min(rank)
+  while index != -1 {
+    let merge = pieces[index] + pieces[index + 1]
+    pieces[index] = merge
+    pieces.remove(index + 1) |> ignore()
+    let merge_token = self.encoder.at(merge)
+    tokens[index] = merge_token
     tokens.remove(index + 1) |> ignore()
+    rank.remove(index) |> ignore()
+    // merge left
+    if index > 0 {
+      let l = pieces[index - 1]
+      let r = pieces[index]
+      if self.encoder.get(l + r) is Some(token) {
+        rank[index - 1] = token
+      } else {
+        rank[index - 1] = @int.max_value
+      }
+    }
+    // merge right
+    if index < pieces.length() - 1 {
+      let l = pieces[index]
+      let r = pieces[index + 1]
+      if self.encoder.get(l + r) is Some(token) {
+        rank[index] = token
+      } else {
+        rank[index] = @int.max_value
+      }
+    }
+    index = arg_min(rank)
   }
 }
 
@@ -156,9 +169,12 @@ pub fn Encoding::decode(
 ) -> String raise DecodingError {
   let buffer = @buffer.new()
   for token in tokens {
-    if self.decoder.get(token) is Some(piece) {
-      buffer.write_bytes(piece)
-      continue
+    if token >= 0 && token < self.decoder.length() {
+      let piece = self.decoder[token]
+      if piece.length() > 0 {
+        buffer.write_bytes(piece)
+        continue
+      }
     }
     if self.special_decoder.get(token) is Some(piece) {
       buffer.write_bytes(piece)
