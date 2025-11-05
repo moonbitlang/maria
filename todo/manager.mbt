@@ -11,23 +11,16 @@ fn Config::uuid(self : Config) -> String {
 }
 
 ///|
-fn List::item(
-  self : List,
-  content : String,
-  status~ : Status,
-  priority~ : Priority,
+fn Item::new(
+  content~ : String,
   notes? : String,
+  priority~ : Priority,
+  status~ : Status,
+  config : Config,
 ) -> Item {
-  let now = self.config.now()
-  {
-    content,
-    created_at: now,
-    id: self.config.uuid(),
-    notes,
-    priority,
-    status,
-    updated_at: now,
-  }
+  let now = config.now()
+  let id = config.uuid()
+  { content, created_at: now, id, notes, priority, status, updated_at: now }
 }
 
 ///|
@@ -153,7 +146,7 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = self.item(content, status~, priority~, notes?)
+  let item = Item::new(content~, notes?, priority~, status~, self.config)
   self.items.todos.push(item)
   self.items.updated_at = self.config.now()
   item
@@ -227,11 +220,12 @@ pub fn List::parse(
     for task_content in task_matches {
       let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
-        let todo = self.item(
-          trimmed.to_string(),
+        let todo = Item::new(
+          content=trimmed.to_string(),
           notes?,
           priority~,
           status=Pending,
+          self.config,
         )
         self.items.todos.push(todo)
       }
@@ -248,7 +242,13 @@ pub fn List::parse(
       // Remove common prefixes like "1.", "- ", "* ", etc.
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
-        let todo = self.item(clean_line, notes?, priority~, status=Pending)
+        let todo = Item::new(
+          content=clean_line,
+          notes?,
+          priority~,
+          status=Pending,
+          self.config,
+        )
         self.items.todos.push(todo)
       }
     }
