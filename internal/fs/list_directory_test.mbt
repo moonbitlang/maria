@@ -11,3 +11,25 @@ async test "list_directory" (t : @test.T) {
     ])
   })
 }
+
+///|
+async test "should_handle_symlink_when_listing_directory" (t : @test.T) {
+  @mock.run(t, taco => {
+    taco.add_files([("file1.txt", "content1")])
+    taco.add_symlink("link_to_file1.txt", to="file1.txt")
+    taco.add_symlink("link_to_file.txt", to="file.txt")
+    @json.inspect(taco.json(@this.list_directory(taco.cwd.path())), content=[
+      { "path": "(mock:cwd)/file1.txt", "name": "file1.txt", "kind": "Regular" },
+      {
+        "path": "(mock:cwd)/link_to_file.txt",
+        "name": "link_to_file.txt",
+        "kind": "SymLink",
+      },
+      {
+        "path": "(mock:cwd)/link_to_file1.txt",
+        "name": "link_to_file1.txt",
+        "kind": "SymLink",
+      },
+    ])
+  })
+}
