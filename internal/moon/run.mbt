@@ -1,5 +1,9 @@
 ///|
-pub async fn run(cwd? : StringView) -> (Int, String) {
+async fn run(
+  cwd? : StringView,
+  package_or_file : String,
+  arguments : Array[String],
+) -> (Int, String) {
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
@@ -9,7 +13,14 @@ pub async fn run(cwd? : StringView) -> (Int, String) {
         @path.join(@os.cwd(), cwd)
       }
   }
+  let args : Array[StringView] = ["run", package_or_file]
+  if !arguments.is_empty() {
+    args.push("--")
+    for argument in arguments {
+      args.push(argument)
+    }
+  }
   let stdout = StringBuilder::new()
-  let status = @spawn.spawn("moon", ["run"], stdout~, cwd~)
+  let status = @spawn.spawn("moon", args, stdout~, cwd~)
   (status, stdout.to_string())
 }

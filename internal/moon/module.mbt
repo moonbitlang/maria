@@ -257,6 +257,10 @@ pub async fn Module::install(self : Module) -> Unit {
 }
 
 ///|
-pub async fn Module::run(self : Module) -> (Int, String) {
-  run(cwd=self.path)
+pub async fn Module::run(
+  self : Module,
+  package_or_file : String,
+  arguments : Array[String],
+) -> (Int, String) {
+  run(cwd=self.path, package_or_file, arguments)
 }
