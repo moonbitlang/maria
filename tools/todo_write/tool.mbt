@@ -194,24 +194,30 @@ async fn @todo.List::execute_todo_write(
       let updated_todos = []
       let action_message = match action {
         MarkProgress => {
-          let updated_todo = self.update_item(todo, status=InProgress)
+          let updated_todo = todo.update(
+            status=InProgress,
+            updated_at=self.now(),
+          )
           updated_todos.push(updated_todo)
           self.update_task(task_index, updated_todo)
           "Marked task as in progress: \{updated_todo.content}"
         }
         MarkCompleted => {
-          let updated_todo = self.update_item(todo, status=Completed)
+          let updated_todo = todo.update(
+            status=Completed,
+            updated_at=self.now(),
+          )
           updated_todos.push(updated_todo)
           self.update_task(task_index, updated_todo)
           "Marked task as completed: \{updated_todo.content}"
         }
         Update => {
-          let updated_todo = self.update_item(
-            todo,
+          let updated_todo = todo.update(
             content?,
             status~,
             priority~,
             notes~,
+            updated_at=self.now(),
           )
           updated_todos.push(updated_todo)
           self.update_task(task_index, updated_todo)

@@ -29,15 +29,15 @@ fn Config::now(self : Config) -> String {
 }
 
 ///|
-pub fn List::update_item(
-  self : List,
-  item : Item,
+pub fn Item::update(
+  self : Item,
   content? : String,
   notes? : String?,
   status? : Status,
   priority? : Priority,
+  updated_at~ : String,
 ) -> Item {
-  let mut updated = { ..item, updated_at: self.config.now() }
+  let mut updated = { ..self, updated_at, }
   if content is Some(content) {
     updated = { ..updated, content, }
   }
@@ -51,6 +51,11 @@ pub fn List::update_item(
     updated = { ..updated, priority, }
   }
   updated
+}
+
+///|
+pub fn List::now(self : List) -> String {
+  self.config.now()
 }
 
 ///|

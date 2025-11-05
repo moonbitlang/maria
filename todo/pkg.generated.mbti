@@ -13,8 +13,6 @@ fn list(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> L
 // Errors
 
 // Types and methods
-type Index
-
 pub(all) struct Item {
   content : String
   created_at : String
@@ -24,19 +22,20 @@ pub(all) struct Item {
   status : Status
   updated_at : String
 }
+fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority, updated_at~ : String) -> Self
 impl ToJson for Item
 impl @json.FromJson for Item
 
 type List
 fn List::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item
-fn List::find(Self, String) -> Index?
-fn List::get(Self, Index) -> Item
+fn List::find(Self, String) -> Int?
+fn List::get(Self, Int) -> Item
 async fn List::load(Self) -> Unit
+fn List::now(Self) -> String
 fn List::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
 async fn List::save(Self) -> Unit
 fn List::todos(Self) -> Array[Item]
-fn List::update_item(Self, Item, content? : String, notes? : String?, status? : Status, priority? : Priority) -> Item
-fn List::update_task(Self, Index, Item) -> Unit
+fn List::update_task(Self, Int, Item) -> Unit
 
 pub(all) enum Priority {
   High

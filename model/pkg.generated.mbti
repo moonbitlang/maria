@@ -23,6 +23,9 @@ pub(all) enum CommonModels {
   Gpt5
   Gpt5Mini
   Gpt5Nano
+  KimiK2_0905
+  Glm4_6
+  MinimaxM2
 }
 impl Show for CommonModels
 
