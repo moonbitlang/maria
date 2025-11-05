@@ -41,12 +41,11 @@ pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
     let path_builder = @path.PathBuilder::from_path(path)
     path_builder.set_basename(basename)
     let filename = path_builder.to_string()
-    let file = @fs.open(filename, mode=ReadOnly)
-    defer file.close()
+    let kind = @fs.kind(filename, follow_symlink=false)
     entries.push(DirectoryEntry::{
       path: filename,
       name: basename,
-      kind: FileKind::of_fs_file_kind(file.kind()),
+      kind: FileKind::of_fs_file_kind(kind),
     })
   }
   entries.sort()

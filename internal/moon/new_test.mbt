@@ -14,7 +14,7 @@ async test "new" (t : @test.T) {
         "kind": "Directory",
       },
       { "path": "(mock:cwd)/AGENTS.md", "name": "AGENTS.md", "kind": "Regular" },
-      { "path": "(mock:cwd)/README.md", "name": "README.md", "kind": "Regular" },
+      { "path": "(mock:cwd)/README.md", "name": "README.md", "kind": "SymLink" },
       {
         "path": "(mock:cwd)/.gitignore",
         "name": ".gitignore",
