@@ -16,10 +16,12 @@ fn Item::new(
   notes? : String,
   priority~ : Priority,
   status~ : Status,
-  config : Config,
+  // config : Config,
+  created_at~ : String,
+  id~ : String,
 ) -> Item {
-  let now = config.now()
-  let id = config.uuid()
+  let now = created_at
+  let id = id
   { content, created_at: now, id, notes, priority, status, updated_at: now }
 }
 
@@ -51,6 +53,11 @@ pub fn Item::update(
 ///|
 pub fn List::now(self : List) -> String {
   self.config.now()
+}
+
+///|
+pub fn List::uuid(self : List) -> String {
+  self.config.uuid()
 }
 
 ///|
@@ -146,9 +153,16 @@ pub fn List::add_task(
     [] => content
     [task, ..] => task
   }
-  let item = Item::new(content~, notes?, priority~, status~, self.config)
+  let item = Item::new(
+    content~,
+    notes?,
+    priority~,
+    status~,
+    created_at=self.now(),
+    id=self.config.uuid(),
+  )
   self.items.todos.push(item)
-  self.items.updated_at = self.config.now()
+  self.items.updated_at = self.now()
   item
 }
 
@@ -201,15 +215,14 @@ test "remove_list_prefixes" {
 }
 
 ///|
-pub fn List::parse(
-  self : List,
+fn Items::parse(
   content : String,
   priority~ : Priority,
   notes? : String,
-) -> Unit {
-  self.items.todos.clear()
-  self.items.created_at = self.config.now()
-  self.items.updated_at = self.items.created_at
+  config~ : Config,
+) -> Items {
+  let now = config.now()
+  let items = Items::{ todos: [], created_at: now, updated_at: now }
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
@@ -222,9 +235,10 @@ pub fn List::parse(
           notes?,
           priority~,
           status=Pending,
-          self.config,
+          created_at=config.now(),
+          id=config.uuid(),
         )
-        self.items.todos.push(todo)
+        items.todos.push(todo)
       }
     }
   } else {
@@ -244,10 +258,23 @@ pub fn List::parse(
           notes?,
           priority~,
           status=Pending,
-          self.config,
+          // self.config,
+          created_at=config.now(),
+          id=config.uuid(),
         )
-        self.items.todos.push(todo)
+        items.todos.push(todo)
       }
     }
   }
+  items
+}
+
+///|
+pub fn List::parse(
+  self : List,
+  content : String,
+  priority~ : Priority,
+  notes? : String,
+) -> Unit {
+  self.items = Items::parse(content, priority~, notes?, config=self.config)
 }

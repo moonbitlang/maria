@@ -14,7 +14,7 @@ priv struct Config {
 ///|
 priv struct Items {
   todos : Array[Item]
-  mut created_at : String
+  created_at : String
   mut updated_at : String
 } derive(ToJson, FromJson)
 
