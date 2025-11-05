@@ -153,27 +153,24 @@ pub fn List::add_task(
 }
 
 ///|
-pub fn List::update_task(self : List, index : Index, item : Item) -> Unit {
-  self.items.todos[index.0] = item
+pub fn List::update_task(self : List, index : Int, item : Item) -> Unit {
+  self.items.todos[index] = item
   self.items.updated_at = self.config.now()
 }
 
 ///|
-struct Index(Int)
-
-///|
-pub fn List::find(self : List, id : String) -> Index? {
+pub fn List::find(self : List, id : String) -> Int? {
   for i, todo in self.items.todos {
     if todo.id == id {
-      return Some(Index(i))
+      return Some(i)
     }
   }
   None
 }
 
 ///|
-pub fn List::get(self : List, index : Index) -> Item {
-  self.items.todos[index.0]
+pub fn List::get(self : List, index : Int) -> Item {
+  self.items.todos[index]
 }
 
 ///|
