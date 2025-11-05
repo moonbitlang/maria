@@ -38,7 +38,8 @@ pub fn Item::update(
   updated_at~ : String,
 ) -> Item {
   {
-    ..self, // id and some other fields remain the same
+    ..self // id and some other fields remain the same
+    ,
     content: content.unwrap_or(self.content),
     notes: notes.unwrap_or(self.notes),
     status: status.unwrap_or(self.status),
