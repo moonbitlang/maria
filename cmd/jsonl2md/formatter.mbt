@@ -13,6 +13,7 @@ priv struct Formatter {
   tools : Map[String, Formatter]
   /// Versions of fixed files submitted in this subagent.
   submit_fixed_files : Array[String]
+  mut start_timestamp : Int64?
 }
 
 ///|
@@ -28,6 +29,7 @@ fn Formatter::new(
     lines: [],
     tools: {},
     submit_fixed_files: [],
+    start_timestamp: None,
   }
 }
 
@@ -43,20 +45,47 @@ fn Formatter::to_string(self : Formatter) -> String raise {
 }
 
 ///|
+fn Formatter::push_title(
+  self : Formatter,
+  title : String,
+  level? : Int,
+  numbered? : Bool = false,
+  timestamp? : Int64,
+) -> Unit raise {
+  let prefix = "#".repeat(level.unwrap_or(1))
+  let title = if numbered {
+    let title = "\{prefix} \{self.count} \{title}"
+    self.count += 1
+    title
+  } else {
+    "\{prefix} \{title}"
+  }
+  self.lines.push(title)
+  if timestamp is Some(timestamp) {
+    self.lines.push("")
+    self.format_timestamp(timestamp~)
+  }
+}
+
+///|
 fn Formatter::format_tool_call_as_xml(
   self : Formatter,
   name : String,
   args : Json,
-) -> Unit {
+) -> Unit raise {
   // Some heuristic formatting for common tool call arguments
   if args is { "path": String(path), .. } {
-    self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+    self.push_title(
+      "Tool call argument: <\{name} path=\{path.escape()}>",
+      level=2,
+    )
   } else if args is { "command": String(command), .. } {
-    self.lines.push(
-      "## Tool call argument: <\{name} command=\{command.escape()}>",
+    self.push_title(
+      "Tool call argument: <\{name} command=\{command.escape()}>",
+      level=2,
     )
   } else {
-    self.lines.push("## Tool call argument: <\{name}>")
+    self.push_title("Tool call argument: <\{name}>", level=2)
   }
   self.lines.push("")
   json2xml(args, self.lines)
@@ -75,14 +104,20 @@ async fn Formatter::format_replace_in_file(
       "replace": String(replace),
       ..
     } => {
-      self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+      self.push_title(
+        "Tool call argument: <\{name} path=\{path.escape()}>",
+        level=2,
+      )
       self.lines.push("")
       self.lines.push("```diff")
       self.lines.push(@git.generate_git_diff(original=search, modified=replace))
       self.lines.push("```")
     }
     { "path": String(path), "replace": String(replace), .. } => {
-      self.lines.push("## Tool call argument: <\{name} path=\{path.escape()}>")
+      self.push_title(
+        "Tool call argument: <\{name} path=\{path.escape()}>",
+        level=2,
+      )
       self.lines.push("")
       let file_format = if path.has_suffix(".mbt") {
         "moonbit"
@@ -115,7 +150,7 @@ async fn Formatter::format_submit_fixed_file(
 ) -> Unit {
   match args {
     { "content": String(content), .. } => {
-      self.lines.push("## Tool call argument: <\{name}>")
+      self.push_title("Tool call argument: <\{name}>", level=2)
       self.lines.push("")
       self.lines.push("Submitting fixed file content:")
       self.lines.push("")
@@ -148,7 +183,10 @@ async fn Formatter::format_tool_call(
 ) -> Unit {
   try @json.parse(tool_call.function.arguments) catch {
     error => {
-      self.lines.push("## Tool call argument: <\{tool_call.function.name}>")
+      self.push_title(
+        "Tool call argument: <\{tool_call.function.name}>",
+        level=2,
+      )
       self.lines.push("")
       self.lines.push("Failed to parse tool call arguments as JSON: \{error}")
       self.lines.push("")
@@ -166,7 +204,7 @@ async fn Formatter::format_tool_call(
         self.format_tool_call_as_xml(tool_call.function.name, args)
       }
       self.lines.push("")
-      self.lines.push("### Original JSON payload")
+      self.push_title("Original JSON payload", level=3)
       self.lines.push("")
       self.lines.push("```json")
       self.lines.push(args.stringify(indent=2))
@@ -262,10 +300,21 @@ fn recover_diagnostics(content : String) -> String raise {
 }
 
 ///|
+fn Formatter::format_timestamp(
+  self : Formatter,
+  timestamp~ : Int64,
+) -> Unit raise {
+  let seconds = timestamp / 1000
+  let timestamp = @time.unix(seconds).to_plain_time().to_string()
+  self.lines.push(timestamp)
+}
+
+///|
 /// Formats a MessageAdded log entry.
 async fn Formatter::format_message_added(
   self : Formatter,
   message : @openai.ChatCompletionMessageParam,
+  timestamp? : Int64,
 ) -> Unit {
   // Tool is already handled when formatting PostToolCall
   if message is Tool(_) {
@@ -276,8 +325,7 @@ async fn Formatter::format_message_added(
     .trim(char_set=" \n\r\t")
     .to_string()
   if message is System(_) {
-    self.lines.push("# \{self.count} \{role}")
-    self.count += 1
+    self.push_title(role, numbered=true, timestamp?)
     self.lines.push("")
     // We need to wrap the system message in code fence to avoid polluting the
     // markdown structure.
@@ -288,16 +336,15 @@ async fn Formatter::format_message_added(
     return
   }
   let title = content.split("\n").drop_while(line => line.is_blank()).peek()
-  if title is Some(title) {
-    self.lines.push("# \{self.count} \{role}: \{title}")
-    self.count += 1
+  if title is Some(first_line) {
+    self.push_title("\{role}: \{first_line}", numbered=true, timestamp?)
     self.lines.push("")
     self.lines.push(content)
     self.lines.push("")
   } else {
-    self.lines.push("# \{self.count} \{role}")
-    self.count += 1
+    self.push_title(role, numbered=true, timestamp?)
     if !content.is_empty() {
+      self.lines.push("")
       self.lines.push(content)
     }
     self.lines.push("")
@@ -330,29 +377,38 @@ fn Formatter::format_post_tool_call(
   name : String,
   result? : Result[Json, Json],
   text : String,
-) -> Unit {
+  timestamp? : Int64,
+) -> Unit raise {
   if result is Some(Ok(result)) {
     match (name, result) {
       ("execute_command", ["Foreground", { "command": String(command), .. }, ..]
       ) =>
-        self.lines.push(
-          "# \{self.count} Tool call result: <\{name} command=\{command.escape()}>",
+        self.push_title(
+          "Tool call result: <\{name} command=\{command.escape()}>",
+          numbered=true,
+          timestamp?,
         )
       ("list_files", { "path": String(path), .. })
       | ("read_file", ["ReadFileResult", { "path": String(path), .. }, ..])
       | ("replace_in_file", { "path": String(path), .. })
       | ("meta_write_to_file", { "path": String(path), .. }) =>
-        self.lines.push(
-          "# \{self.count} Tool call result: <\{name} path=\{path.escape()}>",
+        self.push_title(
+          "Tool call result: <\{name} path=\{path.escape()}>",
+          numbered=true,
+          timestamp?,
         )
-      _ => self.lines.push("# \{self.count} Tool call result: <\{name}>")
+      _ =>
+        self.push_title(
+          "Tool call result: <\{name}>",
+          numbered=true,
+          timestamp?,
+        )
     }
   } else if result is Some(Err(_)) {
-    self.lines.push("# \{self.count} ❌ Tool call error: <\{name}>")
+    self.push_title("❌ Tool call error: <\{name}>", numbered=true, timestamp?)
   } else {
-    self.lines.push("# \{self.count} Tool call result: <\{name}>")
+    self.push_title("Tool call result: <\{name}>", numbered=true, timestamp?)
   }
-  self.count += 1
   self.lines.push("")
   self.lines.push("````markdown")
   self.lines.push(text)
@@ -363,6 +419,25 @@ fn Formatter::format_post_tool_call(
 ///|
 /// Formats a log entry from JSON.
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
+  // Extract timestamp if available
+  let timestamp = match json {
+    { "time": Number(timestamp, repr=None), .. } => Some(timestamp.to_int64())
+    { "time": Number(_, repr=Some(timestamp)), .. } =>
+      Some(@strconv.parse_int64(timestamp)) catch {
+        _ => None
+      }
+    _ => None
+  }
+  let timestamp : Int64? = if timestamp is Some(ts) {
+    if self.start_timestamp is Some(start_timestamp) {
+      Some(ts - start_timestamp)
+    } else {
+      self.start_timestamp = Some(ts)
+      Some(0)
+    }
+  } else {
+    None
+  }
   if self.id is None &&
     json is { "tool": { "name": String(name), "id": String(id), .. }, .. } {
     // If we found a log entry with "tool" field, delegate to sub-formatter,
@@ -389,9 +464,10 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           lines: [],
           tools: {},
           submit_fixed_files: [],
+          start_timestamp: None,
         }
         self.tools.set(id, formatter)
-        self.lines.push("## 🤖 Spawned subagent for tool: <\{name}>")
+        self.push_title("🤖 Spawned subagent for tool: <\{name}>", level=2)
         self.lines.push("")
         self.lines.push("[<\{name}> log](\{filename})")
         self.lines.push("")
@@ -409,15 +485,14 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         .to_string()
       let title = content.split("\n").drop_while(line => line.is_blank()).peek()
       if title is Some(title) {
-        self.lines.push("# \{self.count} Assistant: \{title}")
-        self.count += 1
+        self.push_title("Assistant: \{title}", numbered=true, timestamp?)
         self.lines.push("")
         self.lines.push(content)
         self.lines.push("")
       } else {
-        self.lines.push("# \{self.count} Assistant")
-        self.count += 1
+        self.push_title("Assistant", numbered=true, timestamp?)
         if !content.is_empty() {
+          self.lines.push("")
           self.lines.push(content)
         }
         self.lines.push("")
@@ -430,20 +505,20 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
     }
     { "msg": "PostToolCall", "name": String(name), "text": String(text), .. } =>
       if json is { "result": result, .. } {
-        self.format_post_tool_call(name, result=Ok(result), text)
+        self.format_post_tool_call(name, result=Ok(result), text, timestamp?)
       } else if json is { "error": error, .. } {
-        self.format_post_tool_call(name, result=Err(error), text)
+        self.format_post_tool_call(name, result=Err(error), text, timestamp?)
       } else {
-        self.format_post_tool_call(name, text)
+        self.format_post_tool_call(name, text, timestamp?)
       }
     { "msg": "MessageAdded", "message": message, .. } => {
       let message : @openai.ChatCompletionMessageParam = @json.from_json(
         message,
       )
-      self.format_message_added(message)
+      self.format_message_added(message, timestamp?)
     }
     { "msg": "ModelLoaded", "name": String(name) | [String(name)], .. } => {
-      self.lines.push("# System information")
+      self.push_title("System information", timestamp?)
       self.lines.push("")
       self.lines.push("Model: \{name}")
       self.lines.push("")
