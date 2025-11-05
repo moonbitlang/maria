@@ -1,7 +1,7 @@
 ///|
 struct Encoding {
   encoder : Map[Bytes, Int]
-  decoder : Map[Int, Bytes]
+  decoder : Array[Bytes]
   special_encoder : Map[String, Int]
   special_decoder : Map[Int, Bytes]
   pattern : Pattern
@@ -30,7 +30,14 @@ pub fn Encoding::new(
   pattern~ : Pattern,
 ) -> Encoding {
   let encoder : Map[Bytes, Int] = {}
-  let decoder = {}
+  // Find max rank to size the array
+  let mut max_rank = 0
+  for _, rank in mergeable_ranks {
+    if rank > max_rank {
+      max_rank = rank
+    }
+  }
+  let decoder = Array::make(max_rank + 1, Bytes::new(0))
   for piece, rank in mergeable_ranks {
     encoder[piece] = rank
     decoder[rank] = piece
@@ -79,7 +86,7 @@ fn Encoding::lookup(
 
 ///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
-  let encoded = tokens.map(t => self.decoder.at(t))
+  let encoded = tokens.map(t => self.decoder[t])
   let rank = Array::make(encoded.length() - 1, @int.max_value)
   for i = 0; i < encoded.length() - 1; i = i + 1 {
     let l = encoded[i]
@@ -169,9 +176,12 @@ pub fn Encoding::decode(
 ) -> String raise DecodingError {
   let buffer = @buffer.new()
   for token in tokens {
-    if self.decoder.get(token) is Some(piece) {
-      buffer.write_bytes(piece)
-      continue
+    if token >= 0 && token < self.decoder.length() {
+      let piece = self.decoder[token]
+      if piece.length() > 0 {
+        buffer.write_bytes(piece)
+        continue
+      }
     }
     if self.special_decoder.get(token) is Some(piece) {
       buffer.write_bytes(piece)
