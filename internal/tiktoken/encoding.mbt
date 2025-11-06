@@ -26,12 +26,12 @@ pub fn Pattern::pcre2(pat_str : String) -> Pattern raise {
 ///|
 priv struct Trie {
   mut value : Int
-  children : Map[Byte, Trie]
+  children : FixedArray[Trie?]
 }
 
 ///|
 fn Trie::new() -> Trie {
-  Trie::{ value: @int.max_value, children: {} }
+  Trie::{ value: @int.max_value, children: FixedArray::make(256, None) }
 }
 
 ///|
@@ -41,11 +41,11 @@ fn Trie::set(trie : Self, bytes : BytesView, value : Int) -> Unit {
   loop bytes {
     [] => trie.value = value
     [b, .. rest] => {
-      let child = match trie.children.get(b) {
+      let child = match trie.children[b.to_int()] {
         Some(t) => t
         None => {
           let t = Trie::new()
-          trie.children[b] = t
+          trie.children[b.to_int()] = Some(t)
           t
         }
       }
@@ -61,7 +61,7 @@ fn Trie::next(trie : Self, bytes : BytesView) -> Trie? {
   loop bytes {
     [] => return Some(trie)
     [b, .. rest] => {
-      match trie.children.get(b) {
+      match trie.children[b.to_int()] {
         Some(t) => trie = t
         _ => return None
       }
