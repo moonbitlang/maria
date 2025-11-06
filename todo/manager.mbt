@@ -189,29 +189,40 @@ pub fn List::get(self : List, index : Int) -> Item {
 
 ///|
 /// Remove common list prefixes from a line
-fn remove_list_prefixes(line : StringView) -> String {
-  let result = lexmatch line with longest {
-      ("[0-9]+.\w*", rest) => rest
-      ("-\w*", rest) => rest
-      ("\*\w*", rest) => rest
-      _ => line
-    }
-  result.trim(char_set=" \t\r\n").to_string()
+fn remove_list_prefixes(line : StringView) -> StringView {
+  lexmatch line with longest {
+    ("[0-9]+\.\s*", rest) => rest
+    ("-\s*", rest) => rest
+    ("\*\s*", rest) => rest
+    _ => line
+  }
 }
 
 ///|
 test "remove_list_prefixes" {
-  @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
-  @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
-  @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
-  @json.inspect(
-    remove_list_prefixes("* Another bullet"),
-    content="Another bullet",
-  )
-  @json.inspect(
-    remove_list_prefixes("No prefix here"),
-    content="No prefix here",
-  )
+  let data : Array[String] = [
+    "12   First task   ", "    12   First task   ", "123abc", "1.first", "1.   First task",
+    "2.   Second task", "- Bullet point", "* Another bullet", "No prefix here", "-  Indented bullet",
+    "*\tTabbed bullet", "3.\tTabbed numbered",
+  ]
+  let output = {}
+  for d in data {
+    output[d] = remove_list_prefixes(d)
+  }
+  @json.inspect(output, content={
+    "12   First task   ": "12   First task   ",
+    "    12   First task   ": "    12   First task   ",
+    "123abc": "123abc",
+    "1.first": "first",
+    "1.   First task": "First task",
+    "2.   Second task": "Second task",
+    "- Bullet point": "Bullet point",
+    "* Another bullet": "Another bullet",
+    "No prefix here": "No prefix here",
+    "-  Indented bullet": "Indented bullet",
+    "*\tTabbed bullet": "Tabbed bullet",
+    "3.\tTabbed numbered": "Tabbed numbered",
+  })
 }
 
 ///|
@@ -254,7 +265,7 @@ fn Items::parse(
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
         let todo = Item::new(
-          content=clean_line,
+          content=clean_line.to_string(),
           notes?,
           priority~,
           status=Pending,

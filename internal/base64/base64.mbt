@@ -181,7 +181,7 @@ pub fn decode(
     },
     url_safe~,
   )
-  Bytes::from_fixedarray(output, len=i)
+  Bytes::from_array(output[:i])
 }
 
 ///|
