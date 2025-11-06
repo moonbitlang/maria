@@ -8,7 +8,6 @@ pub fn Directory::path(self : Directory) -> String {
 }
 
 ///|
-/// make directory recursively and return realpath
 async fn directory(path : String) -> Directory {
   @mfs.make_directory(path, recursive=true, exists_ok=true)
   let path = @fs.realpath(path)
@@ -78,10 +77,7 @@ pub async fn Context::add_symlink(
   link : String,
   to~ : String,
 ) -> Unit {
-  let dir = @path.Path::parse(self.cwd.0 + "/")
-  let path_builder = @path.PathBuilder::from_path(dir)
-  path_builder.set_basename(link)
-  let link_path = path_builder.to_string()
+  let link_path = @path.join(self.cwd.path(), link)
   let status = @process.run("ln", ["-s", to, link_path])
   guard status is 0 else {
     fail("Failed to create symlink '\{link_path}' -> '\{to}'")
@@ -179,35 +175,23 @@ pub async fn[T] with_home(directory : Directory, f : async () -> T) -> T {
 
 ///|
 /// Writes a file relative to this directory and returns a handle to it.
-/// 
-/// - `basename` : basename should be valid path component
 pub async fn Directory::add_file(
   self : Directory,
-  basename : String,
+  name : String,
   content? : String = "",
 ) -> File {
-  // TODO: use PathKind specify File or Directory determine how to parse path in `#248` draft PR
-  let dir = @path.Path::parse(self.0 + "/")
-  let path_builder = @path.PathBuilder::from_path(dir)
-  path_builder.set_basename(basename)
-  let path = path_builder.to_string()
+  let path = @path.join(self.0, name)
   @fs.write_file(path, content, truncate=true, create=0o644)
   File(path)
 }
 
 ///|
 /// Creates a nested directory relative to this directory and returns it.
-/// 
-/// - `directory` : directory should be valid path component
 pub async fn Directory::add_directory(
   self : Directory,
-  directory : String,
+  name : String,
 ) -> Directory {
-  // TODO: use PathKind specify File or Directory determine how to parse path in `#248` draft PR
-  let dir = @path.Path::parse(self.0 + "/")
-  let path_builder = @path.PathBuilder::from_path(dir)
-  path_builder.add_directory(directory)
-  let path = path_builder.to_string()
+  let path = @path.join(self.0, name)
   @fs.mkdir(path, permission=0o755)
   Directory(path)
 }
@@ -250,28 +234,15 @@ fn Entry::path(self : Entry) -> String {
 ///|
 /// Returns the final path component for this directory or file entry.
 pub fn Entry::name(self : Entry) -> StringView {
-  try {
-    // `@path.Path::parse` failed to parse the path component
-    // because without any platform prefix hint for determine windows or unix style path
-    // here provide a workaround to fallback to use raw path string
-    // 
-    // Warning: don't abuse this behavior.
-    let path = @path.Path::parse(self.path())
-    path.file().unwrap().to_string()
-  } catch {
-    _ => self.path()
-  }
+  @path.basename(self.path())
 }
 
 ///|
 /// Lists the immediate entries contained in this directory.
 pub async fn Directory::list(self : Directory) -> Array[Entry] {
   let entries = []
-  let path = @path.Path::parse(self.0 + "/")
   for name in @fs.readdir(self.0) {
-    let path_builder = @path.PathBuilder::from_path(path)
-    path_builder.set_basename(name)
-    let path = path_builder.to_string()
+    let path = @path.join(self.0, name)
     let entry : Entry = match @fs.kind(path) {
       Directory => Directory(path)
       _ => File(path)
@@ -355,59 +326,36 @@ pub async fn run(
 ) -> Unit {
   let os_cwd = @os.cwd()
   let exec = os_args[0]
-  let exec_path = @path.Path::parse(exec)
-  let os_cwd_path = @path.Path::parse(os_cwd + "/")
-  // Warning: this refactor change the original behavior
-  //
-  // remove the os_cwd prefix, extract parts from `target/native/debug/...parts` or `target/native/release/...parts`
-  let exec_parts = loop (exec_path.directory()[:], os_cwd_path.directory()[:]) {
-    ([x, .. xs], [y, .. ys]) if x == y => continue (xs, ys)
-    (xs, _) => break xs
-  }
+  let exec = @path.relative(os_cwd, exec)
+  let exec_parts = @path.split(exec).collect()
   guard exec_parts
-    is ["target", "native", "debug" | "release", "test", .. parts] else {
+    is ["target", "native", "debug" | "release", "test", .. parts, _] else {
     abort(
       "Unexpected executable path, @mock should only be used in test: \{exec}",
     )
   }
+  let pkg_path = parts.join(@path.sep.to_string())
   // `@mfs.with_temporary_directory` internally joins the `@os.tmpdir()` path
   @mfs.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
-    let tmpdir_path = @path.Path::parse(tmpdir + "/")
-    let tmpdir_path_builder = @path.PathBuilder::from_path(tmpdir_path)
-    for part in parts {
-      tmpdir_path_builder.add_directory(part)
-    }
+    let tmp_pkg_path = @path.join(tmpdir, pkg_path)
     async fn run() -> Unit {
-      // TODO: need to refactor later, because The logic for `log` and `cwd` is mixed up here.
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
-        let os_cwd_path = @path.Path::parse(os_cwd + "/")
-        let os_cwd_path_builder = @path.PathBuilder::from_path(os_cwd_path)
-        os_cwd_path_builder.add_directory("__trajectories__")
-        let log_dir = os_cwd_path_builder.to_string()
-        let test_name = t.name()
-        // make the test_name be the valid path component
-        let mangle_name = test_name.replace_all(old="/", new=":")
-        os_cwd_path_builder.set_file(base=mangle_name, extension="jsonl")
-        let logged = os_cwd_path_builder.to_string()
-        tmpdir_path_builder.add_directory(mangle_name)
-        let cwd = directory(tmpdir_path_builder.to_string())
+        let cwd = directory(@path.join(tmp_pkg_path, t.name()))
+        let log_dir = os_cwd |> @path.join("__trajectories__")
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
-        let logger = @pino.logger(mangle_name, @pino.Transport::file(logged))
+        let logged = log_dir |> @path.join("\{t.name()}.jsonl")
+        let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)
         let file = loc.to_string().split(":").peek().unwrap().to_string()
         // setup filter
         let home = @os.home()
-        let home_path = @path.Path::parse(home + "/")
-        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.PathBuilder::from_path(
-            home_path,
-          )
-          ..add_directory(".moon")
-          .to_path()
-          .to_string(kind=File))
+        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.join(
+          home, ".moon",
+        ))
         let filter = Filter::new()
         filter
         ..add("file", file)
