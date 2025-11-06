@@ -14,12 +14,12 @@ pub fn Pruner::prune_messages(
   pruner : Pruner,
   messages : Array[@openai.ChatCompletionMessageParam],
   tools? : Array[@openai.ChatCompletionToolParam] = [],
-) -> Array[@openai.ChatCompletionMessageParam] raise {
+) -> Unit raise {
   let tokens = pruner.token_counter.count_param(
     @openai.chat_completion(messages~, model="gpt-4o", tools~),
   )
   if tokens <= pruner.safe_zone_tokens {
-    return messages
+    return
   }
   for i in 0..<messages.length() {
     let message = messages[i]
@@ -33,11 +33,10 @@ pub fn Pruner::prune_messages(
           @openai.chat_completion(messages~, model="gpt-4o", tools~),
         )
         if tokens <= pruner.safe_zone_tokens {
-          return messages
+          return
         }
       }
       _ => ()
     }
   }
-  messages
 }

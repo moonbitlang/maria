@@ -71,7 +71,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
     ),
   )
   agent.emit(TokenCounted(origin_token_count))
-  let messages = agent.context_pruner.prune_messages(messages, tools~)
+  agent.context_pruner.prune_messages(messages, tools~)
   let pruned_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
       messages~,
