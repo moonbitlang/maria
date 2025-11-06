@@ -191,9 +191,9 @@ pub fn List::get(self : List, index : Int) -> Item {
 /// Remove common list prefixes from a line
 fn remove_list_prefixes(line : StringView) -> String {
   let result = lexmatch line with longest {
-      ("[0-9]+.\w*", rest) => rest
-      ("-\w*", rest) => rest
-      ("\*\w*", rest) => rest
+      ("[0-9]+\.\s*", rest) => rest
+      ("-\s*", rest) => rest
+      ("\*\s*", rest) => rest
       _ => line
     }
   result.trim(char_set=" \t\r\n").to_string()
@@ -203,12 +203,14 @@ fn remove_list_prefixes(line : StringView) -> String {
 test "remove_list_prefixes" {
   @json.inspect(
     remove_list_prefixes("12   First task   "),
-    content="First task",
+    content="12   First task",
   )
   @json.inspect(
     remove_list_prefixes("    12   First task   "),
     content="12   First task",
   )
+  @json.inspect(remove_list_prefixes("123abc"), content="123abc")
+  @json.inspect(remove_list_prefixes("1.first"), content="first")
   @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
   @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
   @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
@@ -219,6 +221,18 @@ test "remove_list_prefixes" {
   @json.inspect(
     remove_list_prefixes("No prefix here"),
     content="No prefix here",
+  )
+  @json.inspect(
+    remove_list_prefixes("-  Indented bullet"),
+    content="Indented bullet",
+  )
+  @json.inspect(
+    remove_list_prefixes("*\tTabbed bullet"),
+    content="Tabbed bullet",
+  )
+  @json.inspect(
+    remove_list_prefixes("3.\tTabbed numbered"),
+    content="Tabbed numbered",
   )
 }
 
@@ -262,7 +276,7 @@ fn Items::parse(
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
         let todo = Item::new(
-          content=clean_line,
+          content=clean_line.to_string(),
           notes?,
           priority~,
           status=Pending,
