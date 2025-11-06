@@ -8,3 +8,10 @@ test "cl100k_base" {
   ])
   @json.inspect(cl100k_base.decode(tokens), content="你好，世界🌍")
 }
+
+///|
+test "bench_cl100k_base" (b : @bench.T) {
+  let text = @fs.read_file_to_string("bench/messages.json")
+  let cl100k_base = @tiktoken.cl100k_base()
+  b.bench(() => try! ignore(cl100k_base.encode(text)))
+}

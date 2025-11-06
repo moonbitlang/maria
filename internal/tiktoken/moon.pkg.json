@@ -3,5 +3,8 @@
     "moonbitlang/maria/internal/pcre2",
     "moonbitlang/maria/internal/base64",
     "myfreess/charclass/unicode"
+  ],
+  "test-import": [
+    "moonbitlang/x/fs"
   ]
 }
