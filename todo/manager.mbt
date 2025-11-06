@@ -201,39 +201,29 @@ fn remove_list_prefixes(line : StringView) -> String {
 
 ///|
 test "remove_list_prefixes" {
-  @json.inspect(
-    remove_list_prefixes("12   First task   "),
-    content="12   First task",
-  )
-  @json.inspect(
-    remove_list_prefixes("    12   First task   "),
-    content="12   First task",
-  )
-  @json.inspect(remove_list_prefixes("123abc"), content="123abc")
-  @json.inspect(remove_list_prefixes("1.first"), content="first")
-  @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
-  @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
-  @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
-  @json.inspect(
-    remove_list_prefixes("* Another bullet"),
-    content="Another bullet",
-  )
-  @json.inspect(
-    remove_list_prefixes("No prefix here"),
-    content="No prefix here",
-  )
-  @json.inspect(
-    remove_list_prefixes("-  Indented bullet"),
-    content="Indented bullet",
-  )
-  @json.inspect(
-    remove_list_prefixes("*\tTabbed bullet"),
-    content="Tabbed bullet",
-  )
-  @json.inspect(
-    remove_list_prefixes("3.\tTabbed numbered"),
-    content="Tabbed numbered",
-  )
+  let data : Array[String] = [
+    "12   First task   ", "    12   First task   ", "123abc", "1.first", "1.   First task",
+    "2.   Second task", "- Bullet point", "* Another bullet", "No prefix here", "-  Indented bullet",
+    "*\tTabbed bullet", "3.\tTabbed numbered",
+  ]
+  let output = {}
+  for d in data {
+    output[d] = remove_list_prefixes(d)
+  }
+  @json.inspect(output, content={
+    "12   First task   ": "12   First task",
+    "    12   First task   ": "12   First task",
+    "123abc": "123abc",
+    "1.first": "first",
+    "1.   First task": "First task",
+    "2.   Second task": "Second task",
+    "- Bullet point": "Bullet point",
+    "* Another bullet": "Another bullet",
+    "No prefix here": "No prefix here",
+    "-  Indented bullet": "Indented bullet",
+    "*\tTabbed bullet": "Tabbed bullet",
+    "3.\tTabbed numbered": "Tabbed numbered",
+  })
 }
 
 ///|
