@@ -131,6 +131,21 @@ async test "invalid-range" (t : @test.Test) {
     let args : Json = { "path": "test.txt", "start_line": 0 }
     let result = new(manager).call(args)
     inspect(result, content="Error: start_line must be >= 1, got 0")
+    let args : Json = { "path": "test.txt", "start_line": 3, "end_line": 4 }
+    let result = new(manager).call(args)
+    inspect(
+      result,
+      content=(
+        #|File: test.txt (lines 3-3 (1 lines))
+        #|line 3
+      ),
+    )
+    let args : Json = { "path": "test.txt", "start_line": 4, "end_line": 10 }
+    let result = new(manager).call(args)
+    inspect(
+      result,
+      content="Error: start_line (4) must be <= total lines (3), got 4",
+    )
     let args : Json = { "path": "test.txt", "start_line": 2, "end_line": 1024 }
     let tool = new(manager)
     let result = tool.call(args)

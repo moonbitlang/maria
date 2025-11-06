@@ -88,8 +88,16 @@ async fn execute_read_file_tool(
     // Process line range parameters
     let lines = content.split("\n").to_array()
     let start_line = match start_line {
-      Some(n) if n >= 1 => n
-      Some(n) => return @tool.error("Error: start_line must be >= 1, got \{n}")
+      Some(n) =>
+        if n < 1 {
+          return @tool.error("Error: start_line must be >= 1, got \{n}")
+        } else if n > lines.length() {
+          return @tool.error(
+            "Error: start_line (\{n}) must be <= total lines (\{lines.length()}), got \{n}",
+          )
+        } else {
+          n
+        }
       None => 1
     }
     let end_line = match end_line {
