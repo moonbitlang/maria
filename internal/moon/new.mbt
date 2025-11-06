@@ -15,9 +15,15 @@ pub async fn new(
     arguments.push(name)
   }
   arguments.push(path)
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("moon", arguments, cwd?, stdout~)
+  let output = StringBuilder::new()
+  let status = @spawn.spawn(
+    "moon",
+    arguments,
+    cwd?,
+    stdout=output,
+    stderr=output,
+  )
   if status != 0 {
-    fail("moon new failed with status \{status}:\n\{stdout.to_string()}")
+    fail("moon new failed with status \{status}:\n\{output.to_string()}")
   }
 }

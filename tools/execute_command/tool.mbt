@@ -112,17 +112,16 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
             )
           }
           let timeout = timeout.to_int()
-          let stdout = StringBuilder::new()
-          let stderr = StringBuilder::new()
           let result = @async.with_timeout_opt(timeout, () => {
+            let output = StringBuilder::new()
             let status = @spawn.spawn(
               "sh",
               ["-c", command],
-              stdout~,
-              stderr~,
+              stdout=output,
+              stderr=output,
               cwd=working_directory,
             )
-            let output_text = stdout.to_string()
+            let output_text = output.to_string()
             let lines = output_text.split("\n").collect()
             let (final_output, truncated) = if lines.length() >=
               max_output_lines {
@@ -146,24 +145,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
             Some(result) => result
             None => {
               let error = TimeoutError(command~, timeout~)
-              let output = stdout.to_string()
-              if output.is_blank() {
-                @tool.error(
-                  "Timeout when executing command \{command} after \{timeout} ms",
-                  error~,
-                )
-              } else {
-                @tool.error(
-                  (
-                    $|Timeout when executing command \{command} after \{timeout} ms with following output:
-                    $|
-                    $|```
-                    $|\{output.to_string()}
-                    $|```
-                  ),
-                  error~,
-                )
-              }
+              @tool.error("Timeout when executing command", error~)
             }
           }
         }

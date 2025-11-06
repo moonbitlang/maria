@@ -27,12 +27,16 @@ async test "Manager::wait" (t : @test.Test) {
 
 ///|
 async test "spawn/env" {
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("sh", ["-c", "echo $TEST_ENV_VAR"], stdout~, env={
-    "TEST_ENV_VAR": "hello_world",
-  })
+  let output = StringBuilder::new()
+  let status = @spawn.spawn(
+    "sh",
+    ["-c", "echo $TEST_ENV_VAR"],
+    stdout=output,
+    stderr=output,
+    env={ "TEST_ENV_VAR": "hello_world" },
+  )
   @json.inspect(status, content=0)
-  @json.inspect(stdout.to_string(), content="hello_world\n")
+  @json.inspect(output.to_string(), content="hello_world\n")
 }
 
 ///|
@@ -47,8 +51,14 @@ async test "redirect-stdin" {
       #|
     ),
   )
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("cat", [], stdin="Hello, World!\n", stdout~)
+  let merged = StringBuilder::new()
+  let status = @spawn.spawn(
+    "cat",
+    [],
+    stdin="Hello, World!\n",
+    stdout=merged,
+    stderr=merged,
+  )
   @json.inspect(status, content=0)
   inspect(
     stdout.to_string(),
