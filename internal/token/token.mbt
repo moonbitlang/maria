@@ -56,7 +56,7 @@ fn Counter::count_content_parts(
 ///|
 fn Counter::count_function(
   self : Counter,
-  function : @openai.Function,
+  function : @openai.ChatCompletionMessageToolCallFunction,
 ) -> Int raise {
   self._count_string(function.name) + self._count_string(function.arguments)
 }
