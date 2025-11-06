@@ -12,7 +12,7 @@ fn getppid() -> Int
 
 fn kill(Int, Int) -> Unit raise @errno.Errno
 
-async fn spawn(StringView, Array[StringView], stdin? : String, stderr? : &Logger, stdout? : &Logger, cwd? : StringView, env? : Map[String, String]) -> Int
+async fn spawn(StringView, Array[StringView], stdin? : String, stdout? : &Logger, stderr? : &Logger, cwd? : StringView, env? : Map[String, String]) -> Int
 
 // Errors
 

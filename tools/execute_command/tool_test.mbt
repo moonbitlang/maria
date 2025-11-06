@@ -13,6 +13,7 @@ async test "timeout" (t : @test.Test) {
   }))
 }
 
+///|
 async test "timeout-with-partial-output" (t : @test.Test) {
   @mock.run(t, mock => @async.with_task_group(_ => {
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
@@ -39,6 +40,7 @@ async test "timeout-with-partial-output" (t : @test.Test) {
     )
   }))
 }
+
 ///|
 async test "cat" (t : @test.Test) {
   @mock.run(t, taco => {
