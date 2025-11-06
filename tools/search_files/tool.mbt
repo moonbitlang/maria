@@ -126,24 +126,25 @@ async fn goto_definition(
   query : String,
   working_dir : String,
 ) -> String raise SearchError {
-  let stdout = StringBuilder::new()
+  let output = StringBuilder::new()
   let status = @spawn.spawn(
     "moon",
     ["ide", "goto-definition", "-query", query],
-    stdout~,
+    stdout=output,
+    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
       raise SearchError::MoonAnalysisError(query~, error=error.to_string())
   }
   if status != 0 {
-    stdout.to_string()
+    output.to_string()
   } else {
     (
       $|Search completed using fuzzy symbolic search for MoonBit definitions.
       $|Note: The search pattern "\{query}" was used for fuzzy matching of symbol names.
       $|
-      $|\{stdout.to_string()}
+      $|\{output.to_string()}
     )
   }
 }
@@ -154,11 +155,12 @@ async fn find_references(
   query : String,
   working_dir : String,
 ) -> String raise SearchError {
-  let stdout = StringBuilder::new()
+  let output = StringBuilder::new()
   let status = @spawn.spawn(
     "moon",
     ["ide", "find-references", "-query", query],
-    stdout~,
+    stdout=output,
+    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
@@ -170,7 +172,7 @@ async fn find_references(
       error="moon ide find-references failed with exit code \{status}",
     )
   }
-  let result = stdout.to_string()
+  let result = output.to_string()
   if result.is_empty() {
     "No references found for query '\{query}'"
   } else {

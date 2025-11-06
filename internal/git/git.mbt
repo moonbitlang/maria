@@ -34,26 +34,29 @@ pub async fn commit(
   output? : &Logger,
   cwd? : StringView,
 ) -> Unit {
-  let stdout = StringBuilder::new()
-  let stderr = StringBuilder::new()
-  let status = @spawn.spawn("git", ["add", ..files], stdout~, stderr~, cwd?)
-  guard status is 0 else {
-    fail("git add failed with \{status}: \{stdout.to_string()}")
-  }
-  stdout.reset()
-  stderr.reset()
+  let buffer = StringBuilder::new()
   let status = @spawn.spawn(
     "git",
-    ["commit", "-m", message],
-    stdout~,
-    stderr~,
+    ["add", ..files],
+    stdout=buffer,
+    stderr=buffer,
     cwd?,
   )
   guard status is 0 else {
-    fail("git commit failed with \{status}: \{stdout.to_string()}")
+    fail("git add failed with \{status}: \{buffer.to_string()}")
+  }
+  let status = @spawn.spawn(
+    "git",
+    ["commit", "-m", message],
+    stdout=buffer,
+    stderr=buffer,
+    cwd?,
+  )
+  guard status is 0 else {
+    fail("git commit failed with \{status}: \{buffer.to_string()}")
   }
   if output is Some(output) {
-    output.write_string(stdout.to_string())
+    output.write_string(buffer.to_string())
   }
 }
 
@@ -68,7 +71,7 @@ pub async fn generate_git_diff(
     @fs.write_to_file(original_path, original)
     let modified_path = @path.join(tmpdir, "modified")
     @fs.write_to_file(modified_path, modified)
-    let stdout = StringBuilder::new()
+    let output = StringBuilder::new()
     // TODO: add environment variable support
     @spawn.spawn(
       "git",
@@ -76,11 +79,12 @@ pub async fn generate_git_diff(
         "diff", "--no-ext-diff", "--no-index", "--no-prefix", "--unified=3", "original",
         "modified",
       ],
-      stdout~,
+      stdout=output,
+      stderr=output,
       cwd=tmpdir,
     )
     |> ignore()
-    let output = stdout.to_string().trim_space().to_string()
+    let output = output.to_string().trim_space().to_string()
     if line_number {
       add_line_number_to_diff(output)
     } else {

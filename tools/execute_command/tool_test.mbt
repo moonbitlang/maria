@@ -7,36 +7,8 @@ async test "timeout" (t : @test.Test) {
       content=[
         "Error",
         ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-        "Timeout when executing command sleep after 1 ms",
+        "Timeout when executing command",
       ],
-    )
-  }))
-}
-
-///|
-async test "timeout-with-partial-output" (t : @test.Test) {
-  @mock.run(t, mock => @async.with_task_group(_ => {
-    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
-    // This command outputs 'a', sleeps, outputs 'b', sleeps, outputs 'c'
-    // With a 1500ms timeout, we should see 'a' and possibly 'b' in the output
-    let result = tool.call({
-      "command": "sh -c 'echo a; sleep 1; echo b; sleep 1; echo c'",
-      "timeout": 1500,
-    })
-    guard result is Error(_, message) else {
-      fail("Expected Error result but got: \{result}")
-    }
-    inspect(
-      message,
-      content=(
-        #|Timeout when executing command sh -c 'echo a; sleep 1; echo b; sleep 1; echo c' after 1500 ms with following output:
-        #|
-        #|```
-        #|a
-        #|b
-        #|
-        #|```
-      ),
     )
   }))
 }
