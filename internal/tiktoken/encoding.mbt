@@ -79,43 +79,39 @@ fn Encoding::lookup(
 
 ///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
-  let pieces = tokens.map(t => self.decoder[t])
-  let rank = Array::make(pieces.length() - 1, @int.max_value)
-  for i = 0; i < pieces.length() - 1; i = i + 1 {
-    let l = pieces[i]
-    let r = pieces[i + 1]
-    if self.encoder.get(l + r) is Some(token) {
+  let bytes = tokens.map(t => self.decoder.at(t))
+  let len = bytes.iter().map(b => b.length()).fold(init=0, Int::add)
+  let buffer = @buffer.new(size_hint=len)
+  let indexes = [0]
+  for i = 0; i < bytes.length(); i = i + 1 {
+    buffer.write_bytes(bytes[i])
+    indexes.push(indexes.last().unwrap() + bytes[i].length())
+  }
+  let bytes = buffer.to_bytes()
+  let rank = Array::make(tokens.length() - 1, @int.max_value)
+  for i = 0; i < rank.length(); i = i + 1 {
+    if self.encoder.get_from_bytes(bytes[indexes[i]:indexes[i + 2]])
+      is Some(token) {
       rank[i] = token
     }
   }
   let mut index = arg_min(rank)
   while index != -1 {
-    let merge = pieces[index] + pieces[index + 1]
-    pieces[index] = merge
-    pieces.remove(index + 1) |> ignore()
-    let merge_token = self.encoder.at(merge)
-    tokens[index] = merge_token
+    indexes.remove(index + 1) |> ignore
+    tokens[index] = rank[index]
     tokens.remove(index + 1) |> ignore()
     rank.remove(index) |> ignore()
     // merge left
     if index > 0 {
-      let l = pieces[index - 1]
-      let r = pieces[index]
-      if self.encoder.get(l + r) is Some(token) {
-        rank[index - 1] = token
-      } else {
-        rank[index - 1] = @int.max_value
-      }
+      rank[index - 1] = self.encoder
+        .get_from_bytes(bytes[indexes[index - 1]:indexes[index + 1]])
+        .unwrap_or(@int.max_value)
     }
     // merge right
-    if index < pieces.length() - 1 {
-      let l = pieces[index]
-      let r = pieces[index + 1]
-      if self.encoder.get(l + r) is Some(token) {
-        rank[index] = token
-      } else {
-        rank[index] = @int.max_value
-      }
+    if index < rank.length() {
+      rank[index] = self.encoder
+        .get_from_bytes(bytes[indexes[index]:indexes[index + 2]])
+        .unwrap_or(@int.max_value)
     }
     index = arg_min(rank)
   }
