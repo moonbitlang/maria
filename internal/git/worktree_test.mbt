@@ -61,18 +61,19 @@ async test "add_worktree/new-branch" (t : @test.Test) {
 
 ///|
 pub async fn rev_parse(commit : String, cwd? : StringView) -> String {
-  let output = StringBuilder::new()
+  let stdout = StringBuilder::new()
+  let stderr = StringBuilder::new()
   let status = @spawn.spawn(
     "git",
     ["rev-parse", commit],
     cwd?,
-    stdout=output,
-    stderr=output,
+    stdout~,
+    stderr~,
   )
   guard status is 0 else {
-    fail("git rev-parse failed with \{status}:\n\{output.to_string()}")
+    fail("git rev-parse failed with \{status}:\n\{stdout.to_string()}")
   }
-  return output.to_string().trim_space().to_string()
+  return stdout.to_string().trim_space().to_string()
 }
 
 ///|
