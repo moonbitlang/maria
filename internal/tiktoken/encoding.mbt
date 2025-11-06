@@ -1,6 +1,6 @@
 ///|
 struct Encoding {
-  encoder : Map[Bytes, Int]
+  encoder : Trie
   decoder : FixedArray[Bytes]
   special_encoder : Map[String, Int]
   special_decoder : Map[Int, Bytes]
@@ -24,12 +24,68 @@ pub fn Pattern::pcre2(pat_str : String) -> Pattern raise {
 }
 
 ///|
+priv struct Trie {
+  mut value : Int
+  children : Map[Byte, Trie]
+}
+
+///|
+fn Trie::new() -> Trie {
+  Trie::{ value: @int.max_value, children: {} }
+}
+
+///|
+#alias("_[_]=_")
+fn Trie::set(trie : Self, bytes : BytesView, value : Int) -> Unit {
+  let mut trie = trie
+  loop bytes {
+    [] => trie.value = value
+    [b, .. rest] => {
+      let child = match trie.children.get(b) {
+        Some(t) => t
+        None => {
+          let t = Trie::new()
+          trie.children[b] = t
+          t
+        }
+      }
+      trie = child
+      continue rest
+    }
+  }
+}
+
+///|
+fn Trie::next(trie : Self, bytes : BytesView) -> Trie? {
+  let mut trie = trie
+  loop bytes {
+    [] => return Some(trie)
+    [b, .. rest] => {
+      match trie.children.get(b) {
+        Some(t) => trie = t
+        _ => return None
+      }
+      continue rest
+    }
+  }
+}
+
+///|
+fn Trie::get(trie : Self, bytes : BytesView) -> Int? {
+  if trie.next(bytes) is Some(t) && t.value != @int.max_value {
+    Some(t.value)
+  } else {
+    None
+  }
+}
+
+///|
 pub fn Encoding::new(
   mergeable_ranks~ : Map[Bytes, Int],
   special_tokens~ : Map[String, Int],
   pattern~ : Pattern,
 ) -> Encoding {
-  let encoder : Map[Bytes, Int] = {}
+  let encoder = Trie::new()
   let decoder = FixedArray::make(mergeable_ranks.length(), b"")
   for piece, rank in mergeable_ranks {
     encoder[piece] = rank
@@ -80,38 +136,60 @@ fn Encoding::lookup(
 ///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
   let bytes = tokens.map(t => self.decoder.at(t))
-  let len = bytes.iter().map(b => b.length()).fold(init=0, Int::add)
-  let buffer = @buffer.new(size_hint=len)
-  let indexes = [0]
-  for i = 0; i < bytes.length(); i = i + 1 {
-    buffer.write_bytes(bytes[i])
-    indexes.push(indexes.last().unwrap() + bytes[i].length())
-  }
-  let bytes = buffer.to_bytes()
+  let tries = Array::make(tokens.length() - 1, Some(self.encoder))
   let rank = Array::make(tokens.length() - 1, @int.max_value)
+  let span = Array::makei(tokens.length() - 1, i => i + 2)
   for i = 0; i < rank.length(); i = i + 1 {
-    if self.encoder.get_from_bytes(bytes[indexes[i]:indexes[i + 2]])
-      is Some(token) {
-      rank[i] = token
+    for bytes in bytes[i:span[i]] {
+      if tries[i] is Some(trie) && trie.next(bytes) is Some(t) {
+        tries[i] = Some(t)
+        rank[i] = t.value
+      } else {
+        tries[i] = None
+        rank[i] = @int.max_value
+        break
+      }
     }
   }
   let mut index = arg_min(rank)
   while index != -1 {
-    indexes.remove(index + 1) |> ignore
     tokens[index] = rank[index]
     tokens.remove(index + 1) |> ignore()
-    rank.remove(index) |> ignore()
     // merge left
     if index > 0 {
-      rank[index - 1] = self.encoder
-        .get_from_bytes(bytes[indexes[index - 1]:indexes[index + 1]])
-        .unwrap_or(@int.max_value)
+      for bytes in bytes[span[index - 1]:span[index]] {
+        if tries[index - 1] is Some(trie) && trie.next(bytes) is Some(t) {
+          tries[index - 1] = Some(t)
+          rank[index - 1] = t.value
+        } else {
+          tries[index - 1] = None
+          rank[index - 1] = @int.max_value
+          break
+        }
+      }
+      span[index - 1] = span[index]
     }
     // merge right
-    if index < rank.length() {
-      rank[index] = self.encoder
-        .get_from_bytes(bytes[indexes[index]:indexes[index + 2]])
-        .unwrap_or(@int.max_value)
+    if index == rank.length() - 1 {
+      // nothing to the right
+      span.remove(index) |> ignore
+      rank.remove(index) |> ignore
+      tries.remove(index) |> ignore
+    } else {
+      for bytes in bytes[span[index]:span[index + 1]] {
+        if tries[index] is Some(trie) && trie.next(bytes) is Some(t) {
+          tries[index] = Some(t)
+          rank[index] = t.value
+        } else {
+          tries[index] = None
+          rank[index] = @int.max_value
+          break
+        }
+      }
+      span[index] = span[index + 1]
+      span.remove(index + 1) |> ignore
+      rank.remove(index + 1) |> ignore
+      tries.remove(index + 1) |> ignore
     }
     index = arg_min(rank)
   }
