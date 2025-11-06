@@ -201,6 +201,14 @@ fn remove_list_prefixes(line : StringView) -> String {
 
 ///|
 test "remove_list_prefixes" {
+  @json.inspect(
+    remove_list_prefixes("12   First task   "),
+    content="First task",
+  )
+  @json.inspect(
+    remove_list_prefixes("    12   First task   "),
+    content="12   First task",
+  )
   @json.inspect(remove_list_prefixes("1.   First task"), content="First task")
   @json.inspect(remove_list_prefixes("2.   Second task"), content="Second task")
   @json.inspect(remove_list_prefixes("- Bullet point"), content="Bullet point")
