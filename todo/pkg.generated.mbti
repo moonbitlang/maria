@@ -8,7 +8,6 @@ import(
 )
 
 // Values
-fn list(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> List
 
 // Errors
 
@@ -25,18 +24,6 @@ pub(all) struct Item {
 fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority, updated_at~ : String) -> Self
 impl ToJson for Item
 impl @json.FromJson for Item
-
-type List
-fn List::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item
-fn List::find(Self, String) -> Int?
-fn List::get(Self, Int) -> Item
-async fn List::load(Self) -> Unit
-fn List::now(Self) -> String
-fn List::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
-async fn List::save(Self) -> Unit
-fn List::todos(Self) -> Array[Item]
-fn List::update_task(Self, Int, Item) -> Unit
-fn List::uuid(Self) -> String
 
 pub(all) enum Priority {
   High
@@ -55,6 +42,20 @@ pub(all) enum Status {
 fn Status::icon(Self) -> String
 impl ToJson for Status
 impl @json.FromJson for Status
+
+type Todo
+fn Todo::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item
+fn Todo::find(Self, String) -> Int?
+fn Todo::get(Self, Int) -> Item
+async fn Todo::load(Self) -> Unit
+#as_free_fn
+fn Todo::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
+fn Todo::now(Self) -> String
+fn Todo::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
+async fn Todo::save(Self) -> Unit
+fn Todo::todos(Self) -> Array[Item]
+fn Todo::update_task(Self, Int, Item) -> Unit
+fn Todo::uuid(Self) -> String
 
 // Type aliases
 

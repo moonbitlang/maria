@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@todo.List) -> @tool.Tool[TodoWriteResult]
+fn new(@todo.Todo) -> @tool.Tool[TodoWriteResult]
 
 let prompt : String
 
