@@ -36,11 +36,8 @@ pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
   let dir : @fs.Directory = @fs.opendir(path.to_string())
   defer dir.close()
   let entries = []
-  let path = @path.Path::parse(path + "/")
   for basename in dir.read_all() {
-    let path_builder = @path.PathBuilder::from_path(path)
-    path_builder.set_basename(basename)
-    let filename = path_builder.to_string()
+    let filename = @path.join(path, basename)
     let kind = @fs.kind(filename, follow_symlink=false)
     entries.push(DirectoryEntry::{
       path: filename,
