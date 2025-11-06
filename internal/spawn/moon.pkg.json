@@ -5,7 +5,8 @@
     "moonbitlang/maria/internal/errno",
     "moonbitlang/async/aqueue",
     "moonbitlang/async",
-    "moonbitlang/async/pipe"
+    "moonbitlang/async/pipe",
+    "moonbitlang/maria/clock"
   ],
   "native-stub": [
     "spawn.c"

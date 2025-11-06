@@ -27,61 +27,22 @@ async test "Manager::wait" (t : @test.Test) {
 
 ///|
 async test "spawn/env" {
-  let output = StringBuilder::new()
-  let status = @spawn.spawn(
-    "sh",
-    ["-c", "echo $TEST_ENV_VAR"],
-    stdout=output,
-    stderr=output,
-    env={ "TEST_ENV_VAR": "hello_world" },
-  )
-  @json.inspect(status, content=0)
-  @json.inspect(output.to_string(), content="hello_world\n")
+  let process = @spawn.spawn("sh", ["-c", "echo $TEST_ENV_VAR"], env={
+    "TEST_ENV_VAR": "hello_world",
+  })
+  @json.inspect(process.status, content=0)
+  @json.inspect(process.stdout.to_string(), content="hello_world\n")
 }
 
 ///|
 async test "redirect-stdin" {
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("cat", [], stdin="Hello, World!\n", stdout~)
-  @json.inspect(status, content=0)
+  let process = @spawn.spawn("cat", [], stdin="Hello, World!\n")
+  @json.inspect(process.status, content=0)
   inspect(
-    stdout.to_string(),
+    process.stdout,
     content=(
       #|Hello, World!
       #|
     ),
   )
-  let merged = StringBuilder::new()
-  let status = @spawn.spawn(
-    "cat",
-    [],
-    stdin="Hello, World!\n",
-    stdout=merged,
-    stderr=merged,
-  )
-  @json.inspect(status, content=0)
-  inspect(
-    stdout.to_string(),
-    content=(
-      #|Hello, World!
-      #|
-    ),
-  )
-  let stderr = StringBuilder::new()
-  let status = @spawn.spawn(
-    "sh",
-    ["-c", "cat 1>&2"],
-    stdin="Hello, world!\n",
-    stderr~,
-  )
-  @json.inspect(status, content=0)
-  inspect(
-    stderr.to_string(),
-    content=(
-      #|Hello, world!
-      #|
-    ),
-  )
-  let status = @spawn.spawn("cat", [], stdin="Hello, world!\n")
-  @json.inspect(status, content=0)
 }
