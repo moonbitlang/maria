@@ -152,3 +152,20 @@ test "ChatCompletionChoice" {
     "system_fingerprint": "",
   })
 }
+
+///|
+test "tool_call" {
+  let tool_call = @openai.tool_call(
+    id="call_6abfac48947b4400afbf1d5c",
+    name="execute_command",
+    arguments="{\"command\": \"moon new json_parser\", \"timeout\": 10000}",
+  )
+  @json.inspect(tool_call, content={
+    "id": "call_6abfac48947b4400afbf1d5c",
+    "function": {
+      "name": "execute_command",
+      "arguments": "{\"command\": \"moon new json_parser\", \"timeout\": 10000}",
+    },
+    "type": "function",
+  })
+}
