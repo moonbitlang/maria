@@ -29,6 +29,8 @@ fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionCon
 
 fn tool(name~ : String, description~ : String, parameters~ : Json, strict? : Bool) -> ChatCompletionToolParam
 
+fn tool_call(id~ : String, name~ : String, arguments~ : String) -> ChatCompletionMessageToolCall
+
 fn[T : ToChatCompletionMessageParamContent] tool_message(content~ : T, tool_call_id~ : String) -> ChatCompletionMessageParam
 
 fn usage(include_~ : Bool) -> CompletionUsageParam
@@ -167,10 +169,16 @@ impl ToJson for ChatCompletionMessageRole
 
 pub struct ChatCompletionMessageToolCall {
   id : String
-  function : Function
+  function : ChatCompletionMessageToolCallFunction
 }
 impl Show for ChatCompletionMessageToolCall
 impl ToJson for ChatCompletionMessageToolCall
+
+pub struct ChatCompletionMessageToolCallFunction {
+  arguments : String
+  name : String
+}
+impl Show for ChatCompletionMessageToolCallFunction
 
 pub struct ChatCompletionParam {
   model : String
@@ -264,12 +272,6 @@ pub struct CostDetails {
 }
 impl Show for CostDetails
 impl ToJson for CostDetails
-
-pub struct Function {
-  arguments : String
-  name : String
-}
-impl Show for Function
 
 pub struct FunctionDefinition {
   name : String
