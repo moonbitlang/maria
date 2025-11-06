@@ -189,14 +189,13 @@ pub fn List::get(self : List, index : Int) -> Item {
 
 ///|
 /// Remove common list prefixes from a line
-fn remove_list_prefixes(line : StringView) -> String {
-  let result = lexmatch line with longest {
-      ("[0-9]+\.\s*", rest) => rest
-      ("-\s*", rest) => rest
-      ("\*\s*", rest) => rest
-      _ => line
-    }
-  result.trim(char_set=" \t\r\n").to_string()
+fn remove_list_prefixes(line : StringView) -> StringView {
+  lexmatch line with longest {
+    ("[0-9]+\.\s*", rest) => rest
+    ("-\s*", rest) => rest
+    ("\*\s*", rest) => rest
+    _ => line
+  }
 }
 
 ///|
@@ -211,8 +210,8 @@ test "remove_list_prefixes" {
     output[d] = remove_list_prefixes(d)
   }
   @json.inspect(output, content={
-    "12   First task   ": "12   First task",
-    "    12   First task   ": "12   First task",
+    "12   First task   ": "12   First task   ",
+    "    12   First task   ": "    12   First task   ",
     "123abc": "123abc",
     "1.first": "first",
     "1.   First task": "First task",
