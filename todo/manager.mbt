@@ -1,5 +1,5 @@
 ///|
-pub fn List::todos(self : List) -> Array[Item] {
+pub fn Todo::todos(self : Todo) -> Array[Item] {
   self.items.todos.copy()
 }
 
@@ -51,21 +51,22 @@ pub fn Item::update(
 }
 
 ///|
-pub fn List::now(self : List) -> String {
+pub fn Todo::now(self : Todo) -> String {
   self.config.now()
 }
 
 ///|
-pub fn List::uuid(self : List) -> String {
+pub fn Todo::uuid(self : Todo) -> String {
   self.config.uuid()
 }
 
 ///|
-pub fn list(
+#as_free_fn
+pub fn Todo::new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
-) -> List {
+) -> Todo {
   {
     config: { uuid, clock, cwd: cwd.to_string() },
     items: {
@@ -85,7 +86,7 @@ fn Config::todo_file_path(self : Config) -> String {
 }
 
 ///|
-pub async fn List::load(self : List) -> Unit {
+pub async fn Todo::load(self : Todo) -> Unit {
   let path = self.config.todo_file_path()
   guard @fs.exists(path) else {
     // TODO: document we skip it
@@ -95,7 +96,7 @@ pub async fn List::load(self : List) -> Unit {
 }
 
 ///|
-pub async fn List::save(self : List) -> Unit {
+pub async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
   @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.items.updated_at = self.config.now()
@@ -142,8 +143,8 @@ test "extract_task_tags" {
 }
 
 ///|
-pub fn List::add_task(
-  self : List,
+pub fn Todo::add_task(
+  self : Todo,
   content : String,
   status? : Status = Pending,
   priority? : Priority = Medium,
@@ -167,13 +168,13 @@ pub fn List::add_task(
 }
 
 ///|
-pub fn List::update_task(self : List, index : Int, item : Item) -> Unit {
+pub fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
   self.items.todos[index] = item
   self.items.updated_at = self.config.now()
 }
 
 ///|
-pub fn List::find(self : List, id : String) -> Int? {
+pub fn Todo::find(self : Todo, id : String) -> Int? {
   for i, todo in self.items.todos {
     if todo.id == id {
       return Some(i)
@@ -183,7 +184,7 @@ pub fn List::find(self : List, id : String) -> Int? {
 }
 
 ///|
-pub fn List::get(self : List, index : Int) -> Item {
+pub fn Todo::get(self : Todo, index : Int) -> Item {
   self.items.todos[index]
 }
 
@@ -281,8 +282,8 @@ fn Items::parse(
 }
 
 ///|
-pub fn List::parse(
-  self : List,
+pub fn Todo::parse(
+  self : Todo,
   content : String,
   priority~ : Priority,
   notes? : String,

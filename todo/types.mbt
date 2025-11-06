@@ -1,5 +1,5 @@
 ///|
-struct List {
+struct Todo {
   config : Config
   mut items : Items
 }

@@ -71,8 +71,8 @@ pub impl Show for TodoWriteResult with output(
 }
 
 ///|
-async fn @todo.List::execute_todo_write(
-  self : @todo.List,
+async fn @todo.Todo::execute_todo_write(
+  self : @todo.Todo,
   args : Json,
 ) -> @tool.ToolResult[TodoWriteResult] noraise {
   enum Action {
@@ -275,7 +275,7 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 
 ///|
 /// @param list the todolist is shared globally
-pub fn new(list : @todo.List) -> @tool.Tool[TodoWriteResult] {
+pub fn new(list : @todo.Todo) -> @tool.Tool[TodoWriteResult] {
   @tool.new(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",
