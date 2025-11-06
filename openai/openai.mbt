@@ -170,15 +170,17 @@ impl ToJson for ChatCompletionTopLogprob with to_json(
 }
 
 ///|
-impl ToJson for Function with to_json(self : Function) -> Json {
+impl ToJson for ChatCompletionMessageToolCallFunction with to_json(
+  self : ChatCompletionMessageToolCallFunction,
+) -> Json {
   { "name": self.name, "arguments": self.arguments }
 }
 
 ///|
-impl @json.FromJson for Function with from_json(
+impl @json.FromJson for ChatCompletionMessageToolCallFunction with from_json(
   json : Json,
   json_path : @json.JsonPath,
-) -> Function {
+) -> ChatCompletionMessageToolCallFunction {
   guard json is Object(json) else {
     raise @json.JsonDecodeError((json_path, "Expected an object"))
   }
@@ -188,7 +190,7 @@ impl @json.FromJson for Function with from_json(
   guard json.get("name") is Some(String(name)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'name' field"))
   }
-  Function::{ arguments, name }
+  ChatCompletionMessageToolCallFunction::{ arguments, name }
 }
 
 ///|
@@ -212,7 +214,7 @@ impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
   guard json.get("function") is Some(function) else {
     raise @json.JsonDecodeError((json_path, "Missing 'function' field"))
   }
-  let function : Function = @json.from_json(
+  let function : ChatCompletionMessageToolCallFunction = @json.from_json(
     function,
     path=json_path.add_key("function"),
   )
@@ -1468,5 +1470,17 @@ pub impl ToJson for ResponseFormat with to_json(self : ResponseFormat) -> Json {
         },
       }
     JsonObject => { "type": "json_object" }
+  }
+}
+
+///|
+pub fn tool_call(
+  id~ : String,
+  name~ : String,
+  arguments~ : String,
+) -> ChatCompletionMessageToolCall {
+  ChatCompletionMessageToolCall::{
+    id,
+    function: ChatCompletionMessageToolCallFunction::{ name, arguments },
   }
 }
