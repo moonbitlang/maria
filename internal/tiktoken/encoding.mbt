@@ -146,8 +146,10 @@ pub fn Encoding::encode(
         match self.encoder.get(piece) {
           Some(token) => tokens.push(token)
           None => {
-            self.lookup(piece, tokens)
-            self.merge(tokens)
+            let t = []
+            self.lookup(piece, t)
+            self.merge(t)
+            tokens.append(t)
           }
         }
       }

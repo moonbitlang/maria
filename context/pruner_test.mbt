@@ -885,7 +885,7 @@ test "pruner" {
     counter.count_param(
       @openai.chat_completion(messages~, tools~, model="gpt-4o"),
     ),
-    content=62422,
+    content=63138,
   )
   let pruner = @context.Pruner::new(safe_zone_tokens=32000)
   pruner.prune_messages(messages, tools~)
@@ -893,6 +893,6 @@ test "pruner" {
     counter.count_param(
       @openai.chat_completion(messages~, tools~, model="gpt-4o"),
     ),
-    content=30633,
+    content=31081,
   )
 }
