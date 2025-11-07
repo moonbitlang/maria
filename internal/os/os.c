@@ -34,17 +34,6 @@ moonbit_maria_os_unsetenv(moonbit_bytes_t key) {
 }
 
 MOONBIT_FFI_EXPORT
-int
-moonbit_maria_os_getcwd(moonbit_bytes_t buf) {
-  errno = 0;
-  char *val = getcwd((char *)buf, Moonbit_array_length(buf));
-  if (!val) {
-    return errno;
-  }
-  return 0;
-}
-
-MOONBIT_FFI_EXPORT
 uint32_t
 moonbit_maria_os_getuid() {
   return (uint32_t)getuid();

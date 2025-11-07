@@ -68,23 +68,10 @@ pub fn args() -> Array[String] {
 }
 
 ///|
-#borrow(buf)
-extern "c" fn os_getcwd(buf : FixedArray[Byte]) -> Int = "moonbit_maria_os_getcwd"
-
-///|
 pub fn cwd() -> String raise {
-  let mut buf : FixedArray[Byte] = FixedArray::make(4096, 0)
-  let mut result = os_getcwd(buf)
-  while result == @errno.erange {
-    buf = FixedArray::make(FixedArray::length(buf) * 2, 0)
-    result = os_getcwd(buf)
-  }
-  if result == 0 {
-    let len = buflen(buf)
-    @encoding/utf8.decode(buf.unsafe_reinterpret_as_bytes()[0:len])
-  } else {
-    raise @errno.Errno(result)
-  }
+  @env.current_dir().or_error(
+    Failure("failed to get current working directory"),
+  )
 }
 
 ///|
