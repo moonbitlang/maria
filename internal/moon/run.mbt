@@ -20,7 +20,6 @@ async fn run(
       args.push(argument)
     }
   }
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("moon", args, stdout~, cwd~)
-  (status, stdout.to_string())
+  let result = @spawn.spawn("moon", args, cwd~)
+  (result.status, result.stdout)
 }

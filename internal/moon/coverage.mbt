@@ -19,9 +19,8 @@ async fn coverage_analyze(
     arguments.push("-F")
     arguments.push(file)
   }
-  let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, cwd?)
-  output.to_string()
+  let result = @spawn.spawn("moon", arguments, cwd?)
+  result.stdout
 }
 
 ///|
@@ -44,9 +43,8 @@ async fn coverage_clean(package_? : String, cwd? : StringView) -> String {
     arguments.push("--package")
     arguments.push(package_)
   }
-  let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd?)
-  output.to_string()
+  let result = @spawn.spawn("moon", arguments, cwd?)
+  result.stdout + result.stderr
 }
 
 ///|
@@ -99,18 +97,13 @@ async fn coverage_report(
     arguments.push("-o")
     arguments.push(output_file)
   }
-  let output = StringBuilder::new()
-  let status = @spawn.spawn(
-    "moon",
-    arguments,
-    stdout=output,
-    stderr=output,
-    cwd?,
-  )
-  guard status == 0 else {
-    fail("Failed to generate coverage report:\n\{output}")
+  let result = @spawn.spawn("moon", arguments, cwd?)
+  guard result.status == 0 else {
+    fail(
+      "Failed to generate coverage report:\n\{result.stdout}\{result.stderr}",
+    )
   }
-  output.to_string()
+  result.stdout
 }
 
 ///|

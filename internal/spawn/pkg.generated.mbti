@@ -12,14 +12,28 @@ fn getppid() -> Int
 
 fn kill(Int, Int) -> Unit raise @errno.Errno
 
-async fn spawn(StringView, Array[StringView], stdin? : String, stderr? : &Logger, stdout? : &Logger, cwd? : StringView, env? : Map[String, String]) -> Int
+async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
 
 // Errors
+pub suberror Failed CompletedProcess
+
+pub suberror TimedOut {
+  TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
+}
 
 // Types and methods
 type Buffer
 fn Buffer::new() -> Self
 fn Buffer::to_string(Self) -> String
+
+pub struct CompletedProcess {
+  status : Int
+  stdout : String
+  stderr : String
+  elapsed : Int
+  timeout : Int?
+}
+fn CompletedProcess::check(Self) -> Unit raise Failed
 
 pub struct Manager {
   mut id : Int

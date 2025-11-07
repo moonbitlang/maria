@@ -126,25 +126,22 @@ async fn goto_definition(
   query : String,
   working_dir : String,
 ) -> String raise SearchError {
-  let output = StringBuilder::new()
-  let status = @spawn.spawn(
+  let process = @spawn.spawn(
     "moon",
     ["ide", "goto-definition", "-query", query],
-    stdout=output,
-    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
       raise SearchError::MoonAnalysisError(query~, error=error.to_string())
   }
-  if status != 0 {
-    output.to_string()
+  if process.status != 0 {
+    process.stdout.to_string()
   } else {
     (
       $|Search completed using fuzzy symbolic search for MoonBit definitions.
       $|Note: The search pattern "\{query}" was used for fuzzy matching of symbol names.
       $|
-      $|\{output.to_string()}
+      $|\{process.stdout.to_string()}
     )
   }
 }
@@ -155,24 +152,21 @@ async fn find_references(
   query : String,
   working_dir : String,
 ) -> String raise SearchError {
-  let output = StringBuilder::new()
-  let status = @spawn.spawn(
+  let process = @spawn.spawn(
     "moon",
     ["ide", "find-references", "-query", query],
-    stdout=output,
-    stderr=output,
     cwd=working_dir,
   ) catch {
     error =>
       raise SearchError::MoonAnalysisError(query~, error=error.to_string())
   }
-  if status != 0 {
+  if process.status != 0 {
     raise SearchError::MoonAnalysisError(
       query~,
-      error="moon ide find-references failed with exit code \{status}",
+      error="moon ide find-references failed with exit code \{process.status}",
     )
   }
-  let result = output.to_string()
+  let result = process.stdout.to_string()
   if result.is_empty() {
     "No references found for query '\{query}'"
   } else {

@@ -1,4 +1,28 @@
 ///|
+pub struct CompletedProcess {
+  status : Int
+  stdout : String
+  stderr : String
+  elapsed : Int
+  timeout : Int?
+}
+
+///|
+pub fn CompletedProcess::check(self : CompletedProcess) -> Unit raise Failed {
+  if self.status != 0 {
+    raise Failed(self)
+  }
+}
+
+///|
+pub suberror Failed CompletedProcess
+
+///|
+pub suberror TimedOut {
+  TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
+}
+
+///|
 /// Spawns a new process asynchronously with the specified command and
 /// arguments, optionally capturing output streams.
 ///
@@ -26,73 +50,70 @@ pub async fn spawn(
   command : StringView,
   arguments : Array[StringView],
   stdin? : String,
-  stderr? : &Logger,
-  stdout? : &Logger,
+  timeout? : Int,
   cwd? : StringView,
   env? : Map[String, String],
-) -> Int {
+) -> CompletedProcess {
   let command = command.to_string()
   let arguments = arguments.map(arg => arg.to_string())
   let cwd = cwd.map(_.to_string())
   @async.with_task_group(group => {
-    let stdin = match stdin {
-      Some(content) => {
-        let (stdin, pipe) = @process.write_to_process()
-        group.spawn_bg(() => {
+    fn redirect_input(content : String) -> &@process.ProcessInput raise {
+      let (input, pipe) = @process.write_to_process()
+      group.spawn_bg(() => {
+          defer pipe.close()
           pipe.write(content)
-          pipe.close()
         })
-        Some(stdin)
-      }
-      None => None
+      input
     }
-    match (stdout, stderr) {
-      (Some(stdout), Some(stderr)) if physical_equal(stdout, stderr) => {
-        let (status, data) = @process.collect_output_merged(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(data.text())
-        status
+
+    let stdin = stdin.map(redirect_input)
+    fn redirect_output() raise {
+      let (pipe, output) = @process.read_from_process()
+      let task = group.spawn(() => {
+          defer pipe.close()
+          @encoding/utf8.decode_lossy(pipe.read_all().binary())
+        })
+      (task, output)
+    }
+
+    let stdout = redirect_output()
+    let stderr = redirect_output()
+    async fn run() -> Int {
+      @process.run(
+        command,
+        arguments,
+        cwd?,
+        stdin?,
+        stdout=stdout.1,
+        stderr=stderr.1,
+        extra_env?=env,
+      )
+    }
+
+    let clock = @clock.epoch
+    let t0 = clock.now()
+    let status = if timeout is Some(timeout) {
+      @async.with_timeout(timeout, run) catch {
+        @async.TimeoutError =>
+          raise TimedOut(
+            timeout~,
+            stdout=stdout.0.wait(),
+            stderr=stderr.0.wait(),
+          )
+        error => raise error
       }
-      (Some(stdout), Some(stderr)) => {
-        let (status, out_data, err_data) = @process.collect_output(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(out_data.text())
-        stderr.write_string(err_data.text())
-        status
-      }
-      (Some(stdout), None) => {
-        let (status, out_data) = @process.collect_stdout(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stdout.write_string(out_data.text())
-        status
-      }
-      (None, Some(stderr)) => {
-        let (status, err_data) = @process.collect_stderr(
-          command,
-          arguments,
-          cwd?,
-          stdin?,
-          extra_env?=env,
-        )
-        stderr.write_string(err_data.text())
-        status
-      }
-      (None, None) => @process.run(command, arguments, cwd?, extra_env?=env)
+    } else {
+      run()
+    }
+    let t1 = clock.now()
+    let elapsed = (t1 - t0).to_int()
+    CompletedProcess::{
+      status,
+      stdout: stdout.0.wait(),
+      stderr: stderr.0.wait(),
+      elapsed,
+      timeout,
     }
   })
 }

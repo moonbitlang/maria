@@ -211,9 +211,8 @@ async fn test_(
     arguments.push("--patch-file")
     arguments.push(patch_file)
   }
-  let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd?)
-  let output = output.to_string()
+  let result = @spawn.spawn("moon", arguments, cwd?, env={ "NEW_MOON": "0" })
+  let output = result.stdout + result.stderr
   let failures = []
   for line in output.split("\n") {
     let json = @json.parse(line.to_string()) catch {
@@ -346,9 +345,8 @@ async fn test_build_only(
     arguments.push("--patch-file")
     arguments.push(patch_file)
   }
-  let output = StringBuilder::new()
-  let _ = @spawn.spawn("moon", arguments, stdout=output, stderr=output, cwd?)
-  let output = output.to_string()
+  let result = @spawn.spawn("moon", arguments, cwd?)
+  let output = result.stdout + result.stderr
   for line in output.split("\n") {
     let json = @json.parse(line.to_string()) catch {
       // ignore non-json lines

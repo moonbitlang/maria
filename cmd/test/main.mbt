@@ -86,8 +86,8 @@ async fn main {
     println("Running test in temporary directory: \{tmpdir}")
     @async.with_task_group(group => {
       group.add_defer(() => @async.protect_from_cancel(() => {
-        let status = @spawn.spawn("cp", ["-R", tmpdir, gen_dir], cwd~)
-        if status != 0 {
+        let result = @spawn.spawn("cp", ["-R", tmpdir, gen_dir], cwd~)
+        if result.status != 0 {
           fail("Failed to copy generated files from \{tmpdir} to \{gen_dir}")
         }
       }))
