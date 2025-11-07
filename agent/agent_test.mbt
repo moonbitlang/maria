@@ -580,7 +580,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     inspect(multiple_files_read, content="true")
     // Verify file was actually created
 
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "output.txt"))
+    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "output.txt"))
     println(file_content)
   })
 }
