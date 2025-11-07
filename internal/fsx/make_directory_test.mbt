@@ -12,3 +12,8 @@ async test "make_directory" (t : @test.Test) {
     ])
   })
 }
+
+///|
+async test "make_directory-recursive" (t : @test.T) {
+  @mock.run(t, _taco => @this.make_directory("a/b/c", recursive=true))
+}
