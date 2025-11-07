@@ -299,7 +299,14 @@ async fn execute_meta_write_to_file(
       }
       fix_syntax_errors(fixing_ctx) catch {
         error =>
-          return @tool.error("Failed to fix syntax errors: \{error}", error~)
+          return @tool.error(
+            (
+              $|Failed to fix syntax errors in 5 minutes: \{error}
+              $|
+              $|\{syntax_errors}
+            ),
+            error~,
+          )
       }
 
       // Re-format the file after fixing syntax errors
