@@ -59,7 +59,7 @@ async fn main {
     println("Error: --prompt-file is required")
     return
   }
-  let prompt = @fs.read_file(prompt_file)
+  let prompt = @fsx.read_file(prompt_file)
   let clock = @clock.epoch
   let timestamp = @time.unix(clock.now() / 1000)
     .to_plain_date_time()
@@ -72,17 +72,17 @@ async fn main {
     File(file) => (file, @path.stem(file))
     Directory(dir) => (@path.join(dir, "log.jsonl"), @path.join(dir, "cwd"))
   }
-  if @fs.exists(log_file) {
+  if @fsx.exists(log_file) {
     fail("Log file \{log_file} already exists")
   }
-  if @fs.exists(gen_dir) {
+  if @fsx.exists(gen_dir) {
     fail("Generated directory \{gen_dir} already exists")
   }
   let logger = @pino.logger(
     "maria_test",
     try! @pino.transport("file:\{log_file}"),
   )
-  @fs.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
+  @fsx.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")
     @async.with_task_group(group => {
       group.add_defer(() => @async.protect_from_cancel(() => {

@@ -10,7 +10,7 @@
   "test-import": [
     "moonbitlang/async",
     {
-      "path": "moonbitlang/maria/internal/fs",
+      "path": "moonbitlang/maria/internal/fsx",
       "alias": "this"
     },
     "moonbitlang/maria/internal/mock"

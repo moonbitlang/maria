@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/maria/internal/fs",
+    "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/path"
   ],
   "test-import": [

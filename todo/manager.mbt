@@ -88,19 +88,19 @@ fn Config::todo_file_path(self : Config) -> String {
 ///|
 pub async fn Todo::load(self : Todo) -> Unit {
   let path = self.config.todo_file_path()
-  guard @fs.exists(path) else {
+  guard @fsx.exists(path) else {
     // TODO: document we skip it
     return
   }
-  self.items = @json.from_json(@json.parse(@fs.read_file(path)))
+  self.items = @json.from_json(@json.parse(@fsx.read_file(path)))
 }
 
 ///|
 pub async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
-  @fs.make_directory(@path.dirname(todo_file_path), recursive=true)
+  @fsx.make_directory(@path.dirname(todo_file_path), recursive=true)
   self.items.updated_at = self.config.now()
-  @fs.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
+  @fsx.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
 }
 
 ///|

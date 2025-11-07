@@ -78,11 +78,11 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
         @path.join(cwd, path)
       }
       let separator = separator.unwrap_or("\n")
-      let content_to_append = if (@fs.exists(path) catch {
+      let content_to_append = if (@fsx.exists(path) catch {
           error =>
             return @tool.error("Failed to check if file exists: \{error}")
         }) {
-        let existing_content = @fs.read_file(path) catch {
+        let existing_content = @fsx.read_file(path) catch {
           error => return @tool.error("Failed to read existing file: \{error}")
         }
         if existing_content.is_empty() {
@@ -93,7 +93,7 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
       } else {
         content
       }
-      let _ = @fs.write_to_file(path, content_to_append) catch {
+      let _ = @fsx.write_to_file(path, content_to_append) catch {
         error => return @tool.error("Failed to write to file: \{error}")
       }
       let result = Result::{ path, }

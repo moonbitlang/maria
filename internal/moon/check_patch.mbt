@@ -22,7 +22,7 @@ pub async fn Module::check_patch_replace(
   segment : SegmentView,
   content : String,
 ) -> @diagnostics.Diagnostics {
-  @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
+  @fsx.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
     let file_stem = @path.stem(segment.file.path())
     let patch_name_index = StringBuilder::new()
@@ -42,7 +42,7 @@ pub async fn Module::check_patch_replace(
       drops: [Drop::{ file: segment.file.path(), index: segment.index }],
       patches: [Patched::{ content, name: patch_name }],
     }
-    @fs.write_to_file(patch_path, patch.to_json().stringify())
+    @fsx.write_to_file(patch_path, patch.to_json().stringify())
     let diagnostics = pkg.check(
       target_dir~,
       patch_file=patch_path,
@@ -62,7 +62,7 @@ pub async fn Module::check_patch_insert(
   file_path : String,
   content : String,
 ) -> @diagnostics.Diagnostics {
-  @fs.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
+  @fsx.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(file_path)
     let file_base = @path.basename(file_path)
     let file_base_stem = @path.stem(file_base)
@@ -85,7 +85,7 @@ pub async fn Module::check_patch_insert(
     let patch_path = @path.join(target_dir, patch_name_index)
     let patch_name = "patch-\{mangled_file_stem}-insert.\{patch_name_index}"
     let patch = { drops: [], patches: [Patched::{ content, name: patch_name }] }
-    @fs.write_to_file(patch_path, patch.to_json().stringify())
+    @fsx.write_to_file(patch_path, patch.to_json().stringify())
     let diagnostics = pkg.check(
       target_dir~,
       patch_file=patch_path,

@@ -41,7 +41,7 @@ async fn collect_files_recursive(
   base_dir : String,
 ) -> Array[String] {
   let results = []
-  let entries = @fs.list_directory(directory)
+  let entries = @fsx.list_directory(directory)
   for entry in entries {
     let full_path = @path.join(directory, entry.name)
     match entry.kind {
@@ -88,7 +88,7 @@ async fn search_in_file(
   context_lines : Int,
   base_dir : String,
 ) -> Array[SearchResult] raise SearchError {
-  let content = @fs.read_file(file_path) catch {
+  let content = @fsx.read_file(file_path) catch {
     error =>
       raise SearchError::FileReadError(path=file_path, error=error.to_string())
   }
@@ -184,7 +184,7 @@ async fn find_references(
 /// Check if path exists and get its type
 async fn check_path(path : String) -> (Bool, Bool) { // (exists, is_file)
   try {
-    match @fs.kind(path) {
+    match @fsx.kind(path) {
       Regular => (true, true)
       Directory => (true, false)
       _ => (false, false)

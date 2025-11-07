@@ -14,7 +14,7 @@ async test "add_worktree" (t : @test.Test) {
       mock.cwd.path()
       |> @path.join("worktree")
       |> @path.join("file.txt")
-      |> @fs.read_file(),
+      |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
   })
@@ -36,7 +36,7 @@ async test "add_worktree/new-branch" (t : @test.Test) {
       mock.cwd.path()
       |> @path.join("worktree")
       |> @path.join("file.txt")
-      |> @fs.read_file(),
+      |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
     let stdout = StringBuilder::new()
@@ -99,7 +99,7 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
       mock.cwd.path()
       |> @path.join("worktree")
       |> @path.join("file.txt")
-      |> @fs.read_file(),
+      |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
   })
@@ -115,7 +115,7 @@ async test "with_worktree" (t : @test.Test) {
       mock.cwd.path()
       |> @path.join("worktree")
       |> @path.join("file.txt")
-      |> @fs.read_file(),
+      |> @fsx.read_file(),
       content="Hello, Moonbit!",
     ))
     let entries = mock.cwd.list().map((entry : @mock.Entry) => entry.name())

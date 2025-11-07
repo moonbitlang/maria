@@ -50,7 +50,7 @@ async test "create-file" (t : @test.Test) {
       ),
     )
     inspect(
-      @fs.read_file(@path.join(mock.cwd.path(), "main.mbt")),
+      @fsx.read_file(@path.join(mock.cwd.path(), "main.mbt")),
       content=(
         #|///|
         #|fn main {

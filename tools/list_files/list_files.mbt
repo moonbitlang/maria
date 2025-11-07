@@ -59,7 +59,7 @@ async fn execute_list_files(
     @path.join(manager.cwd, path)
   }
   let resolved_path = @path.resolve(resolved_path)
-  let entries = @fs.list_directory(resolved_path)
+  let entries = @fsx.list_directory(resolved_path)
   let mut file_count = 0
   let mut directory_count = 0
   let file_entries = []

@@ -4,7 +4,7 @@
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/lru",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/fs",
+    "moonbitlang/maria/internal/fsx",
     "moonbitlang/x/time",
     "moonbitlang/maria/clock"
   ],

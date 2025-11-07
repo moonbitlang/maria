@@ -2,6 +2,7 @@
   "import": [
     "moonbitlang/maria/internal/path",
     "moonbitlang/async/fs",
+    "moonbitlang/maria/internal/fsx",
     "moonbitlang/async",
     "moonbitlang/maria/internal/os",
     "moonbitlang/async/io",
@@ -10,10 +11,6 @@
     "moonbitlang/maria/clock",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/model",
-    {
-      "path": "moonbitlang/maria/internal/fs",
-      "alias": "mfs"
-    },
     "moonbitlang/async/process"
   ]
 }

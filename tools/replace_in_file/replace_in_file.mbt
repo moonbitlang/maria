@@ -44,12 +44,12 @@ async fn @file.Manager::execute_replace_in_file(
     let resolved_path = @path.resolve(resolved_path)
 
     // Check if file exists
-    guard @fs.exists(resolved_path) else {
+    guard @fsx.exists(resolved_path) else {
       // Create directory if it doesn't exist
-      @fs.make_directory(@path.dirname(resolved_path), recursive=true)
+      @fsx.make_directory(@path.dirname(resolved_path), recursive=true)
 
       // File doesn't exist, create new file with replace content
-      @fs.write_to_file(resolved_path, replace)
+      @fsx.write_to_file(resolved_path, replace)
       let result = WriteResult::{
         path,
         operation: Created,
@@ -67,7 +67,7 @@ async fn @file.Manager::execute_replace_in_file(
         // No search provided, replace entire file content
         replace
       Some(search_content) => {
-        let content = @fs.read_file(resolved_path)
+        let content = @fsx.read_file(resolved_path)
         // Search and replace operation
         match @fuzzy.find_match(content, search_content) {
           None =>
@@ -85,7 +85,7 @@ async fn @file.Manager::execute_replace_in_file(
     }
 
     // Write the modified content back to file
-    @fs.write_to_file(resolved_path, content)
+    @fsx.write_to_file(resolved_path, content)
     let operation = match search {
       None => Replaced
       Some(_) => Updated

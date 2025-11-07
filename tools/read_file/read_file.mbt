@@ -71,18 +71,18 @@ async fn execute_read_file_tool(
     let resolved_path = @path.resolve(resolved_path)
 
     // Check if file exists
-    if !@fs.exists(resolved_path) {
+    if !@fsx.exists(resolved_path) {
       return @tool.error("Error reading file: File not found: \{path}")
     }
-    if @fs.kind(resolved_path) is Directory {
+    if @fsx.kind(resolved_path) is Directory {
       return @tool.error("Error reading file: Path is a directory: \{path}")
     }
 
     // Open and read the file
-    let content = @fs.read_file(resolved_path)
+    let content = @fsx.read_file(resolved_path)
 
     // Update access time
-    let stat = @fs.stat(resolved_path)
+    let stat = @fsx.stat(resolved_path)
     manager.access[resolved_path] = stat.atime()
 
     // Process line range parameters

@@ -236,7 +236,7 @@ async fn render_diagnostic_entry(
       } else {
         trimmed_path
       }
-      let content = @fs.read_file(resolved_path) catch {
+      let content = @fsx.read_file(resolved_path) catch {
         error => {
           message_lines.push("  (error reading file: \{error})")
           return message_lines.join("\n")
