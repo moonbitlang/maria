@@ -17,8 +17,8 @@ pub async fn Manager::new(
     |> @path.join(".moonagent")
     |> @path.join("conversations")
     |> @path.join("conversations")
-  if !@fs.exists(conversations) {
-    @fs.make_directory(conversations, recursive=true)
+  if !@fsx.exists(conversations) {
+    @fsx.make_directory(conversations, recursive=true)
   }
   Manager::{ uuid, clock, path: cwd, cache }
 }
@@ -32,10 +32,10 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
   let path = self.path
     |> @path.join("conversations")
     |> @path.join("\{id}.json")
-  if !@fs.exists(path) {
+  if !@fsx.exists(path) {
     return None
   }
-  let conversation = @fs.read_file(path) |> @json.parse() |> @json.from_json()
+  let conversation = @fsx.read_file(path) |> @json.parse() |> @json.from_json()
   self.cache[id] = conversation
   Some(conversation)
 }
@@ -46,15 +46,15 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
     |> @path.join("conversations")
     |> @path.join("\{conversation.id}.json")
   let dir = @path.dirname(path)
-  @fs.make_directory(dir, recursive=true)
+  @fsx.make_directory(dir, recursive=true)
   let json = conversation.to_json()
-  @fs.write_to_file(path, json.stringify(indent=2))
+  @fsx.write_to_file(path, json.stringify(indent=2))
 }
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[String] {
   let path = self.path |> @path.join("conversations")
-  let entries = @fs.list_directory(path)
+  let entries = @fsx.list_directory(path)
   let ids = []
   for entry in entries {
     if !(entry.kind is Regular) {

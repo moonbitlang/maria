@@ -45,7 +45,7 @@ async fn Package::new(path~ : String, name~ : String) -> Package {
   let test_import = []
   let wbtest_import = []
   let mut is_main = false
-  let moon_pkg_text = @fs.read_file(moon_pkg_path)
+  let moon_pkg_text = @fsx.read_file(moon_pkg_path)
   try {
     if @json.parse(moon_pkg_text) is Object(moon_pkg_json) {
       if moon_pkg_json.get("import") is Some(import_json) {
@@ -81,7 +81,7 @@ async fn Package::new(path~ : String, name~ : String) -> Package {
   } catch {
     _ => ()
   }
-  let mtime = @fs.stat(path).mtime()
+  let mtime = @fsx.stat(path).mtime()
   Package::{
     name,
     path,
@@ -154,13 +154,13 @@ pub async fn Package::check(
 ///|
 pub async fn Package::interface(self : Package) -> String? {
   let mbti_path = @path.join(self.path, "pkg.generated.mbti")
-  if @fs.exists(mbti_path) {
-    Some(@fs.read_file(mbti_path))
+  if @fsx.exists(mbti_path) {
+    Some(@fsx.read_file(mbti_path))
   } else {
-    let entries = @fs.list_directory(self.path)
+    let entries = @fsx.list_directory(self.path)
     for entry in entries {
       if entry.kind is Regular && entry.name.has_suffix(".mbti") {
-        return Some(@fs.read_file(@path.join(self.path, entry.name)))
+        return Some(@fsx.read_file(@path.join(self.path, entry.name)))
       }
     } else {
       None

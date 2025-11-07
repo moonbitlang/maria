@@ -9,7 +9,7 @@ pub fn Directory::path(self : Directory) -> String {
 
 ///|
 async fn directory(path : String) -> Directory {
-  @mfs.make_directory(path, recursive=true, exists_ok=true)
+  @fsx.make_directory(path, recursive=true, exists_ok=true)
   let path = @fs.realpath(path)
   Directory(path)
 }
@@ -212,7 +212,7 @@ pub async fn File::read(self : File) -> String {
 }
 
 ///|
-/// Replaces the file contents with the provided string.
+/// Overwrites the file contents with the given string.
 pub async fn File::write(self : File, content : String) -> Unit {
   @fs.write_file(self.0, content)
 }
@@ -241,10 +241,12 @@ pub fn Entry::name(self : Entry) -> StringView {
 /// Lists the immediate entries contained in this directory.
 pub async fn Directory::list(self : Directory) -> Array[Entry] {
   let entries = []
-  for name in @fs.readdir(self.0) {
+  let dir : @fs.Directory = @fs.opendir(self.0)
+  defer dir.close()
+  for name in dir.read_all() {
     let path = @path.join(self.0, name)
-    let entry : Entry = match @fs.kind(path) {
-      Directory => Directory(path)
+    let entry : Entry = match @fs.kind(path, follow_symlink=false) {
+      @fs.FileKind::Directory => Directory(path)
       _ => File(path)
     }
     entries.push(entry)
@@ -335,8 +337,8 @@ pub async fn run(
     )
   }
   let pkg_path = parts.join(@path.sep.to_string())
-  // `@mfs.with_temporary_directory` internally joins the `@os.tmpdir()` path
-  @mfs.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
+  // `@fsx.with_temporary_directory` internally joins the `@os.tmpdir()` path
+  @fsx.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
     let tmp_pkg_path = @path.join(tmpdir, pkg_path)
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {

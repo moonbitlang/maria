@@ -58,7 +58,7 @@ async test "Coverage::report" (t : @test.Test) {
       ),
     )
     @json.inspect(
-      @json.parse(@fs.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
+      @json.parse(@fsx.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
       content={
         "source_files": [
           {

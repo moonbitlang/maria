@@ -23,9 +23,9 @@ async fn Module::core(self : Module) -> Module {
 
 ///|
 async fn Module::new(path : String) -> Module {
-  let path = @fs.resolve(path)
+  let path = @fsx.resolve(path)
   let moon_mod_path = @path.join(path, "moon.mod.json")
-  let moon_mod_text = @fs.read_file(moon_mod_path)
+  let moon_mod_text = @fsx.read_file(moon_mod_path)
   let moon_mod_json = @json.parse(moon_mod_text)
   guard moon_mod_json is Object({ "name": String(name), .. } as moon_mod_json) else {
     raise Failure("Invalid moon.mod.json: expected object with 'name'.")
@@ -34,7 +34,7 @@ async fn Module::new(path : String) -> Module {
     if @path.is_absolute(source) {
       source
     } else {
-      @fs.resolve(@path.join(path, source))
+      @fsx.resolve(@path.join(path, source))
     }
   } else {
     path
@@ -73,10 +73,10 @@ async fn Module::load_pkg(
   dir : String,
   visit~ : Set[String],
 ) -> Unit {
-  if !@fs.exists(dir) {
+  if !@fsx.exists(dir) {
     return
   }
-  let dir = @fs.resolve(dir)
+  let dir = @fsx.resolve(dir)
   if visit.contains(dir) {
     return
   }
@@ -86,16 +86,16 @@ async fn Module::load_pkg(
   if dir != self.path {
     // If there is a moon.mod.json here, load it as a module.
     let moon_mod_path = @path.join(dir, "moon.mod.json")
-    if @fs.exists(moon_mod_path) &&
-      @fs.kind(moon_mod_path) is @fs.FileKind::Regular {
+    if @fsx.exists(moon_mod_path) &&
+      @fsx.kind(moon_mod_path) is @fsx.FileKind::Regular {
       return
     }
   }
 
   // If there is a moon.pkg.json here, load it as a package.
   let moon_pkg_path = @path.join(dir, "moon.pkg.json")
-  if !@fs.exists_as_file(moon_pkg_path) {
-    let entries = @fs.list_directory(dir)
+  if !@fsx.exists_as_file(moon_pkg_path) {
+    let entries = @fsx.list_directory(dir)
     for entry in entries {
       if entry.kind is Directory {
         if entry.name is ".moonagent" {
@@ -107,7 +107,7 @@ async fn Module::load_pkg(
     return
   }
   let pkg_name = {
-    let mod_src = @fs.resolve(self.source())
+    let mod_src = @fsx.resolve(self.source())
     let rel = @path.relative(mod_src, dir)
     if rel is "." {
       self.name()
@@ -117,7 +117,7 @@ async fn Module::load_pkg(
   }
   let pkg = Package::new(name=pkg_name, path=dir.to_string())
   self.add_package(pkg)
-  let entries = @fs.list_directory(dir)
+  let entries = @fsx.list_directory(dir)
   for entry in entries {
     if entry.kind is Directory {
       if entry.name is ".moonagent" {
@@ -158,12 +158,12 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
     return cake_mod.package_(name)
   }
   let cakes_path = @path.join(self.path, ".mooncakes")
-  if !@fs.exists(cakes_path) {
+  if !@fsx.exists(cakes_path) {
     self.install()
   }
-  let cakes_path = @fs.resolve(cakes_path)
+  let cakes_path = @fsx.resolve(cakes_path)
   let mod_path = @path.join(cakes_path, mod_name)
-  if !@fs.exists(mod_path) {
+  if !@fsx.exists(mod_path) {
     return None
   }
   let cake_mod = Module::new(mod_path)

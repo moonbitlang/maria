@@ -187,14 +187,14 @@ async fn execute_replace_in_file(
       }
     Some(search) =>
       try {
-        let content = @fs.read_file(resolved_path)
+        let content = @fsx.read_file(resolved_path)
         match @fuzzy.find_match(content, search) {
           None => @tool.error("Search content not found in file: \{search}")
           Some(match_result) => {
             let before = content[0:match_result.position].to_string()
             let after = content[match_result.position + match_result.length:].to_string()
             let new_content = before + replace + after
-            @fs.write_to_file(resolved_path, new_content)
+            @fsx.write_to_file(resolved_path, new_content)
             @tool.ok("Changes applied to \{params.path}")
           }
         }
@@ -206,8 +206,8 @@ async fn execute_replace_in_file(
 
 ///|
 async fn mkdir_then_write(path : String, content : String) -> Unit {
-  @fs.make_directory(@path.dirname(path), recursive=true, exists_ok=true)
-  @fs.write_to_file(path, content)
+  @fsx.make_directory(@path.dirname(path), recursive=true, exists_ok=true)
+  @fsx.write_to_file(path, content)
 }
 
 ///|
@@ -237,7 +237,7 @@ async fn execute_meta_write_to_file(
       let initial_content = match params.search {
         None => replace
         Some(search) => {
-          let file_content = @fs.read_file(resolved_path)
+          let file_content = @fsx.read_file(resolved_path)
           match @fuzzy.find_match(file_content, search) {
             None =>
               return @tool.error("Search content not found in file: \{search}")

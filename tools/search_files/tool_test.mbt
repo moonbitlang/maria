@@ -184,7 +184,7 @@ async test "search_files/agentic" (t : @test.Test) {
     )
     agent.start()
     inspect(
-      @fs.read_file(@path.join(taco.cwd.path(), "results.txt")).contains(
+      @fsx.read_file(@path.join(taco.cwd.path(), "results.txt")).contains(
         "notes.txt",
       ),
       content="true",

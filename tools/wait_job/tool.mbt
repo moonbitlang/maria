@@ -60,7 +60,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
       }
       let output = StringBuilder::new()
       output.write_string("Job \{job_id} completed with exit code \{status}\n")
-      let stdout = @fs.read_file(job.stdout) catch {
+      let stdout = @fsx.read_file(job.stdout) catch {
         error =>
           return @tool.error(
             "Failed to read stdout of job \{job_id} from \{job.stdout}: \{error}",
@@ -69,7 +69,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
       output.write_string(
         "Stdout (\{job.stdout}):\n\{truncate_output(stdout, max_output_lines~)}\n",
       )
-      let stderr = @fs.read_file(job.stderr) catch {
+      let stderr = @fsx.read_file(job.stderr) catch {
         error =>
           return @tool.error(
             "Failed to read stderr of job \{job_id} from \{job.stderr}: \{error}",

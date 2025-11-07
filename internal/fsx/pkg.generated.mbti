@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/fs"
+package "moonbitlang/maria/internal/fsx"
 
 // Values
 async fn exists(StringView) -> Bool

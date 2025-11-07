@@ -16,16 +16,16 @@ async fn Loader::load_rules_from_directory(
   directory : String,
   source~ : Source,
 ) -> Unit {
-  if !@fs.exists(directory) {
+  if !@fsx.exists(directory) {
     self.logger.warn("Directory '\{directory}' does not exist, skipping.", {})
     return
   }
-  let dir = @fs.list_directory(directory).filter(e => e.kind
-    is @fs.FileKind::Regular &&
+  let dir = @fsx.list_directory(directory).filter(e => e.kind
+    is @fsx.FileKind::Regular &&
     e.name.has_suffix(".md"))
   for rule_path in dir {
     let name = @path.stem(rule_path.name).to_string()
-    self.rules[name] = Rule::parse(@fs.read_file(rule_path.path), source~)
+    self.rules[name] = Rule::parse(@fsx.read_file(rule_path.path), source~)
   }
 }
 

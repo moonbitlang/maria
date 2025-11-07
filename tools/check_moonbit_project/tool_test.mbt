@@ -96,7 +96,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.Test) {
 
     // Note we don't really change the file
     inspect(
-      @fs.read_file(@path.join(taco.cwd.path(), "example.mbt")),
+      @fsx.read_file(@path.join(taco.cwd.path(), "example.mbt")),
       content=(
         #|///|
         #|let x : Int = "string"

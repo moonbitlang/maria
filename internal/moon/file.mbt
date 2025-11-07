@@ -54,12 +54,12 @@ async fn File::parse(self : File, content : String) -> Unit {
 
 ///|
 async fn File::load(self : File) -> Unit {
-  if self.mtime != 0 && self.mtime == @fs.stat(self.path).mtime() {
+  if self.mtime != 0 && self.mtime == @fsx.stat(self.path).mtime() {
     return
   }
-  let content = @fs.read_file(self.path)
+  let content = @fsx.read_file(self.path)
   self.parse(content)
-  self.mtime = @fs.stat(self.path).mtime()
+  self.mtime = @fsx.stat(self.path).mtime()
 }
 
 ///|
@@ -143,7 +143,7 @@ pub async fn File::replace_segment(
     }
   }
   let replaced = replaced.to_string()
-  @fs.write_to_file(self.path, replaced)
+  @fsx.write_to_file(self.path, replaced)
   self.parse(replaced)
-  self.mtime = @fs.stat(self.path).mtime()
+  self.mtime = @fsx.stat(self.path).mtime()
 }

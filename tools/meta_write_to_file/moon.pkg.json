@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/maria/tool",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/internal/fs",
+    "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/moon",

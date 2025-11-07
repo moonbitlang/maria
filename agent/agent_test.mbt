@@ -257,7 +257,7 @@ async test "agent/file_operations" (t : @test.Test) {
     inspect(file_written, content="true")
 
     // Verify file was actually created
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "test.txt"))
+    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "test.txt"))
     inspect(file_content.contains("Hello"), content="true")
   })
 }
@@ -491,11 +491,13 @@ async test "agent/read_multiple_files" (t : @test.Test) {
     inspect(file_written, content="true")
     inspect(multiple_files_read, content="true")
     // Verify file was actually created
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "foo.txt"))
+    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "foo.txt"))
     inspect(file_content.contains("Foo"), content="true")
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "bar.txt"))
+    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "bar.txt"))
     inspect(file_content.contains("Bar"), content="true")
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "foo_bar.txt"))
+    let file_content = @fsx.read_file(
+      @path.join(taco.cwd.path(), "foo_bar.txt"),
+    )
     inspect(file_content.contains("Foo"), content="true")
     inspect(file_content.contains("Bar"), content="true")
   })
@@ -578,7 +580,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     inspect(multiple_files_read, content="true")
     // Verify file was actually created
 
-    let file_content = @fs.read_file(@path.join(taco.cwd.path(), "output.txt"))
+    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "output.txt"))
     println(file_content)
   })
 }

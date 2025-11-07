@@ -28,7 +28,7 @@ pub async fn Loader::new(
 
 ///|
 async fn Model::load_from_path(path : StringView) -> Array[Model] {
-  let text = @fs.read_file(path)
+  let text = @fsx.read_file(path)
   let json = @json.parse(text)
   @json.from_json(json)
 }
@@ -46,14 +46,14 @@ async fn Loader::load(self : Loader) -> Unit {
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
-  if @fs.exists(project) {
+  if @fsx.exists(project) {
     self.models.append(Model::load_from_path(project))
   }
   let user = self.home
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
-  if @fs.exists(user) {
+  if @fsx.exists(user) {
     self.models.append(Model::load_from_path(user))
   }
 }

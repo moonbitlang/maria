@@ -53,7 +53,7 @@ async test "replace-segment" (t : @test.Test) {
       },
     ])
     @json.inspect(
-      @fs.read_file(example_mbt.path()),
+      @fsx.read_file(example_mbt.path()),
       content="///|\nlet y : Int = 100\n",
     )
   })
