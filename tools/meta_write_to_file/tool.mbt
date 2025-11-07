@@ -240,7 +240,23 @@ async fn execute_meta_write_to_file(
           let file_content = @fsx.read_file(resolved_path)
           match @fuzzy.find_match(file_content, search) {
             None =>
-              return @tool.error("Search content not found in file: \{search}")
+              return @tool.error(
+                (
+                  $|Search content not found in file:
+                  $|
+                  $|**Search**:
+                  $|
+                  $|```
+                  $|\{search}
+                  $|```
+                  $|
+                  $|**File Content**:
+                  $|
+                  $|```
+                  $|\{file_content}
+                  $|```
+                ),
+              )
             Some(match_result) => {
               let before = file_content[:match_result.position]
               let after = file_content[match_result.position +
