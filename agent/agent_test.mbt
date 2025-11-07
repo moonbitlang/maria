@@ -495,7 +495,9 @@ async test "agent/read_multiple_files" (t : @test.Test) {
     inspect(file_content.contains("Foo"), content="true")
     let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "bar.txt"))
     inspect(file_content.contains("Bar"), content="true")
-    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "foo_bar.txt"))
+    let file_content = @fsx.read_file(
+      @path.join(taco.cwd.path(), "foo_bar.txt"),
+    )
     inspect(file_content.contains("Foo"), content="true")
     inspect(file_content.contains("Bar"), content="true")
   })
