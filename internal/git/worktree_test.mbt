@@ -39,18 +39,13 @@ async test "add_worktree/new-branch" (t : @test.Test) {
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
-    let stdout = StringBuilder::new()
-    @json.inspect(
-      @spawn.spawn(
-        "git",
-        ["branch", "--show-current"],
-        cwd=mock.cwd.path() |> @path.join("worktree"),
-        stdout~,
-      ),
-      content=0,
+    let process = @spawn.spawn(
+      "git",
+      ["branch", "--show-current"],
+      cwd=mock.cwd.path() |> @path.join("worktree"),
     )
     inspect(
-      stdout.to_string(),
+      process.stdout,
       content=(
         #|new-branch
         #|
@@ -61,18 +56,9 @@ async test "add_worktree/new-branch" (t : @test.Test) {
 
 ///|
 pub async fn rev_parse(commit : String, cwd? : StringView) -> String {
-  let output = StringBuilder::new()
-  let status = @spawn.spawn(
-    "git",
-    ["rev-parse", commit],
-    cwd?,
-    stdout=output,
-    stderr=output,
-  )
-  guard status is 0 else {
-    fail("git rev-parse failed with \{status}:\n\{output.to_string()}")
-  }
-  return output.to_string().trim_space().to_string()
+  let process = @spawn.spawn("git", ["rev-parse", commit], cwd?)
+  process.check()
+  return process.stdout.trim_space().to_string()
 }
 
 ///|

@@ -2,14 +2,19 @@
 async test "timeout" (t : @test.Test) {
   @mock.run(t, mock => @async.with_task_group(_ => {
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
-    @json.inspect(
-      tool.call({ "command": "sleep", "arguments": ["5"], "timeout": 1 }),
-      content=[
-        "Error",
-        ["TimeoutError", { "command": "sleep", "timeout": 1 }],
-        "Timeout when executing command",
+    @json.inspect(tool.call({ "command": "sleep 5", "timeout": 1000 }), content=[
+      "Ok",
+      [
+        "TimedOut",
+        {
+          "command": "sleep 5",
+          "timeout": 1000,
+          "stdout": "",
+          "stderr": "",
+          "max_output_lines": 100,
+        },
       ],
-    )
+    ])
   }))
 }
 
@@ -22,17 +27,16 @@ async test "cat" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "Foreground",
-      {
-        "command": "cat file.txt",
-        "status": 0,
-        "output": "hello world",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
-      },
-    ])
+    inspect(
+      output,
+      content=(
+        #|Command cat file.txt exited with status 0.
+        #|=== STDOUT (first 100 of 1 lines) ===
+        #|hello world
+        #|=== STDERR (first 100 of 1 lines) ===
+        #|
+      ),
+    )
   })
 }
 
@@ -55,17 +59,21 @@ async test "output-overflow" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
-      "Foreground",
-      {
-        "command": "cat file.txt",
-        "status": 0,
-        "output": "hello\nhello\nhello\nhello\nhello",
-        "truncated": true,
-        "total_lines": 100,
-        "timeout": 5000,
-      },
-    ])
+    inspect(
+      output,
+      content=(
+        #|Command cat file.txt exited with status 0.
+        #|=== STDOUT (first 5 of 100 lines) ===
+        #|hello
+        #|hello
+        #|hello
+        #|hello
+        #|hello
+        #|... (truncated, try using redirection to pipe output to a file) ...
+        #|=== STDERR (first 5 of 1 lines) ===
+        #|
+      ),
+    )
   })
 }
 
@@ -79,14 +87,13 @@ async test "cd" (t : @test.Test) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
-      "Foreground",
+      "Completed",
       {
         "command": "cat file.txt",
         "status": 0,
-        "output": "hello world",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
+        "stdout": "hello world",
+        "stderr": "",
+        "max_output_lines": 100,
       },
     ])
     let _ = taco
@@ -101,14 +108,13 @@ async test "cd" (t : @test.Test) {
       fail("Expected Ok result but got: \{result}")
     }
     @json.inspect(output, content=[
-      "Foreground",
+      "Completed",
       {
         "command": "cd subdir && cat file.txt",
         "status": 0,
-        "output": "hello from subdir",
-        "truncated": false,
-        "total_lines": 1,
-        "timeout": 5000,
+        "stdout": "hello from subdir",
+        "stderr": "",
+        "max_output_lines": 100,
       },
     ])
   })

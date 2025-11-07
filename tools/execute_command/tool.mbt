@@ -1,20 +1,50 @@
 ///|
-priv suberror TimeoutError {
-  TimeoutError(command~ : String, timeout~ : Int)
-} derive(ToJson, Show)
+pub struct CommandOutput {
+  text : String
+  truncated_lines : Int
+  original_lines : Int
+} derive(ToJson, @json.FromJson)
 
 ///|
 pub enum CommandResult {
-  Foreground(
+  Completed(
     command~ : String,
     status~ : Int,
-    output~ : String,
-    truncated~ : Bool,
-    total_lines~ : Int,
-    timeout~ : Int
+    stdout~ : String,
+    stderr~ : String,
+    max_output_lines~ : Int
+  )
+  TimedOut(
+    command~ : String,
+    timeout~ : Int,
+    stdout~ : String,
+    stderr~ : String,
+    max_output_lines~ : Int
   )
   Background(command~ : String, job_id~ : @job.Id)
 } derive(@json.FromJson, ToJson)
+
+///|
+fn render_output(
+  name~ : String,
+  output : String,
+  max_output_lines~ : Int,
+) -> String {
+  let formatted = StringBuilder::new()
+  let lines = output.split("\n").collect()
+  formatted.write_string(
+    "=== \{name} (first \{max_output_lines} of \{lines.length()} lines) ===\n",
+  )
+  if lines.length() >= max_output_lines {
+    formatted.write_string(lines[:max_output_lines].join("\n"))
+    formatted.write_string(
+      "\n... (truncated, try using redirection to pipe output to a file) ...",
+    )
+  } else {
+    formatted.write_string(output)
+  }
+  formatted.to_string()
+}
 
 ///|
 pub impl Show for CommandResult with output(
@@ -22,33 +52,23 @@ pub impl Show for CommandResult with output(
   logger : &Logger,
 ) -> Unit {
   match self {
-    Foreground(command~, status~, output~, truncated~, total_lines~, ..) => {
+    Completed(command~, status~, stdout~, stderr~, max_output_lines~) => {
       let formatted = []
-      formatted.push("Command: \{command}")
-      formatted.push("Exit code: \{status}")
-      if truncated {
-        let newline_split = output.split("\n")
-        let output_lines_count = newline_split.collect().length()
-        formatted.push(
-          "Output: (first \{output_lines_count} of \{total_lines} lines)",
-        )
-        formatted.push(output)
-        if truncated {
-          formatted.push(
-            "... (truncated, try using redirection to pipe output to a file) ...",
-          )
-        } else {
-          ()
-        }
-      } else {
-        formatted.push("Output:")
-        formatted.push(output)
-      }
+      formatted.push("Command \{command} exited with status \{status}.")
+      formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
+      formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
+      logger.write_string(formatted.join("\n"))
+    }
+    TimedOut(command~, timeout~, stdout~, stderr~, max_output_lines~) => {
+      let formatted = []
+      formatted.push("Command \{command} timed out after \{timeout} seconds.")
+      formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
+      formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
       logger.write_string(formatted.join("\n"))
     }
     Background(command~, job_id~) =>
       logger.write_string(
-        "Command: \{command}\nStarted in background with Job ID: \{job_id}",
+        "Command \{command} started in background with Job ID \{job_id}",
       )
   }
 }
@@ -101,56 +121,52 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       } else {
         false
       }
-      try {
-        if background {
-          let job = ctx.spawn(name=command, command~)
-          @tool.ok(CommandResult::Background(command~, job_id=job.id))
-        } else {
-          guard timeout is Some(timeout) else {
+      if background {
+        let job = ctx.spawn(name=command, command~) catch {
+          error =>
             return @tool.error(
-              "'timeout' parameter is required when 'background' is false or not set, i.e. running in foreground",
+              "Failed to start background job for command '\{command}': \{error}",
             )
-          }
-          let timeout = timeout.to_int()
-          let result = @async.with_timeout_opt(timeout, () => {
-            let output = StringBuilder::new()
-            let status = @spawn.spawn(
-              "sh",
-              ["-c", command],
-              stdout=output,
-              stderr=output,
-              cwd=working_directory,
-            )
-            let output_text = output.to_string()
-            let lines = output_text.split("\n").collect()
-            let (final_output, truncated) = if lines.length() >=
-              max_output_lines {
-              let truncated_output = lines[:max_output_lines].join("\n")
-              (truncated_output, true)
-            } else {
-              (output_text, false)
-            }
+        }
+        @tool.ok(CommandResult::Background(command~, job_id=job.id))
+      } else {
+        guard timeout is Some(timeout) else {
+          return @tool.error(
+            "'timeout' parameter is required when 'background' is false or not set, i.e. running in foreground",
+          )
+        }
+        let timeout = timeout.to_int()
+        let process = @spawn.spawn(
+          "sh",
+          ["-c", command],
+          timeout~,
+          cwd=working_directory,
+        ) catch {
+          @spawn.TimedOut(timeout~, stdout~, stderr~) =>
             return @tool.ok(
-              CommandResult::Foreground(
+              CommandResult::TimedOut(
                 command~,
-                status~,
-                output=final_output,
-                truncated~,
-                total_lines=lines.length(),
                 timeout~,
+                stdout~,
+                stderr~,
+                max_output_lines~,
               ),
             )
-          })
-          match result {
-            Some(result) => result
-            None => {
-              let error = TimeoutError(command~, timeout~)
-              @tool.error("Timeout when executing command", error~)
-            }
-          }
+          error =>
+            return @tool.error(
+              "Failed to execute command '\{command}': \{error}",
+              error~,
+            )
         }
-      } catch {
-        error => @tool.error("Error executing command: \{error}", error~)
+        return @tool.ok(
+          CommandResult::Completed(
+            command~,
+            status=process.status,
+            stdout=process.stdout,
+            stderr=process.stderr,
+            max_output_lines~,
+          ),
+        )
       }
     }),
   )

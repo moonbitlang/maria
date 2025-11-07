@@ -1,10 +1,8 @@
 ///|
 pub async fn format_string(content : String) -> String {
-  let stderr = StringBuilder::new()
-  let stdout = StringBuilder::new()
-  let status = @spawn.spawn("moonfmt", ["-"], stdin=content, stdout~, stderr~)
-  if status != 0 {
-    fail("moonfmt failed with status \{status}:\n\{stderr.to_string()}")
+  let result = @spawn.spawn("moonfmt", ["-"], stdin=content)
+  if result.status != 0 {
+    fail("moonfmt failed with status \{result.status}:\n\{result.stderr}")
   }
-  stdout.to_string()
+  result.stdout
 }

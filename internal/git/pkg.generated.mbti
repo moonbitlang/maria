@@ -6,7 +6,7 @@ async fn add_worktree(String, new_branch? : String, force_new_branch? : Bool, co
 
 async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) -> Unit
 
-async fn commit(StringView, Array[StringView], output? : &Logger, cwd? : StringView) -> Unit
+async fn commit(StringView, Array[StringView], cwd? : StringView) -> Unit
 
 async fn generate_git_diff(original~ : String, modified~ : String, line_number? : Bool) -> String
 

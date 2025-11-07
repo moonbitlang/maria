@@ -19,10 +19,7 @@ pub async fn add_worktree(
   if commit is Some(commit) {
     arguments.push(commit)
   }
-  let status = @spawn.spawn("git", arguments, cwd?)
-  guard status is 0 else {
-    fail("git worktree add failed with status code \{status}")
-  }
+  @spawn.spawn("git", arguments, cwd?).check()
 }
 
 ///|
@@ -35,10 +32,7 @@ pub async fn remove_worktree(
   if force {
     arguments.push("--force")
   }
-  let status = @spawn.spawn("git", arguments, cwd?)
-  guard status is 0 else {
-    fail("git worktree remove failed with status code \{status}")
-  }
+  @spawn.spawn("git", arguments, cwd?).check()
 }
 
 ///|
