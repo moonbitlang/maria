@@ -106,9 +106,9 @@ async test "format_log_entry/MessageAdded with multiline tool content" {
     content=(
       #|# 1 System
       #|
-      #|````markdown
+      #|```markdown
       #|System maintenance scheduled at midnight.
-      #|````
+      #|```
       #|
     ),
   )
@@ -1600,6 +1600,55 @@ async test "timestamp" {
       #|File written successfully to toml_parser/src/moon.pkg.json
       #|
       #|````
+      #|
+    ),
+  )
+}
+
+///|
+async test "should_properly_quote_system_message" {
+  let log_entry : Json = {
+    "msg": "MessageAdded",
+    "message": {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": (
+            #|````markdown
+            #|You are a helpful assistant that helps users write MoonBit code.
+            #|
+            #|```moonbit
+            #|///|
+            #|fn main {
+            #|  println("Hello, MoonBit!")
+            #|}
+            #|```
+            #|````
+          ),
+        },
+      ],
+    },
+  }
+  let formatter = Formatter::new("test.md")
+  formatter.format_log_entry(log_entry)
+  inspect(
+    formatter.to_string(),
+    content=(
+      #|# 1 System
+      #|
+      #|`````markdown
+      #|````markdown
+      #|You are a helpful assistant that helps users write MoonBit code.
+      #|
+      #|```moonbit
+      #|///|
+      #|fn main {
+      #|  println("Hello, MoonBit!")
+      #|}
+      #|```
+      #|````
+      #|`````
       #|
     ),
   )

@@ -329,9 +329,12 @@ async fn Formatter::format_message_added(
     self.lines.push("")
     // We need to wrap the system message in code fence to avoid polluting the
     // markdown structure.
-    self.lines.push("````markdown")
+    let backticks = "`".repeat(
+      @cmp.maximum(3, count_maximum_contiguous_backticks(content) + 1),
+    )
+    self.lines.push("\{backticks}markdown")
     self.lines.push(content)
-    self.lines.push("````")
+    self.lines.push("\{backticks}")
     self.lines.push("")
     return
   }

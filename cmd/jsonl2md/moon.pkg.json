@@ -8,7 +8,8 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/git",
-    "moonbitlang/x/time"
+    "moonbitlang/x/time",
+    "moonbitlang/regexp"
   ],
   "overrides": [
     "moonbitlang/maria/internal/abort"
