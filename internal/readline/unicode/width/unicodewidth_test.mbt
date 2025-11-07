@@ -512,7 +512,7 @@ async test "emoji_test_file" {
         .unwrap()
         .reinterpret_as_int()
         .unsafe_to_char())
-      |> @string.from_iter
+      |> String::from_iter
     assert_str_width(emoji, 2, 2)
   }
 }
