@@ -58,9 +58,9 @@ let syntax_error_expert_prompt =
   #|   - ✅ Correct:  `for i in start..=end { ... }` // right closed
   #|   - ✅ Correct:  `for i in start..<end { ... }` // right open
   #| 
-  #|   - ❌ Incorrect: `match a { 'a'..'z' => ... }
-  #|   - ✅ Correct: `match a { 'a'..='z' => ... }
-  #|   - ✅ Correct: `match a { 'a'..<'z' => ... }
+  #|   - ❌ Incorrect: `match a { 'a'..'z' => ... }`
+  #|   - ✅ Correct: `match a { 'a'..='z' => ... }`
+  #|   - ✅ Correct: `match a { 'a'..<'z' => ... }`
   #|
   #|   - ❌ Incorrect: `if a is 'a'..'z' { ... }`
   #|   - ✅ Correct: `if a is 'a'..='z' { ... }`
@@ -145,6 +145,47 @@ let syntax_error_expert_prompt =
   #|          Square(side) => Square(side + 1)
   #|        }
   #|     ```
-  #|   are correct syntax, only when the type is ambiguous, the variant needs to be associated with type,
-  #|   in this case, this is type error, it is not your responsibility to fix type errors.
+  #|   are correct syntax. Only when the type is ambiguous does the variant need to be associated with the type.
+  #|   In that case, it would be a type error, which is not your responsibility to fix.
   #|
+  #| 8. MoonBit slice using `:` syntax is different from Rust:
+  #|   - ❌ Incorrect:
+  #|     ```moonbit
+  #|        let sub_array = array[2..5]
+  #|     ```
+  #|   - ✅ Correct:
+  #|     ```moonbit
+  #|        let sub_array_1 = array[2:5] // left inclusive, right exclusive
+  #|        let sub_array_2 = array[:8] // default to start from 0
+  #|        let sub_array_3 = array[3:] // default to end 
+  #|     ```
+  #| 9. MoonBit `try` `catch` takes the error payload in the pattern, not as a parameter
+  #|
+  #|   - ❌ Incorrect:
+  #|     ```moonbit 
+  #|      try { ... } catch(e) { ...}
+  #|     ``` 
+  #|   - ✅ Correct:
+  #|     ```moonbit
+  #|      try { ... } catch { 
+  #|        SubError(msg) => println("SubError: \{msg}")
+  #|        err => println("Unknown error \{err}")
+  #|      }
+  #|     ```
+  #| 10. MoonBit multiple line strings use `#|` delimiter per line
+  #|   - ❌ Incorrect:
+  #|     ```moonbit
+  #|      let text = #|This is a multi-line
+  #|      string in MoonBit.|#
+  #|     ```
+  #|   - ✅ Correct:
+  #|     ```moonbit
+  #|      let text = 
+  #|        #|This is a "multi-line"
+  #|        #|string in MoonBit
+  #|
+  #|      // allow interpolation
+  #|      let interpolate_text = 
+  #|        $|Hello, \{name}
+  #|        $|Welcome to MoonBit programming!
+  #|     ```
