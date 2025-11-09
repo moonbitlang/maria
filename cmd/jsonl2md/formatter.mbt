@@ -384,13 +384,27 @@ fn Formatter::format_post_tool_call(
 ) -> Unit raise {
   if result is Some(Ok(result)) {
     match (name, result) {
-      ("execute_command", ["Foreground", { "command": String(command), .. }, ..]
+      (
+        "execute_command",
+        [
+          "Completed",
+          { "command": String(command), "status": Number(status, ..), .. },
+          ..,
+        ],
       ) =>
-        self.push_title(
-          "Tool call result: <\{name} command=\{command.escape()}>",
-          numbered=true,
-          timestamp?,
-        )
+        if status == 0 {
+          self.push_title(
+            "Tool call result: <\{name} command=\{command.escape()}>",
+            numbered=true,
+            timestamp?,
+          )
+        } else {
+          self.push_title(
+            "❌ Tool call error: <\{name} command=\{command.escape()}>",
+            numbered=true,
+            timestamp?,
+          )
+        }
       ("list_files", { "path": String(path), .. })
       | ("read_file", ["ReadFileResult", { "path": String(path), .. }, ..])
       | ("replace_in_file", { "path": String(path), .. })
