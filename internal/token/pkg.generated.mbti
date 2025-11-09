@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/token"
 
 import(
+  "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/openai"
 )
 
@@ -11,9 +12,9 @@ import(
 
 // Types and methods
 type Counter
-fn Counter::count_param(Self, @openai.ChatCompletionParam) -> Int raise
+async fn Counter::count_param(Self, @openai.ChatCompletionParam) -> Int
 fn Counter::count_string(Self, String) -> Int raise
-fn Counter::new() -> Self raise
+fn Counter::new(logger~ : @pino.Logger) -> Self raise
 
 // Type aliases
 

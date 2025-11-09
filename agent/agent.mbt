@@ -223,9 +223,10 @@ pub async fn new(
     tools: {},
     queue: [],
     event_target: EventTarget::new(),
-    token_counter: @token.Counter::new(),
+    token_counter: @token.Counter::new(logger~),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
+      logger~,
     ),
     session_manager,
   }
