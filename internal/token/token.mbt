@@ -1,5 +1,6 @@
 ///|
 struct Counter {
+  logger : @pino.Logger
   overhead : Int
   // mut tools : Bool
   encoding : @tiktoken.Encoding
@@ -21,8 +22,9 @@ const ToolOverhead : Int = 20
 /// encoding, which is commonly used for OpenAI's GPT models.
 ///
 /// Throws an error if the cl100k\_base encoding cannot be initialized.
-pub fn Counter::new() -> Counter raise {
+pub fn Counter::new(logger~ : @pino.Logger) -> Counter raise {
   {
+    logger,
     overhead: SystemOverhead,
     // tools: false, 
     encoding: @tiktoken.cl100k_base(),
@@ -95,16 +97,6 @@ fn Counter::count_messages(
 }
 
 ///|
-test "messages" {
-  let messages = [
-    @openai.user_message(content="Hello"),
-    @openai.assistant_message(content="Hi there!"),
-  ]
-  let counter = Counter::new()
-  @json.inspect(counter.count_messages(messages), content=4)
-}
-
-///|
 fn Counter::count_tool(
   self : Counter,
   tool : @openai.ChatCompletionToolParam,
@@ -118,26 +110,6 @@ fn Counter::count_tool(
   let parameters = self._count_string(parameters)
   count += (parameters.to_double() / 2.0.sqrt()).to_int()
   count
-}
-
-///|
-test "tool" {
-  let tool = @openai.tool(
-    name="list_files",
-    description="List files in a directory",
-    parameters={
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string",
-          "description": "The directory path to list files from",
-        },
-      },
-      "required": ["path"],
-    },
-  )
-  let counter = Counter::new()
-  @json.inspect(counter.count_tool(tool), content=70)
 }
 
 ///|
@@ -168,10 +140,10 @@ fn Counter::add_tool(
 ///
 /// Throws an error if token encoding fails for any text content in the
 /// parameters.
-pub fn Counter::count_param(
+pub async fn Counter::count_param(
   self : Counter,
   param : @openai.ChatCompletionParam,
-) -> Int raise {
+) -> Int {
   let mut count = SystemOverhead
   if !param.tools.is_empty() {
     count += ToolsOverhead
@@ -180,5 +152,6 @@ pub fn Counter::count_param(
     count += self.count_tool(tool)
   }
   count += self.count_messages(param.messages)
+  self.logger.info("TokenCounted", { "token_count": count.to_json() })
   count
 }

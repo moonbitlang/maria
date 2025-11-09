@@ -13,10 +13,11 @@ pub fn Extractor::new(
   safe_zone_tokens~ : Int,
   window_size? : Int = 100,
   overlap? : Int = 20,
+  logger~ : @pino.Logger,
 ) -> Extractor raise {
   Extractor::{
     model,
-    token_counter: @token.Counter::new(),
+    token_counter: @token.Counter::new(logger~),
     safe_zone_tokens,
     window_size,
     overlap,

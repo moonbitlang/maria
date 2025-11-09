@@ -1,5 +1,5 @@
 ///|
-test "pruner" {
+async test "pruner" (t : @test.Test) {
   let messages =
     #|[
     #|  {
@@ -880,19 +880,24 @@ test "pruner" {
       },
     ),
   ]
-  let counter = @token.Counter::new()
-  @json.inspect(
-    counter.count_param(
-      @openai.chat_completion(messages~, tools~, model="gpt-4o"),
-    ),
-    content=63138,
-  )
-  let pruner = @context.Pruner::new(safe_zone_tokens=32000)
-  pruner.prune_messages(messages, tools~)
-  @json.inspect(
-    counter.count_param(
-      @openai.chat_completion(messages~, tools~, model="gpt-4o"),
-    ),
-    content=31081,
-  )
+  @mock.run(t, mock => {
+    let counter = @token.Counter::new(logger=mock.logger)
+    @json.inspect(
+      counter.count_param(
+        @openai.chat_completion(messages~, tools~, model="gpt-4o"),
+      ),
+      content=63138,
+    )
+    let pruner = @context.Pruner::new(
+      safe_zone_tokens=32000,
+      logger=mock.logger,
+    )
+    pruner.prune_messages(messages, tools~)
+    @json.inspect(
+      counter.count_param(
+        @openai.chat_completion(messages~, tools~, model="gpt-4o"),
+      ),
+      content=31081,
+    )
+  })
 }
