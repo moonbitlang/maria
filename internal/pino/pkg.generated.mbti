@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/pino"
 
 import(
+  "moonbitlang/async/aqueue"
   "moonbitlang/core/builtin"
 )
 
@@ -27,7 +28,7 @@ impl Show for Level
 
 type Logger
 fn Logger::child(Self, Map[String, Json]) -> Self
-fn Logger::close(Self) -> Unit
+async fn Logger::close(Self) -> Unit
 async fn Logger::debug(Self, StringView, Map[String, Json]) -> Unit
 async fn Logger::error(Self, StringView, Map[String, Json]) -> Unit
 async fn Logger::info(Self, StringView, Map[String, Json]) -> Unit
@@ -35,6 +36,7 @@ async fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
 async fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
 
 type Transport
+fn Transport::chan(@aqueue.Queue[Json]) -> Self
 fn Transport::console() -> Self
 fn Transport::file(StringView) -> Self
 fn Transport::sink() -> Self
