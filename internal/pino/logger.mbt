@@ -15,7 +15,7 @@ pub fn logger(
 }
 
 ///|
-pub fn Logger::close(self : Logger) -> Unit {
+pub async fn Logger::close(self : Logger) -> Unit {
   self.transport.close()
 }
 

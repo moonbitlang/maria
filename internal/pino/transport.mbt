@@ -2,6 +2,7 @@
 enum Transport {
   Console
   File(path~ : String, mut file~ : @fs.File?)
+  Channel(@aqueue.Queue[Json])
   Sink
 }
 
@@ -78,16 +79,18 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       buffer.write_byte('\n')
       file.write(buffer.to_bytes())
     }
+    Channel(channel) => channel.put(content)
     Sink => ()
   }
 }
 
 ///|
-fn Transport::close(self : Transport) -> Unit {
+async fn Transport::close(self : Transport) -> Unit {
   match self {
     Console => ()
     File(file=Some(file), ..) => file.close()
     File(..) => ()
+    Channel(_) => ()
     Sink => ()
   }
 }
@@ -105,4 +108,9 @@ pub fn Transport::file(path : StringView) -> Transport {
 ///|
 pub fn Transport::sink() -> Transport {
   Transport::Sink
+}
+
+///|
+pub fn Transport::chan(queue : @aqueue.Queue[Json]) -> Transport {
+  Transport::Channel(queue)
 }
