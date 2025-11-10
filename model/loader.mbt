@@ -98,7 +98,15 @@ pub async fn Loader::get_model(
   }
   self.logger.info("ModelLoaded", {
     "name": name.to_json(),
-    "model": model.to_json(),
+    "model": {
+      let json = model.to_json()
+      if json is Object(obj) {
+        obj["api_key"] = "****"
+        Json::object(obj)
+      } else {
+        json
+      }
+    },
   })
   if model is Some(model) {
     let model = if api_key is Some(api_key) {
