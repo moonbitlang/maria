@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SSE Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 50px auto;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        padding: 10px;
+        min-height: 200px;
+      }
+      .message {
+        padding: 5px;
+        margin: 5px 0;
+        background: #f0f0f0;
+        border-radius: 3px;
+      }
+      .time {
+        color: #666;
+        font-size: 0.9em;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px 5px 10px 0;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Server-Sent Events Demo</h1>
+    <div id="status">Status: Disconnected</div>
+
+    <h2>Send Message:</h2>
+    <div>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Enter your message..."
+        style="width: 70%; padding: 8px"
+      />
+      <button id="sendBtn" style="padding: 8px 20px">Send</button>
+    </div>
+
+    <h2>Events:</h2>
+    <div id="messages"></div>
+    <script src="/script.js"></script>
+  </body>
+</html>
