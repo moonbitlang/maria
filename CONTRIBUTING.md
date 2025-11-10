@@ -107,7 +107,7 @@ Maria uses a sophisticated mock harness for testing that provides isolated, dete
 #### Example Usage:
 
 ```moonbit
-async test "writes file" (t : @test.T) {
+async test "writes file" (t : @test.Test) {
   @mock.run(t, async ctx => {
     let file = ctx.add_file("output.txt", content="hello")
     let text = file.read()
