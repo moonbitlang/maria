@@ -592,6 +592,28 @@ impl ToJson for CompletionUsageParam with to_json(self : CompletionUsageParam) -
 }
 
 ///|
+pub fn stream_options(
+  include_obfuscation? : Bool,
+  include_usage? : Bool,
+) -> ChatCompletionStreamOptionsParam {
+  ChatCompletionStreamOptionsParam::{ include_obfuscation, include_usage }
+}
+
+///|
+pub impl ToJson for ChatCompletionStreamOptionsParam with to_json(
+  self : ChatCompletionStreamOptionsParam,
+) -> Json {
+  let json : Map[String, Json] = {}
+  if self.include_obfuscation is Some(include_obfuscation) {
+    json["include_obfuscation"] = include_obfuscation.to_json()
+  }
+  if self.include_usage is Some(include_usage) {
+    json["include_usage"] = include_usage.to_json()
+  }
+  Json::object(json)
+}
+
+///|
 /// Create a chat completion parameter object.
 ///
 /// This function constructs a complete set of parameters for a chat completion
@@ -618,6 +640,8 @@ pub fn chat_completion(
   max_tokens? : Int,
   temperature? : Double,
   response_format? : ResponseFormat,
+  stream? : Bool,
+  stream_options? : ChatCompletionStreamOptionsParam,
 ) -> ChatCompletionParam {
   ChatCompletionParam::{
     model,
@@ -628,6 +652,8 @@ pub fn chat_completion(
     max_tokens,
     temperature,
     response_format,
+    stream,
+    stream_options,
   }
 }
 
@@ -651,6 +677,15 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
   }
   if self.temperature is Some(temperature) {
     json["temperature"] = temperature.to_json()
+  }
+  if self.response_format is Some(response_format) {
+    json["response_format"] = response_format.to_json()
+  }
+  if self.stream is Some(stream) {
+    json["stream"] = stream.to_json()
+  }
+  if self.stream_options is Some(stream_options) {
+    json["stream_options"] = stream_options.to_json()
   }
   Json::object(json)
 }
@@ -1263,6 +1298,17 @@ impl @json.FromJson for ChatCompletionChunkChoiceDelta with from_json(
     }
     None => None
   }
+  let refusal = match json.get("refusal") {
+    Some(Null) => None
+    Some(refusal) => {
+      let refusal : String = @json.from_json(
+        refusal,
+        path=json_path.add_key("refusal"),
+      )
+      Some(refusal)
+    }
+    None => None
+  }
   let role = match json.get("role") {
     Some(role) => {
       let role : ChatCompletionRole = @json.from_json(
@@ -1283,7 +1329,7 @@ impl @json.FromJson for ChatCompletionChunkChoiceDelta with from_json(
     }
     None => None
   }
-  ChatCompletionChunkChoiceDelta::{ content, role, tool_calls }
+  ChatCompletionChunkChoiceDelta::{ content, refusal, role, tool_calls }
 }
 
 ///|
@@ -1319,6 +1365,33 @@ impl @json.FromJson for ChatCompletionChunkChoice with from_json(
 }
 
 ///|
+pub struct OpenRouterErrorResponse {
+  code : Int
+  message : String
+  metadata : Json
+} derive(ToJson)
+
+///|
+pub impl @json.FromJson for OpenRouterErrorResponse with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> OpenRouterErrorResponse {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("code") is Some(Number(code, ..)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'code' field"))
+  }
+  guard json.get("message") is Some(String(message)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'message' field"))
+  }
+  guard json.get("metadata") is Some(metadata) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'metadata' field"))
+  }
+  OpenRouterErrorResponse::{ code: code.to_int(), message, metadata }
+}
+
+///|
 pub struct ChatCompletionChunk {
   id : String
   choices : Array[ChatCompletionChunkChoice]
@@ -1327,7 +1400,8 @@ pub struct ChatCompletionChunk {
   usage : CompletionUsage?
   system_fingerprint : String?
   service_tier : ChatCompletionChunkServiceTier?
-}
+  error : OpenRouterErrorResponse?
+} derive(ToJson)
 
 ///|
 pub impl @json.FromJson for ChatCompletionChunk with from_json(
@@ -1384,6 +1458,17 @@ pub impl @json.FromJson for ChatCompletionChunk with from_json(
     }
     None => None
   }
+  let error = match json.get("error") {
+    Some(Null) => None
+    Some(error) => {
+      let error : OpenRouterErrorResponse = @json.from_json(
+        error,
+        path=json_path.add_key("error"),
+      )
+      Some(error)
+    }
+    None => None
+  }
   ChatCompletionChunk::{
     id,
     choices,
@@ -1392,6 +1477,7 @@ pub impl @json.FromJson for ChatCompletionChunk with from_json(
     usage,
     system_fingerprint,
     service_tier,
+    error,
   }
 }
 
@@ -1483,4 +1569,63 @@ pub fn tool_call(
     id,
     function: ChatCompletionMessageToolCallFunction::{ name, arguments },
   }
+}
+
+///|
+pub fn chunk(
+  id~ : String,
+  choices~ : Array[ChatCompletionChunkChoice],
+  created~ : Int,
+  model~ : String,
+  usage? : CompletionUsage,
+  system_fingerprint? : String,
+  service_tier? : ChatCompletionChunkServiceTier,
+  error? : OpenRouterErrorResponse,
+) -> ChatCompletionChunk {
+  ChatCompletionChunk::{
+    id,
+    choices,
+    created,
+    model,
+    usage,
+    system_fingerprint,
+    service_tier,
+    error,
+  }
+}
+
+///|
+pub fn chunk_choice_delta_tool_call_function(
+  arguments? : String,
+  name? : String,
+) -> ChatCompletionChunkChoiceDeltaToolCallFunction {
+  ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name }
+}
+
+///|
+pub fn chunk_choice_delta_tool_call(
+  index~ : Int,
+  id? : String,
+  function~ : ChatCompletionChunkChoiceDeltaToolCallFunction,
+) -> ChatCompletionChunkChoiceDeltaToolCall {
+  ChatCompletionChunkChoiceDeltaToolCall::{ index, id, function }
+}
+
+///|
+pub fn chunk_choice_delta(
+  content? : String,
+  refusal? : String,
+  role? : ChatCompletionRole,
+  tool_calls? : Array[ChatCompletionChunkChoiceDeltaToolCall],
+) -> ChatCompletionChunkChoiceDelta {
+  ChatCompletionChunkChoiceDelta::{ content, refusal, role, tool_calls }
+}
+
+///|
+pub fn chunk_choice(
+  index~ : Int,
+  delta~ : ChatCompletionChunkChoiceDelta,
+  finish_reason? : ChatCompletionChoiceFinishReason,
+) -> ChatCompletionChunkChoice {
+  ChatCompletionChunkChoice::{ index, delta, finish_reason }
 }

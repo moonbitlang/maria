@@ -5,7 +5,7 @@
 
 ///|
 /// Service tier override for chat completion requests.
-pub enum ChatCompletionServiceTier {
+pub(all) enum ChatCompletionServiceTier {
   Auto
   Default
   Flex
@@ -127,6 +127,12 @@ pub struct CompletionUsageParam {
 }
 
 ///|
+pub struct ChatCompletionStreamOptionsParam {
+  include_obfuscation : Bool?
+  include_usage : Bool?
+}
+
+///|
 /// Parameters accepted by the chat completion endpoint.
 pub struct ChatCompletionParam {
   model : String
@@ -137,6 +143,8 @@ pub struct ChatCompletionParam {
   max_tokens : Int?
   temperature : Double?
   response_format : ResponseFormat?
+  stream : Bool?
+  stream_options : ChatCompletionStreamOptionsParam?
 }
 
 ///|
@@ -232,7 +240,7 @@ pub enum ChatCompletionToolParam {
 pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
   arguments : String?
   name : String?
-}
+} derive(ToJson)
 
 ///|
 /// Partial tool call emitted in streaming deltas.
@@ -240,7 +248,7 @@ pub struct ChatCompletionChunkChoiceDeltaToolCall {
   index : Int
   id : String?
   function : ChatCompletionChunkChoiceDeltaToolCallFunction
-}
+} derive(ToJson)
 
 ///|
 /// Roles that may appear in streamed completion deltas.
@@ -250,15 +258,16 @@ pub enum ChatCompletionRole {
   User
   Assistant
   Tool
-}
+} derive(ToJson)
 
 ///|
 /// Delta payload for a streamed chat completion chunk.
 pub struct ChatCompletionChunkChoiceDelta {
   content : String?
+  refusal : String?
   role : ChatCompletionRole?
   tool_calls : Array[ChatCompletionChunkChoiceDeltaToolCall]?
-}
+} derive(ToJson)
 
 ///|
 /// Streaming choice wrapper returned by the API.
@@ -266,7 +275,7 @@ pub struct ChatCompletionChunkChoice {
   index : Int
   delta : ChatCompletionChunkChoiceDelta
   finish_reason : ChatCompletionChoiceFinishReason?
-}
+} derive(ToJson)
 
 ///|
 /// Response format preferences for the assistant output.

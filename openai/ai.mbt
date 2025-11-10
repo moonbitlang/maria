@@ -20,47 +20,78 @@ priv suberror HttpError {
 pub async fn chat(
   model~ : @model.Model,
   request : ChatCompletionParam,
-  logger? : @pino.Logger,
+  logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
 ) -> ChatCompletion {
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
     () => {
-      if logger is Some(logger) {
-        logger.debug("RequestSent", {
-          "model": { "name": model.name, "base_url": model.base_url },
-          "request": request.to_json(),
-        })
+      logger.debug("RequestSent", {
+        "model": { "name": model.name, "base_url": model.base_url },
+        "request": request.to_json(),
+      })
+      let url = "\{model.base_url}/chat/completions"
+      let uri = Uri::parse(url)
+      let client = @http.Client::connect(uri.host, protocol=uri.protocol, headers={
+        "Authorization": "Bearer \{model.api_key}",
+        "Content-Type": "application/json",
+        "Connection": "close",
+      })
+      defer client.close()
+      let response = client.post(uri.path, request.to_json())
+      guard response.code is (200..=299) else {
+        raise HttpError(code=response.code, body=client.read_all().text())
       }
-      let (response, response_body) = @http.post(
-        "\{model.base_url}/chat/completions",
-        request.to_json(),
-        headers={
-          "Authorization": "Bearer \{model.api_key}",
-          "Content-Type": "application/json",
-          "Connection": "close",
-        },
-      )
-      if logger is Some(logger) {
+      if request.stream is Some(true) {
+        let reader = ChunkReader::new(client)
+        let builder = ChatCompletionBuilder::new()
+        while reader.read() is Some(chunk) {
+          logger.debug("ChunkReceived", { "chunk": chunk.to_json() })
+          builder.add_chunk(chunk)
+        }
+        let chat_completion = builder.to_chat_completion()
         logger.debug("ResponseReceived", {
           "model": { "name": model.name, "base_url": model.base_url },
           "response_code": response.code.to_json(),
-          "response_body": {
-            let text = response_body.text()
-            if (try? @json.parse(text)) is Ok(json) {
-              json
-            } else {
-              text.to_json()
-            }
-          },
+          "response_body": chat_completion.to_json(),
         })
+        chat_completion
+      } else {
+        let body = client.read_all().text()
+        let json = @json.parse(body)
+        let chat_completion : ChatCompletion = @json.from_json(json)
+        logger.debug("ResponseReceived", {
+          "model": { "name": model.name, "base_url": model.base_url },
+          "response_code": response.code.to_json(),
+          "response_body": chat_completion.to_json(),
+        })
+        chat_completion
       }
-      guard response.code is (200..=299) else {
-        raise HttpError(code=response.code, body=response_body.text())
-      }
-      response_body.json() |> @json.from_json()
     },
   )
+}
+
+///|
+priv struct ChunkReader(@io.BufferedReader[&@io.Reader])
+
+///|
+fn ChunkReader::new(reader : &@io.Reader) -> ChunkReader {
+  let reader = @io.BufferedReader::new(reader)
+  ChunkReader(reader)
+}
+
+///|
+async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
+  for {
+    guard self.0.read_line() is Some(line) else { return None }
+    guard line is [.. "data: ", .. rest] else { continue }
+    if rest.trim_space() == "[DONE]" {
+      return None
+    }
+    let json = @json.parse(rest)
+    let chunk : ChatCompletionChunk = @json.from_json(json)
+    return Some(chunk)
+  }
 }
 
 ///|

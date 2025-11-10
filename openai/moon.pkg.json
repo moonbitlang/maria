@@ -8,6 +8,7 @@
     "moonbitlang/maria/internal/pino"
   ],
   "test-import": [
-    "moonbitlang/maria/internal/os"
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/mock"
   ]
 }
