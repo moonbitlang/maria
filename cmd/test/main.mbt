@@ -1,13 +1,7 @@
 ///|
-priv enum Destination {
-  File(String)
-  Directory(String)
-}
-
-///|
 async fn generate(
   prompt_file~ : String,
-  destination~ : Destination,
+  log_dir~ : String,
   model? : String,
   cwd~ : String,
 ) -> Unit {
@@ -17,10 +11,8 @@ async fn generate(
     println("Generating for prompt file \{prompt_file} with default model")
   }
   let prompt = @fsx.read_file(prompt_file)
-  let (log_file, gen_dir) = match destination {
-    File(file) => (file, @path.stem(file))
-    Directory(dir) => (@path.join(dir, "log.jsonl"), @path.join(dir, "cwd"))
-  }
+  let log_file = @path.join(log_dir, "log.jsonl")
+  let gen_dir = @path.join(log_dir, "cwd")
   if @fsx.exists(log_file) {
     fail("Log file \{log_file} already exists")
   }
@@ -45,7 +37,7 @@ async fn generate(
       let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
       maria.start(prompt) catch {
         error => {
-          logger.error("MariaFailed", { "error": error.to_json() })
+          logger.error("MariaFailed", { "error": error.to_string().to_json() })
           raise error
         }
       }
@@ -74,13 +66,13 @@ async fn main {
   let args = @os.args()
   guard args is [_, .. args] else {
     println(
-      "Usage: test [--prompt-file <prompt-file>|--prompt-dir <prompt-dir>] [--log-file <log-file>|--log-dir <log-dir>]",
+      "Usage: test [--prompt-file <prompt-file>|--prompt-dir <prompt-dir>] [--log-dir <log-dir>]",
     )
     return
   }
   let cwd = @os.cwd()
   let prompt_files = []
-  let mut destination = None
+  let mut log_dir = "logs"
   let models = []
   loop args {
     ["--prompt-file", pf, .. args] => {
@@ -99,22 +91,8 @@ async fn main {
       }
       continue args
     }
-    ["--log-file", lf, .. args] => {
-      if destination is None {
-        destination = Some(Destination::File(lf))
-      } else {
-        println("Error: Only one of --log-file or --log-dir can be specified")
-        return
-      }
-      continue args
-    }
     ["--log-dir", ld, .. args] => {
-      if destination is None {
-        destination = Some(Destination::Directory(ld))
-      } else {
-        println("Error: Only one of --log-file or --log-dir can be specified")
-        return
-      }
+      log_dir = ld
       continue args
     }
     ["--model" | "--models", ms, .. args] => {
@@ -140,18 +118,12 @@ async fn main {
   @async.with_task_group(group => for prompt_file in prompt_files {
     let name = @path.stem(@path.basename(prompt_file))
     for model in models {
-      let destination = match destination {
-        Some(dest) => dest
-        None => {
-          let dest = "logs"
-            |> @path.join("\{timestamp}-\{@path.basename(model)}-\{name}")
-          let dest = @path.join(cwd, dest)
-          @fsx.make_directory(dest, recursive=true, exists_ok=true)
-          Destination::Directory(dest)
-        }
-      }
+      let log_dir = log_dir
+        |> @path.join("\{timestamp}-\{@path.basename(model)}-\{name}")
+      let log_dir = @path.join(cwd, log_dir)
+      @fsx.make_directory(log_dir, recursive=true, exists_ok=true)
       group.spawn_bg(
-        () => generate(prompt_file~, destination~, model~, cwd~),
+        () => generate(prompt_file~, log_dir~, model~, cwd~),
         allow_failure=true,
       )
     }
