@@ -12,6 +12,26 @@ fn deepseek_model(api_key : String) -> @model.Model {
 }
 
 ///|
+fn claude_haiku_model(api_key : String) -> @model.Model {
+  @model.new(
+    api_key~,
+    base_url="https://openrouter.ai/api/v1",
+    name="anthropic/claude-haiku-4.5",
+    safe_zone_tokens=200000,
+  )
+}
+
+///|
+fn claude_sonnet_model(api_key : String) -> @model.Model {
+  @model.new(
+    api_key~,
+    base_url="https://openrouter.ai/api/v1",
+    name="anthropic/claude-sonnet-4.5",
+    safe_zone_tokens=200000,
+  )
+}
+
+///|
 /// Test basic text completion
 async test "text" {
   guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
@@ -126,4 +146,135 @@ test "response_format" {
   guard json is { "type": "json_schema", .. } else {
     fail("Expected JSON object")
   }
+}
+
+///|
+async test "streaming" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = deepseek_model(api_key)
+    let chat_completion = @openai.chat(
+      model~,
+      chat_completion(
+        model=model.name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Stream a response saying 'Hello, World!'"),
+        ],
+        max_tokens=50,
+        temperature=0.7,
+        stream=true,
+      ),
+    )
+    @json.inspect(
+      chat_completion.choices[0].message.content
+      .unwrap()
+      .contains("Hello, World!"),
+      content=true,
+    )
+  })
+}
+
+///|
+async test "streaming_tool_call" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = claude_haiku_model(api_key)
+    let chat_completion = @openai.chat(
+      model~,
+      chat_completion(
+        model=model.name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(
+            content="Call the tool 'get_weather' with location 'San Francisco'.",
+          ),
+        ],
+        tools=[
+          @openai.tool(
+            name="get_weather",
+            description="Get the current weather in a location",
+            parameters={
+              "type": "object",
+              "properties": { "location": { "type": "string" } },
+              "required": ["location"],
+            },
+          ),
+        ],
+        max_tokens=100,
+        temperature=0.7,
+        stream=true,
+      ),
+    )
+    @json.inspect(
+      chat_completion.choices[0].message.tool_calls[0].function.name,
+      content="get_weather",
+    )
+    @json.inspect(
+      @json.parse(
+        chat_completion.choices[0].message.tool_calls[0].function.arguments,
+      ),
+      content={ "location": "San Francisco" },
+    )
+  })
+}
+
+///|
+async test "streaming_parallel_tool_call" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = claude_sonnet_model(api_key)
+    let chat_completion = @openai.chat(
+      model~,
+      chat_completion(
+        model=model.name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(
+            content="Call the tool 'get_weather' twice in parallel with location 'San Francisco' and 'Boston' respectively.",
+          ),
+        ],
+        tools=[
+          @openai.tool(
+            name="get_weather",
+            description="Get the current weather in a location",
+            parameters={
+              "type": "object",
+              "properties": { "location": { "type": "string" } },
+              "required": ["location"],
+            },
+          ),
+        ],
+        max_tokens=100,
+        temperature=0.7,
+        stream=true,
+      ),
+    )
+    let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
+    let tool_calls = tool_calls.map(tc => {
+      guard tc.to_json() is Object(tc_object)
+      tc_object.remove("id")
+      tc_object["function"].as_object().unwrap()["arguments"] = @json.parse(
+        tc.function.arguments,
+      )
+      tc_object.to_json()
+    })
+    tool_calls.sort_by((a, b) => a.stringify().compare(b.stringify()))
+    @json.inspect(tool_calls, content=[
+      {
+        "function": {
+          "name": "get_weather",
+          "arguments": { "location": "Boston" },
+        },
+        "type": "function",
+      },
+      {
+        "function": {
+          "name": "get_weather",
+          "arguments": { "location": "San Francisco" },
+        },
+        "type": "function",
+      },
+    ])
+  })
 }
