@@ -32,15 +32,16 @@ fn render_output(
 ) -> String {
   let formatted = StringBuilder::new()
   let lines = output.split("\n").collect()
-  formatted.write_string(
-    "=== \{name} (first \{max_output_lines} of \{lines.length()} lines) ===\n",
-  )
   if lines.length() >= max_output_lines {
+    formatted.write_string(
+      "=== \{name} (first \{max_output_lines} of \{lines.length()} lines) ===\n",
+    )
     formatted.write_string(lines[:max_output_lines].join("\n"))
     formatted.write_string(
       "\n... (truncated, try using redirection to pipe output to a file) ...",
     )
   } else {
+    formatted.write_string("=== \{name} (\{lines.length()} lines) ===\n")
     formatted.write_string(output)
   }
   formatted.to_string()
