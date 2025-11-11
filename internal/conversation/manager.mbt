@@ -2,7 +2,7 @@
 struct Manager {
   uuid : @uuid.Generator
   clock : &@clock.Clock
-  path : String
+  cwd : StringView
   cache : @lru.Cache[String, Conversation]
 }
 
@@ -10,17 +10,16 @@ struct Manager {
 pub async fn Manager::new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
-  cwd~ : String,
+  cwd~ : StringView,
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
   let conversations = cwd
     |> @path.join(".moonagent")
     |> @path.join("conversations")
-    |> @path.join("conversations")
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true)
   }
-  Manager::{ uuid, clock, path: cwd, cache }
+  Manager::{ uuid, clock, cwd, cache }
 }
 
 ///|
@@ -29,7 +28,8 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = self.path
+  let path = self.cwd
+    |> @path.join(".moonagent")
     |> @path.join("conversations")
     |> @path.join("\{id}.json")
   if !@fsx.exists(path) {
@@ -42,7 +42,8 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = self.path
+  let path = self.cwd
+    |> @path.join(".moonagent")
     |> @path.join("conversations")
     |> @path.join("\{conversation.id}.json")
   let dir = @path.dirname(path)
@@ -53,7 +54,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[String] {
-  let path = self.path |> @path.join("conversations")
+  let path = self.cwd |> @path.join(".moonagent") |> @path.join("conversations")
   let entries = @fsx.list_directory(path)
   let ids = []
   for entry in entries {
