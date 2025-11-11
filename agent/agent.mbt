@@ -209,10 +209,7 @@ pub async fn new(
     Some(uuid) => uuid
     None => @uuid.generator(rand)
   }
-  let session_manager = {
-    let path = cwd |> @path.join(".moonagent") |> @path.join("conversations")
-    @conversation.Manager::new(uuid~, cwd=path)
-  }
+  let session_manager = @conversation.Manager::new(uuid~, cwd~)
   let agent = Agent::{
     logger,
     rand,
