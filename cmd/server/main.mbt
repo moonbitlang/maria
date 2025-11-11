@@ -89,7 +89,13 @@ async fn main {
         maria.agent.add_message(message)
         maria.agent.start() catch {
           error => {
-            logger.error("MariaFailed", { "error": error.to_json() })
+            logger.error("MariaFailed", {
+              "error": {
+                "code": -1,
+                "message": error.to_string(),
+                "metadata": error.to_json(),
+              },
+            })
             raise error
           }
         }
