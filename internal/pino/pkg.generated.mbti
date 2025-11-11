@@ -36,7 +36,9 @@ async fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
 async fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
 
 type Transport
-fn Transport::chan(@aqueue.Queue[Json]) -> Self
+fn Transport::callback((Json) -> Unit) -> Self
+#alias(chan, deprecated)
+fn Transport::channel(@aqueue.Queue[Json]) -> Self
 fn Transport::console() -> Self
 fn Transport::file(StringView) -> Self
 fn Transport::sink() -> Self

@@ -4,6 +4,7 @@ enum Transport {
   File(path~ : String, mut file~ : @fs.File?)
   Channel(@aqueue.Queue[Json])
   Sink
+  Callback((Json) -> Unit)
 }
 
 ///|
@@ -80,6 +81,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       file.write(buffer.to_bytes())
     }
     Channel(channel) => channel.put(content)
+    Callback(callback) => callback(content)
     Sink => ()
   }
 }
@@ -91,6 +93,7 @@ async fn Transport::close(self : Transport) -> Unit {
     File(file=Some(file), ..) => file.close()
     File(..) => ()
     Channel(_) => ()
+    Callback(_) => ()
     Sink => ()
   }
 }
@@ -111,6 +114,12 @@ pub fn Transport::sink() -> Transport {
 }
 
 ///|
-pub fn Transport::chan(queue : @aqueue.Queue[Json]) -> Transport {
+#alias(chan, deprecated)
+pub fn Transport::channel(queue : @aqueue.Queue[Json]) -> Transport {
   Transport::Channel(queue)
+}
+
+///|
+pub fn Transport::callback(callback : (Json) -> Unit) -> Transport {
+  Transport::Callback(callback)
 }
