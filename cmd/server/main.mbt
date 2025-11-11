@@ -89,11 +89,11 @@ async fn main {
     }
     [] => break
   }
-  let channel = @aqueue.new()
+  let broadcast : Broadcast[Json] = Broadcast::new()
   let logger = @pino.logger(
     "server",
     level=log_level,
-    @pino.Transport::channel(channel),
+    @pino.Transport::callback(event => broadcast.put(event)),
   )
   let message_queue = @aqueue.new()
   let maria = @maria.Maria::new(model?, logger~)
@@ -138,12 +138,16 @@ async fn main {
         conn.send_response(200, "OK", extra_headers={
           "Content-Type": "text/event-stream",
         })
+        for event in broadcast.history {
+          conn.write("event: maria\n")
+          conn.write("data: \{event.stringify()}\n\n")
+          conn.flush()
+        }
         for {
-          let event = channel.get()
-          conn
-          ..write("event: maria\n")
-          ..write("data: \{event.stringify()}\n\n")
-          ..flush()
+          let event = broadcast.get()
+          conn.write("event: maria\n")
+          conn.write("data: \{event.stringify()}\n\n")
+          conn.flush()
         }
       }
       (Post, "/v1/message") => {
