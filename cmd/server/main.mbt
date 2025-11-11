@@ -79,7 +79,7 @@ async fn main {
     [] => break
   }
   let channel = @aqueue.new()
-  let logger = @pino.logger("server", @pino.Transport::chan(channel))
+  let logger = @pino.logger("server", @pino.Transport::channel(channel))
   let message_queue = @aqueue.new()
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
