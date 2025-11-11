@@ -211,3 +211,23 @@ async test "search_files/with tilde expension" (t : @test.Test) {
     assert_true(result.contains("parse_int"))
   })
 }
+
+///|
+async test "search_files/skip-binary" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock.cwd
+    .add_file("binary_file.bin")
+    .write_bytes(b"\xde\xad\xbe\xef\x00hello, world!")
+    let args : Json = {
+      "path": ".",
+      "regex": "hello, world",
+      "kind": "regex",
+      "file_pattern": "*.bin",
+    }
+    let result = @search_files.new(mock.cwd.path()).call(args)
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(output, content="No matches found.")
+  })
+}
