@@ -13,6 +13,7 @@
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/async/os_error"
+    "moonbitlang/async/os_error",
+    "moonbitlang/maria/internal/broadcast"
   ]
 }

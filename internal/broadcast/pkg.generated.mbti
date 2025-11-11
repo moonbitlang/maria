@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/broadcast"
+
+import(
+  "moonbitlang/async/aqueue"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Broadcast[T]
+async fn[T, R] Broadcast::listen(Self[T], async (@aqueue.Queue[T]) -> R) -> R
+fn[T] Broadcast::new() -> Self[T]
+fn[T] Broadcast::put(Self[T], T) -> Unit
+
+// Type aliases
+
+// Traits
+

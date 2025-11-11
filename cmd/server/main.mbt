@@ -89,7 +89,7 @@ async fn main {
     }
     [] => break
   }
-  let broadcast : Broadcast[Json] = Broadcast::new()
+  let broadcast = @broadcast.Broadcast::new()
   let logger = @pino.logger(
     "server",
     level=log_level,
@@ -138,17 +138,12 @@ async fn main {
         conn.send_response(200, "OK", extra_headers={
           "Content-Type": "text/event-stream",
         })
-        for event in broadcast.history {
+        broadcast.listen(channel => for {
+          let event = channel.get()
           conn.write("event: maria\n")
           conn.write("data: \{event.stringify()}\n\n")
           conn.flush()
-        }
-        for {
-          let event = broadcast.get()
-          conn.write("event: maria\n")
-          conn.write("data: \{event.stringify()}\n\n")
-          conn.flush()
-        }
+        })
       }
       (Post, "/v1/message") => {
         let body_data = conn.read_all().binary()
