@@ -1,9 +1,9 @@
 ///|
 pub fn parse(string : StringView) -> Json {
   let string = lexmatch string with longest {
-      ("\s*" (".*" as string) "\s*") => string
-      string => string
-    }
+    ("\s*" (".*" as string) "\s*") => string
+    string => string
+  }
   match string {
     ['"', .. string, '"'] | ['\'', .. string, '\''] =>
       Json::string(string.to_string())

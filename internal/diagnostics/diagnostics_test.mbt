@@ -472,23 +472,12 @@ async test "render_empty_line" (t : @test.Test) {
     inspect(
       mock.show(diagnostics.render(context=1, limit=10)),
       content=(
-        #|error[4021]: (mock:cwd)/example.mbt:7:3-8: The value identifier Point is unbound.
-        #|   │ fn Point::new(x~ : Int, y~ : Int) -> Point {
-        #| 7 │   Point { x, y }
-        #|   │   ^^^^^
-        #|   │ }
-        #|
-        #|error[3002]: (mock:cwd)/example.mbt:7:9-10: Parse error, unexpected token `{`, you may expect `;` or `}`.
+        #|error[3002]: (mock:cwd)/example.mbt:7:9-10: Unexpected `{` after `Point`, missing `::` here.
+        #|Hint: To construct a record, use the syntax `Point::{ field1: value1, field2: value2 }`. If the type can be inferred, you may omit the `Point::` part.
         #|   │ fn Point::new(x~ : Int, y~ : Int) -> Point {
         #| 7 │   Point { x, y }
         #|   │         ^
         #|   │ }
-        #|
-        #|error[3002]: (mock:cwd)/example.mbt:10:1-6: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
-        #|    │
-        #| 10 │ #load
-        #|    │ ^^^^^
-        #|    │
         #|
         #|error[3002]: (mock:cwd)/example.mbt:11:2: Parse error, expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`. Did you forget to indent the local `fn`?
         #|    │ #load
@@ -505,11 +494,6 @@ async test "render_empty_line" (t : @test.Test) {
         #|    │ ^
         #|
         #|warning[0004]: (mock:cwd)/example.mbt:1:8-13: Warning: The type 'Point' does not occur in public signature of current package, consider marking it as `priv`.
-        #| 1 │ struct Point {
-        #|   │        ^^^^^
-        #|   │   x : Int
-        #|
-        #|warning[0009]: (mock:cwd)/example.mbt:1:8-13: Warning: The struct Point is never constructed
         #| 1 │ struct Point {
         #|   │        ^^^^^
         #|   │   x : Int
@@ -532,17 +516,24 @@ async test "render_empty_line" (t : @test.Test) {
         #|   │           ^^^
         #|   │   Point { x, y }
         #|
-        #|There are 3 more warning(s) not shown due to diagnostic limit.
+        #|warning[0019]: (mock:cwd)/example.mbt:10:6-11:2: Warning: Toplevel declaration is not left aligned.
+        #|    │
+        #| 10 │ #load
+        #|    │      
+        #| 11 │
+        #|    │ ^
+        #|    │ /// Well
       ),
     )
     inspect(
       mock.show(diagnostics.render(limit=1)),
       content=(
-        #|error[4021]: (mock:cwd)/example.mbt:7:3-8: The value identifier Point is unbound.
+        #|error[3002]: (mock:cwd)/example.mbt:7:9-10: Unexpected `{` after `Point`, missing `::` here.
+        #|Hint: To construct a record, use the syntax `Point::{ field1: value1, field2: value2 }`. If the type can be inferred, you may omit the `Point::` part.
         #| 7 │   Point { x, y }
-        #|   │   ^^^^^
+        #|   │         ^
         #|
-        #|There are 4 more error(s) and 8 more warning(s) not shown due to diagnostic limit.
+        #|There are 2 more error(s) and 5 more warning(s) not shown due to diagnostic limit.
       ),
     )
   })
