@@ -215,9 +215,9 @@ async test "interface/core" (t : @test.Test) {
         #|
         #|// Types and methods
         #|type Set[K]
+        #|#alias(insert, deprecated)
         #|fn[K : Hash + Eq] Set::add(Self[K], K) -> Unit
         #|fn[K : Hash + Eq] Set::add_and_check(Self[K], K) -> Bool
-        #|fn[K] Set::capacity(Self[K]) -> Int
       ),
     )
   })
