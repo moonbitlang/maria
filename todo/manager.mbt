@@ -61,8 +61,7 @@ pub fn Todo::uuid(self : Todo) -> String {
 }
 
 ///|
-#as_free_fn
-pub fn Todo::new(
+pub fn new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
