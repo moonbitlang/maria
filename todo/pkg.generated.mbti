@@ -8,6 +8,7 @@ import(
 )
 
 // Values
+fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
 
 // Errors
 
@@ -48,8 +49,6 @@ fn Todo::add_task(Self, String, status? : Status, priority? : Priority, notes? :
 fn Todo::find(Self, String) -> Int?
 fn Todo::get(Self, Int) -> Item
 async fn Todo::load(Self) -> Unit
-#as_free_fn
-fn Todo::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
 fn Todo::now(Self) -> String
 fn Todo::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
 async fn Todo::save(Self) -> Unit
