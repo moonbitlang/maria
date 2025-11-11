@@ -61,9 +61,9 @@ pub async fn spawn(
     fn redirect_input(content : String) -> &@process.ProcessInput raise {
       let (input, pipe) = @process.write_to_process()
       group.spawn_bg(() => {
-          defer pipe.close()
-          pipe.write(content)
-        })
+        defer pipe.close()
+        pipe.write(content)
+      })
       input
     }
 
@@ -71,9 +71,9 @@ pub async fn spawn(
     fn redirect_output() raise {
       let (pipe, output) = @process.read_from_process()
       let task = group.spawn(() => {
-          defer pipe.close()
-          @encoding/utf8.decode_lossy(pipe.read_all().binary())
-        })
+        defer pipe.close()
+        @encoding/utf8.decode_lossy(pipe.read_all().binary())
+      })
       (task, output)
     }
 

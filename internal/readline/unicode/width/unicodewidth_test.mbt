@@ -499,12 +499,12 @@ async test "emoji_test_file" {
   let file = @fsx.read_file("internal/readline/unicode/width/emoji-test.txt")
   for line in file.split("\n") {
     let cps = lexmatch line with longest {
-        "" => continue
-        ("#", _) => continue
-        ((".*" as cps) ";[ \t\n]*" "(fully-qualified|component).*" "[ \t\n]*") =>
-          cps
-        _ => continue
-      }
+      "" => continue
+      ("#", _) => continue
+      ((".*" as cps) ";[ \t\n]*" "(fully-qualified|component).*" "[ \t\n]*") =>
+        cps
+      _ => continue
+    }
     let emoji = cps
       .trim(char_set=" \t\n")
       .split(" ")
