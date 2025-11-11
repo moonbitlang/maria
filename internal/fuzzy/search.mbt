@@ -27,7 +27,7 @@ fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
 }
 
 ///|
-/// Line-by-line fuzzy match (ignoring leading/trailing whitespace)
+/// Line-by-line fuzzy match (ignoring leading/trailing whitespace and empty lines)
 ///
 /// Parameters:
 ///
@@ -45,17 +45,28 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
     line.trim(char_set=" \t\r\n").to_string()
   })
 
-  /// Create a match result starting from a specific line index
+  // Filter out empty lines for comparison
+  let non_empty_needle_lines = trimmed_needle_lines.filter(fn(line) {
+    line != ""
+  })
+
+  // If needle has no non-empty lines, no match
+  if non_empty_needle_lines.length() == 0 {
+    return None
+  }
+
+  /// Create a match result from start to end line indices
   /// Calculates the exact position and length of the match in the original content
   ///
   /// Parameters:
   ///
   /// * `start`: Starting line index in the haystack
+  /// * `end`: Ending line index in the haystack (inclusive)
   ///
   /// Returns match result with position and length
-  fn fuzzy_match_from_line(start : Int) -> MatchResult {
+  fn fuzzy_match_from_line(start : Int, end : Int) -> MatchResult {
     let matched_lines = []
-    for i = start; i < start + needle_lines.length(); i = i + 1 {
+    for i = start; i <= end; i = i + 1 {
       matched_lines.push(haystack_lines[i])
     }
     let matched_content = matched_lines.join("\n")
@@ -69,7 +80,7 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
       0
     }
     let start_line = start
-    let end_line = start + needle_lines.length() - 1
+    let end_line = end
     MatchResult::{
       position,
       length: matched_content.length(),
@@ -78,17 +89,36 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
     }
   }
 
-  // Compare lines ignoring whitespace
-  for i = 0; i <= haystack_lines.length() - needle_lines.length(); i = i + 1 {
-    let mut line_matches = true
-    for j = 0; j < needle_lines.length(); j = j + 1 {
-      if trimmed_haystack_lines[i + j] != trimmed_needle_lines[j] {
-        line_matches = false
-        break
+  // Compare lines ignoring whitespace and empty lines
+  // Use variable-sized window to handle empty lines
+  for i = 0; i < haystack_lines.length(); i = i + 1 {
+    // Collect non-empty lines from haystack starting at position i
+    let non_empty_haystack_window = []
+    let mut end_idx = i
+    let mut j = i
+
+    // Expand window until we have enough non-empty lines or run out of haystack
+    while non_empty_haystack_window.length() < non_empty_needle_lines.length() &&
+          j < haystack_lines.length() {
+      if trimmed_haystack_lines[j] != "" {
+        non_empty_haystack_window.push(trimmed_haystack_lines[j])
       }
+      end_idx = j
+      j = j + 1
     }
-    if line_matches {
-      return Some(fuzzy_match_from_line(i))
+
+    // Check if non-empty lines match
+    if non_empty_haystack_window.length() == non_empty_needle_lines.length() {
+      let mut line_matches = true
+      for k = 0; k < non_empty_needle_lines.length(); k = k + 1 {
+        if non_empty_haystack_window[k] != non_empty_needle_lines[k] {
+          line_matches = false
+          break
+        }
+      }
+      if line_matches {
+        return Some(fuzzy_match_from_line(i, end_idx))
+      }
     }
   }
   None
