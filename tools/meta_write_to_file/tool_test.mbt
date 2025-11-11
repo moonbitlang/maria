@@ -59,6 +59,161 @@ async test "create-file" (t : @test.Test) {
         #|
       ),
     )
+    let result = @tool.call(tool, {
+      "path": "README.md",
+      "replace": (
+        #|# Hello, MoonBit!
+        #|
+        #|This is a sample README file for the MoonBit project.
+      ),
+      "description": "Create a README file for the MoonBit project.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|File written successfully to README.md
+        #|
+      ),
+    )
+    inspect(
+      @fsx.read_file(@path.join(mock.cwd.path(), "README.md")),
+      content=(
+        #|# Hello, MoonBit!
+        #|
+        #|This is a sample README file for the MoonBit project.
+      ),
+    )
+  })
+}
+
+///|
+async test "create-file-with-empty-search" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model()
+    // this tool requires agent to fix syntax errors, but the direct call just works
+    // so the agent is not running
+    mock.add_files([
+      (
+        "moon.mod.json",
+        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+          indent=2,
+        ),
+      ),
+      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+    ])
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let tool = @meta_write_to_file.new(agent)
+    agent.add_tool(tool)
+    let result = @tool.call(tool, {
+      "path": "main.mbt",
+      "search": "",
+      "replace": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+      ),
+      "description": "Create a main function that prints 'Hello, MoonBit!' to the console.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|File written and formatted successfully to main.mbt
+        #|
+        #|
+        #|**Changes made during formatting:**
+        #|```diff
+        #|diff --git original modified
+        #|index 8258f5d..c8bbf10 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,4 +1,4 @@
+        #| ///|
+        #| fn main {
+        #|   println("Hello, MoonBit!")
+        #|-}
+        #|\ No newline at end of file
+        #|+}
+        #|```
+        #|
+      ),
+    )
+    inspect(
+      @fsx.read_file(@path.join(mock.cwd.path(), "main.mbt")),
+      content=(
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+        #|
+      ),
+    )
+    let result = @tool.call(tool, {
+      "path": "README.md",
+      "search": "",
+      "replace": (
+        #|# Hello, MoonBit!
+        #|
+        #|This is a sample README file for the MoonBit project.
+      ),
+      "description": "Create a README file for the MoonBit project.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|File written successfully to README.md
+        #|
+      ),
+    )
+    inspect(
+      @fsx.read_file(@path.join(mock.cwd.path(), "README.md")),
+      content=(
+        #|# Hello, MoonBit!
+        #|
+        #|This is a sample README file for the MoonBit project.
+      ),
+    )
+  })
+}
+
+///|
+async test "fail-on-search-non-existent-file" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model()
+    // this tool requires agent to fix syntax errors, but the direct call just works
+    // so the agent is not running
+    mock.add_files([
+      (
+        "moon.mod.json",
+        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+          indent=2,
+        ),
+      ),
+      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
+    ])
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let tool = @meta_write_to_file.new(agent)
+    agent.add_tool(tool)
+    let result = @tool.call(tool, {
+      "path": "main.mbt",
+      "search": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+      ),
+      "replace": "",
+      "description": "Create a main function that prints 'Hello, MoonBit!' to the console.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|File does not exist at path main.mbt
+        #|
+        #|You cannot perform a search-and-replace operation on a
+        #|non-existent file with a non-empty search string.
+      ),
+    )
   })
 }
 

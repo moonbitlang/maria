@@ -178,7 +178,7 @@ async fn execute_replace_in_file(
 ) -> @tool.ToolResult[String] noraise {
   let replace = params.replace
   match params.search {
-    None =>
+    None | Some("") =>
       try {
         mkdir_then_write(resolved_path, replace)
         @tool.ok("File written successfully to \{params.path}")
@@ -232,11 +232,22 @@ async fn execute_meta_write_to_file(
   try {
     // If it's a MoonBit file, format it and fix syntax if needed
     if is_moonbit_file(resolved_path) {
+      let file_exists = @fsx.exists(resolved_path)
       // Calculate initial content by applying search/replace
       let replace = params.replace
       let initial_content = match params.search {
-        None => replace
+        None | Some("") => replace
         Some(search) => {
+          if !file_exists {
+            return @tool.error(
+              (
+                $|File does not exist at path \{params.path}
+                $|
+                $|You cannot perform a search-and-replace operation on a
+                $|non-existent file with a non-empty search string.
+              ),
+            )
+          }
           let file_content = @fsx.read_file(resolved_path)
           match @fuzzy.find_match(file_content, search) {
             None =>
@@ -286,7 +297,7 @@ async fn execute_meta_write_to_file(
         )
         return @tool.ok({
           path: resolved_path,
-          message: if params.search is Some(_) {
+          message: if params.search is Some(search) && search != "" {
             "Changes applied and formatted successfully to \{params.path}"
           } else {
             "File written and formatted successfully to \{params.path}"
