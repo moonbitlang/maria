@@ -51,6 +51,7 @@ async fn main {
   let mut model = None
   let mut port = 8080
   let mut serve = @os.cwd()
+  let mut log_level = @pino.Info
   loop args[1:] {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
@@ -70,6 +71,16 @@ async fn main {
         serve = s
         continue args
       }
+    ["--log-level", level, .. args] => {
+      log_level = match level.to_lower() {
+        "debug" => @pino.Debug
+        "info" => @pino.Info
+        "warn" => @pino.Warn
+        "error" => @pino.Error
+        _ => fail("Unknown log level: \{level}")
+      }
+      continue args
+    }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -79,7 +90,11 @@ async fn main {
     [] => break
   }
   let channel = @aqueue.new()
-  let logger = @pino.logger("server", @pino.Transport::channel(channel))
+  let logger = @pino.logger(
+    "server",
+    level=log_level,
+    @pino.Transport::channel(channel),
+  )
   let message_queue = @aqueue.new()
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
