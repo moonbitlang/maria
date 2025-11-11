@@ -90,9 +90,9 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
         if timeout <= 0 {
           return @tool.error("'timeout' must be a positive integer")
         }
-        Some(timeout)
+        timeout
       } else {
-        None
+        600_000
       }
       let max_output_lines = if args
         is { "max_output_lines": Number(max_output_lines, ..), .. } {
@@ -130,11 +130,6 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
         }
         @tool.ok(CommandResult::Background(command~, job_id=job.id))
       } else {
-        guard timeout is Some(timeout) else {
-          return @tool.error(
-            "'timeout' parameter is required when 'background' is false or not set, i.e. running in foreground",
-          )
-        }
         let timeout = timeout.to_int()
         let process = @spawn.spawn(
           "sh",

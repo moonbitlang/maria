@@ -8,8 +8,8 @@ let schema : @tool.JsonSchema = {
     },
     "timeout": {
       "type": "number",
-      "description": "The timeout in milliseconds for the shell command to execute. This field is required if the command is executed in foreground (background=false).",
-      "default": 1000,
+      "description": "The timeout in milliseconds for the shell command to execute. Defaults to 600000 (10 minutes).",
+      "default": 600_000,
     },
     "max_output_lines": {
       "type": "number",
@@ -22,5 +22,5 @@ let schema : @tool.JsonSchema = {
       "default": false,
     },
   },
-  "required": ["command", "timeout"],
+  "required": ["command"],
 }
