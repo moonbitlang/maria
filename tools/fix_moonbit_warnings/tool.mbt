@@ -202,7 +202,12 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
                   moon~,
                   segment~,
                   description~,
-                  logger=agent.logger,
+                  logger=agent.logger.child({
+                    "tool": {
+                      "name": "fix_moonbit_warnings",
+                      "id": agent.uuid.v4().to_json(),
+                    },
+                  }),
                 ))
                 if updated_opt is Some(Some(updated)) {
                   segment.replace(updated)
