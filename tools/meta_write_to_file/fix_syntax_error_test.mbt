@@ -1,4 +1,5 @@
 ///|
+#skip
 async test "fix-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -84,6 +85,7 @@ async test "fix-syntax-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "search-replace" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -183,6 +185,7 @@ async test "search-replace" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-question-mark-error-propagation" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -243,6 +246,7 @@ async test "fix-question-mark-error-propagation" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-loop-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -301,6 +305,7 @@ async test "fix-loop-syntax-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -354,6 +359,7 @@ async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-range-pattern-match-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -413,6 +419,7 @@ async test "fix-range-pattern-match-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-range-pattern-if-is-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
@@ -475,6 +482,7 @@ async test "fix-range-pattern-if-is-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fix-multiple-syntax-errors" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()

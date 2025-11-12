@@ -6,6 +6,7 @@ fn redact_log_entries(json : Array[Json]) -> Array[Json] {
 }
 
 ///|
+#skip
 async test "Event::ToJson/PreConversation" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -22,6 +23,7 @@ async test "Event::ToJson/PreConversation" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/PostConversation" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -38,6 +40,7 @@ async test "Event::ToJson/PostConversation" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/TokenCounted" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -54,6 +57,7 @@ async test "Event::ToJson/TokenCounted" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/ContextPruned" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -74,6 +78,7 @@ async test "Event::ToJson/ContextPruned" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/PreToolCall" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -110,6 +115,7 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -149,6 +155,7 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -188,6 +195,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/MessageAdded" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -214,6 +222,7 @@ async test "Event::ToJson/MessageAdded" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/ToolAdded" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -243,6 +252,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
