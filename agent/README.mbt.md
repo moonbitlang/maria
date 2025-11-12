@@ -31,7 +31,7 @@ let model : @model.Model = @model.new(
 ///|
 async test "basic-example" {
   // Create the agent
-  let agent = @agent.new(model, cwd="/path/to/working/directory")
+  let agent = @agent.new(model, cwd=@os.cwd())
   // Add a user message
   agent.add_message(@openai.user_message(content="Hello, what can you do?"))
   // Start the conversation

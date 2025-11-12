@@ -97,7 +97,11 @@ pub async fn Todo::load(self : Todo) -> Unit {
 ///|
 pub async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
-  @fsx.make_directory(@path.dirname(todo_file_path), recursive=true)
+  @fsx.make_directory(
+    @path.dirname(todo_file_path),
+    recursive=true,
+    exists_ok=true,
+  )
   self.items.updated_at = self.config.now()
   @fsx.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
 }
