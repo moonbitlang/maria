@@ -18,7 +18,10 @@ async fn run_server(
   port~ : Int,
   f : async (@http.Request, @http.ServerConnection) -> Unit,
 ) -> Unit {
-  @http.run_server(try! @socket.Addr::parse("[::]:\{port}"), (conn, _) => for {
+  let addr = try! @socket.Addr::parse("[::]:\{port}")
+  println("[INFO] Starting HTTP server on port \{port}...")
+  println("[INFO] Visit http://localhost:\{port}/")
+  @http.run_server(addr, (conn, _) => for {
     try {
       let request = conn.read_request()
       println("[INFO] Received request: \{request.meth} \{request.path}")
