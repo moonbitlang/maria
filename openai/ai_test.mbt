@@ -69,7 +69,7 @@ async test "chat" {
   let completion = chat(
     model~,
     chat_completion(
-      model=model.name,
+      model=model.model_name,
       messages=[
         system_message(content="You are a helpful assistant."),
         user_message(content="Say 'Hello' and nothing else."),
@@ -95,7 +95,7 @@ async test "chat_with_usage" {
   let completion = chat(
     model~,
     chat_completion(
-      model=model.name,
+      model=model.model_name,
       messages=[
         system_message(content="You are a helpful assistant."),
         user_message(content="Say 'Hello' and nothing else."),
@@ -156,7 +156,7 @@ async test "streaming" (t : @test.Test) {
     let chat_completion = @openai.chat(
       model~,
       chat_completion(
-        model=model.name,
+        model=model.model_name,
         messages=[
           system_message(content="You are a helpful assistant."),
           user_message(content="Stream a response saying 'Hello, World!'"),
@@ -183,7 +183,7 @@ async test "streaming_tool_call" (t : @test.Test) {
     let chat_completion = @openai.chat(
       model~,
       chat_completion(
-        model=model.name,
+        model=model.model_name,
         messages=[
           system_message(content="You are a helpful assistant."),
           user_message(
@@ -227,7 +227,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
     let chat_completion = @openai.chat(
       model~,
       chat_completion(
-        model=model.name,
+        model=model.model_name,
         messages=[
           system_message(content="You are a helpful assistant."),
           user_message(

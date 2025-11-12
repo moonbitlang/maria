@@ -1,5 +1,19 @@
 ///|
-pub async fn interactive(prompt? : String, model? : String) -> Unit {
+pub async fn interactive(args : ArrayView[String]) -> Unit {
+  let mut prompt : String? = None
+  let mut model : String? = None
+  loop args {
+    ["--prompt" | "-p", value, .. rest] => {
+      prompt = Some(value)
+      continue rest
+    }
+    ["--model" | "-m", value, .. rest] => {
+      model = Some(value)
+      continue rest
+    }
+    [unknown, ..] => raise @argument.InvalidArgument(unknown)
+    [] => break
+  }
   @async.with_task_group(group => {
     let maria = @maria.Maria::new(model?)
     maria.agent.add_listener(event => match event {

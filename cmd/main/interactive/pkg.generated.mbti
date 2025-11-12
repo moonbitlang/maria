@@ -2,7 +2,7 @@
 package "moonbitlang/maria/cmd/main/interactive"
 
 // Values
-async fn interactive(prompt? : String, model? : String) -> Unit
+async fn interactive(ArrayView[String]) -> Unit
 
 // Errors
 

@@ -5,6 +5,7 @@
     "moonbitlang/async/stdio",
     "moonbitlang/maria",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/openai"
+    "moonbitlang/maria/openai",
+    "moonbitlang/maria/cmd/main/argument"
   ]
 }
