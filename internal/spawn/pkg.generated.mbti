@@ -16,6 +16,8 @@ async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, c
 
 // Errors
 pub suberror Failed CompletedProcess
+impl Show for Failed
+impl ToJson for Failed
 
 pub suberror TimedOut {
   TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
@@ -27,6 +29,8 @@ fn Buffer::new() -> Self
 fn Buffer::to_string(Self) -> String
 
 pub struct CompletedProcess {
+  exec : String
+  args : Array[String]
   status : Int
   stdout : String
   stderr : String
@@ -34,6 +38,7 @@ pub struct CompletedProcess {
   timeout : Int?
 }
 fn CompletedProcess::check(Self) -> Unit raise Failed
+impl ToJson for CompletedProcess
 
 pub struct Manager {
   mut id : Int

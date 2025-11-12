@@ -1,11 +1,13 @@
 ///|
 pub struct CompletedProcess {
+  exec : String
+  args : Array[String]
   status : Int
   stdout : String
   stderr : String
   elapsed : Int
   timeout : Int?
-}
+} derive(ToJson)
 
 ///|
 pub fn CompletedProcess::check(self : CompletedProcess) -> Unit raise Failed {
@@ -15,7 +17,31 @@ pub fn CompletedProcess::check(self : CompletedProcess) -> Unit raise Failed {
 }
 
 ///|
-pub suberror Failed CompletedProcess
+pub suberror Failed CompletedProcess derive(ToJson)
+
+///|
+pub impl Show for Failed with output(self : Failed, logger : &Logger) -> Unit {
+  let Failed(self) = self
+  logger.write_string("Process ")
+  logger.write_string(self.exec.escape())
+  for arg in self.args {
+    logger.write_string(" ")
+    logger.write_string(arg.escape())
+  }
+  logger.write_string(" failed with status ")
+  self.status.output(logger)
+  logger.write_string(".\n")
+  if !self.stdout.is_blank() {
+    logger.write_string("Standard Output:\n")
+    logger.write_string(self.stdout)
+    logger.write_char('\n')
+  }
+  if !self.stderr.is_blank() {
+    logger.write_string("Standard Error:\n")
+    logger.write_string(self.stderr)
+    logger.write_char('\n')
+  }
+}
 
 ///|
 pub suberror TimedOut {
@@ -109,6 +135,8 @@ pub async fn spawn(
     let t1 = clock.now()
     let elapsed = (t1 - t0).to_int()
     CompletedProcess::{
+      exec: command,
+      args: arguments,
       status,
       stdout: stdout.0.wait(),
       stderr: stderr.0.wait(),
