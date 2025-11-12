@@ -14,5 +14,12 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/pino"
+  ],
+  "pre-build": [
+    {
+      "command": "$mod_dir/scripts/derive_json_schema.sh $input $output",
+      "input": "types.mbt",
+      "output": "types_derived.mbt"
+    }
   ]
 }

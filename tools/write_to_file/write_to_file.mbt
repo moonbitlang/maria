@@ -1,30 +1,7 @@
 ///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
-  "type": "object",
-  "properties": {
-    "content": {
-      "type": "string",
-      "description": "The content to write to the file.",
-    },
-    "path": {
-      "type": "string",
-      "description": "The path of the file to write to, relative to the current working directory.",
-    },
-    "separator": {
-      "type": "string",
-      "description": "Optional separator to add between existing content and new content (default: newline).",
-      "default": "\n",
-    },
-  },
-  "required": ["path", "content"],
-})
-
-///|
-priv struct Params {
-  content : String // required
-  path : String // required
-  separator : String?
-} derive(ToJson, FromJson)
+let schema : @tool.JsonSchema = @tool.JsonSchema::from_json(
+  Params::get_schema(),
+)
 
 ///|
 fn params(content~ : String, path~ : String, separator? : String) -> Params {

@@ -4,5 +4,15 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/fsx"
   ],
-  "test-import" : ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ],
+  "pre-build": [
+    {
+      "command": "$mod_dir/scripts/derive_json_schema.sh $input $output",
+      "input": "types.mbt",
+      "output": "types_derived.mbt"
+    }
+  ]
 }

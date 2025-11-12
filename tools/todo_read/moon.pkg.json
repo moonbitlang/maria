@@ -7,5 +7,12 @@
     "moonbitlang/async",
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/tools/todo_write"
+  ],
+  "pre-build": [
+    {
+      "command": "$mod_dir/scripts/derive_json_schema.sh $input $output",
+      "input": "types.mbt",
+      "output": "types_derived.mbt"
+    }
   ]
 }
