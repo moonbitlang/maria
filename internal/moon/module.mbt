@@ -217,6 +217,10 @@ pub async fn Module::check(
   self.clear_diagnostics()
   let diagnostics = check(patch_file?, target_dir?, cwd=self.path)
   for d in diagnostics {
+    if d.loc.path.is_blank() {
+      // No-location diagnostics, skip
+      continue
+    }
     let pkg = self.locate_package(d.loc.path)
     pkg.add_diagnostic(d)
   }
