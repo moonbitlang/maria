@@ -46,7 +46,11 @@ async fn @file.Manager::execute_replace_in_file(
     // Check if file exists
     guard @fsx.exists(resolved_path) else {
       // Create directory if it doesn't exist
-      @fsx.make_directory(@path.dirname(resolved_path), recursive=true)
+      @fsx.make_directory(
+        @path.dirname(resolved_path),
+        recursive=true,
+        exists_ok=true,
+      )
 
       // File doesn't exist, create new file with replace content
       @fsx.write_to_file(resolved_path, replace)

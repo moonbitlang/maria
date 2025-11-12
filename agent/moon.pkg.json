@@ -20,7 +20,8 @@
     "moonbitlang/maria/tools/replace_in_file",
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/maria/tools/read_multiple_files",
-    "moonbitlang/maria/internal/path"
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/os"
   ],
   "wbtest-import": ["moonbitlang/maria/internal/mock"]
 }

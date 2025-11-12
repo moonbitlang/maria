@@ -17,7 +17,7 @@ pub async fn Manager::new(
     |> @path.join(".moonagent")
     |> @path.join("conversations")
   if !@fsx.exists(conversations) {
-    @fsx.make_directory(conversations, recursive=true)
+    @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
   Manager::{ uuid, clock, cwd, cache }
 }
@@ -47,7 +47,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
     |> @path.join("conversations")
     |> @path.join("\{conversation.id}.json")
   let dir = @path.dirname(path)
-  @fsx.make_directory(dir, recursive=true)
+  @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let json = conversation.to_json()
   @fsx.write_to_file(path, json.stringify(indent=2))
 }

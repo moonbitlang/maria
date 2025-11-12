@@ -95,7 +95,7 @@ pub async fn Manager::spawn(
     |> @path.join(".moonagent")
     |> @path.join("jobs")
     |> @path.join("\{id.0}")
-  @fsx.make_directory(jobs_dir, recursive=true)
+  @fsx.make_directory(jobs_dir, recursive=true, exists_ok=true)
   let stdout_path = jobs_dir |> @path.join("stdout")
   @fsx.FileRead::create(stdout_path).close()
   let stderr_path = jobs_dir |> @path.join("stderr")
