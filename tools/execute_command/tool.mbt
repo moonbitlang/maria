@@ -56,15 +56,23 @@ pub impl Show for CommandResult with output(
     Completed(command~, status~, stdout~, stderr~, max_output_lines~) => {
       let formatted = []
       formatted.push("Command \{command} exited with status \{status}.")
-      formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
-      formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
+      if !stdout.is_blank() {
+        formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
+      }
+      if !stderr.is_blank() {
+        formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
+      }
       logger.write_string(formatted.join("\n"))
     }
     TimedOut(command~, timeout~, stdout~, stderr~, max_output_lines~) => {
       let formatted = []
       formatted.push("Command \{command} timed out after \{timeout} seconds.")
-      formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
-      formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
+      if !stdout.is_blank() {
+        formatted.push(render_output(name="STDOUT", stdout, max_output_lines~))
+      }
+      if !stderr.is_blank() {
+        formatted.push(render_output(name="STDERR", stderr, max_output_lines~))
+      }
       logger.write_string(formatted.join("\n"))
     }
     Background(command~, job_id~) =>

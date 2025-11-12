@@ -33,8 +33,6 @@ async test "cat" (t : @test.Test) {
         #|Command cat file.txt exited with status 0.
         #|=== STDOUT (1 lines) ===
         #|hello world
-        #|=== STDERR (1 lines) ===
-        #|
       ),
     )
   })
@@ -70,8 +68,6 @@ async test "output-overflow" (t : @test.Test) {
         #|hello
         #|hello
         #|... (truncated, try using redirection to pipe output to a file) ...
-        #|=== STDERR (1 lines) ===
-        #|
       ),
     )
   })
