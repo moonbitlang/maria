@@ -64,9 +64,10 @@ async fn process_segment(
   moon~ : @moon.Module,
   segment~ : @moon.SegmentView,
   description~ : String,
+  logger~ : @pino.Logger,
 ) -> String? {
   let result = Ref::new(None)
-  let subagent = @agent.new(model, cwd~)
+  let subagent = @agent.new(model, cwd~, logger~)
   subagent.add_tool(submit_moonbit_segment_new(Task::{ moon, segment, result }))
   subagent.add_message(
     @openai.system_message(
@@ -201,6 +202,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
                   moon~,
                   segment~,
                   description~,
+                  logger=agent.logger,
                 ))
                 if updated_opt is Some(Some(updated)) {
                   segment.replace(updated)

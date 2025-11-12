@@ -40,7 +40,6 @@ type File
 fn File::header(Self) -> SegmentView
 fn File::lines(Self) -> Array[StringView]
 fn File::path(Self) -> String
-async fn File::replace_segment(Self, Int, String) -> Unit
 fn File::segment(Self, Int) -> SegmentView
 fn File::segments(Self) -> ArrayView[SegmentView]
 impl Show for File
