@@ -16,24 +16,7 @@ struct Loader {
 ///
 /// Returns a Loader instance with an empty model cache that can be
 /// populated by calling `load`.
-pub async fn Loader::new(
-  home~ : StringView,
-  cwd~ : StringView,
-  logger~ : @pino.Logger,
-) -> Loader {
-  let loader = Loader::{ home, cwd, models: [], logger }
-  loader.load()
-  loader
-}
-
-///|
-async fn Model::load_from_path(path : StringView) -> Array[Model] {
-  let text = @fsx.read_file(path)
-  let json = @json.parse(text)
-  @json.from_json(json)
-}
-
-///|
+/// 
 /// Populate the loader's in-memory model cache by reading project and
 /// user model configuration files.
 ///
@@ -41,21 +24,39 @@ async fn Model::load_from_path(path : StringView) -> Array[Model] {
 /// current working directory first, then the user's home directory. If
 /// either file exists, the models defined there are appended to the
 /// loader's cache.
-async fn Loader::load(self : Loader) -> Unit {
-  let project = self.cwd
+pub async fn Loader::new(
+  home~ : StringView,
+  cwd~ : StringView,
+  logger~ : @pino.Logger,
+) -> Loader {
+  let loader = Loader::{ home, cwd, models: [], logger }
+  // let load_from_path = async fn (path) => {
+  //   let text = @fsx.read_file(path)
+  //   let json = @json.parse(text)
+  //   (@json.from_json(json) : Array[Model])
+  // }
+  // TODO: arrow function does not work yet
+  async fn load_from_path(path : StringView) -> Array[Model] {
+    let text = @fsx.read_file(path)
+    let json = @json.parse(text)
+    @json.from_json(json)
+  }
+
+  let project = loader.cwd
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
   if @fsx.exists(project) {
-    self.models.append(Model::load_from_path(project))
+    loader.models.append(load_from_path(project))
   }
-  let user = self.home
+  let user = loader.home
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
   if @fsx.exists(user) {
-    self.models.append(Model::load_from_path(user))
+    loader.models.append(load_from_path(user))
   }
+  loader
 }
 
 ///|
