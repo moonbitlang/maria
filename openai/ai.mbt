@@ -27,7 +27,7 @@ pub async fn chat(
     max_retry=5,
     () => {
       logger.debug("RequestSent", {
-        "model": { "name": model.name, "base_url": model.base_url },
+        "model": { "name": model.model_name, "base_url": model.base_url },
         "request": request.to_json(),
       })
       let url = "\{model.base_url}/chat/completions"
@@ -51,7 +51,7 @@ pub async fn chat(
         }
         let chat_completion = builder.to_chat_completion()
         logger.debug("ResponseReceived", {
-          "model": { "name": model.name, "base_url": model.base_url },
+          "model": { "name": model.model_name, "base_url": model.base_url },
           "response_code": response.code.to_json(),
           "response_body": chat_completion.to_json(),
         })
@@ -61,7 +61,7 @@ pub async fn chat(
         let json = @json.parse(body)
         let chat_completion : ChatCompletion = @json.from_json(json)
         logger.debug("ResponseReceived", {
-          "model": { "name": model.name, "base_url": model.base_url },
+          "model": { "name": model.model_name, "base_url": model.base_url },
           "response_code": response.code.to_json(),
           "response_body": chat_completion.to_json(),
         })
@@ -111,7 +111,7 @@ pub async fn text(model~ : @model.Model, prompt~ : String) -> String {
   let completion = chat(
     model~,
     chat_completion(
-      model=model.name,
+      model=model.model_name,
       messages=[
         system_message(content="You are a helpful assistant."),
         user_message(content=prompt),
@@ -178,7 +178,7 @@ pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
   let completion = chat(
     model~,
     chat_completion(
-      model=model.name,
+      model=model.model_name,
       messages=[
         system_message(content="You are a helpful assistant."),
         user_message(content=prompt),
@@ -231,7 +231,7 @@ pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T 
   let completion = chat(
     model~,
     chat_completion(
-      model=model.name,
+      model=model.model_name,
       messages=[
         system_message(content="You are a helpful assistant."),
         user_message(content=prompt),

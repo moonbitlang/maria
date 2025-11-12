@@ -6,7 +6,6 @@ async fn main {
     ["migrate", .. rest] => @migrator.migrate(rest)
     ["conversations"] => @conversation.list()
     ["conversation", .. rest] => @conversation.show(rest)
-    [unknown, ..] => raise @argument.InvalidArgument(unknown)
-    [] => @interactive.interactive()
+    [.. rest] => @interactive.interactive(rest)
   }
 }
