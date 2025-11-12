@@ -20,6 +20,7 @@ async test "agent/initialization" (t : @test.Test) {
     // Verify agent was created successfully
     inspect(agent.cwd, content=taco.cwd.path())
     inspect(agent.model.name, content="anthropic/claude-haiku-4.5")
+    inspect(agent.model.model_name, content="anthropic/claude-haiku-4.5")
   })
 }
 
@@ -582,5 +583,45 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
 
     let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "output.txt"))
     println(file_content)
+  })
+}
+
+///|
+async test "load-model-name" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    let model = @model.new(
+      api_key~,
+      base_url="https://openrouter.ai/api/v1",
+      name="haiku",
+      model_name="anthropic/claude-haiku-4.5",
+      safe_zone_tokens=200000,
+    )
+    let models = [model]
+    let models_file = mock.cwd
+      .add_directory(".moonagent")
+      .add_directory("models")
+      .add_file("models.json")
+    models_file.write_string(models.to_json().stringify(indent=2))
+    @json.inspect(mock.json(@json.parse(models_file.read())), content=[
+      {
+        "name": "haiku",
+        "model_name": "anthropic/claude-haiku-4.5",
+        "model_type": "saas/openai",
+        "api_key": "(mock:env:OPENAI_API_KEY)",
+        "base_url": "https://openrouter.ai/api/v1",
+        "safe_zone_tokens": 200000,
+        "supports_anthropic_prompt_caching": false,
+      },
+    ])
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
+    agent.add_message(
+      @openai.user_message(
+        content="Say 'Hello from loaded model' and nothing else.",
+      ),
+    )
+    // We don't snapshot anything here as we just expect to request to be
+    // successful with loaded model name
+    agent.start()
   })
 }
