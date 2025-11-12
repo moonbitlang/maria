@@ -46,3 +46,25 @@ async test "redirect-stdin" {
     ),
   )
 }
+
+///|
+async test "spawn/failed" {
+  let process = @spawn.spawn("sh", ["-c", "exit 42"])
+  @json.inspect(
+    (try? process.check())
+    .to_json()
+    .transform(@json.Replacer::exclude(["elapsed"])),
+    content={
+      "Err": [
+        "Failed",
+        {
+          "exec": "sh",
+          "args": ["-c", "exit 42"],
+          "status": 42,
+          "stdout": "",
+          "stderr": "",
+        },
+      ],
+    },
+  )
+}
