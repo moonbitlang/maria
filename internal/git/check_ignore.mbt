@@ -15,3 +15,9 @@ pub async fn check_ignore(
   }
   output.split("\n").map(line => line.to_string()).collect()
 }
+
+///|
+pub async fn is_ignored(path : StringView, cwd? : StringView) -> Bool {
+  let ignored_paths = check_ignore([path], cwd?)
+  return ignored_paths.contains(path.to_string())
+}

@@ -39,16 +39,34 @@ async fn collect_files_recursive(
   directory : String,
   file_pattern : String,
   base_dir : String,
+  want_respect_gitignore? : Bool = true,
+  does_respect_gitignore~ : Ref[Bool],
 ) -> Array[String] {
   let results = []
   let entries = @fsx.list_directory(directory)
   for entry in entries {
+    if want_respect_gitignore {
+      if entry.name is ".git" {
+        continue
+      }
+      if (try? @git.is_ignored(entry.path, cwd=base_dir)) is Ok(ignored) {
+        if ignored {
+          continue
+        }
+      } else {
+        does_respect_gitignore.val = false
+      }
+    }
     let full_path = @path.join(directory, entry.name)
     match entry.kind {
       Directory => {
         // Recursively collect from subdirectories
         let sub_results = collect_files_recursive(
-          full_path, file_pattern, base_dir,
+          full_path,
+          file_pattern,
+          base_dir,
+          want_respect_gitignore~,
+          does_respect_gitignore~,
         )
         results.append(sub_results)
       }
@@ -294,6 +312,10 @@ async fn search_files_impl(
   } else {
     search_path
   }
+  let want_respect_gitignore = match args {
+    { "respect_gitignore": False, .. } => false
+    _ => true
+  }
 
   // Parse search kind
   guard SearchKind::from_string(kind_str) is Some(search_kind) else {
@@ -378,12 +400,19 @@ async fn search_files_impl(
           let regex_result = @regexp.compile(search_pattern) catch {
             error => return @tool.error("Invalid regex pattern: \{error}")
           }
+          let does_respect_gitignore = Ref::new(true)
 
           // Collect files to search
           let files_to_search = if is_file {
             [absolute_search_path]
           } else {
-            collect_files_recursive(absolute_search_path, file_pattern, cwd)
+            collect_files_recursive(
+              absolute_search_path,
+              file_pattern,
+              cwd,
+              want_respect_gitignore~,
+              does_respect_gitignore~,
+            )
           }
 
           // Search through files
@@ -406,12 +435,21 @@ async fn search_files_impl(
           } else {
             all_results
           }
-          let message = if all_results.length() == 0 {
+          let mut message = if all_results.length() == 0 {
             "No matches found."
           } else if truncated {
             "Search completed. Found \{all_results.length()} matches, showing only the first 200."
           } else {
             "Search completed. Found \{all_results.length()} matches."
+          }
+          if want_respect_gitignore {
+            if does_respect_gitignore.val {
+              message = message +
+                " Note: Some files were not searched because they are ignored by git."
+            } else {
+              message = message +
+                " Note: gitignore rules were not fully respected during the search as \"git check-ignore\" fails to execute properly."
+            }
           }
           let result = SearchResultData::{
             kind: search_kind,
