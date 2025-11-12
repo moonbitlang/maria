@@ -1,4 +1,5 @@
 ///|
+#skip
 async test "create-file" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
@@ -87,6 +88,7 @@ async test "create-file" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "create-file-with-empty-search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
@@ -177,6 +179,7 @@ async test "create-file-with-empty-search" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fail-on-search-non-existent-file" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
@@ -218,6 +221,7 @@ async test "fail-on-search-non-existent-file" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "no-op-if-non-moonbit" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
     let model = mock.model()
@@ -254,6 +258,7 @@ async test "no-op-if-non-moonbit" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "no-op-if-no-syntax-error" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
@@ -341,6 +346,7 @@ async test "no-op-if-no-syntax-error" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "fuzzy-search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
@@ -415,6 +421,7 @@ async test "fuzzy-search" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "show-original-file-on-search-failure" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()

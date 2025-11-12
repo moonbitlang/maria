@@ -56,11 +56,12 @@ pub impl @json.FromJson for Model with from_json(
   }
   let safe_zone_tokens : Int = {
     guard json.get("safe_zone_tokens") is Some(safe_zone_tokens) else {
-      raise @json.JsonDecodeError(
-        (
-          json_path, "@moonbitlang/maria/model.Model::from_json: missing 'safe_zone_tokens' field",
-        ),
-      )
+      // raise @json.JsonDecodeError(
+      //   (
+      //     json_path, "@moonbitlang/maria/model.Model::from_json: missing 'safe_zone_tokens' field",
+      //   ),
+      // )
+      128_000
     }
     @json.from_json(
       safe_zone_tokens,
