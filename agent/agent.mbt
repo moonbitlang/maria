@@ -65,7 +65,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let origin_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
       messages~,
-      model=agent.model.name,
+      model=agent.model.model_name,
       tools~,
       usage=@openai.usage(include_=true),
     ),
@@ -75,7 +75,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let pruned_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
       messages~,
-      model=agent.model.name,
+      model=agent.model.model_name,
       tools~,
       usage=@openai.usage(include_=true),
     ),
@@ -87,7 +87,7 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
   let response = @openai.chat(
     model=agent.model,
     logger=agent.logger,
-    @openai.chat_completion(messages~, model=agent.model.name, tools~),
+    @openai.chat_completion(messages~, model=agent.model.model_name, tools~),
   )
   guard response.choices is [choice, ..] else { raise EmptyChoices }
   let message = choice.message
