@@ -38,17 +38,17 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
         rendered.split("\n").each(text => println("> \{text}"))
       _ => ()
     })
+    let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
+    group.spawn_bg(() => rl.start())
     if prompt is Some(prompt) {
+      println("$ \{prompt}")
       maria.start(prompt)
-    } else {
-      let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
+    }
+    while true {
       rl.set_prompt("$ ")
-      group.spawn_bg(() => rl.start())
-      while true {
-        rl.prompt()
-        let content : String = rl.read_line()
-        maria.start(content)
-      }
+      rl.prompt()
+      let prompt = rl.read_line()
+      maria.start(prompt)
     }
   })
 }
