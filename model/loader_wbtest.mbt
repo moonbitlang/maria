@@ -95,7 +95,6 @@ async test "load" (t : @test.Test) {
       cwd=project.path(),
       logger=mock.logger,
     )
-    loader.load()
     @json.inspect(mock.json(loader.get_model()), content=[
       {
         "name": "google/gemini-2.5-flash",
