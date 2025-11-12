@@ -25,6 +25,11 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
       "type": "string",
       "description": "The search pattern. For 'regex' kind: regular expression pattern with full regex syntax. For 'moonbit_definition' kind: symbol name or partial name (can be imprecise) for fuzzy symbolic search.",
     },
+    "respect_gitignore": {
+      "type": "boolean",
+      "description": "Whether to respect .gitignore files when searching. Defaults to true.",
+      "default": true,
+    },
   },
   "required": ["path", "regex", "kind"],
 })

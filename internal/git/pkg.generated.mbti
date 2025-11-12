@@ -14,6 +14,8 @@ async fn generate_git_diff(original~ : String, modified~ : String, line_number? 
 
 async fn init_(String) -> Unit
 
+async fn is_ignored(StringView, cwd? : StringView) -> Bool
+
 async fn list_files(cwd? : StringView) -> Array[String]
 
 async fn remove_worktree(String, force? : Bool, cwd? : StringView) -> Unit
