@@ -49,7 +49,7 @@ async test "check" (t : @test.Test) {
 async test "check_syntax_of_file" (t : @test.Test) {
   @mock.run(t, mock => {
     let file = mock.add_file("example.mbt")
-    file.write("let x :: Int = \"string\"")
+    file.write_string("let x :: Int = \"string\"")
     let diagnostics = check_syntax_of_file(file.path())
     @json.inspect(mock.json(diagnostics), content=[
       "Diagnostics",
