@@ -89,6 +89,7 @@ async fn search_in_file(
   base_dir : String,
 ) -> Array[SearchResult] raise SearchError {
   let content = @fsx.read_file(file_path) catch {
+    @encoding/utf8.Malformed(_) => return []
     error =>
       raise SearchError::FileReadError(path=file_path, error=error.to_string())
   }
