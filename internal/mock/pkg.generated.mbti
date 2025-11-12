@@ -55,7 +55,8 @@ fn Entry::name(Self) -> StringView
 type File
 fn File::path(Self) -> String
 async fn File::read(Self) -> String
-async fn File::write(Self, String) -> Unit
+async fn File::write_bytes(Self, Bytes) -> Unit
+async fn File::write_string(Self, String) -> Unit
 
 type Filter
 

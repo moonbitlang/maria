@@ -68,7 +68,7 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
     let file = mock.add_file("file.txt", content="Hello, Moonbit!")
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     let commit = rev_parse("HEAD", cwd=mock.cwd.path())
-    file.write("Hello, Moonbit! Version 2")
+    file.write_string("Hello, Moonbit! Version 2")
     @git.commit("Second commit", ["file.txt"], cwd=mock.cwd.path())
     @git.add_worktree(
       "worktree",

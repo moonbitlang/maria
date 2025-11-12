@@ -213,7 +213,12 @@ pub async fn File::read(self : File) -> String {
 
 ///|
 /// Overwrites the file contents with the given string.
-pub async fn File::write(self : File, content : String) -> Unit {
+pub async fn File::write_string(self : File, content : String) -> Unit {
+  @fs.write_file(self.0, content)
+}
+
+///|
+pub async fn File::write_bytes(self : File, content : Bytes) -> Unit {
   @fs.write_file(self.0, content)
 }
 
