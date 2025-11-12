@@ -145,6 +145,7 @@ async fn process_segment(
 
 ///|
 let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
   "properties": {
     "description": {
       "description": "A description of the changes to be made to fix the warnings/errors.",
