@@ -237,10 +237,12 @@ async fn Agent::emit(agent : Agent, event : Event) -> Unit {
     TokenCounted(token_count) =>
       agent.logger.info("TokenCounted", { "token_count": token_count.to_json() })
     ContextPruned(origin_token_count~, pruned_token_count~) =>
-      agent.logger.info("ContextPruned", {
-        "origin_token_count": origin_token_count.to_json(),
-        "pruned_token_count": pruned_token_count.to_json(),
-      })
+      if origin_token_count != pruned_token_count {
+        agent.logger.info("ContextPruned", {
+          "origin_token_count": origin_token_count.to_json(),
+          "pruned_token_count": pruned_token_count.to_json(),
+        })
+      }
     PreToolCall(tool_call) =>
       try {
         let args = @json.parse(tool_call.function.arguments)
