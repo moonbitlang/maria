@@ -30,36 +30,83 @@ export function EventsDisplay(props: EventsDisplayProps) {
         {events.map((event) => {
           switch (event.msg) {
             case "MessageAdded": {
+              switch (event.message.role) {
+                case "system": {
+                  // dont render system messages
+                  return <></>;
+                }
+                case "assistant": {
+                  // dont render assistant messages, they are rendered on RequestCompleted
+                  return <></>;
+                }
+                case "tool": {
+                  // dont render tool messages, they are rendered on PostToolCall
+                  return <></>;
+                }
+                case "user": {
+                  const content = event.message.content.join("").trim();
+                  return (
+                    <Message from="user">
+                      <MessageContent>
+                        <Response>{content}</Response>
+                      </MessageContent>
+                    </Message>
+                  );
+                }
+              }
               return <></>;
             }
             case "PostToolCall": {
+              const output = (
+                <Response>
+                  {["````markdown", event.text, "````"].join("\n")}
+                </Response>
+              );
               if (event.result) {
-                return <Tool></Tool>;
+                return (
+                  <Tool>
+                    <ToolHeader type={event.name} state="output-available" />
+                    <ToolContent>
+                      <ToolOutput output={output} errorText={undefined} />
+                    </ToolContent>
+                  </Tool>
+                );
               } else if (event.error) {
                 // toolcall error
                 return (
                   <Tool>
-                    <ToolHeader
-                      type={`tool-${event.name}`}
-                      state="output-error"
-                    />
+                    <ToolHeader type={event.name} state="output-error" />
                     <ToolContent>
                       <ToolOutput
-                        output
+                        output={output}
                         errorText={`Tool call error: <${event.name}>`}
                       />
                     </ToolContent>
                   </Tool>
                 );
               } else {
-                return <></>;
+                return (
+                  <Tool>
+                    <ToolHeader type={event.name} state="output-available" />
+                    <ToolContent>
+                      <ToolOutput
+                        output={output}
+                        errorText={`Tool call error: <${event.name}>`}
+                      />
+                    </ToolContent>
+                  </Tool>
+                );
               }
             }
             case "RequestCompleted": {
+              const content = event.message.content.trim();
+              if (content === "") {
+                return <></>;
+              }
               return (
-                <Message from={event.message.role as "user" | "assistant"}>
+                <Message from={event.message.role}>
                   <MessageContent>
-                    <Response>{event.message.content}</Response>
+                    <Response>{event.message.content.trim()}</Response>
                   </MessageContent>
                 </Message>
               );
