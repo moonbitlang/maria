@@ -139,6 +139,28 @@ pub impl Show for CommonModels with output(
 }
 
 ///|
+fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int {
+  match self {
+    Qwen3CoderPlus => 128_000
+    Qwen3CoderFlash => 128_000
+    Grok4Fast => 2_000_000
+    GrokCodeFast1 => 256_000
+    ClaudeHaiku4_5 => 200_000
+    ClaudeSonnet4_5 =>
+      // Although sonnet supports 1 M context, but providers tends to charge
+      // at a higher rate for context > 200 K. So we keep the safe zone at 200 K
+      200_000
+    Gpt5Codex => 400_000
+    Gpt5 => 400_000
+    Gpt5Mini => 400_000
+    Gpt5Nano => 400_000
+    KimiK2_0905 => 262_144
+    Glm4_6 => 202_752
+    MinimaxM2 => 204_800
+  }
+}
+
+///|
 /// Default to qwen3-coder-plus model on OpenRouter
 /// for testing
 pub fn open_router_model(
@@ -149,6 +171,6 @@ pub fn open_router_model(
     api_key~,
     base_url="https://openrouter.ai/api/v1",
     name=name.to_string(),
-    safe_zone_tokens=200_000,
+    safe_zone_tokens=name.safe_zone_tokens(),
   )
 }
