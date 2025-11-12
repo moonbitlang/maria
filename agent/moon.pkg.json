@@ -21,5 +21,6 @@
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/maria/tools/read_multiple_files",
     "moonbitlang/maria/internal/path"
-  ]
+  ],
+  "wbtest-import": ["moonbitlang/maria/internal/mock"]
 }
