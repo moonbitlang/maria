@@ -7,6 +7,11 @@
     "moonbitlang/async",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/internal/diagnostics"
+    "moonbitlang/maria/internal/diagnostics",
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/internal/uuid"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/mock"
   ]
 }

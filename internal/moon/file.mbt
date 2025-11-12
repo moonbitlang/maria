@@ -3,6 +3,8 @@ struct File {
   path : String
   mut content : String
   mut lines : Array[StringView]
+  /// segment[0] is the header
+  /// segment[1] is the first code segment, etc.
   segments : Array[Segment]
   mut mtime : Int64
 } derive(Show)
@@ -78,7 +80,7 @@ pub fn File::segments(self : File) -> ArrayView[SegmentView] {
 
 ///|
 pub fn File::segment(self : File, index : Int) -> SegmentView {
-  SegmentView::{ file: self, index }
+  SegmentView::{ file: self, index: index + 1 }
 }
 
 ///|
@@ -120,26 +122,34 @@ fn File::add_diagnostic(
 }
 
 ///|
-pub async fn File::replace_segment(
+async fn File::replace_segment(
   self : File,
   index : Int,
   content : String,
 ) -> Unit {
   let replaced = StringBuilder::new()
-  for segment in self.segments[:index + 1] {
+  for segment in self.segments[:index] {
     for i in 0..<segment.length {
       let line = self.lines[segment.offset + i]
-      replaced.write_substring(line.data(), line.start_offset(), line.length())
-      replaced.write_string("\n")
+      replaced.write_stringview(line)
+      replaced.write_char('\n')
     }
   }
   replaced.write_string(content)
-  replaced.write_string("\n")
-  for segment in self.segments[index + 2:] {
+  if index == self.segments.length() - 1 {
+    // do not add extra newline at the end of file
+  } else {
+    replaced.write_char('\n')
+  }
+  for si, segment in self.segments[index + 1:] {
     for i in 0..<segment.length {
       let line = self.lines[segment.offset + i]
-      replaced.write_substring(line.data(), line.start_offset(), line.length())
-      replaced.write_string("\n")
+      replaced.write_stringview(line)
+      if index + 1 + si == self.segments.length() - 1 && i == segment.length - 1 {
+        // do not add extra newline at the end of file
+      } else {
+        replaced.write_char('\n')
+      }
     }
   }
   let replaced = replaced.to_string()
