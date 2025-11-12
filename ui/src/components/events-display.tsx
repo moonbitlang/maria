@@ -4,6 +4,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "./ui/shadcn-io/ai/conversation";
+import type { SessionEvent } from "@/features/session/sessionSlice";
 import {
   Tool,
   ToolContent,
@@ -11,10 +12,14 @@ import {
   ToolOutput,
 } from "@/components/ai/tool";
 import { Response } from "@/components/ai/response";
-import { useAppSelector } from "@/app/hooks";
 
-export function EventsDisplay() {
-  const events = useAppSelector((state) => state.session.events);
+interface EventsDisplayProps {
+  events: SessionEvent[];
+}
+
+export function EventsDisplay(props: EventsDisplayProps) {
+  const { events } = props;
+
   if (events.length === 0) {
     return null;
   }
