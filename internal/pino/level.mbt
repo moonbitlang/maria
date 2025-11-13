@@ -6,16 +6,13 @@ pub(all) enum Level {
   Warn
   Error
   Fatal
-} derive(Show)
+} derive(Show, Eq, Compare, ToJson)
 
 ///|
-fn Level::to_int(self : Level) -> Int {
-  match self {
-    Trace => 10
-    Debug => 20
-    Info => 30
-    Warn => 40
-    Error => 50
-    Fatal => 60
-  }
+test {
+  assert_true(Trace < Debug)
+  assert_true(Debug < Info)
+  assert_true(Info < Warn)
+  assert_true(Warn < Error)
+  assert_true(Error < Fatal)
 }
