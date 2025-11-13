@@ -292,9 +292,7 @@ async fn execute_meta_write_to_file(
       // If there is no syntax error, write the file and return
       if diagnostics.is_empty() {
         mkdir_then_write(resolved_path, formatted_content)
-        let diff = generate_diff(
-          initial_content, formatted_content, "Changes made during formatting",
-        )
+        let diff = generate_diff(initial_content, formatted_content)
         return @tool.ok({
           path: resolved_path,
           message: if params.search is Some(search) && search != "" {
@@ -302,7 +300,7 @@ async fn execute_meta_write_to_file(
           } else {
             "File written and formatted successfully to \{params.path}"
           },
-          diff: diff.diff_text,
+          diff,
           learning_prompt: None,
         })
       }
@@ -343,12 +341,10 @@ async fn execute_meta_write_to_file(
       mkdir_then_write(resolved_path, final_content)
 
       // Compare final content with initial content and generate diff
-      let diff = generate_diff(
-        initial_content, final_content, "Changes made during formatting/fixing",
-      )
+      let diff = generate_diff(initial_content, final_content)
 
       // Add syntax error learning prompt if there were syntax errors that got fixed
-      let learning_prompt = if syntax_errors != "" && diff.has_changes {
+      let learning_prompt = if syntax_errors != "" && diff is Some(_) {
         let prompt =
           $|**⚠️ Syntax Error Learning Note:**
           $|
@@ -374,7 +370,7 @@ async fn execute_meta_write_to_file(
         } else {
           "File written and formatted successfully to \{params.path}"
         },
-        diff: diff.diff_text,
+        diff,
         learning_prompt,
       })
     } else {
@@ -391,7 +387,7 @@ async fn execute_meta_write_to_file(
       @tool.ok({
         path: resolved_path,
         message: write_result,
-        diff: "",
+        diff: None,
         learning_prompt: None,
       })
     }

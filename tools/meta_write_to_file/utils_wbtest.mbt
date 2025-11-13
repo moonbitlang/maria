@@ -12,15 +12,10 @@ async test "generate_diff with changes" {
     #|line3
     #|line4
     #|
-  let diff = generate_diff(old, new, "Test File")
-  inspect(diff.has_changes, content="true")
+  let diff = generate_diff(old, new)
   inspect(
-    diff.diff_text,
+    diff.unwrap(),
     content=(
-      #|
-      #|
-      #|**Test File:**
-      #|```diff
       #|diff --git original modified
       #|index 83db48f..beb8b6f 100644
       #|--- original
@@ -31,7 +26,6 @@ async test "generate_diff with changes" {
       #|+lineX
       #| line3
       #|+line4
-      #|```
     ),
   )
 }
