@@ -147,17 +147,17 @@ async fn main {
           ..write(script_js)
           ..end_response()
         }
-        (Get, ["", "v1", "agents"]) => {
-          let agents : Array[Json] = []
+        (Get, ["", "v1", "tasks"]) => {
+          let tasks : Array[Json] = []
           for _, server in daemon.by_cwd {
-            agents.push({
+            tasks.push({
               "name": server.name,
               "id": server.id.to_string(),
               "cwd": server.cwd,
               "port": server.port,
             })
           }
-          let response : Json = { "agents": agents }
+          let response : Json = { "tasks": tasks }
           conn
           ..send_response(200, "OK", extra_headers={
             "Content-Type": "application/json",
@@ -165,7 +165,7 @@ async fn main {
           ..write(response.stringify())
           ..end_response()
         }
-        (Post, ["", "v1", "agent"]) => {
+        (Post, ["", "v1", "task"]) => {
           let request_bytes = conn.read_all().binary()
           println("[DEBUG] Request body bytes: \{request_bytes}")
           let request_text = @encoding/utf8.decode(request_bytes) catch {
@@ -201,7 +201,7 @@ async fn main {
           }
           if daemon.by_cwd.get(cwd) is Some(server) {
             raise json_error(409, "Conflict", {
-              "agent": {
+              "task": {
                 "name": server.name,
                 "id": server.id.to_string(),
                 "cwd": server.cwd,
@@ -211,7 +211,7 @@ async fn main {
           }
           let port = find_available_port(9000)
           println(
-            "[INFO] Spawning agent '\{name}' at '\{cwd}' on port \{port}...",
+            "[INFO] Spawning task '\{name}' at '\{cwd}' on port \{port}...",
           )
           println("[DEBUG] Exec path: \{exec_path}, Model: \{model}")
           let process = daemon.process.spawn(
@@ -219,12 +219,12 @@ async fn main {
             ["--model", model, "--port", port.to_string()],
             cwd~,
           )
-          println("[INFO] Spawned agent process with PID \{process.pid}")
+          println("[INFO] Spawned task process with PID \{process.pid}")
           let server = Server::{ name, id: daemon.uuid.v4(), cwd, port }
           group.spawn_bg(() => {
             let exit_code = process.wait()
             if exit_code != 0 {
-              println("[ERROR] Agent process exited with code \{exit_code}")
+              println("[ERROR] task process exited with code \{exit_code}")
             }
             daemon.by_cwd.remove(cwd)
             daemon.by_id.remove(server.id)
@@ -233,7 +233,7 @@ async fn main {
           daemon.by_id[server.id] = server
           conn.send_response(201, "Created")
           let body : Json = {
-            "agent": {
+            "task": {
               "name": server.name,
               "id": server.id.to_string(),
               "cwd": server.cwd,
@@ -244,7 +244,7 @@ async fn main {
           conn.flush()
           conn.end_response()
         }
-        (Get, ["", "v1", "agent", id, "events"]) => {
+        (Get, ["", "v1", "task", id, "events"]) => {
           guard daemon.by_id.get(
               @uuid.parse(id) catch {
                 _ =>
@@ -255,10 +255,10 @@ async fn main {
             )
             is Some(server) else {
             raise json_error(404, "Not Found", {
-              "error": { "code": -1, "message": "Agent not found: \{id}" },
+              "error": { "code": -1, "message": "Task not found: \{id}" },
             })
           }
-          println("[INFO] Streaming events for agent \{id}...")
+          println("[INFO] Streaming events for task \{id}...")
           let (response, client) = @http.get_stream(
             "http://localhost/v1/events",
             headers=request.headers,
@@ -279,7 +279,7 @@ async fn main {
           println("[DEBUG] Finished streaming response body.")
           conn.end_response()
         }
-        (Post, ["", "v1", "agent", id, "message"]) => {
+        (Post, ["", "v1", "task", id, "message"]) => {
           guard daemon.by_id.get(
               @uuid.parse(id) catch {
                 _ =>
@@ -290,10 +290,10 @@ async fn main {
             )
             is Some(server) else {
             raise json_error(404, "Not Found", {
-              "error": { "code": -1, "message": "Agent not found: \{id}" },
+              "error": { "code": -1, "message": "Task not found: \{id}" },
             })
           }
-          println("[INFO] Forwarding message to agent \{id}...")
+          println("[INFO] Forwarding message to task \{id}...")
           let (response, response_body) = @http.post(
             "http://localhost/v1/message",
             headers=request.headers,

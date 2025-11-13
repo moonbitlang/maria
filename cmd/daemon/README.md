@@ -10,13 +10,13 @@ moon run cmd/daemon -- --port 8090 --serve cmd/daemon
 
 ## API
 
-### `GET /v1/agents`
+### `GET /v1/tasks`
 
 Returns a list of all active agent instances.
 
 ```json
 {
-  "agents": [
+  "tasks": [
     {
       "name": "example-agent",
       "id": "some-unique-id",
@@ -24,7 +24,7 @@ Returns a list of all active agent instances.
       "port": 8080
     },
     {
-      "name": "another-agent",
+      "name": "another-task",
       "id": "another-unique-id",
       "cwd": "/another/working/directory",
       "port": 8081
@@ -33,16 +33,16 @@ Returns a list of all active agent instances.
 }
 ```
 
-### `POST /v1/agent`
+### `POST /v1/task`
 
-Creates to an agent instance if the cwd is not yet associated with an existing
-agent. Attach to the existing agent spawned on cwd otherwise.
+Creates to a task instance if the cwd is not yet associated with an existing
+task. Attach to the existing task spawned on cwd otherwise.
 
 Request:
 
 ```json
 {
-  "name": "example-agent",
+  "name": "example-task",
   "model": "anthropic/claude-sonnet-4",
   "cwd": "/path/to/working/directory"
 }
@@ -50,12 +50,12 @@ Request:
 
 Response:
 
-- If the agent is created successfully, returns HTTP 201 Created.
+- If the task is created successfully, returns HTTP 201 Created.
 
   ```json
   {
-    "agent": {
-      "name": "example-agent",
+    "task": {
+      "name": "example-task",
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
       "port": 8080
@@ -63,13 +63,13 @@ Response:
   }
   ```
 
-- If there is already an existing agent on the specified cwd, returns HTTP 409
+- If there is already an existing task on the specified cwd, returns HTTP 409
   Conflict.
 
   ```json
   {
-    "agent": {
-      "name": "example-agent",
+    "task": {
+      "name": "example-task",
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
       "port": 8080
@@ -77,13 +77,13 @@ Response:
   }
   ```
 
-### `GET /v1/agent/{id}/events`
+### `GET /v1/task/{id}/events`
 
-Streams events related to the specified agent instance.
+Streams events related to the specified task instance.
 
-### `POST /v1/agent/{id}/message`
+### `POST /v1/task/{id}/message`
 
-Sends a message to the specified agent instance.
+Sends a message to the specified task instance.
 
 ```json
 {
@@ -94,9 +94,9 @@ Sends a message to the specified agent instance.
 }
 ```
 
-### `POST /v1/agent/{id}/publish`
+### `POST /v1/task/{id}/publish`
 
-Run `moon publish` in the agent's working directory.
+Run `moon publish` in the task's working directory.
 
 ```json
 {

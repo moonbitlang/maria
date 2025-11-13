@@ -1,20 +1,20 @@
 // Global state
 let eventSource = null;
-let currentAgentId = null;
-let agents = [];
+let currentTaskId = null;
+let tasks = [];
 
 // DOM elements
-const agentListDiv = document.getElementById("agentList");
+const taskListDiv = document.getElementById("taskList");
 const messagesDiv = document.getElementById("messages");
 const statusDiv = document.getElementById("status");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
-const createAgentBtn = document.getElementById("createAgentBtn");
-const createAgentModal = document.getElementById("createAgentModal");
+const createTaskBtn = document.getElementById("createTaskBtn");
+const createTaskModal = document.getElementById("createTaskModal");
 const confirmCreateBtn = document.getElementById("confirmCreateBtn");
 const cancelCreateBtn = document.getElementById("cancelCreateBtn");
-const agentView = document.getElementById("agentView");
-const noAgentSelected = document.getElementById("noAgentSelected");
+const taskView = document.getElementById("taskView");
+const noTaskSelected = document.getElementById("noTaskSelected");
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -237,88 +237,88 @@ function addMessage(text, type = "info") {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Agent management functions
-async function loadAgents() {
+// Task management functions
+async function loadTasks() {
   try {
-    const response = await fetch("/v1/agents");
+    const response = await fetch("/v1/tasks");
     if (!response.ok) {
-      throw new Error(`Failed to load agents: ${response.statusText}`);
+      throw new Error(`Failed to load tasks: ${response.statusText}`);
     }
     const data = await response.json();
-    agents = data.agents || [];
-    renderAgentList();
+    tasks = data.tasks || [];
+    renderTaskList();
 
-    // Auto-select first agent if none selected
-    if (agents.length > 0 && !currentAgentId) {
-      selectAgent(agents[0].id);
+    // Auto-select first task if none selected
+    if (tasks.length > 0 && !currentTaskId) {
+      selectTask(tasks[0].id);
     }
   } catch (error) {
-    console.error("Error loading agents:", error);
-    showError("Failed to load agents: " + error.message);
+    console.error("Error loading tasks:", error);
+    showError("Failed to load tasks: " + error.message);
   }
 }
 
-function renderAgentList() {
-  agentListDiv.innerHTML = "";
+function renderTaskList() {
+  taskListDiv.innerHTML = "";
 
-  if (agents.length === 0) {
+  if (tasks.length === 0) {
     const emptyMsg = document.createElement("div");
     emptyMsg.style.padding = "20px";
     emptyMsg.style.color = "#95a5a6";
     emptyMsg.style.textAlign = "center";
-    emptyMsg.textContent = "No agents yet";
-    agentListDiv.appendChild(emptyMsg);
+    emptyMsg.textContent = "No tasks yet";
+    taskListDiv.appendChild(emptyMsg);
     return;
   }
 
-  agents.forEach((agent) => {
-    const agentItem = document.createElement("div");
-    agentItem.className = "agent-item";
-    if (agent.id === currentAgentId) {
-      agentItem.classList.add("active");
+  tasks.forEach((task) => {
+    const taskItem = document.createElement("div");
+    taskItem.className = "task-item";
+    if (task.id === currentTaskId) {
+      taskItem.classList.add("active");
     }
 
-    agentItem.innerHTML = `
-      <div class="agent-name">${escapeHtml(agent.name)}</div>
-      <div class="agent-cwd">${escapeHtml(agent.cwd)}</div>
+    taskItem.innerHTML = `
+      <div class="task-name">${escapeHtml(task.name)}</div>
+      <div class="task-cwd">${escapeHtml(task.cwd)}</div>
     `;
 
-    agentItem.addEventListener("click", () => selectAgent(agent.id));
-    agentListDiv.appendChild(agentItem);
+    taskItem.addEventListener("click", () => selectTask(task.id));
+    taskListDiv.appendChild(taskItem);
   });
 }
 
-function selectAgent(agentId) {
-  if (currentAgentId === agentId) return;
+function selectTask(taskId) {
+  if (currentTaskId === taskId) return;
 
-  // Disconnect from previous agent's event stream
+  // Disconnect from previous task's event stream
   if (eventSource) {
     eventSource.close();
     eventSource = null;
   }
 
-  currentAgentId = agentId;
+  currentTaskId = taskId;
   messagesDiv.innerHTML = "";
 
   // Update UI
-  renderAgentList();
-  noAgentSelected.style.display = "none";
-  agentView.classList.add("active");
+  renderTaskList();
+  noTaskSelected.style.display = "none";
+  taskView.classList.add("active");
 
-  // Connect to new agent's event stream
-  connectToAgent(agentId);
+  // Connect to new task's event stream
+  connectToTask(taskId);
 }
 
-function connectToAgent(agentId) {
-  const agent = agents.find((a) => a.id === agentId);
-  if (!agent) return;
+function connectToTask(taskId) {
+  const task = tasks.find((t) => t.id === taskId);
+  if (!task) return;
 
-  eventSource = new EventSource(`/v1/agent/${agentId}/events`);
+  eventSource = new EventSource(`/v1/task/${taskId}/events`);
 
   eventSource.onopen = () => {
-    statusDiv.textContent = `Status: Connected to ${agent.name}`;
+    statusDiv.textContent = `Status: Connected to ${task.name}`;
     statusDiv.style.color = "#1abc9c";
-    addMessage(`✓ Connected to agent: ${agent.name}`);
+    addMessage(`✓ Connected to task: ${task.name}`);
   };
 
   eventSource.onmessage = (event) => {
@@ -339,15 +339,15 @@ function connectToAgent(agentId) {
   });
 
   eventSource.onerror = (error) => {
-    statusDiv.textContent = `Status: Error/Disconnected from ${agent.name}`;
+    statusDiv.textContent = `Status: Error/Disconnected from ${task.name}`;
     statusDiv.style.color = "#e74c3c";
     addMessage("✗ Connection error");
   };
 }
 
-async function createAgent(name, model, cwd) {
+async function createTask(name, model, cwd) {
   try {
-    const response = await fetch("/v1/agent", {
+    const response = await fetch("/v1/task", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -360,28 +360,28 @@ async function createAgent(name, model, cwd) {
     });
 
     if (!response.ok && response.status !== 409) {
-      throw new Error(`Failed to create agent: ${response.statusText}`);
+      throw new Error(`Failed to create task: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const agent = data.agent;
+    const task = data.task;
 
     if (response.status === 409) {
-      // Agent already exists, just select it
-      await loadAgents();
-      selectAgent(agent.id);
+      // Task already exists, just select it
+      await loadTasks();
+      selectTask(task.id);
       return {
         success: true,
-        message: `Connected to existing agent: ${agent.name}`,
+        message: `Connected to existing task: ${task.name}`,
       };
     } else {
-      // New agent created
-      await loadAgents();
-      selectAgent(agent.id);
-      return { success: true, message: `Agent created: ${agent.name}` };
+      // New task created
+      await loadTasks();
+      selectTask(task.id);
+      return { success: true, message: `Task created: ${task.name}` };
     }
   } catch (error) {
-    console.error("Error creating agent:", error);
+    console.error("Error creating task:", error);
     return { success: false, message: error.message };
   }
 }
@@ -399,36 +399,36 @@ function showError(message) {
 }
 
 // Modal functions
-function showCreateAgentModal() {
-  createAgentModal.classList.add("show");
-  document.getElementById("agentName").value = "";
-  document.getElementById("agentModel").value = "anthropic/claude-sonnet-4";
-  document.getElementById("agentCwd").value = "";
-  document.getElementById("agentName").focus();
+function showCreateTaskModal() {
+  createTaskModal.classList.add("show");
+  document.getElementById("taskName").value = "";
+  document.getElementById("taskModel").value = "anthropic/claude-sonnet-4.5";
+  document.getElementById("taskCwd").value = "";
+  document.getElementById("taskName").focus();
 }
 
-function hideCreateAgentModal() {
-  createAgentModal.classList.remove("show");
+function hideCreateTaskModal() {
+  createTaskModal.classList.remove("show");
 }
 
 // Event listeners
-createAgentBtn.addEventListener("click", showCreateAgentModal);
+createTaskBtn.addEventListener("click", showCreateTaskModal);
 
-cancelCreateBtn.addEventListener("click", hideCreateAgentModal);
+cancelCreateBtn.addEventListener("click", hideCreateTaskModal);
 
 confirmCreateBtn.addEventListener("click", async () => {
-  const name = document.getElementById("agentName").value.trim();
-  const model = document.getElementById("agentModel").value.trim();
-  const cwd = document.getElementById("agentCwd").value.trim();
+  const name = document.getElementById("taskName").value.trim();
+  const model = document.getElementById("taskModel").value.trim();
+  const cwd = document.getElementById("taskCwd").value.trim();
 
   if (!name || !model || !cwd) {
     alert("Please fill in all fields");
     return;
   }
 
-  hideCreateAgentModal();
+  hideCreateTaskModal();
 
-  const result = await createAgent(name, model, cwd);
+  const result = await createTask(name, model, cwd);
   if (result.success) {
     addMessage(`✓ ${result.message}`);
   } else {
@@ -437,9 +437,9 @@ confirmCreateBtn.addEventListener("click", async () => {
 });
 
 // Close modal on background click
-createAgentModal.addEventListener("click", (e) => {
-  if (e.target === createAgentModal) {
-    hideCreateAgentModal();
+createTaskModal.addEventListener("click", (e) => {
+  if (e.target === createTaskModal) {
+    hideCreateTaskModal();
   }
 });
 
@@ -477,8 +477,8 @@ function connect() {
 }
 
 sendBtn.addEventListener("click", async () => {
-  if (!currentAgentId) {
-    showError("Please select an agent first");
+  if (!currentTaskId) {
+    showError("Please select a task first");
     return;
   }
 
@@ -489,7 +489,7 @@ sendBtn.addEventListener("click", async () => {
   }
 
   try {
-    const response = await fetch(`/v1/agent/${currentAgentId}/message`, {
+    const response = await fetch(`/v1/task/${currentTaskId}/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -520,7 +520,7 @@ messageInput.addEventListener("keypress", (e) => {
   }
 });
 
-// Auto-load agents when DOM is ready
+// Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  loadAgents();
+  loadTasks();
 });
