@@ -92,6 +92,7 @@ async fn main {
     }
     [] => break
   }
+  println("[INFO] Serving static files from: \{serve}")
   let broadcast = @broadcast.Broadcast::new()
   let logger = @pino.logger(
     "server",
@@ -134,15 +135,6 @@ async fn main {
         conn
         ..send_response(200, "OK", extra_headers={ "Content-Type": "text/html" })
         ..write(index_html)
-        ..end_response()
-      }
-      (Get, "/script.js") => {
-        let script_js = html_read_file(@path.join(serve, "script.js"))
-        conn
-        ..send_response(200, "OK", extra_headers={
-          "Content-Type": "application/javascript",
-        })
-        ..write(script_js)
         ..end_response()
       }
       (Get, "/v1/events") => {
@@ -220,11 +212,31 @@ async fn main {
         ..write(response.stringify())
         ..end_response()
       }
+      (Get, ['/', .. file]) if "\{serve}/\{file}" is path &&
+        (try? @fsx.exists_as_file(path)) is Ok(true) => {
+        let content_type = match @path.ext(path) {
+          ".js" => "application/javascript"
+          ".css" => "text/css"
+          ".html" => "text/html"
+          ".png" => "image/png"
+          ".jpg" | ".jpeg" => "image/jpeg"
+          ".gif" => "image/gif"
+          _ => "application/octet-stream"
+        }
+        println("[DEBUG] Serving static file: \{path}")
+        let content = html_read_file(path)
+        conn
+        ..send_response(200, "OK", extra_headers={
+          "Content-Type": content_type,
+        })
+        ..write(content)
+        ..end_response()
+      }
       _ =>
         raise json_error(404, "NotFound", {
           "error": {
             "code": -1,
-            "message": Failure("Unknown endpoint: \{request.path}").to_string(),
+            "message": "Unknown endpoint: \{request.path}",
           },
         })
     })
