@@ -32,8 +32,8 @@ async test "create-file" (t : @test.Test) {
       content=(
         #|File written and formatted successfully to main.mbt
         #|
-        #|
         #|**Changes made during formatting:**
+        #|
         #|```diff
         #|diff --git original modified
         #|index 8258f5d..c8bbf10 100644
@@ -122,8 +122,8 @@ async test "create-file-with-empty-search" (t : @test.Test) {
       content=(
         #|File written and formatted successfully to main.mbt
         #|
-        #|
         #|**Changes made during formatting:**
+        #|
         #|```diff
         #|diff --git original modified
         #|index 8258f5d..c8bbf10 100644

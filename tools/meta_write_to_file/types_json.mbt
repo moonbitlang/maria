@@ -5,9 +5,16 @@ pub impl Show for MetaWriteToFileResult with output(
 ) -> Unit {
   logger.write_string(self.message)
   logger.write_char('\n')
-  if !self.diff.is_blank() {
-    logger.write_string(self.diff)
-    logger.write_char('\n')
+  if self.diff is Some(diff) && !diff.is_blank() {
+    if self.learning_prompt is Some(_) {
+      logger.write_string(
+        "\n**Changes made during formatting/fixing:**\n\n```diff\n",
+      )
+    } else {
+      logger.write_string("\n**Changes made during formatting:**\n\n```diff\n")
+    }
+    logger.write_string(diff.trim_space().to_string())
+    logger.write_string("\n```\n")
   }
   if self.learning_prompt is Some(learning_prompt) {
     logger.write_char('\n')
@@ -21,10 +28,14 @@ test "MetaWriteToFileResult::Show" {
   let result = MetaWriteToFileResult::{
     path: "/var/folders/jb/64x3jtc51qbfk3y1m9f3yvyc0000gn/T/maria-test-smJHF4P/json_parser/json_parser/moon.pkg.json",
     message: "File written successfully to json_parser/json_parser/moon.pkg.json",
-    diff: "\n\n**Diff:**\n```diff\n@@ -1,5 +1,5 @@\n {\n-  \"name\": \"json_parser\",\n+  \"name\": \"json_parser_updated\",\n   \"version\": \"0.1.0\",\n   \"dependencies\": {\n     \"moonbitlang/maria\": \"^0.1.0\"\n   }\n }\n```",
+    diff: Some(
+      "@@ -1,5 +1,5 @@\n {\n-  \"name\": \"json_parser\",\n+  \"name\": \"json_parser_updated\",\n   \"version\": \"0.1.0\",\n   \"dependencies\": {\n     \"moonbitlang/maria\": \"^0.1.0\"\n   }\n }",
+    ),
     learning_prompt: Some(
       (
         #|**⚠️ Syntax Error Learning Note:**
+        #|
+        #|The file had syntax errors that were automatically fixed. Please review the changes to ensure correctness.
       ),
     ),
   }
@@ -33,8 +44,8 @@ test "MetaWriteToFileResult::Show" {
     content=(
       #|File written successfully to json_parser/json_parser/moon.pkg.json
       #|
+      #|**Changes made during formatting/fixing:**
       #|
-      #|**Diff:**
       #|```diff
       #|@@ -1,5 +1,5 @@
       #| {
@@ -48,6 +59,8 @@ test "MetaWriteToFileResult::Show" {
       #|```
       #|
       #|**⚠️ Syntax Error Learning Note:**
+      #|
+      #|The file had syntax errors that were automatically fixed. Please review the changes to ensure correctness.
       #|
     ),
   )

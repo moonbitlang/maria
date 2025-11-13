@@ -2,7 +2,7 @@
 pub struct MetaWriteToFileResult {
   path : String
   message : String
-  diff : String
+  diff : String?
   learning_prompt : String?
 } derive(ToJson, FromJson)
 
@@ -17,11 +17,4 @@ priv struct FixingContext {
   description : String
   syntax_errors : String
   parent_agent : @agent.Agent
-}
-
-///|
-/// Result of diff comparison between two strings
-priv struct DiffResult {
-  has_changes : Bool
-  diff_text : String
 }

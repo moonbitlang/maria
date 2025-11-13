@@ -16,7 +16,7 @@ fn new(@agent.Agent) -> @tool.Tool[MetaWriteToFileResult]
 pub struct MetaWriteToFileResult {
   path : String
   message : String
-  diff : String
+  diff : String?
   learning_prompt : String?
 }
 impl Show for MetaWriteToFileResult
