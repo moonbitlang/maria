@@ -3,7 +3,7 @@
 #cfg(false)
 async test "fix_moonbit_warnings" (t : @test.Test) {
   @mock.run(t, mock => {
-    let model = mock.model()
+    let model = mock.model(name=ClaudeHaiku4_5)
     mock
     .add_file("moon.mod.json")
     .write_string(
@@ -115,7 +115,7 @@ async test "fix_moonbit_warnings" (t : @test.Test) {
         },
       ],
     ])
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
     let tool = @fix_moonbit_warnings.new(agent)
     let args : Json = {
       "project_path": mock.cwd.path(),
