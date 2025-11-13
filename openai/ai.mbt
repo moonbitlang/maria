@@ -72,18 +72,17 @@ pub async fn chat(
 }
 
 ///|
-priv struct ChunkReader(@io.BufferedReader[&@io.Reader])
+priv struct ChunkReader(&@io.Reader)
 
 ///|
 fn ChunkReader::new(reader : &@io.Reader) -> ChunkReader {
-  let reader = @io.BufferedReader::new(reader)
   ChunkReader(reader)
 }
 
 ///|
 async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
   for {
-    guard self.0.read_line() is Some(line) else { return None }
+    guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
     if rest.trim_space() == "[DONE]" {
       return None
