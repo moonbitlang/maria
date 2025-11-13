@@ -173,7 +173,7 @@ impl ToJson for ChatCompletionTopLogprob with to_json(
 impl ToJson for ChatCompletionMessageToolCallFunction with to_json(
   self : ChatCompletionMessageToolCallFunction,
 ) -> Json {
-  { "name": self.name, "arguments": self.arguments }
+  { "name": self.name, "arguments": self.arguments.unwrap_or("") }
 }
 
 ///|
@@ -184,8 +184,14 @@ impl @json.FromJson for ChatCompletionMessageToolCallFunction with from_json(
   guard json is Object(json) else {
     raise @json.JsonDecodeError((json_path, "Expected an object"))
   }
-  guard json.get("arguments") is Some(String(arguments)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'arguments' field"))
+  let arguments = match json.get("arguments") {
+    Some(String(arguments)) => Some(arguments)
+    Some(Null) => None
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path, "Expected 'arguments' to be a string"),
+      )
+    None => None
   }
   guard json.get("name") is Some(String(name)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'name' field"))
@@ -1567,7 +1573,10 @@ pub fn tool_call(
 ) -> ChatCompletionMessageToolCall {
   ChatCompletionMessageToolCall::{
     id,
-    function: ChatCompletionMessageToolCallFunction::{ name, arguments },
+    function: ChatCompletionMessageToolCallFunction::{
+      name,
+      arguments: Some(arguments),
+    },
   }
 }
 

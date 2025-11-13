@@ -85,12 +85,13 @@ fn format_message_content(
           lines.push(
             "**🔧 Tool Call:** \{get_tool_description(tool_name)} (\{tool_name})",
           )
-          if not(tool_call.function.arguments.is_empty()) {
+          if tool_call.function.arguments is Some(arguments) &&
+            !arguments.is_empty() {
             lines.push("")
             lines.push("**Parameters:**")
 
             // Try to parse arguments as JSON and format nicely
-            let args_result = try? @json.parse(tool_call.function.arguments)
+            let args_result = try? @json.parse(arguments)
             match args_result {
               Ok(Json::Object(args_map)) =>
                 for key, value in args_map {
@@ -100,7 +101,7 @@ fn format_message_content(
                   }
                   lines.push("- **\{key}:** \{value_str}")
                 }
-              _ => lines.push("- **raw:** \{tool_call.function.arguments}")
+              _ => lines.push("- **raw:** \{arguments}")
             }
           }
         }

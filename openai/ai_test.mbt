@@ -212,7 +212,7 @@ async test "streaming_tool_call" (t : @test.Test) {
     )
     @json.inspect(
       @json.parse(
-        chat_completion.choices[0].message.tool_calls[0].function.arguments,
+        chat_completion.choices[0].message.tool_calls[0].function.arguments.unwrap(),
       ),
       content={ "location": "San Francisco" },
     )
@@ -254,9 +254,11 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
     let tool_calls = tool_calls.map(tc => {
       guard tc.to_json() is Object(tc_object)
       tc_object.remove("id")
-      tc_object["function"].as_object().unwrap()["arguments"] = @json.parse(
-        tc.function.arguments,
-      )
+      if tc.function.arguments is Some(arguments) {
+        tc_object["function"].as_object().unwrap()["arguments"] = @json.parse(
+          arguments,
+        )
+      }
       tc_object.to_json()
     })
     tool_calls.sort_by((a, b) => a.stringify().compare(b.stringify()))

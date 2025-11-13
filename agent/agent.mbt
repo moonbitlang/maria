@@ -112,19 +112,34 @@ async fn Agent::execute_tool(
     )
   }
   agent.emit(PreToolCall(tool_call))
-  let arguments = @json.parse(tool_call.function.arguments) catch {
-    error =>
+  match tool_call.function.arguments {
+    None =>
       return @openai.tool_message(
-        content="Error parsing tool arguments: \{error}",
+        content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
         tool_call_id=tool_call.id,
       )
+    Some(arguments) =>
+      if arguments.is_empty() {
+        return @openai.tool_message(
+          content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
+          tool_call_id=tool_call.id,
+        )
+      } else {
+        let arguments = @json.parse(arguments) catch {
+          error =>
+            return @openai.tool_message(
+              content="Error parsing tool arguments: \{error}",
+              tool_call_id=tool_call.id,
+            )
+        }
+        let (result, rendered) = match tool.call(arguments) {
+          Ok((json, text)) => (Ok(json), text)
+          Error(error, text) => (Err(error), text)
+        }
+        agent.emit(PostToolCall(tool_call, result~, rendered~))
+        @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+      }
   }
-  let (result, rendered) = match tool.call(arguments) {
-    Ok((json, text)) => (Ok(json), text)
-    Error(error, text) => (Err(error), text)
-  }
-  agent.emit(PostToolCall(tool_call, result~, rendered~))
-  @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
 ///|
@@ -244,21 +259,29 @@ async fn Agent::emit(agent : Agent, event : Event) -> Unit {
         })
       }
     PreToolCall(tool_call) =>
-      try {
-        let args = @json.parse(tool_call.function.arguments)
-        agent.logger.info("PreToolCall", {
-          "tool_call": tool_call.to_json(),
-          "name": tool_call.function.name.to_json(),
-          "args": args,
-        })
-      } catch {
-        error =>
+      match tool_call.function.arguments {
+        None =>
           agent.logger.info("PreToolCall", {
             "tool_call": tool_call.to_json(),
             "name": tool_call.function.name.to_json(),
-            "args": tool_call.function.arguments.to_json(),
-            "error": error.to_json(),
           })
+        Some(arguments) =>
+          try @json.parse(arguments) catch {
+            error =>
+              agent.logger.info("PreToolCall", {
+                "tool_call": tool_call.to_json(),
+                "name": tool_call.function.name.to_json(),
+                "args": tool_call.function.arguments.to_json(),
+                "error": error.to_json(),
+              })
+          } noraise {
+            args =>
+              agent.logger.info("PreToolCall", {
+                "tool_call": tool_call.to_json(),
+                "name": tool_call.function.name.to_json(),
+                "args": args,
+              })
+          }
       }
     PostToolCall(tool_call, result~, rendered~) =>
       match result {

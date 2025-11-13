@@ -194,7 +194,7 @@ impl Show for ChatCompletionMessageToolCall
 impl ToJson for ChatCompletionMessageToolCall
 
 pub struct ChatCompletionMessageToolCallFunction {
-  arguments : String
+  arguments : String?
   name : String
 }
 impl Show for ChatCompletionMessageToolCallFunction
