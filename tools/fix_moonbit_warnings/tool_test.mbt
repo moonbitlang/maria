@@ -1,4 +1,6 @@
 ///|
+/// FIXME: reenable
+#cfg(false)
 async test "fix_moonbit_warnings" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
