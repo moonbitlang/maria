@@ -8,9 +8,29 @@ enum Transport {
 }
 
 ///|
-pub suberror InvalidTransport StringView derive(Show)
+priv suberror InvalidTransport StringView derive(Show)
 
 ///|
+/// Parses a transport string and creates the corresponding Transport instance.
+///
+/// # Parameters
+/// - `transport`: A string in the format "scheme:path" specifying the transport type
+///
+/// # Supported Schemes
+/// - "console:" - Outputs to standard output (path must be empty)
+/// - "file:path" - Outputs to a file at the specified path
+///
+/// # Returns
+/// A configured Transport instance
+///
+/// # Raises
+/// - `InvalidTransport` if the scheme is unknown or the format is invalid
+///
+/// # Example
+/// ```moonbit
+/// let _t1 = transport("console:")
+/// let _t2 = transport("file:/var/log/app.log")
+/// ```
 pub fn transport(transport : StringView) -> Transport raise {
   let schema = StringBuilder::new()
   let path : StringView = loop transport {
@@ -99,27 +119,75 @@ async fn Transport::close(self : Transport) -> Unit {
 }
 
 ///|
+/// Creates a console transport that outputs to standard output.
+///
+/// Log messages are written to stdout as JSON strings, one per line.
+///
+/// # Returns
+/// A Transport configured for console output
 pub fn Transport::console() -> Transport {
   Transport::Console
 }
 
 ///|
+/// Creates a file transport that writes logs to the specified file.
+///
+/// # Parameters
+/// - `path`: The file path where logs will be written
+///
+/// # Behavior
+/// - Creates parent directories if they don't exist
+/// - Opens the file in append mode if it exists
+/// - Creates the file with 0o644 permissions if it doesn't exist
+/// - Writes each log entry as a JSON object on a separate line
+///
+/// # Returns
+/// A Transport configured for file output
 pub fn Transport::file(path : StringView) -> Transport {
   Transport::File(path=path.to_string(), file=None)
 }
 
 ///|
+/// Creates a sink transport that discards all log messages.
+///
+/// Useful for testing or when logging needs to be disabled without
+/// changing the logger configuration.
+///
+/// # Returns
+/// A Transport that silently discards all output
 pub fn Transport::sink() -> Transport {
   Transport::Sink
 }
 
 ///|
+/// Creates a channel transport that sends log entries to a queue.
+///
+/// # Parameters
+/// - `queue`: An async queue that will receive Json log objects
+///
+/// # Returns
+/// A Transport that sends logs to the specified queue
+///
+/// # Note
+/// This method is deprecated; the alias "chan" is provided for backward compatibility
 #alias(chan, deprecated)
 pub fn Transport::channel(queue : @aqueue.Queue[Json]) -> Transport {
   Transport::Channel(queue)
 }
 
 ///|
+/// Creates a callback transport that invokes a custom function for each log entry.
+///
+/// # Parameters
+/// - `callback`: A function that will be called with each Json log object
+///
+/// # Returns
+/// A Transport that delegates log handling to the provided callback
+///
+/// # Use Cases
+/// - Custom log processing or formatting
+/// - Integration with external logging systems
+/// - Testing and log capture
 pub fn Transport::callback(callback : (Json) -> Unit) -> Transport {
   Transport::Callback(callback)
 }
