@@ -582,7 +582,10 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     // Verify file was actually created
 
     let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "output.txt"))
-    println(file_content)
+    // use property testing to avoid LLM unstable output issue
+    assert_true(file_content.contains("foo.txt:L3"))
+    assert_true(file_content.contains("foo.txt:L4"))
+    assert_true(file_content.contains("bar.txt:L3"))
   })
 }
 
