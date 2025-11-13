@@ -154,6 +154,15 @@ async fn main {
         })
         broadcast.listen(channel => for {
           let event = channel.get()
+          guard event
+            is {
+              "msg": "MessageAdded"
+              | "RequestCompleted"
+              | "PostToolCall",
+              ..
+            } else {
+            continue
+          }
           conn.write("event: maria\n")
           conn.write("data: \{event.stringify()}\n\n")
           conn.flush()
