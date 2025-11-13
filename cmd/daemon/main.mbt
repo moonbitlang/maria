@@ -106,7 +106,11 @@ async fn main {
       continue args
     }
     [e, .. args] => {
-      exec_path = Some(e)
+      exec_path = if @path.is_absolute(e) {
+        Some(e)
+      } else {
+        Some(@path.join(@os.cwd(), e))
+      }
       continue args
     }
     [] => break
