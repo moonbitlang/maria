@@ -26,11 +26,11 @@ pub async fn Logger::log(
   message : StringView,
   content : Map[String, Json],
 ) -> Unit {
-  if level.to_int() < self.level.to_int() {
+  if level < self.level {
     return
   }
   let object : Map[String, Json] = {
-    "level": level.to_int().to_json(),
+    "level": level.to_json(),
     "pid": @spawn.getpid().to_json(),
     "msg": message.to_json(),
   }

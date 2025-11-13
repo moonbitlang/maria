@@ -24,7 +24,10 @@ pub(all) enum Level {
   Error
   Fatal
 }
+impl Compare for Level
+impl Eq for Level
 impl Show for Level
+impl ToJson for Level
 
 type Logger
 fn Logger::child(Self, Map[String, Json]) -> Self
