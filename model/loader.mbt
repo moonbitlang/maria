@@ -11,12 +11,13 @@ struct Loader {
 /// current working directory.
 ///
 /// Parameters:
+///
 /// - home: Absolute path to the user's home directory.
 /// - cwd: Absolute path to the current project directory.
 ///
 /// Returns a Loader instance with an empty model cache that can be
 /// populated by calling `load`.
-/// 
+///
 /// Populate the loader's in-memory model cache by reading project and
 /// user model configuration files.
 ///
@@ -130,4 +131,16 @@ pub async fn Loader::get_model(
   } else {
     None
   }
+}
+
+///|
+/// Returns a read-only view of all models currently cached in the loader.
+///
+/// Parameters:
+///
+/// * `self` : The loader instance to get models from.
+///
+/// Returns an `ArrayView[Model]` containing all cached models.
+pub fn Loader::models(self : Loader) -> ArrayView[Model] {
+  self.models
 }
