@@ -211,7 +211,7 @@ pub async fn new(
   uuid? : @uuid.Generator,
   logger? : @pino.Logger = @pino.logger(
     "agent",
-    try! @pino.transport("file:.moonagent/log"),
+    try! @pino.transport("file:.moonagent/log.jsonl"),
   ),
   cwd~ : StringView,
 ) -> Agent {
