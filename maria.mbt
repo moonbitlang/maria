@@ -12,7 +12,7 @@ pub suberror ModelNotConfigured
 pub async fn Maria::new(
   logger? : @pino.Logger = @pino.logger(
     "maria",
-    try! @pino.transport("file:.moonagent/log"),
+    try! @pino.transport("file:.moonagent/log.jsonl"),
   ),
   model? : String,
   cwd? : String,
