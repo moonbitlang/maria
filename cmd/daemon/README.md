@@ -10,6 +10,20 @@ moon run cmd/daemon -- --port 8090 --serve cmd/daemon
 
 ## API
 
+### `GET /v1/models`
+
+Returns a list of available models.
+
+```json
+{
+  "models": [
+    {
+      "name": "anthropic/claude-sonnet-4"
+    }
+  ]
+}
+```
+
 ### `GET /v1/tasks`
 
 Returns a list of all active agent instances.
