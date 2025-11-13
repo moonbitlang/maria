@@ -127,32 +127,31 @@ async fn File::replace_segment(
   index : Int,
   content : String,
 ) -> Unit {
-  let replaced = StringBuilder::new()
+  let replaced = []
   for segment in self.segments[:index] {
     for i in 0..<segment.length {
-      let line = self.lines[segment.offset + i]
-      replaced.write_stringview(line)
-      replaced.write_char('\n')
-    }
-  }
-  replaced.write_string(content)
-  if index == self.segments.length() - 1 {
-    // do not add extra newline at the end of file
-  } else {
-    replaced.write_char('\n')
-  }
-  for si, segment in self.segments[index + 1:] {
-    for i in 0..<segment.length {
-      let line = self.lines[segment.offset + i]
-      replaced.write_stringview(line)
-      if index + 1 + si == self.segments.length() - 1 && i == segment.length - 1 {
-        // do not add extra newline at the end of file
-      } else {
-        replaced.write_char('\n')
+      guard segment.offset + i >= 0 && segment.offset + i < self.lines.length() else {
+        abort(
+          "segment.offset + i (\{segment.offset + i}) out of bounds [0, \{self.lines.length()})",
+        )
       }
+      let line = self.lines[segment.offset + i]
+      replaced.push(line)
     }
   }
-  let replaced = replaced.to_string()
+  replaced.push(content)
+  for segment in self.segments[index + 1:] {
+    for i in 0..<segment.length {
+      guard segment.offset + i >= 0 && segment.offset + i < self.lines.length() else {
+        abort(
+          "segment.offset + i (\{segment.offset + i}) out of bounds [0, \{self.lines.length()})",
+        )
+      }
+      let line = self.lines[segment.offset + i]
+      replaced.push(line)
+    }
+  }
+  let replaced = replaced.join("\n")
   @fsx.write_to_file(self.path, replaced)
   self.parse(replaced)
   self.mtime = @fsx.stat(self.path).mtime()
