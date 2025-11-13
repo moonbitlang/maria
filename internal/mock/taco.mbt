@@ -290,6 +290,9 @@ pub fn Context::model(
 }
 
 ///|
+let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(32)
+
+///|
 /// Runs a test function within an isolated mock environment with controlled
 /// resources and automatic cleanup.
 ///
@@ -331,6 +334,8 @@ pub async fn run(
   retry? : Int,
   action : async (Context) -> Unit,
 ) -> Unit {
+  semaphore.acquire()
+  defer semaphore.release()
   let os_cwd = @os.cwd()
   let exec = os_args[0]
   let exec = @path.relative(os_cwd, exec)
