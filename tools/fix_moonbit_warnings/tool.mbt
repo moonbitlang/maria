@@ -114,9 +114,11 @@ async fn process_segment(
       $|Please fix the following MoonBit snippet with the following problem(s):
       $|
       $|**Problem Description:**
+      $|
       $|\{description}
       $|
       $|**Original Segment:**
+      $|
       $|```moonbit
       $|\{segment.content()}
       $|```
@@ -196,6 +198,9 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       let result = @async.with_timeout_opt(60_000 * 10 * 8, () => @async.with_task_group(group => {
           for file in files {
             for segment in file.segments() {
+              if segment.diagnostics().is_empty() {
+                continue
+              }
               group.spawn_bg(() => {
                 let updated_opt = @async.with_timeout_opt(120_000 * 4, () => process_segment(
                   model=agent.model,
