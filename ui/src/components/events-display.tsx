@@ -44,11 +44,17 @@ export function EventsDisplay(props: EventsDisplayProps) {
                   return <></>;
                 }
                 case "user": {
-                  const content = event.message.content.join("").trim();
+                  const contents =
+                    typeof event.message.content === "string"
+                      ? [event.message.content]
+                      : event.message.content.map((part) => part.text);
+
                   return (
                     <Message from="user">
                       <MessageContent>
-                        <Response>{content}</Response>
+                        <Response parseIncompleteMarkdown={false}>
+                          {contents.join("").trim()}
+                        </Response>
                       </MessageContent>
                     </Message>
                   );
@@ -58,7 +64,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
             }
             case "PostToolCall": {
               const output = (
-                <Response>
+                <Response parseIncompleteMarkdown={false}>
                   {["````markdown", event.text, "````"].join("\n")}
                 </Response>
               );
@@ -106,7 +112,9 @@ export function EventsDisplay(props: EventsDisplayProps) {
               return (
                 <Message from={event.message.role}>
                   <MessageContent>
-                    <Response>{event.message.content.trim()}</Response>
+                    <Response parseIncompleteMarkdown={false}>
+                      {event.message.content.trim()}
+                    </Response>
                   </MessageContent>
                 </Message>
               );

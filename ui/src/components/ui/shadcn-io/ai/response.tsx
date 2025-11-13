@@ -101,6 +101,7 @@ function parseIncompleteMarkdown(text: string): string {
 
     // If odd number of single _, we have an incomplete italic - complete it
     if (singleUnderscores % 2 === 1) {
+      // TODO: magic _
       result = `${result}_`;
     }
   }

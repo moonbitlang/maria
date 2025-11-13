@@ -2,16 +2,22 @@ import { useState } from "react";
 import { Layout } from "@/components/layout";
 import { ChatPrompt } from "@/components/chat-prompt";
 import { EventsDisplay } from "@/components/events-display";
-import { useGetEventsQuery } from "@/features/api/apiSlice";
+import {
+  useGetEventsQuery,
+  usePostMessageMutation,
+} from "@/features/api/apiSlice";
 
 function ChatView() {
   const [input, setInput] = useState("");
+
+  const [postMessage] = usePostMessageMutation();
 
   const { data } = useGetEventsQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInput("");
+    await postMessage(input);
   };
 
   return (

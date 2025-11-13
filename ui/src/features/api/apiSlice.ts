@@ -11,12 +11,14 @@ export const apiSlice = createApi({
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
     postMessage: builder.mutation<void, string>({
-      query: (message) => ({
+      query: (content) => ({
         url: "message",
         method: "POST",
         body: JSON.stringify({
-          role: "user",
-          message,
+          message: {
+            role: "user",
+            content,
+          },
         }),
       }),
     }),

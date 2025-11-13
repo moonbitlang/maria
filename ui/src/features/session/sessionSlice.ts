@@ -1,10 +1,12 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createAppSlice } from "@/app/createAppSlice";
 
-export type SessionEvent =
-  | RequestCompletedEvent
-  | PostToolCallEvent
-  | MessageAddedEvent;
+type SessionEventBase = {
+  time: number;
+};
+
+export type SessionEvent = SessionEventBase &
+  (RequestCompletedEvent | PostToolCallEvent | MessageAddedEvent);
 
 type ToolCallFunction = {
   name: string;
@@ -81,31 +83,32 @@ type MessageContentPart = {
   text: string;
 };
 
+type MessageBase = {
+  content: MessageContentPart[] | string;
+};
+
 type SystemMessage = {
   role: "system";
-  content: MessageContentPart[];
 };
 
 type UserMessage = {
   role: "user";
-  content: MessageContentPart[];
 };
 
 type AssistantMessage = {
   role: "assistant";
-  content: MessageContentPart[];
   tool_calls: ToolCall[];
 };
 
 type ToolMessage = {
   role: "tool";
   tool_call_id: string;
-  content: MessageContentPart[];
 };
 
 type MessageAddedEvent = {
   msg: "MessageAdded";
-  message: SystemMessage | UserMessage | AssistantMessage | ToolMessage;
+  message: MessageBase &
+    (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
 };
 
 export type SessionSliceState = {
