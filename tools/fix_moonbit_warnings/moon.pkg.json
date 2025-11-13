@@ -9,6 +9,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/diagnostics",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/internal/uuid"
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/async/semaphore"
   ]
 }

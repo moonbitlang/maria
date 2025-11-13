@@ -195,44 +195,42 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       }
       let mut files_updated = 0
       let mut segments_updated = 0
-      let result = @async.with_timeout_opt(60_000 * 10 * 8, () => @async.with_task_group(group => {
-          for file in files {
-            for segment in file.segments() {
-              if segment.diagnostics().is_empty() {
-                continue
-              }
-              group.spawn_bg(() => {
-                let updated_opt = @async.with_timeout_opt(120_000 * 4, () => process_segment(
-                  model=agent.model,
-                  cwd=agent.cwd,
-                  moon~,
-                  segment~,
-                  description~,
-                  logger=agent.logger.child({
-                    "tool": {
-                      "name": "fix_moonbit_warnings",
-                      "id": agent.uuid.v4().to_json(),
-                    },
-                  }),
-                ))
-                if updated_opt is Some(Some(updated)) {
-                  segment.replace(updated)
-                  segments_updated += 1
-                }
-              })
+      let semaphore = @semaphore.Semaphore::new(4)
+      @async.with_timeout(60_000 * 10 * 8, () => @async.with_task_group(group => {
+        for file in files {
+          for segment in file.segments() {
+            if segment.diagnostics().is_empty() {
+              continue
             }
-            files_updated += 1
+            semaphore.acquire()
+            group.spawn_bg(() => {
+              defer semaphore.release()
+              let updated_opt = @async.with_timeout_opt(120_000 * 4, () => process_segment(
+                model=agent.model,
+                cwd=agent.cwd,
+                moon~,
+                segment~,
+                description~,
+                logger=agent.logger.child({
+                  "tool": {
+                    "name": "fix_moonbit_warnings",
+                    "id": agent.uuid.v4().to_json(),
+                  },
+                }),
+              ))
+              if updated_opt is Some(Some(updated)) {
+                segment.replace(updated)
+                segments_updated += 1
+              }
+            })
           }
-          @tool.ok(
-            "Processed \{files_updated} files and updated \{segments_updated} segments.",
-          )
-        },
-      )) catch {
-        error => Some(@tool.error("Failed to process segments: \{error}"))
-      }
-      match result {
-        Some(result) => result
-        None => @tool.error("Takes too long processing all the segments")
+          files_updated += 1
+        }
+        @tool.ok(
+          "Processed \{files_updated} files and updated \{segments_updated} segments.",
+        )
+      })) catch {
+        error => @tool.error("Failed to process segments: \{error}")
       }
     }),
   )
