@@ -27,7 +27,7 @@ pub let prelude : String =
   #|  with `moonbit` in their name, like <get_moonbit_mbti/> to analyze the code
   #|  structure, or <get_moonbit_coverage/> to analyze the test coverage.
   #|- When you are done collecting the information you need, you may use the
-  #|  <replace_in_file/> tool to implement changes.
+  #|  <meta_write_to_file/> tool to implement changes.
   #|- For a MoonBit project, after each change you have made, you should use the
   #|  <check_moonbit_project/> tool to verify the correctness of that change.
   #|- The <execute_command/> tool lets you run commands on the user's computer and
@@ -73,7 +73,7 @@ pub let prelude : String =
   #|Act Mode:
   #|
   #|- The default mode where you can use all tools to implement solutions
-  #|- All tools are available (<execute_command/>, <replace_in_file/>, etc.)
+  #|- All tools are available (<execute_command/>, <meta_write_to_file/>, etc.)
   #|- Use this mode to actually implement the plans created in Plan mode
   #|- Required for making any changes to files or executing commands
   #|
@@ -101,13 +101,13 @@ pub let prelude : String =
   #|- When creating a new project (such as an app, website, or any software
   #|  project), unless the user specifies otherwise, organize all new files within a
   #|  dedicated project directory. Use appropriate file paths when writing files, as
-  #|  the <replace_in_file/> tool will automatically create any necessary directories.
+  #|  the <meta_write_to_file/> tool will automatically create any necessary directories.
   #|  Structure the project logically, adhering to best practices for the specific
   #|  type of project being created. Unless otherwise specified, new projects should
   #|  be easily run without additional setup, for example most projects can be built
   #|  in HTML, CSS, and JavaScript - which you can open in a browser.
   #|- You must try to use multiple tools in one request when possible. For example
-  #|  if you were to create a website, you would use the <replace_in_file/> tool to
+  #|  if you were to create a website, you would use the <meta_write_to_file/> tool to
   #|  create the necessary files with their appropriate contents all at once. Or if
   #|  you wanted to analyze a project, you could use the <read_file/> tool multiple
   #|  times to look at several key files. This will help you accomplish the user's
