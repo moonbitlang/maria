@@ -43,7 +43,7 @@ pub struct ChatCompletionTopLogprob {
 ///|
 /// Tool function metadata returned from the API.
 pub struct ChatCompletionMessageToolCallFunction {
-  arguments : String
+  arguments : String?
   name : String
 } derive(Show)
 

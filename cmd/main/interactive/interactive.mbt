@@ -22,16 +22,17 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
         println(content)
       }
       PreToolCall(tool_call) =>
-        try {
-          let arguments = @json.parse(tool_call.function.arguments)
-          println(
-            "% \{tool_call.function.name} \{arguments.stringify(indent=2)}",
-          )
-        } catch {
-          _ =>
-            println(
-              "% \{tool_call.function.name}\n  \{tool_call.function.arguments}",
-            )
+        match tool_call.function.arguments {
+          None => println("% \{tool_call.function.name}")
+          Some(arguments) =>
+            try {
+              let arguments = @json.parse(arguments)
+              println(
+                "% \{tool_call.function.name} \{arguments.stringify(indent=2)}",
+              )
+            } catch {
+              _ => println("% \{tool_call.function.name}\n  \{arguments}")
+            }
         }
       PostToolCall(_, rendered~, ..) =>
         rendered.split("\n").each(text => println("> \{text}"))

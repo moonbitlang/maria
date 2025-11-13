@@ -181,7 +181,14 @@ async fn Formatter::format_tool_call(
   self : Formatter,
   tool_call : @openai.ChatCompletionMessageToolCall,
 ) -> Unit {
-  try @json.parse(tool_call.function.arguments) catch {
+  guard tool_call.function.arguments is Some(arguments) else {
+    self.push_title("Tool call argument: <\{tool_call.function.name}>", level=2)
+    self.lines.push("")
+    self.lines.push("No arguments provided.")
+    self.lines.push("")
+    return
+  }
+  try @json.parse(arguments) catch {
     error => {
       self.push_title(
         "Tool call argument: <\{tool_call.function.name}>",
@@ -191,7 +198,7 @@ async fn Formatter::format_tool_call(
       self.lines.push("Failed to parse tool call arguments as JSON: \{error}")
       self.lines.push("")
       self.lines.push("```json")
-      self.lines.push(tool_call.function.arguments)
+      self.lines.push(arguments)
       self.lines.push("```")
     }
   } noraise {

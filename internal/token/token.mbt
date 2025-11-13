@@ -60,7 +60,11 @@ fn Counter::count_function(
   self : Counter,
   function : @openai.ChatCompletionMessageToolCallFunction,
 ) -> Int raise {
-  self._count_string(function.name) + self._count_string(function.arguments)
+  self._count_string(function.name) +
+  (match function.arguments {
+    Some(arguments) => self._count_string(arguments)
+    None => 0
+  })
 }
 
 ///|
