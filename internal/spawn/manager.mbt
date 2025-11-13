@@ -2,8 +2,6 @@
 priv struct Spawn {
   command : String
   arguments : Array[String]
-  stderr : RedirectOutput
-  stdout : RedirectOutput
   cwd : String?
   process : @aqueue.Queue[Result[Process, Error]]
 }
@@ -46,8 +44,8 @@ pub struct Process {
   pid : Pid
   priv status : Ref[Int?]
   priv task : @async.Task[Int]
-  stdout : RedirectOutput
-  stderr : RedirectOutput
+  stdout : @pipe.PipeRead
+  stderr : @pipe.PipeRead
 }
 
 ///|
@@ -56,50 +54,16 @@ pub fn Process::status(self : Process) -> Int? {
 }
 
 ///|
-struct Buffer {
-  mut chunks : Array[String]
-}
-
-///|
-pub fn Buffer::new() -> Buffer {
-  Buffer::{ chunks: [] }
-}
-
-///|
-fn Buffer::write(self : Buffer, chunk : String) -> Unit {
-  self.chunks.push(chunk)
-}
-
-///|
-pub fn Buffer::to_string(self : Buffer) -> String {
-  let string = self.chunks.join("")
-  self.chunks = [string]
-  string
-}
-
-///|
-pub(all) enum RedirectOutput {
-  Inherit
-  Capture(Buffer)
-  File(String)
-  Sink
-}
-
-///|
 pub async fn Manager::spawn(
   self : Manager,
   command : String,
   arguments : Array[String],
-  stderr? : RedirectOutput = Inherit,
-  stdout? : RedirectOutput = Inherit,
   cwd? : String,
 ) -> Process {
   let process = @aqueue.Queue::new()
   self.spawn.put(Spawn::{
     command,
     arguments,
-    stderr,
-    stdout,
     cwd: cwd.map(_.to_string()),
     process,
   })
@@ -118,72 +82,37 @@ pub async fn Process::wait(self : Process) -> Int {
 
 ///|
 pub async fn Manager::start(self : Manager) -> Unit {
-  @async.with_task_group(group => {
-    async fn redirect_output(
-      redirect : RedirectOutput,
-    ) -> &@process.ProcessOutput? {
-      match redirect {
-        Capture(buffer) => {
-          let pipe = @process.read_from_process()
-          group.spawn_bg(() => {
-            let buf = FixedArray::make(1024, b'0')
-            while pipe.0.read(buf) is n && n > 0 {
-              buffer.write(
-                @encoding/utf8.decode_lossy(
-                  buf.unsafe_reinterpret_as_bytes()[0:n],
-                ),
-              )
-            }
-          })
-          Some(pipe.1)
-        }
-        Sink => {
-          let pipe = @process.read_from_process()
-          group.spawn_bg(() => {
-            let buf = FixedArray::make(1024, b'0')
-            while pipe.0.read(buf) is n && n > 0 {
-              // discard data
-            }
-          })
-          Some(pipe.1)
-        }
-        File(path) => Some(@process.redirect_to_file(path))
-        Inherit => None
+  @async.with_task_group(group => while true {
+    let spawn = self.spawn.get()
+    try {
+      let pid = self.new_pid()
+      let refer_status = Ref::new(None)
+      let stderr = @process.read_from_process()
+      let stdout = @process.read_from_process()
+      let task = group.spawn(() => {
+        let status = @process.run(
+          spawn.command,
+          spawn.arguments,
+          stdout=stdout.1,
+          stderr=stderr.1,
+          cwd?=spawn.cwd,
+        )
+        refer_status.val = Some(status)
+        status
+      })
+      let process = Process::{
+        pid,
+        status: refer_status,
+        task,
+        stdout: stdout.0,
+        stderr: stderr.0,
       }
-    }
-
-    while true {
-      let spawn = self.spawn.get()
-      try {
-        let pid = self.new_pid()
-        let refer_status = Ref::new(None)
-        let stderr = redirect_output(spawn.stderr)
-        let stdout = redirect_output(spawn.stdout)
-        let task = group.spawn(() => {
-          let status = @process.run(
-            spawn.command,
-            spawn.arguments,
-            stderr?,
-            stdout?,
-            cwd?=spawn.cwd,
-          )
-          refer_status.val = Some(status)
-          status
-        })
-        let process = Process::{
-          pid,
-          status: refer_status,
-          task,
-          stdout: spawn.stdout,
-          stderr: spawn.stderr,
-        }
-        self.process[pid] = process
-        process
-      } catch {
-        error => spawn.process.put(Err(error))
-      } noraise {
-        process => spawn.process.put(Ok(process))
-      }
+      self.process[pid] = process
+      process
+    } catch {
+      error => spawn.process.put(Err(error))
+    } noraise {
+      process => spawn.process.put(Ok(process))
     }
   }) catch {
     error => {
