@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/uri"
+
+// Values
+
+// Errors
+type ParseError
+
+// Types and methods
+pub struct Authority {
+  mut userinfo : StringView?
+  mut host : StringView
+  mut port : Int?
+}
+impl Eq for Authority
+impl Show for Authority
+
+pub struct Uri {
+  mut scheme : StringView
+  mut authority : Authority?
+  path : Array[StringView]
+  mut query : StringView?
+  mut fragment : StringView?
+}
+fn Uri::parse(StringView) -> Self raise ParseError
+impl Eq for Uri
+impl Show for Uri
+
+// Type aliases
+
+// Traits
+
