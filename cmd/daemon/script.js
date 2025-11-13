@@ -2,6 +2,7 @@
 let eventSource = null;
 let currentTaskId = null;
 let tasks = [];
+let models = [];
 
 // DOM elements
 const taskListDiv = document.getElementById("taskList");
@@ -238,6 +239,47 @@ function addMessage(text, type = "info") {
 }
 
 // Task management functions
+async function loadModels() {
+  try {
+    const response = await fetch("/v1/models");
+    if (!response.ok) {
+      throw new Error(`Failed to load models: ${response.statusText}`);
+    }
+    const data = await response.json();
+    models = data.models || [];
+    populateModelSelect();
+  } catch (error) {
+    console.error("Error loading models:", error);
+    // If models can't be loaded, allow manual input as fallback
+    models = [];
+  }
+}
+
+function populateModelSelect() {
+  const modelSelect = document.getElementById("taskModel");
+  if (!modelSelect) return;
+
+  // Clear existing options
+  modelSelect.innerHTML = "";
+
+  if (models.length === 0) {
+    // Add a default option if no models available
+    const option = document.createElement("option");
+    option.value = "anthropic/claude-sonnet-4.5";
+    option.textContent = "anthropic/claude-sonnet-4.5";
+    modelSelect.appendChild(option);
+    return;
+  }
+
+  // Add all available models
+  models.forEach((model) => {
+    const option = document.createElement("option");
+    option.value = model.name;
+    option.textContent = model.name;
+    modelSelect.appendChild(option);
+  });
+}
+
 async function loadTasks() {
   try {
     const response = await fetch("/v1/tasks");
@@ -402,8 +444,13 @@ function showError(message) {
 function showCreateTaskModal() {
   createTaskModal.classList.add("show");
   document.getElementById("taskName").value = "";
-  document.getElementById("taskModel").value = "anthropic/claude-sonnet-4.5";
   document.getElementById("taskCwd").value = "";
+
+  // Load models if not already loaded
+  if (models.length === 0) {
+    loadModels();
+  }
+
   document.getElementById("taskName").focus();
 }
 
@@ -522,5 +569,6 @@ messageInput.addEventListener("keypress", (e) => {
 
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+  loadModels();
   loadTasks();
 });
