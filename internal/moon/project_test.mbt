@@ -29,7 +29,7 @@ async test "project" (t : @test.Test) {
     )
     let _ = deps.add_file("moon.pkg.json", content=Json::object({}).stringify())
     let project = @moon.Module::load(mock.cwd.path())
-    @json.inspect(project.name(), content="example")
+    @json.inspect(project.name, content="example")
     let internal_package = project.find_package("example/internal")
     @json.inspect(mock.json(internal_package), content=[
       {

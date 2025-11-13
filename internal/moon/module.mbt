@@ -1,8 +1,10 @@
 ///|
 pub struct Module {
-  priv path : String
-  priv name : String
-  priv source : String
+  path : String
+  name : String
+  source : String
+  version : String
+  description : String
   priv packages : Map[String, Package]
   coverage : Coverage
   priv mut core : Module?
@@ -39,10 +41,23 @@ async fn Module::new(path : String) -> Module {
   } else {
     path
   }
+  let version : String = if moon_mod_json is { "version": String(version), .. } {
+    version
+  } else {
+    "0.1.0"
+  }
+  let description : String = if moon_mod_json
+    is { "description": String(description), .. } {
+    description
+  } else {
+    ""
+  }
   Module::{
     path,
     name,
     source,
+    version,
+    description,
     packages: {},
     coverage: { path, },
     core: None,
@@ -55,16 +70,6 @@ pub async fn Module::load(path : String) -> Module {
   let mod = Module::new(path)
   mod.scan()
   mod
-}
-
-///|
-pub fn Module::name(self : Module) -> String {
-  self.name
-}
-
-///|
-pub fn Module::source(self : Module) -> String {
-  self.source
 }
 
 ///|
@@ -107,12 +112,12 @@ async fn Module::load_pkg(
     return
   }
   let pkg_name = {
-    let mod_src = @fsx.resolve(self.source())
+    let mod_src = @fsx.resolve(self.source)
     let rel = @path.relative(mod_src, dir)
     if rel is "." {
-      self.name()
+      self.name
     } else {
-      "\{self.name()}/\{rel}"
+      "\{self.name}/\{rel}"
     }
   }
   let pkg = Package::new(name=pkg_name, path=dir.to_string())
@@ -168,7 +173,7 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
   }
   let cake_mod = Module::new(mod_path)
   cake_mod.scan()
-  self.cakes[cake_mod.name()] = cake_mod
+  self.cakes[cake_mod.name] = cake_mod
   cake_mod.package_(name)
 }
 
@@ -193,10 +198,10 @@ pub fn Module::files(self : Module) -> Iter[File] {
 ///|
 pub async fn Module::locate_package(self : Module, file : String) -> Package {
   let dir = @path.dirname(file)
-  let src = self.source()
+  let src = self.source
   let pkg_name = match @path.relative(src, dir) {
-    "" | "." => self.name()
-    rel => "\{self.name()}/\{rel}"
+    "" | "." => self.name
+    rel => "\{self.name}/\{rel}"
   }
   match self.packages.get(pkg_name) {
     Some(pkg) => pkg
