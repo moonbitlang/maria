@@ -43,3 +43,85 @@ Example JSON objects:
 ```
 
 For concrete JSON object formats, refer to the code of `maria`.
+
+## `GET /v1/moonbit/modules`
+
+Returns the list of MoonBit modules in the server's working directory.
+
+Response:
+
+```json
+{
+  "modules": [
+    {
+      "path": "/path/to/moonbit/module",
+      "name": "example-module",
+      "version": "1.0.0",
+      "description": "An example module."
+    }
+  ]
+}
+```
+
+## `POST /v1/moonbit/publish`
+
+Runs `moon publish` in the server's working directory.
+
+```json
+{
+  "module": {
+    "path": "/path/to/moonbit/module"
+  }
+}
+```
+
+If it fails to find such a module, returns 404 Not Found:
+
+```json
+{
+  "error": {
+    "code": -1,
+    "message": "No MoonBit module found in path."
+  }
+}
+```
+
+If successful, returns 201 Created:
+
+```json
+{
+  "module": {
+    "name": "example-module",
+    "version": "1.0.0",
+    "description": "An example module.",
+  },
+  "process": {
+    "status": 0,
+    "stdout": "Published successfully.",
+    "stderr": ""
+  }
+}
+```
+
+If failed, returns 500 Internal Server Error:
+
+```json
+{
+  "error": {
+    "code": -1,
+    "message": "Failed to publish the module.",
+    "metadata": {
+      "module": {
+        "name": "example-module",
+        "version": "1.0.0",
+        "description": "An example module.",
+      },
+      "process": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "Error: Failed to publish."
+      }
+    }
+  },
+}
+```
