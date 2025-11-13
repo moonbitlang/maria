@@ -121,6 +121,14 @@ async fn main {
       allow_failure=true,
     )
     run_server(port~, (request, conn) => match (request.meth, request.path) {
+      (Options, _) =>
+        conn
+        ..send_response(204, "No Content", extra_headers={
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+          "Access-Control-Allow-Headers": "Content-Type",
+        })
+        ..end_response()
       (Get, "/") => {
         let index_html = html_read_file(@path.join(serve, "index.html"))
         conn
@@ -140,6 +148,9 @@ async fn main {
       (Get, "/v1/events") => {
         conn.send_response(200, "OK", extra_headers={
           "Content-Type": "text/event-stream",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+          "Access-Control-Allow-Headers": "Content-Type",
         })
         broadcast.listen(channel => for {
           let event = channel.get()
@@ -193,6 +204,9 @@ async fn main {
         conn
         ..send_response(200, "OK", extra_headers={
           "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+          "Access-Control-Allow-Headers": "Content-Type",
         })
         ..write(response.stringify())
         ..end_response()
