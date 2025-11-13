@@ -19,9 +19,12 @@ async fn run_server(
   f : async (@http.Request, @http.ServerConnection) -> Unit,
 ) -> Unit {
   let addr = try! @socket.Addr::parse("[::]:\{port}")
+  let server = @socket.TcpServer::new(addr, dual_stack=true)
+  let port = server.addr().port()
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
-  @http.run_server(addr, (conn, _) => for {
+  server.run_forever((sock, _) => for {
+    let conn = @http.ServerConnection::new(sock)
     try {
       let request = conn.read_request()
       println("[INFO] Received request: \{request.meth} \{request.path}")
@@ -52,7 +55,7 @@ async fn html_read_file(path : String) -> String {
 async fn main {
   let args = @os.args()
   let mut model = None
-  let mut port = 8080
+  let mut port = 0
   let mut serve = @os.cwd()
   let mut log_level = @pino.Info
   loop args[1:] {
