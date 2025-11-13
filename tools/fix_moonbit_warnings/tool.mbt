@@ -198,6 +198,11 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       let semaphore = @semaphore.Semaphore::new(4)
       @async.with_timeout(60_000 * 10 * 8, () => @async.with_task_group(group => {
         for file in files {
+          if file.path().has_suffix(".mbt.md") {
+            // Currently it is not supported to fix MoonBit code embedded in
+            // markdown files
+            continue
+          }
           for segment in file.segments() {
             if segment.diagnostics().is_empty() {
               continue
