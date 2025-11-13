@@ -9,14 +9,13 @@ priv struct Spawn {
 ///|
 pub struct Manager {
   mut id : Int
-  cwd : String
   process : Map[Pid, Process]
   priv spawn : @aqueue.Queue[Spawn]
 }
 
 ///|
-pub fn Manager::new(cwd~ : String) -> Manager {
-  Manager::{ id: 0, cwd, process: {}, spawn: @aqueue.Queue::new() }
+pub fn Manager::new() -> Manager {
+  Manager::{ id: 0, process: {}, spawn: @aqueue.Queue::new() }
 }
 
 ///|
