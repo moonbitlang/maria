@@ -12,8 +12,6 @@ fn logger(String, level? : Level, Transport) -> Logger
 fn transport(StringView) -> Transport raise
 
 // Errors
-pub suberror InvalidTransport StringView
-impl Show for InvalidTransport
 
 // Types and methods
 pub(all) enum Level {
