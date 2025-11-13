@@ -130,6 +130,16 @@
         font-size: 1em;
       }
 
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1em;
+        background: white;
+        cursor: pointer;
+      }
+
       .modal-buttons {
         display: flex;
         gap: 10px;
@@ -437,12 +447,9 @@
         </div>
         <div class="form-group">
           <label for="taskModel">Model:</label>
-          <input
-            type="text"
-            id="taskModel"
-            placeholder="anthropic/claude-sonnet-4"
-            required
-          />
+          <select id="taskModel" required>
+            <option value="anthropic/claude-sonnet-4.5">anthropic/claude-sonnet-4.5</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="taskCwd">Working Directory:</label>

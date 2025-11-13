@@ -23,6 +23,7 @@ priv struct Server {
 
 ///|
 priv struct Daemon {
+  models : @model.Loader
   uuid : @uuid.Generator
   process : @spawn.Manager
   by_cwd : Map[String, Server]
@@ -116,7 +117,9 @@ async fn main {
   if !@fsx.exists(exec_path) {
     fail("Exec path does not exist: \{exec_path}")
   }
+  let logger = @pino.logger("daemon", @pino.Transport::console())
   let daemon = Daemon::{
+    models: @model.Loader::new(home=@os.home(), cwd=@os.cwd(), logger~),
     uuid: @uuid.generator(@rand.chacha8()),
     process: @spawn.Manager::new(cwd=@os.cwd()),
     by_cwd: {},
@@ -145,6 +148,19 @@ async fn main {
             "Content-Type": "application/javascript",
           })
           ..write(script_js)
+          ..end_response()
+        }
+        (Get, ["", "v1", "models"]) => {
+          let models : Array[Json] = []
+          for model in daemon.models.models() {
+            models.push({ "name": model.name })
+          }
+          let response : Json = { "models": models }
+          conn
+          ..send_response(200, "OK", extra_headers={
+            "Content-Type": "application/json",
+          })
+          ..write(response.stringify())
           ..end_response()
         }
         (Get, ["", "v1", "tasks"]) => {

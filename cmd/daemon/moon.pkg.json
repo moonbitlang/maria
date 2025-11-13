@@ -11,6 +11,8 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/async/os_error",
-    "moonbitlang/maria/internal/path"
+    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/internal/pino"
   ]
 }
