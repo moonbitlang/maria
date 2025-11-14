@@ -104,7 +104,6 @@ fn ChatCompletionMessageBuilder::to_message(
     refusal: self.refusal.map(b => b.to_string()),
     tool_calls,
     role: ChatCompletionMessageRole::Assistant,
-    function_call: None,
   }
 }
 

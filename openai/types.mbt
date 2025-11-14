@@ -67,7 +67,6 @@ pub struct ChatCompletionMessage {
   refusal : String?
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
-  function_call : ChatCompletionMessageFunctionCall?
 } derive(Show, ToJson)
 
 ///|
@@ -201,7 +200,6 @@ pub struct ChatCompletionAssistantMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
   tool_calls : Array[ChatCompletionMessageToolCallParam]
-  function_call : ChatCompletionMessageFunctionCall?
 }
 
 ///|
