@@ -102,7 +102,7 @@ async fn main {
       continue args
     }
     ["-s" | "--serve", s, .. args] => {
-      serve = s
+      serve = if @path.is_absolute(s) { s } else { @path.join(@os.cwd(), s) }
       continue args
     }
     [e, .. args] => {
