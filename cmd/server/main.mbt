@@ -171,7 +171,8 @@ async fn main {
             is {
               "msg": "MessageAdded"
               | "RequestCompleted"
-              | "PostToolCall",
+              | "PostToolCall"
+              | "PostConversation",
               ..
             } else {
             continue
