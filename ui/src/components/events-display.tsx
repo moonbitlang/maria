@@ -163,7 +163,12 @@ function MetaWriteToFile({ event }: { event: MetaWriteToFileTool }) {
           output={
             <div className="p-3">
               <p className="text-base text-foreground mb-3">{result.message}</p>
-              <CodeBlock language="diff" code={result.diff.trim()}></CodeBlock>
+              {result.diff && (
+                <CodeBlock
+                  language="diff"
+                  code={result.diff.trim()}
+                ></CodeBlock>
+              )}
             </div>
           }
         ></ToolOutput>
@@ -212,7 +217,6 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
   const hasStdout = details.stdout.trim().length > 0;
   const hasStderr = details.stderr?.trim().length > 0;
   const hasOutput = hasStdout || hasStderr;
-  console.log(details);
   return (
     <Tool>
       <ToolHeader type={name} state="output-available" />
@@ -326,7 +330,7 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
         <ToolHeader type={event.name} state="output-error" />
         <ToolContent>
           <ToolOutput
-            output={output}
+            output={undefined}
             errorText={`Tool call error: <${event.name}>`}
           />
         </ToolContent>

@@ -113,7 +113,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
 }
 
 export function AgentTodos({ todos }: AgentTodosProps) {
-  const [expandTodos, setExpandTodos] = useState<boolean>(true);
+  const [expandTodos, setExpandTodos] = useState<boolean>(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { completed, inProgress, pending } = computeTodoMetrics(todos);
 

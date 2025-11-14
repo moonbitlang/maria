@@ -65,7 +65,7 @@ export type ReadFileTool = {
 
 export type MetaWriteToFileTool = {
   name: "meta_write_to_file";
-  result: { path: string; message: string; diff: string };
+  result: { path: string; message: string; diff?: string };
 };
 
 export type Todo = {
@@ -144,11 +144,13 @@ export type MessageAddedEvent = {
 export type SessionSliceState = {
   events: SessionEvent[];
   todos: Todo[];
+  waitingForEvent: boolean;
 };
 
 const initialState: SessionSliceState = {
   events: [],
   todos: [],
+  waitingForEvent: false,
 };
 
 export const sessionSlice = createAppSlice({
@@ -161,12 +163,17 @@ export const sessionSlice = createAppSlice({
     updateTodos(state, action: PayloadAction<Todo[]>) {
       state.todos = action.payload;
     },
+    waitForEvent(state, action: PayloadAction<boolean>) {
+      state.waitingForEvent = action.payload;
+    },
   },
   selectors: {
     selectEvents: (state) => state.events,
     selectTodos: (state) => state.todos,
+    selectWaitingForEvent: (state) => state.waitingForEvent,
   },
 });
 
-export const { addEvent, updateTodos } = sessionSlice.actions;
-export const { selectEvents, selectTodos } = sessionSlice.selectors;
+export const { addEvent, updateTodos, waitForEvent } = sessionSlice.actions;
+export const { selectEvents, selectTodos, selectWaitingForEvent } =
+  sessionSlice.selectors;
