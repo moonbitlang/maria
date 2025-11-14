@@ -39,6 +39,18 @@ test "MetaWriteToFileResult::Show" {
       ),
     ),
   }
+  @json.inspect(result, content={
+    "path": "/var/folders/jb/64x3jtc51qbfk3y1m9f3yvyc0000gn/T/maria-test-smJHF4P/json_parser/json_parser/moon.pkg.json",
+    "message": "File written successfully to json_parser/json_parser/moon.pkg.json",
+    "diff": "@@ -1,5 +1,5 @@\n {\n-  \"name\": \"json_parser\",\n+  \"name\": \"json_parser_updated\",\n   \"version\": \"0.1.0\",\n   \"dependencies\": {\n     \"moonbitlang/maria\": \"^0.1.0\"\n   }\n }",
+    "learning_prompt": "**⚠️ Syntax Error Learning Note:**\n\nThe file had syntax errors that were automatically fixed. Please review the changes to ensure correctness.",
+  })
+  let result_no_diff = { ..result, diff: None }
+  @json.inspect(result_no_diff, content={
+    "path": "/var/folders/jb/64x3jtc51qbfk3y1m9f3yvyc0000gn/T/maria-test-smJHF4P/json_parser/json_parser/moon.pkg.json",
+    "message": "File written successfully to json_parser/json_parser/moon.pkg.json",
+    "learning_prompt": "**⚠️ Syntax Error Learning Note:**\n\nThe file had syntax errors that were automatically fixed. Please review the changes to ensure correctness.",
+  })
   inspect(
     result,
     content=(
