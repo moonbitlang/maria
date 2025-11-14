@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout";
 import { EventsDisplay } from "@/components/events-display";
 import { AgentTodos } from "@/components/agent-todos";
@@ -18,11 +18,37 @@ import { selectTodos } from "@/features/session/sessionSlice";
 
 function ChatView() {
   const [input, setInput] = useState("");
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
   const todos = useAppSelector(selectTodos);
 
   const [postMessage] = usePostMessageMutation();
 
   const { data } = useGetEventsQuery();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const offset = windowHeight - viewportHeight;
+        setKeyboardOffset(offset);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize);
+      window.visualViewport.addEventListener("scroll", handleResize);
+      handleResize();
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+        window.visualViewport.removeEventListener("scroll", handleResize);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +57,37 @@ function ChatView() {
   };
 
   return (
-    <>
+    <div className="flex-1 min-h-0 flex flex-col m-auto w-full max-w-4xl relative">
       <AgentTodos todos={todos} />
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div
+        className="flex-1 min-h-0 overflow-y-auto"
+        style={{
+          paddingBottom:
+            keyboardOffset > 0
+              ? `${inputContainerRef.current?.offsetHeight || 0}px`
+              : undefined,
+        }}
+      >
         <EventsDisplay events={data ?? []} />
       </div>
-      <div className="p-4">
+      <div
+        ref={inputContainerRef}
+        className="p-4 md:relative md:bottom-auto"
+        style={
+          keyboardOffset > 0
+            ? {
+                position: "fixed",
+                bottom: `${keyboardOffset}px`,
+                left: 0,
+                right: 0,
+                maxWidth: "56rem",
+                margin: "0 auto",
+                backgroundColor: "var(--background)",
+                zIndex: 50,
+              }
+            : undefined
+        }
+      >
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
             className="text-lg md:text-lg"
@@ -53,7 +104,7 @@ function ChatView() {
           </PromptInputToolbar>
         </PromptInput>
       </div>
-    </>
+    </div>
   );
 }
 
