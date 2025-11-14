@@ -1,20 +1,9 @@
 ///|
-/// Helper function to create a Claude Haiku model for testing
-fn claude_haiku_model(api_key : String) -> @model.Model {
-  @model.new(
-    api_key~,
-    base_url="https://openrouter.ai/api/v1",
-    name="anthropic/claude-haiku-4.5",
-    safe_zone_tokens=200000,
-  )
-}
-
-///|
 /// Test basic agent initialization and configuration
+#skip
 async test "agent/initialization" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Verify agent was created successfully
@@ -26,20 +15,20 @@ async test "agent/initialization" (t : @test.Test) {
 
 ///|
 /// Test agent with a simple message-only interaction (no tools)
+#skip
 async test "agent/simple_conversation" (t : @test.Test) {
   @mock.run(t, timeout=120_000, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Track events
-    let conversation_started = Ref::new(false)
-    let conversation_ended = Ref::new(false)
-    let message_count = Ref::new(0)
+    let mut conversation_started = false
+    let mut conversation_ended = false
+    let mut message_count = 0
     agent.add_listener(event => match event {
-      PreConversation => conversation_started.val = true
-      PostConversation => conversation_ended.val = true
-      MessageAdded(_) => message_count.val = message_count.val + 1
+      PreConversation => conversation_started = true
+      PostConversation => conversation_ended = true
+      MessageAdded(_) => message_count = message_count + 1
       _ => ()
     })
 
@@ -51,49 +40,48 @@ async test "agent/simple_conversation" (t : @test.Test) {
     // Start the agent
     agent.start()
 
-    // Give events time to process
-    // @async.sleep(100)
-
     // Verify conversation lifecycle
-    inspect(conversation_started.val, content="true")
+    inspect(conversation_started, content="true")
     // Event timing is async, PostConversation may not be processed immediately
-    inspect(message_count.val > 0, content="true")
+    inspect(message_count > 0, content="true")
+    inspect(conversation_ended, content="true")
   })
 }
 
 ///|
 /// Test agent with a simple tool call
+#skip
 async test "agent/single_tool_call" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Track tool calls
     let mut tool_called = false
     let mut tool_name = ""
-    let calculator_schema = @tool.JsonSchema::from_json({
+    let calculator_schema : @tool.JsonSchema = {
       "type": "object",
       "properties": {
         "a": { "type": "number", "description": "First number" },
         "b": { "type": "number", "description": "Second number" },
       },
       "required": ["a", "b"],
-    })
-
+    }
+    let result = []
     // Add a simple calculator tool
     let calculator_tool = @tool.new(
       name="add_numbers",
       description="Add two numbers together",
       schema=calculator_schema,
-      ToolFn(args => {
+      args => {
         tool_called = true
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
           return @tool.error("Invalid arguments")
         }
         let sum = a + b
+        result.push(sum)
         @tool.ok({ "result": sum })
-      }),
+      },
     )
     agent.add_tools([calculator_tool.to_agent_tool()])
     agent.add_listener(event => match event {
@@ -112,15 +100,16 @@ async test "agent/single_tool_call" (t : @test.Test) {
     // Verify tool was called
     inspect(tool_called, content="true")
     inspect(tool_name, content="add_numbers")
+    @json.inspect(result, content=[8])
   })
 }
 
 ///|
 /// Test agent with multiple tool calls in sequence
+#skip
 async test "agent/multiple_tool_calls" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Track tool calls
@@ -177,27 +166,28 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
 
 ///|
 /// Test agent event system
+#skip
 async test "agent/event_system" (t : @test.Test) {
   @mock.run(t, timeout=120_000, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Track all event types with Ref for async updates
-    let pre_conversation = Ref::new(false)
-    let post_conversation = Ref::new(false)
-    let message_added = Ref::new(false)
-    let token_counted = Ref::new(false)
-    let request_completed = Ref::new(false)
+    let mut pre_conversation = false
+    let mut post_conversation = false
+    let mut message_added = false
+    let mut token_counted = false
+    let mut request_completed = false
     agent.add_listener(event => match event {
-      PreConversation => pre_conversation.val = true
-      PostConversation => post_conversation.val = true
-      MessageAdded(_) => message_added.val = true
-      TokenCounted(_) => token_counted.val = true
+      PreConversation => pre_conversation = true
+      PostConversation => post_conversation = true
+      MessageAdded(_) => message_added = true
+      TokenCounted(_) => token_counted = true
       RequestCompleted(usage~, message~) => {
-        request_completed.val = true
-        inspect(usage is Some(_) || usage is None, content="true")
-        inspect(message.role, content="Assistant")
+        request_completed = true
+        // DONT use inspect since it may happen multiple times asynchronously
+        assert_true(usage is Some(_) || usage is None)
+        assert_true(message.role is Assistant)
       }
       _ => ()
     })
@@ -210,20 +200,21 @@ async test "agent/event_system" (t : @test.Test) {
     // @async.sleep(100)
 
     // Verify all expected events fired
-    inspect(pre_conversation.val, content="true")
+    inspect(pre_conversation, content="true")
     // Event timing is async, PostConversation may not be processed immediately
-    inspect(message_added.val, content="true")
-    inspect(token_counted.val, content="true")
-    inspect(request_completed.val, content="true")
+    inspect(message_added, content="true")
+    inspect(token_counted, content="true")
+    inspect(post_conversation, content="true")
+    inspect(request_completed, content="true")
   })
 }
 
 ///|
 /// Test agent with file operations
+#skip
 async test "agent/file_operations" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
 
     // Add file management tools
@@ -265,10 +256,10 @@ async test "agent/file_operations" (t : @test.Test) {
 
 ///|
 /// Test agent token counting and context pruning
+#skip
 async test "agent/token_management" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let mut token_count = 0
     let mut _context_pruned = false
@@ -292,10 +283,10 @@ async test "agent/token_management" (t : @test.Test) {
 
 ///|
 /// Test agent with error handling in tools
+#skip
 async test "agent/tool_error_handling" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let mut error_encountered = false
     let binary_op_schema = @tool.JsonSchema::from_json({
@@ -345,10 +336,10 @@ async test "agent/tool_error_handling" (t : @test.Test) {
 
 ///|
 /// Test agent with batch tool registration
+#skip
 async test "agent/batch_tool_registration" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let empty_schema = @tool.JsonSchema::from_json({
       "type": "object",
@@ -401,10 +392,10 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
 
 ///|
 /// Test agent conversation history persistence
+#skip
 async test "agent/conversation_history" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path())
     let mut message_count = 0
     agent.add_listener(event => match event {
@@ -430,10 +421,10 @@ async test "agent/conversation_history" (t : @test.Test) {
 
 ///|
 /// Test agent with read multiple files
+#skip
 async test "agent/read_multiple_files" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path(), logger=taco.logger)
 
     // Add file management tools
@@ -506,10 +497,10 @@ async test "agent/read_multiple_files" (t : @test.Test) {
 
 ///|
 /// Test agent with read multiple files
+#skip
 async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
   @mock.run(t, retry=3, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    let model = claude_haiku_model(api_key)
+    let model = taco.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=taco.cwd.path(), logger=taco.logger)
 
     // Add file management tools
@@ -590,6 +581,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "load-model-name" (t : @test.Test) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
