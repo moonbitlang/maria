@@ -3,6 +3,144 @@ const messagesDiv = document.getElementById("messages");
 const statusDiv = document.getElementById("status");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
+const modulesListDiv = document.getElementById("modulesList");
+const refreshModulesBtn = document.getElementById("refreshModulesBtn");
+
+// MoonBit Modules Management
+async function loadModules() {
+  try {
+    modulesListDiv.innerHTML = '<div class="loading">Loading modules...</div>';
+    const response = await fetch("/v1/moonbit/modules");
+
+    if (!response.ok) {
+      throw new Error(`Failed to load modules: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    displayModules(data.modules || []);
+  } catch (error) {
+    modulesListDiv.innerHTML = `<div class="no-modules">Error: ${escapeHtml(
+      error.message
+    )}</div>`;
+    addMessage(`✗ Failed to load modules: ${error.message}`);
+  }
+}
+
+function displayModules(modules) {
+  if (modules.length === 0) {
+    modulesListDiv.innerHTML =
+      '<div class="no-modules">No MoonBit modules found in the current directory.</div>';
+    return;
+  }
+
+  modulesListDiv.innerHTML = modules
+    .map(
+      (module, index) => `
+    <div class="module-item">
+      <div class="module-info">
+        <div>
+          <span class="module-name">${escapeHtml(
+            module.name || "Unknown"
+          )}</span>
+          <span class="module-version">v${escapeHtml(
+            module.version || "0.0.0"
+          )}</span>
+        </div>
+        ${
+          module.description
+            ? `<div class="module-description">${escapeHtml(
+                module.description
+              )}</div>`
+            : ""
+        }
+        <div class="module-path">${escapeHtml(module.path || "")}</div>
+      </div>
+      <div class="module-actions">
+        <button class="publish-btn" onclick="publishModule('${escapeHtml(
+          module.path
+        )}', ${index})">
+          Publish
+        </button>
+      </div>
+    </div>
+  `
+    )
+    .join("");
+}
+
+async function publishModule(modulePath, moduleIndex) {
+  const buttons = document.querySelectorAll(".publish-btn");
+  const button = buttons[moduleIndex];
+
+  if (!button) return;
+
+  button.disabled = true;
+  button.textContent = "Publishing...";
+
+  try {
+    const response = await fetch("/v1/moonbit/publish", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        module: {
+          path: modulePath,
+        },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      addMessage(
+        `✓ Successfully published module: ${data.module.name}@${data.module.version}`
+      );
+      button.textContent = "✓ Published";
+      button.style.background = "#45a049";
+
+      // Reset button after 3 seconds
+      setTimeout(() => {
+        button.textContent = "Publish";
+        button.style.background = "";
+        button.disabled = false;
+      }, 3000);
+    } else {
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to publish module: ${errorMsg}`);
+
+      if (data.error?.metadata?.process) {
+        const process = data.error.metadata.process;
+        if (process.stderr) {
+          addMessage(`stderr: ${process.stderr}`);
+        }
+      }
+
+      button.textContent = "✗ Failed";
+      button.style.background = "#f44336";
+
+      // Reset button after 3 seconds
+      setTimeout(() => {
+        button.textContent = "Publish";
+        button.style.background = "";
+        button.disabled = false;
+      }, 3000);
+    }
+  } catch (error) {
+    addMessage(`✗ Error publishing module: ${error.message}`);
+    button.textContent = "✗ Error";
+    button.style.background = "#f44336";
+
+    // Reset button after 3 seconds
+    setTimeout(() => {
+      button.textContent = "Publish";
+      button.style.background = "";
+      button.disabled = false;
+    }, 3000);
+  }
+}
+
+refreshModulesBtn.addEventListener("click", loadModules);
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -299,4 +437,5 @@ messageInput.addEventListener("keypress", (e) => {
 // Auto-connect when DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   connect();
+  loadModules();
 });

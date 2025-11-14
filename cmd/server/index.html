@@ -156,11 +156,123 @@
       details[open] summary {
         margin-bottom: 8px;
       }
+
+      /* MoonBit Modules Section */
+      #modulesSection {
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .module-list {
+        margin-top: 10px;
+      }
+
+      .module-item {
+        padding: 12px;
+        margin: 8px 0;
+        background: #f9f9f9;
+        border-radius: 4px;
+        border-left: 4px solid #4caf50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .module-info {
+        flex: 1;
+      }
+
+      .module-name {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #333;
+      }
+
+      .module-version {
+        color: #666;
+        font-size: 0.9em;
+        margin-left: 10px;
+      }
+
+      .module-description {
+        color: #777;
+        font-size: 0.9em;
+        margin-top: 4px;
+      }
+
+      .module-path {
+        color: #999;
+        font-size: 0.85em;
+        font-family: monospace;
+        margin-top: 2px;
+      }
+
+      .module-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .publish-btn {
+        padding: 8px 16px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+      }
+
+      .publish-btn:hover {
+        background: #45a049;
+      }
+
+      .publish-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .refresh-btn {
+        padding: 8px 16px;
+        background: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .refresh-btn:hover {
+        background: #1976d2;
+      }
+
+      .no-modules {
+        padding: 20px;
+        text-align: center;
+        color: #999;
+      }
+
+      .loading {
+        padding: 20px;
+        text-align: center;
+        color: #666;
+      }
     </style>
   </head>
   <body>
     <h1>Moonbit Agent Platform</h1>
     <div id="status">Status: Disconnected</div>
+
+    <h2>MoonBit Modules:</h2>
+    <div id="modulesSection">
+      <button id="refreshModulesBtn" class="refresh-btn">
+        Refresh Modules
+      </button>
+      <div id="modulesList" class="module-list">
+        <div class="loading">Loading modules...</div>
+      </div>
+    </div>
 
     <h2>Send Message:</h2>
     <div>
