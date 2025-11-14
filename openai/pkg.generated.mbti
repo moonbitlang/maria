@@ -13,7 +13,7 @@ fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool
 
 async fn chat(model~ : @model.Model, ChatCompletionParam, logger? : @pino.Logger) -> ChatCompletion
 
-fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam) -> ChatCompletionParam
+fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> ChatCompletionParam
 
 fn chunk(id~ : String, choices~ : Array[ChatCompletionChunkChoice], created~ : Int, model~ : String, usage? : CompletionUsage, system_fingerprint? : String, service_tier? : ChatCompletionServiceTier, error? : OpenRouterErrorResponse) -> ChatCompletionChunk
 
@@ -69,6 +69,16 @@ pub struct ChatCompletion {
 impl Show for ChatCompletion
 impl ToJson for ChatCompletion
 impl @json.FromJson for ChatCompletion
+
+pub(all) struct ChatCompletionAllowedTools {
+  mode : ChatCompletionAllowedToolsMode
+  tools : Array[ChatCompletionToolChoice]
+}
+
+pub(all) enum ChatCompletionAllowedToolsMode {
+  Auto
+  Required
+}
 
 pub struct ChatCompletionAssistantMessageParam {
   content : Array[ChatCompletionContentPartParam]
@@ -151,6 +161,14 @@ pub struct ChatCompletionContentPartTextParam {
   cache_control : CacheControl?
 }
 
+pub(all) struct ChatCompletionCustomToolChoice {
+  name : String
+}
+
+pub(all) struct ChatCompletionFunctionToolChoice {
+  name : String
+}
+
 pub struct ChatCompletionMessage {
   content : String?
   refusal : String?
@@ -201,6 +219,7 @@ pub struct ChatCompletionParam {
   response_format : ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
+  tool_choice : ChatCompletionToolChoice?
 }
 impl ToJson for ChatCompletionParam
 
@@ -240,6 +259,15 @@ pub struct ChatCompletionTokenLogprob {
   top_logprobs : Array[ChatCompletionTopLogprob]
 }
 impl Show for ChatCompletionTokenLogprob
+
+pub(all) enum ChatCompletionToolChoice {
+  Disallow
+  Auto
+  Required
+  AllowedTools(ChatCompletionAllowedTools)
+  Function(ChatCompletionFunctionToolChoice)
+  Custom(ChatCompletionCustomToolChoice)
+}
 
 pub struct ChatCompletionToolMessageParam {
   content : Array[ChatCompletionContentPartParam]

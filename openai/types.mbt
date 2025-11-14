@@ -144,6 +144,63 @@ pub struct ChatCompletionParam {
   response_format : ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
+  tool_choice : ChatCompletionToolChoice?
+}
+
+///|
+pub(all) struct ChatCompletionFunctionToolChoice {
+  name : String
+}
+
+///|
+pub(all) struct ChatCompletionCustomToolChoice {
+  name : String
+}
+
+///|
+/// Constrains the tools available to the model to a pre-defined set.
+///
+/// `Auto` allows the model to pick from among the allowed tools and generate a message.
+///
+/// `Required` requires the model to call one or more of the allowed tools.
+pub(all) enum ChatCompletionAllowedToolsMode {
+  /// Allows the model to pick from among the allowed tools and generate a message.
+  Auto
+  /// Requires the model to call one or more of the allowed tools.
+  Required
+}
+
+///|
+/// Constrains the tools available to the model to a pre-defined set.
+pub(all) struct ChatCompletionAllowedTools {
+  /// Constrains the tools available to the model to a pre-defined set.
+  ///
+  /// `Auto` allows the model to pick from among the allowed tools and generate a message.
+  ///
+  /// `Required` requires the model to call one or more of the allowed tools.
+  mode : ChatCompletionAllowedToolsMode
+  // /A list of tool definitions that the model should be allowed to call.
+  /// For the Chat Completions API, the list of tool definitions might look like:
+  tools : Array[ChatCompletionToolChoice]
+}
+
+///|
+/// Controls which (if any) tool is called by the model. `None` means the model
+/// will not call any tool and instead generates a message. `Auto` means the
+/// model can pick between generating a message or calling one or more tools.
+/// `Required` means the model must call one or more tools. Specifying a
+/// particular tool via `Function({ name: "my_function" })` forces the model to
+/// call that tool.
+///
+/// `None` is the default when no tools are present. `Auto` is the default if
+/// tools are present.
+pub(all) enum ChatCompletionToolChoice {
+  Disallow
+  Auto
+  Required
+  AllowedTools(ChatCompletionAllowedTools)
+  Function(ChatCompletionFunctionToolChoice)
+  Custom(ChatCompletionCustomToolChoice)
 }
 
 ///|

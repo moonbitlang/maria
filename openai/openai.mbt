@@ -38,7 +38,7 @@ impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
   guard json is Object(json) else {
     raise @json.JsonDecodeError((json_path, "Expected an object"))
   }
-  let content = match json.get("content") {
+  let content : Array[ChatCompletionTokenLogprob]? = match json.get("content") {
     Some(Null) => None
     Some(content) => {
       let content : Array[ChatCompletionTokenLogprob] = @json.from_json(
@@ -49,7 +49,7 @@ impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
     }
     None => None
   }
-  let refusal = match json.get("refusal") {
+  let refusal : Array[ChatCompletionTokenLogprob]? = match json.get("refusal") {
     Some(Null) => None
     Some(refusal) => {
       let refusal : Array[ChatCompletionTokenLogprob] = @json.from_json(
@@ -595,6 +595,7 @@ pub fn chat_completion(
   response_format? : ResponseFormat,
   stream? : Bool,
   stream_options? : ChatCompletionStreamOptionsParam,
+  tool_choice? : ChatCompletionToolChoice,
 ) -> ChatCompletionParam {
   ChatCompletionParam::{
     model,
@@ -607,6 +608,7 @@ pub fn chat_completion(
     response_format,
     stream,
     stream_options,
+    tool_choice,
   }
 }
 
