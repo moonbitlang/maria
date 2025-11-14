@@ -74,7 +74,6 @@ pub struct ChatCompletionAssistantMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
   tool_calls : Array[ChatCompletionMessageToolCall]
-  function_call : ChatCompletionMessageFunctionCall?
 }
 
 pub struct ChatCompletionChoice {
@@ -157,19 +156,11 @@ pub struct ChatCompletionMessage {
   refusal : String?
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
-  function_call : ChatCompletionMessageFunctionCall?
 }
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 impl Show for ChatCompletionMessage
 impl ToJson for ChatCompletionMessage
 impl @json.FromJson for ChatCompletionMessage
-
-#deprecated
-pub struct ChatCompletionMessageFunctionCall {
-  arguments : String
-  name : String
-}
-impl Show for ChatCompletionMessageFunctionCall
 
 pub(all) enum ChatCompletionMessageParam {
   System(ChatCompletionSystemMessageParam)

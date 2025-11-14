@@ -237,37 +237,6 @@ pub impl ToJson for ChatCompletionMessageRole with to_json(
 }
 
 ///|
-#deprecated("Use ChatCompletionMessageToolCall instead")
-pub struct ChatCompletionMessageFunctionCall {
-  arguments : String
-  name : String
-} derive(Show)
-
-///|
-impl @json.FromJson for ChatCompletionMessageFunctionCall with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> ChatCompletionMessageFunctionCall {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  guard json.get("arguments") is Some(String(arguments)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'arguments' field"))
-  }
-  guard json.get("name") is Some(String(name)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'name' field"))
-  }
-  ChatCompletionMessageFunctionCall::{ arguments, name }
-}
-
-///|
-impl ToJson for ChatCompletionMessageFunctionCall with to_json(
-  self : ChatCompletionMessageFunctionCall,
-) -> Json {
-  { "arguments": self.arguments, "name": self.name }
-}
-
-///|
 pub fn ChatCompletionMessage::to_param(
   self : ChatCompletionMessage,
 ) -> ChatCompletionMessageParam {
@@ -275,12 +244,7 @@ pub fn ChatCompletionMessage::to_param(
   if self.content is Some(content) {
     parts.push(text_content_part(content))
   }
-  Assistant({
-    content: parts,
-    name: None,
-    tool_calls: self.tool_calls,
-    function_call: self.function_call,
-  })
+  Assistant({ content: parts, name: None, tool_calls: self.tool_calls })
 }
 
 ///|
@@ -323,24 +287,7 @@ pub impl @json.FromJson for ChatCompletionMessage with from_json(
     }
     None => []
   }
-  let function_call = match json.get("function_call") {
-    Some(Null) => None
-    Some(function_call) => {
-      let function_call : ChatCompletionMessageFunctionCall = @json.from_json(
-        function_call,
-        path=json_path.add_key("function_call"),
-      )
-      Some(function_call)
-    }
-    None => None
-  }
-  ChatCompletionMessage::{
-    content,
-    refusal,
-    role: Assistant,
-    tool_calls,
-    function_call,
-  }
+  ChatCompletionMessage::{ content, refusal, role: Assistant, tool_calls }
 }
 
 ///|
@@ -925,9 +872,6 @@ pub impl ToJson for ChatCompletionMessageParam with to_json(
       if param.name is Some(name) {
         json["name"] = Json::string(name)
       }
-      if param.function_call is Some(function_call) {
-        json["function_call"] = function_call.to_json()
-      }
       Json::object(json)
     }
     Tool(param) =>
@@ -1002,22 +946,7 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
         tool_calls,
         path=json_path.add_key("tool_calls"),
       )
-      let function_call = match json.get("function_call") {
-        None | Some(Null) => None
-        Some(function_call) => {
-          let function_call : ChatCompletionMessageFunctionCall = @json.from_json(
-            function_call,
-            path=json_path.add_key("function_call"),
-          )
-          Some(function_call)
-        }
-      }
-      ChatCompletionMessageParam::Assistant({
-        content,
-        name,
-        tool_calls,
-        function_call,
-      })
+      ChatCompletionMessageParam::Assistant({ content, name, tool_calls })
     }
     "system" => {
       guard json.get("content") is Some(content) else {
@@ -1513,7 +1442,6 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
     content,
     name,
     tool_calls,
-    function_call: None,
   })
 }
 
