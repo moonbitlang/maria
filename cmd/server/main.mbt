@@ -176,6 +176,10 @@ async fn main {
             } else {
             continue
           }
+          // Skip over tool events (subagent events)
+          if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
+            continue
+          }
           conn.write("event: maria\n")
           conn.write("data: \{event.stringify()}\n\n")
           conn.flush()
