@@ -52,15 +52,28 @@ Returns a list of all active agent instances.
 Creates to a task instance if the cwd is not yet associated with an existing
 task. Attach to the existing task spawned on cwd otherwise.
 
-Request:
+If `cwd` is supplied, a task is created (or attached to) in the specified
+working directory. If not supplied, a temporary directory is created for the
+task.
 
-```json
-{
-  "name": "example-task",
-  "model": "anthropic/claude-sonnet-4",
-  "cwd": "/path/to/working/directory"
-}
-```
+- Request with `cwd`:
+
+  ```json
+  {
+    "name": "example-task",
+    "model": "anthropic/claude-sonnet-4",
+    "cwd": "/path/to/working/directory"
+  }
+  ```
+
+- Request without `cwd`:
+
+  ```json
+  {
+    "name": "example-task",
+    "model": "anthropic/claude-sonnet-4"
+  }
+  ```
 
 Response:
 

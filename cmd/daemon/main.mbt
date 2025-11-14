@@ -203,12 +203,23 @@ async fn main {
             is {
               "name": String(name),
               "model": String(model),
-              "cwd": String(cwd),
+              "cwd"? : cwd,
               ..
             } else {
             raise text_error(
               400, "Bad Request", "Missing required fields in request body",
             )
+          }
+          let cwd = if cwd is Some(cwd) {
+            if cwd is String(cwd) {
+              cwd
+            } else {
+              raise text_error(
+                400, "Bad Request", "'cwd' field must be a string if provided",
+              )
+            }
+          } else {
+            @fsx.mkdtemp(@path.join(@os.tmpdir(), "maria-server-task-XXXXXX"))
           }
           if daemon.by_cwd.get(cwd) is Some(server) {
             raise json_error(409, "Conflict", {
