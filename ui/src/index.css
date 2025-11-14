@@ -155,10 +155,3 @@
 .dark * {
   scrollbar-color: oklch(0.556 0 0 / 0.5) transparent;
 }
-
-html,
-body,
-#root {
-  height: 100%;
-  overflow: hidden;
-}

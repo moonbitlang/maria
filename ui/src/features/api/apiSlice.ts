@@ -1,7 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { SessionEvent } from "@/features/session/sessionSlice";
+import {
+  waitForEvent,
+  type SessionEvent,
+} from "@/features/session/sessionSlice";
 
-const BASE_URL = "http://localhost:3001/v1";
+const BASE_URL = "http://localhost:8081/v1";
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -27,7 +30,7 @@ export const apiSlice = createApi({
       queryFn: () => ({ data: [] }),
       async onCacheEntryAdded(
         _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },
       ) {
         // create a sse connection when the cache subscription starts
         const source = new EventSource(`${BASE_URL}/events`);
@@ -43,6 +46,7 @@ export const apiSlice = createApi({
                   case "RequestCompleted":
                   case "PostToolCall":
                   case "MessageAdded": {
+                    dispatch(waitForEvent(false));
                     updateCachedData((draft) => {
                       draft.push(data);
                     });
