@@ -290,6 +290,137 @@ async fn main {
           println("[DEBUG] Finished streaming response body.")
           conn.end_response()
         }
+        (Get, ["", "v1", "task", id, "moonbit", "modules"]) => {
+          guard daemon.by_id.get(
+              @uuid.parse(id) catch {
+                _ =>
+                  raise json_error(400, "Bad Request", {
+                    "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+                  })
+              },
+            )
+            is Some(server) else {
+            raise json_error(404, "Not Found", {
+              "error": { "code": -1, "message": "Task not found: \{id}" },
+            })
+          }
+          println("[INFO] Forwarding moonbit modules request to task \{id}...")
+          let (response, response_body) = @http.get(
+            "http://localhost/v1/moonbit/modules",
+            headers=request.headers,
+            port=server.port,
+            body=conn.read_all(),
+          )
+          conn.send_response(response.code, response.reason, extra_headers={
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
+          })
+          conn.write(response_body)
+          conn.end_response()
+        }
+        (Post, ["", "v1", "moonbit", "publish"]) => {
+          let request = conn.read_all().binary()
+          let request_text : String = @encoding/utf8.decode(request) catch {
+            // TODO(upstream): impl Show for @encoding/utf8.Malformed
+            @encoding/utf8.Malformed(bytes) =>
+              raise json_error(400, "BadRequest", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid UTF-8 in request body: \{bytes}",
+                },
+              })
+          }
+          let request_json = @json.parse(request_text) catch {
+            error =>
+              raise json_error(400, "BadRequest", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid JSON in request body: \{error}",
+                },
+              })
+          }
+          guard request_json is { "module": { "path": String(path), .. }, .. } else {
+            raise json_error(400, "BadRequest", {
+              "error": {
+                "code": -1,
+                "message": "Missing 'module.path' field in request body",
+              },
+            })
+          }
+          let process = @spawn.spawn("moon", ["publish"], cwd=path) catch {
+            error =>
+              raise json_error(500, "InternalServerError", {
+                "error": {
+                  "code": -1,
+                  "message": "Failed to spawn 'moon publish' for '\{path}': \{error}",
+                },
+              })
+          }
+          let module_ = @moon.Module::load(path) catch {
+            error =>
+              raise json_error(404, "NotFound", {
+                "error": {
+                  "code": -1,
+                  "message": "No MoonBit module found in path '\{path}': \{error}",
+                },
+              })
+          }
+          if process.status == 0 {
+            let response : Json = {
+              "module": {
+                "path": path,
+                "name": module_.name,
+                "version": module_.version,
+                "description": module_.description,
+              },
+              "process": {
+                "status": process.status,
+                "stdout": process.stdout,
+                "stderr": process.stderr,
+              },
+            }
+            conn
+            ..send_response(201, "Created", extra_headers={
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+              "Access-Control-Allow-Headers": "Content-Type",
+            })
+            ..write(response.stringify())
+            ..end_response()
+          } else {
+            let response : Json = {
+              "error": {
+                "code": -1,
+                "message": "Failed to publish module at '\{path}'",
+                "metadata": {
+                  "module": {
+                    "path": path,
+                    "name": module_.name,
+                    "version": module_.version,
+                    "description": module_.description,
+                  },
+                  "process": {
+                    "status": process.status,
+                    "stdout": process.stdout,
+                    "stderr": process.stderr,
+                  },
+                },
+              },
+            }
+            conn
+            ..send_response(500, "InternalServerError", extra_headers={
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+              "Access-Control-Allow-Headers": "Content-Type",
+            })
+            ..write(response.stringify())
+            ..end_response()
+          }
+        }
         (Post, ["", "v1", "task", id, "message"]) => {
           guard daemon.by_id.get(
               @uuid.parse(id) catch {

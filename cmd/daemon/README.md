@@ -121,3 +121,76 @@ Run `moon publish` in the task's working directory.
   }
 }
 ```
+
+### `GET /v1/task/{id}/moonbit/modules`
+
+Returns the list of MoonBit modules in the task's working directory.
+
+Returns the list of MoonBit modules in the server's working directory.
+
+Response:
+
+```json
+{
+  "modules": [
+    {
+      "path": "/path/to/moonbit/module",
+      "name": "example-module",
+      "version": "1.0.0",
+      "description": "An example module."
+    }
+  ]
+}
+```
+
+### `POST /v1/moonbit/publish`
+
+Runs `moon publish` in the task's working directory.
+
+```json
+{
+  "module": {
+    "path": "/path/to/moonbit/module"
+  }
+}
+```
+
+If successful, returns 201 Created:
+
+```json
+{
+  "module": {
+    "name": "example-module",
+    "version": "1.0.0",
+    "description": "An example module.",
+  },
+  "process": {
+    "status": 0,
+    "stdout": "Published successfully.",
+    "stderr": ""
+  }
+}
+```
+
+If failed, returns 500 Internal Server Error:
+
+```json
+{
+  "error": {
+    "code": -1,
+    "message": "Failed to publish the module.",
+    "metadata": {
+      "module": {
+        "name": "example-module",
+        "version": "1.0.0",
+        "description": "An example module.",
+      },
+      "process": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "Error: Failed to publish."
+      }
+    }
+  },
+}
+```
