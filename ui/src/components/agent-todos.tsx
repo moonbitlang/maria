@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/features/session/sessionSlice";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface AgentTodosProps {
   todos: Todo[];
@@ -109,6 +113,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
 }
 
 export function AgentTodos({ todos }: AgentTodosProps) {
+  const [expandTodos, setExpandTodos] = useState<boolean>(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { completed, inProgress, pending } = computeTodoMetrics(todos);
 
@@ -129,30 +134,41 @@ export function AgentTodos({ todos }: AgentTodosProps) {
   };
 
   return (
-    <div className="px-3 py-2 bg-muted/30">
-      <div className="flex items-center gap-1.5 mb-2">
-        <div className="text-xs font-semibold text-foreground">Todos</div>
-        <Badge variant="outline" className="text-[10px] h-4 px-1">
-          {completed} Completed
-        </Badge>
-        <Badge variant="outline" className="text-[10px] h-4 px-1">
-          {inProgress} In Progress
-        </Badge>
-        <Badge variant="outline" className="text-[10px] h-4 px-1">
-          {pending} Pending
-        </Badge>
-      </div>
-
-      <div className="space-y-1.5">
-        {todos.map((todo) => (
-          <TodoItem
-            key={todo.id}
-            todo={todo}
-            isExpanded={expandedIds.has(todo.id)}
-            onToggleExpanded={() => toggleExpanded(todo.id)}
+    <div className="px-3 py-2">
+      <Collapsible
+        open={expandTodos}
+        onOpenChange={() => setExpandTodos(!expandTodos)}
+      >
+        <CollapsibleTrigger className="flex items-center gap-1.5 pb-2 w-full">
+          <div className="text-xs font-semibold text-foreground">Todos</div>
+          <Badge variant="outline" className="text-[10px] h-4 px-1">
+            {completed} Completed
+          </Badge>
+          <Badge variant="outline" className="text-[10px] h-4 px-1">
+            {inProgress} In Progress
+          </Badge>
+          <Badge variant="outline" className="text-[10px] h-4 px-1">
+            {pending} Pending
+          </Badge>
+          <ChevronDown
+            className={cn(
+              "size-3.5 ml-auto transition-transform",
+              expandTodos && "rotate-180",
+            )}
           />
-        ))}
-      </div>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="space-y-1.5">
+          {todos.map((todo) => (
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              isExpanded={expandedIds.has(todo.id)}
+              onToggleExpanded={() => toggleExpanded(todo.id)}
+            />
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

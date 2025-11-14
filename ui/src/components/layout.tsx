@@ -9,10 +9,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="flex flex-col h-screen overflow-x-hidden">
+      <SidebarInset className="flex flex-col h-dvh overflow-x-hidden">
         {/* TODO: hide the header on desktop screen, move it to sidebar */}
-        <header className="flex items-center">
-          <SidebarTrigger />
+        <header className="flex items-center md:p-2">
+          <div className="flex items-center md:hidden gap-3 p-2">
+            <SidebarTrigger className="scale-150" />
+            <h1 className="font-semibold text-xl">Maria</h1>
+          </div>
         </header>
         {/* <main className="flex-1 min-h-0 flex flex-col">
           <div className="flex-1 min-h-0 overflow-y-auto bg-red-50">
@@ -22,7 +25,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="h-[100px] bg-blue-50"></div>
         </main> */}
-        <main className="flex-1 min-h-0 flex flex-col">{children}</main>
+        <div className="flex-1 min-h-0 flex flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
