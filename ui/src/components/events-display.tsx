@@ -375,7 +375,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
   }
 
   return (
-    <Conversation>
+    <Conversation className="min-h-0">
       <ConversationContent>
         {events.map((event) => {
           switch (event.msg) {

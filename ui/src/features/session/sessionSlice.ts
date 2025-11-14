@@ -99,6 +99,7 @@ type PostToolCallBase = {
   error?: string;
 };
 
+// TODO: search_files
 export type PostToolCallEvent = PostToolCallBase &
   (
     | ExecuteCommandTool
