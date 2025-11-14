@@ -9,3 +9,12 @@ async test "with_temporary_directory" {
   guard tmpdir is Some(d) else { fail("tmpdir is None") }
   @json.inspect(@this.exists(d), content=false)
 }
+
+///|
+async test "mkdtemp" {
+  let dir = @this.mkdtemp("mbt-XXXXXX")
+  @json.inspect(@this.exists(dir), content=true)
+  @json.inspect(@this.kind(dir) is Directory, content=true)
+  @fs.rmdir(dir, recursive=true)
+  @json.inspect(@this.exists(dir), content=false)
+}

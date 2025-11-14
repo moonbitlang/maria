@@ -12,6 +12,8 @@ async fn list_directory(StringView) -> Array[DirectoryEntry]
 
 async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
 
+async fn mkdtemp(String) -> String
+
 async fn read_file(StringView) -> String
 
 async fn remove(StringView) -> Unit
