@@ -16,6 +16,10 @@ const confirmCreateBtn = document.getElementById("confirmCreateBtn");
 const cancelCreateBtn = document.getElementById("cancelCreateBtn");
 const taskView = document.getElementById("taskView");
 const noTaskSelected = document.getElementById("noTaskSelected");
+const modulesBtn = document.getElementById("modulesBtn");
+const modulesModal = document.getElementById("modulesModal");
+const closeModulesBtn = document.getElementById("closeModulesBtn");
+const modulesList = document.getElementById("modulesList");
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -458,10 +462,164 @@ function hideCreateTaskModal() {
   createTaskModal.classList.remove("show");
 }
 
+// Module management functions
+async function loadModules() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/moonbit/modules`);
+    if (!response.ok) {
+      throw new Error(`Failed to load modules: ${response.statusText}`);
+    }
+    const data = await response.json();
+    const modules = data.modules || [];
+    displayModules(modules);
+    showModulesModal();
+  } catch (error) {
+    console.error("Error loading modules:", error);
+    showError("Failed to load modules: " + error.message);
+  }
+}
+
+function displayModules(modules) {
+  modulesList.innerHTML = "";
+
+  if (modules.length === 0) {
+    const emptyMsg = document.createElement("div");
+    emptyMsg.style.padding = "20px";
+    emptyMsg.style.color = "#95a5a6";
+    emptyMsg.style.textAlign = "center";
+    emptyMsg.textContent = "No MoonBit modules found";
+    modulesList.appendChild(emptyMsg);
+    return;
+  }
+
+  modules.forEach((module) => {
+    const moduleItem = document.createElement("div");
+    moduleItem.className = "module-item";
+    moduleItem.id = `module-${escapeHtml(module.path)}`;
+
+    const header = document.createElement("div");
+    header.className = "module-header";
+
+    const nameVersion = document.createElement("div");
+    nameVersion.innerHTML = `
+      <span class="module-name">${escapeHtml(module.name || "Unknown")}</span>
+      ${
+        module.version
+          ? `<span class="module-version">v${escapeHtml(module.version)}</span>`
+          : ""
+      }
+    `;
+
+    const publishBtn = document.createElement("button");
+    publishBtn.className = "publish-btn";
+    publishBtn.textContent = "Publish";
+    publishBtn.onclick = () => publishModule(module.path, moduleItem);
+
+    header.appendChild(nameVersion);
+    header.appendChild(publishBtn);
+
+    const path = document.createElement("div");
+    path.className = "module-path";
+    path.textContent = module.path;
+
+    moduleItem.appendChild(header);
+    moduleItem.appendChild(path);
+
+    if (module.description) {
+      const description = document.createElement("div");
+      description.className = "module-description";
+      description.textContent = module.description;
+      moduleItem.appendChild(description);
+    }
+
+    modulesList.appendChild(moduleItem);
+  });
+}
+
+async function publishModule(modulePath, moduleItem) {
+  const publishBtn = moduleItem.querySelector(".publish-btn");
+  const existingStatus = moduleItem.querySelector(".publish-status");
+  if (existingStatus) {
+    existingStatus.remove();
+  }
+
+  const statusDiv = document.createElement("div");
+  statusDiv.className = "publish-status loading";
+  statusDiv.textContent = "Publishing...";
+  moduleItem.appendChild(statusDiv);
+
+  publishBtn.disabled = true;
+
+  try {
+    const response = await fetch("/v1/moonbit/publish", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        module: {
+          path: modulePath,
+        },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      statusDiv.className = "publish-status success";
+      statusDiv.textContent = "✓ Published successfully";
+      if (data.process && data.process.stdout) {
+        const output = document.createElement("pre");
+        output.style.fontSize = "0.8em";
+        output.style.marginTop = "5px";
+        output.style.whiteSpace = "pre-wrap";
+        output.textContent = data.process.stdout;
+        statusDiv.appendChild(output);
+      }
+    } else {
+      statusDiv.className = "publish-status error";
+      statusDiv.textContent = "✗ Publish failed";
+      if (data.error && data.error.metadata && data.error.metadata.process) {
+        const stderr = data.error.metadata.process.stderr;
+        if (stderr) {
+          const errorOutput = document.createElement("pre");
+          errorOutput.style.fontSize = "0.8em";
+          errorOutput.style.marginTop = "5px";
+          errorOutput.style.whiteSpace = "pre-wrap";
+          errorOutput.textContent = stderr;
+          statusDiv.appendChild(errorOutput);
+        }
+      }
+    }
+  } catch (error) {
+    statusDiv.className = "publish-status error";
+    statusDiv.textContent = "✗ Error: " + error.message;
+  } finally {
+    publishBtn.disabled = false;
+  }
+}
+
+function showModulesModal() {
+  modulesModal.classList.add("show");
+}
+
+function hideModulesModal() {
+  modulesModal.classList.remove("show");
+}
+
 // Event listeners
 createTaskBtn.addEventListener("click", showCreateTaskModal);
 
 cancelCreateBtn.addEventListener("click", hideCreateTaskModal);
+
+modulesBtn.addEventListener("click", loadModules);
+
+closeModulesBtn.addEventListener("click", hideModulesModal);
 
 confirmCreateBtn.addEventListener("click", async () => {
   const name = document.getElementById("taskName").value.trim();
@@ -487,6 +645,12 @@ confirmCreateBtn.addEventListener("click", async () => {
 createTaskModal.addEventListener("click", (e) => {
   if (e.target === createTaskModal) {
     hideCreateTaskModal();
+  }
+});
+
+modulesModal.addEventListener("click", (e) => {
+  if (e.target === modulesModal) {
+    hideModulesModal();
   }
 });
 

@@ -261,6 +261,26 @@
         cursor: not-allowed;
       }
 
+      #modulesBtn {
+        padding: 12px 30px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: bold;
+      }
+
+      #modulesBtn:hover {
+        background: #2980b9;
+      }
+
+      #modulesBtn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+
       .message {
         padding: 5px;
         margin: 5px 0;
@@ -403,6 +423,93 @@
         margin: 10px 0;
         border-left: 4px solid #c62828;
       }
+
+      /* Module list styles */
+      .modules-modal .modal-content {
+        max-width: 700px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .module-item {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        background: #fafafa;
+      }
+
+      .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .module-name {
+        font-weight: bold;
+        color: #2c3e50;
+        font-size: 1.1em;
+      }
+
+      .module-version {
+        color: #7f8c8d;
+        font-size: 0.9em;
+        margin-left: 10px;
+      }
+
+      .module-path {
+        font-size: 0.85em;
+        color: #7f8c8d;
+        margin: 5px 0;
+        word-break: break-all;
+      }
+
+      .module-description {
+        color: #555;
+        margin: 5px 0;
+      }
+
+      .publish-btn {
+        padding: 8px 16px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+      }
+
+      .publish-btn:hover {
+        background: #229954;
+      }
+
+      .publish-btn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+
+      .publish-status {
+        font-size: 0.85em;
+        margin-top: 5px;
+        padding: 5px;
+        border-radius: 3px;
+      }
+
+      .publish-status.success {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .publish-status.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .publish-status.loading {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
     </style>
   </head>
   <body>
@@ -433,6 +540,7 @@
             placeholder="Enter your message..."
           />
           <button id="sendBtn">Send</button>
+          <button id="modulesBtn">Modules</button>
         </div>
       </div>
     </div>
@@ -448,7 +556,9 @@
         <div class="form-group">
           <label for="taskModel">Model:</label>
           <select id="taskModel" required>
-            <option value="anthropic/claude-sonnet-4.5">anthropic/claude-sonnet-4.5</option>
+            <option value="anthropic/claude-sonnet-4.5">
+              anthropic/claude-sonnet-4.5
+            </option>
           </select>
         </div>
         <div class="form-group">
@@ -463,6 +573,17 @@
         <div class="modal-buttons">
           <button class="btn-secondary" id="cancelCreateBtn">Cancel</button>
           <button class="btn-primary" id="confirmCreateBtn">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modules Modal -->
+    <div id="modulesModal" class="modal modules-modal">
+      <div class="modal-content">
+        <h3>MoonBit Modules</h3>
+        <div id="modulesList"></div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="closeModulesBtn">Close</button>
         </div>
       </div>
     </div>
