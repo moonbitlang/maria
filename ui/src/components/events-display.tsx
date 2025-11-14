@@ -4,15 +4,17 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "./ui/shadcn-io/ai/conversation";
-import type {
-  ExecuteCommandTool,
-  ListFilesTool,
-  MessageAddedEvent,
-  MetaWriteToFileTool,
-  PostToolCallEvent,
-  ReadFileTool,
-  RequestCompletedEvent,
-  SessionEvent,
+import {
+  updateTodos,
+  type ExecuteCommandTool,
+  type ListFilesTool,
+  type MessageAddedEvent,
+  type MetaWriteToFileTool,
+  type PostToolCallEvent,
+  type ReadFileTool,
+  type RequestCompletedEvent,
+  type SessionEvent,
+  type TodoWriteTool,
 } from "@/features/session/sessionSlice";
 import {
   Tool,
@@ -33,6 +35,8 @@ import {
   XCircle,
   Terminal,
 } from "lucide-react";
+import { useAppDispatch } from "@/app/hooks";
+import { useEffect } from "react";
 
 interface EventsDisplayProps {
   events: SessionEvent[];
@@ -263,6 +267,26 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
   );
 }
 
+function TodoWrite({ event }: { event: TodoWriteTool }) {
+  const { name, result } = event;
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    // when we get a todo write event, we should update the todos in the session slice
+    dispatch(updateTodos(result.todos));
+  }, [dispatch, result.todos]);
+  return (
+    <Tool>
+      <ToolHeader type={name} state="output-available" />
+      <ToolContent>
+        <ToolOutput
+          errorText={undefined}
+          output={<Response>Agent updated the todo list.</Response>}
+        ></ToolOutput>
+      </ToolContent>
+    </Tool>
+  );
+}
+
 function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
   const output = (
     <Response parseIncompleteMarkdown={false}>
@@ -282,6 +306,9 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
       }
       case "execute_command": {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
+      }
+      case "todo_write": {
+        return <TodoWrite event={event as TodoWriteTool} />;
       }
     }
     return (

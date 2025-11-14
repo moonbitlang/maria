@@ -68,16 +68,16 @@ export type MetaWriteToFileTool = {
   result: { path: string; message: string; diff: string };
 };
 
-type Todo = {
+export type Todo = {
   content: string;
   created_at: string;
   id: string;
   priority: "High" | "Medium" | "Low";
-  status: "Pending" | "Completed" | "Inprogress";
+  status: "Pending" | "Completed" | "InProgress";
   updated_at: string;
 };
 
-type TodoWriteTool = {
+export type TodoWriteTool = {
   name: "todo_write";
   result: {
     message: string;
@@ -143,10 +143,12 @@ export type MessageAddedEvent = {
 
 export type SessionSliceState = {
   events: SessionEvent[];
+  todos: Todo[];
 };
 
 const initialState: SessionSliceState = {
   events: [],
+  todos: [],
 };
 
 export const sessionSlice = createAppSlice({
@@ -156,11 +158,15 @@ export const sessionSlice = createAppSlice({
     addEvent(state, action: PayloadAction<SessionEvent>) {
       state.events.push(action.payload);
     },
+    updateTodos(state, action: PayloadAction<Todo[]>) {
+      state.todos = action.payload;
+    },
   },
   selectors: {
     selectEvents: (state) => state.events,
+    selectTodos: (state) => state.todos,
   },
 });
 
-export const { addEvent } = sessionSlice.actions;
-export const { selectEvents } = sessionSlice.selectors;
+export const { addEvent, updateTodos } = sessionSlice.actions;
+export const { selectEvents, selectTodos } = sessionSlice.selectors;

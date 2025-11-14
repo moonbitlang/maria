@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout";
 import { EventsDisplay } from "@/components/events-display";
+import { AgentTodos } from "@/components/agent-todos";
 import {
   useGetEventsQuery,
   usePostMessageMutation,
@@ -12,9 +13,12 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai/prompt-input";
+import { useAppSelector } from "@/app/hooks";
+import { selectTodos } from "@/features/session/sessionSlice";
 
 function ChatView() {
   const [input, setInput] = useState("");
+  const todos = useAppSelector(selectTodos);
 
   const [postMessage] = usePostMessageMutation();
 
@@ -28,6 +32,7 @@ function ChatView() {
 
   return (
     <>
+      <AgentTodos todos={todos} />
       <div className="flex-1 min-h-0 overflow-y-auto">
         <EventsDisplay events={data ?? []} />
       </div>
