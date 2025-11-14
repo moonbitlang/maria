@@ -18,7 +18,7 @@ type ToolCall = {
   function: ToolCallFunction;
 };
 
-type RequestCompletedEvent = {
+export type RequestCompletedEvent = {
   msg: "RequestCompleted";
   message: {
     content: string;
@@ -27,55 +27,85 @@ type RequestCompletedEvent = {
   };
 };
 
-type ExecuteCommandTool = {
+export type ExecuteCommandTool = {
   name: "execute_command";
-  result?: ["Completed", { command: string; status: number }];
+  result: [
+    "Completed",
+    {
+      command: string;
+      status: number;
+      stdout: string;
+      stderr: string;
+      max_output_lines: number;
+    },
+  ];
   error?: unknown;
 };
 
-type ListFilesTool = {
-  name: "list_files;";
-  result?: { path: string };
-  error?: unknown;
+export type ListFilesTool = {
+  name: "list_files";
+  result: {
+    path: string;
+    entries: { name: string; kind: string; is_hidden: boolean }[];
+    total_count: number;
+    file_count: number;
+    directory_count: number;
+  };
 };
 
-type ReadFileTool = {
+export type ReadFileTool = {
   name: "read_file";
-  result?: ["ReadFileResult", { path: string }];
-  error?: unknown;
+  result: {
+    path: string;
+    content: string;
+    start_line: number;
+    end_line: number;
+  };
 };
 
-type replaceInFileTool = {
-  name: "replace_in_file";
-  result?: { path: string };
-  error?: unknown;
-};
-
-type metaWriteToFileTool = {
+export type MetaWriteToFileTool = {
   name: "meta_write_to_file";
-  result?: { path: string };
-  error?: unknown;
+  result: { path: string; message: string; diff: string };
+};
+
+type Todo = {
+  content: string;
+  created_at: string;
+  id: string;
+  priority: "High" | "Medium" | "Low";
+  status: "Pending" | "Completed" | "Inprogress";
+  updated_at: string;
+};
+
+type TodoWriteTool = {
+  name: "todo_write";
+  result: {
+    message: string;
+    todos: Todo[];
+    updated_todos: Todo[];
+    is_new_creation: boolean;
+  };
 };
 
 type UnknownTool = {
   name: string;
-  result?: unknown;
-  error?: unknown;
 };
 
 type PostToolCallBase = {
   msg: "PostToolCall";
   tool_call: ToolCall;
   text: string;
+  result?: unknown;
+  error?: string;
 };
 
-type PostToolCallEvent = PostToolCallBase &
+export type PostToolCallEvent = PostToolCallBase &
   (
     | ExecuteCommandTool
     | ListFilesTool
     | ReadFileTool
-    | replaceInFileTool
-    | metaWriteToFileTool
+    | MetaWriteToFileTool
+    | TodoWriteTool
     | UnknownTool
   );
 
@@ -95,17 +125,17 @@ type UserMessage = {
   role: "user";
 };
 
-type AssistantMessage = {
+export type AssistantMessage = {
   role: "assistant";
   tool_calls: ToolCall[];
 };
 
-type ToolMessage = {
+export type ToolMessage = {
   role: "tool";
   tool_call_id: string;
 };
 
-type MessageAddedEvent = {
+export type MessageAddedEvent = {
   msg: "MessageAdded";
   message: MessageBase &
     (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
