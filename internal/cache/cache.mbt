@@ -44,11 +44,11 @@ fn cache_message(
 
 ///|
 pub fn cache_messages(
-  messages : Array[@openai.ChatCompletionMessageParam],
+  messages : ArrayView[@openai.ChatCompletionMessageParam],
 ) -> Array[@openai.ChatCompletionMessageParam] {
   let mut last_system : @openai.ChatCompletionSystemMessageParam? = None
   let cached = []
-  let messages = for messages = messages[:] {
+  let messages = for messages = messages {
     if last_system is Some(system) {
       cached.push(
         @openai.system_message(content=cache_content_parts(system.content)),
