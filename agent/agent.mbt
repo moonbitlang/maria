@@ -29,7 +29,7 @@ pub struct Agent {
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
-  priv event_target : EventTarget
+  priv event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
@@ -350,7 +350,7 @@ pub async fn new(
     model,
     tools: {},
     queue: [],
-    event_target: EventTarget::new(),
+    event_target: @event.EventTarget::new(),
     token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
@@ -383,78 +383,12 @@ pub async fn new(
 ///
 /// * `agent` : The agent instance emitting the event.
 /// * `event` : The event to emit and log.
-pub async fn Agent::emit(agent : Agent, event : Event) -> Unit {
+pub async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
   agent.event_target.emit(event)
-  match event {
-    TokenCounted(token_count) =>
-      agent.logger.info("TokenCounted", { "token_count": token_count.to_json() })
-    ContextPruned(origin_token_count~, pruned_token_count~) =>
-      if origin_token_count != pruned_token_count {
-        agent.logger.info("ContextPruned", {
-          "origin_token_count": origin_token_count.to_json(),
-          "pruned_token_count": pruned_token_count.to_json(),
-        })
-      }
-    PreToolCall(tool_call) =>
-      match tool_call.function.arguments {
-        None =>
-          agent.logger.info("PreToolCall", {
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
-          })
-        Some(arguments) =>
-          try @json.parse(arguments) catch {
-            error =>
-              agent.logger.info("PreToolCall", {
-                "tool_call": tool_call.to_json(),
-                "name": tool_call.function.name.to_json(),
-                "args": tool_call.function.arguments.to_json(),
-                "error": error.to_json(),
-              })
-          } noraise {
-            args =>
-              agent.logger.info("PreToolCall", {
-                "tool_call": tool_call.to_json(),
-                "name": tool_call.function.name.to_json(),
-                "args": args,
-              })
-          }
-      }
-    PostToolCall(tool_call, result~, rendered~) =>
-      match result {
-        Ok(output) =>
-          agent.logger.info("PostToolCall", {
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
-            "result": output.to_json(),
-            "text": rendered.to_json(),
-          })
-        Err(error) =>
-          agent.logger.info("PostToolCall", {
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
-            "error": error.to_json(),
-            "text": rendered.to_json(),
-          })
-      }
-    PreConversation => agent.logger.info("PreConversation", {})
-    PostConversation => agent.logger.info("PostConversation", {})
-    MessageAdded(message) =>
-      agent.logger.info("MessageAdded", { "message": message.to_json() })
-    ToolAdded(tool_desc) =>
-      agent.logger.info("ToolAdded", {
-        "tool": {
-          "name": tool_desc.name,
-          "description": tool_desc.description,
-          "schema": tool_desc.schema.to_json(),
-        },
-      })
-    RequestCompleted(usage~, message~) =>
-      agent.logger.info("RequestCompleted", {
-        "usage": usage.to_json(),
-        "message": message.to_json(),
-      })
-  }
+  let json = event.to_json()
+  guard json is Object({ "msg": String(msg), .. } as json) else {  }
+  json.remove("msg")
+  agent.logger.info(msg, json)
 }
 
 ///|
@@ -466,6 +400,9 @@ pub async fn Agent::emit(agent : Agent, event : Event) -> Unit {
 /// * `f` : The asynchronous callback function to execute when the event is
 ///   triggered. The function receives an `Event` containing relevant
 ///   event data.
-pub fn Agent::add_listener(agent : Agent, f : async (Event) -> Unit) -> Unit {
+pub fn Agent::add_listener(
+  agent : Agent,
+  f : async (@event.Event) -> Unit,
+) -> Unit {
   agent.event_target.add_listener(f)
 }

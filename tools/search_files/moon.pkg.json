@@ -16,7 +16,8 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
     "moonbitlang/maria/tools/replace_in_file",
-    "moonbitlang/maria/internal/pino"
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/event"
   ],
   "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }

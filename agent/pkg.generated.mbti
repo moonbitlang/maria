@@ -3,6 +3,7 @@ package "moonbitlang/maria/agent"
 
 import(
   "moonbitlang/core/random"
+  "moonbitlang/maria/event"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
@@ -24,25 +25,13 @@ pub struct Agent {
   logger : @pino.Logger
   // private fields
 }
-fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit
+fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
 async fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit
-async fn Agent::emit(Self, Event) -> Unit
+async fn Agent::emit(Self, @event.Event) -> Unit
 async fn Agent::start(Self) -> Unit
-
-pub(all) enum Event {
-  PreConversation
-  PostConversation
-  MessageAdded(@openai.ChatCompletionMessageParam)
-  ToolAdded(@tool.ToolDesc)
-  PreToolCall(@openai.ChatCompletionMessageToolCall)
-  PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : Result[Json, Error], rendered~ : String)
-  TokenCounted(Int)
-  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  RequestCompleted(usage~ : @openai.CompletionUsage?, message~ : @openai.ChatCompletionMessage)
-}
 
 // Type aliases
 
