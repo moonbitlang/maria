@@ -47,27 +47,37 @@ pub async fn Pruner::prune_messages(
   if tokens <= pruner.safe_zone_tokens {
     return
   }
-  for i in 0..<messages.length() {
-    let message = messages[i]
+  let mut pruned_tokens = tokens // current state
+  let pruned_index = []
+  let prune_goal_met = for i, message in messages {
     match message {
       Tool(tool) => {
+        if tool.content is [Text({ text: ClearedToolOutputPlaceholder, .. })] {
+          // Already cleared, skip
+          continue
+        }
         messages[i] = @openai.tool_message(
           content="[Cleared: tool output. If you want to see the output, you can use the tool again.]",
           tool_call_id=tool.tool_call_id,
         )
-        let pruned_tokens = pruner.token_counter.count_param(
+        pruned_index.push(i)
+        // TODO: this is O(n^2), optimize by tracking deltas
+        pruned_tokens = pruner.token_counter.count_param(
           @openai.chat_completion(messages~, model="gpt-4o", tools~),
         )
-        pruner.logger.info("ContextPruned", {
-          "origin_token_count": tokens.to_json(),
-          "pruned_token_count": pruned_tokens.to_json(),
-          "message_index": i.to_json(),
-        })
         if pruned_tokens <= pruner.safe_zone_tokens {
-          return
+          break true
         }
       }
       _ => ()
     }
+  } else {
+    false
   }
+  pruner.logger.info("ContextPruned", {
+    "origin_token_count": tokens.to_json(),
+    "pruned_token_count": pruned_tokens.to_json(),
+    "pruned_index": pruned_index.to_json(),
+    "pruned_goal_met": prune_goal_met.to_json(),
+  })
 }
