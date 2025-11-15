@@ -267,7 +267,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.history.add_message(message.to_param())
       agent.session_manager.save(agent.history)
       // End of inlined agent.call()
-      
+
       if message.tool_calls is [] {
         break
       }
