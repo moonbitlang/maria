@@ -249,6 +249,16 @@ pub fn Conversation::add_message(
 }
 
 ///|
+pub fn Conversation::add_messages(
+  self : Conversation,
+  messages : Array[@openai.ChatCompletionMessageParam],
+) -> Unit {
+  for message in messages {
+    self.add_message(message)
+  }
+}
+
+///|
 pub fn Conversation::id(self : Conversation) -> String {
   self.id
 }

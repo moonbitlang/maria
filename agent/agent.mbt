@@ -277,9 +277,8 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Emit event with API usage statistics and the returned message
       agent.emit(RequestCompleted(usage=response.usage, message~))
       // Add all staged messages to permanent conversation history
-      for message in staged {
-        agent.history.add_message(message)
-      }
+      agent.history.add_messages(staged)
+
       // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
       // Persist the updated conversation history to disk
