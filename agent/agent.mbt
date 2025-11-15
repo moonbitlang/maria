@@ -1,4 +1,25 @@
 ///|
+/// Represents an AI agent that interacts with language models and executes tools.
+///
+/// The `Agent` struct encapsulates the complete state and behavior of an AI agent,
+/// including conversation history, available tools, model configuration, and event
+/// handling. It manages the conversation loop, token counting, context pruning,
+/// and tool execution.
+///
+/// Fields:
+///
+/// * `rand` : Random number generator for generating UUIDs and other random values.
+/// * `uuid` : UUID generator for creating unique identifiers.
+/// * `cwd` : Current working directory used as the base path for tool operations.
+/// * `model` : The AI model configuration and endpoint for generating responses.
+/// * `logger` : Logger instance for recording agent activities and events.
+/// * `tools` : Map of available tools indexed by their names.
+/// * `history` : Conversation history containing all messages exchanged.
+/// * `queue` : Pending messages to be sent in the next API call.
+/// * `event_target` : Event dispatcher for handling agent lifecycle events.
+/// * `token_counter` : Counter for tracking token usage across API calls.
+/// * `context_pruner` : Pruner for managing context size within token budgets.
+/// * `session_manager` : Manager for persisting and loading conversation sessions.
 pub struct Agent {
   rand : @random.Rand
   uuid : @uuid.Generator
@@ -9,15 +30,29 @@ pub struct Agent {
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
   priv event_target : EventTarget
-  priv token_counter : @token.Counter
+  priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
 }
 
 ///|
+/// Error raised when the API response contains no choices.
+///
+/// This error occurs when the chat completion response from the OpenAI API
+/// returns an empty choices array, which indicates an unexpected API response
+/// format or a failure in the model to generate a response.
 priv suberror EmptyChoices
 
 ///|
+/// Adds a message to the agent's message queue for the next API call.
+///
+/// The message is queued and will be sent to the API in the next `call()` operation.
+/// After adding the message, a `MessageAdded` event is emitted.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to add the message to.
+/// * `message` : The chat completion message to queue for sending.
 pub async fn Agent::add_message(
   agent : Agent,
   message : @openai.ChatCompletionMessageParam,
@@ -27,6 +62,14 @@ pub async fn Agent::add_message(
 }
 
 ///|
+/// Closes the agent and performs any necessary cleanup.
+///
+/// This function is currently a placeholder for future cleanup operations
+/// such as closing connections, flushing logs, or releasing resources.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to close (currently unused).
 pub fn Agent::close(_ : Agent) -> Unit {
 
 }
@@ -101,6 +144,29 @@ async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
 }
 
 ///|
+/// Executes a tool call requested by the AI model and returns the result.
+///
+/// This function handles the complete tool execution lifecycle:
+/// 1. Validates that the requested tool exists
+/// 2. Emits a `PreToolCall` event for logging/monitoring
+/// 3. Parses and validates the tool arguments
+/// 4. Executes the tool with the provided arguments
+/// 5. Emits a `PostToolCall` event with the result
+/// 6. Returns the result formatted as a tool message
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance containing the available tools.
+/// * `tool_call` : The tool call request from the AI model, containing the tool
+///   name, arguments, and call ID.
+///
+/// Returns a `@openai.ChatCompletionMessageParam` containing either:
+/// * The tool's successful output
+/// * An error message if the tool doesn't exist, arguments are invalid, or
+///   execution fails
+///
+/// The returned message maintains the `tool_call_id` to correlate with the
+/// original request.
 async fn Agent::execute_tool(
   agent : Agent,
   tool_call : @openai.ChatCompletionMessageToolCall,
@@ -143,6 +209,15 @@ async fn Agent::execute_tool(
 }
 
 ///|
+/// Adds multiple tools to the agent's available tools collection.
+///
+/// This is a convenience function for adding multiple `AgentTool` instances
+/// at once. Each tool is added individually and triggers a `ToolAdded` event.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to add the tools to.
+/// * `tools` : An array of `AgentTool` instances to be registered with the agent.
 pub async fn Agent::add_tools(
   agent : Agent,
   tools : Array[@tool.AgentTool],
@@ -153,6 +228,15 @@ pub async fn Agent::add_tools(
 }
 
 ///|
+/// Adds a single agent tool to the agent's tools collection.
+///
+/// The tool is indexed by its name in the agent's tool map and a `ToolAdded`
+/// event is emitted for logging and monitoring purposes.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to add the tool to.
+/// * `tool` : The agent tool to register.
 async fn Agent::add_agent_tool(agent : Agent, tool : @tool.AgentTool) -> Unit {
   let desc = tool.desc()
   agent.tools[desc.name] = tool
@@ -175,6 +259,26 @@ pub async fn[Output : ToJson + Show] Agent::add_tool(
 }
 
 ///|
+/// Starts the agent's conversation loop and executes tool calls until completion.
+///
+/// This function implements the main agent execution loop:
+/// 1. Spawns the event target in the background to handle event processing
+/// 2. Emits a `PreConversation` event to signal the start
+/// 3. Repeatedly calls the AI model and executes any requested tool calls
+/// 4. Continues until the model returns a response with no tool calls
+/// 5. Emits a `PostConversation` event when complete
+///
+/// The conversation loop automatically handles:
+/// * Sending queued messages to the API
+/// * Processing tool call requests from the model
+/// * Executing tools and returning results
+/// * Managing conversation history
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to start.
+///
+/// The function runs within an async task group to manage concurrent operations.
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
@@ -193,18 +297,30 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 }
 
 ///|
-/// Creates a new agent instance with the specified AI model and working
-/// directory.
+/// Creates a new agent instance with the specified AI model and working directory.
+///
+/// This function initializes a complete agent with all necessary components:
+/// * Random number generator and UUID generator (or uses provided ones)
+/// * Logger for recording agent activities (defaults to file logging)
+/// * Conversation history manager
+/// * Token counter for tracking API usage
+/// * Context pruner for managing message history within token budgets
+/// * Empty tool collection and message queue
+/// * Event target for handling lifecycle events
 ///
 /// Parameters:
 ///
-/// * `model` : The AI model to use for generating responses and handling tool
-///   calls.
-/// * `cwd` : The current working directory that will be used as the base path
-///   for tool operations.
+/// * `model` : The AI model to use for generating responses and handling tool calls.
+/// * `rand` : Optional random number generator. If not provided, uses ChaCha8.
+/// * `uuid` : Optional UUID generator. If not provided, creates one using the random generator.
+/// * `logger` : Optional logger instance. Defaults to file logger at `.moonagent/log.jsonl`.
+/// * `cwd` : The current working directory that will be used as the base path for tool operations.
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
+///
+/// The agent's context pruner is configured with the model's `safe_zone_tokens`
+/// setting to automatically manage conversation history size.
 pub async fn new(
   model : @model.Model,
   rand? : @random.Rand,
@@ -235,7 +351,7 @@ pub async fn new(
     tools: {},
     queue: [],
     event_target: EventTarget::new(),
-    token_counter: @token.Counter::new(logger~),
+    token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
       logger~,
@@ -246,6 +362,27 @@ pub async fn new(
 }
 
 ///|
+/// Emits an event and logs it to the agent's logger.
+///
+/// This function serves as the central event dispatcher for the agent. It both
+/// emits events through the event target (for registered listeners) and logs
+/// them using the agent's logger for persistent recording.
+///
+/// Each event type is logged with appropriate structured data:
+/// * `TokenCounted` - Logs the token count for the current request
+/// * `ContextPruned` - Logs before/after token counts (only if pruning occurred)
+/// * `PreToolCall` - Logs tool name and parsed arguments
+/// * `PostToolCall` - Logs tool result or error with rendered text
+/// * `PreConversation` - Logs conversation start
+/// * `PostConversation` - Logs conversation end
+/// * `MessageAdded` - Logs the added message
+/// * `ToolAdded` - Logs tool descriptor (name, description, schema)
+/// * `RequestCompleted` - Logs API usage and response message
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance emitting the event.
+/// * `event` : The event to emit and log.
 pub async fn Agent::emit(agent : Agent, event : Event) -> Unit {
   agent.event_target.emit(event)
   match event {

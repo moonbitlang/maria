@@ -16,3 +16,4 @@ compile_flags.txt
 /publish/
 
 *.exe
+custom_log_path

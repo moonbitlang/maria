@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/internal/token"
+package "moonbitlang/maria/internal/token_counter"
 
 import(
   "moonbitlang/maria/internal/pino"
