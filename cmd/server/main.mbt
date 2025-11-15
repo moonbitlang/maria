@@ -14,20 +14,45 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 }
 
 ///|
+priv struct Register {
+  host : String
+  port : Int
+  id : String
+}
+
+///|
 async fn run_server(
   port~ : Int,
+  register? : Register,
   f : async (@http.Request, @http.ServerConnection) -> Unit,
 ) -> Unit {
   let addr = try! @socket.Addr::parse("[::]:\{port}")
   let server = @socket.TcpServer::new(addr, dual_stack=true)
   let port = server.addr().port()
-  println("[INFO] Starting HTTP server on port \{port}...")
-  println("[INFO] Visit http://localhost:\{port}/")
+  if register is Some(register) {
+    let register_body : Json = { "id": register.id, "port": port }
+    let (register_response, register_body) = @http.post(
+      "http://\{register.host}/v1/task/register",
+      register_body,
+      port=register.port,
+    )
+    guard register_response.code is (200..=299) else {
+      raise json_error(500, "InternalServerError", {
+        "error": {
+          "code": register_response.code,
+          "message": register_response.reason,
+          "metadata": { "body": register_body.text() },
+        },
+      })
+    }
+  }
   server.run_forever((sock, _) => for {
     let conn = @http.ServerConnection::new(sock)
     try {
       let request = conn.read_request()
-      println("[INFO] Received request: \{request.meth} \{request.path}")
+      println(
+        "[INFO] (Server) Received request: \{request.meth} \{request.path}",
+      )
       f(request, conn)
     } catch {
       HttpError(code~, reason~, body~) =>
@@ -76,6 +101,9 @@ async fn main {
   let mut port = 0
   let mut serve = @os.cwd()
   let mut log_level = @pino.Info
+  let mut register_host = None
+  let mut register_port = None
+  let mut register_id = None
   loop args[1:] {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
@@ -88,6 +116,24 @@ async fn main {
       port = @strconv.parse_int(p)
       continue args
     }
+    ["--register-host", d, .. args] =>
+      if d.has_prefix("-") {
+        fail("Expected daemon host after \{args[0]}")
+      } else {
+        register_host = Some(d)
+        continue args
+      }
+    ["--register-port", dp, .. args] => {
+      register_port = Some(@strconv.parse_int(dp))
+      continue args
+    }
+    ["--register-id", du, .. args] =>
+      if du.has_prefix("-") {
+        fail("Expected register id after \{args[0]}")
+      } else {
+        register_id = Some(du)
+        continue args
+      }
     ["--serve", s, .. args] =>
       if s.has_prefix("-") {
         fail("Expected serve path after \{args[0]}")
@@ -113,7 +159,14 @@ async fn main {
     }
     [] => break
   }
-  println("[INFO] Serving static files from: \{serve}")
+  let register = match (register_host, register_port, register_id) {
+    (Some(host), Some(port), Some(id)) => Some({ host, port, id })
+    (None, None, None) => None
+    _ =>
+      fail(
+        "--register-host, --register-port, and --register-id must be provided together",
+      )
+  }
   let broadcast = @broadcast.Broadcast::new()
   let logger = @pino.logger(
     "server",
@@ -142,7 +195,8 @@ async fn main {
       },
       allow_failure=true,
     )
-    run_server(port~, (request, conn) => match (request.meth, request.path) {
+    run_server(port~, register?, (request, conn) => match
+      (request.meth, request.path) {
       (Options, _) =>
         conn
         ..send_response(204, "No Content", extra_headers={
@@ -223,6 +277,7 @@ async fn main {
               "error": {
                 "code": -1,
                 "message": "Invalid 'message' field: \{error}",
+                "metadata": { "message": message },
               },
             })
         }
