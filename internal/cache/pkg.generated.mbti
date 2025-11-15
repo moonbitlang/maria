@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-fn cache_messages(Array[@openai.ChatCompletionMessageParam]) -> Array[@openai.ChatCompletionMessageParam]
+fn cache_messages(ArrayView[@openai.ChatCompletionMessageParam]) -> Array[@openai.ChatCompletionMessageParam]
 
 // Errors
 
