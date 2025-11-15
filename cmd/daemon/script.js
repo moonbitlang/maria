@@ -266,8 +266,14 @@ function populateModelSelect() {
   // Clear existing options
   modelSelect.innerHTML = "";
 
+  // Always add the "Default" option first
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Default";
+  modelSelect.appendChild(defaultOption);
+
   if (models.length === 0) {
-    // Add a default option if no models available
+    // Add a fallback option if no models available
     const option = document.createElement("option");
     option.value = "anthropic/claude-sonnet-4.5";
     option.textContent = "anthropic/claude-sonnet-4.5";
@@ -391,18 +397,27 @@ function connectToTask(taskId) {
   };
 }
 
-async function createTask(name, model, cwd) {
+async function createTask(name, model, cwd, message) {
   try {
+    const body = {};
+
+    // Only include fields if they have values
+    if (name) body.name = name;
+    if (model) body.model = model;
+    if (cwd) body.cwd = cwd;
+    if (message) {
+      body.message = {
+        role: "user",
+        content: message,
+      };
+    }
+
     const response = await fetch("/v1/task", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name,
-        model,
-        cwd,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok && response.status !== 409) {
@@ -448,7 +463,9 @@ function showError(message) {
 function showCreateTaskModal() {
   createTaskModal.classList.add("show");
   document.getElementById("taskName").value = "";
+  document.getElementById("taskModel").value = "";
   document.getElementById("taskCwd").value = "";
+  document.getElementById("taskPrompt").value = "";
 
   // Load models if not already loaded
   if (models.length === 0) {
@@ -625,15 +642,11 @@ confirmCreateBtn.addEventListener("click", async () => {
   const name = document.getElementById("taskName").value.trim();
   const model = document.getElementById("taskModel").value.trim();
   const cwd = document.getElementById("taskCwd").value.trim();
-
-  if (!name || !model || !cwd) {
-    alert("Please fill in all fields");
-    return;
-  }
+  const prompt = document.getElementById("taskPrompt").value.trim();
 
   hideCreateTaskModal();
 
-  const result = await createTask(name, model, cwd);
+  const result = await createTask(name, model, cwd, prompt);
   if (result.success) {
     addMessage(`✓ ${result.message}`);
   } else {

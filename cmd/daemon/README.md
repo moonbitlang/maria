@@ -52,28 +52,33 @@ Returns a list of all active agent instances.
 Creates to a task instance if the cwd is not yet associated with an existing
 task. Attach to the existing task spawned on cwd otherwise.
 
+`name` is optional and purely informational. If not supplied, a empty string
+`""` will be used.
+
+`model` specifies the model to use for the task. It must be one of the models
+returned by `GET /v1/models`. If not specified, a default model will be used.
+
+`message` is the initial message to send to the task upon creation. This
+internally calls the `/v1/task/{id}/message` endpoint after the task is created
+or attached to.
+
 If `cwd` is supplied, a task is created (or attached to) in the specified
 working directory. If not supplied, a temporary directory is created for the
 task.
 
-- Request with `cwd`:
+Request:
 
-  ```json
-  {
-    "name": "example-task",
-    "model": "anthropic/claude-sonnet-4",
-    "cwd": "/path/to/working/directory"
+```json
+{
+  "name": "example-task",
+  "model": "anthropic/claude-sonnet-4",
+  "cwd": "/path/to/working/directory",
+  "message": {
+    "role": "user",
+    "content": "Write a JSON parser in MoonBit."
   }
-  ```
-
-- Request without `cwd`:
-
-  ```json
-  {
-    "name": "example-task",
-    "model": "anthropic/claude-sonnet-4"
-  }
-  ```
+}
+```
 
 Response:
 

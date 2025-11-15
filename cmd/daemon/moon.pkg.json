@@ -14,6 +14,8 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/internal/moon"
+    "moonbitlang/maria/internal/moon",
+    "moonbitlang/maria/openai",
+    "moonbitlang/async/aqueue"
   ]
 }

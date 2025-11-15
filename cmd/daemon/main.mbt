@@ -15,7 +15,7 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 
 ///|
 priv struct Server {
-  name : String
+  name : String?
   id : @uuid.Uuid
   cwd : String
   port : Int
@@ -46,7 +46,9 @@ async fn run_server(
   @http.run_server(addr, (conn, _) => for {
     try {
       let request = conn.read_request()
-      println("[INFO] Received request: \{request.meth} \{request.path}")
+      println(
+        "[INFO] (Daemon) Received request: \{request.meth} \{request.path}",
+      )
       f(request, conn)
     } catch {
       HttpError(code~, reason~, body~) =>
@@ -62,32 +64,18 @@ async fn run_server(
 }
 
 ///|
-async fn find_available_port(start_port : Int) -> Int {
-  println("[INFO] Finding available port starting from \{start_port}...")
-  for port in start_port..<(start_port + 1000) {
-    let addr = @socket.Addr::parse("[::]:\{port}")
-    let server = @socket.TcpServer::new(addr) catch {
-      error => {
-        println("[DEBUG] Port \{port} is not available: \{error}")
-        continue port + 1
-      }
-    }
-    server.close()
-    return port
-  } else {
-    fail(
-      "No available port found in range \{start_port} to \{start_port + 1000}",
-    )
-  }
-}
-
-///|
 async fn html_read_file(path : String) -> String {
   @fsx.read_file(path) catch {
     @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>
       raise text_error(404, "NotFound", "<h1>404 Not Found</h1>")
     error => raise error
   }
+}
+
+///|
+priv struct Register {
+  id : String
+  port : Int
 }
 
 ///|
@@ -129,6 +117,7 @@ async fn main {
     by_cwd: {},
     by_id: {},
   }
+  let register_queues : Map[String, @aqueue.Queue[Int]] = {}
   @async.with_task_group(group => {
     group.spawn_bg(() => daemon.start())
     run_server(port~, (request, conn) => {
@@ -158,6 +147,58 @@ async fn main {
           ..write(response.stringify())
           ..end_response()
         }
+        (Post, ["", "v1", "task", "register"]) => {
+          let request_bytes = conn.read_all().binary()
+          let request_text = @encoding/utf8.decode(request_bytes) catch {
+            @encoding/utf8.Malformed(bytes) =>
+              raise json_error(
+                400,
+                "Bad Request",
+                "Invalid UTF-8 in request body: \{bytes}",
+              )
+          }
+          let request_json = @json.parse(request_text) catch {
+            error =>
+              raise json_error(
+                400,
+                "Bad Request",
+                "Invalid JSON in request body: \{error}",
+              )
+          }
+          guard request_json is { "id": id, "port": port, .. } else {
+            raise json_error(400, "Bad Request", {
+              "error": {
+                "code": -1,
+                "message": "Missing required fields 'id' or 'port'",
+              },
+            })
+          }
+          let id : String = @json.from_json(id) catch {
+            error =>
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'id' field: \{error}",
+                },
+              })
+          }
+          let port : Int = @json.from_json(port) catch {
+            error =>
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'port' field: \{error}",
+                },
+              })
+          }
+          let register : Register = { id, port }
+          println(
+            "[INFO] Registered task '\{register.id}' on port \{register.port}",
+          )
+          register_queues[id].put(register.port)
+          conn.send_response(200, "OK")
+          conn.end_response()
+        }
         (Get, ["", "v1", "tasks"]) => {
           let tasks : Array[Json] = []
           for _, server in daemon.by_cwd {
@@ -181,7 +222,7 @@ async fn main {
           println("[DEBUG] Request body bytes: \{request_bytes}")
           let request_text = @encoding/utf8.decode(request_bytes) catch {
             @encoding/utf8.Malformed(bytes) =>
-              raise text_error(
+              raise json_error(
                 400,
                 "Bad Request",
                 "Invalid UTF-8 in request body: \{bytes}",
@@ -190,7 +231,7 @@ async fn main {
           println("[DEBUG] Request body text: \{request_text}")
           let request_json = @json.parse(request_text) catch {
             error =>
-              raise text_error(
+              raise json_error(
                 400,
                 "Bad Request",
                 "Invalid JSON in request body: \{error}",
@@ -201,25 +242,79 @@ async fn main {
           )
           guard request_json
             is {
-              "name": String(name),
-              "model": String(model),
+              "name"? : name,
+              "model"? : model_name,
               "cwd"? : cwd,
+              "message"? : message,
               ..
             } else {
-            raise text_error(
-              400, "Bad Request", "Missing required fields in request body",
-            )
+            raise json_error(400, "Bad Request", {
+              "error": {
+                "code": -1,
+                "message": "Missing required fields 'prompt' or 'model'",
+              },
+            })
+          }
+          let model_name : String? = model_name.map(model_name => @json.from_json(
+            model_name,
+          )) catch {
+            error =>
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'model' field: \{error}",
+                },
+              })
+          }
+          guard daemon.models.get_model(name?=model_name) is Some(model) else {
+            raise json_error(404, "Not Found", {
+              "error": {
+                "code": -1,
+                "message": "Model not found: \{model_name}",
+              },
+            })
+          }
+          let name : String? = name.map(name => @json.from_json(name)) catch {
+            error =>
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'name' field: \{error}",
+                },
+              })
+          }
+          let message : @openai.ChatCompletionMessageParam? = message.map(message => @json.from_json(
+            message,
+          )) catch {
+            error =>
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'message' field: \{error}",
+                },
+              })
           }
           let cwd = if cwd is Some(cwd) {
             if cwd is String(cwd) {
               cwd
             } else {
-              raise text_error(
-                400, "Bad Request", "'cwd' field must be a string if provided",
-              )
+              raise json_error(400, "Bad Request", {
+                "error": {
+                  "code": -1,
+                  "message": "Invalid 'cwd' field: expected string",
+                },
+              })
             }
           } else {
-            @fsx.mkdtemp(@path.join(@os.tmpdir(), "maria-server-task-XXXXXX"))
+            @fsx.mkdtemp(@path.join(@os.tmpdir(), "maria-server-task-XXXXXX")) catch {
+              error =>
+                raise json_error(500, "Internal Server Error", {
+                  "error": {
+                    "code": -1,
+                    "message": "Failed to create temporary working directory: \{error}",
+                  },
+                })
+            }
           }
           if daemon.by_cwd.get(cwd) is Some(server) {
             raise json_error(409, "Conflict", {
@@ -231,18 +326,46 @@ async fn main {
               },
             })
           }
-          let port = find_available_port(9000)
-          println(
-            "[INFO] Spawning task '\{name}' at '\{cwd}' on port \{port}...",
-          )
-          println("[DEBUG] Exec path: \{exec_path}, Model: \{model}")
+          let id = daemon.uuid.v4()
           let process = daemon.process.spawn(
             exec_path,
-            ["--model", model, "--port", port.to_string()],
+            [
+              "--model",
+              model.name,
+              "--port",
+              "0",
+              "--register-id",
+              id.to_string(),
+              "--register-host",
+              "localhost",
+              "--register-port",
+              port.to_string(),
+            ],
             cwd~,
           )
-          println("[INFO] Spawned task process with PID \{process.pid}")
-          let server = Server::{ name, id: daemon.uuid.v4(), cwd, port }
+          println(
+            "[INFO] Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
+          )
+          let register_queue = @aqueue.Queue::new()
+          register_queues[id.to_string()] = register_queue
+          let register_port = @async.with_timeout(5_000, () => register_queue.get()) catch {
+            @async.TimeoutError => {
+              println(
+                "[ERROR] Timed out waiting for task to register after 5 seconds",
+              )
+              raise json_error(500, "Internal Server Error", {
+                "error": {
+                  "code": -1,
+                  "message": "Timed out waiting for task to register",
+                },
+              })
+            }
+            error => raise error
+          }
+          println(
+            "[INFO] Received registration from task '\{id}' on port \{register_port}",
+          )
+          let server = Server::{ name, id, cwd, port: register_port }
           group.spawn_bg(() => {
             let exit_code = process.wait()
             if exit_code != 0 {
@@ -253,15 +376,39 @@ async fn main {
           })
           daemon.by_cwd[cwd] = server
           daemon.by_id[server.id] = server
-          conn.send_response(201, "Created")
-          let body : Json = {
-            "task": {
-              "name": server.name,
-              "id": server.id.to_string(),
-              "cwd": server.cwd,
-              "port": server.port,
-            },
+          if message is Some(message) {
+            println("[INFO] Write initial messages to task '\{id}'...")
+            let (message_response, message_body) = @http.post(
+              "http://localhost/v1/message",
+              ({ "message": message.to_json() } : Json),
+              port=register_port,
+            )
+            println(
+              "[DEBUG] Received message response: \{message_response.code} \{message_response.reason}",
+            )
+            guard message_response.code is (200..=299) else {
+              raise json_error(500, "Internal Server Error", {
+                "error": {
+                  "code": message_response.code,
+                  "message": "Failed to send initial message to task: \{message_response.code} \{message_response.reason}",
+                  "metadata": {
+                    "code": message_response.code,
+                    "reason": message_response.reason,
+                    "body": message_body.json(),
+                  },
+                },
+              })
+            }
           }
+          conn.send_response(201, "Created")
+          let body_task : Map[String, Json] = {}
+          if server.name is Some(name) {
+            body_task["name"] = name.to_json()
+          }
+          body_task["id"] = server.id.to_string().to_json()
+          body_task["cwd"] = server.cwd.to_json()
+          body_task["port"] = server.port.to_json()
+          let body : Json = { "task": Json::object(body_task) }
           conn.write(body)
           conn.flush()
           conn.end_response()
