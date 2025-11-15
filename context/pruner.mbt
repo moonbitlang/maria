@@ -57,7 +57,7 @@ pub async fn Pruner::prune_messages(
           continue
         }
         messages[i] = @openai.tool_message(
-          content="[Cleared: tool output. If you want to see the output, you can use the tool again.]",
+          content=ClearedToolOutputPlaceholder,
           tool_call_id=tool.tool_call_id,
         )
         pruned_index.push(i)
