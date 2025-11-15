@@ -75,75 +75,6 @@ pub fn Agent::close(_ : Agent) -> Unit {
 }
 
 ///|
-/// Sends a chat completion request to the OpenAI API and processes the
-/// response.
-///
-/// Parameters:
-///
-/// * `agent` : The agent instance containing the model configuration,
-///   conversation history, and available tools.
-///
-/// Returns a `@openai.ChatCompletionMessage` containing the AI model's
-/// response.
-///
-/// Throws an error of type `HttpError` if the HTTP request fails or returns a
-/// non-2xx status code, or an error of type `EmptyChoices` if the API response
-/// contains no choices.
-async fn Agent::call(agent : Agent) -> @openai.ChatCompletionMessage {
-  let tools = []
-  for name, tool in agent.tools {
-    let desc = tool.desc()
-    tools.push(
-      @openai.tool(
-        name~,
-        description=desc.description,
-        parameters=desc.schema.to_json(),
-      ),
-    )
-  }
-  let staged = agent.queue
-  agent.queue = []
-  let messages = agent.history.to_param()
-  messages.append(staged)
-  let origin_token_count = agent.token_counter.count_param(
-    @openai.chat_completion(
-      messages~,
-      model=agent.model.model_name,
-      tools~,
-      usage=@openai.usage(include_=true),
-    ),
-  )
-  agent.emit(TokenCounted(origin_token_count))
-  agent.context_pruner.prune_messages(messages, tools~)
-  let pruned_token_count = agent.token_counter.count_param(
-    @openai.chat_completion(
-      messages~,
-      model=agent.model.model_name,
-      tools~,
-      usage=@openai.usage(include_=true),
-    ),
-  )
-  agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
-  let messages = @cache.cache_messages(messages)
-  // make a request
-
-  let response = @openai.chat(
-    model=agent.model,
-    logger=agent.logger,
-    @openai.chat_completion(messages~, model=agent.model.model_name, tools~),
-  )
-  guard response.choices is [choice, ..] else { raise EmptyChoices }
-  let message = choice.message
-  agent.emit(RequestCompleted(usage=response.usage, message~))
-  for message in staged {
-    agent.history.add_message(message)
-  }
-  agent.history.add_message(message.to_param())
-  agent.session_manager.save(agent.history)
-  message
-}
-
-///|
 /// Executes a tool call requested by the AI model and returns the result.
 ///
 /// This function handles the complete tool execution lifecycle:
@@ -281,17 +212,89 @@ pub async fn[Output : ToJson + Show] Agent::add_tool(
 /// The function runs within an async task group to manage concurrent operations.
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
+    // Start the event target in background to handle async event processing
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
+    // Signal the start of conversation
     agent.emit(PreConversation)
     while true {
-      let response = agent.call()
-      if response.tool_calls is [] {
+      // Build the tools array for this API call
+      // Convert each registered tool into OpenAI's tool parameter format
+      let tools = []
+      for name, tool in agent.tools {
+        let desc = tool.desc()
+        tools.push(
+          @openai.tool(
+            name~,
+            description=desc.description,
+            parameters=desc.schema.to_json(),
+          ),
+        )
+      }
+      // Retrieve and clear the message queue
+      // staged contains messages that need to be sent in this call
+      let staged = agent.queue
+      agent.queue = []
+      // Build the complete message array for the API call
+      // Start with conversation history, then append any queued messages
+      let messages = agent.history.to_param()
+      messages.append(staged)
+      // Count tokens before pruning to track context size
+      let origin_token_count = agent.token_counter.count_param(
+        @openai.chat_completion(
+          messages~,
+          model=agent.model.model_name,
+          tools~,
+          usage=@openai.usage(include_=true),
+        ),
+      )
+      // Emit event with original token count for monitoring
+      agent.emit(TokenCounted(origin_token_count))
+      // Prune messages if they exceed the safe zone token budget
+      // This modifies the messages array in place
+      agent.context_pruner.prune_messages(messages, tools~)
+      // Count tokens after pruning to verify we're within budget
+      let pruned_token_count = agent.token_counter.count_param(
+        @openai.chat_completion(
+          messages~,
+          model=agent.model.model_name,
+          tools~,
+          usage=@openai.usage(include_=true),
+        ),
+      )
+      // Emit event with before/after token counts (only logged if pruning occurred)
+      agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
+      // Apply prompt caching to messages to improve API performance
+      let messages = @cache.cache_messages(messages)
+      // Make the API request to get the model's response
+      let response = @openai.chat(
+        model=agent.model,
+        logger=agent.logger,
+        @openai.chat_completion(messages~, model=agent.model.model_name, tools~),
+      )
+      // Extract the message from the response, raise error if no choices returned
+      guard response.choices is [choice, ..] else { raise EmptyChoices }
+      let message = choice.message
+      // Emit event with API usage statistics and the returned message
+      agent.emit(RequestCompleted(usage=response.usage, message~))
+      // Add all staged messages to permanent conversation history
+      for message in staged {
+        agent.history.add_message(message)
+      }
+      // Add the model's response to conversation history
+      agent.history.add_message(message.to_param())
+      // Persist the updated conversation history to disk
+      agent.session_manager.save(agent.history)
+      // Check if the model returned any tool calls
+      // If not, the conversation is complete
+      if message.tool_calls is [] {
         break
       }
-      for call in response.tool_calls {
+      // Execute each tool call and queue the results for the next iteration
+      for call in message.tool_calls {
         agent.add_message(agent.execute_tool(call))
       }
     }
+    // Signal the end of conversation
     agent.emit(PostConversation)
   })
 }
