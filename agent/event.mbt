@@ -25,7 +25,7 @@
 /// // conversation ended
 /// PostConversation
 /// ```
-pub enum Event {
+pub(all) enum Event {
   /// Event triggered before a conversation starts.
   PreConversation
   /// Event triggered after a conversation ends.
