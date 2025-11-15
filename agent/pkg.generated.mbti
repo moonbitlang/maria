@@ -29,9 +29,10 @@ async fn Agent::add_message(Self, @openai.ChatCompletionMessageParam) -> Unit
 async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit
+async fn Agent::emit(Self, Event) -> Unit
 async fn Agent::start(Self) -> Unit
 
-pub enum Event {
+pub(all) enum Event {
   PreConversation
   PostConversation
   MessageAdded(@openai.ChatCompletionMessageParam)

@@ -246,7 +246,7 @@ pub async fn new(
 }
 
 ///|
-async fn Agent::emit(agent : Agent, event : Event) -> Unit {
+pub async fn Agent::emit(agent : Agent, event : Event) -> Unit {
   agent.event_target.emit(event)
   match event {
     TokenCounted(token_count) =>
