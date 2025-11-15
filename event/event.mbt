@@ -88,23 +88,23 @@ pub(all) enum Event {
 }
 
 ///|
-priv struct EventTarget {
+struct EventTarget {
   queue : @aqueue.Queue[Event]
   listeners : Array[async (Event) -> Unit]
 }
 
 ///|
-fn EventTarget::new() -> EventTarget {
+pub fn EventTarget::new() -> EventTarget {
   EventTarget::{ queue: @aqueue.Queue::new(), listeners: [] }
 }
 
 ///|
-fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
+pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
   self.queue.put(event)
 }
 
 ///|
-fn EventTarget::add_listener(
+pub fn EventTarget::add_listener(
   self : EventTarget,
   f : async (Event) -> Unit,
 ) -> Unit {
@@ -112,11 +112,91 @@ fn EventTarget::add_listener(
 }
 
 ///|
-async fn EventTarget::start(self : EventTarget) -> Unit {
+pub async fn EventTarget::start(self : EventTarget) -> Unit {
   while true {
     let event = self.queue.get()
     for listener in self.listeners {
       listener(event)
     }
+  }
+}
+
+///|
+pub impl ToJson for Event with to_json(self : Event) -> Json {
+  match self {
+    TokenCounted(token_count) =>
+      { "msg": "TokenCounted", "token_count": token_count.to_json() }
+    ContextPruned(origin_token_count~, pruned_token_count~) =>
+      {
+        "msg": "ContextPruned",
+        "origin_token_count": origin_token_count.to_json(),
+        "pruned_token_count": pruned_token_count.to_json(),
+      }
+    PreToolCall(tool_call) =>
+      match tool_call.function.arguments {
+        None =>
+          {
+            "msg": "PreToolCall",
+            "tool_call": tool_call.to_json(),
+            "name": tool_call.function.name.to_json(),
+          }
+        Some(arguments) =>
+          try @json.parse(arguments) catch {
+            error =>
+              {
+                "msg": "PreToolCall",
+                "tool_call": tool_call.to_json(),
+                "name": tool_call.function.name.to_json(),
+                "args": tool_call.function.arguments.to_json(),
+                "error": error.to_json(),
+              }
+          } noraise {
+            args =>
+              {
+                "msg": "PreToolCall",
+                "tool_call": tool_call.to_json(),
+                "name": tool_call.function.name.to_json(),
+                "args": args,
+              }
+          }
+      }
+    PostToolCall(tool_call, result~, rendered~) =>
+      match result {
+        Ok(output) =>
+          {
+            "msg": "PostToolCall",
+            "tool_call": tool_call.to_json(),
+            "name": tool_call.function.name.to_json(),
+            "result": output.to_json(),
+            "text": rendered.to_json(),
+          }
+        Err(error) =>
+          {
+            "msg": "PostToolCall",
+            "tool_call": tool_call.to_json(),
+            "name": tool_call.function.name.to_json(),
+            "error": error.to_json(),
+            "text": rendered.to_json(),
+          }
+      }
+    PreConversation => { "msg": "PreConversation" }
+    PostConversation => { "msg": "PostConversation" }
+    MessageAdded(message) =>
+      { "msg": "MessageAdded", "message": message.to_json() }
+    ToolAdded(tool_desc) =>
+      {
+        "msg": "ToolAdded",
+        "tool": {
+          "name": tool_desc.name,
+          "description": tool_desc.description,
+          "schema": tool_desc.schema.to_json(),
+        },
+      }
+    RequestCompleted(usage~, message~) =>
+      {
+        "msg": "RequestCompleted",
+        "usage": usage.to_json(),
+        "message": message.to_json(),
+      }
   }
 }

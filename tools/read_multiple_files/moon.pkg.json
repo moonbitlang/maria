@@ -11,6 +11,7 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/tools/replace_in_file"
+    "moonbitlang/maria/tools/replace_in_file",
+    "moonbitlang/maria/event"
   ]
 }

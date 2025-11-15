@@ -9,9 +9,9 @@
     "moonbitlang/maria/internal/conversation",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/async/aqueue",
     "moonbitlang/async",
-    "moonbitlang/maria/internal/pino"
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/event"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
