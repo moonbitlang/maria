@@ -3,7 +3,7 @@ struct Extractor {
   model : @model.Model
   window_size : Int
   overlap : Int
-  token_counter : @token.Counter
+  token_counter : @token_counter.Counter
   safe_zone_tokens : Int
 }
 
@@ -17,7 +17,7 @@ pub fn Extractor::new(
 ) -> Extractor raise {
   Extractor::{
     model,
-    token_counter: @token.Counter::new(logger~),
+    token_counter: @token_counter.Counter::new(logger~),
     safe_zone_tokens,
     window_size,
     overlap,

@@ -3,7 +3,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/openai",
-    "moonbitlang/maria/internal/token",
+    "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/internal/cache",
     "moonbitlang/maria/context",
     "moonbitlang/maria/internal/conversation",

@@ -30,7 +30,7 @@ pub struct Agent {
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
   priv event_target : EventTarget
-  priv token_counter : @token.Counter
+  priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
 }
@@ -351,7 +351,7 @@ pub async fn new(
     tools: {},
     queue: [],
     event_target: EventTarget::new(),
-    token_counter: @token.Counter::new(logger~),
+    token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
       logger~,

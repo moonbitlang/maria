@@ -881,7 +881,7 @@ async test "pruner" (t : @test.Test) {
     ),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     @json.inspect(
       counter.count_param(
         @openai.chat_completion(messages~, tools~, model="gpt-4o"),
@@ -927,7 +927,7 @@ async test "prune_large_tool_output" (t : @test.Test) {
     @openai.tool_message(tool_call_id="call_1", content="x".repeat(10000)),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     let tokens_before = counter.count_param(
       @openai.chat_completion(messages~, model="gpt-4o"),
     )
@@ -951,7 +951,7 @@ async test "prune_already_cleared" (t : @test.Test) {
     ),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(
@@ -971,7 +971,7 @@ async test "prune_multiple_tools" (t : @test.Test) {
     @openai.tool_message(tool_call_id="call_3", content="output3".repeat(1000)),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     let tokens_before = counter.count_param(
       @openai.chat_completion(messages~, model="gpt-4o"),
     )
@@ -994,7 +994,7 @@ async test "prune_stops_at_budget" (t : @test.Test) {
     @openai.tool_message(tool_call_id="call_2", content="x".repeat(5000)),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     let pruner = @context.Pruner::new(safe_zone_tokens=2000, logger=mock.logger)
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(
@@ -1012,7 +1012,7 @@ async test "prune_no_tools" (t : @test.Test) {
     @openai.assistant_message(content="Hi there!"),
   ]
   @mock.run(t, mock => {
-    let counter = @token.Counter::new(logger=mock.logger)
+    let counter = @token_counter.Counter::new(logger=mock.logger)
     let pruner = @context.Pruner::new(safe_zone_tokens=10, logger=mock.logger)
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(
