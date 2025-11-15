@@ -18,6 +18,24 @@ pub fn Pruner::new(
 }
 
 ///|
+const ClearedToolOutputPlaceholder : String = "[Cleared: tool output. If you want to see the output, you can use the tool again.]"
+
+///|
+/// Prunes in-memory chat context until it fits within the configured safe-zone token budget.
+///
+/// The pruner only redacts tool response messages because they typically contain the
+/// largest payloads and can be regenerated on demand. Tool messages are replaced with a
+/// short placeholder while preserving the original tool call id so that downstream state
+/// remains consistent.
+///
+/// Parameters:
+///
+/// * `pruner`: Maintains logging and token counting utilities.
+/// * `messages`: Mutable conversation history that will be truncated in place.
+/// * `tools`: Tool descriptors needed when estimating token counts.
+///
+/// The function recalculates the token usage after each redaction, logging the reduction,
+/// and stops once the budget is respected or no more tool messages are available.
 pub async fn Pruner::prune_messages(
   pruner : Pruner,
   messages : Array[@openai.ChatCompletionMessageParam],
