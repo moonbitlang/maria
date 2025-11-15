@@ -212,10 +212,13 @@ pub async fn[Output : ToJson + Show] Agent::add_tool(
 /// The function runs within an async task group to manage concurrent operations.
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
+    // Start the event target in background to handle async event processing
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
+    // Signal the start of conversation
     agent.emit(PreConversation)
     while true {
-      // Inlined agent.call()
+      // Build the tools array for this API call
+      // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
       for name, tool in agent.tools {
         let desc = tool.desc()
@@ -227,10 +230,15 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           ),
         )
       }
+      // Retrieve and clear the message queue
+      // staged contains messages that need to be sent in this call
       let staged = agent.queue
       agent.queue = []
+      // Build the complete message array for the API call
+      // Start with conversation history, then append any queued messages
       let messages = agent.history.to_param()
       messages.append(staged)
+      // Count tokens before pruning to track context size
       let origin_token_count = agent.token_counter.count_param(
         @openai.chat_completion(
           messages~,
@@ -239,8 +247,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           usage=@openai.usage(include_=true),
         ),
       )
+      // Emit event with original token count for monitoring
       agent.emit(TokenCounted(origin_token_count))
+      // Prune messages if they exceed the safe zone token budget
+      // This modifies the messages array in place
       agent.context_pruner.prune_messages(messages, tools~)
+      // Count tokens after pruning to verify we're within budget
       let pruned_token_count = agent.token_counter.count_param(
         @openai.chat_completion(
           messages~,
@@ -249,32 +261,40 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           usage=@openai.usage(include_=true),
         ),
       )
+      // Emit event with before/after token counts (only logged if pruning occurred)
       agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
+      // Apply prompt caching to messages to improve API performance
       let messages = @cache.cache_messages(messages)
-      // make a request
-
+      // Make the API request to get the model's response
       let response = @openai.chat(
         model=agent.model,
         logger=agent.logger,
         @openai.chat_completion(messages~, model=agent.model.model_name, tools~),
       )
+      // Extract the message from the response, raise error if no choices returned
       guard response.choices is [choice, ..] else { raise EmptyChoices }
       let message = choice.message
+      // Emit event with API usage statistics and the returned message
       agent.emit(RequestCompleted(usage=response.usage, message~))
+      // Add all staged messages to permanent conversation history
       for message in staged {
         agent.history.add_message(message)
       }
+      // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
+      // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
-      // End of inlined agent.call()
-
+      // Check if the model returned any tool calls
+      // If not, the conversation is complete
       if message.tool_calls is [] {
         break
       }
+      // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
         agent.add_message(agent.execute_tool(call))
       }
     }
+    // Signal the end of conversation
     agent.emit(PostConversation)
   })
 }
