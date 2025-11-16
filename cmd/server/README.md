@@ -9,7 +9,7 @@ the agent. It comes with a simple HTML frontend for testing the API.
 From the root directory of the repository, run:
 
 ```bash
-moon run cmd/server -- --port 8080 --serve cmd/server
+moon run cmd/server -- server --port 8080 --serve cmd/server
 ```
 
 Then open `http://localhost:8080` in your web browser to access the HTML
