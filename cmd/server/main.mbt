@@ -97,7 +97,7 @@ async fn collect_modules(
 }
 
 ///|
-struct Server {
+priv struct Server {
   broadcast : @broadcast.Broadcast[Json]
   message_queue : @aqueue.Queue[@openai.ChatCompletionMessageParam]
 }
