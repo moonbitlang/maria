@@ -184,3 +184,26 @@ pub fn[X] exit(code : Int) -> X {
   os_exit(code)
   panic()
 }
+
+///|
+#borrow(buf)
+extern "c" fn os_executable(buf : FixedArray[Byte]) -> Int = "moonbit_maria_os_executable"
+
+///|
+pub fn executable() -> String raise {
+  let mut buf : FixedArray[Byte] = FixedArray::make(1024, 0)
+  let mut size = os_executable(buf)
+  if size == -1 {
+    raise @errno.Errno(@errno.get())
+  }
+  while size > buf.length() {
+    buf = FixedArray::make(size, 0)
+    size = os_executable(buf)
+    if size == -1 {
+      raise @errno.Errno(@errno.get())
+    }
+  }
+  let new_buf : FixedArray[Byte] = FixedArray::make(size, 0)
+  new_buf.unsafe_blit(0, buf, 0, size)
+  @encoding/utf8.decode(new_buf.unsafe_reinterpret_as_bytes())
+}

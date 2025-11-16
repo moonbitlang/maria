@@ -1,11 +1,15 @@
 #include "moonbit.h"
 #include <errno.h>
+#include <limits.h>
 #include <pwd.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 
 MOONBIT_FFI_EXPORT
 const char *
@@ -103,4 +107,26 @@ MOONBIT_FFI_EXPORT
 void
 moonbit_maria_os_exit(int32_t code) {
   exit(code);
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_os_executable(moonbit_bytes_t buf) {
+#if defined(__APPLE__)
+  uint32_t bufsize = Moonbit_array_length(buf);
+  int rc = _NSGetExecutablePath((char *)buf, &bufsize);
+  if (rc == -1) {
+    return bufsize;
+  } else {
+    return strlen((char *)buf);
+  }
+#elif defined(__linux__)
+  size_t bufsize = Moonbit_array_length(buf);
+  ssize_t len = readlink("/proc/self/exe", (char *)buf, bufsize);
+  if (len == bufsize) {
+    return bufsize * 2;
+  } else {
+    return len;
+  }
+#endif
 }
