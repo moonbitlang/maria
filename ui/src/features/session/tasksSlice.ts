@@ -9,12 +9,12 @@ type Task = NamedId & {
 };
 
 type TasksSliceState = {
-  activeTask: string | null;
+  activeTask: string | undefined;
   tasks: Record<string, Task>;
 };
 
 const initialState: TasksSliceState = {
-  activeTask: null,
+  activeTask: undefined,
   tasks: {},
 };
 
@@ -25,8 +25,16 @@ export const tasksSlice = createAppSlice({
     selectTask(state: TasksSliceState, taskId: string): Task | undefined {
       return state.tasks[taskId];
     },
+
+    selectActiveTaskId(state: TasksSliceState): string | undefined {
+      return state.activeTask;
+    },
   },
   reducers: {
+    setActiveTaskId(state, action: PayloadAction<string | undefined>) {
+      state.activeTask = action.payload;
+    },
+
     newTask(state, action: PayloadAction<NamedId>) {
       const { id, name } = action.payload;
       if (!state.tasks[id]) {
@@ -76,7 +84,12 @@ export const tasksSlice = createAppSlice({
   },
 });
 
-export const { newTask, setTasks, setChatStatusForTask, updateTodosForTask } =
-  tasksSlice.actions;
+export const {
+  newTask,
+  setTasks,
+  setChatStatusForTask,
+  updateTodosForTask,
+  setActiveTaskId,
+} = tasksSlice.actions;
 
-export const { selectTask } = tasksSlice.selectors;
+export const { selectTask, selectActiveTaskId } = tasksSlice.selectors;

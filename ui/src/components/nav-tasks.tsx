@@ -16,8 +16,11 @@ import {
 } from "@/components/ui/collapsible";
 import type { NamedId } from "@/lib/types";
 import { useNavigate } from "react-router";
+import { useAppSelector } from "@/app/hooks";
+import { selectActiveTaskId } from "@/features/session/tasksSlice";
 
 export function NavTasks({ tasks }: { tasks: NamedId[] }) {
+  const activeTaskId = useAppSelector(selectActiveTaskId);
   const navigate = useNavigate();
   return (
     <Collapsible defaultOpen className="group/collapsible">
@@ -32,11 +35,13 @@ export function NavTasks({ tasks }: { tasks: NamedId[] }) {
           <SidebarMenu>
             {tasks.map(({ name, id }) => {
               const url = `tasks/${id}`;
+              const isActive = activeTaskId === id;
               return (
                 <SidebarMenuItem key={id}>
                   <SidebarMenuButton
                     tooltip={name}
                     asChild
+                    isActive={isActive}
                     onClick={(e) => {
                       e.preventDefault();
                       navigate(url);

@@ -386,14 +386,14 @@ export function EventsDisplay(props: EventsDisplayProps) {
   return (
     <Conversation className="min-h-0">
       <ConversationContent>
-        {events.map((event) => {
+        {events.map((event, i) => {
           switch (event.msg) {
             case "MessageAdded":
-              return <ShowMessageAdded event={event} />;
+              return <ShowMessageAdded key={i} event={event} />;
             case "PostToolCall":
-              return <ShowPostToolCall event={event} taskId={taskId} />;
+              return <ShowPostToolCall key={i} event={event} taskId={taskId} />;
             case "RequestCompleted":
-              return <ShowRequestCompleted event={event} />;
+              return <ShowRequestCompleted key={i} event={event} />;
             default: {
               return <></>;
             }

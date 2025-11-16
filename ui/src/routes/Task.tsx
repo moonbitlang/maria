@@ -13,12 +13,14 @@ import {
   usePostMessageMutation,
   useTaskQuery,
 } from "@/features/api/apiSlice";
-import { selectTask } from "@/features/session/tasksSlice";
-import { useState } from "react";
+import { selectTask, setActiveTaskId } from "@/features/session/tasksSlice";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 
 export default function Task() {
   const params = useParams();
+  const dispatch = useDispatch();
 
   // TODO: 404 error
   const taskId = params.taskId!;
@@ -27,6 +29,10 @@ export default function Task() {
   const [input, setInput] = useState("");
   const [postMessage] = usePostMessageMutation();
   const { data } = useEventsQuery(taskId);
+
+  useEffect(() => {
+    dispatch(setActiveTaskId(taskId));
+  }, [taskId, dispatch]);
 
   const currentTask =
     task ||

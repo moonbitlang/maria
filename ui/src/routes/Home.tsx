@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PromptInput,
   PromptInputSubmit,
@@ -9,13 +9,17 @@ import {
 import { useNewTaskMutation } from "@/features/api/apiSlice";
 import { useNavigate } from "react-router";
 import { useAppDispatch } from "@/app/hooks";
-import { newTask } from "@/features/session/tasksSlice";
+import { newTask, setActiveTaskId } from "@/features/session/tasksSlice";
 
-function ChatView() {
+function Home() {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(setActiveTaskId(undefined));
+  }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,10 +57,6 @@ function ChatView() {
       </div>
     </div>
   );
-}
-
-function Home() {
-  return <ChatView />;
 }
 
 export default Home;
