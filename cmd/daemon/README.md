@@ -109,6 +109,23 @@ Response:
   }
   ```
 
+### `GET /v1/task/{id}`
+
+Note that `"name"`/`"cwd"`/`"port"` can be `null` or unset.
+
+Response:
+
+```json
+{
+  "task": {
+    "name": "example-task",
+    "id": "some-unique-id",
+    "cwd": "/path/to/working/directory",
+    "port": 8080
+  }
+}
+```
+
 ### `GET /v1/task/{id}/events`
 
 Streams events related to the specified task instance.
