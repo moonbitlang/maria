@@ -22,7 +22,7 @@ export const tasksSlice = createAppSlice({
   name: "tasks",
   initialState,
   selectors: {
-    selectTask(state: TasksSliceState, taskId: string) {
+    selectTask(state: TasksSliceState, taskId: string): Task | undefined {
       return state.tasks[taskId];
     },
   },

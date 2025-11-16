@@ -11,6 +11,7 @@ import { EventsDisplay } from "@/components/events-display";
 import {
   useEventsQuery,
   usePostMessageMutation,
+  useTaskQuery,
 } from "@/features/api/apiSlice";
 import { selectTask } from "@/features/session/tasksSlice";
 import { useState } from "react";
@@ -21,13 +22,27 @@ export default function Task() {
 
   // TODO: 404 error
   const taskId = params.taskId!;
-  const task = useAppSelector((state) => selectTask(state, taskId))!;
+  const task = useAppSelector((state) => selectTask(state, taskId));
+  const { data: apiTask } = useTaskQuery(taskId, { skip: task !== undefined });
   const [input, setInput] = useState("");
-  // const todos = useAppSelector(selectTodos);
   const [postMessage] = usePostMessageMutation();
   const { data } = useEventsQuery(taskId);
 
-  const { chatStatus, todos } = task;
+  const currentTask =
+    task ||
+    (apiTask
+      ? { ...apiTask, todos: [], chatStatus: "ready" as const }
+      : undefined);
+
+  if (!currentTask) {
+    return (
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  const { chatStatus, todos } = currentTask;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

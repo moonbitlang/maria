@@ -26,6 +26,10 @@ export const apiSlice = createApi({
       },
     }),
 
+    task: builder.query<Task, string>({
+      query: (id) => `task/${id}`,
+    }),
+
     newTask: builder.mutation<{ task: Task }, string>({
       query: (content) => ({
         url: "task",
@@ -101,6 +105,7 @@ export const apiSlice = createApi({
 });
 
 export const {
+  useTaskQuery,
   useTasksQuery,
   useEventsQuery,
   useNewTaskMutation,
