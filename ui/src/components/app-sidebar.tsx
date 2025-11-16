@@ -19,7 +19,7 @@ import { useTasksQuery } from "@/features/api/apiSlice";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { data, isSuccess } = useTasksQuery();
-  const tasks = isSuccess ? data : [];
+  const tasks = isSuccess ? data.tasks : [];
 
   return (
     <Sidebar collapsible="icon" {...props}>

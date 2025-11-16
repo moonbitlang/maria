@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { type SessionEvent } from "@/features/session/sessionSlice";
 
-const BASE_URL = "http://localhost:8090/v1";
+const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
 
 export type Task = {
   name: string;
@@ -15,11 +15,11 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    tasks: builder.query<Task[], void>({
+    tasks: builder.query<{ tasks: Task[] }, void>({
       query: () => "tasks",
     }),
 
-    newTask: builder.mutation<void, void>({
+    newTask: builder.mutation<{ task: Task }, string>({
       query: (content) => ({
         url: "task",
         method: "POST",

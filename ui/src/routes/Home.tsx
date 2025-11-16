@@ -10,20 +10,26 @@ import {
 } from "@/components/ai/prompt-input";
 import { useAppSelector } from "@/app/hooks";
 import { selectChatStatus, selectTodos } from "@/features/session/sessionSlice";
+import { useNewTaskMutation } from "@/features/api/apiSlice";
+import { useNavigate } from "react-router";
 
 function ChatView() {
   const [input, setInput] = useState("");
   const todos = useAppSelector(selectTodos);
   const chatStatus = useAppSelector(selectChatStatus);
+  const navigate = useNavigate();
 
-  // const [postMessage] = usePostMessageMutation();
+  const [newTask] = useNewTaskMutation();
 
   // const { data } = useGetEventsQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInput("");
-    // await postMessage(input);
+    const res = await newTask(input);
+    if (res.data) {
+      navigate(`task/${res.data.task.id}`);
+    }
   };
 
   return (
