@@ -205,7 +205,11 @@ async fn main {
             "[INFO] Registered task '\{register.id}' on port \{register.port}",
           )
           register_queues[id].put(register.port)
-          conn.send_response(200, "OK")
+          conn.send_response(200, "OK", extra_headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
+          })
           conn.end_response()
         }
         (Get, ["", "v1", "tasks"]) => {
@@ -412,7 +416,12 @@ async fn main {
               })
             }
           }
-          conn.send_response(201, "Created")
+          conn.send_response(201, "Created", extra_headers={
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
+          })
           let body_task : Map[String, Json] = {}
           if server.name is Some(name) {
             body_task["name"] = name.to_json()
