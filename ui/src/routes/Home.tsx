@@ -2,10 +2,6 @@ import { useState } from "react";
 import { EventsDisplay } from "@/components/events-display";
 import { AgentTodos } from "@/components/agent-todos";
 import {
-  useGetEventsQuery,
-  usePostMessageMutation,
-} from "@/features/api/apiSlice";
-import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
@@ -20,20 +16,20 @@ function ChatView() {
   const todos = useAppSelector(selectTodos);
   const chatStatus = useAppSelector(selectChatStatus);
 
-  const [postMessage] = usePostMessageMutation();
+  // const [postMessage] = usePostMessageMutation();
 
-  const { data } = useGetEventsQuery();
+  // const { data } = useGetEventsQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInput("");
-    await postMessage(input);
+    // await postMessage(input);
   };
 
   return (
     <div className="flex-1 min-h-0 flex flex-col m-auto w-full max-w-4xl relative">
       <AgentTodos todos={todos} />
-      <EventsDisplay events={data ?? []} />
+      <EventsDisplay events={[]} />
       <div className="p-4">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea

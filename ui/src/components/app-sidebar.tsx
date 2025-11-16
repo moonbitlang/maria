@@ -14,9 +14,13 @@ import {
 } from "@/components/ui/sidebar";
 import { NavTasks } from "./nav-tasks";
 import { useNavigate } from "react-router";
+import { useTasksQuery } from "@/features/api/apiSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
+  const { data, isSuccess } = useTasksQuery();
+  const tasks = isSuccess ? data : [];
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader></SidebarHeader>
@@ -41,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <NavTasks tasks={[]} />
+        <NavTasks tasks={tasks} />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
       <SidebarRail />

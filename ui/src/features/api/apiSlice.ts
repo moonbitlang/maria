@@ -1,7 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { type SessionEvent } from "@/features/session/sessionSlice";
 
-const BASE_URL = "http://localhost:8081/v1";
+const BASE_URL = "http://localhost:8090/v1";
+
+export type Task = {
+  name: string;
+  id: string;
+};
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -10,9 +15,27 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    postMessage: builder.mutation<void, string>({
+    tasks: builder.query<Task[], void>({
+      query: () => "tasks",
+    }),
+
+    newTask: builder.mutation<void, void>({
       query: (content) => ({
-        url: "message",
+        url: "task",
+        method: "POST",
+        body: JSON.stringify({
+          model: "anthropic/claude-sonnet-4",
+          message: {
+            role: "user",
+            content,
+          },
+        }),
+      }),
+    }),
+
+    postMessage: builder.mutation<void, { taskId: string; content: string }>({
+      query: ({ taskId, content }) => ({
+        url: `task/${taskId}/message`,
         method: "POST",
         body: JSON.stringify({
           message: {
@@ -23,14 +46,14 @@ export const apiSlice = createApi({
       }),
     }),
 
-    getEvents: builder.query<SessionEvent[], void>({
+    events: builder.query<SessionEvent[], string>({
       queryFn: () => ({ data: [] }),
       async onCacheEntryAdded(
-        _arg,
+        id,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
       ) {
         // create a sse connection when the cache subscription starts
-        const source = new EventSource(`${BASE_URL}/events`);
+        const source = new EventSource(`${BASE_URL}/task/${id}/events`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
@@ -68,4 +91,9 @@ export const apiSlice = createApi({
   }),
 });
 
-export const { usePostMessageMutation, useGetEventsQuery } = apiSlice;
+export const {
+  useTasksQuery,
+  useEventsQuery,
+  useNewTaskMutation,
+  usePostMessageMutation,
+} = apiSlice;
