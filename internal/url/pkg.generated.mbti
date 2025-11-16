@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/url"
+
+// Values
+
+// Errors
+type ValidationError
+impl ToJson for ValidationError
+
+// Types and methods
+pub enum Host {
+  Domain(String)
+  IPv4(IPv4)
+  IPv6(IPv6)
+  Opaque(String)
+}
+fn Host::parse(StringView, is_opaque? : Bool) -> Self raise ValidationError
+impl ToJson for Host
+
+type IPv4
+fn IPv4::parse(StringView) -> Self raise ValidationError
+impl ToJson for IPv4
+
+type IPv6
+fn IPv6::parse(StringView) -> Self raise ValidationError
+impl ToJson for IPv6
+
+// Type aliases
+
+// Traits
+
