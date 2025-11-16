@@ -2,11 +2,11 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import { createAppSlice } from "@/app/createAppSlice";
 import type { ChatStatus } from "ai";
 
-type SessionEventBase = {
+type TaskEventBase = {
   time: number;
 };
 
-export type SessionEvent = SessionEventBase &
+export type TaskEvent = TaskEventBase &
   (RequestCompletedEvent | PostToolCallEvent | MessageAddedEvent);
 
 type ToolCallFunction = {
@@ -143,23 +143,23 @@ export type MessageAddedEvent = {
     (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
 };
 
-export type SessionSliceState = {
-  events: SessionEvent[];
+export type TaskSliceState = {
+  events: TaskEvent[];
   todos: Todo[];
   chatStatus: ChatStatus;
 };
 
-const initialState: SessionSliceState = {
+const initialState: TaskSliceState = {
   events: [],
   todos: [],
   chatStatus: "ready",
 };
 
-export const sessionSlice = createAppSlice({
-  name: "session",
+export const taskSlice = createAppSlice({
+  name: "task",
   initialState,
   reducers: {
-    addEvent(state, action: PayloadAction<SessionEvent>) {
+    addEvent(state, action: PayloadAction<TaskEvent>) {
       state.events.push(action.payload);
     },
     updateTodos(state, action: PayloadAction<Todo[]>) {
@@ -176,6 +176,6 @@ export const sessionSlice = createAppSlice({
   },
 });
 
-export const { addEvent, updateTodos, setChatStatus } = sessionSlice.actions;
+export const { addEvent, updateTodos, setChatStatus } = taskSlice.actions;
 export const { selectEvents, selectTodos, selectChatStatus } =
-  sessionSlice.selectors;
+  taskSlice.selectors;

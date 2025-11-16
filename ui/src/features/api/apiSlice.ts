@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { type SessionEvent } from "@/features/session/sessionSlice";
+import { type TaskEvent } from "@/features/session/taskSlice";
 
 const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
 
@@ -46,7 +46,7 @@ export const apiSlice = createApi({
       }),
     }),
 
-    events: builder.query<SessionEvent[], string>({
+    events: builder.query<TaskEvent[], string>({
       queryFn: () => ({ data: [] }),
       async onCacheEntryAdded(
         id,

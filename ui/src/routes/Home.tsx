@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { EventsDisplay } from "@/components/events-display";
-import { AgentTodos } from "@/components/agent-todos";
 import {
   PromptInput,
   PromptInputSubmit,
@@ -8,20 +6,13 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai/prompt-input";
-import { useAppSelector } from "@/app/hooks";
-import { selectChatStatus, selectTodos } from "@/features/session/sessionSlice";
 import { useNewTaskMutation } from "@/features/api/apiSlice";
 import { useNavigate } from "react-router";
 
 function ChatView() {
   const [input, setInput] = useState("");
-  const todos = useAppSelector(selectTodos);
-  const chatStatus = useAppSelector(selectChatStatus);
   const navigate = useNavigate();
-
   const [newTask] = useNewTaskMutation();
-
-  // const { data } = useGetEventsQuery();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +24,7 @@ function ChatView() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col m-auto w-full max-w-4xl relative">
-      <AgentTodos todos={todos} />
-      <EventsDisplay events={[]} />
+    <div className="flex-1 min-h-0 flex flex-col justify-end m-auto w-full max-w-4xl relative">
       <div className="p-4">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
@@ -50,8 +39,8 @@ function ChatView() {
           <PromptInputToolbar>
             <PromptInputTools></PromptInputTools>
             <PromptInputSubmit
-              disabled={chatStatus !== "ready" && !input.trim()}
-              status={chatStatus}
+              disabled={input.trim() === ""}
+              status="ready"
               className="cursor-pointer"
             ></PromptInputSubmit>
           </PromptInputToolbar>

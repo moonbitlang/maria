@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2, Circle, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Todo } from "@/features/session/sessionSlice";
+import type { Todo } from "@/features/session/taskSlice";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,

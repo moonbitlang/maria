@@ -5,7 +5,6 @@ import {
   ConversationScrollButton,
 } from "./ui/shadcn-io/ai/conversation";
 import {
-  updateTodos,
   type ExecuteCommandTool,
   type ListFilesTool,
   type MessageAddedEvent,
@@ -13,9 +12,9 @@ import {
   type PostToolCallEvent,
   type ReadFileTool,
   type RequestCompletedEvent,
-  type SessionEvent,
+  type TaskEvent,
   type TodoWriteTool,
-} from "@/features/session/sessionSlice";
+} from "@/features/session/taskSlice";
 import {
   Tool,
   ToolContent,
@@ -37,9 +36,11 @@ import {
 } from "lucide-react";
 import { useAppDispatch } from "@/app/hooks";
 import { useEffect } from "react";
+import { updateTodosForTask } from "@/features/session/tasksSlice";
 
 interface EventsDisplayProps {
-  events: SessionEvent[];
+  taskId: string;
+  events: TaskEvent[];
 }
 
 function ShowMessageAdded({ event }: { event: MessageAddedEvent }) {
@@ -271,13 +272,19 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
   );
 }
 
-function TodoWrite({ event }: { event: TodoWriteTool }) {
+function TodoWrite({
+  event,
+  taskId,
+}: {
+  event: TodoWriteTool;
+  taskId: string;
+}) {
   const { name, result } = event;
   const dispatch = useAppDispatch();
   useEffect(() => {
     // when we get a todo write event, we should update the todos in the session slice
-    dispatch(updateTodos(result.todos));
-  }, [dispatch, result.todos]);
+    dispatch(updateTodosForTask({ taskId: taskId, todos: result.todos }));
+  }, [dispatch, result.todos, taskId]);
   return (
     <Tool>
       <ToolHeader type={name} state="output-available" />
@@ -291,7 +298,13 @@ function TodoWrite({ event }: { event: TodoWriteTool }) {
   );
 }
 
-function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
+function ShowPostToolCall({
+  event,
+  taskId,
+}: {
+  event: PostToolCallEvent;
+  taskId: string;
+}) {
   const output = (
     <Response parseIncompleteMarkdown={false}>
       {["````markdown", event.text, "````"].join("\n")}
@@ -312,7 +325,7 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
       case "todo_write": {
-        return <TodoWrite event={event as TodoWriteTool} />;
+        return <TodoWrite event={event as TodoWriteTool} taskId={taskId} />;
       }
     }
     return (
@@ -368,7 +381,7 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 }
 
 export function EventsDisplay(props: EventsDisplayProps) {
-  const { events } = props;
+  const { events, taskId } = props;
 
   return (
     <Conversation className="min-h-0">
@@ -378,7 +391,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
             case "MessageAdded":
               return <ShowMessageAdded event={event} />;
             case "PostToolCall":
-              return <ShowPostToolCall event={event} />;
+              return <ShowPostToolCall event={event} taskId={taskId} />;
             case "RequestCompleted":
               return <ShowRequestCompleted event={event} />;
             default: {
