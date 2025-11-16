@@ -14,14 +14,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { NamedId } from "@/lib/types";
+import { useNavigate } from "react-router";
 
-export function NavTasks({
-  tasks: projects,
-}: {
-  tasks: {
-    name: string;
-  }[];
-}) {
+export function NavTasks({ tasks }: { tasks: NamedId[] }) {
+  const navigate = useNavigate();
   return (
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -33,13 +30,25 @@ export function NavTasks({
         </SidebarGroupLabel>
         <CollapsibleContent>
           <SidebarMenu>
-            {projects.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton>
-                  <span className="truncate">{item.name}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {tasks.map(({ name, id }) => {
+              const url = `tasks/${id}`;
+              return (
+                <SidebarMenuItem key={id}>
+                  <SidebarMenuButton
+                    tooltip={name}
+                    asChild
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(url);
+                    }}
+                  >
+                    <a href={url}>
+                      <span>{name}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </CollapsibleContent>
       </SidebarGroup>

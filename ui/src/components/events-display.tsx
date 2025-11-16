@@ -14,7 +14,7 @@ import {
   type RequestCompletedEvent,
   type TaskEvent,
   type TodoWriteTool,
-} from "@/features/session/taskSlice";
+} from "@/lib/types";
 import {
   Tool,
   ToolContent,
