@@ -55,6 +55,9 @@ async fn run_server(
         conn
         ..send_response(code, reason, extra_headers={
           "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+          "Access-Control-Allow-Headers": "Content-Type",
         })
         ..write(body)
         ..end_response()
@@ -130,6 +133,9 @@ async fn main {
           conn
           ..send_response(200, "OK", extra_headers={
             "Content-Type": "text/html",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
           })
           ..write(index_html)
           ..end_response()
@@ -143,6 +149,9 @@ async fn main {
           conn
           ..send_response(200, "OK", extra_headers={
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
           })
           ..write(response.stringify())
           ..end_response()
@@ -213,6 +222,9 @@ async fn main {
           conn
           ..send_response(200, "OK", extra_headers={
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+            "Access-Control-Allow-Headers": "Content-Type",
           })
           ..write(response.stringify())
           ..end_response()
@@ -626,6 +638,9 @@ async fn main {
             conn
             ..send_response(200, "OK", extra_headers={
               "Content-Type": content_type,
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+              "Access-Control-Allow-Headers": "Content-Type",
             })
             ..write(content)
             ..end_response()
