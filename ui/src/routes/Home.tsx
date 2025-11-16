@@ -14,18 +14,12 @@ import {
   PromptInputTools,
 } from "@/components/ai/prompt-input";
 import { useAppSelector } from "@/app/hooks";
-import {
-  selectTodos,
-  selectWaitingForEvent,
-} from "@/features/session/sessionSlice";
-import type { ChatStatus } from "ai";
+import { selectChatStatus, selectTodos } from "@/features/session/sessionSlice";
 
 function ChatView() {
   const [input, setInput] = useState("");
   const todos = useAppSelector(selectTodos);
-  const waitingForEvent = useAppSelector(selectWaitingForEvent);
-
-  const status: ChatStatus = waitingForEvent ? "submitted" : "ready";
+  const chatStatus = useAppSelector(selectChatStatus);
 
   const [postMessage] = usePostMessageMutation();
 
@@ -55,8 +49,8 @@ function ChatView() {
           <PromptInputToolbar>
             <PromptInputTools></PromptInputTools>
             <PromptInputSubmit
-              disabled={waitingForEvent && !input.trim()}
-              status={status}
+              disabled={chatStatus !== "ready" && !input.trim()}
+              status={chatStatus}
               className="cursor-pointer"
             ></PromptInputSubmit>
           </PromptInputToolbar>

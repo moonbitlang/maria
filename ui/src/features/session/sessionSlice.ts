@@ -1,5 +1,6 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createAppSlice } from "@/app/createAppSlice";
+import type { ChatStatus } from "ai";
 
 type SessionEventBase = {
   time: number;
@@ -145,13 +146,13 @@ export type MessageAddedEvent = {
 export type SessionSliceState = {
   events: SessionEvent[];
   todos: Todo[];
-  waitingForEvent: boolean;
+  chatStatus: ChatStatus;
 };
 
 const initialState: SessionSliceState = {
   events: [],
   todos: [],
-  waitingForEvent: false,
+  chatStatus: "ready",
 };
 
 export const sessionSlice = createAppSlice({
@@ -164,17 +165,17 @@ export const sessionSlice = createAppSlice({
     updateTodos(state, action: PayloadAction<Todo[]>) {
       state.todos = action.payload;
     },
-    waitForEvent(state, action: PayloadAction<boolean>) {
-      state.waitingForEvent = action.payload;
+    setChatStatus(state, action: PayloadAction<ChatStatus>) {
+      state.chatStatus = action.payload;
     },
   },
   selectors: {
     selectEvents: (state) => state.events,
     selectTodos: (state) => state.todos,
-    selectWaitingForEvent: (state) => state.waitingForEvent,
+    selectChatStatus: (state) => state.chatStatus,
   },
 });
 
-export const { addEvent, updateTodos, waitForEvent } = sessionSlice.actions;
-export const { selectEvents, selectTodos, selectWaitingForEvent } =
+export const { addEvent, updateTodos, setChatStatus } = sessionSlice.actions;
+export const { selectEvents, selectTodos, selectChatStatus } =
   sessionSlice.selectors;
