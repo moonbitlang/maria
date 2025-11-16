@@ -661,6 +661,9 @@ async fn main {
   if !@fsx.exists(exec_path) {
     fail("Exec path does not exist: \{exec_path}")
   }
+  let exec_path = @fsx.resolve(exec_path) catch {
+    error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
+  }
   let logger = @pino.logger("daemon", @pino.Transport::console())
   let daemon = Daemon::{
     models: @model.Loader::new(home=@os.home(), cwd=@os.cwd(), logger~),
