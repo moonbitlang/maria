@@ -377,6 +377,44 @@ async fn Daemon::list_tasks(
 }
 
 ///|
+async fn Daemon::get_task(
+  self : Daemon,
+  id : StringView,
+  conn : @http.ServerConnection,
+) -> Unit {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(server) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let response : Json = {
+    "task": {
+      "name": server.name,
+      "id": server.id.to_string(),
+      "cwd": server.cwd,
+      "port": server.port,
+    },
+  }
+  conn
+  ..send_response(200, "OK", extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  })
+  ..write(response.stringify())
+  ..end_response()
+}
+
+///|
 async fn Daemon::listen_task_events(
   self : Daemon,
   id : StringView,
@@ -647,6 +685,7 @@ pub async fn daemon_main(args : ArrayView[String], exec_path~ : String) -> Unit 
         (Post, ["", "v1", "task", "register"]) => daemon.register_task(conn)
         (Get, ["", "v1", "tasks"]) => daemon.list_tasks(conn)
         (Post, ["", "v1", "task"]) => daemon.create_task(group~, conn)
+        (Get, ["", "v1", "task", id]) => daemon.get_task(id, conn)
         (Get, ["", "v1", "task", id, "events"]) =>
           daemon.listen_task_events(id, request, conn)
         (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
