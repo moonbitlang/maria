@@ -29,6 +29,8 @@ async fn run_server(
   let addr = try! @socket.Addr::parse("[::]:\{port}")
   let server = @socket.TcpServer::new(addr, dual_stack=true)
   let port = server.addr().port()
+  println("[INFO] Server listening on port \{port}")
+  println("[INFO] Visit http://localhost:\{port}/ to access the server.")
   if register is Some(register) {
     let register_body : Json = { "id": register.id, "port": port }
     let (register_response, register_body) = @http.post(
@@ -91,6 +93,229 @@ async fn collect_modules(
         collect_modules(entry.path, modules)
       }
     }
+  }
+}
+
+///|
+struct Server {
+  broadcast : @broadcast.Broadcast[Json]
+  message_queue : @aqueue.Queue[@openai.ChatCompletionMessageParam]
+}
+
+///|
+async fn Server::listen_events(
+  self : Server,
+  conn : @http.ServerConnection,
+) -> Unit {
+  conn.send_response(200, "OK", extra_headers={
+    "Content-Type": "text/event-stream",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  })
+  self.broadcast.listen(channel => for {
+    let event = channel.get()
+    guard event
+      is {
+        "msg": "MessageAdded"
+        | "RequestCompleted"
+        | "PostToolCall"
+        | "PostConversation",
+        ..
+      } else {
+      continue
+    }
+    // Skip over tool events (subagent events)
+    if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
+      continue
+    }
+    conn.write("event: maria\n")
+    conn.write("data: \{event.stringify()}\n\n")
+    conn.flush()
+  })
+}
+
+///|
+async fn Server::create_message(
+  self : Server,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let body_data = conn.read_all().binary()
+  let body_text : String = @encoding/utf8.decode(body_data) catch {
+    // TODO(upstream): impl Show for @encoding/utf8.Malformed
+    @encoding/utf8.Malformed(bytes) =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid UTF-8 in request body: \{bytes}",
+        },
+      })
+  }
+  let body_json = @json.parse(body_text) catch {
+    error =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid JSON in request body: \{error}",
+        },
+      })
+  }
+  guard body_json is { "message": message, .. } else {
+    raise json_error(400, "BadRequest", {
+      "error": {
+        "code": -1,
+        "message": "Missing 'message' field in request body",
+      },
+    })
+  }
+  let message : @openai.ChatCompletionMessageParam = @json.from_json(message) catch {
+    @json.JsonDecodeError(_) as error =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid 'message' field: \{error}",
+          "metadata": { "message": message },
+        },
+      })
+  }
+  self.message_queue.put(message)
+  let response : Json = {}
+  conn
+  ..send_response(200, "OK", extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  })
+  ..write(response.stringify())
+  ..end_response()
+}
+
+///|
+async fn list_moonbit_modules(conn : @http.ServerConnection) -> Unit {
+  let modules = []
+  collect_modules(@os.cwd(), modules)
+  let modules_json : Array[Json] = []
+  for mod in modules {
+    modules_json.push({
+      "path": mod.path,
+      "name": mod.name,
+      "version": mod.version,
+      "description": mod.description,
+    })
+  }
+  let response : Json = { "modules": modules_json }
+  conn
+  ..send_response(200, "OK", extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  })
+  ..write(response.stringify())
+  ..end_response()
+}
+
+///|
+async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
+  let request = conn.read_all().binary()
+  let request_text : String = @encoding/utf8.decode(request) catch {
+    // TODO(upstream): impl Show for @encoding/utf8.Malformed
+    @encoding/utf8.Malformed(bytes) =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid UTF-8 in request body: \{bytes}",
+        },
+      })
+  }
+  let request_json = @json.parse(request_text) catch {
+    error =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid JSON in request body: \{error}",
+        },
+      })
+  }
+  guard request_json is { "module": { "path": String(path), .. }, .. } else {
+    raise json_error(400, "BadRequest", {
+      "error": {
+        "code": -1,
+        "message": "Missing 'module.path' field in request body",
+      },
+    })
+  }
+  let process = @spawn.spawn("moon", ["publish"], cwd=path) catch {
+    error =>
+      raise json_error(500, "InternalServerError", {
+        "error": {
+          "code": -1,
+          "message": "Failed to spawn 'moon publish' for '\{path}': \{error}",
+        },
+      })
+  }
+  let module_ = @moon.Module::load(path) catch {
+    error =>
+      raise json_error(404, "NotFound", {
+        "error": {
+          "code": -1,
+          "message": "No MoonBit module found in path '\{path}': \{error}",
+        },
+      })
+  }
+  if process.status == 0 {
+    let response : Json = {
+      "module": {
+        "path": path,
+        "name": module_.name,
+        "version": module_.version,
+        "description": module_.description,
+      },
+      "process": {
+        "status": process.status,
+        "stdout": process.stdout,
+        "stderr": process.stderr,
+      },
+    }
+    conn
+    ..send_response(201, "Created", extra_headers={
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+    })
+    ..write(response.stringify())
+    ..end_response()
+  } else {
+    let response : Json = {
+      "error": {
+        "code": -1,
+        "message": "Failed to publish module at '\{path}'",
+        "metadata": {
+          "module": {
+            "path": path,
+            "name": module_.name,
+            "version": module_.version,
+            "description": module_.description,
+          },
+          "process": {
+            "status": process.status,
+            "stdout": process.stdout,
+            "stderr": process.stderr,
+          },
+        },
+      },
+    }
+    conn
+    ..send_response(500, "InternalServerError", extra_headers={
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+    })
+    ..write(response.stringify())
+    ..end_response()
   }
 }
 
@@ -174,6 +399,7 @@ async fn main {
     @pino.Transport::callback(event => broadcast.put(event)),
   )
   let message_queue = @aqueue.new()
+  let server = Server::{ broadcast, message_queue }
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
     group.spawn_bg(
@@ -212,211 +438,10 @@ async fn main {
         ..write(index_html)
         ..end_response()
       }
-      (Get, "/v1/events") => {
-        conn.send_response(200, "OK", extra_headers={
-          "Content-Type": "text/event-stream",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-        })
-        broadcast.listen(channel => for {
-          let event = channel.get()
-          guard event
-            is {
-              "msg": "MessageAdded"
-              | "RequestCompleted"
-              | "PostToolCall"
-              | "PostConversation",
-              ..
-            } else {
-            continue
-          }
-          // Skip over tool events (subagent events)
-          if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
-            continue
-          }
-          conn.write("event: maria\n")
-          conn.write("data: \{event.stringify()}\n\n")
-          conn.flush()
-        })
-      }
-      (Post, "/v1/message") => {
-        let body_data = conn.read_all().binary()
-        let body_text : String = @encoding/utf8.decode(body_data) catch {
-          // TODO(upstream): impl Show for @encoding/utf8.Malformed
-          @encoding/utf8.Malformed(bytes) =>
-            raise json_error(400, "BadRequest", {
-              "error": {
-                "code": -1,
-                "message": "Invalid UTF-8 in request body: \{bytes}",
-              },
-            })
-        }
-        let body_json = @json.parse(body_text) catch {
-          error =>
-            raise json_error(400, "BadRequest", {
-              "error": {
-                "code": -1,
-                "message": "Invalid JSON in request body: \{error}",
-              },
-            })
-        }
-        guard body_json is { "message": message, .. } else {
-          raise json_error(400, "BadRequest", {
-            "error": {
-              "code": -1,
-              "message": "Missing 'message' field in request body",
-            },
-          })
-        }
-        let message : @openai.ChatCompletionMessageParam = @json.from_json(
-          message,
-        ) catch {
-          @json.JsonDecodeError(_) as error =>
-            raise json_error(400, "BadRequest", {
-              "error": {
-                "code": -1,
-                "message": "Invalid 'message' field: \{error}",
-                "metadata": { "message": message },
-              },
-            })
-        }
-        message_queue.put(message)
-        let response : Json = {}
-        conn
-        ..send_response(200, "OK", extra_headers={
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-        })
-        ..write(response.stringify())
-        ..end_response()
-      }
-      (Get, "/v1/moonbit/modules") => {
-        let modules = []
-        collect_modules(@os.cwd(), modules)
-        let modules_json : Array[Json] = []
-        for mod in modules {
-          modules_json.push({
-            "path": mod.path,
-            "name": mod.name,
-            "version": mod.version,
-            "description": mod.description,
-          })
-        }
-        let response : Json = { "modules": modules_json }
-        conn
-        ..send_response(200, "OK", extra_headers={
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-        })
-        ..write(response.stringify())
-        ..end_response()
-      }
-      (Post, "/v1/moonbit/publish") => {
-        let request = conn.read_all().binary()
-        let request_text : String = @encoding/utf8.decode(request) catch {
-          // TODO(upstream): impl Show for @encoding/utf8.Malformed
-          @encoding/utf8.Malformed(bytes) =>
-            raise json_error(400, "BadRequest", {
-              "error": {
-                "code": -1,
-                "message": "Invalid UTF-8 in request body: \{bytes}",
-              },
-            })
-        }
-        let request_json = @json.parse(request_text) catch {
-          error =>
-            raise json_error(400, "BadRequest", {
-              "error": {
-                "code": -1,
-                "message": "Invalid JSON in request body: \{error}",
-              },
-            })
-        }
-        guard request_json is { "module": { "path": String(path), .. }, .. } else {
-          raise json_error(400, "BadRequest", {
-            "error": {
-              "code": -1,
-              "message": "Missing 'module.path' field in request body",
-            },
-          })
-        }
-        let process = @spawn.spawn("moon", ["publish"], cwd=path) catch {
-          error =>
-            raise json_error(500, "InternalServerError", {
-              "error": {
-                "code": -1,
-                "message": "Failed to spawn 'moon publish' for '\{path}': \{error}",
-              },
-            })
-        }
-        let module_ = @moon.Module::load(path) catch {
-          error =>
-            raise json_error(404, "NotFound", {
-              "error": {
-                "code": -1,
-                "message": "No MoonBit module found in path '\{path}': \{error}",
-              },
-            })
-        }
-        if process.status == 0 {
-          let response : Json = {
-            "module": {
-              "path": path,
-              "name": module_.name,
-              "version": module_.version,
-              "description": module_.description,
-            },
-            "process": {
-              "status": process.status,
-              "stdout": process.stdout,
-              "stderr": process.stderr,
-            },
-          }
-          conn
-          ..send_response(201, "Created", extra_headers={
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-            "Access-Control-Allow-Headers": "Content-Type",
-          })
-          ..write(response.stringify())
-          ..end_response()
-        } else {
-          let response : Json = {
-            "error": {
-              "code": -1,
-              "message": "Failed to publish module at '\{path}'",
-              "metadata": {
-                "module": {
-                  "path": path,
-                  "name": module_.name,
-                  "version": module_.version,
-                  "description": module_.description,
-                },
-                "process": {
-                  "status": process.status,
-                  "stdout": process.stdout,
-                  "stderr": process.stderr,
-                },
-              },
-            },
-          }
-          conn
-          ..send_response(500, "InternalServerError", extra_headers={
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-            "Access-Control-Allow-Headers": "Content-Type",
-          })
-          ..write(response.stringify())
-          ..end_response()
-        }
-      }
+      (Get, "/v1/events") => server.listen_events(conn)
+      (Post, "/v1/message") => server.create_message(conn)
+      (Get, "/v1/moonbit/modules") => list_moonbit_modules(conn)
+      (Post, "/v1/moonbit/publish") => publish_moonbit_module(conn)
       (Get, ['/', .. file]) if "\{serve}/\{file}" is path &&
         (try? @fsx.exists_as_file(path)) is Ok(true) => {
         let content_type = match @path.ext(path) {
