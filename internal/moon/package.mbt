@@ -31,11 +31,7 @@ struct Package {
 
 ///|
 pub impl ToJson for Package with to_json(self : Package) -> Json {
-  {
-    "name": self.name.to_json(),
-    "path": self.path.to_json(),
-    "files": self.files,
-  }
+  { "name": self.name, "path": self.path, "files": self.files }
 }
 
 ///|

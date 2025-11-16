@@ -11,14 +11,14 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       ToolAdded(desc) => {
         let response : Json = {
           "method": "maria.agent.tool_added",
-          "params": { "tool": desc.to_json() },
+          "params": { "tool": desc },
         }
         @stdio.stdout.writeln(response.stringify())
       }
       MessageAdded(message) => {
         let response : Json = {
           "method": "maria.agent.message_added",
-          "params": { "message": message.to_json() },
+          "params": { "message": message },
         }
         @stdio.stdout.writeln(response.stringify())
       }
@@ -39,18 +39,14 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       RequestCompleted(usage~, message~) => {
         let response : Json = {
           "method": "maria.agent.request_completed",
-          "params": { "usage": usage.to_json(), "message": message.to_json() },
+          "params": { "usage": usage, "message": message },
         }
         @stdio.stdout.writeln(response.stringify())
       }
       PostToolCall(tool_call, result~, rendered~) => {
         let response : Json = {
           "method": "maria.agent.post_tool_call",
-          "params": {
-            "tool_call": tool_call.to_json(),
-            "json": result.to_json(),
-            "text": rendered.to_json(),
-          },
+          "params": { "tool_call": tool_call, "json": result, "text": rendered },
         }
         @stdio.stdout.writeln(response.stringify())
       }

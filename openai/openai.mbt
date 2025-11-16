@@ -1138,7 +1138,7 @@ pub impl ToJson for ChatCompletionToolParam with to_json(
 ) -> Json {
   match self {
     Function(function_definition) =>
-      { "type": "function", "function": function_definition.to_json() }
+      { "type": "function", "function": function_definition }
   }
 }
 

@@ -125,37 +125,37 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 pub impl ToJson for Event with to_json(self : Event) -> Json {
   match self {
     TokenCounted(token_count) =>
-      { "msg": "TokenCounted", "token_count": token_count.to_json() }
+      { "msg": "TokenCounted", "token_count": token_count }
     ContextPruned(origin_token_count~, pruned_token_count~) =>
       {
         "msg": "ContextPruned",
-        "origin_token_count": origin_token_count.to_json(),
-        "pruned_token_count": pruned_token_count.to_json(),
+        "origin_token_count": origin_token_count,
+        "pruned_token_count": pruned_token_count,
       }
     PreToolCall(tool_call) =>
       match tool_call.function.arguments {
         None =>
           {
             "msg": "PreToolCall",
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
+            "tool_call": tool_call,
+            "name": tool_call.function.name,
           }
         Some(arguments) =>
           try @json.parse(arguments) catch {
             error =>
               {
                 "msg": "PreToolCall",
-                "tool_call": tool_call.to_json(),
-                "name": tool_call.function.name.to_json(),
-                "args": tool_call.function.arguments.to_json(),
-                "error": error.to_json(),
+                "tool_call": tool_call,
+                "name": tool_call.function.name,
+                "args": tool_call.function.arguments,
+                "error": error,
               }
           } noraise {
             args =>
               {
                 "msg": "PreToolCall",
-                "tool_call": tool_call.to_json(),
-                "name": tool_call.function.name.to_json(),
+                "tool_call": tool_call,
+                "name": tool_call.function.name,
                 "args": args,
               }
           }
@@ -165,38 +165,33 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
         Ok(output) =>
           {
             "msg": "PostToolCall",
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
-            "result": output.to_json(),
-            "text": rendered.to_json(),
+            "tool_call": tool_call,
+            "name": tool_call.function.name,
+            "result": output,
+            "text": rendered,
           }
         Err(error) =>
           {
             "msg": "PostToolCall",
-            "tool_call": tool_call.to_json(),
-            "name": tool_call.function.name.to_json(),
-            "error": error.to_json(),
-            "text": rendered.to_json(),
+            "tool_call": tool_call,
+            "name": tool_call.function.name,
+            "error": error,
+            "text": rendered,
           }
       }
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
-    MessageAdded(message) =>
-      { "msg": "MessageAdded", "message": message.to_json() }
+    MessageAdded(message) => { "msg": "MessageAdded", "message": message }
     ToolAdded(tool_desc) =>
       {
         "msg": "ToolAdded",
         "tool": {
           "name": tool_desc.name,
           "description": tool_desc.description,
-          "schema": tool_desc.schema.to_json(),
+          "schema": tool_desc.schema,
         },
       }
     RequestCompleted(usage~, message~) =>
-      {
-        "msg": "RequestCompleted",
-        "usage": usage.to_json(),
-        "message": message.to_json(),
-      }
+      { "msg": "RequestCompleted", "usage": usage, "message": message }
   }
 }

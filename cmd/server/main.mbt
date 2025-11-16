@@ -412,7 +412,7 @@ async fn main {
               "error": {
                 "code": -1,
                 "message": error.to_string(),
-                "metadata": error.to_json(),
+                "metadata": error,
               },
             })
             raise error
