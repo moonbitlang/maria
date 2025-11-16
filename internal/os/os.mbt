@@ -190,6 +190,14 @@ pub fn[X] exit(code : Int) -> X {
 extern "c" fn os_executable(buf : FixedArray[Byte]) -> Int = "moonbit_maria_os_executable"
 
 ///|
+/// Returns the path of the current executable. Note that the returned path
+/// may be a symbolic link and not the real file, so make sure to resolve it
+/// before calling spawn.
+///
+/// Implementations:
+///
+/// - macOS: `_NSGetExecutablePath()`
+/// - Linux: `readlink("/proc/self/exe")`
 pub fn executable() -> String raise {
   let mut buf : FixedArray[Byte] = FixedArray::make(1024, 0)
   let mut size = os_executable(buf)
