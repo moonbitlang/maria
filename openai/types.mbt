@@ -5,6 +5,7 @@
 
 ///|
 /// Service tier override for chat completion requests.
+#alias(ChatCompletionChunkServiceTier)
 pub(all) enum ChatCompletionServiceTier {
   Auto
   Default
@@ -12,9 +13,6 @@ pub(all) enum ChatCompletionServiceTier {
   Scale
   Priority
 } derive(Show)
-
-///|
-typealias ChatCompletionServiceTier as ChatCompletionChunkServiceTier
 
 ///|
 /// Aggregated log-probability details for a streamed choice.
@@ -49,6 +47,7 @@ pub struct ChatCompletionMessageToolCallFunction {
 
 ///|
 /// Tool call emitted from an assistant message.
+#alias(ChatCompletionMessageToolCallParam)
 pub struct ChatCompletionMessageToolCall {
   id : String
   function : ChatCompletionMessageToolCallFunction
@@ -247,9 +246,6 @@ pub struct ChatCompletionUserMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
 }
-
-///|
-typealias ChatCompletionMessageToolCall as ChatCompletionMessageToolCallParam
 
 ///|
 /// Assistant message payload in request parameters.
