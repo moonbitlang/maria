@@ -195,6 +195,7 @@ pub enum ChatCompletionMessageRole {
 impl Show for ChatCompletionMessageRole
 impl ToJson for ChatCompletionMessageRole
 
+#alias(ChatCompletionMessageToolCallParam)
 pub struct ChatCompletionMessageToolCall {
   id : String
   function : ChatCompletionMessageToolCallFunction
@@ -232,6 +233,7 @@ pub enum ChatCompletionRole {
 }
 impl ToJson for ChatCompletionRole
 
+#alias(ChatCompletionChunkServiceTier)
 pub(all) enum ChatCompletionServiceTier {
   Auto
   Default

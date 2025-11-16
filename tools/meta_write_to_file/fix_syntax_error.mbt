@@ -45,10 +45,7 @@ async fn fix_syntax_errors(ctx : FixingContext) -> Unit {
   let subagent = @agent.new(
     ctx.parent_agent.model,
     logger=ctx.parent_agent.logger.child({
-      "tool": {
-        "name": "meta_write_to_file",
-        "id": ctx.parent_agent.uuid.v4().to_json(),
-      },
+      "tool": { "name": "meta_write_to_file", "id": ctx.parent_agent.uuid.v4() },
     }),
     cwd=ctx.cwd,
   )

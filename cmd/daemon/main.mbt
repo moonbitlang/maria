@@ -236,7 +236,7 @@ async fn Daemon::create_task(
     println("[INFO] Write initial messages to task '\{id}'...")
     let (message_response, message_body) = @http.post(
       "http://localhost/v1/message",
-      ({ "message": message.to_json() } : Json),
+      ({ "message": message } : Json),
       port=register_port,
     )
     println(

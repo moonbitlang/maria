@@ -219,7 +219,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
                 logger=agent.logger.child({
                   "tool": {
                     "name": "fix_moonbit_warnings",
-                    "id": agent.uuid.v4().to_json(),
+                    "id": agent.uuid.v4(),
                   },
                 }),
               ))
