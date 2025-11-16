@@ -4,8 +4,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Outlet } from "react-router";
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -25,7 +26,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="h-[100px] bg-blue-50"></div>
         </main> */}
-        <div className="flex-1 min-h-0 flex flex-col">{children}</div>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Outlet />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

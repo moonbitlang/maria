@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Layout } from "@/components/layout";
 import { EventsDisplay } from "@/components/events-display";
 import { AgentTodos } from "@/components/agent-todos";
 import {
@@ -61,11 +60,7 @@ function ChatView() {
 }
 
 function Home() {
-  return (
-    <Layout>
-      <ChatView />
-    </Layout>
-  );
+  return <ChatView />;
 }
 
 export default Home;

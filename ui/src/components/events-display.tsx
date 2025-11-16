@@ -370,10 +370,6 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 export function EventsDisplay(props: EventsDisplayProps) {
   const { events } = props;
 
-  if (events.length === 0) {
-    return null;
-  }
-
   return (
     <Conversation className="min-h-0">
       <ConversationContent>
