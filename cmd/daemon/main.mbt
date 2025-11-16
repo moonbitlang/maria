@@ -188,6 +188,7 @@ async fn Daemon::create_task(
   let process = self.process.spawn(
     self.exec_path,
     [
+      "server",
       "--model",
       model.name,
       "--port",
@@ -593,12 +594,10 @@ async fn Daemon::create_task_message(
 }
 
 ///|
-async fn main {
-  let args = @os.args()
+pub async fn daemon_main(args : ArrayView[String], exec_path~ : String) -> Unit {
   let mut port = 8090
   let mut serve = @os.cwd()
-  let mut exec_path = None
-  loop args[1:] {
+  loop args {
     ["-p" | "--port", p, .. args] => {
       port = @strconv.parse_int(p)
       continue args
@@ -607,19 +606,10 @@ async fn main {
       serve = if @path.is_absolute(s) { s } else { @path.join(@os.cwd(), s) }
       continue args
     }
-    [e, .. args] => {
-      exec_path = if @path.is_absolute(e) {
-        Some(e)
-      } else {
-        Some(@path.join(@os.cwd(), e))
-      }
-      continue args
-    }
+    [unknown, ..] => fail("Unknown argument: \{unknown}")
     [] => break
   }
-  guard exec_path is Some(exec_path) else {
-    fail("Expected exec path as the first argument")
-  }
+  println("[INFO] exec_path = \{exec_path}")
   if !@fsx.exists(exec_path) {
     fail("Exec path does not exist: \{exec_path}")
   }
