@@ -2,7 +2,6 @@
 package "moonbitlang/maria/cmd/daemon"
 
 // Values
-async fn daemon_main(ArrayView[String], exec_path~ : String) -> Unit
 
 // Errors
 

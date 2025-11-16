@@ -320,7 +320,8 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
 }
 
 ///|
-async fn server_main(args : ArrayView[String]) -> Unit {
+async fn main {
+  let args = @os.args()
   let mut model = None
   let mut port = 0
   let mut serve = @os.cwd()
@@ -328,7 +329,7 @@ async fn server_main(args : ArrayView[String]) -> Unit {
   let mut register_host = None
   let mut register_port = None
   let mut register_id = None
-  loop args {
+  loop args[1:] {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
         fail("Expected model name after \{args[0]}")
@@ -470,18 +471,4 @@ async fn server_main(args : ArrayView[String]) -> Unit {
         })
     })
   })
-}
-
-///|
-async fn main {
-  let args = @os.args()
-  guard args is [exec_path, .. args] else {
-    fail("Unable to get exec_path from args: \{args}")
-  }
-  match args {
-    ["server", .. args] => server_main(args)
-    ["daemon", .. args] => @daemon.daemon_main(args, exec_path~)
-    [unknown, ..] => fail("Unknown command: \{unknown}")
-    [] => fail("No command provided")
-  }
 }
