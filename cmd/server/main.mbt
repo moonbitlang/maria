@@ -320,6 +320,24 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
 }
 
 ///|
+pub(all) enum Status {
+  Idle
+  Busy
+} derive(ToJson, @json.FromJson)
+
+///|
+test "Status::ToJson" {
+  @json.inspect(Idle, content="Idle")
+  @json.inspect(Busy, content="Busy")
+}
+
+///|
+test "Status::FromJson" {
+  @json.inspect(@json.from_json("Idle") is Idle, content=true)
+  @json.inspect(@json.from_json("Busy") is Busy, content=true)
+}
+
+///|
 async fn main {
   let args = @os.args()
   let mut model = None
@@ -401,11 +419,16 @@ async fn main {
   let message_queue = @aqueue.new()
   let server = Server::{ broadcast, message_queue }
   let maria = @maria.Maria::new(model?, logger~)
+  let mut status = Idle
   @async.with_task_group(group => {
     group.spawn_bg(
       () => while true {
         let message = message_queue.get()
         maria.agent.add_message(message)
+        status = Busy
+        defer {
+          status = Idle
+        }
         maria.agent.start() catch {
           error => {
             logger.error("MariaFailed", {
@@ -436,6 +459,18 @@ async fn main {
         conn
         ..send_response(200, "OK", extra_headers={ "Content-Type": "text/html" })
         ..write(index_html)
+        ..end_response()
+      }
+      (Get, "/v1/status") => {
+        let response : Json = { "status": status }
+        conn
+        ..send_response(200, "OK", extra_headers={
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+          "Access-Control-Allow-Headers": "Content-Type",
+        })
+        ..write(response.stringify())
         ..end_response()
       }
       (Get, "/v1/events") => server.listen_events(conn)
