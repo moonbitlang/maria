@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -15,12 +15,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { NamedId } from "@/lib/types";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId } from "@/features/session/tasksSlice";
+import type { TaskOverview } from "@/features/api/apiSlice";
 
-export function NavTasks({ tasks }: { tasks: NamedId[] }) {
+export function NavTasks({ tasks }: { tasks: TaskOverview[] }) {
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -35,9 +35,10 @@ export function NavTasks({ tasks }: { tasks: NamedId[] }) {
         </SidebarGroupLabel>
         <CollapsibleContent>
           <SidebarMenu>
-            {tasks.map(({ name, id }) => {
+            {tasks.map(({ name, id, conversationStatus }) => {
               const url = `tasks/${id}`;
               const isActive = activeTaskId === id;
+              const isGenerating = conversationStatus === "generating";
               return (
                 <SidebarMenuItem key={id}>
                   <SidebarMenuButton
@@ -54,6 +55,9 @@ export function NavTasks({ tasks }: { tasks: NamedId[] }) {
                   >
                     <a href={url}>
                       <span>{name}</span>
+                      {isGenerating && (
+                        <Loader2 className="ml-auto h-4 w-4 animate-spin" />
+                      )}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,8 +1,6 @@
 import { createAppSlice } from "@/app/createAppSlice";
-import type { NamedId, Todo } from "@/lib/types";
+import type { ConversationStatus, NamedId, Todo } from "@/lib/types";
 import type { PayloadAction } from "@reduxjs/toolkit";
-
-type ConversationStatus = "idle" | "generating";
 
 type Task = NamedId & {
   todos: Todo[];
@@ -11,14 +9,16 @@ type Task = NamedId & {
   inputQueue: string[];
 };
 
-export function defaultTask(name: string, id: string): Task {
+export function defaultTask(
+  params: NamedId & Partial<Omit<Task, "name" | "id">>,
+): Task {
   return {
-    name,
-    id,
-    todos: [],
-    chatInput: "",
-    conversationStatus: "idle",
-    inputQueue: [],
+    name: params.name,
+    id: params.id,
+    todos: params.todos ?? [],
+    chatInput: params.chatInput ?? "",
+    conversationStatus: params.conversationStatus ?? "idle",
+    inputQueue: params.inputQueue ?? [],
   };
 }
 
@@ -43,14 +43,14 @@ export const tasksSlice = createAppSlice({
     newTask(state, action: PayloadAction<NamedId>) {
       const { id, name } = action.payload;
       if (!state.tasks[id]) {
-        state.tasks[id] = defaultTask(name, id);
+        state.tasks[id] = defaultTask({ name, id });
       }
     },
 
     setTasks(state, action: PayloadAction<NamedId[]>) {
       for (const { id, name } of action.payload) {
         if (!state.tasks[id]) {
-          state.tasks[id] = defaultTask(name, id);
+          state.tasks[id] = defaultTask({ name, id });
         }
       }
     },
@@ -115,6 +115,10 @@ export const tasksSlice = createAppSlice({
   },
 
   selectors: {
+    selectTasks(state: TasksSliceState): Task[] {
+      return Object.values(state.tasks);
+    },
+
     selectTask(state: TasksSliceState, taskId: string): Task | undefined {
       return state.tasks[taskId];
     },
@@ -166,4 +170,5 @@ export const {
   selectTaskInput,
   selectConversationStatus,
   selectInputQueue,
+  selectTasks,
 } = tasksSlice.selectors;

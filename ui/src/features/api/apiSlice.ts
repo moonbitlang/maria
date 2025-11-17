@@ -1,5 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { type NamedId, type TaskEvent, type TodoWriteTool } from "@/lib/types";
+import {
+  type ConversationStatus,
+  type NamedId,
+  type TaskEvent,
+  type TodoWriteTool,
+} from "@/lib/types";
 import {
   setConverstationStatusForTask,
   setTasks,
@@ -9,6 +14,10 @@ import {
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
 
+export type TaskOverview = NamedId & {
+  conversationStatus: ConversationStatus;
+};
+
 // Define our single API slice object
 export const apiSlice = createApi({
   // The cache reducer expects to be added at `state.api` (already default - this is optional)
@@ -17,7 +26,7 @@ export const apiSlice = createApi({
   tagTypes: ["Tasks"],
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    tasks: builder.query<{ tasks: NamedId[] }, void>({
+    tasks: builder.query<{ tasks: TaskOverview[] }, void>({
       query: () => "tasks",
       providesTags: ["Tasks"],
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
@@ -26,7 +35,7 @@ export const apiSlice = createApi({
       },
     }),
 
-    task: builder.query<{ task: NamedId }, string>({
+    task: builder.query<{ task: TaskOverview }, string>({
       query: (id) => `task/${id}`,
     }),
 

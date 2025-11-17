@@ -25,6 +25,7 @@ import {
   addToInputQueueForTask,
   selectInputQueue,
   removeNthFromInputQueueForTask,
+  setConverstationStatusForTask,
 } from "@/features/session/tasksSlice";
 import { Trash2 } from "lucide-react";
 import { Fragment, useEffect } from "react";
@@ -72,7 +73,10 @@ function TaskInput({ taskId }: { taskId: string }) {
         break;
       }
       case "idle": {
-        await postMessage({ taskId, content: input.trim() });
+        postMessage({ taskId, content: input.trim() });
+        dispatch(
+          setConverstationStatusForTask({ taskId, status: "generating" }),
+        );
         break;
       }
     }
@@ -157,7 +161,7 @@ export default function Task() {
 
   if (isSuccess) {
     const apiTask = data.task;
-    const currentTask = task ?? defaultTask(apiTask.id, apiTask.name);
+    const currentTask = task ?? defaultTask({ ...apiTask });
 
     const { todos } = currentTask;
 
