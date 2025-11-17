@@ -19,7 +19,11 @@ async test "agent/initialization" (t : @test.Test) {
 async test "agent/simple_conversation" (t : @test.Test) {
   @mock.run(t, timeout=120_000, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Say 'Hello, World!' and nothing else.",
+    )
 
     // Track events
     let mut conversation_started = false
@@ -31,11 +35,6 @@ async test "agent/simple_conversation" (t : @test.Test) {
       MessageAdded(_) => message_count = message_count + 1
       _ => ()
     })
-
-    // Add a simple user message
-    agent.add_message(
-      @openai.user_message(content="Say 'Hello, World!' and nothing else."),
-    )
 
     // Start the agent
     agent.start()
@@ -54,7 +53,11 @@ async test "agent/simple_conversation" (t : @test.Test) {
 async test "agent/single_tool_call" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Use the add_numbers tool to calculate 5 + 3. Return only the result.",
+    )
 
     // Track tool calls
     let mut tool_called = false
@@ -88,13 +91,6 @@ async test "agent/single_tool_call" (t : @test.Test) {
       PreToolCall(tool_call) => tool_name = tool_call.function.name
       _ => ()
     })
-
-    // Ask the agent to add two numbers
-    agent.add_message(
-      @openai.user_message(
-        content="Use the add_numbers tool to calculate 5 + 3. Return only the result.",
-      ),
-    )
     agent.start()
 
     // Verify tool was called
@@ -110,7 +106,11 @@ async test "agent/single_tool_call" (t : @test.Test) {
 async test "agent/multiple_tool_calls" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="First use the add tool to calculate 5 + 3, then use the multiply tool to multiply the result by 2. Return the final result.",
+    )
 
     // Track tool calls
     let tool_calls : Array[String] = []
@@ -148,13 +148,6 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
       PreToolCall(tool_call) => tool_calls.push(tool_call.function.name)
       _ => ()
     })
-
-    // Ask the agent to use both tools
-    agent.add_message(
-      @openai.user_message(
-        content="First use the add tool to calculate 5 + 3, then use the multiply tool to multiply the result by 2. Return the final result.",
-      ),
-    )
     agent.start()
 
     // Verify both tools were called
@@ -170,7 +163,11 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
 async test "agent/event_system" (t : @test.Test) {
   @mock.run(t, timeout=120_000, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Say 'Testing events' and nothing else.",
+    )
 
     // Track all event types with Ref for async updates
     let mut pre_conversation = false
@@ -191,9 +188,6 @@ async test "agent/event_system" (t : @test.Test) {
       }
       _ => ()
     })
-    agent.add_message(
-      @openai.user_message(content="Say 'Testing events' and nothing else."),
-    )
     agent.start()
 
     // Give events time to process
@@ -215,7 +209,11 @@ async test "agent/event_system" (t : @test.Test) {
 async test "agent/file_operations" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Create a file called 'test.txt' with the content 'Hello, World!' and then read it back to confirm.",
+    )
 
     // Add file management tools
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -236,13 +234,6 @@ async test "agent/file_operations" (t : @test.Test) {
         }
       _ => ()
     })
-
-    // Ask agent to create and read a file
-    agent.add_message(
-      @openai.user_message(
-        content="Create a file called 'test.txt' with the content 'Hello, World!' and then read it back to confirm.",
-      ),
-    )
     agent.start()
 
     // Verify file operations occurred
@@ -260,7 +251,11 @@ async test "agent/file_operations" (t : @test.Test) {
 async test "agent/token_management" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Say 'Hello' briefly.",
+    )
     let mut token_count = 0
     let mut _context_pruned = false
     agent.add_listener(event => match event {
@@ -271,9 +266,6 @@ async test "agent/token_management" (t : @test.Test) {
       }
       _ => ()
     })
-
-    // Add a message that will require token counting
-    agent.add_message(@openai.user_message(content="Say 'Hello' briefly."))
     agent.start()
 
     // Verify token counting occurred
@@ -287,7 +279,11 @@ async test "agent/token_management" (t : @test.Test) {
 async test "agent/tool_error_handling" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Use the divide tool to divide 10 by 0.",
+    )
     let mut error_encountered = false
     let binary_op_schema = @tool.JsonSchema::from_json({
       "type": "object",
@@ -322,11 +318,6 @@ async test "agent/tool_error_handling" (t : @test.Test) {
         }
       _ => ()
     })
-
-    // Ask agent to divide by zero
-    agent.add_message(
-      @openai.user_message(content="Use the divide tool to divide 10 by 0."),
-    )
     agent.start()
 
     // Verify error was handled
@@ -340,7 +331,11 @@ async test "agent/tool_error_handling" (t : @test.Test) {
 async test "agent/batch_tool_registration" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="I have three tools available: tool1, tool2, and tool3. Please call tool1.",
+    )
     let empty_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": {},
@@ -376,13 +371,6 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
       PreToolCall(tool_call) => tool_names.push(tool_call.function.name)
       _ => ()
     })
-
-    // Ask agent to use all tools
-    agent.add_message(
-      @openai.user_message(
-        content="I have three tools available: tool1, tool2, and tool3. Please call tool1.",
-      ),
-    )
     agent.start()
 
     // Verify at least one tool was available and called
@@ -425,27 +413,6 @@ async test "agent/conversation_history" (t : @test.Test) {
 async test "agent/read_multiple_files" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
-
-    // Add file management tools
-    let file_manager = @file.manager(cwd=mock.cwd.path())
-    agent.add_tools([
-      @read_multiple_files.new(file_manager).to_agent_tool(),
-      @replace_in_file.new(file_manager).to_agent_tool(),
-    ])
-
-    // Track if files were created/read
-    let mut file_written = false
-    let mut multiple_files_read = false
-    agent.add_listener(event => match event {
-      PreToolCall(tool_call) =>
-        match tool_call.function.name {
-          "replace_in_file" => file_written = true
-          "read_multiple_files" => multiple_files_read = true
-          _ => ()
-        }
-      _ => ()
-    })
     let args1 : Json = {
       "files": [
         { "path": "foo.txt", "start_line": 1, "end_line": 3 },
@@ -469,14 +436,38 @@ async test "agent/read_multiple_files" (t : @test.Test) {
       $| e.g. \{args2.stringify()}
       $|
       $|
-    agent.add_message(@openai.system_message(content=system_prompt))
-    // Ask agent to create and read a file
     let content =
       #| Create a file called 'foo.txt' with the content 'Hello, Foo!'.
       #| Create a file called 'bar.txt' with the content 'Hello, Bar!'.
       #| Then read both files concat write to 'foo_bar.txt'
       #|
-    agent.add_message(@openai.user_message(content~))
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      system_message=system_prompt,
+      user_message=content,
+    )
+
+    // Add file management tools
+    let file_manager = @file.manager(cwd=mock.cwd.path())
+    agent.add_tools([
+      @read_multiple_files.new(file_manager).to_agent_tool(),
+      @replace_in_file.new(file_manager).to_agent_tool(),
+    ])
+
+    // Track if files were created/read
+    let mut file_written = false
+    let mut multiple_files_read = false
+    agent.add_listener(event => match event {
+      PreToolCall(tool_call) =>
+        match tool_call.function.name {
+          "replace_in_file" => file_written = true
+          "read_multiple_files" => multiple_files_read = true
+          _ => ()
+        }
+      _ => ()
+    })
     agent.start()
 
     // Verify file operations occurred
@@ -524,14 +515,11 @@ async test "load-model-name" (t : @test.Test) {
         "supports_anthropic_prompt_caching": false,
       },
     ])
-    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
-    agent.add_message(
-      @openai.user_message(
-        content="Say 'Hello from loaded model' and nothing else.",
-      ),
-    )
-    // We don't snapshot anything here as we just expect to request to be
-    // successful with loaded model name
-    agent.start()
+    @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      user_message="Say 'Hello from loaded model' and nothing else.",
+    ).start()
   })
 }
