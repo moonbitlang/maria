@@ -162,9 +162,9 @@ async test "search_files/agentic" (t : @test.Test) {
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
         mock.logger.info("PostToolCall", {
-          "tool_call": tool_call.to_json(),
-          "tool_call_result": result.to_json(),
-          "tool_call_result_text": rendered.to_json(),
+          "tool_call": tool_call,
+          "tool_call_result": result,
+          "tool_call_result_text": rendered,
         })
       _ => ()
     })

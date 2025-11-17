@@ -156,6 +156,6 @@ pub async fn Counter::count_param(
     count += self.count_tool(tool)
   }
   count += self.count_messages(param.messages)
-  self.logger.info("TokenCounted", { "token_count": count.to_json() })
+  self.logger.info("TokenCounted", { "token_count": count })
   count
 }

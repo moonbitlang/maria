@@ -82,8 +82,8 @@ impl ToJson for ChatCompletionTokenLogprob with to_json(
   self : ChatCompletionTokenLogprob,
 ) -> Json {
   let json : Map[String, Json] = {
-    "token": Json::string(self.token),
-    "logprob": self.logprob.to_json(),
+    "token": self.token,
+    "logprob": self.logprob,
   }
   if self.bytes is Some(bytes) {
     json["bytes"] = bytes.to_json()
@@ -160,8 +160,8 @@ impl ToJson for ChatCompletionTopLogprob with to_json(
   self : ChatCompletionTopLogprob,
 ) -> Json {
   let json : Map[String, Json] = {
-    "token": Json::string(self.token),
-    "logprob": self.logprob.to_json(),
+    "token": self.token,
+    "logprob": self.logprob,
   }
   if self.bytes is Some(bytes) {
     json["bytes"] = bytes.to_json()
@@ -327,8 +327,8 @@ impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
 ///|
 impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -> Json {
   let json : Map[String, Json] = {
-    "index": self.index.to_json(),
-    "message": self.message.to_json(),
+    "index": self.index,
+    "message": self.message,
   }
   if self.finish_reason is Some(finish_reason) {
     json["finish_reason"] = finish_reason.to_json()
@@ -616,7 +616,7 @@ pub fn chat_completion(
 pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam) -> Json {
   let json : Map[String, Json] = {
     "model": Json::string(self.model),
-    "messages": self.messages.to_json(),
+    "messages": self.messages,
   }
   if !self.tools.is_empty() {
     json["tools"] = self.tools.to_json()
@@ -648,9 +648,9 @@ pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam)
 ///|
 pub impl ToJson for ChatCompletion with to_json(self : ChatCompletion) -> Json {
   let json : Map[String, Json] = {
-    "id": Json::string(self.id),
-    "choices": self.choices.to_json(),
-    "created": self.created.to_json(),
+    "id": self.id,
+    "choices": self.choices,
+    "created": self.created,
     "model": Json::string(self.model),
   }
   if self.usage is Some(usage) {
@@ -737,10 +737,7 @@ pub impl ToJson for ChatCompletionContentPartParam with to_json(
 ) -> Json {
   match self {
     Text(param) => {
-      let json : Map[String, Json] = {
-        "type": "text",
-        "text": param.text.to_json(),
-      }
+      let json : Map[String, Json] = { "type": "text", "text": param.text }
       if param.cache_control is Some(cache_control) {
         json["cache_control"] = cache_control.to_json()
       }
@@ -868,7 +865,7 @@ pub impl ToJson for ChatCompletionMessageParam with to_json(
     Assistant(param) => {
       let json : Map[String, Json] = {
         "role": "assistant",
-        "tool_calls": param.tool_calls.to_json(),
+        "tool_calls": param.tool_calls,
       }
       content_parts_to_json(param.content, json)
       if param.name is Some(name) {
@@ -1480,7 +1477,7 @@ pub impl ToJson for ResponseFormat with to_json(self : ResponseFormat) -> Json {
         "json_schema": {
           let object : Map[String, Json] = {
             "name": Json::string(json_schema.name),
-            "schema": json_schema.schema.to_json(),
+            "schema": json_schema.schema,
           }
           if json_schema.description is Some(description) {
             object["description"] = Json::string(description)

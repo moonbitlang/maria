@@ -80,9 +80,9 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   }
 
   let object : Map[String, Json] = {
-    "name": self.name.to_json(),
-    "id": self.id.to_json(),
-    "messages": self.messages.to_json(),
+    "name": self.name,
+    "id": self.id,
+    "messages": self.messages,
     "created_at": int64_to_json(self.created_at),
     "updated_at": int64_to_json(self.updated_at),
   }
@@ -173,8 +173,8 @@ priv struct Message {
 ///|
 impl ToJson for Message with to_json(self : Message) -> Json {
   let object : Map[String, Json] = {
-    "timestamp": self.timestamp.to_json(),
-    "message": self.message.to_json(),
+    "timestamp": self.timestamp,
+    "message": self.message,
   }
   if self.usage is Some(usage) {
     object["usage"] = usage.to_json()

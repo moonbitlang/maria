@@ -25,7 +25,7 @@ pub fn logger(
   level? : Level = Info,
   transport : Transport,
 ) -> Logger {
-  Logger::{ properties: { "tag": tag.to_json() }, level, transport }
+  Logger::{ properties: { "tag": tag }, level, transport }
 }
 
 ///|
@@ -62,9 +62,9 @@ pub async fn Logger::log(
     return
   }
   let object : Map[String, Json] = {
-    "level": level.to_json(),
-    "pid": @spawn.getpid().to_json(),
-    "msg": message.to_json(),
+    "level": level,
+    "pid": @spawn.getpid(),
+    "msg": message,
   }
   try {
     object["hostname"] = @os.gethostname().to_json()
@@ -153,7 +153,7 @@ pub async fn Logger::debug(
 /// # Example
 /// ```moonbit
 /// let parent = logger("app", Transport::console())
-/// let _child = parent.child({ "module": "auth".to_json() })
+/// let _child = parent.child({ "module": "auth" })
 /// // All logs from child will include both "tag": "app" and "module": "auth"
 /// ```
 pub fn Logger::child(self : Logger, properties : Map[String, Json]) -> Logger {

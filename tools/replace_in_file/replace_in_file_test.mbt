@@ -125,9 +125,9 @@ async test "replace_in_file/agentic" (t : @test.Test) {
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
         mock.logger.info("PostToolCall", {
-          "name": tool_call.function.name.to_json(),
-          "output": result.to_json(),
-          "text": rendered.to_json(),
+          "name": tool_call.function.name,
+          "output": result,
+          "text": rendered,
         })
       _ => ()
     })
