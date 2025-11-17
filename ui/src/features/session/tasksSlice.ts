@@ -6,7 +6,18 @@ import type { ChatStatus } from "ai";
 type Task = NamedId & {
   todos: Todo[];
   chatStatus: ChatStatus;
+  chatInput: string;
 };
+
+export function defaultTask(name: string, id: string): Task {
+  return {
+    name,
+    id,
+    todos: [],
+    chatStatus: "ready",
+    chatInput: "",
+  };
+}
 
 type TasksSliceState = {
   activeTask: string | undefined;
@@ -29,6 +40,22 @@ export const tasksSlice = createAppSlice({
     selectActiveTaskId(state: TasksSliceState): string | undefined {
       return state.activeTask;
     },
+
+    selectTaskInput(
+      state: TasksSliceState,
+      taskId: string,
+    ): string | undefined {
+      const task = state.tasks[taskId];
+      return task?.chatInput;
+    },
+
+    selectTaskChatStatus(
+      state: TasksSliceState,
+      taskId: string,
+    ): ChatStatus | undefined {
+      const task = state.tasks[taskId];
+      return task?.chatStatus;
+    },
   },
   reducers: {
     setActiveTaskId(state, action: PayloadAction<string | undefined>) {
@@ -38,24 +65,14 @@ export const tasksSlice = createAppSlice({
     newTask(state, action: PayloadAction<NamedId>) {
       const { id, name } = action.payload;
       if (!state.tasks[id]) {
-        state.tasks[id] = {
-          id,
-          name,
-          todos: [],
-          chatStatus: "ready",
-        };
+        state.tasks[id] = defaultTask(name, id);
       }
     },
 
     setTasks(state, action: PayloadAction<NamedId[]>) {
       for (const { id, name } of action.payload) {
         if (!state.tasks[id]) {
-          state.tasks[id] = {
-            id,
-            name,
-            todos: [],
-            chatStatus: "ready",
-          };
+          state.tasks[id] = defaultTask(name, id);
         }
       }
     },
@@ -81,6 +98,17 @@ export const tasksSlice = createAppSlice({
         task.chatStatus = status;
       }
     },
+
+    setInputForTask(
+      state,
+      action: PayloadAction<{ taskId: string; input: string }>,
+    ) {
+      const { taskId, input } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.chatInput = input;
+      }
+    },
   },
 });
 
@@ -90,6 +118,12 @@ export const {
   setChatStatusForTask,
   updateTodosForTask,
   setActiveTaskId,
+  setInputForTask,
 } = tasksSlice.actions;
 
-export const { selectTask, selectActiveTaskId } = tasksSlice.selectors;
+export const {
+  selectTask,
+  selectActiveTaskId,
+  selectTaskInput,
+  selectTaskChatStatus,
+} = tasksSlice.selectors;

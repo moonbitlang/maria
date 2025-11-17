@@ -1,13 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { type TaskEvent, type TodoWriteTool } from "@/lib/types";
+import { type NamedId, type TaskEvent, type TodoWriteTool } from "@/lib/types";
 import { setTasks, updateTodosForTask } from "@/features/session/tasksSlice";
 
 const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
 
-export type Task = {
-  name: string;
-  id: string;
-};
+console.log({ BASE_URL });
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -17,7 +14,7 @@ export const apiSlice = createApi({
   tagTypes: ["Tasks"],
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    tasks: builder.query<{ tasks: Task[] }, void>({
+    tasks: builder.query<{ tasks: NamedId[] }, void>({
       query: () => "tasks",
       providesTags: ["Tasks"],
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
@@ -26,11 +23,11 @@ export const apiSlice = createApi({
       },
     }),
 
-    task: builder.query<Task, string>({
+    task: builder.query<{ task: NamedId }, string>({
       query: (id) => `task/${id}`,
     }),
 
-    newTask: builder.mutation<{ task: Task }, string>({
+    newTask: builder.mutation<{ task: NamedId }, string>({
       query: (content) => ({
         url: "task",
         method: "POST",

@@ -8,16 +8,18 @@ import {
   PromptInputTools,
 } from "@/components/ai/prompt-input";
 import { EventsDisplay } from "@/components/events-display";
+import { useEventsQuery, useTaskQuery } from "@/features/api/apiSlice";
 import {
-  useEventsQuery,
-  usePostMessageMutation,
-  useTaskQuery,
-} from "@/features/api/apiSlice";
-import { selectTask, setActiveTaskId } from "@/features/session/tasksSlice";
-import { useEffect, useState } from "react";
+  selectTask,
+  selectTaskInput,
+  selectTaskChatStatus,
+  setActiveTaskId,
+  setInputForTask,
+  defaultTask,
+} from "@/features/session/tasksSlice";
+import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
-import type { ChatStatus } from "ai";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();
@@ -29,31 +31,26 @@ function useSetActiveTaskId(taskId: string) {
 
 function useCurrentTask(taskId: string) {
   const task = useAppSelector((state) => selectTask(state, taskId));
-  const { data: apiTask } = useTaskQuery(taskId, { skip: task !== undefined });
+  const { data } = useTaskQuery(taskId, { skip: task !== undefined });
+  console.log({ data });
 
-  return (
-    task ?? {
-      ...apiTask!,
-      todos: [],
-      chatStatus: "ready" as const,
-    }
-  );
+  return task ?? defaultTask(data!.task.name, data!.task.id);
 }
 
-interface TaskInputProps {
-  chatStatus: ChatStatus;
-  onSubmit: (input: string) => void;
-}
+function TaskInput({ taskId }: { taskId: string }) {
+  const dispatch = useDispatch();
+  const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
+  const chatStatus = useAppSelector((state) =>
+    selectTaskChatStatus(state, taskId),
+  )!;
 
-function TaskInput({ chatStatus, onSubmit }: TaskInputProps) {
-  const [input, setInput] = useState("");
+  function setInput(value: string) {
+    dispatch(setInputForTask({ taskId, input: value }));
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
-      onSubmit(input);
-      setInput("");
-    }
+    setInput("");
   };
 
   return (
@@ -65,7 +62,7 @@ function TaskInput({ chatStatus, onSubmit }: TaskInputProps) {
           onFocus={(e) =>
             e.target.scrollIntoView({ behavior: "smooth", block: "center" })
           }
-          onChange={(e) => setInput(e.currentTarget.value)}
+          onChange={(e) => setInput(e.target.value)}
           placeholder={"Input your task..."}
         />
         <PromptInputToolbar>
@@ -89,20 +86,15 @@ export default function Task() {
   useSetActiveTaskId(taskId);
 
   const currentTask = useCurrentTask(taskId);
-  const [postMessage] = usePostMessageMutation();
+
+  const { todos } = currentTask;
   const { data } = useEventsQuery(taskId);
-
-  const { chatStatus, todos } = currentTask;
-
-  const handleMessageSubmit = async (input: string) => {
-    await postMessage({ taskId, content: input });
-  };
 
   return (
     <div className="flex-1 min-h-0 flex flex-col justify-end relative">
       <AgentTodos todos={todos} />
       <EventsDisplay events={data ?? []} />
-      <TaskInput chatStatus={chatStatus} onSubmit={handleMessageSubmit} />
+      <TaskInput taskId={taskId} />
     </div>
   );
 }
