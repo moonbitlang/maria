@@ -13,7 +13,6 @@ import {
   type ReadFileTool,
   type RequestCompletedEvent,
   type TaskEvent,
-  type TodoWriteTool,
 } from "@/lib/types";
 import {
   Tool,
@@ -268,21 +267,6 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
   );
 }
 
-function TodoWrite({ event }: { event: TodoWriteTool }) {
-  const { name } = event;
-  return (
-    <Tool>
-      <ToolHeader type={name} state="output-available" />
-      <ToolContent>
-        <ToolOutput
-          errorText={undefined}
-          output={<Response>{event.result.message}</Response>}
-        ></ToolOutput>
-      </ToolContent>
-    </Tool>
-  );
-}
-
 function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
   const output = (
     <Response parseIncompleteMarkdown={false}>
@@ -304,7 +288,8 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
       case "todo_write": {
-        return <TodoWrite event={event as TodoWriteTool} />;
+        // No need to render anything for todo_write tool calls
+        return <></>;
       }
     }
     return (
@@ -363,7 +348,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
   const { events } = props;
 
   return (
-    <Conversation initial="instant" className="min-h-0">
+    <Conversation className="min-h-0">
       <ConversationContent className="max-w-4xl mx-auto">
         {events.map((event, i) => {
           switch (event.msg) {
