@@ -4,8 +4,6 @@ import { setTasks, updateTodosForTask } from "@/features/session/tasksSlice";
 
 const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
 
-console.log({ BASE_URL });
-
 // Define our single API slice object
 export const apiSlice = createApi({
   // The cache reducer expects to be added at `state.api` (already default - this is optional)

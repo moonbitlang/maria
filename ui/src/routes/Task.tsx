@@ -29,14 +29,6 @@ function useSetActiveTaskId(taskId: string) {
   }, [taskId, dispatch]);
 }
 
-function useCurrentTask(taskId: string) {
-  const task = useAppSelector((state) => selectTask(state, taskId));
-  const { data } = useTaskQuery(taskId, { skip: task !== undefined });
-  console.log({ data });
-
-  return task ?? defaultTask(data!.task.name, data!.task.id);
-}
-
 function TaskInput({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
@@ -85,16 +77,28 @@ export default function Task() {
   const taskId = params.taskId!;
   useSetActiveTaskId(taskId);
 
-  const currentTask = useCurrentTask(taskId);
+  const { data, isLoading, isSuccess } = useTaskQuery(taskId);
 
-  const { todos } = currentTask;
-  const { data } = useEventsQuery(taskId);
+  const { data: events } = useEventsQuery(taskId, { skip: !isSuccess });
 
-  return (
-    <div className="flex-1 min-h-0 flex flex-col justify-end relative">
-      <AgentTodos todos={todos} />
-      <EventsDisplay events={data ?? []} />
-      <TaskInput taskId={taskId} />
-    </div>
-  );
+  const task = useAppSelector((state) => selectTask(state, taskId));
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isSuccess) {
+    const apiTask = data.task;
+    const currentTask = task ?? defaultTask(apiTask.id, apiTask.name);
+
+    const { todos } = currentTask;
+
+    return (
+      <div className="flex-1 min-h-0 flex flex-col justify-end relative">
+        <AgentTodos todos={todos} />
+        <EventsDisplay events={events ?? []} />
+        <TaskInput taskId={taskId} />
+      </div>
+    );
+  }
 }
