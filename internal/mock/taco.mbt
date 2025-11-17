@@ -223,6 +223,12 @@ pub async fn File::write_bytes(self : File, content : Bytes) -> Unit {
 }
 
 ///|
+pub async fn File::write_json(self : File, content : Json) -> Unit {
+  let json_string = content.stringify(indent=2) + "\n"
+  self.write_string(json_string)
+}
+
+///|
 pub enum Entry {
   Directory(Directory)
   File(File)
