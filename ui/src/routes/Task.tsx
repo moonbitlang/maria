@@ -54,6 +54,15 @@ function TaskInput({ taskId }: { taskId: string }) {
     dispatch(setInputForTask({ taskId, input: value }));
   }
 
+  useEffect(() => {
+    // when conversation is idle, and there are queued inputs, send the next one
+    if (conversationStatus === "idle" && inputQueue.length > 0) {
+      const nextInput = inputQueue[0];
+      dispatch(removeNthFromInputQueueForTask({ taskId, n: 0 }));
+      postMessage({ taskId, content: nextInput });
+    }
+  }, [conversationStatus, inputQueue, dispatch, postMessage, taskId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     switch (conversationStatus) {
@@ -82,7 +91,7 @@ function TaskInput({ taskId }: { taskId: string }) {
             {inputQueue.length} queued{" "}
             {inputQueue.length === 1 ? "message" : "messages"}
           </div>
-          <ScrollArea className="max-h-24 bg-secondary/40 overflow-y-scroll rounded border border-border/40">
+          <ScrollArea className="max-h-24 bg-secondary/40 overflow-y-auto rounded border border-border/40">
             {inputQueue.map((item, index) => (
               <Fragment key={index}>
                 <div className="group flex items-center gap-2 px-3 py-1 hover:bg-secondary/60 text-sm">
