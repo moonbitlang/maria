@@ -68,7 +68,6 @@ export const apiSlice = createApi({
       ) {
         // create a sse connection when the cache subscription starts
         const source = new EventSource(`${BASE_URL}/task/${id}/events`);
-        console.log(`${id} sse connection opened`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
@@ -113,7 +112,6 @@ export const apiSlice = createApi({
         await cacheEntryRemoved;
         // perform cleanup steps once the `cacheEntryRemoved` promise resolves
         source.close();
-        console.log(`${id} sse connection closed`);
       },
     }),
   }),
