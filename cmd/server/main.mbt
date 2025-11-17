@@ -121,7 +121,8 @@ async fn Server::listen_events(
         "msg": "MessageAdded"
         | "RequestCompleted"
         | "PostToolCall"
-        | "PostConversation",
+        | "PostConversation"
+        | "MariaFailed",
         ..
       } else {
       continue
