@@ -110,32 +110,26 @@ async fn Agent::execute_tool(
   }
   agent.emit(PreToolCall(tool_call))
   match tool_call.function.arguments {
-    None =>
+    None | Some([]) =>
       return @openai.tool_message(
         content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
         tool_call_id=tool_call.id,
       )
-    Some(arguments) =>
-      if arguments.is_empty() {
-        return @openai.tool_message(
-          content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
-          tool_call_id=tool_call.id,
-        )
-      } else {
-        let arguments = @json.parse(arguments) catch {
-          error =>
-            return @openai.tool_message(
-              content="Error parsing tool arguments: \{error}",
-              tool_call_id=tool_call.id,
-            )
-        }
-        let (result, rendered) = match tool.call(arguments) {
-          Ok((json, text)) => (Ok(json), text)
-          Error(error, text) => (Err(error), text)
-        }
-        agent.emit(PostToolCall(tool_call, result~, rendered~))
-        @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+    Some(arguments) => {
+      let arguments = @json.parse(arguments) catch {
+        error =>
+          return @openai.tool_message(
+            content="Error parsing tool arguments: \{error}",
+            tool_call_id=tool_call.id,
+          )
       }
+      let (result, rendered) = match tool.call(arguments) {
+        Ok((json, text)) => (Ok(json), text)
+        Error(error, text) => (Err(error), text)
+      }
+      agent.emit(PostToolCall(tool_call, result~, rendered~))
+      @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+    }
   }
 }
 
@@ -268,7 +262,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
     // Signal the start of conversation
     agent.emit(PreConversation)
-    while true {
+    while agent.queue is [_, ..] {
       // Build the tools array for this API call
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
@@ -282,13 +276,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           ),
         )
       }
-      // Retrieve and clear the message queue
-      // staged contains messages that need to be sent in this call
-      let staged = agent.queue
-      agent.queue = []
-      // Build the complete message array for the API call
-      // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.to_param(), ..staged]
+      let messages = [..agent.history.to_param(), ..agent.queue]
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -310,18 +298,18 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 
       // Emit event with API usage statistics and the returned message
       agent.emit(RequestCompleted(usage~, message~))
-      // Add all staged messages to permanent conversation history
-      agent.history.add_messages(staged)
+      agent.history.add_messages(agent.queue)
+      agent.queue = []
+      // check here??
+      // UI can add new messages to the queue
+      // it can decide to add after the whole loop
+      // or add after each tool call execution
 
       // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
-      // Check if the model returned any tool calls
-      // If not, the conversation is complete
-      if message.tool_calls is [] {
-        break
-      }
+
       // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
         agent.add_message(agent.execute_tool(call))
@@ -366,6 +354,7 @@ pub async fn new(
     try! @pino.transport("file:.moonagent/log.jsonl"),
   ),
   cwd~ : StringView,
+  user_message? : StringView,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let rand = match rand {
@@ -393,6 +382,9 @@ pub async fn new(
       logger~,
     ),
     session_manager,
+  }
+  if user_message is Some(message) {
+    agent.add_message(@openai.user_message(content=message))
   }
   agent
 }

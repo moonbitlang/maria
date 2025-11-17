@@ -524,14 +524,11 @@ async test "load-model-name" (t : @test.Test) {
         "supports_anthropic_prompt_caching": false,
       },
     ])
-    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
-    agent.add_message(
-      @openai.user_message(
-        content="Say 'Hello from loaded model' and nothing else.",
-      ),
-    )
-    // We don't snapshot anything here as we just expect to request to be
-    // successful with loaded model name
-    agent.start()
+    @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      user_message="Say 'Hello from loaded model' and nothing else.",
+    ).start()
   })
 }
