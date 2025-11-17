@@ -23,12 +23,12 @@ pub async fn Job::wait(self : Job) -> Int {
 ///|
 pub impl ToJson for Job with to_json(self : Job) -> Json {
   let json : Map[String, Json] = {
-    "id": self.id.0.to_json(),
-    "name": self.name.to_json(),
-    "command": self.command.to_json(),
-    "cwd": self.cwd.to_json(),
-    "stdout": self.stdout.to_json(),
-    "stderr": self.stderr.to_json(),
+    "id": self.id.0,
+    "name": self.name,
+    "command": self.command,
+    "cwd": self.cwd,
+    "stdout": self.stdout,
+    "stderr": self.stderr,
   }
   if self.description is Some(desc) {
     json["description"] = desc.to_json()

@@ -28,7 +28,7 @@ pub async fn chat(
     () => {
       logger.debug("RequestSent", {
         "model": { "name": model.model_name, "base_url": model.base_url },
-        "request": request.to_json(),
+        "request": request,
       })
       let url = "\{model.base_url}/chat/completions"
       let uri = Uri::parse(url)
@@ -46,14 +46,14 @@ pub async fn chat(
         let reader = ChunkReader::new(client)
         let builder = ChatCompletionBuilder::new()
         while reader.read() is Some(chunk) {
-          logger.debug("ChunkReceived", { "chunk": chunk.to_json() })
+          logger.debug("ChunkReceived", { "chunk": chunk })
           builder.add_chunk(chunk)
         }
         let chat_completion = builder.to_chat_completion()
         logger.debug("ResponseReceived", {
           "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code.to_json(),
-          "response_body": chat_completion.to_json(),
+          "response_code": response.code,
+          "response_body": chat_completion,
         })
         chat_completion
       } else {
@@ -62,8 +62,8 @@ pub async fn chat(
         let chat_completion : ChatCompletion = @json.from_json(json)
         logger.debug("ResponseReceived", {
           "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code.to_json(),
-          "response_body": chat_completion.to_json(),
+          "response_code": response.code,
+          "response_body": chat_completion,
         })
         chat_completion
       }
