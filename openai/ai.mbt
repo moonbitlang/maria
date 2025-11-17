@@ -19,7 +19,7 @@ priv suberror HttpError {
 /// Raises HttpError if the API returns a non-2xx status code.
 pub async fn chat(
   model~ : @model.Model,
-  request : ChatCompletionParam,
+  request : Request,
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
 ) -> ChatCompletion {
   @async.retry(

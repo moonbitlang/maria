@@ -596,8 +596,8 @@ pub fn chat_completion(
   stream? : Bool,
   stream_options? : ChatCompletionStreamOptionsParam,
   tool_choice? : ChatCompletionToolChoice,
-) -> ChatCompletionParam {
-  ChatCompletionParam::{
+) -> Request {
+  Request::{
     model,
     messages,
     tools,
@@ -613,7 +613,7 @@ pub fn chat_completion(
 }
 
 ///|
-pub impl ToJson for ChatCompletionParam with to_json(self : ChatCompletionParam) -> Json {
+pub impl ToJson for Request with to_json(self : Request) -> Json {
   let json : Map[String, Json] = {
     "model": Json::string(self.model),
     "messages": self.messages,

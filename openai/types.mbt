@@ -132,7 +132,19 @@ pub struct ChatCompletionStreamOptionsParam {
 
 ///|
 /// Parameters accepted by the chat completion endpoint.
-pub struct ChatCompletionParam {
+/// This is the request type
+/// ```mbt no check
+/// let uri = Uri::parse(url)
+/// let client = @http.Client::connect(uri.host, protocol=uri.protocol, headers={
+///   "Authorization": "Bearer \{model.api_key}",
+///   "Content-Type": "application/json",
+///   "Connection": "close",
+/// })
+/// defer client.close()
+/// let response = client.post(uri.path, (request : ChatCompletionParam).to_json())
+/// 
+/// ```
+pub struct Request {
   model : String
   messages : Array[ChatCompletionMessageParam]
   tools : Array[ChatCompletionToolParam]
