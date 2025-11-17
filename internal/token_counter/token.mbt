@@ -146,7 +146,7 @@ fn Counter::add_tool(
 /// parameters.
 pub async fn Counter::count_param(
   self : Counter,
-  param : @openai.ChatCompletionParam,
+  param : @openai.Request,
 ) -> Int {
   let mut count = SystemOverhead
   if !param.tools.is_empty() {

@@ -11,9 +11,9 @@ import(
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-async fn chat(model~ : @model.Model, ChatCompletionParam, logger? : @pino.Logger) -> ChatCompletion
+async fn chat(model~ : @model.Model, Request, logger? : @pino.Logger) -> ChatCompletion
 
-fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> ChatCompletionParam
+fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
 
 fn chunk(id~ : String, choices~ : Array[ChatCompletionChunkChoice], created~ : Int, model~ : String, usage? : CompletionUsage, system_fingerprint? : String, service_tier? : ChatCompletionServiceTier, error? : OpenRouterErrorResponse) -> ChatCompletionChunk
 
@@ -209,21 +209,6 @@ pub struct ChatCompletionMessageToolCallFunction {
 }
 impl Show for ChatCompletionMessageToolCallFunction
 
-pub struct ChatCompletionParam {
-  model : String
-  messages : Array[ChatCompletionMessageParam]
-  tools : Array[ChatCompletionToolParam]
-  usage : CompletionUsageParam?
-  user : String?
-  max_tokens : Int?
-  temperature : Double?
-  response_format : ResponseFormat?
-  stream : Bool?
-  stream_options : ChatCompletionStreamOptionsParam?
-  tool_choice : ChatCompletionToolChoice?
-}
-impl ToJson for ChatCompletionParam
-
 pub enum ChatCompletionRole {
   Developer
   System
@@ -345,6 +330,21 @@ pub struct PromptTokensDetails {
 }
 impl Show for PromptTokensDetails
 impl ToJson for PromptTokensDetails
+
+pub struct Request {
+  model : String
+  messages : Array[ChatCompletionMessageParam]
+  tools : Array[ChatCompletionToolParam]
+  usage : CompletionUsageParam?
+  user : String?
+  max_tokens : Int?
+  temperature : Double?
+  response_format : ResponseFormat?
+  stream : Bool?
+  stream_options : ChatCompletionStreamOptionsParam?
+  tool_choice : ChatCompletionToolChoice?
+}
+impl ToJson for Request
 
 pub(all) enum ResponseFormat {
   Text
