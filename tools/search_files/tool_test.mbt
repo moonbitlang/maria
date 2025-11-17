@@ -1,7 +1,7 @@
 ///|
 async test "search_files" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let _ = mock.add_file(
       "notes.txt",
       content=(
         #|These are some notes about the project.
@@ -10,7 +10,7 @@ async test "search_files" (t : @test.Test) {
       ),
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
-    let result = @search_files.new(taco.cwd.path()).call(args)
+    let result = @search_files.new(mock.cwd.path()).call(args)
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
@@ -133,9 +133,9 @@ async test "search_files-moon-references" (t : @test.Test) {
 
 ///|
 async test "search_files/agentic" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let api_key = taco.getenv("OPENAI_API_KEY")
-    taco.add_files([
+  @mock.run(t, mock => {
+    let api_key = mock.getenv("OPENAI_API_KEY")
+    mock.add_files([
       (
         "notes.txt",
         (
@@ -158,20 +158,20 @@ async test "search_files/agentic" (t : @test.Test) {
       name="qwen/qwen3-coder-plus",
       safe_zone_tokens=200000,
     )
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+    let agent = @agent.new(model, cwd=mock.cwd.path())
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
-        taco.logger.info("PostToolCall", {
+        mock.logger.info("PostToolCall", {
           "tool_call": tool_call.to_json(),
           "tool_call_result": result.to_json(),
           "tool_call_result_text": rendered.to_json(),
         })
       _ => ()
     })
-    let file_manager = @file.manager(cwd=taco.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
-      @search_files.new(taco.cwd.path()).to_agent_tool(),
+      @search_files.new(mock.cwd.path()).to_agent_tool(),
     ])
     agent.add_message(
       @openai.user_message(
@@ -184,7 +184,7 @@ async test "search_files/agentic" (t : @test.Test) {
     )
     agent.start()
     inspect(
-      @fsx.read_file(@path.join(taco.cwd.path(), "results.txt")).contains(
+      @fsx.read_file(@path.join(mock.cwd.path(), "results.txt")).contains(
         "notes.txt",
       ),
       content="true",
@@ -194,14 +194,14 @@ async test "search_files/agentic" (t : @test.Test) {
 
 ///|
 async test "search_files/with tilde expension" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let args : Json = {
       "path": "~/.moon/lib/core",
       "regex": "parse.*Double",
       "kind": "regex",
       "file_pattern": "*.mbti",
     }
-    let result = @search_files.new(taco.cwd.path()).call(args)
+    let result = @search_files.new(mock.cwd.path()).call(args)
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }

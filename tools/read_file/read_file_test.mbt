@@ -1,7 +1,7 @@
 ///|
 async test "nonexistent" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
     let args : Json = { "path": "nonexistent.txt" }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
@@ -19,9 +19,9 @@ async test "nonexistent" (t : @test.Test) {
 
 ///|
 async test "content" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
       "test.txt",
       content=(
         #|line 1
@@ -57,9 +57,9 @@ async test "content" (t : @test.Test) {
 
 ///|
 async test "line_range" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
       "lines.txt",
       content=(
         #|line 1
@@ -95,10 +95,10 @@ async test "line_range" (t : @test.Test) {
 
 ///|
 async test "directory" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    taco.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
-    let subdir = taco.add_directory("subdir")
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    mock.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
+    let subdir = mock.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
     let args : Json = { "path": "." }
     let tool = @read_file.new(manager)
@@ -112,9 +112,9 @@ async test "directory" (t : @test.Test) {
 
 ///|
 async test "invalid-range" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
       "test.txt",
       content=(
         #|line 1

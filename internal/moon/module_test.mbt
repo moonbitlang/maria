@@ -1,7 +1,7 @@
 ///|
 async test "files" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -16,7 +16,7 @@ async test "files" (t : @test.Test) {
       ),
       ("example.mbt", "///|\nlet x : Int = 42"),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
@@ -30,7 +30,7 @@ async test "files" (t : @test.Test) {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(taco.json(files), content=[
+    @json.inspect(mock.json(files), content=[
       {
         "content": "///|\nlet x : Int = 42",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -76,7 +76,7 @@ async test "files" (t : @test.Test) {
     for file in files {
       segments.push(file.segments())
     }
-    @json.inspect(taco.json(segments), content=[
+    @json.inspect(mock.json(segments), content=[
       [
         {
           "file": "(mock:cwd)/example.mbt",
@@ -90,8 +90,8 @@ async test "files" (t : @test.Test) {
 
 ///|
 async test "interface" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -106,9 +106,9 @@ async test "interface" (t : @test.Test) {
       ),
       ("example.mbt", "let x : Int = 42"),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     let pkg = moon.find_package("example")
-    @json.inspect(taco.json(pkg), content=[
+    @json.inspect(mock.json(pkg), content=[
       {
         "name": "example",
         "path": "(mock:cwd)",
@@ -152,17 +152,17 @@ async test "interface" (t : @test.Test) {
 
 ///|
 async test "diagnostics" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let _ = mock.add_file(
       "moon.mod.json",
       content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
     )
-    let _ = taco.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = taco.add_file("example.mbt", content="let x : Int = \"string\"")
-    let moon = Module::load(taco.cwd.path())
+    let _ = mock.add_file("moon.pkg.json", content=Json::object({}).stringify())
+    let _ = mock.add_file("example.mbt", content="let x : Int = \"string\"")
+    let moon = Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
-    @json.inspect(taco.json(diagnostics), content=[
+    @json.inspect(mock.json(diagnostics), content=[
       "Diagnostics",
       [
         {
@@ -225,14 +225,14 @@ async test "interface/core" (t : @test.Test) {
 
 ///|
 async test "packages" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let _ = taco.add_file(
+  @mock.run(t, mock => {
+    let _ = mock.add_file(
       "moon.mod.json",
       content={ "name": "example", "version": "0.1.0", "source": "src" }
         .to_json()
         .stringify(),
     )
-    let src = taco.add_directory("src")
+    let src = mock.add_directory("src")
     let _ = src.add_file("moon.pkg.json", content=Json::object({}).stringify())
     let src_lib = src.add_directory("lib")
     let _ = src_lib.add_file(
@@ -244,7 +244,7 @@ async test "packages" (t : @test.Test) {
       "moon.pkg.json",
       content=Json::object({}).stringify(),
     )
-    let util = taco.add_directory("util")
+    let util = mock.add_directory("util")
     let _ = util.add_file("helpers.mbt", content="let x : Int = 42")
     let src_app = src.add_directory("app")
     let _ = src_app.add_file(
@@ -252,7 +252,7 @@ async test "packages" (t : @test.Test) {
       content=Json::object({}).stringify(),
     )
     let _ = src_app.add_file("main.mbt", content="let y : String = \"hello\"")
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     let pkg_names = moon.packages().map(pkg => pkg.name()).collect()
     pkg_names.sort()
     @json.inspect(pkg_names, content=[

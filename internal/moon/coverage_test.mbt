@@ -1,7 +1,7 @@
 ///|
 async test "Coverage::report" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -39,7 +39,7 @@ async test "Coverage::report" (t : @test.Test) {
         ),
       ),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
@@ -54,11 +54,11 @@ async test "Coverage::report" (t : @test.Test) {
     @json.inspect(
       moon.coverage.report(
         format=Coveralls,
-        output_file=@path.join(taco.cwd.path(), "coverage.json"),
+        output_file=@path.join(mock.cwd.path(), "coverage.json"),
       ),
     )
     @json.inspect(
-      @json.parse(@fsx.read_file(@path.join(taco.cwd.path(), "coverage.json"))),
+      @json.parse(@fsx.read_file(@path.join(mock.cwd.path(), "coverage.json"))),
       content={
         "source_files": [
           {
@@ -74,8 +74,8 @@ async test "Coverage::report" (t : @test.Test) {
 
 ///|
 async test "Coverage::analyze" (t : @test.Test) {
-  @mock.run(t, timeout=300_000, taco => {
-    taco.add_files([
+  @mock.run(t, timeout=300_000, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -113,7 +113,7 @@ async test "Coverage::analyze" (t : @test.Test) {
         ),
       ),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])
@@ -146,8 +146,8 @@ async test "Coverage::analyze" (t : @test.Test) {
 
 ///|
 async test "Coverage::clean" (t : @test.Test) {
-  @mock.run(t, timeout=300_000, taco => {
-    taco.add_files([
+  @mock.run(t, timeout=300_000, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -185,7 +185,7 @@ async test "Coverage::clean" (t : @test.Test) {
         ),
       ),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
     @json.inspect(moon.test_(enable_coverage=true), content=[])

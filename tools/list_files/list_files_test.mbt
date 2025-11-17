@@ -1,8 +1,8 @@
 ///|
 async test "list_files" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    taco.add_files([
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    mock.add_files([
       ("moon.pkg.json", "{}"),
       ("tool.mbt", "// tool"),
       ("tool_test.mbt", "// test"),
@@ -28,10 +28,10 @@ async test "list_files" (t : @test.Test) {
 
 ///|
 async test "list_files_invalid_symlink" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @file.manager(cwd=taco.cwd.path())
-    taco.add_files([("file1.txt", "content1")])
-    taco.add_symlink("invalid_link.txt", to="non_existent_file.txt")
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    mock.add_files([("file1.txt", "content1")])
+    mock.add_symlink("invalid_link.txt", to="non_existent_file.txt")
     let tool = @list_files.new(manager)
     let result = tool.call({ "path": "." })
     guard result is Ok(output) else {

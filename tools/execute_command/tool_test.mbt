@@ -20,9 +20,9 @@ async test "timeout" (t : @test.Test) {
 
 ///|
 async test "cat" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let _ = taco.add_file("file.txt", content="hello world")
-    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+  @mock.run(t, mock => {
+    let _ = mock.add_file("file.txt", content="hello world")
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
@@ -42,13 +42,13 @@ async test "cat" (t : @test.Test) {
 
 ///|
 async test "output-overflow" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let lines = []
     for i = 0; i < 100; i = i + 1 {
       lines.push("hello")
     }
-    let _ = taco.add_file("file.txt", content=lines.join("\n"))
-    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let _ = mock.add_file("file.txt", content=lines.join("\n"))
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({
       "command": "cat file.txt",
       "timeout": 5000,
@@ -79,9 +79,9 @@ async test "output-overflow" (t : @test.Test) {
 
 ///|
 async test "cd" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let _ = taco.add_file("file.txt", content="hello world")
-    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+  @mock.run(t, mock => {
+    let _ = mock.add_file("file.txt", content="hello world")
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
@@ -96,10 +96,10 @@ async test "cd" (t : @test.Test) {
         "max_output_lines": 100,
       },
     ])
-    let _ = taco
+    let _ = mock
       .add_directory("subdir")
       .add_file("file.txt", content="hello from subdir")
-    let tool = @execute_command.new(@job.Manager::new(cwd=taco.cwd.path()))
+    let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({
       "command": "cd subdir && cat file.txt",
       "timeout": 5000,
@@ -122,9 +122,9 @@ async test "cd" (t : @test.Test) {
 
 ///|
 async test "background" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let manager = @job.Manager::new(cwd=taco.cwd.path())
-    taco.group.spawn_bg(() => manager.start(), no_wait=true)
+  @mock.run(t, mock => {
+    let manager = @job.Manager::new(cwd=mock.cwd.path())
+    mock.group.spawn_bg(() => manager.start(), no_wait=true)
     let tool = @execute_command.new(manager)
     let result = tool.call({ "command": "sleep 2", "background": true })
     guard result is Ok(output) else {

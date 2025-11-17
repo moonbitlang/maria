@@ -1,7 +1,7 @@
 ///|
 async test "test" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -30,9 +30,9 @@ async test "test" (t : @test.Test) {
         ),
       ),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(taco.json(moon.test_()), content=[
+    @json.inspect(mock.json(moon.test_()), content=[
       {
         "package_": "example",
         "filename": "test.mbt",

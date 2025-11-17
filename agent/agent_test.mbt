@@ -2,12 +2,12 @@
 /// Test basic agent initialization and configuration
 #skip
 async test "agent/initialization" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Verify agent was created successfully
-    inspect(agent.cwd, content=taco.cwd.path())
+    inspect(agent.cwd, content=mock.cwd.path())
     inspect(agent.model.name, content="anthropic/claude-haiku-4.5")
     inspect(agent.model.model_name, content="anthropic/claude-haiku-4.5")
   })
@@ -17,9 +17,9 @@ async test "agent/initialization" (t : @test.Test) {
 /// Test agent with a simple message-only interaction (no tools)
 #skip
 async test "agent/simple_conversation" (t : @test.Test) {
-  @mock.run(t, timeout=120_000, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, timeout=120_000, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Track events
     let mut conversation_started = false
@@ -52,9 +52,9 @@ async test "agent/simple_conversation" (t : @test.Test) {
 /// Test agent with a simple tool call
 #skip
 async test "agent/single_tool_call" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Track tool calls
     let mut tool_called = false
@@ -108,9 +108,9 @@ async test "agent/single_tool_call" (t : @test.Test) {
 /// Test agent with multiple tool calls in sequence
 #skip
 async test "agent/multiple_tool_calls" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Track tool calls
     let tool_calls : Array[String] = []
@@ -168,9 +168,9 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
 /// Test agent event system
 #skip
 async test "agent/event_system" (t : @test.Test) {
-  @mock.run(t, timeout=120_000, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, timeout=120_000, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Track all event types with Ref for async updates
     let mut pre_conversation = false
@@ -213,12 +213,12 @@ async test "agent/event_system" (t : @test.Test) {
 /// Test agent with file operations
 #skip
 async test "agent/file_operations" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
 
     // Add file management tools
-    let file_manager = @file.manager(cwd=taco.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
       @read_file.new(file_manager).to_agent_tool(),
@@ -249,7 +249,7 @@ async test "agent/file_operations" (t : @test.Test) {
     inspect(file_written, content="true")
 
     // Verify file was actually created
-    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "test.txt"))
+    let file_content = @fsx.read_file(@path.join(mock.cwd.path(), "test.txt"))
     inspect(file_content.contains("Hello"), content="true")
   })
 }
@@ -258,9 +258,9 @@ async test "agent/file_operations" (t : @test.Test) {
 /// Test agent token counting and context pruning
 #skip
 async test "agent/token_management" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
     let mut token_count = 0
     let mut _context_pruned = false
     agent.add_listener(event => match event {
@@ -285,9 +285,9 @@ async test "agent/token_management" (t : @test.Test) {
 /// Test agent with error handling in tools
 #skip
 async test "agent/tool_error_handling" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
     let mut error_encountered = false
     let binary_op_schema = @tool.JsonSchema::from_json({
       "type": "object",
@@ -338,9 +338,9 @@ async test "agent/tool_error_handling" (t : @test.Test) {
 /// Test agent with batch tool registration
 #skip
 async test "agent/batch_tool_registration" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
     let empty_schema = @tool.JsonSchema::from_json({
       "type": "object",
       "properties": {},
@@ -394,9 +394,9 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
 /// Test agent conversation history persistence
 #skip
 async test "agent/conversation_history" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path())
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
     let mut message_count = 0
     agent.add_listener(event => match event {
       MessageAdded(_) => message_count = message_count + 1
@@ -423,12 +423,12 @@ async test "agent/conversation_history" (t : @test.Test) {
 /// Test agent with read multiple files
 #skip
 async test "agent/read_multiple_files" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path(), logger=taco.logger)
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
 
     // Add file management tools
-    let file_manager = @file.manager(cwd=taco.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @read_multiple_files.new(file_manager).to_agent_tool(),
       @replace_in_file.new(file_manager).to_agent_tool(),
@@ -483,12 +483,12 @@ async test "agent/read_multiple_files" (t : @test.Test) {
     inspect(file_written, content="true")
     inspect(multiple_files_read, content="true")
     // Verify file was actually created
-    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "foo.txt"))
+    let file_content = @fsx.read_file(@path.join(mock.cwd.path(), "foo.txt"))
     inspect(file_content.contains("Foo"), content="true")
-    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "bar.txt"))
+    let file_content = @fsx.read_file(@path.join(mock.cwd.path(), "bar.txt"))
     inspect(file_content.contains("Bar"), content="true")
     let file_content = @fsx.read_file(
-      @path.join(taco.cwd.path(), "foo_bar.txt"),
+      @path.join(mock.cwd.path(), "foo_bar.txt"),
     )
     inspect(file_content.contains("Foo"), content="true")
     inspect(file_content.contains("Bar"), content="true")

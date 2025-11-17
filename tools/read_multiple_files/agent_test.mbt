@@ -29,12 +29,12 @@ let system_prompt : String =
 /// Test agent with read multiple files
 #skip
 async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
-  @mock.run(t, retry=3, taco => {
-    let model = taco.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=taco.cwd.path(), logger=taco.logger)
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
 
     // Add file management tools
-    let file_manager = @file.manager(cwd=taco.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
     // Track if files were created/read
     let mut multiple_files_read = false
     agent
@@ -51,7 +51,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
       _ => ()
     })
     ..add_message(@openai.system_message(content=system_prompt))
-    taco.add_files([
+    mock.add_files([
       (
         "foo.txt",
         (
@@ -84,7 +84,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     inspect(multiple_files_read, content="true")
     // Verify file was actually created
 
-    let file_content = @fsx.read_file(@path.join(taco.cwd.path(), "output.txt"))
+    let file_content = @fsx.read_file(@path.join(mock.cwd.path(), "output.txt"))
     inspect(
       file_content.trim_space(),
       content=(
