@@ -479,16 +479,10 @@ async test "render_empty_line" (t : @test.Test) {
         #|   │         ^
         #|   │ }
         #|
-        #|error[3002]: (mock:cwd)/example.mbt:11:2: Parse error, expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`. Did you forget to indent the local `fn`?
-        #|    │ #load
-        #| 11 │
-        #|    │  ^
-        #|    │ /// Well
-        #|
-        #|error[4069]: (mock:cwd)/example.mbt:13:1-15:2: Unexpected main function in the non-main package.
-        #|    │ /// Well
-        #| 13 │ fn main {
-        #|    │ ^^^^^^^^^
+        #|error[4069]: (mock:cwd)/example.mbt:10:1-15:2: Unexpected main function in the non-main package.
+        #|    │
+        #| 10 │ #load
+        #|    │ ^^^^^
         #|    ┆
         #| 15 │ }
         #|    │ ^
@@ -516,13 +510,11 @@ async test "render_empty_line" (t : @test.Test) {
         #|   │           ^^^
         #|   │   Point { x, y }
         #|
-        #|warning[0019]: (mock:cwd)/example.mbt:10:6-11:2: Warning: Toplevel declaration is not left aligned.
+        #|warning[0042]: (mock:cwd)/example.mbt:10:1-6: Warning: unknown attribute load
         #|    │
         #| 10 │ #load
-        #|    │      
-        #| 11 │
-        #|    │ ^
-        #|    │ /// Well
+        #|    │ ^^^^^
+        #|    │
       ),
     )
     inspect(
@@ -533,7 +525,7 @@ async test "render_empty_line" (t : @test.Test) {
         #| 7 │   Point { x, y }
         #|   │         ^
         #|
-        #|There are 2 more error(s) and 5 more warning(s) not shown due to diagnostic limit.
+        #|There are 1 more error(s) and 5 more warning(s) not shown due to diagnostic limit.
       ),
     )
   })

@@ -202,7 +202,7 @@ async test "interface/core" (t : @test.Test) {
     let moon = Module::load(mock.cwd.path())
     let pkg = moon
       .find_package("moonbitlang/core/set")
-      .or_error(Failure("Package not found"))
+      .unwrap_or_error(Failure("Package not found"))
     inspect(
       pkg.interface().split("\n")[0:12].to_array().join("\n"),
       content=(
