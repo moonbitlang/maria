@@ -16,11 +16,12 @@ let schema : @tool.JsonSchema = {
       "description": "The maximum number of output lines to return directly. If the output exceeds this number, it will be truncated and saved to a file.",
       "default": 100,
     },
-    "background": {
-      "type": "boolean",
-      "description": "Whether to run the command in the background (non-blocking). If true, the tool will return immediately after starting the command.",
-      "default": false,
-    },
+    // FIXME: enable background execution when supported
+    // "background": {
+    //   "type": "boolean",
+    //   "description": "Whether to run the command in the background (non-blocking). If true, the tool will return immediately after starting the command.",
+    //   "default": false,
+    // },
   },
   "required": ["command"],
 }

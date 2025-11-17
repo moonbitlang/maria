@@ -117,6 +117,8 @@ async test "cd" (t : @test.Test) {
 }
 
 ///|
+/// FIXME: enable background execution when supported
+#cfg(false)
 async test "background" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @job.Manager::new(cwd=mock.cwd.path())

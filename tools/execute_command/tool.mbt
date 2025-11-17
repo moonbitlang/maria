@@ -130,6 +130,12 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       } else {
         false
       }
+      // FIXME: enable background execution when supported
+      guard background is false else {
+        @tool.error(
+          "Background execution is not supported in this environment.",
+        )
+      }
       if background {
         let job = ctx.spawn(name=command, command~) catch {
           error =>
