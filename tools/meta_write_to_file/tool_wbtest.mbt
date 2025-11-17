@@ -15,11 +15,11 @@ async test "render_diagnostics" {
       overlay=Map::from_array([(@path.basename(path).to_string(), content)]),
     ),
     content=(
-      #|error[3002]: json_parser.mbt:3:2: Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+      #|error[3002]: json_parser.mbt:2:24: Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
       #|   │ ///|
-      #|   │ let x : Int = "String",
-      #| 3 │
-      #|   │  ^
+      #| 2 │ let x : Int = "String",
+      #|   │                        ^
+      #|   │
       #|   │ ///|
     ),
   )
@@ -117,15 +117,15 @@ async test "render_diagnostics" {
       #|    │     Green => "green",
       #|    │     Blue => "blue",
       #|
-      #|error[3002]: main.mbt:14:2: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+      #|error[3002]: main.mbt:13:2: Parse error, unexpected token `}`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
+      #|    │     Green => "green",
       #|    │     Blue => "blue",
       #|    │   }
-      #|    │ }
-      #| 14 │
+      #| 13 │ }
       #|    │  ^
+      #|    │
       #|    │ fn main() {
       #|    │
-      #|    │   let color : Color = Blue
       #|
       #|error[3003]: main.mbt:15:8-10: Unused parameter list for the main function. The syntax is `fn main { ... }`
       #|    │   }

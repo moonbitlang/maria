@@ -69,7 +69,7 @@ pub fn args() -> Array[String] {
 
 ///|
 pub fn cwd() -> String raise {
-  @env.current_dir().or_error(
+  @env.current_dir().unwrap_or_error(
     Failure("failed to get current working directory"),
   )
 }

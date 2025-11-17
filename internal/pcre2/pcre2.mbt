@@ -124,24 +124,21 @@ extern "c" fn Pcre2Code::is_null(self : Pcre2Code) -> Bool = "moonbit_maria_c_is
 priv type Pcre2MatchData
 
 ///|
-typealias UInt64 as Pcre2Size
-
-///|
 #owned(buffer)
 extern "c" fn pcre2_get_error_message(
   error_code : Int,
   buffer : String,
-  buffer_length : Pcre2Size,
+  buffer_length : UInt64,
 ) -> Int = "moonbit_pcre2_get_error_message"
 
 ///|
 #owned(pattern, error_code, error_offset)
 extern "c" fn pcre2_compile(
   pattern : String,
-  length : Pcre2Size,
+  length : UInt64,
   options : UInt,
   error_code : FixedArray[Int],
-  error_offset : FixedArray[Pcre2Size],
+  error_offset : FixedArray[UInt64],
   context : @c.Null,
 ) -> Pcre2Code = "moonbit_pcre2_compile"
 
@@ -156,19 +153,19 @@ extern "c" fn pcre2_match_data_create_from_pattern(
 #owned(match_data)
 extern "c" fn pcre2_get_ovector_pointer(
   match_data : Pcre2MatchData,
-) -> @c.Pointer[Pcre2Size] = "moonbit_pcre2_get_ovector_pointer"
+) -> @c.Pointer[UInt64] = "moonbit_pcre2_get_ovector_pointer"
 
 ///|
 #owned(match_data)
-extern "c" fn pcre2_get_startchar(match_data : Pcre2MatchData) -> Pcre2Size = "moonbit_pcre2_get_startchar"
+extern "c" fn pcre2_get_startchar(match_data : Pcre2MatchData) -> UInt64 = "moonbit_pcre2_get_startchar"
 
 ///|
 #owned(code, subject, match_data, context)
 extern "c" fn pcre2_match(
   code : Pcre2Code,
   subject : String,
-  length : Pcre2Size,
-  start_offset : Pcre2Size,
+  length : UInt64,
+  start_offset : UInt64,
   options : UInt,
   match_data : Pcre2MatchData,
   context : @c.Null,
@@ -196,7 +193,7 @@ struct Code(Pcre2Code)
 ///|
 pub fn compile(pattern : String) -> Code raise Pcre2Error {
   let error_code = FixedArray::make(1, 0)
-  let error_offset = FixedArray::make(1, (0 : Pcre2Size))
+  let error_offset = FixedArray::make(1, (0 : UInt64))
   let code = pcre2_compile(
     pattern,
     pattern.length().to_uint64(),
@@ -284,7 +281,7 @@ pub fn Match::named_groups(self : Match) -> Iter2[String, StringView] {
 ///|
 pub suberror Pcre2Error {
   LookaroundBSK
-  Compile(String, Int, Pcre2Size)
+  Compile(String, Int, UInt64)
   Code(Int)
 }
 
@@ -329,11 +326,11 @@ fn array_to_string(array : FixedArray[UInt16]) -> String = "%identity"
 struct Matches {
   code : Code
   subject : String
-  subject_length : Pcre2Size
-  subject_start_offset : Pcre2Size
+  subject_length : UInt64
+  subject_start_offset : UInt64
   mut match_data : Pcre2MatchData?
   crlf_is_newline : Bool
-  mut ovector : @c.Pointer[Pcre2Size]
+  mut ovector : @c.Pointer[UInt64]
   name_count : Int
   name_table : @c.Pointer[UInt16]
   name_entry_size : Int
