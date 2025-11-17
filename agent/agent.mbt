@@ -262,7 +262,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
     // Signal the start of conversation
     agent.emit(PreConversation)
-    while true {
+    while agent.queue is [_, ..] {
       // Build the tools array for this API call
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
@@ -276,13 +276,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           ),
         )
       }
-      // Retrieve and clear the message queue
-      // staged contains messages that need to be sent in this call
-      let staged = agent.queue
-      agent.queue = []
-      // Build the complete message array for the API call
-      // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.to_param(), ..staged]
+      let messages = [..agent.history.to_param(), ..agent.queue]
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -304,18 +298,18 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 
       // Emit event with API usage statistics and the returned message
       agent.emit(RequestCompleted(usage~, message~))
-      // Add all staged messages to permanent conversation history
-      agent.history.add_messages(staged)
+      agent.history.add_messages(agent.queue)
+      agent.queue = []
+      // check here??
+      // UI can add new messages to the queue
+      // it can decide to add after the whole loop
+      // or add after each tool call execution
 
       // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
-      // Check if the model returned any tool calls
-      // If not, the conversation is complete
-      if message.tool_calls is [] {
-        break
-      }
+
       // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
         agent.add_message(agent.execute_tool(call))
