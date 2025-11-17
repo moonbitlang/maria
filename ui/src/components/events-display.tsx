@@ -62,7 +62,7 @@ function ShowMessageAdded({ event }: { event: MessageAddedEvent }) {
       return (
         <Message from="user">
           <MessageContent>
-            <Response parseIncompleteMarkdown={false}>
+            <Response className="dark" parseIncompleteMarkdown={false}>
               {contents.join("").trim()}
             </Response>
           </MessageContent>
