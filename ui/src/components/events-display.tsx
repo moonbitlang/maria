@@ -283,7 +283,7 @@ function TodoWrite({
   const dispatch = useAppDispatch();
   useEffect(() => {
     // when we get a todo write event, we should update the todos in the session slice
-    dispatch(updateTodosForTask({ taskId: taskId, todos: result.todos }));
+    dispatch(updateTodosForTask({ taskId, todos: result.todos }));
   }, [dispatch, result.todos, taskId]);
   return (
     <Tool>
@@ -384,8 +384,8 @@ export function EventsDisplay(props: EventsDisplayProps) {
   const { events, taskId } = props;
 
   return (
-    <Conversation className="min-h-0">
-      <ConversationContent>
+    <Conversation key={taskId} initial="instant" className="min-h-0">
+      <ConversationContent className="max-w-4xl mx-auto">
         {events.map((event, i) => {
           switch (event.msg) {
             case "MessageAdded":

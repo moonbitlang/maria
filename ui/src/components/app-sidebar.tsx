@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { NavTasks } from "./nav-tasks";
 import { useNavigate } from "react-router";
@@ -23,6 +24,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const { data, isSuccess } = useTasksQuery();
   const tasks = isSuccess ? data.tasks : [];
+  const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -37,6 +39,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 onClick={(e) => {
                   e.preventDefault();
                   navigate("/");
+                  if (isMobile) {
+                    setOpenMobile(false);
+                  }
                 }}
                 asChild
               >

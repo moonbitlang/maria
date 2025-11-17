@@ -34,19 +34,11 @@ export default function Task() {
     dispatch(setActiveTaskId(taskId));
   }, [taskId, dispatch]);
 
-  const currentTask =
-    task ||
-    (apiTask
-      ? { ...apiTask, todos: [], chatStatus: "ready" as const }
-      : undefined);
-
-  if (!currentTask) {
-    return (
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
+  const currentTask = task ?? {
+    ...apiTask!,
+    todos: [],
+    chatStatus: "ready" as const,
+  };
 
   const { chatStatus, todos } = currentTask;
 
@@ -57,11 +49,11 @@ export default function Task() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col justify-end m-auto w-full max-w-4xl relative">
+    <div className="flex-1 min-h-0 flex flex-col justify-end relative">
       <AgentTodos todos={todos} />
       <EventsDisplay events={data ?? []} taskId={taskId} />
       <div className="p-4">
-        <PromptInput onSubmit={handleSubmit}>
+        <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
           <PromptInputTextarea
             className="text-lg md:text-lg"
             value={input}

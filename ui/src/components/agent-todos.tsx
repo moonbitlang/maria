@@ -134,8 +134,9 @@ export function AgentTodos({ todos }: AgentTodosProps) {
   };
 
   return (
-    <div className="px-3 py-2">
+    <div className="px-4 py-2">
       <Collapsible
+        className="max-w-4xl mx-auto"
         open={expandTodos}
         onOpenChange={() => setExpandTodos(!expandTodos)}
       >
