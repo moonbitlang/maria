@@ -17,6 +17,48 @@ import { selectTask, setActiveTaskId } from "@/features/session/tasksSlice";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
+import type { ChatStatus } from "ai";
+
+interface TaskInputProps {
+  chatStatus: ChatStatus;
+  onSubmit: (input: string) => void;
+}
+
+function TaskInput({ chatStatus, onSubmit }: TaskInputProps) {
+  const [input, setInput] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      onSubmit(input);
+      setInput("");
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
+        <PromptInputTextarea
+          className="text-lg md:text-lg"
+          value={input}
+          onFocus={(e) =>
+            e.target.scrollIntoView({ behavior: "smooth", block: "center" })
+          }
+          onChange={(e) => setInput(e.currentTarget.value)}
+          placeholder={"Input your task..."}
+        />
+        <PromptInputToolbar>
+          <PromptInputTools></PromptInputTools>
+          <PromptInputSubmit
+            disabled={chatStatus !== "ready" && !input.trim()}
+            status={chatStatus}
+            className="cursor-pointer"
+          ></PromptInputSubmit>
+        </PromptInputToolbar>
+      </PromptInput>
+    </div>
+  );
+}
 
 export default function Task() {
   const params = useParams();
@@ -26,7 +68,6 @@ export default function Task() {
   const taskId = params.taskId!;
   const task = useAppSelector((state) => selectTask(state, taskId));
   const { data: apiTask } = useTaskQuery(taskId, { skip: task !== undefined });
-  const [input, setInput] = useState("");
   const [postMessage] = usePostMessageMutation();
   const { data } = useEventsQuery(taskId);
 
@@ -42,40 +83,15 @@ export default function Task() {
 
   const { chatStatus, todos } = currentTask;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setInput("");
+  const handleMessageSubmit = async (input: string) => {
     await postMessage({ taskId, content: input });
   };
 
   return (
-    <div
-      key={taskId}
-      className="flex-1 min-h-0 flex flex-col justify-end relative"
-    >
+    <div className="flex-1 min-h-0 flex flex-col justify-end relative">
       <AgentTodos todos={todos} />
       <EventsDisplay events={data ?? []} />
-      <div className="p-4">
-        <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
-          <PromptInputTextarea
-            className="text-lg md:text-lg"
-            value={input}
-            onFocus={(e) =>
-              e.target.scrollIntoView({ behavior: "smooth", block: "center" })
-            }
-            onChange={(e) => setInput(e.currentTarget.value)}
-            placeholder={"Input your task..."}
-          />
-          <PromptInputToolbar>
-            <PromptInputTools></PromptInputTools>
-            <PromptInputSubmit
-              disabled={chatStatus !== "ready" && !input.trim()}
-              status={chatStatus}
-              className="cursor-pointer"
-            ></PromptInputSubmit>
-          </PromptInputToolbar>
-        </PromptInput>
-      </div>
+      <TaskInput chatStatus={chatStatus} onSubmit={handleMessageSubmit} />
     </div>
   );
 }
