@@ -737,10 +737,7 @@ pub impl ToJson for ChatCompletionContentPartParam with to_json(
 ) -> Json {
   match self {
     Text(param) => {
-      let json : Map[String, Json] = {
-        "type": "text",
-        "text": param.text,
-      }
+      let json : Map[String, Json] = { "type": "text", "text": param.text }
       if param.cache_control is Some(cache_control) {
         json["cache_control"] = cache_control.to_json()
       }

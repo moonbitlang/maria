@@ -60,8 +60,7 @@ pub fn Schema::to_json(self : Schema) -> Map[String, Json] {
     Schema::Integer => { "type": "integer" }
     Schema::String => { "type": "string" }
     Schema::Enum(values) => { "enum": Json::array(values) }
-    Schema::Array(schema) =>
-      { "type": "array", "items": schema }
+    Schema::Array(schema) => { "type": "array", "items": schema }
     Schema::Object(map, required~, additional_properties~) => {
       let json_object = Map::new()
       for key, value in map {
