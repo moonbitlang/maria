@@ -110,32 +110,26 @@ async fn Agent::execute_tool(
   }
   agent.emit(PreToolCall(tool_call))
   match tool_call.function.arguments {
-    None =>
+    None | Some([]) =>
       return @openai.tool_message(
         content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
         tool_call_id=tool_call.id,
       )
-    Some(arguments) =>
-      if arguments.is_empty() {
-        return @openai.tool_message(
-          content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
-          tool_call_id=tool_call.id,
-        )
-      } else {
-        let arguments = @json.parse(arguments) catch {
-          error =>
-            return @openai.tool_message(
-              content="Error parsing tool arguments: \{error}",
-              tool_call_id=tool_call.id,
-            )
-        }
-        let (result, rendered) = match tool.call(arguments) {
-          Ok((json, text)) => (Ok(json), text)
-          Error(error, text) => (Err(error), text)
-        }
-        agent.emit(PostToolCall(tool_call, result~, rendered~))
-        @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+    Some(arguments) => {
+      let arguments = @json.parse(arguments) catch {
+        error =>
+          return @openai.tool_message(
+            content="Error parsing tool arguments: \{error}",
+            tool_call_id=tool_call.id,
+          )
       }
+      let (result, rendered) = match tool.call(arguments) {
+        Ok((json, text)) => (Ok(json), text)
+        Error(error, text) => (Err(error), text)
+      }
+      agent.emit(PostToolCall(tool_call, result~, rendered~))
+      @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+    }
   }
 }
 
