@@ -152,3 +152,4 @@ export type NamedId = {
   id: string;
   name: string;
 };
+export type ConversationStatus = "idle" | "generating";

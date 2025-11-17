@@ -17,13 +17,13 @@ import { NavTasks } from "./nav-tasks";
 import { useNavigate } from "react-router";
 import { useTasksQuery } from "@/features/api/apiSlice";
 import { useAppSelector } from "@/app/hooks";
-import { selectActiveTaskId } from "@/features/session/tasksSlice";
+import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const activeTaskId = useAppSelector(selectActiveTaskId);
-  const { data, isSuccess } = useTasksQuery();
-  const tasks = isSuccess ? data.tasks : [];
+  useTasksQuery();
+  const tasks = useAppSelector(selectTasks);
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
