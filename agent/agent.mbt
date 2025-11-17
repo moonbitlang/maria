@@ -360,6 +360,7 @@ pub async fn new(
     try! @pino.transport("file:.moonagent/log.jsonl"),
   ),
   cwd~ : StringView,
+  user_message? : StringView,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let rand = match rand {
@@ -387,6 +388,9 @@ pub async fn new(
       logger~,
     ),
     session_manager,
+  }
+  if user_message is Some(message) {
+    agent.add_message(@openai.user_message(content=message))
   }
   agent
 }
