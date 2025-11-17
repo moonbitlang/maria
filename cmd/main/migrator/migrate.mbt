@@ -68,7 +68,7 @@ async fn Migrator::migrate(
     |> @path.join(src_name)
   for loop_index in 1..=self.max_while_loop {
     if !@fsx.exists(dst_path) {
-      @moon.new(name=dst_name, dst_name)
+      @moon.new(name=dst_name, dst_name) |> ignore()
     }
     if !@fsx.exists(src_path) {
       println("cloning repository \{self.repo} into \{src_path}...")

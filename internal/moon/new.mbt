@@ -4,7 +4,7 @@ pub async fn new(
   name? : String,
   path : StringView,
   cwd? : StringView,
-) -> Unit {
+) -> Module {
   let arguments : Array[StringView] = ["new"]
   if user is Some(user) {
     arguments.push("--user")
@@ -15,10 +15,14 @@ pub async fn new(
     arguments.push(name)
   }
   arguments.push(path)
-  let result = @spawn.spawn("moon", arguments, cwd?)
-  if result.status != 0 {
-    fail(
-      "moon new failed with status \{result.status}:\n\{result.stdout}\{result.stderr}",
-    )
+  let process = @spawn.spawn("moon", arguments, cwd?)
+  process.check()
+  let path : StringView = if cwd is Some(cwd) {
+    @path.join(cwd, path)
+  } else if @path.is_absolute(path) {
+    path
+  } else {
+    @path.join(@os.cwd(), path)
   }
+  Module::load(path.to_string())
 }

@@ -15,7 +15,7 @@ pub async fn format_string(String) -> String
 
 pub fn home() -> String raise
 
-pub async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
+pub async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Module
 
 // Errors
 

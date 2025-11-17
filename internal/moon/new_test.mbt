@@ -1,7 +1,12 @@
 ///|
 async test "new" (t : @test.Test) {
   @mock.run(t, mock => {
-    @moon.new(user="moonbitlang", name="maria_test", ".", cwd=mock.cwd.path())
+    let _ = @moon.new(
+      user="moonbitlang",
+      name="maria_test",
+      ".",
+      cwd=mock.cwd.path(),
+    )
     let entries = @fsx.list_directory(mock.cwd.path())
     @json.inspect(mock.json(entries), content=[
       { "path": "(mock:cwd)/cmd", "name": "cmd", "kind": "Directory" },
