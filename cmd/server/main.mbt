@@ -112,6 +112,7 @@ async fn Server::listen_events(
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
+    "X-Accel-Buffering": "no",
   })
   self.broadcast.listen(channel => for {
     let event = channel.get()
