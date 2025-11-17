@@ -1,12 +1,14 @@
 import { createAppSlice } from "@/app/createAppSlice";
 import type { NamedId, Todo } from "@/lib/types";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { ChatStatus } from "ai";
+
+type ConversationStatus = "idle" | "generating";
 
 type Task = NamedId & {
   todos: Todo[];
-  chatStatus: ChatStatus;
   chatInput: string;
+  conversationStatus: ConversationStatus;
+  inputQueue: string[];
 };
 
 export function defaultTask(name: string, id: string): Task {
@@ -14,8 +16,9 @@ export function defaultTask(name: string, id: string): Task {
     name,
     id,
     todos: [],
-    chatStatus: "ready",
     chatInput: "",
+    conversationStatus: "idle",
+    inputQueue: [],
   };
 }
 
@@ -32,31 +35,6 @@ const initialState: TasksSliceState = {
 export const tasksSlice = createAppSlice({
   name: "tasks",
   initialState,
-  selectors: {
-    selectTask(state: TasksSliceState, taskId: string): Task | undefined {
-      return state.tasks[taskId];
-    },
-
-    selectActiveTaskId(state: TasksSliceState): string | undefined {
-      return state.activeTask;
-    },
-
-    selectTaskInput(
-      state: TasksSliceState,
-      taskId: string,
-    ): string | undefined {
-      const task = state.tasks[taskId];
-      return task?.chatInput;
-    },
-
-    selectTaskChatStatus(
-      state: TasksSliceState,
-      taskId: string,
-    ): ChatStatus | undefined {
-      const task = state.tasks[taskId];
-      return task?.chatStatus;
-    },
-  },
   reducers: {
     setActiveTaskId(state, action: PayloadAction<string | undefined>) {
       state.activeTask = action.payload;
@@ -88,14 +66,17 @@ export const tasksSlice = createAppSlice({
       }
     },
 
-    setChatStatusForTask(
+    setConverstationStatusForTask(
       state,
-      action: PayloadAction<{ taskId: string; status: ChatStatus }>,
+      action: PayloadAction<{
+        taskId: string;
+        status: ConversationStatus;
+      }>,
     ) {
       const { taskId, status } = action.payload;
       const task = state.tasks[taskId];
       if (task) {
-        task.chatStatus = status;
+        task.conversationStatus = status;
       }
     },
 
@@ -109,21 +90,80 @@ export const tasksSlice = createAppSlice({
         task.chatInput = input;
       }
     },
+
+    addToInputQueueForTask(
+      state,
+      action: PayloadAction<{ taskId: string; input: string }>,
+    ) {
+      const { taskId, input } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.inputQueue.push(input);
+      }
+    },
+
+    removeNthFromInputQueueForTask(
+      state,
+      action: PayloadAction<{ taskId: string; n: number }>,
+    ) {
+      const { taskId, n } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.inputQueue.splice(n, 1);
+      }
+    },
+  },
+
+  selectors: {
+    selectTask(state: TasksSliceState, taskId: string): Task | undefined {
+      return state.tasks[taskId];
+    },
+
+    selectActiveTaskId(state: TasksSliceState): string | undefined {
+      return state.activeTask;
+    },
+
+    selectTaskInput(
+      state: TasksSliceState,
+      taskId: string,
+    ): string | undefined {
+      const task = state.tasks[taskId];
+      return task?.chatInput;
+    },
+
+    selectConversationStatus(
+      state: TasksSliceState,
+      taskId: string,
+    ): ConversationStatus | undefined {
+      const task = state.tasks[taskId];
+      return task?.conversationStatus;
+    },
+
+    selectInputQueue(
+      state: TasksSliceState,
+      taskId: string,
+    ): string[] | undefined {
+      const task = state.tasks[taskId];
+      return task?.inputQueue;
+    },
   },
 });
 
 export const {
   newTask,
   setTasks,
-  setChatStatusForTask,
   updateTodosForTask,
   setActiveTaskId,
   setInputForTask,
+  setConverstationStatusForTask,
+  addToInputQueueForTask,
+  removeNthFromInputQueueForTask,
 } = tasksSlice.actions;
 
 export const {
   selectTask,
   selectActiveTaskId,
   selectTaskInput,
-  selectTaskChatStatus,
+  selectConversationStatus,
+  selectInputQueue,
 } = tasksSlice.selectors;

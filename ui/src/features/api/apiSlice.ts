@@ -1,8 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { type NamedId, type TaskEvent, type TodoWriteTool } from "@/lib/types";
-import { setTasks, updateTodosForTask } from "@/features/session/tasksSlice";
+import {
+  setConverstationStatusForTask,
+  setTasks,
+  updateTodosForTask,
+} from "@/features/session/tasksSlice";
 
-const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -87,10 +92,26 @@ export const apiSlice = createApi({
                     );
                   }
 
+                  dispatch(
+                    setConverstationStatusForTask({
+                      taskId: id,
+                      status: "generating",
+                    }),
+                  );
+
                   updateCachedData((draft) => {
                     draft.push(data);
                   });
 
+                  return;
+                }
+                case "PostConversation": {
+                  dispatch(
+                    setConverstationStatusForTask({
+                      taskId: id,
+                      status: "idle",
+                    }),
+                  );
                   return;
                 }
                 default:

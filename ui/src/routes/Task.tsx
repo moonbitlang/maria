@@ -8,16 +8,26 @@ import {
   PromptInputTools,
 } from "@/components/ai/prompt-input";
 import { EventsDisplay } from "@/components/events-display";
-import { useEventsQuery, useTaskQuery } from "@/features/api/apiSlice";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  useEventsQuery,
+  usePostMessageMutation,
+  useTaskQuery,
+} from "@/features/api/apiSlice";
 import {
   selectTask,
   selectTaskInput,
-  selectTaskChatStatus,
   setActiveTaskId,
   setInputForTask,
   defaultTask,
+  selectConversationStatus,
+  addToInputQueueForTask,
+  selectInputQueue,
+  removeNthFromInputQueueForTask,
 } from "@/features/session/tasksSlice";
-import { useEffect } from "react";
+import { Trash2 } from "lucide-react";
+import { Fragment, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 
@@ -32,9 +42,13 @@ function useSetActiveTaskId(taskId: string) {
 function TaskInput({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
-  const chatStatus = useAppSelector((state) =>
-    selectTaskChatStatus(state, taskId),
+  const inputQueue = useAppSelector((state) =>
+    selectInputQueue(state, taskId),
   )!;
+  const conversationStatus = useAppSelector((state) =>
+    selectConversationStatus(state, taskId),
+  )!;
+  const [postMessage] = usePostMessageMutation();
 
   function setInput(value: string) {
     dispatch(setInputForTask({ taskId, input: value }));
@@ -42,11 +56,56 @@ function TaskInput({ taskId }: { taskId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    switch (conversationStatus) {
+      case "generating": {
+        // queue the input
+        dispatch(addToInputQueueForTask({ taskId, input: input.trim() }));
+        break;
+      }
+      case "idle": {
+        await postMessage({ taskId, content: input.trim() });
+        break;
+      }
+    }
     setInput("");
   };
 
+  const handleRemoveFromQueue = (index: number) => {
+    dispatch(removeNthFromInputQueueForTask({ taskId, n: index }));
+  };
+
   return (
-    <div className="p-4">
+    <div className="p-4 flex flex-col">
+      {inputQueue.length > 0 && (
+        <div className="max-w-4xl w-full mx-auto mb-3 min-h-0">
+          <div className="text-xs text-muted-foreground/70 mb-1.5 px-1">
+            {inputQueue.length} queued{" "}
+            {inputQueue.length === 1 ? "message" : "messages"}
+          </div>
+          <ScrollArea className="max-h-24 bg-secondary/40 overflow-y-scroll rounded border border-border/40">
+            {inputQueue.map((item, index) => (
+              <Fragment key={index}>
+                <div className="group flex items-center gap-2 px-3 py-1 hover:bg-secondary/60 text-sm">
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-foreground/90">{item}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveFromQueue(index)}
+                    className="shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-foreground cursor-pointer"
+                    aria-label="Remove from queue"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {index < inputQueue.length - 1 && (
+                  <Separator className="bg-border/50" />
+                )}
+              </Fragment>
+            ))}
+          </ScrollArea>
+        </div>
+      )}
+
       <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
         <PromptInputTextarea
           className="text-lg md:text-lg"
@@ -60,8 +119,8 @@ function TaskInput({ taskId }: { taskId: string }) {
         <PromptInputToolbar>
           <PromptInputTools></PromptInputTools>
           <PromptInputSubmit
-            disabled={chatStatus !== "ready" && !input.trim()}
-            status={chatStatus}
+            disabled={!input.trim()}
+            status="ready"
             className="cursor-pointer"
           ></PromptInputSubmit>
         </PromptInputToolbar>

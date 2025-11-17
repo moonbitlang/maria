@@ -3,7 +3,16 @@ type TaskEventBase = {
 };
 
 export type TaskEvent = TaskEventBase &
-  (RequestCompletedEvent | PostToolCallEvent | MessageAddedEvent);
+  (
+    | RequestCompletedEvent
+    | PostToolCallEvent
+    | MessageAddedEvent
+    | PostConversationEvent
+  );
+
+type PostConversationEvent = {
+  msg: "PostConversation";
+};
 
 type ToolCallFunction = {
   name: string;
