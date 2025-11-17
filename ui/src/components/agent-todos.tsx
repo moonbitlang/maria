@@ -113,7 +113,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
 }
 
 export function AgentTodos({ todos }: AgentTodosProps) {
-  const [expandTodos, setExpandTodos] = useState<boolean>(false);
+  const [expandTodos, setExpandTodos] = useState<boolean>(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { completed, inProgress, pending } = computeTodoMetrics(todos);
 
@@ -134,8 +134,9 @@ export function AgentTodos({ todos }: AgentTodosProps) {
   };
 
   return (
-    <div className="px-3 py-2">
+    <div className="px-4 py-2">
       <Collapsible
+        className="max-w-4xl mx-auto"
         open={expandTodos}
         onOpenChange={() => setExpandTodos(!expandTodos)}
       >

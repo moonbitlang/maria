@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
@@ -22,6 +23,7 @@ import { selectActiveTaskId } from "@/features/session/tasksSlice";
 export function NavTasks({ tasks }: { tasks: NamedId[] }) {
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const navigate = useNavigate();
+  const { isMobile, setOpenMobile } = useSidebar();
   return (
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -45,6 +47,9 @@ export function NavTasks({ tasks }: { tasks: NamedId[] }) {
                     onClick={(e) => {
                       e.preventDefault();
                       navigate(url);
+                      if (isMobile) {
+                        setOpenMobile(false);
+                      }
                     }}
                   >
                     <a href={url}>
