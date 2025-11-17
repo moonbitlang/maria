@@ -12,7 +12,7 @@ import(
 )
 
 // Values
-async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, logger? : @pino.Logger, cwd~ : StringView) -> Agent
+async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView) -> Agent
 
 // Errors
 

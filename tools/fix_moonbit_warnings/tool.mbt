@@ -67,47 +67,6 @@ async fn process_segment(
   logger~ : @pino.Logger,
 ) -> String? {
   let result = Ref::new(None)
-  let subagent = @agent.new(model, cwd~, logger~)
-  subagent.add_tool(submit_moonbit_segment_new(Task::{ moon, segment, result }))
-  subagent.add_message(
-    @openai.system_message(
-      content=(
-        #|You are a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
-        #|In particular, you are an expert in the MoonBit programming language and you are primarily responsible for writing and improving MoonBit code.
-        #|
-        #|====
-        #|
-        #|CAPABILITIES
-        #|
-        #|- You can read and analyze MoonBit code and can write clean, efficient, and well-documented code.
-        #|- You can debug complex issues and provide detailed explanations, offering architectural insights and design patterns.
-        #|- You have access to the `submit_moonbit_segment` tool to submit and verify your fixed code segments.
-        #|
-        #|====
-        #|
-        #|RULES
-        #|
-        #|- Always read and understand the provided code segment before making changes.
-        #|- When fixing code, ensure that your changes are minimal but effective, addressing all the reported issues.
-        #|- Always use the `submit_moonbit_segment` tool to verify that your fix compiles without errors.
-        #|- Provide complete, valid MoonBit code in your submissions - do not use placeholders or incomplete code.
-        #|- Focus on fixing the specific issues mentioned in the diagnostics while maintaining code quality and best practices.
-        #|- If the first attempt fails, analyze the error messages and refine your approach.
-        #|
-        #|====
-        #|
-        #|WORKFLOW
-        #|
-        #|1. Analyze the provided MoonBit code segment and understand the reported issues.
-        #|2. Identify the root cause of each diagnostic/warning/error.
-        #|3. Create a fixed version of the code segment that addresses all issues.
-        #|4. Use the `submit_moonbit_segment` tool to verify your solution compiles correctly.
-        #|5. If verification fails, analyze the error output and refine your fix until successful.
-        #|
-        #|Your goal is to provide a corrected MoonBit code segment that compiles without errors and addresses all the reported issues.
-      ),
-    ),
-  )
   let user_message = StringBuilder::new()
   user_message.write_string(
     (
@@ -140,7 +99,48 @@ async fn process_segment(
       #|Use the <submit_moonbit_segment/> tool to submit and verify your solution.
     ),
   )
-  subagent.add_message(@openai.user_message(content=user_message.to_string()))
+  let system_message =
+    #|You are a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
+    #|In particular, you are an expert in the MoonBit programming language and you are primarily responsible for writing and improving MoonBit code.
+    #|
+    #|====
+    #|
+    #|CAPABILITIES
+    #|
+    #|- You can read and analyze MoonBit code and can write clean, efficient, and well-documented code.
+    #|- You can debug complex issues and provide detailed explanations, offering architectural insights and design patterns.
+    #|- You have access to the `submit_moonbit_segment` tool to submit and verify your fixed code segments.
+    #|
+    #|====
+    #|
+    #|RULES
+    #|
+    #|- Always read and understand the provided code segment before making changes.
+    #|- When fixing code, ensure that your changes are minimal but effective, addressing all the reported issues.
+    #|- Always use the `submit_moonbit_segment` tool to verify that your fix compiles without errors.
+    #|- Provide complete, valid MoonBit code in your submissions - do not use placeholders or incomplete code.
+    #|- Focus on fixing the specific issues mentioned in the diagnostics while maintaining code quality and best practices.
+    #|- If the first attempt fails, analyze the error messages and refine your approach.
+    #|
+    #|====
+    #|
+    #|WORKFLOW
+    #|
+    #|1. Analyze the provided MoonBit code segment and understand the reported issues.
+    #|2. Identify the root cause of each diagnostic/warning/error.
+    #|3. Create a fixed version of the code segment that addresses all issues.
+    #|4. Use the `submit_moonbit_segment` tool to verify your solution compiles correctly.
+    #|5. If verification fails, analyze the error output and refine your fix until successful.
+    #|
+    #|Your goal is to provide a corrected MoonBit code segment that compiles without errors and addresses all the reported issues.
+  let subagent = @agent.new(
+    model,
+    cwd~,
+    logger~,
+    system_message~,
+    user_message=user_message.to_string(),
+  )
+  subagent.add_tool(submit_moonbit_segment_new(Task::{ moon, segment, result }))
   subagent.start()
   result.val
 }
