@@ -506,6 +506,7 @@ async fn Daemon::listen_task_events(
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
+    "X-Accel-Buffering": "no",
   })
   println("[DEBUG] Streaming response body...")
   conn.write_reader(client)
