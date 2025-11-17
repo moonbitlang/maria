@@ -356,11 +356,13 @@ async fn Daemon::list_tasks(
 ) -> Unit {
   let tasks : Array[Json] = []
   for _, server in self.by_cwd {
+    let status = self.get_task_status(server.id.to_string()).to_json()
     tasks.push({
       "name": server.name,
       "id": server.id.to_string(),
       "cwd": server.cwd,
       "port": server.port,
+      "status": status,
     })
   }
   let response : Json = { "tasks": tasks }
@@ -373,6 +375,63 @@ async fn Daemon::list_tasks(
   })
   ..write(response.stringify())
   ..end_response()
+}
+
+///|
+async fn Daemon::get_task_status(
+  self : Daemon,
+  id : StringView,
+) -> @server.Status {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(server) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let (response, response_body) = @http.get(
+    "http://localhost/v1/status",
+    port=server.port,
+  )
+  guard response.code is (200..=299) else {
+    raise json_error(500, "Internal Server Error", {
+      "error": {
+        "code": response.code,
+        "message": "Failed to get task status: \{response.code} \{response.reason}",
+        "metadata": {
+          "code": response.code,
+          "reason": response.reason,
+          "body": response_body.json(),
+        },
+      },
+    })
+  }
+  guard response_body.json() is { "status": status_json, .. } else {
+    raise json_error(500, "Internal Server Error", {
+      "error": {
+        "code": -1,
+        "message": "Invalid status response from task",
+        "metadata": { "body": response_body.json() },
+      },
+    })
+  }
+  let status : @server.Status = @json.from_json(status_json) catch {
+    error =>
+      raise json_error(500, "Internal Server Error", {
+        "error": {
+          "code": -1,
+          "message": "Invalid status '\{status_json.stringify(indent=2)}' from task: \{error}",
+          "metadata": { "body": response_body.json() },
+        },
+      })
+  }
+  status
 }
 
 ///|
@@ -400,6 +459,7 @@ async fn Daemon::get_task(
       "id": server.id.to_string(),
       "cwd": server.cwd,
       "port": server.port,
+      "status": self.get_task_status(id).to_json(),
     },
   }
   conn

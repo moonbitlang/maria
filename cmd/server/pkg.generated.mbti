@@ -1,11 +1,21 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/server"
 
+import(
+  "moonbitlang/core/json"
+)
+
 // Values
 
 // Errors
 
 // Types and methods
+pub(all) enum Status {
+  Idle
+  Busy
+}
+impl ToJson for Status
+impl @json.FromJson for Status
 
 // Type aliases
 
