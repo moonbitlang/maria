@@ -13,7 +13,7 @@ async fn check_syntax_of_string(path? : String, String) -> @diagnostics.Diagnost
 
 async fn format_string(String) -> String
 
-async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Unit
+async fn new(user? : String, name? : String, StringView, cwd? : StringView) -> Module
 
 // Errors
 
