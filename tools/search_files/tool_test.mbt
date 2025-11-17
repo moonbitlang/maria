@@ -133,7 +133,7 @@ async test "search_files-moon-references" (t : @test.Test) {
 
 ///|
 async test "search_files/agentic" (t : @test.Test) {
-  @mock.run(t, timeout=300_000, taco => {
+  @mock.run(t, taco => {
     let api_key = taco.getenv("OPENAI_API_KEY")
     taco.add_files([
       (

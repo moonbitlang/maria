@@ -330,7 +330,7 @@ let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(32)
 pub async fn run(
   t : @test.Test,
   loc~ : SourceLoc,
-  timeout? : Int = 300_000,
+  timeout? : Int = 600_000,
   retry? : Int,
   action : async (Context) -> Unit,
 ) -> Unit {
