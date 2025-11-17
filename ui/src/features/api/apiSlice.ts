@@ -1,21 +1,54 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {
-  waitForEvent,
-  type SessionEvent,
-} from "@/features/session/sessionSlice";
+import { type TaskEvent } from "@/lib/types";
+import { setTasks } from "../session/tasksSlice";
 
-const BASE_URL = "http://localhost:8081/v1";
+const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
+
+export type Task = {
+  name: string;
+  id: string;
+};
 
 // Define our single API slice object
 export const apiSlice = createApi({
   // The cache reducer expects to be added at `state.api` (already default - this is optional)
   reducerPath: "api",
   baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
+  tagTypes: ["Tasks"],
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    postMessage: builder.mutation<void, string>({
+    tasks: builder.query<{ tasks: Task[] }, void>({
+      query: () => "tasks",
+      providesTags: ["Tasks"],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        const { data } = await queryFulfilled;
+        dispatch(setTasks(data.tasks));
+      },
+    }),
+
+    task: builder.query<Task, string>({
+      query: (id) => `task/${id}`,
+    }),
+
+    newTask: builder.mutation<{ task: Task }, string>({
       query: (content) => ({
-        url: "message",
+        url: "task",
+        method: "POST",
+        body: JSON.stringify({
+          name: content,
+          model: "anthropic/claude-sonnet-4.5",
+          message: {
+            role: "user",
+            content,
+          },
+        }),
+      }),
+      invalidatesTags: ["Tasks"],
+    }),
+
+    postMessage: builder.mutation<void, { taskId: string; content: string }>({
+      query: ({ taskId, content }) => ({
+        url: `task/${taskId}/message`,
         method: "POST",
         body: JSON.stringify({
           message: {
@@ -26,14 +59,14 @@ export const apiSlice = createApi({
       }),
     }),
 
-    getEvents: builder.query<SessionEvent[], void>({
+    events: builder.query<TaskEvent[], string>({
       queryFn: () => ({ data: [] }),
       async onCacheEntryAdded(
-        _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },
+        id,
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
       ) {
         // create a sse connection when the cache subscription starts
-        const source = new EventSource(`${BASE_URL}/events`);
+        const source = new EventSource(`${BASE_URL}/task/${id}/events`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
@@ -46,7 +79,6 @@ export const apiSlice = createApi({
                   case "RequestCompleted":
                   case "PostToolCall":
                   case "MessageAdded": {
-                    dispatch(waitForEvent(false));
                     updateCachedData((draft) => {
                       draft.push(data);
                     });
@@ -72,4 +104,10 @@ export const apiSlice = createApi({
   }),
 });
 
-export const { usePostMessageMutation, useGetEventsQuery } = apiSlice;
+export const {
+  useTaskQuery,
+  useTasksQuery,
+  useEventsQuery,
+  useNewTaskMutation,
+  usePostMessageMutation,
+} = apiSlice;

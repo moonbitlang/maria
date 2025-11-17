@@ -1,11 +1,8 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAppSlice } from "@/app/createAppSlice";
-
-type SessionEventBase = {
+type TaskEventBase = {
   time: number;
 };
 
-export type SessionEvent = SessionEventBase &
+export type TaskEvent = TaskEventBase &
   (RequestCompletedEvent | PostToolCallEvent | MessageAddedEvent);
 
 type ToolCallFunction = {
@@ -142,39 +139,7 @@ export type MessageAddedEvent = {
     (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
 };
 
-export type SessionSliceState = {
-  events: SessionEvent[];
-  todos: Todo[];
-  waitingForEvent: boolean;
+export type NamedId = {
+  id: string;
+  name: string;
 };
-
-const initialState: SessionSliceState = {
-  events: [],
-  todos: [],
-  waitingForEvent: false,
-};
-
-export const sessionSlice = createAppSlice({
-  name: "session",
-  initialState,
-  reducers: {
-    addEvent(state, action: PayloadAction<SessionEvent>) {
-      state.events.push(action.payload);
-    },
-    updateTodos(state, action: PayloadAction<Todo[]>) {
-      state.todos = action.payload;
-    },
-    waitForEvent(state, action: PayloadAction<boolean>) {
-      state.waitingForEvent = action.payload;
-    },
-  },
-  selectors: {
-    selectEvents: (state) => state.events,
-    selectTodos: (state) => state.todos,
-    selectWaitingForEvent: (state) => state.waitingForEvent,
-  },
-});
-
-export const { addEvent, updateTodos, waitForEvent } = sessionSlice.actions;
-export const { selectEvents, selectTodos, selectWaitingForEvent } =
-  sessionSlice.selectors;
