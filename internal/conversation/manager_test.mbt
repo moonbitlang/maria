@@ -1,13 +1,13 @@
 ///|
 async test "Manager" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let manager = @conversation.Manager::new(
-      uuid=@uuid.generator(taco.rand),
-      cwd=taco.cwd.path(),
+      uuid=@uuid.generator(mock.rand),
+      cwd=mock.cwd.path(),
     )
     @json.inspect(manager.list(), content=[])
-    let dot_moonagent = @path.join(taco.cwd.path(), ".moonagent")
-    @json.inspect(taco.json(@fsx.list_directory(dot_moonagent)), content=[
+    let dot_moonagent = @path.join(mock.cwd.path(), ".moonagent")
+    @json.inspect(mock.json(@fsx.list_directory(dot_moonagent)), content=[
       {
         "path": "(mock:cwd)/.moonagent/conversations",
         "name": "conversations",
@@ -15,7 +15,7 @@ async test "Manager" (t : @test.Test) {
       },
     ])
     let conversations = @path.join(dot_moonagent, "conversations")
-    @json.inspect(taco.json(@fsx.list_directory(conversations)), content=[])
+    @json.inspect(mock.json(@fsx.list_directory(conversations)), content=[])
     let conversation = manager.new_conversation(name="Test Conversation")
     conversation.add_message(@openai.user_message(content="Hello"))
     manager.save(conversation)

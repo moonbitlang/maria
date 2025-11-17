@@ -1,12 +1,12 @@
 ///|
 async test "clone" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     @git.clone(
       "https://github.com/moonbitlang/maria.git",
-      to=taco.cwd.path(),
+      to=mock.cwd.path(),
       depth=1,
     )
-    let entries = taco.cwd.list().map((entry : @mock.Entry) => entry.name())
+    let entries = mock.cwd.list().map((entry : @mock.Entry) => entry.name())
     @json.inspect(entries.contains("moon.mod.json"), content=true)
   })
 }
@@ -14,10 +14,10 @@ async test "clone" (t : @test.Test) {
 ///|
 async test "commit" (t : @test.Test) {
   if @os.getenv("CI") is None {
-    @mock.run(t, taco => {
-      @git.init_(taco.cwd.path())
-      let _ = taco.add_file("file.txt", content="Hello, Moonbit!")
-      @git.commit("Initial commit", ["file.txt"], cwd=taco.cwd.path())
+    @mock.run(t, mock => {
+      @git.init_(mock.cwd.path())
+      let _ = mock.add_file("file.txt", content="Hello, Moonbit!")
+      @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     })
   }
 }
@@ -56,10 +56,10 @@ async test "generate_git_diff" {
 
 ///|
 async test "clone_with_invalid_depth" (t : @test.Test) {
-  @mock.run(t, taco => try {
+  @mock.run(t, mock => try {
     @git.clone(
       "https://github.com/moonbitlang/maria.git",
-      to=taco.cwd.path(),
+      to=mock.cwd.path(),
       depth=0,
     )
     @test.fail("Expected error for invalid depth")

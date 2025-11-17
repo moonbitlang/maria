@@ -16,14 +16,14 @@ side effects without touching the developer's machine.
 - Filters sensitive fields (paths, environment variables, secrets) from JSON and
   string outputs produced inside the mock context to avoid leaking host data.
 
-Call `@mock.run(t, ctx => { ... })` inside an `async test` to receive a
+Call `@mock.run(t, mock => { ... })` inside an `async test` to receive a
 `Context` instance. The wrapper supports a configurable timeout and automatic
 retry logic; see `taco.mbt` for the full contract.
 
 ```moonbit async
 async test "writes file" (t : @test.Test) {
-  @mock.run(t, async ctx => {
-    let file = ctx.add_file("output.txt", content="hello")
+  @mock.run(t, async mock => {
+    let file = mock.add_file("output.txt", content="hello")
     let text = file.read()
     @json.inspect(text, content="hello")
   })
@@ -32,31 +32,31 @@ async test "writes file" (t : @test.Test) {
 
 ## Using the `Context`
 
-A `Context` instance is passed into your closure as `ctx`. The most common
+A `Context` instance is passed into your closure as `mock`. The most common
 operations are:
 
-- `ctx.add_file(name, content=...)` / `ctx.add_files(...)` /
-  `ctx.add_directory(...)` to pre-seed the workspace tree.
-- `ctx.json(value)` and `ctx.show(value)` when emitting data that ends up in
+- `mock.add_file(name, content=...)` / `mock.add_files(...)` /
+  `mock.add_directory(...)` to pre-seed the workspace tree.
+- `mock.json(value)` and `mock.show(value)` when emitting data that ends up in
   inspect snapshots or logs, so secrets get masked automatically.
-- `ctx.logger` for structured logging (already configured to write to
+- `mock.logger` for structured logging (already configured to write to
   `__trajectories__/<test-name>`).
-- `ctx.group` to spawn background work or schedule `add_defer` cleanups that run
+- `mock.group` to spawn background work or schedule `add_defer` cleanups that run
   before the mock environment is torn down.
 
-Other handy fields include `ctx.cwd` (root directory wrapper), `ctx.clock` (a
-monotonic mock clock you can advance manually), `ctx.rand` (deterministic RNG),
-and `ctx.uuid` (deterministic UUID generator built on that RNG).
+Other handy fields include `mock.cwd` (root directory wrapper), `mock.clock` (a
+monotonic mock clock you can advance manually), `mock.rand` (deterministic RNG),
+and `mock.uuid` (deterministic UUID generator built on that RNG).
 
 ```moonbit async
 async test "context helpers" (t : @test.Test) {
-  @mock.run(t, async ctx => {
-    let config_dir = ctx.add_directory("config")
-    ctx.add_file("config/app.json", content="{\"port\": 8080}")
+  @mock.run(t, async mock => {
+    let config_dir = mock.add_directory("config")
+    mock.add_file("config/app.json", content="{\"port\": 8080}")
 
-    ctx.logger.info("config", ctx.json({ cwd: ctx.cwd.path() }))
+    mock.logger.info("config", mock.json({ cwd: mock.cwd.path() }))
 
-    ctx.group.add_defer(() => {
+    mock.group.add_defer(() => {
       @json.inspect(config_dir.list().length(), content=1)
     })
   })

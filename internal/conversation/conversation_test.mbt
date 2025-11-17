@@ -1,10 +1,10 @@
 ///|
 async test "impl ToJson for Conversation" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let manager = @conversation.Manager::new(
-      uuid=@uuid.generator(taco.rand),
-      clock=taco.clock,
-      cwd=taco.cwd.path(),
+      uuid=@uuid.generator(mock.rand),
+      clock=mock.clock,
+      cwd=mock.cwd.path(),
     )
     let conversation = manager.new_conversation(name="Test Conversation")
     conversation.add_message(@openai.user_message(content="Hello"))

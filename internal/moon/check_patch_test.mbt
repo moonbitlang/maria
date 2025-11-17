@@ -1,7 +1,7 @@
 ///|
 async test "check_patch" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -22,7 +22,7 @@ async test "check_patch" (t : @test.Test) {
         ),
       ),
     ])
-    let moon = @moon.Module::load(taco.cwd.path())
+    let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
       {
@@ -36,7 +36,7 @@ async test "check_patch" (t : @test.Test) {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(taco.json(files), content=[
+    @json.inspect(mock.json(files), content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -100,7 +100,7 @@ async test "check_patch" (t : @test.Test) {
     ])
     let file = files[0]
     let segments = file.segments()
-    @json.inspect(taco.json(segments), content=[
+    @json.inspect(mock.json(segments), content=[
       {
         "file": "(mock:cwd)/example.mbt",
         "index": 1,
@@ -109,7 +109,7 @@ async test "check_patch" (t : @test.Test) {
     ])
     let segment = segments[0]
     @json.inspect(
-      taco.json(moon.check_patch_replace(segment, "///|\nlet x : String = 100")),
+      mock.json(moon.check_patch_replace(segment, "///|\nlet x : String = 100")),
       content=[
         "Diagnostics",
         [

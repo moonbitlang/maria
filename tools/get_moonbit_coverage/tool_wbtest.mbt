@@ -1,7 +1,7 @@
 ///|
 async test "get_moonbit_coverage" (t : @test.Test) {
-  @mock.run(t, timeout=300_000, taco => {
-    taco.add_files([
+  @mock.run(t, timeout=300_000, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -37,8 +37,8 @@ async test "get_moonbit_coverage" (t : @test.Test) {
         ),
       ),
     ])
-    let params = params(project_path=taco.cwd.path(), file="example.mbt")
-    let tool = new(taco.cwd.path())
+    let params = params(project_path=mock.cwd.path(), file="example.mbt")
+    let tool = new(mock.cwd.path())
     let result = tool.call(params.to_json())
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")

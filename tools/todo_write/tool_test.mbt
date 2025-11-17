@@ -1,10 +1,10 @@
 ///|
 async test "todo_write/create/plain" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let todo_list = @todo.new(
-      clock=taco.clock,
-      uuid=taco.uuid,
-      cwd=taco.cwd.path(),
+      clock=mock.clock,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
     )
     let result = @todo_write.new(todo_list).call({
       "action": "create",
@@ -77,11 +77,11 @@ async test "todo_write/create/plain" (t : @test.Test) {
 
 ///|
 async test "todo_write/create/<task>" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let todo_list = @todo.new(
-      clock=taco.clock,
-      uuid=taco.uuid,
-      cwd=taco.cwd.path(),
+      clock=mock.clock,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
     )
     let result = @todo_write.new(todo_list).call({
       "action": "create",
@@ -243,11 +243,11 @@ async test "todo_write/create/<task>" (t : @test.Test) {
 
 ///|
 async test "todo_write/update" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let todo_list = @todo.new(
-      clock=taco.clock,
-      uuid=taco.uuid,
-      cwd=taco.cwd.path(),
+      clock=mock.clock,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
     )
     let result = @todo_write.new(todo_list).call({
       "action": "create",
@@ -302,11 +302,11 @@ async test "todo_write/update" (t : @test.Test) {
 
 ///|
 async test "todo_write/mark_completed" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let todo_list = @todo.new(
-      clock=taco.clock,
-      uuid=taco.uuid,
-      cwd=taco.cwd.path(),
+      clock=mock.clock,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
     )
     let result = @todo_write.new(todo_list).call({
       "action": "create",
@@ -367,11 +367,11 @@ async test "todo_write/mark_completed" (t : @test.Test) {
 
 ///|
 async test "todo_write/mark_progress" (t : @test.Test) {
-  @mock.run(t, taco => {
+  @mock.run(t, mock => {
     let todo_list = @todo.new(
-      clock=taco.clock,
-      uuid=taco.uuid,
-      cwd=taco.cwd.path(),
+      clock=mock.clock,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
     )
     let result = @todo_write.new(todo_list).call({
       "action": "create",

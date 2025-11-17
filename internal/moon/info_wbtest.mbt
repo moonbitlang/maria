@@ -1,7 +1,7 @@
 ///|
 async test "info" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -16,6 +16,6 @@ async test "info" (t : @test.Test) {
       ),
       ("example.mbt", "///|\nlet x : Int = 42"),
     ])
-    info(cwd=taco.cwd.path())
+    info(cwd=mock.cwd.path())
   })
 }

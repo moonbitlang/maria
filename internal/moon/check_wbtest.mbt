@@ -1,7 +1,7 @@
 ///|
 async test "check" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         (
@@ -16,8 +16,8 @@ async test "check" (t : @test.Test) {
       ),
       ("example.mbt", "let x : Int = \"string\""),
     ])
-    let diagnostics = check(cwd=taco.cwd.path())
-    @json.inspect(taco.json(diagnostics), content=[
+    let diagnostics = check(cwd=mock.cwd.path())
+    @json.inspect(mock.json(diagnostics), content=[
       "Diagnostics",
       [
         {

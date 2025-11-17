@@ -1,7 +1,7 @@
 ///|
 async test "check_moonbit_project" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         { "name": "example", "version": "0.1.0" }.to_json().stringify(),
@@ -15,9 +15,9 @@ async test "check_moonbit_project" (t : @test.Test) {
         ),
       ),
     ])
-    let args = input_json(diagnostic_limit=10, project_path=taco.cwd.path())
-    let result = new(taco.cwd.path()).call(args)
-    @json.inspect(taco.json(result), content=[
+    let args = input_json(diagnostic_limit=10, project_path=mock.cwd.path())
+    let result = new(mock.cwd.path()).call(args)
+    @json.inspect(mock.json(result), content=[
       "Ok",
       {
         "diagnostics": [
@@ -50,7 +50,7 @@ async test "check_moonbit_project" (t : @test.Test) {
       },
     ])
     inspect(
-      taco.show(result),
+      mock.show(result),
       content=(
         #|MoonBit project check found the following diagnostics:
         #|
@@ -70,8 +70,8 @@ async test "check_moonbit_project" (t : @test.Test) {
 
 ///|
 async test "check_moonbit_project/patch-insert" (t : @test.Test) {
-  @mock.run(t, taco => {
-    taco.add_files([
+  @mock.run(t, mock => {
+    mock.add_files([
       (
         "moon.mod.json",
         { "name": "example", "version": "0.1.0" }.to_json().stringify(),
@@ -88,22 +88,22 @@ async test "check_moonbit_project/patch-insert" (t : @test.Test) {
     ])
     let args = input_json(
       diagnostic_limit=10,
-      project_path=taco.cwd.path(),
+      project_path=mock.cwd.path(),
       patch_code="let y : String = 42",
       patch_file_name="example.mbt",
     )
-    let result = new(taco.cwd.path()).call(args)
+    let result = new(mock.cwd.path()).call(args)
 
     // Note we don't really change the file
     inspect(
-      @fsx.read_file(@path.join(taco.cwd.path(), "example.mbt")),
+      @fsx.read_file(@path.join(mock.cwd.path(), "example.mbt")),
       content=(
         #|///|
         #|let x : Int = "string"
         #|
       ),
     )
-    @json.inspect(taco.json(result), content=[
+    @json.inspect(mock.json(result), content=[
       "Ok",
       {
         "diagnostics": [
@@ -136,7 +136,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.Test) {
       },
     ])
     inspect(
-      taco.show(result),
+      mock.show(result),
       content=(
         #|MoonBit project check found the following diagnostics:
         #|

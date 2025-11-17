@@ -1,7 +1,7 @@
 ///|
 async test "Loader::load" (t : @test.Test) {
-  @mock.run(t, taco => {
-    let home = taco.cwd
+  @mock.run(t, mock => {
+    let home = mock.cwd
     @mock.with_home(home, () => {
       let home_rules = home.add_directory(".moonagent").add_directory("rules")
       let _ = home_rules.add_file(
@@ -41,7 +41,7 @@ async test "Loader::load" (t : @test.Test) {
           #|Content of rule C
         ),
       )
-      let rules = @rules.Loader::new(project.path(), logger=taco.logger)
+      let rules = @rules.Loader::new(project.path(), logger=mock.logger)
       rules.load()
       inspect(
         rules.format(),
