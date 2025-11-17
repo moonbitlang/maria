@@ -34,12 +34,8 @@ import {
   XCircle,
   Terminal,
 } from "lucide-react";
-import { useAppDispatch } from "@/app/hooks";
-import { useEffect } from "react";
-import { updateTodosForTask } from "@/features/session/tasksSlice";
 
 interface EventsDisplayProps {
-  taskId: string;
   events: TaskEvent[];
 }
 
@@ -272,39 +268,22 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
   );
 }
 
-function TodoWrite({
-  event,
-  taskId,
-}: {
-  event: TodoWriteTool;
-  taskId: string;
-}) {
-  const { name, result } = event;
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    // when we get a todo write event, we should update the todos in the session slice
-    dispatch(updateTodosForTask({ taskId, todos: result.todos }));
-  }, [dispatch, result.todos, taskId]);
+function TodoWrite({ event }: { event: TodoWriteTool }) {
+  const { name } = event;
   return (
     <Tool>
       <ToolHeader type={name} state="output-available" />
       <ToolContent>
         <ToolOutput
           errorText={undefined}
-          output={<Response>Agent updated the todo list.</Response>}
+          output={<Response>{event.result.message}</Response>}
         ></ToolOutput>
       </ToolContent>
     </Tool>
   );
 }
 
-function ShowPostToolCall({
-  event,
-  taskId,
-}: {
-  event: PostToolCallEvent;
-  taskId: string;
-}) {
+function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
   const output = (
     <Response parseIncompleteMarkdown={false}>
       {["````markdown", event.text, "````"].join("\n")}
@@ -325,7 +304,7 @@ function ShowPostToolCall({
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
       case "todo_write": {
-        return <TodoWrite event={event as TodoWriteTool} taskId={taskId} />;
+        return <TodoWrite event={event as TodoWriteTool} />;
       }
     }
     return (
@@ -381,17 +360,17 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 }
 
 export function EventsDisplay(props: EventsDisplayProps) {
-  const { events, taskId } = props;
+  const { events } = props;
 
   return (
-    <Conversation key={taskId} initial="instant" className="min-h-0">
+    <Conversation initial="instant" className="min-h-0">
       <ConversationContent className="max-w-4xl mx-auto">
         {events.map((event, i) => {
           switch (event.msg) {
             case "MessageAdded":
               return <ShowMessageAdded key={i} event={event} />;
             case "PostToolCall":
-              return <ShowPostToolCall key={i} event={event} taskId={taskId} />;
+              return <ShowPostToolCall key={i} event={event} />;
             case "RequestCompleted":
               return <ShowRequestCompleted key={i} event={event} />;
             default: {

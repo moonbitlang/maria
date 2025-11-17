@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { type TaskEvent } from "@/lib/types";
-import { setTasks } from "../session/tasksSlice";
+import { type TaskEvent, type TodoWriteTool } from "@/lib/types";
+import { setTasks, updateTodosForTask } from "@/features/session/tasksSlice";
 
 const BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8090/v1";
 
@@ -61,31 +61,45 @@ export const apiSlice = createApi({
 
     events: builder.query<TaskEvent[], string>({
       queryFn: () => ({ data: [] }),
+      keepUnusedDataFor: 0,
       async onCacheEntryAdded(
         id,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },
       ) {
         // create a sse connection when the cache subscription starts
         const source = new EventSource(`${BASE_URL}/task/${id}/events`);
+        console.log(`${id} sse connection opened`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
 
           source.addEventListener("maria", (event: MessageEvent<string>) => {
             try {
-              const data = JSON.parse(event.data);
-              if (typeof data === "object" && data !== null && "msg" in data) {
-                switch (data.msg) {
-                  case "RequestCompleted":
-                  case "PostToolCall":
-                  case "MessageAdded": {
-                    updateCachedData((draft) => {
-                      draft.push(data);
-                    });
-                    return;
+              const data = JSON.parse(event.data) as TaskEvent;
+              switch (data.msg) {
+                case "RequestCompleted":
+                case "PostToolCall":
+                case "MessageAdded": {
+                  if (
+                    data.msg === "PostToolCall" &&
+                    data.name === "todo_write"
+                  ) {
+                    const result = (data as TodoWriteTool).result;
+                    dispatch(
+                      updateTodosForTask({
+                        taskId: id,
+                        todos: result.todos,
+                      }),
+                    );
                   }
-                  default:
+
+                  updateCachedData((draft) => {
+                    draft.push(data);
+                  });
+
+                  return;
                 }
+                default:
               }
             } catch (e) {
               console.error("Failed to parse SSE event data", e);
@@ -99,6 +113,7 @@ export const apiSlice = createApi({
         await cacheEntryRemoved;
         // perform cleanup steps once the `cacheEntryRemoved` promise resolves
         source.close();
+        console.log(`${id} sse connection closed`);
       },
     }),
   }),

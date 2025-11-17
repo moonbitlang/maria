@@ -49,9 +49,12 @@ export default function Task() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col justify-end relative">
+    <div
+      key={taskId}
+      className="flex-1 min-h-0 flex flex-col justify-end relative"
+    >
       <AgentTodos todos={todos} />
-      <EventsDisplay events={data ?? []} taskId={taskId} />
+      <EventsDisplay events={data ?? []} />
       <div className="p-4">
         <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
           <PromptInputTextarea
