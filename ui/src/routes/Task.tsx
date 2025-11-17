@@ -19,6 +19,27 @@ import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import type { ChatStatus } from "ai";
 
+function useSetActiveTaskId(taskId: string) {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setActiveTaskId(taskId));
+  }, [taskId, dispatch]);
+}
+
+function useCurrentTask(taskId: string) {
+  const task = useAppSelector((state) => selectTask(state, taskId));
+  const { data: apiTask } = useTaskQuery(taskId, { skip: task !== undefined });
+
+  return (
+    task ?? {
+      ...apiTask!,
+      todos: [],
+      chatStatus: "ready" as const,
+    }
+  );
+}
+
 interface TaskInputProps {
   chatStatus: ChatStatus;
   onSubmit: (input: string) => void;
@@ -62,24 +83,14 @@ function TaskInput({ chatStatus, onSubmit }: TaskInputProps) {
 
 export default function Task() {
   const params = useParams();
-  const dispatch = useDispatch();
 
   // TODO: 404 error
   const taskId = params.taskId!;
-  const task = useAppSelector((state) => selectTask(state, taskId));
-  const { data: apiTask } = useTaskQuery(taskId, { skip: task !== undefined });
+  useSetActiveTaskId(taskId);
+
+  const currentTask = useCurrentTask(taskId);
   const [postMessage] = usePostMessageMutation();
   const { data } = useEventsQuery(taskId);
-
-  useEffect(() => {
-    dispatch(setActiveTaskId(taskId));
-  }, [taskId, dispatch]);
-
-  const currentTask = task ?? {
-    ...apiTask!,
-    todos: [],
-    chatStatus: "ready" as const,
-  };
 
   const { chatStatus, todos } = currentTask;
 
