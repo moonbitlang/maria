@@ -19,6 +19,7 @@ type Task = TaskOverview & {
   chatInput: string;
   inputQueue: QueuedMessage[];
   events: TaskEvent[];
+  eventIds: Record<number, true>;
 };
 
 export function defaultTask(
@@ -30,6 +31,7 @@ export function defaultTask(
     status: "idle",
     inputQueue: [],
     events: [],
+    eventIds: {},
     ...params,
   };
 }
@@ -37,13 +39,11 @@ export function defaultTask(
 type TasksSliceState = {
   activeTask: string | undefined;
   tasks: Record<string, Task>;
-  overviews: TaskOverview[];
 };
 
 const initialState: TasksSliceState = {
   activeTask: undefined,
   tasks: {},
-  overviews: [],
 };
 
 export const tasksSlice = createAppSlice({
@@ -137,7 +137,11 @@ export const tasksSlice = createAppSlice({
       const { taskId, event } = action.payload;
       const task = state.tasks[taskId];
       if (task) {
+        if (task.eventIds[event.id]) {
+          return;
+        }
         task.events.push(event);
+        task.eventIds[event.id] = true;
       }
     },
   },

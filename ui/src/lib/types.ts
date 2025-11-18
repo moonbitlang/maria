@@ -1,5 +1,5 @@
 type TaskEventBase = {
-  time: number;
+  id: number;
 };
 
 export type TaskEvent = TaskEventBase &
