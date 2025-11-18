@@ -123,6 +123,8 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
     "X-Accel-Buffering": "no",
   })
   self.broadcast.listen((hist, chan) => {
+    w.write("event: maria.history.start\n\n")
+    w.flush()
     let hist : Array[Json] = hist.filter(e => e
       is {
         "msg": "MessageAdded"
@@ -134,8 +136,12 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
         ..
       } &&
       !(e is { "tool": { "name": String(_), "id": _, .. }, .. }))
-    w.write("event: maria.history\n")
-    w.write("data: \{hist.to_json().stringify()}\n\n")
+    for e in hist.rev() {
+      w.write("event: maria.history\n")
+      w.write("data: \{e.stringify()}\n\n")
+      w.flush()
+    }
+    w.write("event: maria.history.end\n\n")
     w.flush()
     for {
       let event = chan.get()
