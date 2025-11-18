@@ -90,7 +90,6 @@ pub struct ChatCompletionChoice {
   finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessage
-  logprobs : ChatCompletionChoiceLogprobs?
 }
 impl Show for ChatCompletionChoice
 
@@ -102,12 +101,6 @@ pub enum ChatCompletionChoiceFinishReason {
   FunctionCall
 }
 impl Show for ChatCompletionChoiceFinishReason
-
-pub struct ChatCompletionChoiceLogprobs {
-  content : Array[ChatCompletionTokenLogprob]?
-  refusal : Array[ChatCompletionTokenLogprob]?
-}
-impl Show for ChatCompletionChoiceLogprobs
 
 pub struct ChatCompletionChunk {
   id : String
@@ -239,14 +232,6 @@ pub struct ChatCompletionSystemMessageParam {
   name : String?
 }
 
-pub struct ChatCompletionTokenLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-  top_logprobs : Array[ChatCompletionTopLogprob]
-}
-impl Show for ChatCompletionTokenLogprob
-
 pub(all) enum ChatCompletionToolChoice {
   Disallow
   Auto
@@ -265,13 +250,6 @@ pub enum ChatCompletionToolParam {
   Function(FunctionDefinition)
 }
 impl ToJson for ChatCompletionToolParam
-
-pub struct ChatCompletionTopLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-}
-impl Show for ChatCompletionTopLogprob
 
 pub struct ChatCompletionUserMessageParam {
   content : Array[ChatCompletionContentPartParam]

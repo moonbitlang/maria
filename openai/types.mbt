@@ -15,30 +15,6 @@ pub(all) enum ChatCompletionServiceTier {
 } derive(Show)
 
 ///|
-/// Aggregated log-probability details for a streamed choice.
-pub struct ChatCompletionChoiceLogprobs {
-  content : Array[ChatCompletionTokenLogprob]?
-  refusal : Array[ChatCompletionTokenLogprob]?
-} derive(Show)
-
-///|
-/// Token logprob information
-pub struct ChatCompletionTokenLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-  top_logprobs : Array[ChatCompletionTopLogprob]
-} derive(Show)
-
-///|
-/// Top logprob information
-pub struct ChatCompletionTopLogprob {
-  token : String
-  logprob : Double
-  bytes : Array[Int]?
-} derive(Show)
-
-///|
 /// Tool function metadata returned from the API.
 pub struct ChatCompletionMessageToolCallFunction {
   arguments : String?
@@ -84,7 +60,6 @@ pub struct ChatCompletionChoice {
   finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessage
-  logprobs : ChatCompletionChoiceLogprobs?
 } derive(Show)
 
 ///|

@@ -31,145 +31,6 @@ impl ToJson for ChatCompletionServiceTier with to_json(
 }
 
 ///|
-impl @json.FromJson for ChatCompletionChoiceLogprobs with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> ChatCompletionChoiceLogprobs {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  let content : Array[ChatCompletionTokenLogprob]? = match json.get("content") {
-    Some(Null) => None
-    Some(content) => {
-      let content : Array[ChatCompletionTokenLogprob] = @json.from_json(
-        content,
-        path=json_path.add_key("content"),
-      )
-      Some(content)
-    }
-    None => None
-  }
-  let refusal : Array[ChatCompletionTokenLogprob]? = match json.get("refusal") {
-    Some(Null) => None
-    Some(refusal) => {
-      let refusal : Array[ChatCompletionTokenLogprob] = @json.from_json(
-        refusal,
-        path=json_path.add_key("refusal"),
-      )
-      Some(refusal)
-    }
-    None => None
-  }
-  ChatCompletionChoiceLogprobs::{ content, refusal }
-}
-
-///|
-impl ToJson for ChatCompletionChoiceLogprobs with to_json(
-  self : ChatCompletionChoiceLogprobs,
-) -> Json {
-  let json : Map[String, Json] = {}
-  if self.content is Some(content) {
-    json["content"] = content.to_json()
-  }
-  if self.refusal is Some(refusal) {
-    json["refusal"] = refusal.to_json()
-  }
-  Json::object(json)
-}
-
-///|
-impl ToJson for ChatCompletionTokenLogprob with to_json(
-  self : ChatCompletionTokenLogprob,
-) -> Json {
-  let json : Map[String, Json] = {
-    "token": self.token,
-    "logprob": self.logprob,
-  }
-  if self.bytes is Some(bytes) {
-    json["bytes"] = bytes.to_json()
-  }
-  json["top_logprobs"] = self.top_logprobs.to_json()
-  Json::object(json)
-}
-
-///|
-impl @json.FromJson for ChatCompletionTokenLogprob with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> ChatCompletionTokenLogprob {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  guard json.get("token") is Some(String(token)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'token' field"))
-  }
-  guard json.get("logprob") is Some(Number(logprob, ..)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'logprob' field"))
-  }
-  let bytes = match json.get("bytes") {
-    Some(Null) => None
-    Some(bytes) => {
-      let bytes : Array[Int] = @json.from_json(
-        bytes,
-        path=json_path.add_key("bytes"),
-      )
-      Some(bytes)
-    }
-    None => None
-  }
-  guard json.get("top_logprobs") is Some(top_logprobs) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'top_logprobs' field"))
-  }
-  let top_logprobs : Array[ChatCompletionTopLogprob] = @json.from_json(
-    top_logprobs,
-    path=json_path.add_key("top_logprobs"),
-  )
-  ChatCompletionTokenLogprob::{ token, logprob, bytes, top_logprobs }
-}
-
-///|
-impl @json.FromJson for ChatCompletionTopLogprob with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> ChatCompletionTopLogprob {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  guard json.get("token") is Some(String(token)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'token' field"))
-  }
-  guard json.get("logprob") is Some(Number(logprob, ..)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'logprob' field"))
-  }
-  let bytes = match json.get("bytes") {
-    Some(Null) => None
-    Some(bytes) => {
-      let bytes : Array[Int] = @json.from_json(
-        bytes,
-        path=json_path.add_key("bytes"),
-      )
-      Some(bytes)
-    }
-    None => None
-  }
-  ChatCompletionTopLogprob::{ token, logprob, bytes }
-}
-
-///|
-impl ToJson for ChatCompletionTopLogprob with to_json(
-  self : ChatCompletionTopLogprob,
-) -> Json {
-  let json : Map[String, Json] = {
-    "token": self.token,
-    "logprob": self.logprob,
-  }
-  if self.bytes is Some(bytes) {
-    json["bytes"] = bytes.to_json()
-  }
-  Json::object(json)
-}
-
-///|
 impl ToJson for ChatCompletionMessageToolCallFunction with to_json(
   self : ChatCompletionMessageToolCallFunction,
 ) -> Json {
@@ -333,9 +194,6 @@ impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -
   if self.finish_reason is Some(finish_reason) {
     json["finish_reason"] = finish_reason.to_json()
   }
-  if self.logprobs is Some(logprobs) {
-    json["logprobs"] = logprobs.to_json()
-  }
   Json::object(json)
 }
 
@@ -368,23 +226,7 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
     message,
     path=json_path.add_key("message"),
   )
-  let logprobs = match json.get("logprobs") {
-    Some(Null) => None
-    Some(logprobs) => {
-      let logprobs : ChatCompletionChoiceLogprobs = @json.from_json(
-        logprobs,
-        path=json_path.add_key("logprobs"),
-      )
-      Some(logprobs)
-    }
-    None => None
-  }
-  ChatCompletionChoice::{
-    finish_reason,
-    index: index.to_int(),
-    message,
-    logprobs,
-  }
+  ChatCompletionChoice::{ finish_reason, index: index.to_int(), message }
 }
 
 ///|
