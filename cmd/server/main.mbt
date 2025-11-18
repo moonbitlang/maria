@@ -135,25 +135,29 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
     for e in hist {
       chan.put(e)
     }
-    for {
+    for i = hist.length(); ; i = i + 1 {
       let event = chan.get()
       guard event
-        is {
-          "msg": "MessageAdded"
-          | "MessageUnqueued"
-          | "PreConversation"
-          | "RequestCompleted"
-          | "PostToolCall"
-          | "PostConversation"
-          | "MariaFailed",
-          ..
-        } else {
+        is Object(
+          {
+            "msg": "MessageAdded"
+            | "MessageUnqueued"
+            | "PreConversation"
+            | "RequestCompleted"
+            | "PostToolCall"
+            | "PostConversation"
+            | "MariaFailed",
+            ..
+          } as event
+        ) else {
         continue
       }
       // Skip over tool events (subagent events)
       if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
         continue
       }
+      event["event-id"] = i.to_json()
+      let event = Json::object(event)
       w.write("event: maria\n")
       w.write("data: \{event.stringify()}\n\n")
       w.flush()
