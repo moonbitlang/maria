@@ -36,72 +36,9 @@ using @unicode {is_whitespace}
 priv suberror BackTracing derive(Show, ToJson)
 
 ///|
+/// parse English common contractions
+/// 
 /// Part 1: '(?i:[sdmt]|ll|ve|re)
-/// 
-///  Parse tree:
-/// 
-/// ```rust
-/// 
-///  ExprTree {
-///     expr: Concat(
-///         [
-///             Literal {
-///                 val: "'",
-///                 casei: false,
-///             },
-///             Alt(
-///                 [
-///                     Delegate {
-///                         inner: "[sdmt]",
-///                         size: 1,
-///                         casei: true,
-///                     },
-///                     Concat(
-///                         [
-///                             Literal {
-///                                 val: "l",
-///                                 casei: true,
-///                             },
-///                             Literal {
-///                                 val: "l",
-///                                 casei: true,
-///                             },
-///                         ],
-///                     ),
-///                     Concat(
-///                         [
-///                             Literal {
-///                                 val: "v",
-///                                 casei: true,
-///                             },
-///                             Literal {
-///                                 val: "e",
-///                                 casei: true,
-///                             },
-///                         ],
-///                     ),
-///                     Concat(
-///                         [
-///                             Literal {
-///                                 val: "r",
-///                                 casei: true,
-///                             },
-///                             Literal {
-///                                 val: "e",
-///                                 casei: true,
-///                             },
-///                         ],
-///                     ),
-///                 ],
-///             ),
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
 fn cl100k_base_tokenize_part1(
   input : StringView,
 ) -> StringView raise BackTracing {
@@ -125,45 +62,11 @@ fn cl100k_base_tokenize_part1(
 }
 
 ///|
-/// Part 2: [^\r\n\p{L}\p{N}]?+\p{L}++
-/// Parse tree:
+/// parse non-common characters prefix and letters using possessive semantics.
 /// 
-/// ```rust 
-/// ExprTree {
-///     expr: Concat(
-///         [
-///             AtomicGroup(
-///                 Repeat {
-///                     child: Delegate {
-///                         inner: "[^\r\n\\p{L}\\p{N}]",
-///                         size: 1,
-///                         casei: false,
-///                     },
-///                     lo: 0,
-///                     hi: 1,
-///                     greedy: true,
-///                 },
-///             ),
-///             AtomicGroup(
-///                 Repeat {
-///                     child: Delegate {
-///                         inner: "\\p{L}",
-///                         size: 1,
-///                         casei: false,
-///                     },
-///                     lo: 1,
-///                     hi: 4294967295,
-///                     greedy: true,
-///                 },
-///             ),
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
+/// Not need possessive semantics, because no following overlapping pattern.
+/// 
+/// Part 2: [^\r\n\p{L}\p{N}]?+\p{L}++
 fn cl100k_base_tokenize_part2(
   input : StringView,
 ) -> StringView raise BackTracing {
@@ -171,7 +74,7 @@ fn cl100k_base_tokenize_part2(
     ch != '\u{000D}' && ch != '\n' && !is_alphabetic(ch) && !is_number(ch)
   }
 
-  let (non_letter_len, remaining_input) = match input {
+  let (non_common_len, remaining_input) = match input {
     [ch, .. rest] if predicate(ch) => (ch.utf16_len(), rest)
     rest => (0, rest)
   }
@@ -183,34 +86,16 @@ fn cl100k_base_tokenize_part2(
   if letter_len == 0 {
     raise BackTracing
   } else {
-    try! input[0:non_letter_len + letter_len]
+    try! input[0:non_common_len + letter_len]
   }
 }
 
 ///|
-/// Part 3: \p{N}{1,3}+
+/// parse number with length 1 to 3 using possessive semantics.
 /// 
-/// Parse tree:
-/// ```rust 
-/// ExprTree {
-///     expr: AtomicGroup(
-///         Repeat {
-///             child: Delegate {
-///                 inner: "\\p{N}",
-///                 size: 1,
-///                 casei: false,
-///             },
-///             lo: 1,
-///             hi: 3,
-///             greedy: true,
-///         },
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
+/// Not need possessive semantics, because no following overlapping pattern.
+/// 
+/// Part 3: \p{N}{1,3}+
 fn cl100k_base_tokenize_part3(
   input : StringView,
 ) -> StringView raise BackTracing {
@@ -228,134 +113,61 @@ fn cl100k_base_tokenize_part3(
 }
 
 ///|
-// Part 4: [ ]?[^\s\p{L}\p{N}]++[\r\n]*+
-
-///|
-/// ```rust 
-/// ExprTree {
-///     expr: Concat(
-///         [
-///             Repeat {
-///                 child: Delegate {
-///                     inner: "[ ]",
-///                     size: 1,
-///                     casei: false,
-///                 },
-///                 lo: 0,
-///                 hi: 1,
-///                 greedy: true,
-///             },
-///             AtomicGroup(
-///                 Repeat {
-///                     child: Delegate {
-///                         inner: "[^\\s\\p{L}\\p{N}]",
-///                         size: 1,
-///                         casei: false,
-///                     },
-///                     lo: 1,
-///                     hi: 4294967295,
-///                     greedy: true,
-///                 },
-///             ),
-///             AtomicGroup(
-///                 Repeat {
-///                     child: Delegate {
-///                         inner: "[\r\n]",
-///                         size: 1,
-///                         casei: false,
-///                     },
-///                     lo: 0,
-///                     hi: 4294967295,
-///                     greedy: true,
-///                 },
-///             ),
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
+/// 1. optional space 
+/// 2. non-common character 
+/// 3. end of lines
+/// 
+/// Not need possessive semantics, because no following overlapping pattern.
+/// 
+/// Part 4: [ ]?[^\s\p{L}\p{N}]++[\r\n]*+
 fn cl100k_base_tokenize_part4(
   input : StringView,
 ) -> StringView raise BackTracing {
   fn predicate(ch : Char) -> Bool {
     !is_whitespace(ch) && !is_alphabetic(ch) && !is_number(ch)
   }
-
-  // Step 1: Optional space character [ ]?
+  // part 1: optional space
   let (consumed_space_len, rest) = match input {
-    [' ', .. rest] => (1, rest) // Consume optional space
-    _ => (0, input) // No space, continue with original string
+    [' ', .. rest] => (1, rest)
+    _ => (0, input)
   }
-
-  // Step 2: One or more non-whitespace/non-letter/non-number characters [^\s\p{L}\p{N}]++
+  // part 2: non-common character(s)
   let (non_ws_len, rest2) = loop (0, rest) {
     (len, [ch, .. rest]) if predicate(ch) =>
       continue (len + ch.utf16_len(), rest)
     (len, rest) => break (len, rest)
   }
-
-  // Must have at least one character matching the predicate (++ means possessive one-or-more)
+  // fast fail for quantifier requirement
   if non_ws_len == 0 {
     raise BackTracing
   }
 
-  // Step 3: Zero or more \r\n characters [\r\n]*+
+  // part 3: end of lines
   let newline_len = loop (0, rest2) {
-    (len, [ch, .. rest]) if ch == '\u{000D}' || ch == '\n' =>
+    (len, [ch, .. rest]) if ch == '\r' || ch == '\n' =>
       continue (len + ch.utf16_len(), rest)
     (len, _) => break len
   }
-
-  // Total length includes all parts
-  let total_len = consumed_space_len + non_ws_len + newline_len
-  try! input[0:total_len]
+  let len = consumed_space_len + non_ws_len + newline_len
+  try! input[0:len]
 }
 
 ///|
-/// Part 5: \s++$
+/// parse whitespace at end of string.
 /// 
-/// ```rust
-/// ExprTree {
-///     expr: Concat(
-///         [
-///             AtomicGroup(
-///                 Repeat {
-///                     child: Delegate {
-///                         inner: "\\s",
-///                         size: 1,
-///                         casei: false,
-///                     },
-///                     lo: 1,
-///                     hi: 4294967295,
-///                     greedy: true,
-///                 },
-///             ),
-///             Assertion(
-///                 EndText,
-///             ),
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
+/// Not need possessive semantics, because no following overlapping pattern.
+/// 
+/// Part 5: \s++$
 fn cl100k_base_tokenize_part5(
   input : StringView,
 ) -> StringView raise BackTracing {
-  // \s++$ means one or more whitespace characters at the end of string (possessive)
   let len = loop (0, input) {
     (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
-    (len, []) => break len // end of string
-    (_, _) => break 0 // non-whitespace found, not at end
+    (len, []) => break len
+    (_, _) => break 0
   }
   if len == 0 || len < input.length() {
-    // Either no whitespace found or not at end of string
     raise BackTracing
   } else {
     try! input[0:len]
@@ -363,35 +175,11 @@ fn cl100k_base_tokenize_part5(
 }
 
 ///|
-/// Part 6: \s*[\r\n]
-/// ```rust 
-/// ExprTree {
-///     expr: Concat(
-///         [
-///             Repeat {
-///                 child: Delegate {
-///                     inner: "\\s",
-///                     size: 1,
-///                     casei: false,
-///                 },
-///                 lo: 0,
-///                 hi: 4294967295,
-///                 greedy: true,
-///             },
-///             Delegate {
-///                 inner: "[\r\n]",
-///                 size: 1,
-///                 casei: false,
-///             },
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
+/// parse whitespace but last whitespace must be end of line.
 /// 
+/// Need backtracking for greedy semantics.
+/// 
+/// Part 6: \s*[\r\n]
 fn cl100k_base_tokenize_part6(
   input : StringView,
 ) -> StringView raise BackTracing {
@@ -416,37 +204,9 @@ fn cl100k_base_tokenize_part6(
 }
 
 ///|
+/// parse whitespace follow whitespace(not non-whitespace). 
+/// 
 /// Part 7: \s+(?!\S)
-/// ```rust
-/// ExprTree {
-///     expr: Concat(
-///         [
-///             Repeat {
-///                 child: Delegate {
-///                     inner: "\\s",
-///                     size: 1,
-///                     casei: false,
-///                 },
-///                 lo: 1,
-///                 hi: 4294967295,
-///                 greedy: true,
-///             },
-///             LookAround(
-///                 Delegate {
-///                     inner: "\\S",
-///                     size: 1,
-///                     casei: false,
-///                 },
-///                 LookAheadNeg,
-///             ),
-///         ],
-///     ),
-///     backrefs: {},
-///     named_groups: {},
-///     contains_subroutines: false,
-///     self_recursive: false,
-/// }
-/// ```
 fn cl100k_base_tokenize_part7(
   input : StringView,
 ) -> StringView raise BackTracing {
