@@ -29,9 +29,9 @@ function escapeHtml(text) {
 }
 
 function getStatusBadge(status) {
-  if (status === "Busy") {
+  if (status === "generating") {
     return '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f39c12; margin-left: 8px;" title="Busy"></span>';
-  } else if (status === "Idle") {
+  } else if (status === "idle") {
     return '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #27ae60; margin-left: 8px;" title="Idle"></span>';
   }
   return "";
