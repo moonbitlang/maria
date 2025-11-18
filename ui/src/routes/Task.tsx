@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useEventsQuery,
+  useTaskEventsQuery,
   usePostMessageMutation,
   useTaskQuery,
 } from "@/features/api/apiSlice";
@@ -164,7 +164,7 @@ export default function Task() {
 
   const { data, isLoading, isSuccess } = useTaskQuery(taskId);
 
-  const { data: events } = useEventsQuery(taskId, { skip: !isSuccess });
+  const { data: events } = useTaskEventsQuery(taskId, { skip: !isSuccess });
 
   const task = useAppSelector((state) => selectTask(state, taskId));
 

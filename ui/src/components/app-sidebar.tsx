@@ -15,16 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 import { NavTasks } from "./nav-tasks";
 import { useNavigate } from "react-router";
-import { useTasksQuery } from "@/features/api/apiSlice";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const activeTaskId = useAppSelector(selectActiveTaskId);
-  useTasksQuery(undefined, {
-    pollingInterval: 500,
-  });
   const tasks = useAppSelector(selectTasks);
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -34,9 +30,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            <SidebarMenuItem key={"New Task"}>
+            <SidebarMenuItem key="New Task">
               <SidebarMenuButton
-                tooltip={"New Task"}
+                tooltip="New Task"
                 isActive={activeTaskId === undefined}
                 onClick={(e) => {
                   e.preventDefault();
@@ -47,9 +43,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 }}
                 asChild
               >
-                <a href={"/"}>
+                <a href="/">
                   <SquareTerminal />
-                  <span>{"New Task"}</span>
+                  <span>New Task</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>

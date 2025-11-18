@@ -68,7 +68,7 @@ export const apiSlice = createApi({
       }),
     }),
 
-    events: builder.query<TaskEvent[], string>({
+    taskEvents: builder.query<TaskEvent[], string>({
       queryFn: () => ({ data: [] }),
       keepUnusedDataFor: 0,
       async onCacheEntryAdded(
@@ -145,7 +145,7 @@ export const apiSlice = createApi({
 export const {
   useTaskQuery,
   useTasksQuery,
-  useEventsQuery,
+  useTaskEventsQuery,
   useNewTaskMutation,
   usePostMessageMutation,
 } = apiSlice;
