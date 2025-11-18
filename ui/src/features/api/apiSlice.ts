@@ -1,22 +1,21 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
-  type ConversationStatus,
+  type DaemonTaskChangeEvent,
+  type DaemonTaskSyncEvent,
   type NamedId,
   type TaskEvent,
+  type TaskOverview,
   type TodoWriteTool,
 } from "@/lib/types";
 import {
   setConverstationStatusForTask,
+  setTask,
   setTasks,
   updateTodosForTask,
 } from "@/features/session/tasksSlice";
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
-
-export type TaskOverview = NamedId & {
-  conversationStatus: ConversationStatus;
-};
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -26,15 +25,6 @@ export const apiSlice = createApi({
   tagTypes: ["Tasks"],
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
-    tasks: builder.query<{ tasks: TaskOverview[] }, void>({
-      query: () => "tasks",
-      providesTags: ["Tasks"],
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
-        dispatch(setTasks(data.tasks));
-      },
-    }),
-
     task: builder.query<{ task: TaskOverview }, string>({
       query: (id) => `task/${id}`,
     }),
@@ -66,6 +56,42 @@ export const apiSlice = createApi({
           },
         }),
       }),
+    }),
+
+    events: builder.query<undefined, void>({
+      queryFn: () => ({ data: undefined }),
+      keepUnusedDataFor: 0,
+      async onCacheEntryAdded(
+        _arg,
+        { cacheDataLoaded, cacheEntryRemoved, dispatch },
+      ) {
+        const source = new EventSource(`${BASE_URL}/events`);
+        try {
+          await cacheDataLoaded;
+
+          source.addEventListener(
+            "daemon.tasks.synchronized",
+            (event: MessageEvent<string>) => {
+              const { tasks } = JSON.parse(event.data) as DaemonTaskSyncEvent;
+              dispatch(setTasks(tasks));
+            },
+          );
+
+          source.addEventListener(
+            "daemon.tasks.changed",
+            (event: MessageEvent<string>) => {
+              const { task } = JSON.parse(event.data) as DaemonTaskChangeEvent;
+              dispatch(setTask(task));
+            },
+          );
+        } catch {
+          // noop if cacheEntryRemoved resolves first
+        }
+        // cacheEntryRemoved will resolve when the cache subscription is no longer active
+        await cacheEntryRemoved;
+        // perform cleanup steps once the `cacheEntryRemoved` promise resolves
+        source.close();
+      },
     }),
 
     taskEvents: builder.query<TaskEvent[], string>({
@@ -144,7 +170,7 @@ export const apiSlice = createApi({
 
 export const {
   useTaskQuery,
-  useTasksQuery,
+  useEventsQuery,
   useTaskEventsQuery,
   useNewTaskMutation,
   usePostMessageMutation,

@@ -21,7 +21,6 @@ import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const activeTaskId = useAppSelector(selectActiveTaskId);
-  const tasks = useAppSelector(selectTasks);
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
@@ -51,7 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <NavTasks tasks={tasks} />
+        <NavTasks />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
       <SidebarRail />

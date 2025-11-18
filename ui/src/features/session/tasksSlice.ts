@@ -1,6 +1,11 @@
 import { createAppSlice } from "@/app/createAppSlice";
 import type { RootState } from "@/app/store";
-import type { ConversationStatus, NamedId, Todo } from "@/lib/types";
+import type {
+  ConversationStatus,
+  NamedId,
+  TaskOverview,
+  Todo,
+} from "@/lib/types";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
 // LocalStorage key for persisting input queues
@@ -76,7 +81,16 @@ export const tasksSlice = createAppSlice({
       }
     },
 
-    setTasks(state, action: PayloadAction<NamedId[]>) {
+    setTask(state, action: PayloadAction<TaskOverview>) {
+      const t = action.payload;
+      const task = state.tasks[t.id];
+      if (task) {
+        task.name = t.name;
+        task.conversationStatus = t.conversationStatus;
+      }
+    },
+
+    setTasks(state, action: PayloadAction<TaskOverview[]>) {
       for (const t of action.payload) {
         if (!state.tasks[t.id]) {
           const inputQueue = loadInputQueue(t.id);
@@ -183,6 +197,7 @@ export const tasksSlice = createAppSlice({
 
 export const {
   newTask,
+  setTask,
   setTasks,
   updateTodosForTask,
   setActiveTaskId,

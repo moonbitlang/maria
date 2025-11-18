@@ -5,8 +5,10 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Outlet } from "react-router";
+import { useEventsQuery } from "@/features/api/apiSlice";
 
 export function Layout() {
+  useEventsQuery();
   return (
     <SidebarProvider>
       <AppSidebar className="overflow-x-hidden" />

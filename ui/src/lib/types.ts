@@ -153,3 +153,15 @@ export type NamedId = {
   name: string;
 };
 export type ConversationStatus = "idle" | "generating";
+
+export type TaskOverview = NamedId & {
+  conversationStatus: ConversationStatus;
+};
+
+export type DaemonTaskSyncEvent = {
+  tasks: TaskOverview[];
+};
+
+export type DaemonTaskChangeEvent = {
+  task: TaskOverview;
+};

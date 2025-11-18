@@ -42,6 +42,32 @@ app.get("/v1/tasks", (req, res) => {
   res.end();
 });
 
+app.get("/v1/events", (req, res) => {
+  // Set headers for SSE
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // Disable buffering in nginx
+
+  res.write(`event: daemon.tasks.synchronized
+data: ${JSON.stringify({ tasks })}
+
+`);
+
+  // Keep the connection open
+  const changedInterval = setInterval(() => {
+    res.write(`event: daemon.tasks.changed
+data: ${JSON.stringify({ task: { ...longTask, conversationStatus: "idle" } })}
+
+`);
+  }, 500);
+
+  req.on("close", () => {
+    clearInterval(changedInterval);
+    res.end();
+  });
+});
+
 for (const t of tasks) {
   app.get(`/v1/task/${t.id}`, (req, res) => {
     res.writeHead(200, "OK");
