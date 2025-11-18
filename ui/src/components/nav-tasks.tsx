@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 
 import {

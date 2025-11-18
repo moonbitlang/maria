@@ -1,41 +1,24 @@
 import { createAppSlice } from "@/app/createAppSlice";
 import type { RootState } from "@/app/store";
-import type { Status, NamedId, TaskOverview, Todo } from "@/lib/types";
+import type {
+  Status,
+  NamedId,
+  TaskOverview,
+  Todo,
+  TaskEvent,
+} from "@/lib/types";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
-// LocalStorage key for persisting input queues
-const INPUT_QUEUE_STORAGE_KEY = "maria_input_queues";
+type QueuedMessage = {
+  id: string;
+  content: string;
+};
 
-// Helper functions for localStorage persistence
-function saveInputQueue(taskId: string, inputQueue: string[]) {
-  try {
-    const stored = localStorage.getItem(INPUT_QUEUE_STORAGE_KEY);
-    const queues = stored ? JSON.parse(stored) : {};
-    queues[taskId] = inputQueue;
-    localStorage.setItem(INPUT_QUEUE_STORAGE_KEY, JSON.stringify(queues));
-  } catch (error) {
-    console.error("Failed to save input queue to localStorage:", error);
-  }
-}
-
-function loadInputQueue(taskId: string): string[] {
-  try {
-    const stored = localStorage.getItem(INPUT_QUEUE_STORAGE_KEY);
-    if (stored) {
-      const queues = JSON.parse(stored);
-      return queues[taskId] || [];
-    }
-  } catch (error) {
-    console.error("Failed to load input queue from localStorage:", error);
-  }
-  return [];
-}
-
-type Task = NamedId & {
+type Task = TaskOverview & {
   todos: Todo[];
   chatInput: string;
-  status: Status;
-  inputQueue: string[];
+  inputQueue: QueuedMessage[];
+  events: TaskEvent[];
 };
 
 export function defaultTask(
@@ -46,6 +29,7 @@ export function defaultTask(
     chatInput: "",
     status: "idle",
     inputQueue: [],
+    events: [],
     ...params,
   };
 }
@@ -53,11 +37,13 @@ export function defaultTask(
 type TasksSliceState = {
   activeTask: string | undefined;
   tasks: Record<string, Task>;
+  overviews: TaskOverview[];
 };
 
 const initialState: TasksSliceState = {
   activeTask: undefined,
   tasks: {},
+  overviews: [],
 };
 
 export const tasksSlice = createAppSlice({
@@ -86,16 +72,14 @@ export const tasksSlice = createAppSlice({
         task.name = t.name;
         task.status = t.status;
       } else {
-        const inputQueue = loadInputQueue(t.id);
-        state.tasks[t.id] = defaultTask({ ...t, inputQueue });
+        state.tasks[t.id] = defaultTask(t);
       }
     },
 
     setTasks(state, action: PayloadAction<TaskOverview[]>) {
       for (const t of action.payload) {
         if (!state.tasks[t.id]) {
-          const inputQueue = loadInputQueue(t.id);
-          state.tasks[t.id] = defaultTask({ ...t, inputQueue });
+          state.tasks[t.id] = defaultTask(t);
         }
       }
     },
@@ -124,25 +108,36 @@ export const tasksSlice = createAppSlice({
 
     addToInputQueueForTask(
       state,
-      action: PayloadAction<{ taskId: string; input: string }>,
+      action: PayloadAction<{ taskId: string; message: QueuedMessage }>,
     ) {
-      const { taskId, input } = action.payload;
+      const { taskId, message } = action.payload;
       const task = state.tasks[taskId];
       if (task) {
-        task.inputQueue.push(input);
-        saveInputQueue(taskId, task.inputQueue);
+        task.inputQueue.push(message);
       }
     },
 
-    removeNthFromInputQueueForTask(
+    removeFromInputQueueForTask(
       state,
-      action: PayloadAction<{ taskId: string; n: number }>,
+      action: PayloadAction<{ taskId: string; id: string }>,
     ) {
-      const { taskId, n } = action.payload;
+      const { taskId, id } = action.payload;
       const task = state.tasks[taskId];
       if (task) {
-        task.inputQueue.splice(n, 1);
-        saveInputQueue(taskId, task.inputQueue);
+        task.inputQueue = task.inputQueue.filter(
+          (message) => message.id !== id,
+        );
+      }
+    },
+
+    pushEventForTask(
+      state,
+      action: PayloadAction<{ taskId: string; event: TaskEvent }>,
+    ) {
+      const { taskId, event } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.events.push(event);
       }
     },
   },
@@ -152,8 +147,22 @@ export const tasksSlice = createAppSlice({
       return state.tasks[taskId];
     },
 
+    selectTaskEvents(
+      state: TasksSliceState,
+      taskId: string,
+    ): TaskEvent[] | undefined {
+      return state.tasks[taskId]?.events;
+    },
+
     selectActiveTaskId(state: TasksSliceState): string | undefined {
       return state.activeTask;
+    },
+
+    selectTaskTodos(
+      state: TasksSliceState,
+      taskId: string,
+    ): Todo[] | undefined {
+      return state.tasks[taskId]?.todos;
     },
 
     selectTaskInput(
@@ -173,7 +182,7 @@ export const tasksSlice = createAppSlice({
     selectInputQueue(
       state: TasksSliceState,
       taskId: string,
-    ): string[] | undefined {
+    ): QueuedMessage[] | undefined {
       const task = state.tasks[taskId];
       return task?.inputQueue;
     },
@@ -188,7 +197,8 @@ export const {
   setActiveTaskId,
   setInputForTask,
   addToInputQueueForTask,
-  removeNthFromInputQueueForTask,
+  removeFromInputQueueForTask,
+  pushEventForTask,
 } = tasksSlice.actions;
 
 export const {
@@ -197,6 +207,8 @@ export const {
   selectTaskInput,
   selectConversationStatus,
   selectInputQueue,
+  selectTaskEvents,
+  selectTaskTodos,
 } = tasksSlice.selectors;
 
 // Memoized selector to prevent unnecessary re-renders

@@ -8,7 +8,13 @@ export type TaskEvent = TaskEventBase &
     | PostToolCallEvent
     | MessageAddedEvent
     | PostConversationEvent
+    | MessageUnqueuedEvent
   );
+
+type MessageUnqueuedEvent = {
+  msg: "MessageUnqueued";
+  message: { id: string };
+};
 
 type PostConversationEvent = {
   msg: "PostConversation";

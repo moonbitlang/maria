@@ -8,6 +8,8 @@ import {
   type TodoWriteTool,
 } from "@/lib/types";
 import {
+  pushEventForTask,
+  removeFromInputQueueForTask,
   setTask,
   setTasks,
   updateTodosForTask,
@@ -49,7 +51,10 @@ export const apiSlice = createApi({
       invalidatesTags: ["Tasks"],
     }),
 
-    postMessage: builder.mutation<void, { taskId: string; content: string }>({
+    postMessage: builder.mutation<
+      { id: string; queued: boolean },
+      { taskId: string; content: string }
+    >({
       query: ({ taskId, content }) => ({
         url: `task/${taskId}/message`,
         method: "POST",
@@ -98,12 +103,12 @@ export const apiSlice = createApi({
       },
     }),
 
-    taskEvents: builder.query<TaskEvent[], string>({
-      queryFn: () => ({ data: [] }),
+    taskEvents: builder.query<undefined, string>({
+      queryFn: () => ({ data: undefined }),
       keepUnusedDataFor: 0,
       async onCacheEntryAdded(
         id,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },
+        { cacheDataLoaded, cacheEntryRemoved, dispatch },
       ) {
         // create a sse connection when the cache subscription starts
         const source = new EventSource(`${BASE_URL}/task/${id}/events`);
@@ -127,10 +132,17 @@ export const apiSlice = createApi({
                   );
                 }
 
-                updateCachedData((draft) => {
-                  draft.push(data);
-                });
+                dispatch(pushEventForTask({ taskId: id, event: data }));
 
+                return;
+              }
+              case "MessageUnqueued": {
+                dispatch(
+                  removeFromInputQueueForTask({
+                    taskId: id,
+                    id: data.message.id,
+                  }),
+                );
                 return;
               }
               default:
