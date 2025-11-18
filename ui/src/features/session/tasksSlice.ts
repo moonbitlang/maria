@@ -160,16 +160,14 @@ export const tasksSlice = createAppSlice({
       state: TasksSliceState,
       taskId: string,
     ): string | undefined {
-      const task = state.tasks[taskId];
-      return task?.chatInput;
+      return state.tasks[taskId]?.chatInput;
     },
 
     selectConversationStatus(
       state: TasksSliceState,
       taskId: string,
     ): Status | undefined {
-      const task = state.tasks[taskId];
-      return task?.status;
+      return state.tasks[taskId]?.status;
     },
 
     selectInputQueue(

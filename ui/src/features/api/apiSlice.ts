@@ -111,32 +111,6 @@ export const apiSlice = createApi({
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
 
-          source.addEventListener(
-            "maria.history",
-            (event: MessageEvent<string>) => {
-              const events = JSON.parse(event.data) as TaskEvent[];
-              for (let i = events.length - 1; i >= 0; i--) {
-                const event = events[i];
-                if (
-                  event.msg === "PostToolCall" &&
-                  event.name === "todo_write"
-                ) {
-                  const result = (event as TodoWriteTool).result;
-                  dispatch(
-                    updateTodosForTask({
-                      taskId: id,
-                      todos: result.todos,
-                    }),
-                  );
-                  break;
-                }
-              }
-              updateCachedData((draft) => {
-                draft.splice(0, draft.length, ...events);
-              });
-            },
-          );
-
           source.addEventListener("maria", (event: MessageEvent<string>) => {
             const data = JSON.parse(event.data) as TaskEvent;
             switch (data.msg) {
