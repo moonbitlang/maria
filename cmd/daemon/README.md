@@ -49,14 +49,14 @@ Returns a list of all active agent instances.
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
       "port": 8080,
-      "status": "Idle"
+      "status": "idle"
     },
     {
       "name": "another-task",
       "id": "another-unique-id",
       "cwd": "/another/working/directory",
       "port": 8081,
-      "status": "Busy"
+      "status": "generating"
     }
   ]
 }
