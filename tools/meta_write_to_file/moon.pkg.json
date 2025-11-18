@@ -21,9 +21,9 @@
   ],
   "pre-build": [
     {
-      "input" : "syntax_error.md",
-      "output" : "prompt.mbt",
-      "command" : ":embed -i $input -o $output --name syntax_error_expert_prompt"
+      "input": "syntax_error.md",
+      "output": "prompt.mbt",
+      "command": ":embed -i $input -o $output --name syntax_error_expert_prompt"
     }
   ]
 }
