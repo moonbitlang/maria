@@ -70,6 +70,7 @@ async fn Module::install(Self) -> Unit
 async fn Module::load(String) -> Self
 async fn Module::locate_package(Self, String) -> Package
 fn Module::packages(Self) -> Iter[PackageView]
+async fn Module::publish(Self, dry_run? : Bool) -> Unit
 async fn Module::run(Self, String, Array[String]) -> (Int, String)
 async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Array[TestFailure]
 async fn Module::test_build_only(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Artifacts
