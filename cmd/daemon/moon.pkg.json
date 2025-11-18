@@ -18,6 +18,7 @@
     "moonbitlang/maria/openai",
     "moonbitlang/async/aqueue",
     "moonbitlang/maria/cmd/server",
-    "moonbitlang/maria/internal/broadcast"
+    "moonbitlang/maria/internal/broadcast",
+    "moonbitlang/maria/clock"
   ]
 }

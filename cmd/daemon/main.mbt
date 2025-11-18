@@ -14,20 +14,58 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 }
 
 ///|
-priv struct Server {
+priv struct Task {
   name : String?
   id : @uuid.Uuid
   cwd : String
   port : Int
+  mut status : @server.Status
+  created : Int64
+}
+
+///|
+impl ToJson for Task with to_json(self : Task) -> Json {
+  {
+    "name": self.name,
+    "id": self.id.to_string(),
+    "cwd": self.cwd,
+    "port": self.port,
+    "status": self.status,
+    "created": Json::number(
+      self.created.to_double(),
+      repr=self.created.to_string(),
+    ),
+  }
+}
+
+///|
+test "Task::ToJson" {
+  let task = Task::{
+    name: Some("example"),
+    id: @uuid.parse("123e4567-e89b-12d3-a456-426614174000"),
+    cwd: "/tmp/example",
+    port: 8080,
+    status: @server.Idle,
+    created: 0,
+  }
+  @json.inspect(task, content={
+    "name": ["example"],
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "cwd": "/tmp/example",
+    "port": 8080,
+    "status": "idle",
+    "created": 0,
+  })
 }
 
 ///|
 priv struct Daemon {
+  clock : &@clock.Clock
   models : @model.Loader
   uuid : @uuid.Generator
   process : @spawn.Manager
-  by_cwd : Map[String, Server]
-  by_id : Map[@uuid.Uuid, Server]
+  by_cwd : Map[String, Task]
+  by_id : Map[@uuid.Uuid, Task]
   rqs : Map[String, @aqueue.Queue[Int]]
   exec_path : String
   port : Int
@@ -36,7 +74,7 @@ priv struct Daemon {
 
 ///|
 priv enum Event {
-  StatusChange(id~ : @uuid.Uuid, status~ : @server.Status)
+  StatusChange(@uuid.Uuid)
 }
 
 ///|
@@ -48,32 +86,14 @@ async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Accel-Buffering": "no",
   })
-  let tasks : Array[Json] = []
-  for _, server in self.by_cwd {
-    let status = self.get_task_status(server.id.to_string()).to_json()
-    tasks.push({
-      "name": server.name,
-      "id": server.id.to_string(),
-      "cwd": server.cwd,
-      "port": server.port,
-      "status": status,
-    })
-  }
+  let tasks : Array[Task] = self.by_cwd.values().collect()
   w.write("event: daemon.tasks.synchronized\n")
   let data : Json = { "tasks": tasks }
   w.write("data: \{data.stringify()}\n\n")
   w.flush()
   self.events.listen((_, chan) => loop chan.get() {
-    StatusChange(id~, status~) => {
-      let data : Json = {
-        "task": {
-          "name": self.by_id[id].name,
-          "id": id.to_string(),
-          "cwd": self.by_id[id].cwd,
-          "port": self.by_id[id].port,
-          "status": status.to_json(),
-        },
-      }
+    StatusChange(id) => {
+      let data : Json = { "task": self.by_id[id] }
       w.write("event: daemon.task.changed\n")
       w.write("data: \{data.stringify()}\n\n")
       w.flush()
@@ -83,11 +103,11 @@ async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
 }
 
 ///|
-async fn Daemon::listen_for_status_change(self : Daemon, peer : Server) -> Unit {
+async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
   println(
-    "[INFO] (Daemon) Listening for status changes from task \{peer.id}...",
+    "[INFO] (Daemon) Listening for status changes from task \{task.id}...",
   )
-  let (er, eb) = @http.get_stream("http://localhost/v1/events", port=peer.port)
+  let (er, eb) = @http.get_stream("http://localhost/v1/events", port=task.port)
   defer eb.close()
   guard er.code is (200..=299) else {
     raise json_error(500, "Internal Server Error", {
@@ -102,7 +122,7 @@ async fn Daemon::listen_for_status_change(self : Daemon, peer : Server) -> Unit 
       },
     })
   }
-  println("[INFO] (Daemon) Connected to task \{peer.id} event stream.")
+  println("[INFO] (Daemon) Connected to task \{task.id} event stream.")
   loop eb.read_until("\n") {
     None => break
     Some(line) => {
@@ -110,12 +130,14 @@ async fn Daemon::listen_for_status_change(self : Daemon, peer : Server) -> Unit 
       let json = @json.parse(data)
       match json {
         { "msg": "PostConversation", .. } => {
-          println("[INFO] (Daemon) Task \{peer.id} is now idle.")
-          self.events.put(StatusChange(id=peer.id, status=Idle))
+          println("[INFO] (Daemon) Task \{task.id} is now idle.")
+          task.status = Idle
+          self.events.put(StatusChange(task.id))
         }
         { "msg": "PreConversation", .. } => {
-          println("[INFO] (Daemon) Task \{peer.id} is now busy.")
-          self.events.put(StatusChange(id=peer.id, status=Busy))
+          println("[INFO] (Daemon) Task \{task.id} is now busy.")
+          task.status = Busy
+          self.events.put(StatusChange(task.id))
         }
         _ => ()
       }
@@ -263,15 +285,8 @@ async fn Daemon::create_task(
         })
     }
   }
-  if self.by_cwd.get(cwd) is Some(server) {
-    raise json_error(409, "Conflict", {
-      "task": {
-        "name": server.name,
-        "id": server.id.to_string(),
-        "cwd": server.cwd,
-        "port": server.port,
-      },
-    })
+  if self.by_cwd.get(cwd) is Some(task) {
+    raise json_error(409, "Conflict", { "task": task })
   }
   let id = self.uuid.v4()
   let process = self.process.spawn(
@@ -295,7 +310,7 @@ async fn Daemon::create_task(
   )
   let rq = @aqueue.Queue::new()
   self.rqs[id.to_string()] = rq
-  let peer_port = @async.with_timeout(60_000, () => rq.get()) catch {
+  let task_port = @async.with_timeout(60_000, () => rq.get()) catch {
     @async.TimeoutError => {
       println(
         "[ERROR] (Daemon) Timed out waiting for task to register after 60 seconds",
@@ -310,9 +325,10 @@ async fn Daemon::create_task(
     error => raise error
   }
   println(
-    "[INFO] (Daemon) Received registration from task '\{id}' on port \{peer_port}",
+    "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
-  let peer = Server::{ name, id, cwd, port: peer_port }
+  let created = self.clock.now() / 1_000
+  let task = Task::{ name, id, cwd, port: task_port, status: Idle, created }
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
@@ -320,19 +336,19 @@ async fn Daemon::create_task(
       println("[ERROR] (Daemon) server process exited with code \{exit_code}")
     }
     self.by_cwd.remove(cwd)
-    self.by_id.remove(peer.id)
+    self.by_id.remove(task.id)
   })
-  self.by_cwd[cwd] = peer
-  self.by_id[peer.id] = peer
+  self.by_cwd[cwd] = task
+  self.by_id[task.id] = task
   // FIXME: The daemon does not ends anyway, so the `no_wait` option is
   // unnecessary.
-  group.spawn_bg(() => self.listen_for_status_change(peer), no_wait=true)
+  group.spawn_bg(() => self.listen_for_status_change(task), no_wait=true)
   if message is Some(message) {
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
       "http://localhost/v1/message",
       ({ "message": message } : Json),
-      port=peer_port,
+      port=task_port,
     )
     guard r.code is (200..=299) else {
       raise json_error(500, "Internal Server Error", {
@@ -350,16 +366,7 @@ async fn Daemon::create_task(
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
   })
-  let body : Json = {
-    let body : Map[String, Json] = {}
-    if peer.name is Some(name) {
-      body["name"] = name.to_json()
-    }
-    body["id"] = peer.id.to_string().to_json()
-    body["cwd"] = peer.cwd.to_json()
-    body["port"] = peer.port.to_json()
-    { "task": Json::object(body) }
-  }
+  let body : Json = { "task": task }
   w.write(body)
   w.flush()
   w.end_response()
@@ -444,17 +451,7 @@ async fn Daemon::list_tasks(
   self : Daemon,
   conn : @http.ServerConnection,
 ) -> Unit {
-  let tasks : Array[Json] = []
-  for _, server in self.by_cwd {
-    let status = self.get_task_status(server.id.to_string()).to_json()
-    tasks.push({
-      "name": server.name,
-      "id": server.id.to_string(),
-      "cwd": server.cwd,
-      "port": server.port,
-      "status": status,
-    })
-  }
+  let tasks = self.by_cwd.values().collect()
   let response : Json = { "tasks": tasks }
   conn
   ..send_response(200, "OK", extra_headers={
@@ -465,63 +462,6 @@ async fn Daemon::list_tasks(
   })
   ..write(response.stringify())
   ..end_response()
-}
-
-///|
-async fn Daemon::get_task_status(
-  self : Daemon,
-  id : StringView,
-) -> @server.Status {
-  guard self.by_id.get(
-      @uuid.parse(id) catch {
-        _ =>
-          raise json_error(400, "Bad Request", {
-            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
-          })
-      },
-    )
-    is Some(server) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Task not found: \{id}" },
-    })
-  }
-  let (response, response_body) = @http.get(
-    "http://localhost/v1/status",
-    port=server.port,
-  )
-  guard response.code is (200..=299) else {
-    raise json_error(500, "Internal Server Error", {
-      "error": {
-        "code": response.code,
-        "message": "Failed to get task status: \{response.code} \{response.reason}",
-        "metadata": {
-          "code": response.code,
-          "reason": response.reason,
-          "body": response_body.json(),
-        },
-      },
-    })
-  }
-  guard response_body.json() is { "status": status_json, .. } else {
-    raise json_error(500, "Internal Server Error", {
-      "error": {
-        "code": -1,
-        "message": "Invalid status response from task",
-        "metadata": { "body": response_body.json() },
-      },
-    })
-  }
-  let status : @server.Status = @json.from_json(status_json) catch {
-    error =>
-      raise json_error(500, "Internal Server Error", {
-        "error": {
-          "code": -1,
-          "message": "Invalid status '\{status_json.stringify(indent=2)}' from task: \{error}",
-          "metadata": { "body": response_body.json() },
-        },
-      })
-  }
-  status
 }
 
 ///|
@@ -538,20 +478,12 @@ async fn Daemon::get_task(
           })
       },
     )
-    is Some(server) else {
+    is Some(task) else {
     raise json_error(404, "Not Found", {
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  let response : Json = {
-    "task": {
-      "name": server.name,
-      "id": server.id.to_string(),
-      "cwd": server.cwd,
-      "port": server.port,
-      "status": self.get_task_status(id).to_json(),
-    },
-  }
+  let response : Json = { "task": task }
   conn
   ..send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
@@ -778,6 +710,45 @@ async fn Daemon::create_task_message(
 }
 
 ///|
+async fn serve_static_file(
+  w : @http.ServerConnection,
+  serve~ : String,
+  path~ : String,
+) -> Unit {
+  if @path.join(serve, path) is path &&
+    (try? @fsx.exists_as_file(path)) is Ok(true) {
+    let content_type = match @path.ext(path) {
+      ".js" => "application/javascript"
+      ".css" => "text/css"
+      ".html" => "text/html"
+      ".png" => "image/png"
+      ".jpg" | ".jpeg" => "image/jpeg"
+      ".gif" => "image/gif"
+      _ => "application/octet-stream"
+    }
+    println("[INFO] (Daemon) Serving static file: \{path}")
+    let content = html_read_file(path)
+    w
+    ..send_response(200, "OK", extra_headers={
+      "Content-Type": content_type,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+    })
+    ..write(content)
+    ..end_response()
+  } else {
+    raise json_error(404, "NotFound", {
+      "error": {
+        "code": -1,
+        "message": "Unknown endpoint: \{path}",
+        "metadata": { "method": @http.Get.to_string(), "path": path },
+      },
+    })
+  }
+}
+
+///|
 async fn main {
   let args = @os.args()
   let mut port = 8090
@@ -812,7 +783,9 @@ async fn main {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
   let logger = @pino.logger("daemon", @pino.Transport::console())
+  let clock = @clock.epoch
   let daemon = Daemon::{
+    clock,
     models: @model.Loader::new(home=@os.home(), cwd=@os.cwd(), logger~),
     uuid: @uuid.generator(@rand.chacha8()),
     process: @spawn.Manager::new(cwd=@os.cwd()),
@@ -856,40 +829,7 @@ async fn main {
         (Post, ["", "v1", "task", id, "message"]) =>
           daemon.create_task_message(id, request, conn)
         (Get, ["", .. file]) =>
-          if @path.join(serve, file.join("/")) is path &&
-            (try? @fsx.exists_as_file(path)) is Ok(true) {
-            let content_type = match @path.ext(path) {
-              ".js" => "application/javascript"
-              ".css" => "text/css"
-              ".html" => "text/html"
-              ".png" => "image/png"
-              ".jpg" | ".jpeg" => "image/jpeg"
-              ".gif" => "image/gif"
-              _ => "application/octet-stream"
-            }
-            println("[INFO] (Daemon) Serving static file: \{path}")
-            let content = html_read_file(path)
-            conn
-            ..send_response(200, "OK", extra_headers={
-              "Content-Type": content_type,
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-              "Access-Control-Allow-Headers": "Content-Type",
-            })
-            ..write(content)
-            ..end_response()
-          } else {
-            raise json_error(404, "NotFound", {
-              "error": {
-                "code": -1,
-                "message": "Unknown endpoint: \{request.path}",
-                "metadata": {
-                  "method": request.meth.to_string(),
-                  "path": request.path,
-                },
-              },
-            })
-          }
+          serve_static_file(conn, serve~, path=file.join("/"))
         _ =>
           raise json_error(404, "NotFound", {
             "error": {
