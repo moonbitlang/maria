@@ -61,7 +61,7 @@ async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
   }
   w.write("event: daemon.tasks.synchronized\n")
   let data : Json = { "tasks": tasks }
-  w.write("data: \{data}\n\n")
+  w.write("data: \{data.stringify()}\n\n")
   self.events.listen((_, chan) => loop chan.get() {
     StatusChange(id~, status~) => {
       let data : Json = {
@@ -74,7 +74,7 @@ async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
         },
       }
       w.write("event: daemon.task.changed\n")
-      w.write("data: \{data}\n\n")
+      w.write("data: \{data.stringify()}\n\n")
       w.flush()
       continue chan.get()
     }
