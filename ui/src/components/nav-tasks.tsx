@@ -31,7 +31,6 @@ function getTaskIcon(status: ConversationStatus) {
 
 export function NavTasks() {
   const tasks = useAppSelector(selectTasks);
-  console.log(tasks);
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();

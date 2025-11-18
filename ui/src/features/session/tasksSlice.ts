@@ -76,8 +76,11 @@ export const tasksSlice = createAppSlice({
     newTask(state, action: PayloadAction<NamedId>) {
       const { id, name } = action.payload;
       if (!state.tasks[id]) {
-        const inputQueue = loadInputQueue(id);
-        state.tasks[id] = defaultTask({ name, id, inputQueue });
+        state.tasks[id] = defaultTask({
+          name,
+          id,
+          conversationStatus: "generating",
+        });
       }
     },
 

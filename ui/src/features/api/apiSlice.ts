@@ -8,7 +8,6 @@ import {
   type TodoWriteTool,
 } from "@/lib/types";
 import {
-  setConverstationStatusForTask,
   setTask,
   setTasks,
   updateTodosForTask,
@@ -148,26 +147,10 @@ export const apiSlice = createApi({
                   );
                 }
 
-                dispatch(
-                  setConverstationStatusForTask({
-                    taskId: id,
-                    status: "generating",
-                  }),
-                );
-
                 updateCachedData((draft) => {
                   draft.push(data);
                 });
 
-                return;
-              }
-              case "PostConversation": {
-                dispatch(
-                  setConverstationStatusForTask({
-                    taskId: id,
-                    status: "idle",
-                  }),
-                );
                 return;
               }
               default:
