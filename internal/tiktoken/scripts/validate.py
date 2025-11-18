@@ -16,4 +16,4 @@ def test_consistency():
         splitteds = []
         for token in tokens:
             splitteds.append(tokenizer.decode([token]))
-        assert splitteds == case["splitteds"], f"Failed on case `{key}`"
+        assert splitteds == case["pieces"], f"Failed on case `{key}`"
