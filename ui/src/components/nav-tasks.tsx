@@ -54,9 +54,9 @@ export function NavTasks({ tasks }: { tasks: TaskOverview[] }) {
                     }}
                   >
                     <a href={url}>
-                      <span>{name}</span>
+                      <span className="truncate">{name}</span>
                       {isGenerating && (
-                        <Loader2 className="ml-auto h-4 w-4 animate-spin" />
+                        <Loader2 className="ml-auto h-4 w-4 shrink-0 animate-spin" />
                       )}
                     </a>
                   </SidebarMenuButton>

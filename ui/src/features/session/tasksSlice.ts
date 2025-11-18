@@ -48,9 +48,9 @@ export const tasksSlice = createAppSlice({
     },
 
     setTasks(state, action: PayloadAction<NamedId[]>) {
-      for (const { id, name } of action.payload) {
-        if (!state.tasks[id]) {
-          state.tasks[id] = defaultTask({ name, id });
+      for (const t of action.payload) {
+        if (!state.tasks[t.id]) {
+          state.tasks[t.id] = defaultTask(t);
         }
       }
     },
