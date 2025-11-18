@@ -55,15 +55,6 @@ function TaskInput({ taskId }: { taskId: string }) {
     dispatch(setInputForTask({ taskId, input: value }));
   }
 
-  useEffect(() => {
-    // when conversation is idle, and there are queued inputs, send the next one
-    if (status === "idle" && inputQueue.length > 0) {
-      const nextInput = inputQueue[0];
-      dispatch(removeNthFromInputQueueForTask({ taskId, n: 0 }));
-      postMessage({ taskId, content: nextInput });
-    }
-  }, [status, inputQueue, dispatch, postMessage, taskId]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     switch (status) {
