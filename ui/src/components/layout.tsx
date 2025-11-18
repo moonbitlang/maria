@@ -6,26 +6,9 @@ import {
 import { AppSidebar } from "@/components/app-sidebar";
 import { Outlet } from "react-router";
 import { useEventsQuery } from "@/features/api/apiSlice";
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import {
-  removeNthFromInputQueueForTask,
-  selectTasks,
-} from "@/features/session/tasksSlice";
 
 export function Layout() {
   useEventsQuery();
-  const dispatch = useAppDispatch();
-  const tasks = useAppSelector(selectTasks);
-  useEffect(() => {
-    for (const t of tasks) {
-      if (t.status === "idle" && t.inputQueue.length > 0) {
-        const nextInput = t.inputQueue[0];
-        dispatch(removeNthFromInputQueueForTask({ taskId: t.id, n: 0 }));
-        postMessage({ taskId: t.id, content: nextInput });
-      }
-    }
-  }, [dispatch, tasks]);
   return (
     <SidebarProvider>
       <AppSidebar className="overflow-x-hidden" />
