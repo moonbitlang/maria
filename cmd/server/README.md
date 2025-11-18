@@ -31,8 +31,11 @@ Request:
 ## `GET /v1/events`
 
 ```plaintext
+event: maria.history
+data: [<event1>, <event2>, ...]
+
 event: maria
-data: <json>
+data: <event>
 ```
 
 Example JSON objects:

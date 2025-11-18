@@ -11,6 +11,18 @@ moon run cmd/daemon -- --port 8090 --serve cmd/daemon ./target/native/release/bu
 
 ## API
 
+### `GET /v1/events`
+
+Streams server-sent events (SSE) related to all agent instances.
+
+```plaintext
+event: daemon.tasks.synchronized
+data: { "tasks": [<task1>, <task2>, ...] }
+
+event: daemon.task.changed
+data: { "task": <task> }
+```
+
 ### `GET /v1/models`
 
 Returns a list of available models.
@@ -36,13 +48,15 @@ Returns a list of all active agent instances.
       "name": "example-agent",
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
-      "port": 8080
+      "port": 8080,
+      "status": "Idle"
     },
     {
       "name": "another-task",
       "id": "another-unique-id",
       "cwd": "/another/working/directory",
-      "port": 8081
+      "port": 8081,
+      "status": "Busy"
     }
   ]
 }

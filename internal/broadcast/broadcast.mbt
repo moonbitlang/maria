@@ -22,23 +22,22 @@ pub fn[T] Broadcast::put(self : Broadcast[T], data : T) -> Unit {
 ///|
 pub async fn[T, R] Broadcast::listen(
   self : Broadcast[T],
-  f : async (@aqueue.Queue[T]) -> R,
+  f : async (ArrayView[T], @aqueue.Queue[T]) -> R,
 ) -> R {
-  let aqueue = @aqueue.new()
-  for event in self.buffer {
-    aqueue.put(event)
-  }
-  let index = for i in 0..<self.listener.length() {
+  let aq = @aqueue.new()
+  let hist = self.buffer.copy()
+  let i = for i in 0..<self.listener.length() {
     if self.listener[i] is None {
-      self.listener[i] = Some(aqueue)
+      self.listener[i] = Some(aq)
       break i
     }
   } else {
-    let index = self.listener.length()
-    self.listener.push(Some(aqueue))
-    index
+    let i = self.listener.length()
+    self.listener.push(Some(aq))
+    i
   }
-  let value = f(aqueue)
-  self.listener[index] = None
-  value
+  defer {
+    self.listener[i] = None
+  }
+  f(hist, aq)
 }
