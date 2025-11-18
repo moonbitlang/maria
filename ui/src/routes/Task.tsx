@@ -110,7 +110,7 @@ function TaskInput({ taskId }: { taskId: string }) {
                   </div>
                   <button
                     onClick={() => handleRemoveFromQueue(index)}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer p-1 rounded hover:bg-destructive/10"
+                    className="shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer p-1 rounded hover:bg-destructive/10"
                     aria-label="Remove from queue"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
