@@ -5,8 +5,5 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino"
   ],
-  "test-import": [
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/async"
-  ]
+  "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
 }

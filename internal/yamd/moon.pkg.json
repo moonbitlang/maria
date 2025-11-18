@@ -1,5 +1,3 @@
 {
-  "import": [
-    "moonbitlang/maria/internal/yaml"
-  ]
+  "import": ["moonbitlang/maria/internal/yaml"]
 }

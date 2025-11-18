@@ -4,8 +4,5 @@
     "moonbitlang/maria/openai",
     "moonbitlang/maria/internal/pino"
   ],
-  "wbtest-import": [
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/async"
-  ]
+  "wbtest-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
 }

@@ -1,8 +1,4 @@
 {
-  "import": [
-    "moonbitlang/async/aqueue"
-  ],
-  "test-import": [
-    "moonbitlang/async"
-  ]
+  "import": ["moonbitlang/async/aqueue"],
+  "test-import": ["moonbitlang/async"]
 }

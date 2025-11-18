@@ -4,8 +4,5 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/moon"
   ],
-  "wbtest-import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/internal/mock"
-  ]
+  "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }
