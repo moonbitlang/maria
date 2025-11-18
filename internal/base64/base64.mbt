@@ -44,19 +44,19 @@ fn char_to_index(char : Char, url_safe : Bool) -> Int raise DecodeError {
 }
 
 ///|
-struct Encoder {
+priv struct Encoder {
   mut i : Int
   mut buffer : Int
 }
 
 ///|
-pub fn Encoder::new() -> Encoder {
+fn Encoder::new() -> Encoder {
   { i: 0, buffer: 0 }
 }
 
 ///|
 #locals(cb)
-pub fn Encoder::encode_to(
+fn Encoder::encode_to(
   self : Encoder,
   bytes : BytesView,
   cb : (Char) -> Unit,
@@ -118,19 +118,19 @@ pub fn encode(bytes : BytesView, url_safe? : Bool = false) -> String {
 }
 
 ///|
-struct Decoder {
+priv struct Decoder {
   mut i : Int
   mut buffer : Int
 }
 
 ///|
-pub fn Decoder::new() -> Decoder {
+fn Decoder::new() -> Decoder {
   { i: 0, buffer: 0 }
 }
 
 ///|
 #locals(cb)
-pub fn Decoder::decode_to(
+fn Decoder::decode_to(
   self : Decoder,
   input : StringView,
   cb : (Byte) -> Unit,

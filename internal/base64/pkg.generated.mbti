@@ -13,13 +13,6 @@ pub suberror DecodeError {
 impl Show for DecodeError
 
 // Types and methods
-type Decoder
-fn Decoder::decode_to(Self, StringView, (Byte) -> Unit, url_safe? : Bool) -> Unit raise DecodeError
-fn Decoder::new() -> Self
-
-type Encoder
-fn Encoder::encode_to(Self, BytesView, (Char) -> Unit, url_safe? : Bool, padding? : Bool) -> Unit
-fn Encoder::new() -> Self
 
 // Type aliases
 
