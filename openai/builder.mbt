@@ -142,7 +142,6 @@ fn ChatCompletionChoiceBuilder::to_choice(
     finish_reason: self.finish_reason,
     index: self.index,
     message: self.message.to_message(),
-    logprobs: None,
   }
 }
 
