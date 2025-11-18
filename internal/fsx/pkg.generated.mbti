@@ -16,6 +16,8 @@ async fn mkdtemp(String) -> String
 
 async fn read_file(StringView) -> String
 
+fn readlink(String, bufsize? : UInt64) -> String raise
+
 async fn remove(StringView) -> Unit
 
 async fn resolve(StringView) -> String

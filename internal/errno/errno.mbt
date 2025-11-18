@@ -63,3 +63,15 @@ extern "c" fn errno_get() -> Int = "moonbit_maria_errno_get"
 pub fn get() -> Int {
   errno_get()
 }
+
+///|
+extern "c" fn errno_ENOENT() -> Int = "moonbit_maria_errno_ENOENT"
+
+///|
+pub let enoent : Int = errno_ENOENT()
+
+///|
+extern "c" fn errno_EINVAL() -> Int = "moonbit_maria_errno_EINVAL"
+
+///|
+pub let einval : Int = errno_EINVAL()
