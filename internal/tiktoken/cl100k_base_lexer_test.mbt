@@ -36,9 +36,7 @@ test "snapshot cl100k_base" (t : @test.Test) {
     "text\n", "\n\r\n\r", "\"can't\" 'won't' `don't`", "1234567890123456789", "¡¿¡¿ «»«» ''‚„‚„",
     "word123 test456 abc789", "!@#$%^&*()_+-=[]{}|;':\",./<>?", " start  end ", "漢字abc한글def مرحباghi",
     "word   end", "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"path\": {\n      \"type\": \"string\",\n      \"description\": \"The directory path to list files from\"\n    }\n  },\n  \"required\": [\n    \"path\"\n  ]\n}",
-    "line1\nline2\rline3\r\nline4", "!!! \t\n ??? \r\n ... ",
-    // This example is inconsistent with fancy-regex based lexer.
-    // "\n  start middle end  \t",
+    "line1\nline2\rline3\r\nline4", "!!! \t\n ??? \r\n ... ", "\n  start middle end  \t",
   ]
   let data = []
   for text in text {
