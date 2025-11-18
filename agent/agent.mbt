@@ -29,6 +29,9 @@ pub struct Agent {
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
   priv mut queue : Array[@openai.ChatCompletionMessageParam]
+  priv pending_queue : @deque.Deque[
+    (@uuid.Uuid, @openai.ChatCompletionMessageParam),
+  ]
   priv event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
@@ -59,6 +62,26 @@ pub async fn Agent::add_message(
 ) -> Unit {
   agent.queue.push(message)
   agent.emit(MessageAdded(message))
+}
+
+///|
+/// Queues a message to be sent to the AI model in the next round of
+/// conversation.
+pub async fn Agent::queue_message(
+  agent : Agent,
+  message : @openai.ChatCompletionMessageParam,
+) -> @uuid.Uuid {
+  let id = agent.uuid.v4()
+  agent.pending_queue.push_back((id, message))
+  agent.emit(MessageQueued(id~, message))
+  id
+}
+
+///|
+pub fn Agent::queued_messages(
+  self : Agent,
+) -> ArrayView[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
+  self.pending_queue.to_array()
 }
 
 ///|
@@ -269,6 +292,15 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     // Signal the start of conversation
     agent.emit(PreConversation)
     while true {
+      // Test if the agent.queue is empty, if so, pop from pending_queue
+      if agent.queue.is_empty() &&
+        agent.pending_queue.pop_front() is Some((id, message)) {
+        agent.emit(MessageUnqueued(id~))
+        agent.add_message(message)
+      }
+      if agent.queue.is_empty() {
+        break
+      }
       // Build the tools array for this API call
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
@@ -317,11 +349,6 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.history.add_message(message.to_param())
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
-      // Check if the model returned any tool calls
-      // If not, the conversation is complete
-      if message.tool_calls is [] {
-        break
-      }
       // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
         agent.add_message(agent.execute_tool(call))
@@ -388,6 +415,7 @@ pub async fn new(
     model,
     tools: {},
     queue: [],
+    pending_queue: @deque.Deque::new(),
     event_target: @event.EventTarget::new(),
     token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context.Pruner::new(

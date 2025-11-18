@@ -41,6 +41,10 @@ pub(all) enum Event {
   ///
   /// FIXME: emit this event for assistant messages as well.
   MessageAdded(@openai.ChatCompletionMessageParam)
+  /// Event triggered when a message is unqueued from the pending queue.
+  MessageUnqueued(id~ : @uuid.Uuid)
+  /// Event triggered when a message is queued to be sent to the model.
+  MessageQueued(id~ : @uuid.Uuid, @openai.ChatCompletionMessageParam)
   /// Event triggered when a tool is added to the agent. This message will only
   /// be triggered once per agent instance.
   ToolAdded(@tool.ToolDesc)
@@ -182,6 +186,10 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
     MessageAdded(message) => { "msg": "MessageAdded", "message": message }
+    MessageQueued(id~, message) =>
+      { "msg": "MessageQueued", "message": { "id": id, "message": message } }
+    MessageUnqueued(id~) =>
+      { "msg": "MessageUnqueued", "message": { "id": id } }
     ToolAdded(tool_desc) =>
       {
         "msg": "ToolAdded",

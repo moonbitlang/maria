@@ -2,6 +2,7 @@
 package "moonbitlang/maria/event"
 
 import(
+  "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
 )
@@ -15,6 +16,8 @@ pub(all) enum Event {
   PreConversation
   PostConversation
   MessageAdded(@openai.ChatCompletionMessageParam)
+  MessageUnqueued(id~ : @uuid.Uuid)
+  MessageQueued(id~ : @uuid.Uuid, @openai.ChatCompletionMessageParam)
   ToolAdded(@tool.ToolDesc)
   PreToolCall(@openai.ChatCompletionMessageToolCall)
   PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : Result[Json, Error], rendered~ : String)

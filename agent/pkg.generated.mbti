@@ -31,6 +31,8 @@ async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Un
 async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit
 async fn Agent::emit(Self, @event.Event) -> Unit
+async fn Agent::queue_message(Self, @openai.ChatCompletionMessageParam) -> @uuid.Uuid
+fn Agent::queued_messages(Self) -> ArrayView[(@uuid.Uuid, @openai.ChatCompletionMessageParam)]
 async fn Agent::start(Self) -> Unit
 
 // Type aliases
