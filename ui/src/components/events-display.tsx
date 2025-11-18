@@ -12,7 +12,6 @@ import {
   type PostToolCallEvent,
   type ReadFileTool,
   type RequestCompletedEvent,
-  type TaskEvent,
 } from "@/lib/types";
 import {
   Tool,
@@ -33,9 +32,11 @@ import {
   XCircle,
   Terminal,
 } from "lucide-react";
+import { useAppSelector } from "@/app/hooks";
+import { selectTaskEvents } from "@/features/session/tasksSlice";
 
 interface EventsDisplayProps {
-  events: TaskEvent[];
+  taskId: string;
 }
 
 function ShowMessageAdded({ event }: { event: MessageAddedEvent }) {
@@ -345,7 +346,9 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 }
 
 export function EventsDisplay(props: EventsDisplayProps) {
-  const { events } = props;
+  const { taskId } = props;
+  const events =
+    useAppSelector((state) => selectTaskEvents(state, taskId)) ?? [];
 
   return (
     <Conversation className="min-h-0">
@@ -359,7 +362,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
             case "RequestCompleted":
               return <ShowRequestCompleted key={i} event={event} />;
             default: {
-              return <></>;
+              return null;
             }
           }
         })}

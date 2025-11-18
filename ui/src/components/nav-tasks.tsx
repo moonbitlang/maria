@@ -1,5 +1,3 @@
-"use client";
-
 import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 
 import {
@@ -37,7 +35,7 @@ export function NavTasks() {
   return (
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel asChild>
+        <SidebarGroupLabel className="text-base opacity-60 font-normal" asChild>
           <CollapsibleTrigger className="cursor-pointer">
             Tasks
             <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -51,6 +49,7 @@ export function NavTasks() {
               return (
                 <SidebarMenuItem key={id}>
                   <SidebarMenuButton
+                    className="text-base"
                     tooltip={name}
                     asChild
                     isActive={isActive}

@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import { useAppSelector } from "@/app/hooks";
+import { selectTaskTodos } from "@/features/session/tasksSlice";
 
 interface AgentTodosProps {
-  todos: Todo[];
+  taskId: string;
 }
 
 function getStatusIcon(status: Todo["status"]) {
@@ -114,14 +116,16 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
   );
 }
 
-export function AgentTodos({ todos }: AgentTodosProps) {
+export function AgentTodos({ taskId }: AgentTodosProps) {
+  const todos = useAppSelector((state) => selectTaskTodos(state, taskId));
   const [expandTodos, setExpandTodos] = useState<boolean>(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const { completed, inProgress, pending } = computeTodoMetrics(todos);
 
-  if (todos.length === 0) {
+  if (todos === undefined || todos.length === 0) {
     return null;
   }
+
+  const { completed, inProgress, pending } = computeTodoMetrics(todos);
 
   const toggleExpanded = (id: string) => {
     setExpandedIds((prev) => {

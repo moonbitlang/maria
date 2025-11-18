@@ -8,6 +8,8 @@ import {
   type TodoWriteTool,
 } from "@/lib/types";
 import {
+  pushEventForTask,
+  removeFromInputQueueForTask,
   setTask,
   setTasks,
   updateTodosForTask,
@@ -26,6 +28,11 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     task: builder.query<{ task: TaskOverview }, string>({
       query: (id) => `task/${id}`,
+      async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
+        const res = await queryFulfilled;
+        const task = res.data.task;
+        dispatch(setTask(task));
+      },
     }),
 
     newTask: builder.mutation<{ task: NamedId }, string>({
@@ -44,7 +51,10 @@ export const apiSlice = createApi({
       invalidatesTags: ["Tasks"],
     }),
 
-    postMessage: builder.mutation<void, { taskId: string; content: string }>({
+    postMessage: builder.mutation<
+      { id: string; queued: boolean },
+      { taskId: string; content: string }
+    >({
       query: ({ taskId, content }) => ({
         url: `task/${taskId}/message`,
         method: "POST",
@@ -93,43 +103,18 @@ export const apiSlice = createApi({
       },
     }),
 
-    taskEvents: builder.query<TaskEvent[], string>({
-      queryFn: () => ({ data: [] }),
+    taskEvents: builder.query<undefined, string>({
+      queryFn: () => ({ data: undefined }),
       keepUnusedDataFor: 0,
       async onCacheEntryAdded(
         id,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch },
+        { cacheDataLoaded, cacheEntryRemoved, dispatch },
       ) {
         // create a sse connection when the cache subscription starts
         const source = new EventSource(`${BASE_URL}/task/${id}/events`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
-
-          source.addEventListener(
-            "maria.history",
-            (event: MessageEvent<string>) => {
-              const events = JSON.parse(event.data) as TaskEvent[];
-              for (let i = events.length - 1; i >= 0; i--) {
-                const event = events[i];
-                if (
-                  event.msg === "PostToolCall" &&
-                  event.name === "todo_write"
-                ) {
-                  const result = (event as TodoWriteTool).result;
-                  dispatch(
-                    updateTodosForTask({
-                      taskId: id,
-                      todos: result.todos,
-                    }),
-                  );
-                }
-              }
-              updateCachedData((draft) => {
-                draft.splice(0, draft.length, ...events);
-              });
-            },
-          );
 
           source.addEventListener("maria", (event: MessageEvent<string>) => {
             const data = JSON.parse(event.data) as TaskEvent;
@@ -147,10 +132,17 @@ export const apiSlice = createApi({
                   );
                 }
 
-                updateCachedData((draft) => {
-                  draft.push(data);
-                });
+                dispatch(pushEventForTask({ taskId: id, event: data }));
 
+                return;
+              }
+              case "MessageUnqueued": {
+                dispatch(
+                  removeFromInputQueueForTask({
+                    taskId: id,
+                    id: data.message.id,
+                  }),
+                );
                 return;
               }
               default:

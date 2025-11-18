@@ -31,6 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem key="New Task">
               <SidebarMenuButton
+                className="text-base"
                 tooltip="New Task"
                 isActive={activeTaskId === undefined}
                 onClick={(e) => {

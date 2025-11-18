@@ -1,5 +1,5 @@
 type TaskEventBase = {
-  time: number;
+  id: number;
 };
 
 export type TaskEvent = TaskEventBase &
@@ -8,7 +8,13 @@ export type TaskEvent = TaskEventBase &
     | PostToolCallEvent
     | MessageAddedEvent
     | PostConversationEvent
+    | MessageUnqueuedEvent
   );
+
+type MessageUnqueuedEvent = {
+  msg: "MessageUnqueued";
+  message: { id: string };
+};
 
 type PostConversationEvent = {
   msg: "PostConversation";
@@ -156,6 +162,7 @@ export type Status = "idle" | "generating";
 
 export type TaskOverview = NamedId & {
   status: Status;
+  created: number;
 };
 
 export type DaemonTaskSyncEvent = {

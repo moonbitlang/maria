@@ -17,17 +17,14 @@ import {
   useTaskQuery,
 } from "@/features/api/apiSlice";
 import {
-  selectTask,
   selectTaskInput,
   setActiveTaskId,
   setInputForTask,
-  defaultTask,
   selectConversationStatus,
   addToInputQueueForTask,
   selectInputQueue,
-  removeNthFromInputQueueForTask,
 } from "@/features/session/tasksSlice";
-import { Trash2, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
@@ -55,33 +52,22 @@ function TaskInput({ taskId }: { taskId: string }) {
     dispatch(setInputForTask({ taskId, input: value }));
   }
 
-  useEffect(() => {
-    // when conversation is idle, and there are queued inputs, send the next one
-    if (status === "idle" && inputQueue.length > 0) {
-      const nextInput = inputQueue[0];
-      dispatch(removeNthFromInputQueueForTask({ taskId, n: 0 }));
-      postMessage({ taskId, content: nextInput });
-    }
-  }, [status, inputQueue, dispatch, postMessage, taskId]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    switch (status) {
-      case "generating": {
-        // queue the input
-        dispatch(addToInputQueueForTask({ taskId, input: input.trim() }));
-        break;
+    const content = input.trim();
+    const { data, error } = await postMessage({
+      taskId,
+      content,
+    });
+    if (data) {
+      const { id, queued } = data;
+      if (queued) {
+        dispatch(addToInputQueueForTask({ taskId, message: { id, content } }));
       }
-      case "idle": {
-        await postMessage({ taskId, content: input.trim() });
-        break;
-      }
+    } else if (error) {
+      console.error(error);
     }
     setInput("");
-  };
-
-  const handleRemoveFromQueue = (index: number) => {
-    dispatch(removeNthFromInputQueueForTask({ taskId, n: index }));
   };
 
   return (
@@ -96,21 +82,14 @@ function TaskInput({ taskId }: { taskId: string }) {
             </span>
           </div>
           <ScrollArea className="max-h-32 bg-muted/30 overflow-y-auto rounded-lg border border-border/50 shadow-sm">
-            {inputQueue.map((item, index) => (
-              <Fragment key={index}>
+            {inputQueue.map(({ id, content }, index) => (
+              <Fragment key={id}>
                 <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors">
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-foreground/80 leading-relaxed">
-                      {item}
+                      {content}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleRemoveFromQueue(index)}
-                    className="shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer p-1 rounded hover:bg-destructive/10"
-                    aria-label="Remove from queue"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
                 </div>
                 {index < inputQueue.length - 1 && (
                   <Separator className="bg-border/30" />
@@ -158,11 +137,9 @@ export default function Task() {
   const taskId = params.taskId!;
   useSetActiveTaskId(taskId);
 
-  const { data, isLoading, isSuccess } = useTaskQuery(taskId);
+  const { isLoading, isSuccess } = useTaskQuery(taskId);
 
-  const { data: events } = useTaskEventsQuery(taskId, { skip: !isSuccess });
-
-  const task = useAppSelector((state) => selectTask(state, taskId));
+  useTaskEventsQuery(taskId, { skip: !isSuccess });
 
   if (isLoading) {
     return (
@@ -191,15 +168,10 @@ export default function Task() {
   }
 
   if (isSuccess) {
-    const apiTask = data.task;
-    const currentTask = task ?? defaultTask({ ...apiTask });
-
-    const { todos } = currentTask;
-
     return (
       <div className="flex-1 min-h-0 flex flex-col justify-end relative">
-        <AgentTodos todos={todos} />
-        <EventsDisplay events={events ?? []} />
+        <AgentTodos taskId={taskId} />
+        <EventsDisplay taskId={taskId} />
         <TaskInput taskId={taskId} />
       </div>
     );
