@@ -18,85 +18,123 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/v1/message", (req, res) => {
+const task = {
+  name: "Test Task",
+  id: "test",
+  conversationStatus: "generating",
+};
+
+const longTask = {
+  name: "A very long task name, to test UI handling of long names in various components",
+  id: "long-task",
+  conversationStatus: "generating",
+};
+
+const tasks = [task, longTask];
+
+app.get("/v1/tasks", (req, res) => {
   res.writeHead(200, "OK");
+  res.write(
+    JSON.stringify({
+      tasks: tasks,
+    }),
+  );
   res.end();
 });
 
-// Server-Sent Events endpoint
-app.get("/v1/events", async (req, res) => {
-  // Set headers for SSE
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no"); // Disable buffering in nginx
+for (const t of tasks) {
+  app.get(`/v1/task/${t.id}`, (req, res) => {
+    res.writeHead(200, "OK");
+    res.write(
+      JSON.stringify({
+        task: t,
+      }),
+    );
+    res.end();
+  });
 
-  // Send initial connection message
-  res.write(
-    'event: maria\ndata: {"type":"connected","timestamp":' +
-      Date.now() +
-      "}\n\n",
-  );
+  app.post(`/v1/task/${t.id}/message`, (req, res) => {
+    res.writeHead(200, "OK");
+    res.end();
+  });
 
-  const logFilePath = path.join(__dirname, "log.jsonl");
+  // Server-Sent Events endpoint
+  app.get(`/v1/task/${t.id}/events`, async (req, res) => {
+    // Set headers for SSE
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // Disable buffering in nginx
 
-  try {
-    // Check if file exists
-    if (!fs.existsSync(logFilePath)) {
-      res.write(
-        'event: maria\ndata: {"type":"error","message":"Log file not found"}\n\n',
-      );
-      return;
-    }
+    // Send initial connection message
+    res.write(
+      'event: maria\ndata: {"type":"connected","timestamp":' +
+        Date.now() +
+        "}\n\n",
+    );
 
-    // Create readline interface to read line by line
-    const fileStream = fs.createReadStream(logFilePath);
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity,
-    });
+    const logFilePath = path.join(__dirname, "log.jsonl");
 
-    let lineCount = 0;
+    try {
+      // Check if file exists
+      if (!fs.existsSync(logFilePath)) {
+        res.write(
+          'event: maria\ndata: {"type":"error","message":"Log file not found"}\n\n',
+        );
+        return;
+      }
 
-    // Read and send each line
-    for await (const line of rl) {
-      if (line.trim()) {
-        try {
-          // Validate JSON
-          JSON.parse(line);
+      // Create readline interface to read line by line
+      const fileStream = fs.createReadStream(logFilePath);
+      const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity,
+      });
 
-          // Send the event
-          res.write(`event: maria\ndata: ${line}\n\n`);
-          lineCount++;
+      let lineCount = 0;
 
-          // Small delay to simulate streaming (optional, can be removed for faster streaming)
-          await new Promise((resolve) => setTimeout(resolve, 10));
-        } catch (parseError) {
-          console.error("Invalid JSON line:", parseError.message);
+      // Read and send each line
+      for await (const line of rl) {
+        if (line.trim()) {
+          try {
+            // Validate JSON
+            JSON.parse(line);
+
+            // Send the event
+            res.write(`event: maria\ndata: ${line}\n\n`);
+            lineCount++;
+
+            // Small delay to simulate streaming (optional, can be removed for faster streaming)
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          } catch (parseError) {
+            console.error("Invalid JSON line:", parseError.message);
+          }
         }
       }
+
+      console.log(`Sent ${lineCount} events`);
+
+      // Send completion event
+      res.write(
+        'event: maria\ndata: {"type":"completed","count":' +
+          lineCount +
+          "}\n\n",
+      );
+    } catch (error) {
+      console.error("Error reading log file:", error);
+      res.write(
+        'event: maria\ndata: {"type":"error","message":"' +
+          error.message +
+          '"}\n\n',
+      );
     }
 
-    console.log(`Sent ${lineCount} events`);
-
-    // Send completion event
-    res.write(
-      'event: maria\ndata: {"type":"completed","count":' + lineCount + "}\n\n",
-    );
-  } catch (error) {
-    console.error("Error reading log file:", error);
-    res.write(
-      'event: maria\ndata: {"type":"error","message":"' +
-        error.message +
-        '"}\n\n',
-    );
-  }
-
-  // Handle client disconnect
-  req.on("close", () => {
-    console.log("Client disconnected");
+    // Handle client disconnect
+    req.on("close", () => {
+      console.log("Client disconnected");
+    });
   });
-});
+}
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -106,5 +144,4 @@ app.get("/health", (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Dev API server running on http://localhost:${PORT}`);
-  console.log(`Events endpoint: http://localhost:${PORT}/events`);
 });

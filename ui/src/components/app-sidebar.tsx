@@ -22,7 +22,9 @@ import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const activeTaskId = useAppSelector(selectActiveTaskId);
-  useTasksQuery();
+  useTasksQuery(undefined, {
+    pollingInterval: 500,
+  });
   const tasks = useAppSelector(selectTasks);
   const { isMobile, setOpenMobile } = useSidebar();
 
