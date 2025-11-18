@@ -6,7 +6,11 @@ let ebadf : Int
 
 let eexist : Int
 
+let einval : Int
+
 let enametoolong : Int
+
+let enoent : Int
 
 let enotty : Int
 

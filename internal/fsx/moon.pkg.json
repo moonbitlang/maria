@@ -15,5 +15,5 @@
     },
     "moonbitlang/maria/internal/mock"
   ],
-  "native-stub": ["stat.c", "mkdtemp.c"]
+  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c"]
 }
