@@ -5,8 +5,10 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Outlet } from "react-router";
+import { useEventsQuery } from "@/features/api/apiSlice";
 
 export function Layout() {
+  useEventsQuery();
   return (
     <SidebarProvider>
       <AppSidebar className="overflow-x-hidden" />
@@ -14,8 +16,8 @@ export function Layout() {
         {/* TODO: hide the header on desktop screen, move it to sidebar */}
         <header className="sticky top-0 z-10 flex items-center border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 md:hidden">
           <div className="flex items-center gap-3 px-4 py-3 w-full">
-            <SidebarTrigger className="scale-125" />
-            <h1 className="font-semibold text-lg tracking-tight">Maria</h1>
+            <SidebarTrigger className="scale-150" />
+            <h1 className="font-semibold text-xl tracking-tight">Moon Agent</h1>
           </div>
         </header>
         {/* <main className="flex-1 min-h-0 flex flex-col">

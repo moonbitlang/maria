@@ -21,13 +21,13 @@ app.use((req, res, next) => {
 const task = {
   name: "Test Task",
   id: "test",
-  conversationStatus: "generating",
+  status: "generating",
 };
 
 const longTask = {
   name: "A very long task name, to test UI handling of long names in various components",
   id: "long-task",
-  conversationStatus: "generating",
+  status: "generating",
 };
 
 const tasks = [task, longTask];
@@ -40,6 +40,32 @@ app.get("/v1/tasks", (req, res) => {
     }),
   );
   res.end();
+});
+
+app.get("/v1/events", (req, res) => {
+  // Set headers for SSE
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // Disable buffering in nginx
+
+  res.write(`event: daemon.tasks.synchronized
+data: ${JSON.stringify({ tasks })}
+
+`);
+
+  // Keep the connection open
+  const changedInterval = setInterval(() => {
+    res.write(`event: daemon.tasks.changed
+data: ${JSON.stringify({ task: { ...longTask, status: "idle" } })}
+
+`);
+  }, 500);
+
+  req.on("close", () => {
+    clearInterval(changedInterval);
+    res.end();
+  });
 });
 
 for (const t of tasks) {

@@ -152,4 +152,16 @@ export type NamedId = {
   id: string;
   name: string;
 };
-export type ConversationStatus = "idle" | "generating";
+export type Status = "idle" | "generating";
+
+export type TaskOverview = NamedId & {
+  status: Status;
+};
+
+export type DaemonTaskSyncEvent = {
+  tasks: TaskOverview[];
+};
+
+export type DaemonTaskChangeEvent = {
+  task: TaskOverview;
+};

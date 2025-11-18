@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { CheckCircle2, Circle, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/lib/types";
@@ -8,6 +8,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
 
 interface AgentTodosProps {
   todos: Todo[];
@@ -77,7 +79,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
     <Collapsible open={isExpanded} onOpenChange={onToggleExpanded}>
       <div
         className={cn(
-          "flex items-start gap-2 p-2 rounded border shadow-sm transition-colors",
+          "flex items-start gap-2 p-2 shadow-sm transition-colors",
           getStatusColor(todo.status),
         )}
       >
@@ -87,7 +89,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
             <div className="flex-1">
               <div
                 className={cn(
-                  "text-xs wrap-break-word",
+                  "text-sm wrap-break-word",
                   !isExpanded && "line-clamp-1",
                   todo.status === "Completed" &&
                     "line-through text-muted-foreground",
@@ -100,7 +102,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
               variant={"outline"}
               className={cn(
                 getPriorityColor(todo.priority),
-                "text-[10px] h-4 px-1",
+                "text-xs py-0.5 px-1",
               )}
             >
               {todo.priority}
@@ -134,21 +136,21 @@ export function AgentTodos({ todos }: AgentTodosProps) {
   };
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 pt-2">
       <Collapsible
         className="max-w-4xl mx-auto"
         open={expandTodos}
         onOpenChange={() => setExpandTodos(!expandTodos)}
       >
         <CollapsibleTrigger className="flex items-center gap-1.5 pb-2 w-full">
-          <div className="text-xs font-semibold text-foreground">Todos</div>
-          <Badge variant="outline" className="text-[10px] h-4 px-1">
+          <div className="font-semibold text-foreground">Todos</div>
+          <Badge variant="outline" className="p1">
             {completed} Completed
           </Badge>
-          <Badge variant="outline" className="text-[10px] h-4 px-1">
+          <Badge variant="outline" className="p1">
             {inProgress} In Progress
           </Badge>
-          <Badge variant="outline" className="text-[10px] h-4 px-1">
+          <Badge variant="outline" className="p1">
             {pending} Pending
           </Badge>
           <ChevronDown
@@ -159,15 +161,21 @@ export function AgentTodos({ todos }: AgentTodosProps) {
           />
         </CollapsibleTrigger>
 
-        <CollapsibleContent className="space-y-1.5">
-          {todos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              isExpanded={expandedIds.has(todo.id)}
-              onToggleExpanded={() => toggleExpanded(todo.id)}
-            />
-          ))}
+        <CollapsibleContent>
+          <ScrollArea className="max-h-3/5 overflow-y-auto rounded-lg border shadow-sm">
+            {todos.map((todo, index) => (
+              <Fragment key={todo.id}>
+                <TodoItem
+                  todo={todo}
+                  isExpanded={expandedIds.has(todo.id)}
+                  onToggleExpanded={() => toggleExpanded(todo.id)}
+                />
+                {index < todos.length - 1 && (
+                  <Separator className="bg-border/30" />
+                )}
+              </Fragment>
+            ))}
+          </ScrollArea>
         </CollapsibleContent>
       </Collapsible>
     </div>

@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useEventsQuery,
+  useTaskEventsQuery,
   usePostMessageMutation,
   useTaskQuery,
 } from "@/features/api/apiSlice";
@@ -26,7 +26,6 @@ import {
   addToInputQueueForTask,
   selectInputQueue,
   removeNthFromInputQueueForTask,
-  setConverstationStatusForTask,
 } from "@/features/session/tasksSlice";
 import { Trash2, Clock } from "lucide-react";
 import { Fragment, useEffect } from "react";
@@ -47,7 +46,7 @@ function TaskInput({ taskId }: { taskId: string }) {
   const inputQueue = useAppSelector((state) =>
     selectInputQueue(state, taskId),
   )!;
-  const conversationStatus = useAppSelector((state) =>
+  const status = useAppSelector((state) =>
     selectConversationStatus(state, taskId),
   )!;
   const [postMessage] = usePostMessageMutation();
@@ -58,26 +57,23 @@ function TaskInput({ taskId }: { taskId: string }) {
 
   useEffect(() => {
     // when conversation is idle, and there are queued inputs, send the next one
-    if (conversationStatus === "idle" && inputQueue.length > 0) {
+    if (status === "idle" && inputQueue.length > 0) {
       const nextInput = inputQueue[0];
       dispatch(removeNthFromInputQueueForTask({ taskId, n: 0 }));
       postMessage({ taskId, content: nextInput });
     }
-  }, [conversationStatus, inputQueue, dispatch, postMessage, taskId]);
+  }, [status, inputQueue, dispatch, postMessage, taskId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    switch (conversationStatus) {
+    switch (status) {
       case "generating": {
         // queue the input
         dispatch(addToInputQueueForTask({ taskId, input: input.trim() }));
         break;
       }
       case "idle": {
-        postMessage({ taskId, content: input.trim() });
-        dispatch(
-          setConverstationStatusForTask({ taskId, status: "generating" }),
-        );
+        await postMessage({ taskId, content: input.trim() });
         break;
       }
     }
@@ -92,7 +88,7 @@ function TaskInput({ taskId }: { taskId: string }) {
     <div className="p-4 flex flex-col">
       {inputQueue.length > 0 && (
         <div className="max-w-4xl w-full mx-auto mb-2 min-h-0 animate-in fade-in slide-in-from-bottom-0 duration-300">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2 px-1">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2 px-1">
             <Clock className="h-3.5 w-3.5" />
             <span>
               {inputQueue.length} queued{" "}
@@ -102,7 +98,7 @@ function TaskInput({ taskId }: { taskId: string }) {
           <ScrollArea className="max-h-32 bg-muted/30 overflow-y-auto rounded-lg border border-border/50 shadow-sm">
             {inputQueue.map((item, index) => (
               <Fragment key={index}>
-                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors text-sm">
+                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors">
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-foreground/80 leading-relaxed">
                       {item}
@@ -137,7 +133,7 @@ function TaskInput({ taskId }: { taskId: string }) {
           }
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            conversationStatus === "generating"
+            status === "generating"
               ? "Agent is working..."
               : "Input your task..."
           }
@@ -164,7 +160,7 @@ export default function Task() {
 
   const { data, isLoading, isSuccess } = useTaskQuery(taskId);
 
-  const { data: events } = useEventsQuery(taskId, { skip: !isSuccess });
+  const { data: events } = useTaskEventsQuery(taskId, { skip: !isSuccess });
 
   const task = useAppSelector((state) => selectTask(state, taskId));
 

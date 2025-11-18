@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -17,10 +17,20 @@ import {
 } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/app/hooks";
-import { selectActiveTaskId } from "@/features/session/tasksSlice";
-import type { TaskOverview } from "@/features/api/apiSlice";
+import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
+import type { Status } from "@/lib/types";
 
-export function NavTasks({ tasks }: { tasks: TaskOverview[] }) {
+function getTaskIcon(status: Status) {
+  switch (status) {
+    case "generating":
+      return <Loader2 className="h-4 w-4 ml-auto animate-spin" />;
+    case "idle":
+      return <CheckCircle2 className="h-4 w-4 ml-auto text-green-600" />;
+  }
+}
+
+export function NavTasks() {
+  const tasks = useAppSelector(selectTasks);
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -35,10 +45,9 @@ export function NavTasks({ tasks }: { tasks: TaskOverview[] }) {
         </SidebarGroupLabel>
         <CollapsibleContent>
           <SidebarMenu>
-            {tasks.map(({ name, id, conversationStatus }) => {
+            {tasks.map(({ name, id, status }) => {
               const url = `tasks/${id}`;
               const isActive = activeTaskId === id;
-              const isGenerating = conversationStatus === "generating";
               return (
                 <SidebarMenuItem key={id}>
                   <SidebarMenuButton
@@ -55,9 +64,7 @@ export function NavTasks({ tasks }: { tasks: TaskOverview[] }) {
                   >
                     <a href={url}>
                       <span className="truncate">{name}</span>
-                      {isGenerating && (
-                        <Loader2 className="ml-auto h-4 w-4 shrink-0 animate-spin" />
-                      )}
+                      {getTaskIcon(status)}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

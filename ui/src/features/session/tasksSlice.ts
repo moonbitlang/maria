@@ -1,6 +1,6 @@
 import { createAppSlice } from "@/app/createAppSlice";
 import type { RootState } from "@/app/store";
-import type { ConversationStatus, NamedId, Todo } from "@/lib/types";
+import type { Status, NamedId, TaskOverview, Todo } from "@/lib/types";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
 // LocalStorage key for persisting input queues
@@ -34,7 +34,7 @@ function loadInputQueue(taskId: string): string[] {
 type Task = NamedId & {
   todos: Todo[];
   chatInput: string;
-  conversationStatus: ConversationStatus;
+  status: Status;
   inputQueue: string[];
 };
 
@@ -44,7 +44,7 @@ export function defaultTask(
   return {
     todos: [],
     chatInput: "",
-    conversationStatus: "idle",
+    status: "idle",
     inputQueue: [],
     ...params,
   };
@@ -71,12 +71,24 @@ export const tasksSlice = createAppSlice({
     newTask(state, action: PayloadAction<NamedId>) {
       const { id, name } = action.payload;
       if (!state.tasks[id]) {
-        const inputQueue = loadInputQueue(id);
-        state.tasks[id] = defaultTask({ name, id, inputQueue });
+        state.tasks[id] = defaultTask({
+          name,
+          id,
+          status: "generating",
+        });
       }
     },
 
-    setTasks(state, action: PayloadAction<NamedId[]>) {
+    setTask(state, action: PayloadAction<TaskOverview>) {
+      const t = action.payload;
+      const task = state.tasks[t.id];
+      if (task) {
+        task.name = t.name;
+        task.status = t.status;
+      }
+    },
+
+    setTasks(state, action: PayloadAction<TaskOverview[]>) {
       for (const t of action.payload) {
         if (!state.tasks[t.id]) {
           const inputQueue = loadInputQueue(t.id);
@@ -93,20 +105,6 @@ export const tasksSlice = createAppSlice({
       const task = state.tasks[taskId];
       if (task) {
         task.todos = todos;
-      }
-    },
-
-    setConverstationStatusForTask(
-      state,
-      action: PayloadAction<{
-        taskId: string;
-        status: ConversationStatus;
-      }>,
-    ) {
-      const { taskId, status } = action.payload;
-      const task = state.tasks[taskId];
-      if (task) {
-        task.conversationStatus = status;
       }
     },
 
@@ -166,9 +164,9 @@ export const tasksSlice = createAppSlice({
     selectConversationStatus(
       state: TasksSliceState,
       taskId: string,
-    ): ConversationStatus | undefined {
+    ): Status | undefined {
       const task = state.tasks[taskId];
-      return task?.conversationStatus;
+      return task?.status;
     },
 
     selectInputQueue(
@@ -183,11 +181,11 @@ export const tasksSlice = createAppSlice({
 
 export const {
   newTask,
+  setTask,
   setTasks,
   updateTodosForTask,
   setActiveTaskId,
   setInputForTask,
-  setConverstationStatusForTask,
   addToInputQueueForTask,
   removeNthFromInputQueueForTask,
 } = tasksSlice.actions;
