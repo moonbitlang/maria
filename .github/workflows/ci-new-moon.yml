@@ -21,10 +21,14 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
-    env: 
+    env:
       NEW_MOON: 1
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +86,7 @@ jobs:
   info:
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       NEW_MOON: 1
 
     steps:
@@ -113,8 +117,8 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
-        
-    env: 
+
+    env:
       NEW_MOON: 1
 
     steps:
