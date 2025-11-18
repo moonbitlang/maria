@@ -156,7 +156,7 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
       if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
         continue
       }
-      event["event-id"] = i.to_json()
+      event["id"] = i.to_json()
       let event = Json::object(event)
       w.write("event: maria\n")
       w.write("data: \{event.stringify()}\n\n")

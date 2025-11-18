@@ -20,6 +20,7 @@ priv struct Task {
   cwd : String
   port : Int
   mut status : @server.Status
+  created : Int64
 }
 
 ///|
@@ -30,6 +31,10 @@ impl ToJson for Task with to_json(self : Task) -> Json {
     "cwd": self.cwd,
     "port": self.port,
     "status": self.status,
+    "created": Json::number(
+      self.created.to_double(),
+      repr=self.created.to_string(),
+    ),
   }
 }
 
@@ -41,6 +46,7 @@ test "Task::ToJson" {
     cwd: "/tmp/example",
     port: 8080,
     status: @server.Idle,
+    created: 0,
   }
   @json.inspect(task, content={
     "name": ["example"],
@@ -48,11 +54,13 @@ test "Task::ToJson" {
     "cwd": "/tmp/example",
     "port": 8080,
     "status": "idle",
+    "created": 0,
   })
 }
 
 ///|
 priv struct Daemon {
+  clock : &@clock.Clock
   models : @model.Loader
   uuid : @uuid.Generator
   process : @spawn.Manager
@@ -319,7 +327,8 @@ async fn Daemon::create_task(
   println(
     "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
-  let task = Task::{ name, id, cwd, port: task_port, status: Idle }
+  let created = self.clock.now() / 1_000
+  let task = Task::{ name, id, cwd, port: task_port, status: Idle, created }
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
@@ -774,7 +783,9 @@ async fn main {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
   let logger = @pino.logger("daemon", @pino.Transport::console())
+  let clock = @clock.epoch
   let daemon = Daemon::{
+    clock,
     models: @model.Loader::new(home=@os.home(), cwd=@os.cwd(), logger~),
     uuid: @uuid.generator(@rand.chacha8()),
     process: @spawn.Manager::new(cwd=@os.cwd()),
