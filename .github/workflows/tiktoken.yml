@@ -62,5 +62,5 @@ jobs:
 
       - name: Consistency test  
         run: | 
-          cargo run 
+          cargo run --quiet
         working-directory: ./internal/tiktoken/tiktoken_lexer_rs/
