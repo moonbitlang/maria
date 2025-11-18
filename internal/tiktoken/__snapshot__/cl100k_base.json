@@ -972,7 +972,8 @@
     {
       "text": "\n  start middle end  \t",
       "pieces": [
-        "\n ",
+        "\n",
+        " ",
         " start",
         " middle",
         " end",
