@@ -9,13 +9,13 @@ import { Outlet } from "react-router";
 export function Layout() {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar className="overflow-x-hidden" />
       <SidebarInset className="flex flex-col h-dvh overflow-x-hidden">
         {/* TODO: hide the header on desktop screen, move it to sidebar */}
-        <header className="flex items-center md:p-2">
-          <div className="flex items-center md:hidden gap-3 p-2">
-            <SidebarTrigger className="scale-150" />
-            <h1 className="font-semibold text-xl">Maria</h1>
+        <header className="sticky top-0 z-10 flex items-center border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 md:hidden">
+          <div className="flex items-center gap-3 px-4 py-3 w-full">
+            <SidebarTrigger className="scale-125" />
+            <h1 className="font-semibold text-lg tracking-tight">Maria</h1>
           </div>
         </header>
         {/* <main className="flex-1 min-h-0 flex flex-col">
