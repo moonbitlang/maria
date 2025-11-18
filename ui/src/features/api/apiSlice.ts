@@ -107,52 +107,70 @@ export const apiSlice = createApi({
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
 
-          source.addEventListener("maria", (event: MessageEvent<string>) => {
-            try {
-              const data = JSON.parse(event.data) as TaskEvent;
-              switch (data.msg) {
-                case "RequestCompleted":
-                case "PostToolCall":
-                case "MessageAdded": {
-                  if (
-                    data.msg === "PostToolCall" &&
-                    data.name === "todo_write"
-                  ) {
-                    const result = (data as TodoWriteTool).result;
-                    dispatch(
-                      updateTodosForTask({
-                        taskId: id,
-                        todos: result.todos,
-                      }),
-                    );
-                  }
-
+          source.addEventListener(
+            "maria.history",
+            (event: MessageEvent<string>) => {
+              const events = JSON.parse(event.data) as TaskEvent[];
+              for (let i = events.length - 1; i >= 0; i--) {
+                const event = events[i];
+                if (
+                  event.msg === "PostToolCall" &&
+                  event.name === "todo_write"
+                ) {
+                  const result = (event as TodoWriteTool).result;
                   dispatch(
-                    setConverstationStatusForTask({
+                    updateTodosForTask({
                       taskId: id,
-                      status: "generating",
+                      todos: result.todos,
                     }),
                   );
-
-                  updateCachedData((draft) => {
-                    draft.push(data);
-                  });
-
-                  return;
                 }
-                case "PostConversation": {
-                  dispatch(
-                    setConverstationStatusForTask({
-                      taskId: id,
-                      status: "idle",
-                    }),
-                  );
-                  return;
-                }
-                default:
               }
-            } catch (e) {
-              console.error("Failed to parse SSE event data", e);
+              updateCachedData((draft) => {
+                draft.splice(0, draft.length, ...events);
+              });
+            },
+          );
+
+          source.addEventListener("maria", (event: MessageEvent<string>) => {
+            const data = JSON.parse(event.data) as TaskEvent;
+            switch (data.msg) {
+              case "RequestCompleted":
+              case "PostToolCall":
+              case "MessageAdded": {
+                if (data.msg === "PostToolCall" && data.name === "todo_write") {
+                  const result = (data as TodoWriteTool).result;
+                  dispatch(
+                    updateTodosForTask({
+                      taskId: id,
+                      todos: result.todos,
+                    }),
+                  );
+                }
+
+                dispatch(
+                  setConverstationStatusForTask({
+                    taskId: id,
+                    status: "generating",
+                  }),
+                );
+
+                updateCachedData((draft) => {
+                  draft.push(data);
+                });
+
+                return;
+              }
+              case "PostConversation": {
+                dispatch(
+                  setConverstationStatusForTask({
+                    taskId: id,
+                    status: "idle",
+                  }),
+                );
+                return;
+              }
+              default:
             }
           });
         } catch {
