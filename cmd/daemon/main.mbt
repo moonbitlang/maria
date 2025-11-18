@@ -28,9 +28,99 @@ priv struct Daemon {
   process : @spawn.Manager
   by_cwd : Map[String, Server]
   by_id : Map[@uuid.Uuid, Server]
-  register_queues : Map[String, @aqueue.Queue[Int]]
+  rqs : Map[String, @aqueue.Queue[Int]]
   exec_path : String
   port : Int
+  events : @broadcast.Broadcast[Event]
+}
+
+///|
+priv enum Event {
+  StatusChange(id~ : @uuid.Uuid, status~ : @server.Status)
+}
+
+///|
+async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
+  w.send_response(200, "OK", extra_headers={
+    "Content-Type": "text/event-stream",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "X-Accel-Buffering": "no",
+  })
+  let tasks : Array[Json] = []
+  for _, server in self.by_cwd {
+    let status = self.get_task_status(server.id.to_string()).to_json()
+    tasks.push({
+      "name": server.name,
+      "id": server.id.to_string(),
+      "cwd": server.cwd,
+      "port": server.port,
+      "status": status,
+    })
+  }
+  w.write("event: daemon.tasks.synchronized\n")
+  let data : Json = { "tasks": tasks }
+  w.write("data: \{data}\n\n")
+  self.events.listen((_, chan) => loop chan.get() {
+    StatusChange(id~, status~) => {
+      let data : Json = {
+        "task": {
+          "name": self.by_id[id].name,
+          "id": id.to_string(),
+          "cwd": self.by_id[id].cwd,
+          "port": self.by_id[id].port,
+          "status": status.to_json(),
+        },
+      }
+      w.write("event: daemon.task.changed\n")
+      w.write("data: \{data}\n\n")
+      w.flush()
+      continue chan.get()
+    }
+  })
+}
+
+///|
+async fn Daemon::listen_for_status_change(self : Daemon, peer : Server) -> Unit {
+  println(
+    "[INFO] (Daemon) Listening for status changes from task \{peer.id}...",
+  )
+  let (er, eb) = @http.get_stream("http://localhost/v1/events", port=peer.port)
+  defer eb.close()
+  guard er.code is (200..=299) else {
+    raise json_error(500, "Internal Server Error", {
+      "error": {
+        "code": er.code,
+        "message": "Failed to connect to task event stream: \{er.code} \{er.reason}",
+        "metadata": {
+          "code": er.code,
+          "reason": er.reason,
+          "body": eb.read_all().json(),
+        },
+      },
+    })
+  }
+  println("[INFO] (Daemon) Connected to task \{peer.id} event stream.")
+  loop eb.read_until("\n") {
+    None => break
+    Some(line) => {
+      guard line is [.. "data: ", .. data] else { continue eb.read_until("\n") }
+      let json = @json.parse(data)
+      match json {
+        { "msg": "PostConversation", .. } => {
+          println("[INFO] (Daemon) Task \{peer.id} is now idle.")
+          self.events.put(StatusChange(id=peer.id, status=Idle))
+        }
+        { "msg": "PreConversation", .. } => {
+          println("[INFO] (Daemon) Task \{peer.id} is now busy.")
+          self.events.put(StatusChange(id=peer.id, status=Busy))
+        }
+        _ => ()
+      }
+      continue eb.read_until("\n")
+    }
+  }
 }
 
 ///|
@@ -88,29 +178,27 @@ priv struct Register {
 async fn Daemon::create_task(
   self : Daemon,
   group~ : @async.TaskGroup[Unit],
-  conn : @http.ServerConnection,
+  w : @http.ServerConnection,
 ) -> Unit {
-  let request_bytes = conn.read_all().binary()
-  println("[DEBUG] Request body bytes: \{request_bytes}")
-  let request_text = @encoding/utf8.decode(request_bytes) catch {
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(
-        400,
-        "Bad Request",
-        "Invalid UTF-8 in request body: \{bytes}",
-      )
-  }
-  println("[DEBUG] Request body text: \{request_text}")
-  let request_json = @json.parse(request_text) catch {
-    error =>
-      raise json_error(
-        400,
-        "Bad Request",
-        "Invalid JSON in request body: \{error}",
-      )
-  }
-  println("[DEBUG] Request body JSON: \{request_json.stringify(indent=2)}")
-  guard request_json
+  guard {
+      let bytes = w.read_all().binary()
+      let text = @encoding/utf8.decode(bytes) catch {
+        @encoding/utf8.Malformed(bytes) =>
+          raise json_error(
+            400,
+            "Bad Request",
+            "Invalid UTF-8 in request body: \{bytes}",
+          )
+      }
+      @json.parse(text) catch {
+        error =>
+          raise json_error(
+            400,
+            "Bad Request",
+            "Invalid JSON in request body: \{error}",
+          )
+      }
+    }
     is {
       "name"? : name,
       "model"? : model_name,
@@ -202,13 +290,15 @@ async fn Daemon::create_task(
     cwd~,
   )
   println(
-    "[INFO] Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
+    "[INFO] (Daemon) Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
   )
-  let register_queue = @aqueue.Queue::new()
-  self.register_queues[id.to_string()] = register_queue
-  let register_port = @async.with_timeout(5_000, () => register_queue.get()) catch {
+  let rq = @aqueue.Queue::new()
+  self.rqs[id.to_string()] = rq
+  let peer_port = @async.with_timeout(60_000, () => rq.get()) catch {
     @async.TimeoutError => {
-      println("[ERROR] Timed out waiting for task to register after 5 seconds")
+      println(
+        "[ERROR] (Daemon) Timed out waiting for task to register after 60 seconds",
+      )
       raise json_error(500, "Internal Server Error", {
         "error": {
           "code": -1,
@@ -219,60 +309,59 @@ async fn Daemon::create_task(
     error => raise error
   }
   println(
-    "[INFO] Received registration from task '\{id}' on port \{register_port}",
+    "[INFO] (Daemon) Received registration from task '\{id}' on port \{peer_port}",
   )
-  let server = Server::{ name, id, cwd, port: register_port }
+  let peer = Server::{ name, id, cwd, port: peer_port }
+  // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
     if exit_code != 0 {
-      println("[ERROR] task process exited with code \{exit_code}")
+      println("[ERROR] (Daemon) server process exited with code \{exit_code}")
     }
     self.by_cwd.remove(cwd)
-    self.by_id.remove(server.id)
+    self.by_id.remove(peer.id)
   })
-  self.by_cwd[cwd] = server
-  self.by_id[server.id] = server
+  self.by_cwd[cwd] = peer
+  self.by_id[peer.id] = peer
+  // FIXME: The daemon does not ends anyway, so the `no_wait` option is
+  // unnecessary.
+  group.spawn_bg(() => self.listen_for_status_change(peer), no_wait=true)
   if message is Some(message) {
-    println("[INFO] Write initial messages to task '\{id}'...")
-    let (message_response, message_body) = @http.post(
+    println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
+    let (r, b) = @http.post(
       "http://localhost/v1/message",
       ({ "message": message } : Json),
-      port=register_port,
+      port=peer_port,
     )
-    println(
-      "[DEBUG] Received message response: \{message_response.code} \{message_response.reason}",
-    )
-    guard message_response.code is (200..=299) else {
+    guard r.code is (200..=299) else {
       raise json_error(500, "Internal Server Error", {
         "error": {
-          "code": message_response.code,
-          "message": "Failed to send initial message to task: \{message_response.code} \{message_response.reason}",
-          "metadata": {
-            "code": message_response.code,
-            "reason": message_response.reason,
-            "body": message_body.json(),
-          },
+          "code": r.code,
+          "message": "Failed to send initial message to task: \{r.code} \{r.reason}",
+          "metadata": { "code": r.code, "reason": r.reason, "body": b.json() },
         },
       })
     }
   }
-  conn.send_response(201, "Created", extra_headers={
+  w.send_response(201, "Created", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
   })
-  let body_task : Map[String, Json] = {}
-  if server.name is Some(name) {
-    body_task["name"] = name.to_json()
+  let body : Json = {
+    let body : Map[String, Json] = {}
+    if peer.name is Some(name) {
+      body["name"] = name.to_json()
+    }
+    body["id"] = peer.id.to_string().to_json()
+    body["cwd"] = peer.cwd.to_json()
+    body["port"] = peer.port.to_json()
+    { "task": Json::object(body) }
   }
-  body_task["id"] = server.id.to_string().to_json()
-  body_task["cwd"] = server.cwd.to_json()
-  body_task["port"] = server.port.to_json()
-  let body : Json = { "task": Json::object(body_task) }
-  conn.write(body)
-  conn.flush()
-  conn.end_response()
+  w.write(body)
+  w.flush()
+  w.end_response()
 }
 
 ///|
@@ -340,7 +429,7 @@ async fn Daemon::register_task(
   }
   let register : Register = { id, port }
   println("[INFO] Registered task '\{register.id}' on port \{register.port}")
-  self.register_queues[id].put(register.port)
+  self.rqs[id].put(register.port)
   conn.send_response(200, "OK", extra_headers={
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
@@ -474,7 +563,7 @@ async fn Daemon::get_task(
 }
 
 ///|
-async fn Daemon::listen_task_events(
+async fn Daemon::get_task_events(
   self : Daemon,
   id : StringView,
   request : @http.Request,
@@ -493,14 +582,12 @@ async fn Daemon::listen_task_events(
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  println("[INFO] Streaming events for task \{id}...")
   let (response, client) = @http.get_stream(
     "http://localhost/v1/events",
     headers=request.headers,
     port=server.port,
     body=conn.read_all(),
   )
-  println("[DEBUG] Received response: \{response.code} \{response.reason}")
   conn.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
@@ -508,9 +595,7 @@ async fn Daemon::listen_task_events(
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Accel-Buffering": "no",
   })
-  println("[DEBUG] Streaming response body...")
   conn.write_reader(client)
-  println("[DEBUG] Finished streaming response body.")
   conn.end_response()
 }
 
@@ -732,15 +817,16 @@ async fn main {
     process: @spawn.Manager::new(cwd=@os.cwd()),
     by_cwd: {},
     by_id: {},
-    register_queues: {},
+    rqs: {},
     exec_path,
     port,
+    events: @broadcast.Broadcast::new(),
   }
   @async.with_task_group(group => {
     group.spawn_bg(() => daemon.start())
     run_server(port~, (request, conn) => {
       let paths = request.path.split("/").collect()
-      println("[DEBUG] Handling request paths: \{paths}")
+      println("[INFO] (Daemon) Handling request paths: \{paths}")
       match (request.meth, paths) {
         // GET /
         (Get, ["", ""]) => {
@@ -755,13 +841,14 @@ async fn main {
           ..write(index_html)
           ..end_response()
         }
+        (Get, ["", "v1", "events"]) => daemon.get_events(conn)
         (Get, ["", "v1", "models"]) => daemon.list_models(conn)
         (Post, ["", "v1", "task", "register"]) => daemon.register_task(conn)
         (Get, ["", "v1", "tasks"]) => daemon.list_tasks(conn)
         (Post, ["", "v1", "task"]) => daemon.create_task(group~, conn)
         (Get, ["", "v1", "task", id]) => daemon.get_task(id, conn)
         (Get, ["", "v1", "task", id, "events"]) =>
-          daemon.listen_task_events(id, request, conn)
+          daemon.get_task_events(id, request, conn)
         (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
           daemon.list_moonbit_modules(id, request, conn)
         (Post, ["", "v1", "moonbit", "publish"]) => publish_moonbit_module(conn)
@@ -779,7 +866,7 @@ async fn main {
               ".gif" => "image/gif"
               _ => "application/octet-stream"
             }
-            println("[DEBUG] Serving static file: \{path}")
+            println("[INFO] (Daemon) Serving static file: \{path}")
             let content = html_read_file(path)
             conn
             ..send_response(200, "OK", extra_headers={

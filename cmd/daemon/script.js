@@ -28,6 +28,15 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function getStatusBadge(status) {
+  if (status === "Busy") {
+    return '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f39c12; margin-left: 8px;" title="Busy"></span>';
+  } else if (status === "Idle") {
+    return '<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #27ae60; margin-left: 8px;" title="Idle"></span>';
+  }
+  return "";
+}
+
 function formatTimestamp(timestamp) {
   if (!timestamp) return "";
   const date = new Date(timestamp);
@@ -326,12 +335,14 @@ function renderTaskList() {
   tasks.forEach((task) => {
     const taskItem = document.createElement("div");
     taskItem.className = "task-item";
+    taskItem.dataset.taskId = task.id;
     if (task.id === currentTaskId) {
       taskItem.classList.add("active");
     }
 
+    const statusBadge = getStatusBadge(task.status);
     taskItem.innerHTML = `
-      <div class="task-name">${escapeHtml(task.name)}</div>
+      <div class="task-name">${escapeHtml(task.name)} ${statusBadge}</div>
       <div class="task-cwd">${escapeHtml(task.cwd)}</div>
     `;
 
@@ -373,9 +384,28 @@ function connectToTask(taskId) {
     addMessage(`✓ Connected to task: ${task.name}`);
   };
 
-  eventSource.onmessage = (event) => {
-    addMessage("📨 " + event.data);
-  };
+  eventSource.addEventListener("maria.history", (event) => {
+    const historyData = JSON.parse(event.data);
+    if (!Array.isArray(historyData)) {
+      console.error(
+        "Expected array for maria.history event, got:",
+        historyData
+      );
+      return;
+    }
+    // Clear existing messages and render all historical events
+    messagesDiv.innerHTML = "";
+    historyData.forEach((data) => {
+      if (data.msg === "TokenCounted") {
+        return;
+      }
+      const formattedHtml = formatLogEntry(data);
+      const logDiv = document.createElement("div");
+      logDiv.innerHTML = formattedHtml;
+      messagesDiv.appendChild(logDiv);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
 
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);
@@ -667,37 +697,71 @@ modulesModal.addEventListener("click", (e) => {
   }
 });
 
-function connect() {
-  eventSource = new EventSource("/v1/events");
+let daemonEventSource = null;
 
-  eventSource.onopen = () => {
-    statusDiv.textContent = "Status: Connected";
-    statusDiv.style.color = "green";
-    addMessage("✓ Connected to server");
+function connectToDaemon() {
+  daemonEventSource = new EventSource("/v1/events");
+
+  daemonEventSource.onopen = () => {
+    console.log("✓ Connected to daemon event stream");
   };
 
-  eventSource.onmessage = (event) => {
-    addMessage("📨 " + event.data);
-  };
-
-  eventSource.addEventListener("maria", (event) => {
+  daemonEventSource.addEventListener("daemon.tasks.synchronized", (event) => {
     const data = JSON.parse(event.data);
-    if (data.msg === "TokenCounted") {
-      // There are too many of these events; ignore them to reduce noise
-      return;
+    if (data.tasks && Array.isArray(data.tasks)) {
+      tasks = data.tasks;
+      renderTaskList();
+      console.log(`✓ Synchronized ${tasks.length} tasks from daemon`);
+
+      // Auto-select first task if none selected
+      if (tasks.length > 0 && !currentTaskId) {
+        selectTask(tasks[0].id);
+      }
     }
-    const formattedHtml = formatLogEntry(data);
-    const logDiv = document.createElement("div");
-    logDiv.innerHTML = formattedHtml;
-    messagesDiv.appendChild(logDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 
-  eventSource.onerror = (error) => {
-    statusDiv.textContent = "Status: Error/Disconnected";
-    statusDiv.style.color = "red";
-    addMessage("✗ Connection error");
+  daemonEventSource.addEventListener("daemon.task.changed", (event) => {
+    const data = JSON.parse(event.data);
+    if (data.task) {
+      const updatedTask = data.task;
+      const taskIndex = tasks.findIndex((t) => t.id === updatedTask.id);
+
+      if (taskIndex !== -1) {
+        // Update existing task
+        tasks[taskIndex] = updatedTask;
+      } else {
+        // Add new task
+        tasks.push(updatedTask);
+      }
+
+      // Update the task list UI
+      updateTaskInList(updatedTask);
+
+      console.log(
+        `✓ Task ${updatedTask.id} status changed to ${updatedTask.status}`
+      );
+    }
+  });
+
+  daemonEventSource.onerror = (error) => {
+    console.error("✗ Daemon connection error");
   };
+}
+
+function updateTaskInList(task) {
+  const taskItem = taskListDiv.querySelector(`[data-task-id="${task.id}"]`);
+  if (taskItem) {
+    // Update the task item's content
+    const statusBadge = getStatusBadge(task.status);
+    taskItem.innerHTML = `
+      <div class="task-name">${escapeHtml(task.name)} ${statusBadge}</div>
+      <div class="task-cwd">${escapeHtml(task.cwd)}</div>
+    `;
+    taskItem.addEventListener("click", () => selectTask(task.id));
+  } else {
+    // Task not in list, re-render entire list
+    renderTaskList();
+  }
 }
 
 sendBtn.addEventListener("click", async () => {
@@ -747,5 +811,5 @@ messageInput.addEventListener("keypress", (e) => {
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   loadModels();
-  loadTasks();
+  connectToDaemon();
 });

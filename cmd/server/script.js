@@ -372,9 +372,29 @@ function connect() {
     addMessage("✓ Connected to server");
   };
 
-  eventSource.onmessage = (event) => {
-    addMessage("📨 " + event.data);
-  };
+  eventSource.addEventListener("maria.history", (event) => {
+    const historyData = JSON.parse(event.data);
+    if (!Array.isArray(historyData)) {
+      console.error(
+        "Expected array for maria.history event, got:",
+        historyData
+      );
+      return;
+    }
+    // Clear existing messages and render all historical events
+    messagesDiv.innerHTML = "";
+    historyData.forEach((data) => {
+      if (data.msg === "TokenCounted") {
+        // There are too many of these events; ignore them to reduce noise
+        return;
+      }
+      const formattedHtml = formatLogEntry(data);
+      const logDiv = document.createElement("div");
+      logDiv.innerHTML = formattedHtml;
+      messagesDiv.appendChild(logDiv);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
 
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);

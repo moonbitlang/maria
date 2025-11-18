@@ -29,9 +29,11 @@ async fn run_server(
   let addr = try! @socket.Addr::parse("[::]:\{port}")
   let server = @socket.TcpServer::new(addr, dual_stack=true)
   let port = server.addr().port()
-  println("[INFO] Server listening on port \{port}")
-  println("[INFO] Visit http://localhost:\{port}/ to access the server.")
   if register is Some(register) {
+    println("[INFO] (Server \{register.id}) Listening on port \{port}")
+    println(
+      "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
+    )
     let register_body : Json = { "id": register.id, "port": port }
     let (register_response, register_body) = @http.post(
       "http://\{register.host}/v1/task/register",
@@ -47,6 +49,15 @@ async fn run_server(
         },
       })
     }
+  } else {
+    println(
+      "[WARN] (Server) No register information provided; skipping registration.",
+    )
+    let pid = @spawn.getpid()
+    println("[INFO] (Server \{pid}) Listening on port \{port}")
+    println(
+      "[INFO] (Server \{pid}) Visit http://localhost:\{port}/ to access the server.",
+    )
   }
   server.run_forever((sock, _) => for {
     let conn = @http.ServerConnection::new(sock)
@@ -103,37 +114,51 @@ priv struct Server {
 }
 
 ///|
-async fn Server::listen_events(
-  self : Server,
-  conn : @http.ServerConnection,
-) -> Unit {
-  conn.send_response(200, "OK", extra_headers={
+async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
+  w.send_response(200, "OK", extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Accel-Buffering": "no",
   })
-  self.broadcast.listen(channel => for {
-    let event = channel.get()
-    guard event
+  self.broadcast.listen((hist, chan) => {
+    let hist : Array[Json] = hist.filter(e => e
       is {
         "msg": "MessageAdded"
+        | "PreConversation"
         | "RequestCompleted"
         | "PostToolCall"
         | "PostConversation"
         | "MariaFailed",
         ..
-      } else {
-      continue
+      } &&
+      !(e is { "tool": { "name": String(_), "id": _, .. }, .. }))
+    w.write("event: maria.history\n")
+    w.write("data: \{hist.to_json().stringify()}\n\n")
+    w.flush()
+    for {
+      let event = chan.get()
+      guard event
+        is {
+          "msg": "MessageAdded"
+          | "PreConversation"
+          | "RequestCompleted"
+          | "PostToolCall"
+          | "PostConversation"
+          | "MariaFailed",
+          ..
+        } else {
+        continue
+      }
+      // Skip over tool events (subagent events)
+      if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
+        continue
+      }
+      w.write("event: maria\n")
+      w.write("data: \{event.stringify()}\n\n")
+      w.flush()
     }
-    // Skip over tool events (subagent events)
-    if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
-      continue
-    }
-    conn.write("event: maria\n")
-    conn.write("data: \{event.stringify()}\n\n")
-    conn.flush()
   })
 }
 
@@ -446,39 +471,37 @@ async fn main {
       },
       allow_failure=true,
     )
-    run_server(port~, register?, (request, conn) => match
+    run_server(port~, register?, (request, w) => match
       (request.meth, request.path) {
-      (Options, _) =>
-        conn
-        ..send_response(204, "No Content", extra_headers={
+      (Options, _) => {
+        w.send_response(204, "No Content", extra_headers={
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
           "Access-Control-Allow-Headers": "Content-Type",
         })
-        ..end_response()
+        w.end_response()
+      }
       (Get, "/") => {
         let index_html = html_read_file(@path.join(serve, "index.html"))
-        conn
-        ..send_response(200, "OK", extra_headers={ "Content-Type": "text/html" })
-        ..write(index_html)
-        ..end_response()
+        w.send_response(200, "OK", extra_headers={ "Content-Type": "text/html" })
+        w.write(index_html)
+        w.end_response()
       }
       (Get, "/v1/status") => {
         let response : Json = { "status": status }
-        conn
-        ..send_response(200, "OK", extra_headers={
+        w.send_response(200, "OK", extra_headers={
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
           "Access-Control-Allow-Headers": "Content-Type",
         })
-        ..write(response.stringify())
-        ..end_response()
+        w.write(response.stringify())
+        w.end_response()
       }
-      (Get, "/v1/events") => server.listen_events(conn)
-      (Post, "/v1/message") => server.create_message(conn)
-      (Get, "/v1/moonbit/modules") => list_moonbit_modules(conn)
-      (Post, "/v1/moonbit/publish") => publish_moonbit_module(conn)
+      (Get, "/v1/events") => server.get_events(w)
+      (Post, "/v1/message") => server.create_message(w)
+      (Get, "/v1/moonbit/modules") => list_moonbit_modules(w)
+      (Post, "/v1/moonbit/publish") => publish_moonbit_module(w)
       (Get, ['/', .. file]) if "\{serve}/\{file}" is path &&
         (try? @fsx.exists_as_file(path)) is Ok(true) => {
         let content_type = match @path.ext(path) {
@@ -492,12 +515,11 @@ async fn main {
         }
         println("[DEBUG] Serving static file: \{path}")
         let content = html_read_file(path)
-        conn
-        ..send_response(200, "OK", extra_headers={
+        w.send_response(200, "OK", extra_headers={
           "Content-Type": content_type,
         })
-        ..write(content)
-        ..end_response()
+        w.write(content)
+        w.end_response()
       }
       _ =>
         raise json_error(404, "NotFound", {
