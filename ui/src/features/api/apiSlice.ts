@@ -26,6 +26,11 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     task: builder.query<{ task: TaskOverview }, string>({
       query: (id) => `task/${id}`,
+      async onQueryStarted(_arg, { queryFulfilled, dispatch }) {
+        const res = await queryFulfilled;
+        const task = res.data.task;
+        dispatch(setTask(task));
+      },
     }),
 
     newTask: builder.mutation<{ task: NamedId }, string>({
@@ -123,6 +128,7 @@ export const apiSlice = createApi({
                       todos: result.todos,
                     }),
                   );
+                  break;
                 }
               }
               updateCachedData((draft) => {

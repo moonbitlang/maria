@@ -85,6 +85,9 @@ export const tasksSlice = createAppSlice({
       if (task) {
         task.name = t.name;
         task.status = t.status;
+      } else {
+        const inputQueue = loadInputQueue(t.id);
+        state.tasks[t.id] = defaultTask({ ...t, inputQueue });
       }
     },
 

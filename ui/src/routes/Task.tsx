@@ -193,7 +193,6 @@ export default function Task() {
   if (isSuccess) {
     const apiTask = data.task;
     const currentTask = task ?? defaultTask({ ...apiTask });
-
     const { todos } = currentTask;
 
     return (

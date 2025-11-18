@@ -359,7 +359,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
             case "RequestCompleted":
               return <ShowRequestCompleted key={i} event={event} />;
             default: {
-              return <></>;
+              return null;
             }
           }
         })}
