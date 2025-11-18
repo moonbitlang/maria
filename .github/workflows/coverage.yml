@@ -1,0 +1,66 @@
+# Copyright 2025 International Digital Economy Academy
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: coverage
+
+on:
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
+  workflow_dispatch:
+
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install MoonBit
+        uses: ./.github/actions/install-moonbit
+        with:
+          channel: latest
+
+      - name: Inspect MoonBit version
+        run: |
+          moon version --all
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "maria-ci"
+          git config --global user.email "maria-ci@example.com"
+
+      - name: Run tests
+        run: |
+          moon test --include-skipped -v --enable-coverage
+
+      - name: Upload coverage reports to Codecov
+        run: |
+          moon coverage report \
+            -f coveralls \
+            -o codecov_report.json \
+            --service-name github \
+            --service-job-id "$GITHUB_RUN_ID" \
+            --service-pull-request "${{ github.event.pull_request.number }}" \
+            --send-to codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
