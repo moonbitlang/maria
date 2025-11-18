@@ -108,17 +108,12 @@ async fn collect_modules(
 }
 
 ///|
-priv struct Message {
-  id : @uuid.Uuid
-  queued : Bool
-  message : @openai.ChatCompletionMessageParam
-}
-
-///|
 priv struct Server {
   uuid : @uuid.Generator
   broadcast : @broadcast.Broadcast[Json]
-  message_queue : @aqueue.Queue[Message]
+  message_queue : @aqueue.Queue[
+    (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid?]),
+  ]
   mut status : Status
 }
 
@@ -207,16 +202,15 @@ async fn Server::create_message(
         },
       })
   }
-  let message = Message::{
-    id: self.uuid.v4(),
-    queued: self.status is Busy,
-    message,
+  let (id, queued) = {
+    let aq = @aqueue.new()
+    self.message_queue.put((message, aq))
+    match aq.get() {
+      Some(id) => (id, true)
+      None => (self.uuid.v4(), false)
+    }
   }
-  self.message_queue.put(message)
-  let response : Json = {
-    "id": message.id.to_string(),
-    "queued": message.queued,
-  }
+  let response : Json = { "id": id, "queued": queued }
   conn.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -487,18 +481,24 @@ async fn main {
       broadcast.put(Json::object(event))
     }),
   )
-  let message_queue = @aqueue.new()
-  let server = Server::{ broadcast, message_queue, status: Idle, uuid }
+  let server = Server::{
+    broadcast,
+    message_queue: @aqueue.new(),
+    status: Idle,
+    uuid,
+  }
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
+    group.spawn_bg(() => while true {
+      let (msg, aq) = server.message_queue.get()
+      let id = maria.agent.queue_message(msg)
+      aq.put(Some(id))
+    })
     group.spawn_bg(
       () => while true {
-        let message = message_queue.get()
-        maria.agent.add_message(message.message)
-        server.broadcast.put({
-          "msg": "MessageUnqueued",
-          "message": { "id": message.id.to_string() },
-        })
+        let (msg, aq) = server.message_queue.get()
+        maria.agent.add_message(msg)
+        aq.put(None)
         server.status = Busy
         defer {
           server.status = Idle
