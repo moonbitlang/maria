@@ -1,7 +1,5 @@
 {
-  "import": [
-    "moonbitlang/maria/internal/c"
-  ],
+  "import": ["moonbitlang/maria/internal/c"],
   "targets": {
     "pcre2.mbt": ["native"],
     "pcre2_test.mbt": ["native"]

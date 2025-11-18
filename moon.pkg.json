@@ -18,8 +18,5 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/tools/meta_write_to_file"
   ],
-  "test-import": [
-    "moonbitlang/async",
-    "moonbitlang/maria/internal/mock"
-  ]
+  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }

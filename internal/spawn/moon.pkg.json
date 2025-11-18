@@ -8,10 +8,6 @@
     "moonbitlang/async/pipe",
     "moonbitlang/maria/clock"
   ],
-  "native-stub": [
-    "spawn.c"
-  ],
-  "test-import": [
-    "moonbitlang/maria/internal/mock"
-  ]
+  "native-stub": ["spawn.c"],
+  "test-import": ["moonbitlang/maria/internal/mock"]
 }

@@ -18,6 +18,5 @@
     "moonbitlang/maria/file",
     "moonbitlang/maria/tools/replace_in_file",
     "moonbitlang/maria/tools/read_file"
-    
   ]
 }

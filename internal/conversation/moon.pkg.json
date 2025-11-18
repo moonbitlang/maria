@@ -8,8 +8,5 @@
     "moonbitlang/x/time",
     "moonbitlang/maria/clock"
   ],
-  "test-import": [
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/async"
-  ]
+  "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
 }
