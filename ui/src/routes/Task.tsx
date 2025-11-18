@@ -10,6 +10,7 @@ import {
 import { EventsDisplay } from "@/components/events-display";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useEventsQuery,
   usePostMessageMutation,
@@ -27,7 +28,7 @@ import {
   removeNthFromInputQueueForTask,
   setConverstationStatusForTask,
 } from "@/features/session/tasksSlice";
-import { Trash2 } from "lucide-react";
+import { Trash2, Clock } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
@@ -90,28 +91,33 @@ function TaskInput({ taskId }: { taskId: string }) {
   return (
     <div className="p-4 flex flex-col">
       {inputQueue.length > 0 && (
-        <div className="max-w-4xl w-full mx-auto mb-3 min-h-0">
-          <div className="text-xs text-muted-foreground/70 mb-1.5 px-1">
-            {inputQueue.length} queued{" "}
-            {inputQueue.length === 1 ? "message" : "messages"}
+        <div className="max-w-4xl w-full mx-auto mb-2 min-h-0 animate-in fade-in slide-in-from-bottom-0 duration-300">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2 px-1">
+            <Clock className="h-3.5 w-3.5" />
+            <span>
+              {inputQueue.length} queued{" "}
+              {inputQueue.length === 1 ? "message" : "messages"}
+            </span>
           </div>
-          <ScrollArea className="max-h-24 bg-secondary/40 overflow-y-auto rounded border border-border/40">
+          <ScrollArea className="max-h-32 bg-muted/30 overflow-y-auto rounded-lg border border-border/50 shadow-sm">
             {inputQueue.map((item, index) => (
               <Fragment key={index}>
-                <div className="group flex items-center gap-2 px-3 py-1 hover:bg-secondary/60 text-sm">
+                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors text-sm">
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-foreground/90">{item}</p>
+                    <p className="truncate text-foreground/80 leading-relaxed">
+                      {item}
+                    </p>
                   </div>
                   <button
                     onClick={() => handleRemoveFromQueue(index)}
-                    className="shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive cursor-pointer p-1 rounded hover:bg-destructive/10"
                     aria-label="Remove from queue"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 {index < inputQueue.length - 1 && (
-                  <Separator className="bg-border/50" />
+                  <Separator className="bg-border/30" />
                 )}
               </Fragment>
             ))}
@@ -119,22 +125,29 @@ function TaskInput({ taskId }: { taskId: string }) {
         </div>
       )}
 
-      <PromptInput className="max-w-4xl mx-auto" onSubmit={handleSubmit}>
+      <PromptInput
+        className="max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow"
+        onSubmit={handleSubmit}
+      >
         <PromptInputTextarea
-          className="text-lg md:text-lg"
+          className="text-base md:text-base min-h-[52px]"
           value={input}
           onFocus={(e) =>
             e.target.scrollIntoView({ behavior: "smooth", block: "center" })
           }
           onChange={(e) => setInput(e.target.value)}
-          placeholder={"Input your task..."}
+          placeholder={
+            conversationStatus === "generating"
+              ? "Agent is working..."
+              : "Input your task..."
+          }
         />
         <PromptInputToolbar>
           <PromptInputTools></PromptInputTools>
           <PromptInputSubmit
             disabled={!input.trim()}
-            status="ready"
-            className="cursor-pointer"
+            status={"ready"}
+            className="cursor-pointer transition-all"
           ></PromptInputSubmit>
         </PromptInputToolbar>
       </PromptInput>
@@ -156,7 +169,29 @@ export default function Task() {
   const task = useAppSelector((state) => selectTask(state, taskId));
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex-1 min-h-0 flex flex-col justify-end p-4">
+        <div className="max-w-4xl mx-auto w-full space-y-4 mb-4">
+          <div className="flex items-start gap-3">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          </div>
+          <div className="flex items-start gap-3 flex-row-reverse">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto w-full">
+          <Skeleton className="h-24 w-full rounded-xl" />
+        </div>
+      </div>
+    );
   }
 
   if (isSuccess) {
