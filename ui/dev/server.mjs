@@ -21,13 +21,13 @@ app.use((req, res, next) => {
 const task = {
   name: "Test Task",
   id: "test",
-  conversationStatus: "generating",
+  status: "generating",
 };
 
 const longTask = {
   name: "A very long task name, to test UI handling of long names in various components",
   id: "long-task",
-  conversationStatus: "generating",
+  status: "generating",
 };
 
 const tasks = [task, longTask];
@@ -57,7 +57,7 @@ data: ${JSON.stringify({ tasks })}
   // Keep the connection open
   const changedInterval = setInterval(() => {
     res.write(`event: daemon.tasks.changed
-data: ${JSON.stringify({ task: { ...longTask, conversationStatus: "idle" } })}
+data: ${JSON.stringify({ task: { ...longTask, status: "idle" } })}
 
 `);
   }, 500);

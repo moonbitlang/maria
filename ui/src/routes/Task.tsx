@@ -47,7 +47,7 @@ function TaskInput({ taskId }: { taskId: string }) {
   const inputQueue = useAppSelector((state) =>
     selectInputQueue(state, taskId),
   )!;
-  const conversationStatus = useAppSelector((state) =>
+  const status = useAppSelector((state) =>
     selectConversationStatus(state, taskId),
   )!;
   const [postMessage] = usePostMessageMutation();
@@ -58,16 +58,16 @@ function TaskInput({ taskId }: { taskId: string }) {
 
   useEffect(() => {
     // when conversation is idle, and there are queued inputs, send the next one
-    if (conversationStatus === "idle" && inputQueue.length > 0) {
+    if (status === "idle" && inputQueue.length > 0) {
       const nextInput = inputQueue[0];
       dispatch(removeNthFromInputQueueForTask({ taskId, n: 0 }));
       postMessage({ taskId, content: nextInput });
     }
-  }, [conversationStatus, inputQueue, dispatch, postMessage, taskId]);
+  }, [status, inputQueue, dispatch, postMessage, taskId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    switch (conversationStatus) {
+    switch (status) {
       case "generating": {
         // queue the input
         dispatch(addToInputQueueForTask({ taskId, input: input.trim() }));
@@ -137,7 +137,7 @@ function TaskInput({ taskId }: { taskId: string }) {
           }
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            conversationStatus === "generating"
+            status === "generating"
               ? "Agent is working..."
               : "Input your task..."
           }

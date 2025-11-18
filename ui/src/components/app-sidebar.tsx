@@ -16,7 +16,7 @@ import {
 import { NavTasks } from "./nav-tasks";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/app/hooks";
-import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
+import { selectActiveTaskId } from "@/features/session/tasksSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();

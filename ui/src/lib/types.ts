@@ -152,10 +152,10 @@ export type NamedId = {
   id: string;
   name: string;
 };
-export type ConversationStatus = "idle" | "generating";
+export type Status = "idle" | "generating";
 
 export type TaskOverview = NamedId & {
-  conversationStatus: ConversationStatus;
+  status: Status;
 };
 
 export type DaemonTaskSyncEvent = {

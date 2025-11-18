@@ -18,9 +18,9 @@ import {
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
-import type { ConversationStatus } from "@/lib/types";
+import type { Status } from "@/lib/types";
 
-function getTaskIcon(status: ConversationStatus) {
+function getTaskIcon(status: Status) {
   switch (status) {
     case "generating":
       return <Loader2 className="h-4 w-4 ml-auto animate-spin" />;
@@ -45,7 +45,7 @@ export function NavTasks() {
         </SidebarGroupLabel>
         <CollapsibleContent>
           <SidebarMenu>
-            {tasks.map(({ name, id, conversationStatus }) => {
+            {tasks.map(({ name, id, status }) => {
               const url = `tasks/${id}`;
               const isActive = activeTaskId === id;
               return (
@@ -64,7 +64,7 @@ export function NavTasks() {
                   >
                     <a href={url}>
                       <span className="truncate">{name}</span>
-                      {getTaskIcon(conversationStatus)}
+                      {getTaskIcon(status)}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

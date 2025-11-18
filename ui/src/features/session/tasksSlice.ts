@@ -1,11 +1,6 @@
 import { createAppSlice } from "@/app/createAppSlice";
 import type { RootState } from "@/app/store";
-import type {
-  ConversationStatus,
-  NamedId,
-  TaskOverview,
-  Todo,
-} from "@/lib/types";
+import type { Status, NamedId, TaskOverview, Todo } from "@/lib/types";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
 // LocalStorage key for persisting input queues
@@ -39,7 +34,7 @@ function loadInputQueue(taskId: string): string[] {
 type Task = NamedId & {
   todos: Todo[];
   chatInput: string;
-  conversationStatus: ConversationStatus;
+  status: Status;
   inputQueue: string[];
 };
 
@@ -49,7 +44,7 @@ export function defaultTask(
   return {
     todos: [],
     chatInput: "",
-    conversationStatus: "idle",
+    status: "idle",
     inputQueue: [],
     ...params,
   };
@@ -79,7 +74,7 @@ export const tasksSlice = createAppSlice({
         state.tasks[id] = defaultTask({
           name,
           id,
-          conversationStatus: "generating",
+          status: "generating",
         });
       }
     },
@@ -89,7 +84,7 @@ export const tasksSlice = createAppSlice({
       const task = state.tasks[t.id];
       if (task) {
         task.name = t.name;
-        task.conversationStatus = t.conversationStatus;
+        task.status = t.status;
       }
     },
 
@@ -117,13 +112,13 @@ export const tasksSlice = createAppSlice({
       state,
       action: PayloadAction<{
         taskId: string;
-        status: ConversationStatus;
+        status: Status;
       }>,
     ) {
       const { taskId, status } = action.payload;
       const task = state.tasks[taskId];
       if (task) {
-        task.conversationStatus = status;
+        task.status = status;
       }
     },
 
@@ -183,9 +178,9 @@ export const tasksSlice = createAppSlice({
     selectConversationStatus(
       state: TasksSliceState,
       taskId: string,
-    ): ConversationStatus | undefined {
+    ): Status | undefined {
       const task = state.tasks[taskId];
-      return task?.conversationStatus;
+      return task?.status;
     },
 
     selectInputQueue(
