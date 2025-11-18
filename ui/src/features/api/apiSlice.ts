@@ -77,7 +77,7 @@ export const apiSlice = createApi({
           );
 
           source.addEventListener(
-            "daemon.tasks.changed",
+            "daemon.task.changed",
             (event: MessageEvent<string>) => {
               const { task } = JSON.parse(event.data) as DaemonTaskChangeEvent;
               dispatch(setTask(task));

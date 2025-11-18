@@ -26,7 +26,6 @@ import {
   addToInputQueueForTask,
   selectInputQueue,
   removeNthFromInputQueueForTask,
-  setConverstationStatusForTask,
 } from "@/features/session/tasksSlice";
 import { Trash2, Clock } from "lucide-react";
 import { Fragment, useEffect } from "react";
@@ -74,10 +73,7 @@ function TaskInput({ taskId }: { taskId: string }) {
         break;
       }
       case "idle": {
-        postMessage({ taskId, content: input.trim() });
-        dispatch(
-          setConverstationStatusForTask({ taskId, status: "generating" }),
-        );
+        await postMessage({ taskId, content: input.trim() });
         break;
       }
     }

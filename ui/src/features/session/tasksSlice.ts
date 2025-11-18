@@ -108,20 +108,6 @@ export const tasksSlice = createAppSlice({
       }
     },
 
-    setConverstationStatusForTask(
-      state,
-      action: PayloadAction<{
-        taskId: string;
-        status: Status;
-      }>,
-    ) {
-      const { taskId, status } = action.payload;
-      const task = state.tasks[taskId];
-      if (task) {
-        task.status = status;
-      }
-    },
-
     setInputForTask(
       state,
       action: PayloadAction<{ taskId: string; input: string }>,
@@ -200,7 +186,6 @@ export const {
   updateTodosForTask,
   setActiveTaskId,
   setInputForTask,
-  setConverstationStatusForTask,
   addToInputQueueForTask,
   removeNthFromInputQueueForTask,
 } = tasksSlice.actions;
