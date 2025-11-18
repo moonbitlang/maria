@@ -32,6 +32,7 @@ export function defaultTask(
     inputQueue: [],
     events: [],
     eventIds: {},
+    created: Math.floor(Date.now() / 1000),
     ...params,
   };
 }
@@ -218,5 +219,5 @@ export const {
 // Memoized selector to prevent unnecessary re-renders
 export const selectTasks = createSelector(
   [(state: RootState) => state.tasks.tasks],
-  (tasks) => Object.values(tasks),
+  (tasks) => Object.values(tasks).sort((a, b) => b.created - a.created),
 );

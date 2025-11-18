@@ -162,6 +162,7 @@ export type Status = "idle" | "generating";
 
 export type TaskOverview = NamedId & {
   status: Status;
+  created: number;
 };
 
 export type DaemonTaskSyncEvent = {
