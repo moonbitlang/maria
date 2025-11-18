@@ -5,14 +5,12 @@ import {
   type NamedId,
   type TaskEvent,
   type TaskOverview,
-  type TodoWriteTool,
 } from "@/lib/types";
 import {
   pushEventForTask,
   removeFromInputQueueForTask,
   setTask,
   setTasks,
-  updateTodosForTask,
 } from "@/features/session/tasksSlice";
 
 const BASE_URL =
@@ -122,16 +120,6 @@ export const apiSlice = createApi({
               case "RequestCompleted":
               case "PostToolCall":
               case "MessageAdded": {
-                if (data.msg === "PostToolCall" && data.name === "todo_write") {
-                  const result = (data as TodoWriteTool).result;
-                  dispatch(
-                    updateTodosForTask({
-                      taskId: id,
-                      todos: result.todos,
-                    }),
-                  );
-                }
-
                 dispatch(pushEventForTask({ taskId: id, event: data }));
 
                 return;

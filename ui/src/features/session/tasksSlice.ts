@@ -6,6 +6,7 @@ import type {
   TaskOverview,
   Todo,
   TaskEvent,
+  TodoWriteTool,
 } from "@/lib/types";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
@@ -85,17 +86,6 @@ export const tasksSlice = createAppSlice({
       }
     },
 
-    updateTodosForTask(
-      state,
-      action: PayloadAction<{ taskId: string; todos: Todo[] }>,
-    ) {
-      const { taskId, todos } = action.payload;
-      const task = state.tasks[taskId];
-      if (task) {
-        task.todos = todos;
-      }
-    },
-
     setInputForTask(
       state,
       action: PayloadAction<{ taskId: string; input: string }>,
@@ -143,6 +133,11 @@ export const tasksSlice = createAppSlice({
         }
         task.events.push(event);
         task.eventIds[event.id] = true;
+
+        if (event.msg === "PostToolCall" && event.name === "todo_write") {
+          const result = (event as TodoWriteTool).result;
+          task.todos = result.todos;
+        }
       }
     },
   },
@@ -198,7 +193,6 @@ export const {
   newTask,
   setTask,
   setTasks,
-  updateTodosForTask,
   setActiveTaskId,
   setInputForTask,
   addToInputQueueForTask,
