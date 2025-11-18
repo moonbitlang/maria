@@ -88,7 +88,7 @@ function TaskInput({ taskId }: { taskId: string }) {
     <div className="p-4 flex flex-col">
       {inputQueue.length > 0 && (
         <div className="max-w-4xl w-full mx-auto mb-2 min-h-0 animate-in fade-in slide-in-from-bottom-0 duration-300">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2 px-1">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2 px-1">
             <Clock className="h-3.5 w-3.5" />
             <span>
               {inputQueue.length} queued{" "}
@@ -98,7 +98,7 @@ function TaskInput({ taskId }: { taskId: string }) {
           <ScrollArea className="max-h-32 bg-muted/30 overflow-y-auto rounded-lg border border-border/50 shadow-sm">
             {inputQueue.map((item, index) => (
               <Fragment key={index}>
-                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors text-sm">
+                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors">
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-foreground/80 leading-relaxed">
                       {item}
