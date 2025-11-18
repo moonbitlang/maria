@@ -75,7 +75,7 @@ pub fn Manager::new_conversation(
   self : Manager,
   name~ : String,
   description? : String,
-) -> Conversation raise {
+) -> Conversation {
   Conversation::{
     clock: self.clock,
     name,

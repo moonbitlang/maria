@@ -27,7 +27,7 @@ type Manager
 async fn Manager::list(Self) -> Array[String]
 async fn Manager::load(Self, String) -> Conversation?
 async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
-fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation raise
+fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation
 async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases
