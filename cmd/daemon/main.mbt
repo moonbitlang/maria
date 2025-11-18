@@ -159,7 +159,7 @@ async fn run_server(
   let addr = try! @socket.Addr::parse("[::]:\{port}")
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
-  @http.run_server(addr, (conn, _) => for {
+  @http.run_server(addr, reuse_addr=true, (conn, _) => for {
     try {
       let request = conn.read_request()
       println(
