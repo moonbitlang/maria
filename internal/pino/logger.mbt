@@ -8,17 +8,18 @@ struct Logger {
 ///|
 /// Creates a new logger instance.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `tag`: A string identifier for the logger, typically representing the component or module
 /// - `level`: Optional logging level threshold (default: Info). Messages below this level will be filtered
 /// - `transport`: The transport mechanism for outputting log messages
 ///
-/// # Returns
-/// A configured Logger instance
+/// Returns A configured Logger instance
 ///
-/// # Example
+/// Example:
+///
 /// ```moonbit
-/// let _log = logger("my-app", level=Debug, Transport::console())
+/// let _ = logger("my-app", level=Debug, Transport::console())
 /// ```
 pub fn logger(
   tag : String,
@@ -43,12 +44,14 @@ pub async fn Logger::close(self : Logger) -> Unit {
 /// This is the core logging method. All level-specific methods (error, warn, info, debug)
 /// delegate to this function.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `level`: The severity level of the log message
 /// - `message`: The main log message
 /// - `content`: Additional key-value pairs to include in the log entry
 ///
-/// # Behavior
+/// Behavior:
+///
 /// - Messages below the logger's configured level are filtered out
 /// - Automatically adds timestamp, process ID, hostname, and configured properties
 /// - Merges logger properties and content properties into the final log entry
@@ -87,7 +90,8 @@ pub async fn Logger::log(
 ///|
 /// Logs an error-level message.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `message`: The error message to log
 /// - `content`: Additional context to include with the error
 pub async fn Logger::error(
@@ -101,7 +105,8 @@ pub async fn Logger::error(
 ///|
 /// Logs a warning-level message.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `message`: The warning message to log
 /// - `content`: Additional context to include with the warning
 pub async fn Logger::warn(
@@ -115,7 +120,8 @@ pub async fn Logger::warn(
 ///|
 /// Logs an info-level message.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `message`: The informational message to log
 /// - `content`: Additional context to include with the message
 pub async fn Logger::info(
@@ -129,7 +135,8 @@ pub async fn Logger::info(
 ///|
 /// Logs a debug-level message.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `message`: The debug message to log
 /// - `content`: Additional context to include with the debug information
 pub async fn Logger::debug(
@@ -146,18 +153,19 @@ pub async fn Logger::debug(
 /// Child loggers share the same transport and level as their parent but can have
 /// additional properties merged into their log entries.
 ///
-/// # Parameters
+/// Parameters:
+///
 /// - `properties`: Additional key-value pairs to include in all log entries from the child logger
 ///
-/// # Returns
-/// A new Logger instance with merged properties
+/// Returns A new Logger instance with merged properties
 ///
-/// # Example
-/// ```moonbit
+/// Example:
+///
+/// ```moonbit no-check
 /// let parent = logger("app", Transport::console())
-///
-/// let _child = parent.child({ "module": "auth" })
+/// let child = parent.child({ "module": "auth" })
 /// // All logs from child will include both "tag": "app" and "module": "auth"
+/// child.info("User logged in", {})
 /// ```
 pub fn Logger::child(self : Logger, properties : Map[String, Json]) -> Logger {
   let child_properties = self.properties.copy()

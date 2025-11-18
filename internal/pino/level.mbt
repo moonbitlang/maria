@@ -7,7 +7,8 @@
 /// When a logger is configured with a minimum level, only messages at that
 /// level or higher will be output.
 ///
-/// # Levels
+/// Levels:
+///
 /// - `Trace`: Fine-grained diagnostic information for troubleshooting
 /// - `Debug`: Detailed debugging information useful during development
 /// - `Info`: General informational messages about application progress
