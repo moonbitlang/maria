@@ -135,7 +135,7 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
     for e in hist {
       chan.put(e)
     }
-    for i = hist.length(); ; i = i + 1 {
+    for {
       let event = chan.get()
       guard event
         is Object(
@@ -156,7 +156,6 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
       if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
         continue
       }
-      event["id"] = i.to_json()
       let event = Json::object(event)
       w.write("event: maria\n")
       w.write("data: \{event.stringify()}\n\n")
@@ -477,19 +476,19 @@ async fn main {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  let broadcast = @broadcast.Broadcast::new()
+  let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
+  let uuid = @uuid.generator(@rand.chacha8())
   let logger = @pino.logger(
     "server",
     level=log_level,
-    @pino.Transport::callback(event => broadcast.put(event)),
+    @pino.Transport::callback(event => {
+      guard event is Object(event) else { return }
+      event["id"] = uuid.v4().to_string().to_json()
+      broadcast.put(Json::object(event))
+    }),
   )
   let message_queue = @aqueue.new()
-  let server = Server::{
-    uuid: @uuid.generator(@rand.chacha8()),
-    broadcast,
-    message_queue,
-    status: Idle,
-  }
+  let server = Server::{ broadcast, message_queue, status: Idle, uuid }
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
     group.spawn_bg(

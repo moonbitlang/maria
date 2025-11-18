@@ -22,7 +22,7 @@ impl ToJson for ParseError
 
 // Types and methods
 type Generator
-fn Generator::v4(Self) -> Uuid raise
+fn Generator::v4(Self) -> Uuid
 
 type Uuid
 #as_free_fn
@@ -72,7 +72,7 @@ impl ToJson for Version
 
 // Traits
 pub(open) trait Source {
-  uint64(Self) -> UInt64 raise
+  uint64(Self) -> UInt64
 }
 impl Source for @random.Rand
 

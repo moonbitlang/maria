@@ -40,11 +40,11 @@ struct Generator(&Source)
 
 ///|
 pub(open) trait Source {
-  uint64(self : Self) -> UInt64 raise
+  uint64(self : Self) -> UInt64
 }
 
 ///|
-pub fn Generator::v4(self : Generator) -> Uuid raise {
+pub fn Generator::v4(self : Generator) -> Uuid {
   let hi = self.0.uint64()
   let lo = self.0.uint64()
   let hi = (hi & 0xFFFF_FFFF_FFFF_0FFF_UL) | 0x0000_0000_0000_4000_UL
@@ -53,7 +53,7 @@ pub fn Generator::v4(self : Generator) -> Uuid raise {
 }
 
 ///|
-pub impl Source for @random.Rand with uint64(self : @random.Rand) -> UInt64 raise {
+pub impl Source for @random.Rand with uint64(self : @random.Rand) -> UInt64 {
   self.uint64()
 }
 
