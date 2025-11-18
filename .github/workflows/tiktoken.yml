@@ -49,3 +49,18 @@ jobs:
         run: |
           uv sync
           uv run pytest ./scripts/validate.py -vv
+
+  consistency_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Consistency test  
+        run: | 
+          cargo run 
+        working-directory: ./internal/tiktoken/tiktoken_lexer_rs/
