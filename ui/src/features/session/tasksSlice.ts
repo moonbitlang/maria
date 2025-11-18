@@ -1,6 +1,7 @@
 import { createAppSlice } from "@/app/createAppSlice";
+import type { RootState } from "@/app/store";
 import type { ConversationStatus, NamedId, Todo } from "@/lib/types";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 
 type Task = NamedId & {
   todos: Todo[];
@@ -115,10 +116,6 @@ export const tasksSlice = createAppSlice({
   },
 
   selectors: {
-    selectTasks(state: TasksSliceState): Task[] {
-      return Object.values(state.tasks);
-    },
-
     selectTask(state: TasksSliceState, taskId: string): Task | undefined {
       return state.tasks[taskId];
     },
@@ -170,5 +167,10 @@ export const {
   selectTaskInput,
   selectConversationStatus,
   selectInputQueue,
-  selectTasks,
 } = tasksSlice.selectors;
+
+// Memoized selector to prevent unnecessary re-renders
+export const selectTasks = createSelector(
+  [(state: RootState) => state.tasks.tasks],
+  (tasks) => Object.values(tasks),
+);
