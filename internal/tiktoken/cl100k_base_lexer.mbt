@@ -395,16 +395,23 @@ fn cl100k_base_tokenize_part5(
 fn cl100k_base_tokenize_part6(
   input : StringView,
 ) -> StringView raise BackTracing {
-  // \s*[\r\n] means zero or more whitespace followed by \r or \n
   let ws_len = loop (0, input) {
     (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
     (len, _) => break len
   }
-  let last_ch = input.get_char(ws_len - 1)
-  match last_ch {
-    Some(ch) if ch == '\n' || ch == '\r' => try! input[0:ws_len]
-    _ => raise BackTracing
+  let prefix = try! input[0:ws_len]
+  // greedy kleene start
+  let back_len = loop (0, prefix) {
+    (len, [.., ch]) if ch == '\n' || ch == '\r' => break len
+    (len, [.. pf, _]) => continue (len + 1, pf)
+    (len, []) => break len
+  }
+  let actual_len = ws_len - back_len
+  if actual_len >= 1 {
+    try! input[0:actual_len]
+  } else {
+    raise BackTracing
   }
 }
 

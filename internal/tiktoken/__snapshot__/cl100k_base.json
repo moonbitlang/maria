@@ -968,6 +968,17 @@
         " ...",
         " "
       ]
+    },
+    {
+      "text": "\n  start middle end  \t",
+      "pieces": [
+        "\n",
+        " ",
+        " start",
+        " middle",
+        " end",
+        "  \t"
+      ]
     }
   ]
 }
