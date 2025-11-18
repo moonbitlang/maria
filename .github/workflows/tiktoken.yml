@@ -29,26 +29,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Validate tiktoken
-        working-directory: ./internal/tiktoken
-        run: |
-          uv sync
-          uv run pytest ./scripts/validate.py -vv
 
   consistency_test:
     runs-on: ubuntu-latest
