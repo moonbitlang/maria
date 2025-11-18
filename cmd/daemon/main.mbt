@@ -302,7 +302,7 @@ async fn Daemon::create_task(
   )
   let rq = @aqueue.Queue::new()
   self.rqs[id.to_string()] = rq
-  let peer_port = @async.with_timeout(60_000, () => rq.get()) catch {
+  let task_port = @async.with_timeout(60_000, () => rq.get()) catch {
     @async.TimeoutError => {
       println(
         "[ERROR] (Daemon) Timed out waiting for task to register after 60 seconds",
@@ -317,9 +317,9 @@ async fn Daemon::create_task(
     error => raise error
   }
   println(
-    "[INFO] (Daemon) Received registration from task '\{id}' on port \{peer_port}",
+    "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
-  let task = Task::{ name, id, cwd, port: peer_port, status: Idle }
+  let task = Task::{ name, id, cwd, port: task_port, status: Idle }
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
@@ -339,7 +339,7 @@ async fn Daemon::create_task(
     let (r, b) = @http.post(
       "http://localhost/v1/message",
       ({ "message": message } : Json),
-      port=peer_port,
+      port=task_port,
     )
     guard r.code is (200..=299) else {
       raise json_error(500, "Internal Server Error", {
@@ -701,6 +701,45 @@ async fn Daemon::create_task_message(
 }
 
 ///|
+async fn serve_static_file(
+  w : @http.ServerConnection,
+  serve~ : String,
+  path~ : String,
+) -> Unit {
+  if @path.join(serve, path) is path &&
+    (try? @fsx.exists_as_file(path)) is Ok(true) {
+    let content_type = match @path.ext(path) {
+      ".js" => "application/javascript"
+      ".css" => "text/css"
+      ".html" => "text/html"
+      ".png" => "image/png"
+      ".jpg" | ".jpeg" => "image/jpeg"
+      ".gif" => "image/gif"
+      _ => "application/octet-stream"
+    }
+    println("[INFO] (Daemon) Serving static file: \{path}")
+    let content = html_read_file(path)
+    w
+    ..send_response(200, "OK", extra_headers={
+      "Content-Type": content_type,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+    })
+    ..write(content)
+    ..end_response()
+  } else {
+    raise json_error(404, "NotFound", {
+      "error": {
+        "code": -1,
+        "message": "Unknown endpoint: \{path}",
+        "metadata": { "method": @http.Get.to_string(), "path": path },
+      },
+    })
+  }
+}
+
+///|
 async fn main {
   let args = @os.args()
   let mut port = 8090
@@ -779,40 +818,7 @@ async fn main {
         (Post, ["", "v1", "task", id, "message"]) =>
           daemon.create_task_message(id, request, conn)
         (Get, ["", .. file]) =>
-          if @path.join(serve, file.join("/")) is path &&
-            (try? @fsx.exists_as_file(path)) is Ok(true) {
-            let content_type = match @path.ext(path) {
-              ".js" => "application/javascript"
-              ".css" => "text/css"
-              ".html" => "text/html"
-              ".png" => "image/png"
-              ".jpg" | ".jpeg" => "image/jpeg"
-              ".gif" => "image/gif"
-              _ => "application/octet-stream"
-            }
-            println("[INFO] (Daemon) Serving static file: \{path}")
-            let content = html_read_file(path)
-            conn
-            ..send_response(200, "OK", extra_headers={
-              "Content-Type": content_type,
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-              "Access-Control-Allow-Headers": "Content-Type",
-            })
-            ..write(content)
-            ..end_response()
-          } else {
-            raise json_error(404, "NotFound", {
-              "error": {
-                "code": -1,
-                "message": "Unknown endpoint: \{request.path}",
-                "metadata": {
-                  "method": request.meth.to_string(),
-                  "path": request.path,
-                },
-              },
-            })
-          }
+          serve_static_file(conn, serve~, path=file.join("/"))
         _ =>
           raise json_error(404, "NotFound", {
             "error": {
