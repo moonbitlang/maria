@@ -1,7 +1,7 @@
 ///|
-priv struct SplitItem {
+priv struct LexerResult {
   text : String
-  splitteds : Array[String]
+  pieces : Array[String]
 } derive(ToJson)
 
 ///|
@@ -93,7 +93,7 @@ test {
 ///|
 fn test_regex_and_byte_pair_merge(
   inputs : Map[String, String],
-) -> Map[String, SplitItem] raise {
+) -> Map[String, LexerResult] raise {
   let result = {}
   let cl100k_base = @tiktoken.cl100k_base(pcre2=false)
   for key, text in inputs {
@@ -105,7 +105,7 @@ fn test_regex_and_byte_pair_merge(
     for token in tokens {
       splitteds.push(cl100k_base.decode([token]))
     }
-    result[key] = SplitItem::{ text, splitteds }
+    result[key] = LexerResult::{ text, pieces: splitteds }
   }
   result
 }
