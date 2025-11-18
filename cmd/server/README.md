@@ -28,6 +28,15 @@ Request:
 }
 ```
 
+Response:
+
+```json
+{
+  "id": "<message-id>",
+  "queued": true // or false
+}
+```
+
 ## `GET /v1/events`
 
 ```plaintext

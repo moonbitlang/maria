@@ -108,9 +108,18 @@ async fn collect_modules(
 }
 
 ///|
+priv struct Message {
+  id : @uuid.Uuid
+  queued : Bool
+  message : @openai.ChatCompletionMessageParam
+}
+
+///|
 priv struct Server {
+  uuid : @uuid.Generator
   broadcast : @broadcast.Broadcast[Json]
-  message_queue : @aqueue.Queue[@openai.ChatCompletionMessageParam]
+  message_queue : @aqueue.Queue[Message]
+  mut status : Status
 }
 
 ///|
@@ -131,6 +140,7 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
       guard event
         is {
           "msg": "MessageAdded"
+          | "MessageUnqueued"
           | "PreConversation"
           | "RequestCompleted"
           | "PostToolCall"
@@ -194,17 +204,24 @@ async fn Server::create_message(
         },
       })
   }
+  let message = Message::{
+    id: self.uuid.v4(),
+    queued: self.status is Busy,
+    message,
+  }
   self.message_queue.put(message)
-  let response : Json = {}
-  conn
-  ..send_response(200, "OK", extra_headers={
+  let response : Json = {
+    "id": message.id.to_string(),
+    "queued": message.queued,
+  }
+  conn.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
   })
-  ..write(response.stringify())
-  ..end_response()
+  conn.write(response.stringify())
+  conn.end_response()
 }
 
 ///|
@@ -463,17 +480,25 @@ async fn main {
     @pino.Transport::callback(event => broadcast.put(event)),
   )
   let message_queue = @aqueue.new()
-  let server = Server::{ broadcast, message_queue }
+  let server = Server::{
+    uuid: @uuid.generator(@rand.chacha8()),
+    broadcast,
+    message_queue,
+    status: Idle,
+  }
   let maria = @maria.Maria::new(model?, logger~)
-  let mut status = Idle
   @async.with_task_group(group => {
     group.spawn_bg(
       () => while true {
         let message = message_queue.get()
-        maria.agent.add_message(message)
-        status = Busy
+        maria.agent.add_message(message.message)
+        server.broadcast.put({
+          "msg": "MessageUnqueued",
+          "message": { "id": message.id.to_string() },
+        })
+        server.status = Busy
         defer {
-          status = Idle
+          server.status = Idle
         }
         maria.agent.start() catch {
           error => {
@@ -507,7 +532,7 @@ async fn main {
         w.end_response()
       }
       (Get, "/v1/status") => {
-        let response : Json = { "status": status }
+        let response : Json = { "status": server.status }
         w.send_response(200, "OK", extra_headers={
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",

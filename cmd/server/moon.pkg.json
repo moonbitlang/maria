@@ -16,6 +16,8 @@
     "moonbitlang/async/os_error",
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/internal/spawn",
-    "moonbitlang/maria/internal/moon"
+    "moonbitlang/maria/internal/moon",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/rand"
   ]
 }
