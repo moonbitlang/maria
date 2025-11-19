@@ -1,140 +1,285 @@
 ///|
-#skip
-async test "GET /v1/tasks" {
-  let daemon = Daemon::new(
-    exec_path="./target/native/release/build/cmd/server/server.exe",
+async fn configure_models(mock : @mock.Context) -> Unit {
+  mock.cwd
+  .add_directory(".moonagent")
+  .add_directory("models")
+  .add_file("models.json")
+  .write_json([
+    {
+      "name": "mock:claude-haiku-4.5",
+      "description": "Claude Haiku 4.5 is Anthropic’s fastest and most efficient model, delivering near-frontier intelligence at a fraction of the cost and latency of larger Claude models. Matching Claude Sonnet 4’s performance across reasoning, coding, and computer-use tasks, Haiku 4.5 brings frontier-level capability to real-time and high-volume applications. It introduces extended thinking to the Haiku line; enabling controllable reasoning depth, summarized or interleaved thought output, and tool-assisted workflows with full support for coding, bash, web search, and computer-use tools. Scoring >73% on SWE-bench Verified, Haiku 4.5 ranks among the world’s best coding models while maintaining exceptional responsiveness for sub-agents, parallelized execution, and scaled deployment.",
+      "model_name": "anthropic/claude-haiku-4.5",
+      "model_type": "saas/openai",
+      "base_url": "https://openrouter.ai/api/v1",
+      "is_reasoning": false,
+      "input_price": 21.0,
+      "output_price": 105.0,
+      "average_speed": 0,
+      "safe_zone_tokens": 128000,
+      "max_output_tokens": 24288,
+      "supports_anthropic_prompt_caching": true,
+    },
+  ])
+}
+
+///|
+async fn configure_daemon(mock : @mock.Context) -> Daemon {
+  let repo = @os.cwd()
+  @git.clone(repo, to=mock.cwd.path(), depth=1)
+  configure_models(mock)
+  @spawn.spawn("moon", ["check"], cwd=mock.cwd.path()).check()
+  @spawn.spawn("moon", ["build", "--release"], cwd=mock.cwd.path()).check()
+  Daemon::new(
+    uuid=mock.uuid,
+    cwd=mock.cwd.path(),
+    exec_path=@path.join(
+      mock.cwd.path(),
+      "target/native/release/build/cmd/server/server.exe",
+    ),
     port=0,
-    serve="./cmd/daemon",
+    serve=@path.join(mock.cwd.path(), "cmd/daemon"),
   )
-  @async.with_task_group(group => {
-    group.spawn_bg(() => daemon.serve(), no_wait=true)
-    @async.pause()
-    let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
-    @json.inspect(r.code, content=200)
-    @json.inspect(r.headers, content={
-      "content-type": "application/json",
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET, OPTIONS, POST",
-      "access-control-allow-headers": "Content-Type",
-      "transfer-encoding": "chunked",
+}
+
+///|
+#skip
+async test "GET /v1/tasks" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      @json.inspect(r.code, content=200)
+      @json.inspect(r.headers, content={
+        "content-type": "application/json",
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, OPTIONS, POST",
+        "access-control-allow-headers": "Content-Type",
+        "transfer-encoding": "chunked",
+      })
+      @json.inspect(b.json(), content={ "tasks": [] })
     })
-    @json.inspect(b.json(), content={ "tasks": [] })
   })
 }
 
 ///|
 #skip
-async test "POST /v1/task" {
-  let daemon = Daemon::new(
-    exec_path="./target/native/release/build/cmd/server/server.exe",
-    port=0,
-    serve="./cmd/daemon",
-  )
-  @async.with_task_group(group => {
-    group.spawn_bg(() => daemon.serve(), no_wait=true)
-    @async.pause()
-    let (r, b) = @http.post(
-      "http://localhost/v1/task",
-      Json::object({ "message": { "role": "user", "content": "Hello!" } }),
-      port=daemon.port,
-    )
-    @json.inspect(r.code, content=201)
-    let b = b.json()
-    guard b
-      is {
-        "task": {
-          "id": String(id),
-          "port": Number(_, ..),
-          "status": status,
-          "created": Number(_, ..),
+async test "GET /v1/models" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.get("http://localhost/v1/models", port=daemon.port)
+      @json.inspect(r.code, content=200)
+      @json.inspect(r.headers, content={
+        "content-type": "application/json",
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, OPTIONS, POST",
+        "access-control-allow-headers": "Content-Type",
+        "transfer-encoding": "chunked",
+      })
+      let b = b.json()
+      guard b is { "models": Array(models), .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      @json.inspect(
+        models.contains({ "name": "mock:claude-haiku-4.5" }),
+        content=true,
+      )
+    })
+  })
+}
+
+///|
+#skip
+async test "POST /v1/task" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port,
+      )
+      @json.inspect(r.code, content=201)
+      let b = b.json()
+      guard b
+        is {
+          "task": {
+            "id": String(id),
+            "port": Number(_, ..),
+            "status": status,
+            "created": Number(_, ..),
+            ..
+          },
           ..
-        },
-        ..
-      } else {
-      fail("Unexpected response body: \{b.stringify(indent=2)}")
-    }
-    let status : @server.Status = @json.from_json(status)
-    @json.inspect(status, content="idle")
-    let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
-    @json.inspect(r.code, content=200)
-    let b = b.json()
-    guard b is { "tasks": Array(tasks), .. } else {
-      fail("Unexpected response body: \{b.stringify(indent=2)}")
-    }
-    @json.inspect(tasks.length(), content=1)
-    let (r, s) = @http.get_stream(
-      "http://localhost/v1/task/\{id}/events",
-      port=daemon.port,
-    )
-    @json.inspect(r.code, content=200)
-    @json.inspect(r.headers["content-type"], content="text/event-stream")
-    @json.inspect(r.headers["access-control-allow-origin"], content="*")
-    @json.inspect(
-      r.headers["access-control-allow-methods"],
-      content="GET, OPTIONS, POST",
-    )
-    @json.inspect(
-      r.headers["access-control-allow-headers"],
-      content="Content-Type",
-    )
-    @json.inspect(r.headers["x-accel-buffering"], content="no")
-    while s.read_until("\n") is Some(line) {
-      guard line is [.. "data: ", .. line] else { continue }
-      let data = @json.parse(line)
-      if data is { "msg": "PostConversation", .. } {
-        break
+        } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
+      let status : @server.Status = @json.from_json(status)
+      @json.inspect(status, content="idle")
+      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      @json.inspect(r.code, content=200)
+      let b = b.json()
+      guard b is { "tasks": Array(tasks), .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      @json.inspect(tasks.length(), content=1)
+      let (r, s) = @http.get_stream(
+        "http://localhost/v1/task/\{id}/events",
+        port=daemon.port,
+      )
+      @json.inspect(r.code, content=200)
+      @json.inspect(r.headers["content-type"], content="text/event-stream")
+      @json.inspect(r.headers["access-control-allow-origin"], content="*")
+      @json.inspect(
+        r.headers["access-control-allow-methods"],
+        content="GET, OPTIONS, POST",
+      )
+      @json.inspect(
+        r.headers["access-control-allow-headers"],
+        content="Content-Type",
+      )
+      @json.inspect(r.headers["x-accel-buffering"], content="no")
+      while s.read_until("\n") is Some(line) {
+        guard line is [.. "data: ", .. line] else { continue }
+        let data = @json.parse(line)
+        if data is { "msg": "PostConversation", .. } {
+          break
+        }
+      }
+    })
+  })
+}
+
+///|
+fn redact_events(events : Array[Json]) -> Array[Json] {
+  events.map(event => {
+    guard event is Object(event) else { return event }
+    event.remove("id")
+    event.remove("tag")
+    event.remove("time")
+    event.remove("pid")
+    event.remove("hostname")
+    event.remove("level")
+    let event : Map[String, Json] = match event {
+      {
+        "msg": "MessageAdded",
+        "message": Object(
+          { "role": "assistant" | "system", "content": String(_), .. } as message
+        ),
+        ..
+      } => {
+        message["content"] = "<redacted>"
+        { "msg": "MessageAdded", "message": message }
+      }
+      {
+        "msg": "MessageUnqueued",
+        "message": Object({ "id": String(_), .. } as message),
+        ..
+      } => {
+        message["id"] = "<redacted>"
+        { "msg": "MessageUnqueued", "message": message }
+      }
+      { "msg": "RequestCompleted", .. } => {
+        event["usage"] = "<redacted>"
+        event["message"] = "<redacted>"
+        event
+      }
+      event => event
     }
+    Json::object(event)
   })
 }
 
 ///|
 #skip
-async test "POST /v1/task/{id}/message" {
-  let daemon = Daemon::new(
-    exec_path="./target/native/release/build/cmd/server/server.exe",
-    port=0,
-    serve="./cmd/daemon",
-  )
-  @async.with_task_group(group => {
-    group.spawn_bg(() => daemon.serve(), no_wait=true)
-    @async.pause()
-    let (r, b) = @http.post(
-      "http://localhost/v1/task",
-      Json::object({ "message": { "role": "user", "content": "Hello!" } }),
-      port=daemon.port,
-    )
-    @json.inspect(r.code, content=201)
-    let b = b.json()
-    guard b is { "task": { "id": String(id), .. }, .. } else {
-      fail("Unexpected response body: \{b.stringify(indent=2)}")
-    }
-    let (_, b) = @http.post(
-      "http://localhost/v1/task/\{id}/message",
-      Json::object({ "message": { "role": "user", "content": "How are you?" } }),
-      port=daemon.port,
-    )
-    let b = b.json()
-    guard b is { "id": String(msg_id), "queued": queued, .. } else {
-      fail("Unexpected response body: \{b.stringify(indent=2)}")
-    }
-    let queued : Bool = @json.from_json(queued)
-    @json.inspect(queued, content=true)
-    let (_, s) = @http.get_stream(
-      "http://localhost/v1/task/\{id}/events",
-      port=daemon.port,
-    )
-    let pop_ids : Array[String] = []
-    while s.read_until("\n") is Some(line) {
-      guard line is [.. "data: ", .. line] else { continue }
-      let data = @json.parse(line)
-      match data {
-        { "msg": "PostConversation", .. } => break
-        { "msg": "MessageUnqueued", "message": { "id": String(id), .. }, .. } =>
-          pop_ids.push(id)
-        _ => ()
+async test "POST /v1/task/{id}/message" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port,
+      )
+      @json.inspect(r.code, content=201)
+      let b = b.json()
+      guard b is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-    }
-    @json.inspect(pop_ids, content=[msg_id])
+      let (_, b) = @http.post(
+        "http://localhost/v1/task/\{id}/message",
+        Json::object({
+          "message": { "role": "user", "content": "How are you?" },
+        }),
+        port=daemon.port,
+      )
+      let b = b.json()
+      guard b is { "id": String(msg_id), "queued": queued, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      let queued : Bool = @json.from_json(queued)
+      @json.inspect(queued, content=true)
+      let (_, s) = @http.get_stream(
+        "http://localhost/v1/task/\{id}/events",
+        port=daemon.port,
+      )
+      let pop_ids : Array[String] = []
+      let events : Array[Json] = []
+      while s.read_until("\n") is Some(line) {
+        guard line is [.. "data: ", .. line] else { continue }
+        let data = @json.parse(line)
+        events.push(data)
+        match data {
+          { "msg": "PostConversation", .. } => break
+          { "msg": "MessageUnqueued", "message": { "id": String(id), .. }, .. } =>
+            pop_ids.push(id)
+          _ => ()
+        }
+      }
+      @json.inspect(pop_ids, content=[msg_id])
+      @json.inspect(redact_events(events), content=[
+        {
+          "msg": "MessageAdded",
+          "message": { "role": "system", "content": "<redacted>" },
+        },
+        {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello!" },
+        },
+        { "msg": "PreConversation" },
+        {
+          "msg": "RequestCompleted",
+          "usage": "<redacted>",
+          "message": "<redacted>",
+        },
+        { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
+        {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "How are you?" },
+        },
+        {
+          "msg": "RequestCompleted",
+          "usage": "<redacted>",
+          "message": "<redacted>",
+        },
+        { "msg": "PostConversation" },
+      ])
+    })
   })
 }

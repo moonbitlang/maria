@@ -207,10 +207,10 @@ async fn Daemon::create_task(
   )
   let rq = @aqueue.Queue::new()
   self.rqs[id.to_string()] = rq
-  let task_port = @async.with_timeout(60_000, () => rq.get()) catch {
+  let task_port = @async.with_timeout(300_000, () => rq.get()) catch {
     @async.TimeoutError => {
       println(
-        "[ERROR] (Daemon) Timed out waiting for task to register after 60 seconds",
+        "[ERROR] (Daemon) Timed out waiting for task to register after 5 minutes",
       )
       raise json_error(500, "Internal Server Error", {
         "error": {
@@ -503,9 +503,11 @@ async fn Daemon::create_task_message(
 
 ///|
 async fn Daemon::new(
+  uuid? : @uuid.Generator,
   exec_path~ : String,
   port~ : Int,
   serve~ : String,
+  cwd? : StringView,
 ) -> Daemon {
   // Validate exec_path points to an existing file.
   if !@fsx.exists(exec_path) {
@@ -525,11 +527,19 @@ async fn Daemon::new(
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
   let logger = @pino.logger("daemon", @pino.Transport::console())
+  let uuid = match uuid {
+    Some(uuid) => uuid
+    None => @uuid.generator(@rand.chacha8())
+  }
+  let cwd = match cwd {
+    Some(cwd) => cwd.to_string()
+    None => @os.cwd()
+  }
   Daemon::{
     clock: @clock.epoch,
-    models: @model.Loader::new(home=@os.home(), cwd=@os.cwd(), logger~),
-    uuid: @uuid.generator(@rand.chacha8()),
-    process: @spawn.Manager::new(cwd=@os.cwd()),
+    models: @model.Loader::new(home=@os.home(), cwd~, logger~),
+    uuid,
+    process: @spawn.Manager::new(cwd~),
     by_cwd: {},
     by_id: {},
     rqs: {},
