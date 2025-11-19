@@ -1,5 +1,5 @@
 ///|
-pub fn cl100k_base(pcre2? : Bool = true) -> Encoding raise {
+pub fn cl100k_base(pcre2? : Bool = false) -> Encoding raise {
   let mergeable_ranks = {}
   for line in cl100k_base_mergeable_ranks.split("\n") {
     if line is "" {
