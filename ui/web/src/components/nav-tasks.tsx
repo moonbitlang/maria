@@ -13,7 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
 import type { Status } from "@/lib/types";
@@ -30,7 +30,6 @@ function getTaskIcon(status: Status) {
 export function NavTasks() {
   const tasks = useAppSelector(selectTasks);
   const activeTaskId = useAppSelector(selectActiveTaskId);
-  const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
   return (
     <Collapsible defaultOpen className="group/collapsible">
@@ -53,18 +52,16 @@ export function NavTasks() {
                     tooltip={name}
                     asChild
                     isActive={isActive}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(url);
+                    onClick={() => {
                       if (isMobile) {
                         setOpenMobile(false);
                       }
                     }}
                   >
-                    <a href={url}>
+                    <Link to={url}>
                       <span className="truncate">{name}</span>
                       {getTaskIcon(status)}
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

@@ -14,12 +14,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavTasks } from "./nav-tasks";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId } from "@/features/session/tasksSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const navigate = useNavigate();
   const activeTaskId = useAppSelector(selectActiveTaskId);
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -34,19 +33,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="text-base"
                 tooltip="New Task"
                 isActive={activeTaskId === undefined}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/");
+                onClick={() => {
                   if (isMobile) {
                     setOpenMobile(false);
                   }
                 }}
                 asChild
               >
-                <a href="/">
+                <Link to="/">
                   <SquareTerminal />
                   <span>New Task</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
