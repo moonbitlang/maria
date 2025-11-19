@@ -342,6 +342,15 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
       @json.inspect(pop_ids, content=[msg_id])
       @json.inspect(redact_events(events), content=[
         {
+          "event": "maria.queued_messages.synchronized",
+          "data": [
+            {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "How are you?" },
+            },
+          ],
+        },
+        {
           "event": "maria",
           "data": {
             "msg": "MessageAdded",
