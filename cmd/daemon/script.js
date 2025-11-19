@@ -4,6 +4,10 @@ let currentTaskId = null;
 let tasks = [];
 let models = [];
 
+// Message queue state
+let queuedMessages = [];
+let queuePanel, queueHeader, queueList, queueCount, queueToggle;
+
 // DOM elements
 const taskListDiv = document.getElementById("taskList");
 const messagesDiv = document.getElementById("messages");
@@ -21,6 +25,47 @@ const modulesBtn = document.getElementById("modulesBtn");
 const modulesModal = document.getElementById("modulesModal");
 const closeModulesBtn = document.getElementById("closeModulesBtn");
 const modulesList = document.getElementById("modulesList");
+
+// Message queue functions
+function toggleQueuePanel() {
+  queuePanel.classList.toggle("expanded");
+  queueToggle.textContent = queuePanel.classList.contains("expanded")
+    ? "▲"
+    : "▼";
+}
+
+function updateQueueDisplay() {
+  // Guard: Don't update if elements aren't initialized yet
+  if (!queueCount || !queueList || !queuePanel) {
+    return;
+  }
+
+  queueCount.textContent = queuedMessages.length;
+
+  if (queuedMessages.length === 0) {
+    queueList.innerHTML =
+      '<div class="no-queue-items">No queued messages</div>';
+  } else {
+    queueList.innerHTML = queuedMessages
+      .map((item) => {
+        const content = extractMessageContent(item.message);
+        const preview =
+          content.length > 100 ? content.substring(0, 100) + "..." : content;
+        return `
+          <div class="queue-item">
+            <div class="queue-item-id">ID: ${escapeHtml(item.id)}</div>
+            <div class="queue-item-content">${escapeHtml(preview)}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Auto-expand if there are queued messages
+  if (queuedMessages.length > 0 && !queuePanel.classList.contains("expanded")) {
+    toggleQueuePanel();
+  }
+}
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -364,6 +409,10 @@ function selectTask(taskId) {
   currentTaskId = taskId;
   messagesDiv.innerHTML = "";
 
+  // Clear queue when switching tasks
+  queuedMessages = [];
+  updateQueueDisplay();
+
   // Update UI
   renderTaskList();
   noTaskSelected.style.display = "none";
@@ -408,12 +457,42 @@ function connectToTask(taskId) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 
+  eventSource.addEventListener(
+    "maria.queued_messages.synchronized",
+    (event) => {
+      const data = JSON.parse(event.data);
+      if (!Array.isArray(data)) {
+        console.error(
+          "Expected array for maria.queued_messages.synchronized event, got:",
+          data
+        );
+        return;
+      }
+      queuedMessages = data;
+      updateQueueDisplay();
+      addMessage(`✓ Queue synchronized: ${queuedMessages.length} message(s)`);
+    }
+  );
+
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);
     if (data.msg === "TokenCounted") {
       // There are too many of these events; ignore them to reduce noise
       return;
     }
+
+    // Handle queue events
+    if (data.msg === "MessageQueued") {
+      queuedMessages.push({
+        id: data.id,
+        message: data.message,
+      });
+      updateQueueDisplay();
+    } else if (data.msg === "MessageUnqueued") {
+      queuedMessages = queuedMessages.filter((item) => item.id !== data.id);
+      updateQueueDisplay();
+    }
+
     const formattedHtml = formatLogEntry(data);
     const logDiv = document.createElement("div");
     logDiv.innerHTML = formattedHtml;
@@ -838,6 +917,18 @@ messageInput.addEventListener("keypress", (e) => {
 
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize queue panel elements
+  queuePanel = document.getElementById("queuePanel");
+  queueHeader = document.getElementById("queueHeader");
+  queueList = document.getElementById("queueList");
+  queueCount = document.getElementById("queueCount");
+  queueToggle = document.getElementById("queueToggle");
+
+  // Setup queue panel event listener
+  if (queueHeader) {
+    queueHeader.addEventListener("click", toggleQueuePanel);
+  }
+
   loadModels();
   connectToDaemon();
 });
