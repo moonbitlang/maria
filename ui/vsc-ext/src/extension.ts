@@ -7,6 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider(
       webview.MoonBitAgentViewProvider.viewType,
       viewProvider,
+      { webviewOptions: { retainContextWhenHidden: true } },
     ),
   );
 }

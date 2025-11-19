@@ -63,9 +63,10 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   ): Thenable<void> | void {
     this._view = webviewView;
 
+    // TODO: start daemon and setup port mapping here
     this._view.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._context.extensionUri],
+      portMapping: [{ extensionHostPort: 8090, webviewPort: 8090 }],
     };
 
     this._view.webview.html = this._getHtmlForWebview(this._view.webview);
