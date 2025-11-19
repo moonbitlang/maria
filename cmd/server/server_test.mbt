@@ -284,3 +284,77 @@ async test "GET /v1/events" (t : @test.Test) {
     ])
   })
 }
+
+///|
+async test "GET /v1/moonbit/modules" (t : @test.Test) {
+  @mock.run(t, mock => {
+    @moon.new(user="username", name="example", mock.cwd.path())
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.serve(), no_wait=true)
+    let (r, b) = @http.get(
+      "http://localhost/v1/moonbit/modules",
+      port=server.port,
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard b is { "modules": Array(modules), .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    @json.inspect(mock.json(modules), content=[
+      {
+        "path": "(mock:cwd)",
+        "name": "username/example",
+        "version": "0.1.0",
+        "description": "",
+      },
+    ])
+  })
+}
+
+///|
+async test "POST /v1/moonbit/publish" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.serve(), no_wait=true)
+    let (r, b) = @http.post(
+      "http://localhost/v1/moonbit/publish",
+      Json::object({ "module": { "path": mock.cwd.path() } }),
+      port=server.port,
+    )
+    @json.inspect(r.code, content=404)
+    @json.inspect(mock.json(b.json()), content={
+      "error": {
+        "code": -1,
+        "message": "No MoonBit module found in path '(mock:cwd)'",
+        "metadata": "moonbitlang/async/os_error.OSError.OSError",
+      },
+    })
+    @moon.new(user="username", name="example", mock.cwd.path())
+    let (r, b) = @http.post(
+      "http://localhost/v1/moonbit/publish",
+      Json::object({ "module": { "path": mock.cwd.path() } }),
+      port=server.port,
+    )
+    @json.inspect(r.code, content=500)
+    @json.inspect(
+      mock
+      .json(b.json())
+      .transform(@json.Replacer::exclude(["stdout", "stderr"])),
+      content={
+        "error": {
+          "code": -1,
+          "message": "Failed to publish module at '(mock:cwd)'",
+          "metadata": {
+            "module": {
+              "path": "(mock:cwd)",
+              "name": "username/example",
+              "version": "0.1.0",
+              "description": "",
+            },
+            "process": { "status": 255 },
+          },
+        },
+      },
+    )
+  })
+}

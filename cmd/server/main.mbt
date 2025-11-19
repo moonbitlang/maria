@@ -48,9 +48,12 @@ async fn collect_modules(
 }
 
 ///|
-async fn list_moonbit_modules(conn : @http.ServerConnection) -> Unit {
+async fn Server::list_moonbit_modules(
+  server : Server,
+  conn : @http.ServerConnection,
+) -> Unit {
   let modules = []
-  collect_modules(@os.cwd(), modules)
+  collect_modules(server.cwd, modules)
   let modules_json : Array[Json] = []
   for mod in modules {
     modules_json.push({
@@ -116,7 +119,8 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
       raise json_error(404, "NotFound", {
         "error": {
           "code": -1,
-          "message": "No MoonBit module found in path '\{path}': \{error}",
+          "message": "No MoonBit module found in path '\{path}'",
+          "metadata": error.to_json(),
         },
       })
   }

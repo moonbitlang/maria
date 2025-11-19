@@ -11,6 +11,7 @@ pub struct Server {
   priv serve : String
   port : Int
   priv tcp_server : @socket.TcpServer
+  priv cwd : String
 }
 
 ///|
@@ -41,6 +42,10 @@ pub async fn Server::new(
     reuse_addr=true,
   )
   let port = tcp_server.addr().port()
+  let cwd = match cwd {
+    Some(cwd) => cwd
+    None => @os.cwd()
+  }
   Server::{
     maria,
     broadcast,
@@ -51,6 +56,7 @@ pub async fn Server::new(
     serve,
     port,
     tcp_server,
+    cwd,
   }
 }
 
@@ -181,7 +187,7 @@ pub async fn Server::serve(server : Server) -> Unit {
       (Get, "/v1/queued-messages") => server.get_queued_messages(w)
       (Get, "/v1/events") => server.get_events(w)
       (Post, "/v1/message") => server.create_message(w)
-      (Get, "/v1/moonbit/modules") => list_moonbit_modules(w)
+      (Get, "/v1/moonbit/modules") => server.list_moonbit_modules(w)
       (Post, "/v1/moonbit/publish") => publish_moonbit_module(w)
       (Get, ['/', .. file]) if "\{server.serve}/\{file}" is path &&
         (try? @fsx.exists_as_file(path)) is Ok(true) => {
