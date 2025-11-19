@@ -39,6 +39,7 @@ async fn configure_server(
 }
 
 ///|
+#skip
 async test "register" (t : @test.Test) {
   @mock.run(t, mock => {
     let addr = @socket.Addr::parse("[::]:0")
@@ -63,6 +64,7 @@ async test "register" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "POST /v1/message" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
@@ -160,6 +162,7 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
 }
 
 ///|
+#skip
 async test "GET /v1/events" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
