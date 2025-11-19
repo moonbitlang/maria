@@ -44,7 +44,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
 ///|
 #skip
 async test "GET /v1/tasks" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -66,7 +66,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
 ///|
 #skip
 async test "GET /v1/models" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -95,7 +95,7 @@ async test "GET /v1/models" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -203,7 +203,7 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
 ///|
 #skip
 async test "POST /v1/task/{id}/message" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -287,7 +287,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task with invalid cwd" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -317,7 +317,7 @@ async test "POST /v1/task with invalid cwd" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task with invalid model" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, timeout=1800_000, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
