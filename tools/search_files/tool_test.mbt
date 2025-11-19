@@ -134,7 +134,6 @@ async test "search_files-moon-references" (t : @test.Test) {
 ///|
 async test "search_files/agentic" (t : @test.Test) {
   @mock.run(t, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
     mock.add_files([
       (
         "notes.txt",
@@ -152,12 +151,7 @@ async test "search_files/agentic" (t : @test.Test) {
         ),
       ),
     ])
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=mock.cwd.path())
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
