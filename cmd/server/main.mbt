@@ -27,7 +27,7 @@ async fn run_server(
   f : async (@http.Request, @http.ServerConnection) -> Unit,
 ) -> Unit {
   let addr = try! @socket.Addr::parse("[::]:\{port}")
-  let server = @socket.TcpServer::new(addr, dual_stack=true)
+  let server = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
   let port = server.addr().port()
   if register is Some(register) {
     println("[INFO] (Server \{register.id}) Listening on port \{port}")

@@ -6,6 +6,52 @@ const sendBtn = document.getElementById("sendBtn");
 const modulesListDiv = document.getElementById("modulesList");
 const refreshModulesBtn = document.getElementById("refreshModulesBtn");
 
+// Message queue state
+let queuedMessages = [];
+let queuePanel, queueHeader, queueList, queueCount, queueToggle;
+
+// Toggle queue panel
+function toggleQueuePanel() {
+  queuePanel.classList.toggle("expanded");
+  queueToggle.textContent = queuePanel.classList.contains("expanded")
+    ? "▲"
+    : "▼";
+}
+
+// Update queue display
+function updateQueueDisplay() {
+  // Guard: Don't update if elements aren't initialized yet
+  if (!queueCount || !queueList || !queuePanel) {
+    return;
+  }
+
+  queueCount.textContent = queuedMessages.length;
+
+  if (queuedMessages.length === 0) {
+    queueList.innerHTML =
+      '<div class="no-queue-items">No queued messages</div>';
+  } else {
+    queueList.innerHTML = queuedMessages
+      .map((item) => {
+        const content = extractMessageContent(item.message);
+        const preview =
+          content.length > 100 ? content.substring(0, 100) + "..." : content;
+        return `
+          <div class="queue-item">
+            <div class="queue-item-id">ID: ${escapeHtml(item.id)}</div>
+            <div class="queue-item-content">${escapeHtml(preview)}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Auto-expand if there are queued messages
+  if (queuedMessages.length > 0 && !queuePanel.classList.contains("expanded")) {
+    toggleQueuePanel();
+  }
+}
+
 // MoonBit Modules Management
 async function loadModules() {
   try {
@@ -372,29 +418,22 @@ function connect() {
     addMessage("✓ Connected to server");
   };
 
-  eventSource.addEventListener("maria.history", (event) => {
-    const historyData = JSON.parse(event.data);
-    if (!Array.isArray(historyData)) {
-      console.error(
-        "Expected array for maria.history event, got:",
-        historyData
-      );
-      return;
-    }
-    // Clear existing messages and render all historical events
-    messagesDiv.innerHTML = "";
-    historyData.forEach((data) => {
-      if (data.msg === "TokenCounted") {
-        // There are too many of these events; ignore them to reduce noise
+  eventSource.addEventListener(
+    "maria.queued_messages.synchronized",
+    (event) => {
+      const data = JSON.parse(event.data);
+      if (!Array.isArray(data)) {
+        console.error(
+          "Expected array for maria.queued_messages.synchronized event, got:",
+          data
+        );
         return;
       }
-      const formattedHtml = formatLogEntry(data);
-      const logDiv = document.createElement("div");
-      logDiv.innerHTML = formattedHtml;
-      messagesDiv.appendChild(logDiv);
-    });
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
+      queuedMessages = data;
+      updateQueueDisplay();
+      addMessage(`✓ Queue synchronized: ${queuedMessages.length} message(s)`);
+    }
+  );
 
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);
@@ -402,6 +441,19 @@ function connect() {
       // There are too many of these events; ignore them to reduce noise
       return;
     }
+
+    // Handle queue events
+    if (data.msg === "MessageQueued") {
+      queuedMessages.push({
+        id: data.id,
+        message: data.message,
+      });
+      updateQueueDisplay();
+    } else if (data.msg === "MessageUnqueued") {
+      queuedMessages = queuedMessages.filter((item) => item.id !== data.id);
+      updateQueueDisplay();
+    }
+
     const formattedHtml = formatLogEntry(data);
     const logDiv = document.createElement("div");
     logDiv.innerHTML = formattedHtml;
@@ -456,6 +508,18 @@ messageInput.addEventListener("keypress", (e) => {
 
 // Auto-connect when DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize queue panel elements
+  queuePanel = document.getElementById("queuePanel");
+  queueHeader = document.getElementById("queueHeader");
+  queueList = document.getElementById("queueList");
+  queueCount = document.getElementById("queueCount");
+  queueToggle = document.getElementById("queueToggle");
+
+  // Setup queue panel event listener
+  if (queueHeader) {
+    queueHeader.addEventListener("click", toggleQueuePanel);
+  }
+
   connect();
   loadModules();
 });

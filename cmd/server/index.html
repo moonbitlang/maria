@@ -258,6 +258,82 @@
         text-align: center;
         color: #666;
       }
+
+      /* Message Queue styles */
+      #queuePanel {
+        background: #fff3cd;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin: 20px 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+
+      #queuePanel.expanded {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      #queueHeader {
+        padding: 10px 15px;
+        background: #ffc107;
+        color: #333;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        user-select: none;
+        border-radius: 5px 5px 0 0;
+      }
+
+      #queueHeader:hover {
+        background: #ffca28;
+      }
+
+      #queueCount {
+        background: #fff;
+        border-radius: 50%;
+        padding: 2px 8px;
+        font-size: 0.85em;
+        min-width: 20px;
+        text-align: center;
+      }
+
+      #queueList {
+        padding: 10px 15px;
+        background: white;
+      }
+
+      .queue-item {
+        padding: 10px;
+        margin: 5px 0;
+        background: #fafafa;
+        border-left: 3px solid #ffc107;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      .queue-item-id {
+        color: #666;
+        font-size: 0.8em;
+        margin-bottom: 5px;
+        font-family: monospace;
+      }
+
+      .queue-item-content {
+        color: #333;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .no-queue-items {
+        padding: 10px;
+        color: #666;
+        text-align: center;
+        font-style: italic;
+      }
     </style>
   </head>
   <body>
@@ -283,6 +359,17 @@
         style="width: 70%; padding: 8px"
       />
       <button id="sendBtn" style="padding: 8px 20px">Send</button>
+    </div>
+
+    <h2>Message Queue:</h2>
+    <div id="queuePanel">
+      <div id="queueHeader">
+        <span>Queued Messages <span id="queueCount">0</span></span>
+        <span id="queueToggle">▼</span>
+      </div>
+      <div id="queueList">
+        <div class="no-queue-items">No queued messages</div>
+      </div>
     </div>
 
     <h2>Events:</h2>
