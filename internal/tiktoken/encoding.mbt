@@ -140,6 +140,13 @@ fn Encoding::encode_piece(
 }
 
 ///|
+let cl100k_base_regex : @regexp.Regexp = try! @regexp.compile(
+  (
+    #|'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s+$|\s*[\r\n]|\s+(?<Assertion>\s)|\s
+  ),
+)
+
+///|
 pub fn Encoding::encode(
   self : Encoding,
   piece : StringView,
@@ -147,7 +154,8 @@ pub fn Encoding::encode(
   let tokens = []
   match self.pattern {
     Cl100kBase =>
-      for matches in cl100k_base_tokenize_all(piece) {
+      for
+        matches in cl100k_base_tokenize_all_with_regex(cl100k_base_regex, piece) {
         self.encode_piece(tokens, matches)
       }
     Pcre2(regex) => {
