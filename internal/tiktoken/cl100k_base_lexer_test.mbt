@@ -52,8 +52,8 @@ test "snapshot cl100k_base" (t : @test.Test) {
 ///|
 test {
   let s = "line1\nline2\rline3\r\nline4"
-  let reuslt = cl100k_base_tokenize_all(s)
-  @json.inspect(reuslt, content=[
+  let result = cl100k_base_tokenize_all(s)
+  @json.inspect(result, content=[
     "line", "1", "\n", "line", "2", "\r", "line", "3", "\r\n", "line", "4",
   ])
 }
