@@ -37,6 +37,30 @@ Response:
 }
 ```
 
+## `GET /v1/queued-messages`
+
+Response:
+
+```json
+[
+  "<queued-message-0>",
+  "<queued-message-1>",
+  ...
+]
+```
+
+Where `<queued-message-i>` is a JSON object:
+
+```json
+{
+  "id": "<message-id>",
+  "message": {
+    "role": "user",
+    "content": "Hello, world!"
+  }
+}
+```
+
 ## `GET /v1/events`
 
 ```plaintext
