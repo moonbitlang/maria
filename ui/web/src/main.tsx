@@ -4,26 +4,38 @@ import "./index.css";
 import Home from "./routes/Home";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/layout";
 import Task from "./routes/Task";
+
+declare global {
+  function acquireVsCodeApi(): void;
+}
+
+const isInVscode = typeof acquireVsCodeApi === "function";
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);
 
+const routes = (
+  <Routes>
+    <Route element={<Layout />}>
+      <Route index element={<Home />}></Route>
+      <Route path="tasks/:taskId" element={<Task />}></Route>
+    </Route>
+  </Routes>
+);
+
 root.render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            {/* for vscode webview to work */}
-            <Route path="/index.html" element={<Home />}></Route>
-            <Route index element={<Home />}></Route>
-            <Route path="tasks/:taskId" element={<Task />}></Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      {isInVscode ? (
+        <MemoryRouter initialEntries={["/"]} initialIndex={0}>
+          {routes}
+        </MemoryRouter>
+      ) : (
+        <BrowserRouter>{routes}</BrowserRouter>
+      )}
     </Provider>
   </StrictMode>,
 );

@@ -27,7 +27,7 @@
         {
           "type": "webview",
           "id": "moonbit-agent.view",
-          "name": "MoonBit Agent View",
+          "name": "MoonBit Agent",
           "icon": "$(robot)"
         }
       ]
