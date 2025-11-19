@@ -162,8 +162,8 @@ pub async fn Server::serve(server : Server) -> Unit {
       (Options, _) => {
         w.send_response(204, "No Content", extra_headers={
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Headers": "*",
         })
         w.end_response()
       }
@@ -178,8 +178,8 @@ pub async fn Server::serve(server : Server) -> Unit {
         w.send_response(200, "OK", extra_headers={
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Headers": "*",
         })
         w.write(response.stringify())
         w.end_response()
@@ -224,8 +224,8 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
   w.send_response(200, "OK", extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
     "X-Accel-Buffering": "no",
   })
   w.write("event: maria.queued_messages.synchronized\n")
@@ -294,8 +294,8 @@ async fn Server::get_queued_messages(
   w.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   w.write(response.stringify())
   w.end_response()
@@ -356,8 +356,8 @@ async fn Server::create_message(
   conn.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   conn.write(response.stringify())
   conn.end_response()

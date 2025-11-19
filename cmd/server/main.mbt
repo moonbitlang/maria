@@ -68,8 +68,8 @@ async fn Server::list_moonbit_modules(
   ..send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   ..write(response.stringify())
   ..end_response()
@@ -142,8 +142,8 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
     ..send_response(201, "Created", extra_headers={
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*",
     })
     ..write(response.stringify())
     ..end_response()
@@ -171,8 +171,8 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
     ..send_response(500, "InternalServerError", extra_headers={
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*",
     })
     ..write(response.stringify())
     ..end_response()

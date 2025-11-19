@@ -50,8 +50,8 @@ async test "GET /v1/tasks" (t : @test.Test) {
       @json.inspect(r.headers, content={
         "content-type": "application/json",
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET, OPTIONS, POST",
-        "access-control-allow-headers": "Content-Type",
+        "access-control-allow-methods": "*",
+        "access-control-allow-headers": "*",
         "transfer-encoding": "chunked",
       })
       @json.inspect(b.json(), content={ "tasks": [] })
@@ -138,8 +138,8 @@ async test "GET /v1/models" (t : @test.Test) {
       @json.inspect(r.headers, content={
         "content-type": "application/json",
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET, OPTIONS, POST",
-        "access-control-allow-headers": "Content-Type",
+        "access-control-allow-methods": "*",
+        "access-control-allow-headers": "*",
         "transfer-encoding": "chunked",
       })
       let b = b.json()
@@ -202,14 +202,8 @@ async test "POST /v1/task" (t : @test.Test) {
       @json.inspect(r.code, content=200)
       @json.inspect(r.headers["content-type"], content="text/event-stream")
       @json.inspect(r.headers["access-control-allow-origin"], content="*")
-      @json.inspect(
-        r.headers["access-control-allow-methods"],
-        content="GET, OPTIONS, POST",
-      )
-      @json.inspect(
-        r.headers["access-control-allow-headers"],
-        content="Content-Type",
-      )
+      @json.inspect(r.headers["access-control-allow-methods"], content="*")
+      @json.inspect(r.headers["access-control-allow-headers"], content="*")
       @json.inspect(r.headers["x-accel-buffering"], content="no")
       while s.read_until("\n") is Some(line) {
         guard line is [.. "data: ", .. line] else { continue }

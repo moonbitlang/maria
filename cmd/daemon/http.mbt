@@ -45,8 +45,8 @@ async fn serve_static_file(
     ..send_response(200, "OK", extra_headers={
       "Content-Type": content_type,
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*",
     })
     ..write(content)
     ..end_response()
