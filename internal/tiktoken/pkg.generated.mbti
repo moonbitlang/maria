@@ -1,12 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/tiktoken"
 
-import(
-  "moonbitlang/maria/internal/pcre2"
-)
-
 // Values
-fn cl100k_base(pcre2? : Bool) -> Encoding raise
+fn cl100k_base() -> Encoding raise
 
 fn cl100k_base_tokenize(StringView) -> StringView?
 
@@ -19,16 +15,14 @@ impl Show for DecodingError
 // Types and methods
 type Encoding
 fn Encoding::decode(Self, ArrayView[Int]) -> String raise DecodingError
-fn Encoding::encode(Self, StringView) -> Array[Int] raise
+fn Encoding::encode(Self, StringView) -> Array[Int]
 fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int], special_tokens~ : Map[String, Int], pattern~ : Pattern) -> Self
 fn Encoding::special_tokens(Self, String) -> Int?
 
 pub enum Pattern {
   Cl100kBase
-  Pcre2(@pcre2.Code)
 }
 fn Pattern::cl100k_base() -> Self
-fn Pattern::pcre2(String) -> Self raise
 
 // Type aliases
 

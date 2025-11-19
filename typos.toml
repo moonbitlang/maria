@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["ui/dev/log.jsonl", "internal/pcre2/","internal/tiktoken/cl100k_base.tiktoken.mbt","internal/uuid/uuid.mbt"]
+extend-exclude = ["ui/dev/log.jsonl","internal/tiktoken/cl100k_base.tiktoken.mbt","internal/uuid/uuid.mbt"]
 
 [default.extend-words]
 ba = "ba"

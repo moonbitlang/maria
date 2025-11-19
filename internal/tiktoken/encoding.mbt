@@ -10,17 +10,11 @@ struct Encoding {
 ///|
 pub enum Pattern {
   Cl100kBase
-  Pcre2(@pcre2.Code)
 }
 
 ///|
 pub fn Pattern::cl100k_base() -> Pattern {
   Cl100kBase
-}
-
-///|
-pub fn Pattern::pcre2(pat_str : String) -> Pattern raise {
-  Pcre2(@pcre2.compile(pat_str))
 }
 
 ///|
@@ -122,10 +116,7 @@ fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
 }
 
 ///|
-pub fn Encoding::encode(
-  self : Encoding,
-  piece : StringView,
-) -> Array[Int] raise {
+pub fn Encoding::encode(self : Encoding, piece : StringView) -> Array[Int] {
   let tokens = []
   match self.pattern {
     Cl100kBase =>
@@ -139,21 +130,6 @@ pub fn Encoding::encode(
           }
         }
       }
-    Pcre2(regex) => {
-      let matches = regex.matches(piece)
-      while matches.next() is Some(matched) {
-        let piece = @encoding/utf8.encode(matched[0])
-        match self.encoder.get(piece) {
-          Some(token) => tokens.push(token)
-          None => {
-            let t = []
-            self.lookup(piece, t)
-            self.merge(t)
-            tokens.append(t)
-          }
-        }
-      }
-    }
   }
   tokens
 }
