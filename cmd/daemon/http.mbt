@@ -14,37 +14,6 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 }
 
 ///|
-async fn run_server(
-  port~ : Int,
-  f : async (@http.Request, @http.ServerConnection) -> Unit,
-) -> Unit {
-  let addr = try! @socket.Addr::parse("[::]:\{port}")
-  println("[INFO] Starting HTTP server on port \{port}...")
-  println("[INFO] Visit http://localhost:\{port}/")
-  @http.run_server(addr, reuse_addr=true, (conn, _) => for {
-    try {
-      let request = conn.read_request()
-      println(
-        "[INFO] (Daemon) Received request: \{request.meth} \{request.path}",
-      )
-      f(request, conn)
-    } catch {
-      HttpError(code~, reason~, body~) =>
-        conn
-        ..send_response(code, reason, extra_headers={
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-          "Access-Control-Allow-Headers": "Content-Type",
-        })
-        ..write(body)
-        ..end_response()
-      error => raise error
-    }
-  })
-}
-
-///|
 async fn html_read_file(path : String) -> String {
   @fsx.read_file(path) catch {
     @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>

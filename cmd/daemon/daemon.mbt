@@ -8,6 +8,7 @@ priv struct Daemon {
   by_id : Map[@uuid.Uuid, Task]
   rqs : Map[String, @aqueue.Queue[Int]]
   exec_path : String
+  tcp_server : @socket.TcpServer
   port : Int
   events : @broadcast.Broadcast[Event]
   serve : String
@@ -508,6 +509,23 @@ async fn Daemon::new(
   port~ : Int,
   serve~ : String,
 ) -> Daemon {
+  // Validate exec_path points to an existing file.
+  if !@fsx.exists(exec_path) {
+    fail("Exec path does not exist: \{exec_path}")
+  }
+  let exec_path = @fsx.resolve(exec_path) catch {
+    error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
+  }
+  // Create TCP server.
+  let addr = try! @socket.Addr::parse("[::]:\{port}")
+  let tcp_server = @socket.TcpServer::new(
+    addr,
+    dual_stack=true,
+    reuse_addr=true,
+  )
+  let port = tcp_server.addr().port()
+  println("[INFO] Starting HTTP server on port \{port}...")
+  println("[INFO] Visit http://localhost:\{port}/")
   let logger = @pino.logger("daemon", @pino.Transport::console())
   Daemon::{
     clock: @clock.epoch,
@@ -518,6 +536,7 @@ async fn Daemon::new(
     by_id: {},
     rqs: {},
     exec_path,
+    tcp_server,
     port,
     events: @broadcast.Broadcast::new(),
     serve,
@@ -528,49 +547,66 @@ async fn Daemon::new(
 async fn Daemon::serve(self : Daemon) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.process.start())
-    run_server(port=self.port, (request, conn) => {
-      let paths = request.path.split("/").collect()
+    self.tcp_server.run_forever((conn, _) => {
+      let conn = @http.ServerConnection::new(conn)
+      let r = conn.read_request()
+      println("[INFO] (Daemon) Received request: \{r.meth} \{r.path}")
+      let paths = r.path.split("/").collect()
       println("[INFO] (Daemon) Handling request paths: \{paths}")
-      match (request.meth, paths) {
-        // GET /
-        (Get, ["", ""]) => {
-          let index_html = html_read_file(@path.join(self.serve, "index.html"))
-          conn
-          ..send_response(200, "OK", extra_headers={
-            "Content-Type": "text/html",
+      try {
+        match (r.meth, paths) {
+          // GET /
+          (Get, ["", ""]) => {
+            let index_html = html_read_file(
+              @path.join(self.serve, "index.html"),
+            )
+            conn
+            ..send_response(200, "OK", extra_headers={
+              "Content-Type": "text/html",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+              "Access-Control-Allow-Headers": "Content-Type",
+            })
+            ..write(index_html)
+            ..end_response()
+          }
+          (Get, ["", "v1", "events"]) => self.get_events(conn)
+          (Get, ["", "v1", "models"]) => self.list_models(conn)
+          (Post, ["", "v1", "task", "register"]) => self.register_task(conn)
+          (Get, ["", "v1", "tasks"]) => self.list_tasks(conn)
+          (Post, ["", "v1", "task"]) => self.create_task(group~, conn)
+          (Get, ["", "v1", "task", id]) => self.get_task(id, conn)
+          (Get, ["", "v1", "task", id, "events"]) =>
+            self.get_task_events(id, r, conn)
+          (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
+            self.list_moonbit_modules(id, r, conn)
+          (Post, ["", "v1", "moonbit", "publish"]) =>
+            publish_moonbit_module(conn)
+          (Post, ["", "v1", "task", id, "message"]) =>
+            self.create_task_message(id, r, conn)
+          (Get, ["", .. file]) =>
+            serve_static_file(conn, serve=self.serve, path=file.join("/"))
+          _ =>
+            raise json_error(404, "NotFound", {
+              "error": {
+                "code": -1,
+                "message": "Unknown endpoint: \{r.path}",
+                "metadata": { "method": r.meth.to_string(), "path": r.path },
+              },
+            })
+        }
+      } catch {
+        HttpError(code~, reason~, body~) => {
+          conn.send_response(code, reason, extra_headers={
+            "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
             "Access-Control-Allow-Headers": "Content-Type",
           })
-          ..write(index_html)
-          ..end_response()
+          conn.write(body)
+          conn.end_response()
         }
-        (Get, ["", "v1", "events"]) => self.get_events(conn)
-        (Get, ["", "v1", "models"]) => self.list_models(conn)
-        (Post, ["", "v1", "task", "register"]) => self.register_task(conn)
-        (Get, ["", "v1", "tasks"]) => self.list_tasks(conn)
-        (Post, ["", "v1", "task"]) => self.create_task(group~, conn)
-        (Get, ["", "v1", "task", id]) => self.get_task(id, conn)
-        (Get, ["", "v1", "task", id, "events"]) =>
-          self.get_task_events(id, request, conn)
-        (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
-          self.list_moonbit_modules(id, request, conn)
-        (Post, ["", "v1", "moonbit", "publish"]) => publish_moonbit_module(conn)
-        (Post, ["", "v1", "task", id, "message"]) =>
-          self.create_task_message(id, request, conn)
-        (Get, ["", .. file]) =>
-          serve_static_file(conn, serve=self.serve, path=file.join("/"))
-        _ =>
-          raise json_error(404, "NotFound", {
-            "error": {
-              "code": -1,
-              "message": "Unknown endpoint: \{request.path}",
-              "metadata": {
-                "method": request.meth.to_string(),
-                "path": request.path,
-              },
-            },
-          })
+        error => raise error
       }
     })
   })

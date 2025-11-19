@@ -26,12 +26,6 @@ async fn main {
   guard exec_path is Some(exec_path) else {
     fail("Expected exec path as the first argument")
   }
-  if !@fsx.exists(exec_path) {
-    fail("Exec path does not exist: \{exec_path}")
-  }
-  let exec_path = @fsx.resolve(exec_path) catch {
-    error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
-  }
   let daemon = Daemon::new(exec_path~, port~, serve~)
   daemon.serve()
 }
