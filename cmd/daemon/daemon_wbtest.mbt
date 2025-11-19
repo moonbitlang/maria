@@ -283,3 +283,62 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
     })
   })
 }
+
+///|
+#skip
+async test "POST /v1/task with invalid cwd" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": "/non/existent/path",
+        }),
+        port=daemon.port,
+      )
+      @json.inspect(r.code, content=404)
+      let b = b.json()
+      @json.inspect(b, content={
+        "error": {
+          "code": -1,
+          "message": "Specified 'cwd' path does not exist: /non/existent/path",
+          "metadata": { "cwd": "/non/existent/path" },
+        },
+      })
+    })
+  })
+}
+
+///|
+#skip
+async test "POST /v1/task with invalid model" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "nonexistent-model",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port,
+      )
+      @json.inspect(r.code, content=404)
+      let b = b.json()
+      @json.inspect(b, content={
+        "error": {
+          "code": -1,
+          "message": "Model not found: Some(\"nonexistent-model\")",
+        },
+      })
+    })
+  })
+}

@@ -162,6 +162,25 @@ async fn Daemon::create_task(
   }
   let cwd = if cwd is Some(cwd) {
     if cwd is String(cwd) {
+      let exists = @fsx.exists(cwd) catch {
+        error =>
+          raise json_error(500, "Internal Server Error", {
+            "error": {
+              "code": -1,
+              "message": "Failed to check existence of 'cwd' path: \{error}",
+              "metadata": { "cwd": cwd, "error": error.to_json() },
+            },
+          })
+      }
+      if !exists {
+        raise json_error(404, "Not Found", {
+          "error": {
+            "code": -1,
+            "message": "Specified 'cwd' path does not exist: \{cwd}",
+            "metadata": { "cwd": cwd },
+          },
+        })
+      }
       cwd
     } else {
       raise json_error(400, "Bad Request", {
@@ -186,22 +205,28 @@ async fn Daemon::create_task(
     raise json_error(409, "Conflict", { "task": task })
   }
   let id = self.uuid.v4()
-  let process = self.process.spawn(
-    self.exec_path,
-    [
-      "--model",
-      model.name,
-      "--port",
-      "0",
-      "--register-id",
-      id.to_string(),
-      "--register-host",
-      "localhost",
-      "--register-port",
-      self.port.to_string(),
-    ],
-    cwd~,
-  )
+  let args = [
+    "--model",
+    model.name,
+    "--port",
+    "0",
+    "--register-id",
+    id.to_string(),
+    "--register-host",
+    "localhost",
+    "--register-port",
+    self.port.to_string(),
+  ]
+  let process = self.process.spawn(self.exec_path, args, cwd~) catch {
+    error =>
+      raise json_error(500, "Internal Server Error", {
+        "error": {
+          "code": -1,
+          "message": "Failed to spawn task process: \{error}",
+          "metadata": { "cwd": cwd, "exec_path": self.exec_path, "args": args },
+        },
+      })
+  }
   println(
     "[INFO] (Daemon) Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
   )
