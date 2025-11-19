@@ -81,6 +81,7 @@ jobs:
 
       - name: Run tests
         run: |
+          moon build --release
           moon test -v
 
   info:

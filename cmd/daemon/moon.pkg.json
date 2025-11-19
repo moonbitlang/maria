@@ -20,5 +20,6 @@
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/clock"
-  ]
+  ],
+  "wbtest-import": ["moonbitlang/maria/internal/mock"]
 }

@@ -358,13 +358,24 @@ pub async fn run(
     let tmp_pkg_path = @path.join(tmpdir, pkg_path)
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
-        let cwd = directory(@path.join(tmp_pkg_path, t.name()))
+        let mangled = {
+          let builder = StringBuilder::new()
+          for c in t.name() {
+            if c.is_ascii_alphabetic() || c.is_ascii_digit() {
+              builder.write_char(c)
+            } else {
+              builder.write_string("%\{c.to_int()}")
+            }
+          }
+          builder.to_string()
+        }
+        let cwd = directory(@path.join(tmp_pkg_path, mangled))
         let log_dir = os_cwd |> @path.join("__trajectories__")
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
-        let logged = log_dir |> @path.join("\{t.name()}.jsonl")
-        let logger = @pino.logger(t.name(), @pino.Transport::file(logged))
+        let logged = log_dir |> @path.join("\{mangled}.jsonl")
+        let logger = @pino.logger(mangled, @pino.Transport::file(logged))
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)
