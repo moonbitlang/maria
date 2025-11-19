@@ -1,4 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
 import {
   type DaemonTaskChangeEvent,
   type DaemonTaskSyncEvent,
@@ -12,15 +17,24 @@ import {
   setTask,
   setTasks,
 } from "@/features/session/tasksSlice";
+import { selectApiBaseUrl } from "@/features/config/configSlice";
+import type { RootState } from "@/app/store";
 
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
+const dynamicBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  const baseUrl = selectApiBaseUrl(api.getState() as RootState);
+  const rawBaseQuery = fetchBaseQuery({ baseUrl });
+  return rawBaseQuery(args, api, extraOptions);
+};
 
 // Define our single API slice object
 export const apiSlice = createApi({
   // The cache reducer expects to be added at `state.api` (already default - this is optional)
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
+  baseQuery: dynamicBaseQuery,
   tagTypes: ["Tasks"],
   // The "endpoints" represent operations and requests for this server
   endpoints: (builder) => ({
@@ -70,9 +84,10 @@ export const apiSlice = createApi({
       keepUnusedDataFor: 0,
       async onCacheEntryAdded(
         _arg,
-        { cacheDataLoaded, cacheEntryRemoved, dispatch },
+        { cacheDataLoaded, cacheEntryRemoved, dispatch, getState },
       ) {
-        const source = new EventSource(`${BASE_URL}/events`);
+        const baseUrl = selectApiBaseUrl(getState() as RootState);
+        const source = new EventSource(`${baseUrl}/events`);
         try {
           await cacheDataLoaded;
 
@@ -106,10 +121,11 @@ export const apiSlice = createApi({
       keepUnusedDataFor: 0,
       async onCacheEntryAdded(
         id,
-        { cacheDataLoaded, cacheEntryRemoved, dispatch },
+        { cacheDataLoaded, cacheEntryRemoved, dispatch, getState },
       ) {
         // create a sse connection when the cache subscription starts
-        const source = new EventSource(`${BASE_URL}/task/${id}/events`);
+        const baseUrl = selectApiBaseUrl(getState() as RootState);
+        const source = new EventSource(`${baseUrl}/task/${id}/events`);
         try {
           // wait for the initial query to resolve before proceeding
           await cacheDataLoaded;
