@@ -17,6 +17,8 @@ root.render(
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
+            {/* for vscode webview to work */}
+            <Route path="/index.html" element={<Home />}></Route>
             <Route index element={<Home />}></Route>
             <Route path="tasks/:taskId" element={<Task />}></Route>
           </Route>

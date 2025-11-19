@@ -12,12 +12,26 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "vsc-ext.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "commands": [],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "moonbit-agent-activitybar",
+          "title": "MoonBit Agent",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "views": {
+      "moonbit-agent-activitybar": [
+        {
+          "type": "webview",
+          "id": "moonbit-agent.view",
+          "name": "MoonBit Agent View",
+          "icon": "$(robot)"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -44,5 +58,6 @@
     "typescript": "^5.9.3",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2"
-  }
+  },
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
 }
