@@ -20,5 +20,6 @@
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/rand"
   ],
-  "wbtest-import": ["moonbitlang/maria/internal/mock"]
+  "wbtest-import": ["moonbitlang/maria/internal/mock"],
+  "test-import": ["moonbitlang/maria/internal/mock"]
 }

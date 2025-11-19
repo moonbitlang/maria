@@ -14,7 +14,7 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 }
 
 ///|
-priv struct Register {
+pub(all) struct Register {
   host : String
   port : Int
   id : String

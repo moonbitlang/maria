@@ -1,20 +1,20 @@
 ///|
-priv struct Server {
-  maria : @maria.Maria
-  uuid : @uuid.Generator
-  broadcast : @broadcast.Broadcast[Json]
-  message_queue : @aqueue.Queue[
+pub struct Server {
+  priv maria : @maria.Maria
+  priv uuid : @uuid.Generator
+  priv broadcast : @broadcast.Broadcast[Json]
+  priv message_queue : @aqueue.Queue[
     (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid?]),
   ]
-  mut status : Status
-  register : Register?
-  serve : String
+  priv mut status : Status
+  priv register : Register?
+  priv serve : String
   port : Int
-  tcp_server : @socket.TcpServer
+  priv tcp_server : @socket.TcpServer
 }
 
 ///|
-async fn Server::new(
+pub async fn Server::new(
   model? : String,
   log_level~ : @pino.Level,
   register? : Register,
@@ -113,7 +113,7 @@ async fn run_server(
 }
 
 ///|
-async fn Server::serve(server : Server) -> Unit {
+pub async fn Server::serve(server : Server) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(
       () => while true {
@@ -194,7 +194,7 @@ async fn Server::serve(server : Server) -> Unit {
           ".gif" => "image/gif"
           _ => "application/octet-stream"
         }
-        println("[DEBUG] Serving static file: \{path}")
+        println("[DEBUG] (Server) Serving static file: \{path}")
         let content = html_read_file(path)
         w.send_response(200, "OK", extra_headers={
           "Content-Type": content_type,
@@ -222,6 +222,14 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Accel-Buffering": "no",
   })
+  w.write("event: maria.queued_messages.synchronized\n")
+  let queued_messages : Array[Json] = []
+  for m in self.maria.agent.queued_messages() {
+    let (id, message) = m
+    queued_messages.push({ "id": id, "message": message.to_json() })
+  }
+  w.write("data: \{queued_messages.to_json().stringify()}\n\n")
+  w.flush()
   self.broadcast.listen((hist, chan) => {
     for e in hist {
       chan.put(e)
