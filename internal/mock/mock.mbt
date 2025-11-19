@@ -296,7 +296,7 @@ pub fn Context::model(
 }
 
 ///|
-let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(32)
+let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(16)
 
 ///|
 /// Runs a test function within an isolated mock environment with controlled
