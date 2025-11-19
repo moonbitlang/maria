@@ -94,6 +94,27 @@ pub struct CompletionUsage {
 } derive(Show, ToJson)
 
 ///|
+pub fn CompletionUsage::new(
+  completion_tokens~ : Int,
+  completion_tokens_details? : CompletionTokensDetails,
+  cost? : Double,
+  cost_details? : CostDetails,
+  prompt_tokens~ : Int,
+  prompt_tokens_details? : PromptTokensDetails,
+  total_tokens~ : Int,
+) -> CompletionUsage {
+  {
+    completion_tokens,
+    completion_tokens_details,
+    cost,
+    cost_details,
+    prompt_tokens,
+    prompt_tokens_details,
+    total_tokens,
+  }
+}
+
+///|
 /// Controls whether the API returns usage statistics.
 pub struct CompletionUsageParam {
   include_ : Bool
@@ -221,6 +242,14 @@ pub struct ChatCompletionContentPartTextParam {
 }
 
 ///|
+pub fn ChatCompletionContentPartParam::new(
+  text~ : String,
+  cache_control? : CacheControl,
+) -> ChatCompletionContentPartParam {
+  ChatCompletionContentPartParam::Text({ text, cache_control })
+}
+
+///|
 /// System message payload used to steer the assistant.
 pub struct ChatCompletionSystemMessageParam {
   content : Array[ChatCompletionContentPartParam]
@@ -232,6 +261,14 @@ pub struct ChatCompletionSystemMessageParam {
 pub struct ChatCompletionUserMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
+}
+
+///|
+pub fn ChatCompletionUserMessageParam::new(
+  content~ : Array[ChatCompletionContentPartParam],
+  name? : String,
+) -> ChatCompletionUserMessageParam {
+  { content, name }
 }
 
 ///|

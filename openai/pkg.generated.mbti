@@ -146,6 +146,7 @@ impl ToJson for ChatCompletionChunkChoiceDeltaToolCallFunction
 pub enum ChatCompletionContentPartParam {
   Text(ChatCompletionContentPartTextParam)
 }
+fn ChatCompletionContentPartParam::new(text~ : String, cache_control? : CacheControl) -> Self
 impl ToJson for ChatCompletionContentPartParam
 impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam
 
@@ -255,6 +256,7 @@ pub struct ChatCompletionUserMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
 }
+fn ChatCompletionUserMessageParam::new(content~ : Array[ChatCompletionContentPartParam], name? : String) -> Self
 
 pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
@@ -271,6 +273,7 @@ pub struct CompletionUsage {
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 }
+fn CompletionUsage::new(completion_tokens~ : Int, completion_tokens_details? : CompletionTokensDetails, cost? : Double, cost_details? : CostDetails, prompt_tokens~ : Int, prompt_tokens_details? : PromptTokensDetails, total_tokens~ : Int) -> Self
 impl Show for CompletionUsage
 impl ToJson for CompletionUsage
 impl @json.FromJson for CompletionUsage
