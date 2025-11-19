@@ -193,7 +193,7 @@ async test "search_files/agentic" (t : @test.Test) {
 }
 
 ///|
-async test "search_files/with tilde expension" (t : @test.Test) {
+async test "search_files/with tilde expansion" (t : @test.Test) {
   @mock.run(t, mock => {
     let args : Json = {
       "path": "~/.moon/lib/core",
