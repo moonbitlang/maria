@@ -396,8 +396,7 @@ async fn Daemon::get_task(
 async fn Daemon::get_task_events(
   self : Daemon,
   id : StringView,
-  request : @http.Request,
-  conn : @http.ServerConnection,
+  w : @http.ServerConnection,
 ) -> Unit {
   guard self.by_id.get(
       @uuid.parse(id) catch {
@@ -407,26 +406,25 @@ async fn Daemon::get_task_events(
           })
       },
     )
-    is Some(server) else {
+    is Some(task) else {
     raise json_error(404, "Not Found", {
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
   let (response, client) = @http.get_stream(
     "http://localhost/v1/events",
-    headers=request.headers,
-    port=server.port,
-    body=conn.read_all(),
+    port=task.port,
+    body=w.read_all(),
   )
-  conn.send_response(response.code, response.reason, extra_headers={
+  w.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Accel-Buffering": "no",
   })
-  conn.write_reader(client)
-  conn.end_response()
+  w.write_reader(client)
+  w.end_response()
 }
 
 ///|
@@ -470,7 +468,6 @@ async fn Daemon::list_moonbit_modules(
 async fn Daemon::create_task_message(
   self : Daemon,
   id : StringView,
-  request : @http.Request,
   conn : @http.ServerConnection,
 ) -> Unit {
   guard self.by_id.get(
@@ -481,17 +478,18 @@ async fn Daemon::create_task_message(
           })
       },
     )
-    is Some(server) else {
+    is Some(task) else {
     raise json_error(404, "Not Found", {
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  println("[INFO] Forwarding message to task \{id}...")
   let (response, response_body) = @http.post(
     "http://localhost/v1/message",
-    headers=request.headers,
-    port=server.port,
+    port=task.port,
     conn.read_all(),
+  )
+  println(
+    "[INFO] (Daemon) Forwarded message to task \{id} @ localhost:\{task.port}",
   )
   conn.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "application/json",
@@ -577,13 +575,13 @@ async fn Daemon::serve(self : Daemon) -> Unit {
           (Post, ["", "v1", "task"]) => self.create_task(group~, conn)
           (Get, ["", "v1", "task", id]) => self.get_task(id, conn)
           (Get, ["", "v1", "task", id, "events"]) =>
-            self.get_task_events(id, r, conn)
+            self.get_task_events(id, conn)
           (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
             self.list_moonbit_modules(id, r, conn)
           (Post, ["", "v1", "moonbit", "publish"]) =>
             publish_moonbit_module(conn)
           (Post, ["", "v1", "task", id, "message"]) =>
-            self.create_task_message(id, r, conn)
+            self.create_task_message(id, conn)
           (Get, ["", .. file]) =>
             serve_static_file(conn, serve=self.serve, path=file.join("/"))
           _ =>
