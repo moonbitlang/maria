@@ -78,6 +78,7 @@ jobs:
 
       - name: Run tests
         run: |
+          moon build --release
           moon test --include-skipped -v
 
   info:

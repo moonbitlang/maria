@@ -21,8 +21,5 @@
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/clock"
   ],
-  "wbtest-import": [
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/maria/internal/git"
-  ]
+  "wbtest-import": ["moonbitlang/maria/internal/mock"]
 }

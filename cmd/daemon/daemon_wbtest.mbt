@@ -24,27 +24,23 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 
 ///|
 async fn configure_daemon(mock : @mock.Context) -> Daemon {
-  let repo = @os.cwd()
-  @git.clone(repo, to=mock.cwd.path(), depth=1)
+  let os_cwd = @os.cwd()
   configure_models(mock)
-  @spawn.spawn("moon", ["check"], cwd=mock.cwd.path()).check()
-  @spawn.spawn("moon", ["build", "--release"], cwd=mock.cwd.path()).check()
   Daemon::new(
     uuid=mock.uuid,
     cwd=mock.cwd.path(),
     exec_path=@path.join(
-      mock.cwd.path(),
-      "target/native/release/build/cmd/server/server.exe",
+      os_cwd, "target/native/release/build/cmd/server/server.exe",
     ),
     port=0,
-    serve=@path.join(mock.cwd.path(), "cmd/daemon"),
+    serve=@path.join(os_cwd, "cmd/daemon"),
   )
 }
 
 ///|
 #skip
 async test "GET /v1/tasks" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -66,7 +62,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
 ///|
 #skip
 async test "GET /v1/models" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -95,7 +91,7 @@ async test "GET /v1/models" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -163,14 +159,28 @@ async test "POST /v1/task" (t : @test.Test) {
 ///|
 fn redact_events(events : Array[Json]) -> Array[Json] {
   events.map(event => {
-    guard event is Object(event) else { return event }
-    event.remove("id")
-    event.remove("tag")
-    event.remove("time")
-    event.remove("pid")
-    event.remove("hostname")
-    event.remove("level")
-    let event : Map[String, Json] = match event {
+    if event
+      is Object(
+        { "event": "maria.queued_messages.synchronized", "data": Array(ms), .. } as event
+      ) {
+      for m in ms {
+        if m is Object({ "id": String(_), .. } as message) {
+          message["id"] = "<redacted>"
+        }
+      }
+      event["data"] = Json::array(ms)
+      return Json::object(event)
+    }
+    guard event is Object({ "data": Object(data), .. } as event) else {
+      return event
+    }
+    data.remove("id")
+    data.remove("tag")
+    data.remove("time")
+    data.remove("pid")
+    data.remove("hostname")
+    data.remove("level")
+    let data : Map[String, Json] = match data {
       {
         "msg": "MessageAdded",
         "message": Object(
@@ -182,20 +192,21 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
         { "msg": "MessageAdded", "message": message }
       }
       {
-        "msg": "MessageUnqueued",
+        "msg": String("MessageUnqueued" | "MessageQueued" as msg),
         "message": Object({ "id": String(_), .. } as message),
         ..
       } => {
         message["id"] = "<redacted>"
-        { "msg": "MessageUnqueued", "message": message }
+        { "msg": msg, "message": message }
       }
       { "msg": "RequestCompleted", .. } => {
-        event["usage"] = "<redacted>"
-        event["message"] = "<redacted>"
-        event
+        data["usage"] = "<redacted>"
+        data["message"] = "<redacted>"
+        data
       }
-      event => event
+      data => data
     }
+    event["data"] = Json::object(data)
     Json::object(event)
   })
 }
@@ -203,7 +214,7 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
 ///|
 #skip
 async test "POST /v1/task/{id}/message" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -241,10 +252,20 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
       )
       let pop_ids : Array[String] = []
       let events : Array[Json] = []
+      let mut last_event : String? = None
       while s.read_until("\n") is Some(line) {
+        if line is [.. "event: ", .. event] {
+          last_event = Some(event.to_string())
+          continue
+        }
         guard line is [.. "data: ", .. line] else { continue }
         let data = @json.parse(line)
-        events.push(data)
+        if last_event is Some(event) {
+          events.push({ "event": event, "data": data })
+        } else {
+          events.push({ "data": data })
+        }
+        last_event = None
         match data {
           { "msg": "PostConversation", .. } => break
           { "msg": "MessageUnqueued", "message": { "id": String(id), .. }, .. } =>
@@ -255,30 +276,71 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
       @json.inspect(pop_ids, content=[msg_id])
       @json.inspect(redact_events(events), content=[
         {
-          "msg": "MessageAdded",
-          "message": { "role": "system", "content": "<redacted>" },
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
+            "message": { "role": "system", "content": "<redacted>" },
+          },
         },
         {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello!" },
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
+            "message": { "role": "user", "content": "Hello!" },
+          },
         },
-        { "msg": "PreConversation" },
+        { "event": "maria", "data": { "msg": "PreConversation" } },
         {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
+          "event": "maria",
+          "data": {
+            "msg": "MessageQueued",
+            "message": {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "How are you?" },
+            },
+          },
         },
-        { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
         {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "How are you?" },
+          "event": "maria.queued_messages.synchronized",
+          "data": [
+            {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "How are you?" },
+            },
+          ],
         },
         {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
+          "event": "maria",
+          "data": {
+            "msg": "RequestCompleted",
+            "usage": "<redacted>",
+            "message": "<redacted>",
+          },
         },
-        { "msg": "PostConversation" },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageUnqueued",
+            "message": { "id": "<redacted>" },
+          },
+        },
+        { "event": "maria.queued_messages.synchronized", "data": [] },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
+            "message": { "role": "user", "content": "How are you?" },
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "RequestCompleted",
+            "usage": "<redacted>",
+            "message": "<redacted>",
+          },
+        },
+        { "event": "maria", "data": { "msg": "PostConversation" } },
       ])
     })
   })
@@ -287,7 +349,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task with invalid cwd" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
@@ -317,7 +379,7 @@ async test "POST /v1/task with invalid cwd" (t : @test.Test) {
 ///|
 #skip
 async test "POST /v1/task with invalid model" (t : @test.Test) {
-  @mock.run(t, timeout=1800_000, mock => {
+  @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
