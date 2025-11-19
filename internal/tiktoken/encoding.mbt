@@ -122,6 +122,24 @@ fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
 }
 
 ///|
+fn Encoding::encode_piece(
+  self : Encoding,
+  tokens : Array[Int],
+  piece : StringView,
+) -> Unit {
+  let piece = @encoding/utf8.encode(piece)
+  match self.encoder.get(piece) {
+    Some(token) => tokens.push(token)
+    None => {
+      let t = []
+      self.lookup(piece, t)
+      self.merge(t)
+      tokens.append(t)
+    }
+  }
+}
+
+///|
 pub fn Encoding::encode(
   self : Encoding,
   piece : StringView,
@@ -130,28 +148,12 @@ pub fn Encoding::encode(
   match self.pattern {
     Cl100kBase =>
       for matches in cl100k_base_tokenize_all(piece) {
-        let piece = @encoding/utf8.encode(matches)
-        match self.encoder.get(piece) {
-          Some(token) => tokens.push(token)
-          None => {
-            self.lookup(piece, tokens)
-            self.merge(tokens)
-          }
-        }
+        self.encode_piece(tokens, matches)
       }
     Pcre2(regex) => {
       let matches = regex.matches(piece)
       while matches.next() is Some(matched) {
-        let piece = @encoding/utf8.encode(matched[0])
-        match self.encoder.get(piece) {
-          Some(token) => tokens.push(token)
-          None => {
-            let t = []
-            self.lookup(piece, t)
-            self.merge(t)
-            tokens.append(t)
-          }
-        }
+        self.encode_piece(tokens, matched[0])
       }
     }
   }
