@@ -1,19 +1,8 @@
 ///|
-struct Conversation {
-  clock : &@clock.Clock
-  name : String
-  description : String?
-  id : String
-  messages : Array[Message]
-  created_at : Int64
-  mut updated_at : Int64
-}
-
-///|
 pub fn Conversation::display(
   self : Conversation,
   show_messages? : Bool = false,
-) -> Array[String] raise {
+) -> Array[String] {
   let lines = []
   lines.push("Name: \{self.name}")
   if self.description is Some(description) {
@@ -68,8 +57,16 @@ pub fn Conversation::display(
   } else {
     lines.push("Messages: \{self.messages.length()}")
   }
-  lines.push("Created: \{@time.unix(self.created_at / 1000).to_string()}")
-  lines.push("Updated: \{@time.unix(self.updated_at / 1000).to_string()}")
+  fn show_time(ts : Int64) -> String {
+    try @time.unix(ts / 1000) catch {
+      _ => return "invalid time".to_string()
+    } noraise {
+      t => t.to_string()
+    }
+  }
+
+  lines.push("Created: \{show_time(self.created_at)}")
+  lines.push("Updated: \{show_time(self.updated_at)}")
   lines
 }
 
@@ -159,81 +156,6 @@ pub impl @json.FromJson for Conversation with from_json(
     created_at,
     updated_at,
   }
-}
-
-///|
-priv struct Message {
-  /// The Unix timestamp (in seconds) of when the message was created.
-  timestamp : Int64
-  /// Usage statistics for the completion request.
-  usage : @openai.CompletionUsage?
-  message : @openai.ChatCompletionMessageParam
-}
-
-///|
-impl ToJson for Message with to_json(self : Message) -> Json {
-  let object : Map[String, Json] = {
-    "timestamp": self.timestamp,
-    "message": self.message,
-  }
-  if self.usage is Some(usage) {
-    object["usage"] = usage.to_json()
-  }
-  object.to_json()
-}
-
-///|
-impl @json.FromJson for Message with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> Message raise @json.JsonDecodeError {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected object for Message"))
-  }
-  let timestamp = match json.get("timestamp") {
-    Some(Number(timestamp, repr=None)) => timestamp.to_int64()
-    Some(Number(_, repr=Some(repr))) =>
-      @strconv.parse_uint64(repr).reinterpret_as_int64() catch {
-        error =>
-          raise @json.JsonDecodeError(
-            (json_path.add_key("timestamp"), "Invalid timestamp: \{error}"),
-          )
-      }
-    Some(_) =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("timestamp"), "Invalid timestamp"),
-      )
-    None =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("timestamp"), "Missing field"),
-      )
-  }
-  let usage = match json.get("usage") {
-    Some(Null) => None
-    Some(usage) => Some(@json.from_json(usage, path=json_path.add_key("usage")))
-    None => None
-  }
-  let message = match json.get("message") {
-    Some(message) => @json.from_json(message, path=json_path.add_key("message"))
-    None => {
-      let content : String = match json.get("content") {
-        Some(content) =>
-          @json.from_json(content, path=json_path.add_key("content"))
-        None =>
-          raise @json.JsonDecodeError(
-            (json_path.add_key("content"), "Missing field"),
-          )
-      }
-      let content = @json.parse(content) catch {
-        error =>
-          raise @json.JsonDecodeError(
-            (json_path.add_key("content"), "Invalid JSON content: \{error}"),
-          )
-      }
-      @json.from_json(content)
-    }
-  }
-  Message::{ timestamp, usage, message }
 }
 
 ///|
