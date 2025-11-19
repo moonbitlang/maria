@@ -39,7 +39,10 @@ pub async fn Server::new(
       broadcast.put(Json::object(event))
     }),
   )
-  let maria = @maria.Maria::new(model?, logger~, cwd?)
+  guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
+    fail("Failed to load model '\{model}' from cwd '\{cwd}'")
+  }
+  let maria = @maria.Maria::new(model~, logger~, cwd?)
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   let cwd = match cwd {

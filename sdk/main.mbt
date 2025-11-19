@@ -6,7 +6,17 @@ async fn @stdio.Output::writeln(self : @stdio.Output, str : String) -> Unit {
 ///|
 async fn execute(prompt~ : String, model? : String) -> Unit {
   try {
-    let maria = @maria.Maria::new(model?)
+    guard @model.load(name?=model) is Some(model) else {
+      let error : Json = {
+        "error": {
+          "code": -1,
+          "message": "No model available; please configure a model first.",
+        },
+      }
+      println(error.stringify())
+      return
+    }
+    let maria = @maria.Maria::new(model~)
     maria.agent.add_listener(event => match event {
       ToolAdded(desc) => {
         let response : Json = {

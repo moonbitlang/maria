@@ -264,3 +264,40 @@ async test "Event::ToJson/RequestCompleted" {
     },
   ])
 }
+
+///|
+async test "Event::ModelLoaded" {
+  let events = []
+  @async.with_task_group(group => {
+    let emitter = @event.EventTarget::new()
+    group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
+    emitter.add_listener(event => events.push(event))
+    emitter.emit(
+      ModelLoaded(
+        name="test_model",
+        model=@model.Model::new(
+          api_key="test_api_key",
+          base_url="https://api.example.com",
+          name="test_model",
+          safe_zone_tokens=100000,
+        ),
+      ),
+    )
+  })
+  @json.inspect(redact_events(events), content=[
+    {
+      "msg": "ModelLoaded",
+      "name": "test_model",
+      "model": {
+        "name": "test_model",
+        "model_name": "test_model",
+        "model_type": "saas/openai",
+        "api_key": "****",
+        "base_url": "https://api.example.com",
+        "safe_zone_tokens": 100000,
+        "supports_anthropic_prompt_caching": false,
+      },
+    },
+  ])
+}

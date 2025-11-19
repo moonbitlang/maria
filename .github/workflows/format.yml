@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
-      
+
       - name: Install prettier
         run: |
           npm install --global prettier;
-           
-      - name: Check json format 
+
+      - name: Check json format
         run: |
           find . -name *.mod.json -exec npx prettier --write {} \;
           find . -name *.pkg.json -exec npx prettier --write {} \;
