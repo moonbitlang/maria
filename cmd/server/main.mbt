@@ -489,32 +489,37 @@ async fn main {
   }
   let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
-    group.spawn_bg(() => while true {
-      let (msg, aq) = server.message_queue.get()
-      let id = maria.agent.queue_message(msg)
-      aq.put(Some(id))
-    })
     group.spawn_bg(
       () => while true {
-        let (msg, aq) = server.message_queue.get()
-        maria.agent.add_message(msg)
-        aq.put(None)
-        server.status = Busy
-        defer {
-          server.status = Idle
-        }
-        maria.agent.start() catch {
-          error => {
-            logger.error("MariaFailed", {
-              "error": {
-                "code": -1,
-                "message": error.to_string(),
-                "metadata": error,
-              },
-            })
-            raise error
+        @async.with_task_group(group => {
+          let (msg, idq) = server.message_queue.get()
+          maria.agent.add_message(msg)
+          group.spawn_bg(
+            () => while true {
+              let (msg, idq) = server.message_queue.get()
+              let id = maria.agent.queue_message(msg)
+              idq.put(Some(id))
+            },
+            no_wait=true,
+          )
+          idq.put(None)
+          server.status = Busy
+          defer {
+            server.status = Idle
           }
-        }
+          maria.agent.start() catch {
+            error => {
+              logger.error("MariaFailed", {
+                "error": {
+                  "code": -1,
+                  "message": error.to_string(),
+                  "metadata": error,
+                },
+              })
+              raise error
+            }
+          }
+        })
       },
       allow_failure=true,
     )
