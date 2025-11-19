@@ -33,7 +33,7 @@ using @unicode {is_number}
 using @unicode {is_whitespace}
 
 ///|
-priv suberror BackTracing derive(Show, ToJson)
+priv suberror BackTracking derive(Show, ToJson)
 
 ///|
 /// parse English common contractions
@@ -41,7 +41,7 @@ priv suberror BackTracing derive(Show, ToJson)
 /// Part 1: '(?i:[sdmt]|ll|ve|re)
 fn cl100k_base_tokenize_part1(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   lexmatch input {
     // "sdmt" case insensitive
     ("'s" as matched, _) => matched
@@ -57,7 +57,7 @@ fn cl100k_base_tokenize_part1(
     ("'ve" as matched, _) => matched
     ("'re" as matched, _) => matched
     // no match
-    _ => raise BackTracing
+    _ => raise BackTracking
   }
 }
 
@@ -69,7 +69,7 @@ fn cl100k_base_tokenize_part1(
 /// Part 2: [^\r\n\p{L}\p{N}]?+\p{L}++
 fn cl100k_base_tokenize_part2(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   fn predicate(ch : Char) -> Bool {
     ch != '\u{000D}' && ch != '\n' && !is_alphabetic(ch) && !is_number(ch)
   }
@@ -84,7 +84,7 @@ fn cl100k_base_tokenize_part2(
     (len, _) => break len
   }
   if letter_len == 0 {
-    raise BackTracing
+    raise BackTracking
   } else {
     try! input[0:non_common_len + letter_len]
   }
@@ -98,7 +98,7 @@ fn cl100k_base_tokenize_part2(
 /// Part 3: \p{N}{1,3}+
 fn cl100k_base_tokenize_part3(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   let len = loop (0, 0, input) {
     (len, count, [ch, .. rest]) if count < 3 && is_number(ch) =>
       continue (len + ch.utf16_len(), count + 1, rest)
@@ -108,7 +108,7 @@ fn cl100k_base_tokenize_part3(
   if count >= 1 {
     try! input[0:final_len]
   } else {
-    raise BackTracing
+    raise BackTracking
   }
 }
 
@@ -122,7 +122,7 @@ fn cl100k_base_tokenize_part3(
 /// Part 4: [ ]?[^\s\p{L}\p{N}]++[\r\n]*+
 fn cl100k_base_tokenize_part4(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   fn predicate(ch : Char) -> Bool {
     !is_whitespace(ch) && !is_alphabetic(ch) && !is_number(ch)
   }
@@ -139,7 +139,7 @@ fn cl100k_base_tokenize_part4(
   }
   // fast fail for quantifier requirement
   if non_ws_len == 0 {
-    raise BackTracing
+    raise BackTracking
   }
 
   // part 3: end of lines
@@ -160,7 +160,7 @@ fn cl100k_base_tokenize_part4(
 /// Part 5: \s++$
 fn cl100k_base_tokenize_part5(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   let len = loop (0, input) {
     (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
@@ -168,7 +168,7 @@ fn cl100k_base_tokenize_part5(
     (_, _) => break 0
   }
   if len == 0 || len < input.length() {
-    raise BackTracing
+    raise BackTracking
   } else {
     try! input[0:len]
   }
@@ -182,7 +182,7 @@ fn cl100k_base_tokenize_part5(
 /// Part 6: \s*[\r\n]
 fn cl100k_base_tokenize_part6(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   let ws_len = loop (0, input) {
     (len, [ch, .. rest]) if is_whitespace(ch) =>
       continue (len + ch.utf16_len(), rest)
@@ -199,7 +199,7 @@ fn cl100k_base_tokenize_part6(
   if actual_len >= 1 {
     try! input[0:actual_len]
   } else {
-    raise BackTracing
+    raise BackTracking
   }
 }
 
@@ -209,7 +209,7 @@ fn cl100k_base_tokenize_part6(
 /// Part 7: \s+(?!\S)
 fn cl100k_base_tokenize_part7(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   let len = loop (0, input) {
     (len, [ch, lookahead, ..] as all) if is_whitespace(ch) &&
       is_whitespace(lookahead) =>
@@ -217,7 +217,7 @@ fn cl100k_base_tokenize_part7(
     (len, _) => break len
   }
   if len == 0 {
-    raise BackTracing
+    raise BackTracking
   } else {
     try! input[0:len]
   }
@@ -227,17 +227,17 @@ fn cl100k_base_tokenize_part7(
 // Part 8: \s
 fn cl100k_base_tokenize_part8(
   input : StringView,
-) -> StringView raise BackTracing {
+) -> StringView raise BackTracking {
   // \s means exactly one whitespace character
   match input {
     [ch, ..] if is_whitespace(ch) => try! input[0:ch.utf16_len()]
-    _ => raise BackTracing
+    _ => raise BackTracking
   }
 }
 
 ///|
 let cl100k_base_parts : ReadOnlyArray[
-  (StringView) -> StringView raise BackTracing,
+  (StringView) -> StringView raise BackTracking,
 ] = [
   cl100k_base_tokenize_part1, cl100k_base_tokenize_part2, cl100k_base_tokenize_part3,
   cl100k_base_tokenize_part4, cl100k_base_tokenize_part5, cl100k_base_tokenize_part6,
@@ -251,7 +251,7 @@ pub fn cl100k_base_tokenize(input : StringView) -> StringView? {
     try {
       return Some(part(input))
     } catch {
-      BackTracing => continue
+      BackTracking => continue
     }
   } else {
     return None // No part matched
