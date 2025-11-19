@@ -55,6 +55,72 @@ async test "GET /v1/tasks" (t : @test.Test) {
         "transfer-encoding": "chunked",
       })
       @json.inspect(b.json(), content={ "tasks": [] })
+      let _ = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port,
+      )
+      let (_, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      let b = b.json()
+      guard b is { "tasks": Array(tasks), .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      @json.inspect(tasks.length(), content=1)
+    })
+  })
+}
+
+///|
+#skip
+async test "GET /v1/task/{id}" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (_, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port,
+      )
+      let b = b.json()
+      guard b is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      let _ = @http.post(
+        "http://localhost/v1/task/\{id}/message",
+        Json::object({
+          "message": { "role": "user", "content": "How are you?" },
+        }),
+        port=daemon.port,
+      )
+      let (_, b) = @http.get("http://localhost/v1/task/\{id}", port=daemon.port)
+      let b = b.json()
+      guard b
+        is { "task": { "queued_messages": Array(queued_messages), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      let queued_messages = queued_messages.map(m => if m
+        is Object({ "id": _, .. } as m) {
+        m["id"] = "<redacted>"
+        Json::object(m)
+      } else {
+        m
+      })
+      @json.inspect(queued_messages, content=[
+        {
+          "id": "<redacted>",
+          "message": { "role": "user", "content": "How are you?" },
+        },
+      ])
     })
   })
 }

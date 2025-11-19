@@ -107,7 +107,8 @@ Response:
       "name": "example-task",
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
-      "port": 8080
+      "port": 8080,
+      "queued_messages": []
     }
   }
   ```
@@ -121,10 +122,29 @@ Response:
       "name": "example-task",
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
-      "port": 8080
+      "port": 8080,
+      "queued_messages": []
     }
   }
   ```
+
+If there are queued messages, the response would look like this:
+
+```json
+{
+  "task": {
+    "queued_messages": [
+      {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "message": {
+          "role": "user",
+          "content": "Write a JSON parser in MoonBit."
+        }
+      }
+    ]
+  }
+}
+```
 
 ### `GET /v1/task/{id}`
 

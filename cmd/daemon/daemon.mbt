@@ -369,21 +369,17 @@ async fn Daemon::register_task(
 }
 
 ///|
-async fn Daemon::list_tasks(
-  self : Daemon,
-  conn : @http.ServerConnection,
-) -> Unit {
+async fn Daemon::list_tasks(self : Daemon, w : @http.ServerConnection) -> Unit {
   let tasks = self.by_cwd.values().collect()
   let response : Json = { "tasks": tasks }
-  conn
-  ..send_response(200, "OK", extra_headers={
+  w.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
   })
-  ..write(response.stringify())
-  ..end_response()
+  w.write(response.stringify())
+  w.end_response()
 }
 
 ///|
@@ -405,16 +401,17 @@ async fn Daemon::get_task(
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  let response : Json = { "task": task }
-  conn
-  ..send_response(200, "OK", extra_headers={
+  let task_json = task.to_json_object()
+  task_json["queued_messages"] = task.queued_messages().to_json()
+  let response : Json = { "task": task_json }
+  conn.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
     "Access-Control-Allow-Headers": "Content-Type",
   })
-  ..write(response.stringify())
-  ..end_response()
+  conn.write(response.stringify())
+  conn.end_response()
 }
 
 ///|
