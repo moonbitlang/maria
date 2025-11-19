@@ -24,8 +24,8 @@ async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
   w.send_response(200, "OK", extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
     "X-Accel-Buffering": "no",
   })
   let tasks : Array[Task] = self.by_cwd.values().collect()
@@ -285,8 +285,8 @@ async fn Daemon::create_task(
   w.send_response(201, "Created", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   let body : Json = { "task": task }
   w.write(body)
@@ -308,8 +308,8 @@ async fn Daemon::list_models(
   ..send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   ..write(response.stringify())
   ..end_response()
@@ -362,8 +362,8 @@ async fn Daemon::register_task(
   self.rqs[id].put(register.port)
   conn.send_response(200, "OK", extra_headers={
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   conn.end_response()
 }
@@ -375,8 +375,8 @@ async fn Daemon::list_tasks(self : Daemon, w : @http.ServerConnection) -> Unit {
   w.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   w.write(response.stringify())
   w.end_response()
@@ -407,8 +407,8 @@ async fn Daemon::get_task(
   conn.send_response(200, "OK", extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   conn.write(response.stringify())
   conn.end_response()
@@ -441,8 +441,8 @@ async fn Daemon::get_task_events(
   w.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "text/event-stream",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
     "X-Accel-Buffering": "no",
   })
   w.write_reader(client)
@@ -479,8 +479,8 @@ async fn Daemon::list_moonbit_modules(
   conn.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   conn.write(response_body)
   conn.end_response()
@@ -516,8 +516,8 @@ async fn Daemon::create_task_message(
   conn.send_response(response.code, response.reason, extra_headers={
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
   })
   conn.write(response_body)
   conn.end_response()
@@ -585,6 +585,14 @@ async fn Daemon::serve(self : Daemon) -> Unit {
       println("[INFO] (Daemon) Handling request paths: \{paths}")
       try {
         match (r.meth, paths) {
+          (Options, _) => {
+            conn.send_response(204, "No Content", extra_headers={
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "*",
+              "Access-Control-Allow-Headers": "*",
+            })
+            conn.end_response()
+          }
           // GET /
           (Get, ["", ""]) => {
             let index_html = html_read_file(
@@ -594,8 +602,8 @@ async fn Daemon::serve(self : Daemon) -> Unit {
             ..send_response(200, "OK", extra_headers={
               "Content-Type": "text/html",
               "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-              "Access-Control-Allow-Headers": "Content-Type",
+              "Access-Control-Allow-Methods": "*",
+              "Access-Control-Allow-Headers": "*",
             })
             ..write(index_html)
             ..end_response()
@@ -630,8 +638,8 @@ async fn Daemon::serve(self : Daemon) -> Unit {
           conn.send_response(code, reason, extra_headers={
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
           })
           conn.write(body)
           conn.end_response()
