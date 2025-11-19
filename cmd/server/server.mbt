@@ -29,7 +29,10 @@ pub async fn Server::new(
 ) -> Server {
   let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  let maria = @maria.Maria::new(model?, cwd?)
+  guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
+    fail("Failed to load model '\{model}' from cwd '\{cwd}'")
+  }
+  let maria = @maria.Maria::new(model~, cwd?)
   maria.agent.add_listener(event => {
     let event = event.to_json()
     guard event is Object(event) else { return }

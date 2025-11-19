@@ -10,7 +10,8 @@
     "moonbitlang/maria/internal/backtrace",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/event"
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/model"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"]
 }

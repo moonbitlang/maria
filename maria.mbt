@@ -5,26 +5,18 @@ pub struct Maria {
 }
 
 ///|
-pub suberror ModelNotConfigured
-
-///|
 #as_free_fn
 pub async fn Maria::new(
   logger? : @pino.Logger = @pino.logger(
     "maria",
     try! @pino.transport("file:.moonagent/log.jsonl"),
   ),
-  model? : String,
+  model~ : @model.Model,
   cwd? : String,
 ) -> Maria {
-  let home = @os.home()
   let cwd = match cwd {
-    None => @os.cwd()
     Some(cwd) => cwd
-  }
-  let loader = @model.Loader::new(home~, cwd~, logger~)
-  guard loader.get_model(name?=model) is Some(model) else {
-    raise ModelNotConfigured
+    None => @os.cwd()
   }
   let agent = @agent.new(model, logger~, cwd~)
   let job_manager = @job.Manager::new(cwd=agent.cwd)

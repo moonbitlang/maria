@@ -50,7 +50,15 @@ fn get_repo_name(url : String) -> String {
 }
 
 ///|
-async fn Migrator::migrate(self : Migrator, cwd~ : String) -> Unit {
+async fn Migrator::migrate(
+  self : Migrator,
+  model? : String,
+  cwd~ : String,
+) -> Unit {
+  guard @model.load(name?=model) is Some(model) else {
+    println("No model available; please configure a model first.")
+    return
+  }
   let src_name = get_repo_name(self.repo)
   let dst_name = normalize_repo_name(src_name)
   let dst_path = @path.join(cwd, dst_name)
@@ -67,7 +75,7 @@ async fn Migrator::migrate(self : Migrator, cwd~ : String) -> Unit {
       @git.clone(self.repo, to=src_path, cwd=dst_path)
     }
     println("cloned into \{src_path}")
-    let maria = @maria.Maria::new()
+    let maria = @maria.Maria::new(model~)
     println("Migration attempt #\{loop_index}")
     let prompt =
       $|Using the reference at \{src_path}, migrate the target repository into

@@ -409,6 +409,8 @@ pub async fn new(
   }
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
+  let event_target = @event.EventTarget::new()
+  event_target.emit(ModelLoaded(name=model.name, model~))
   let agent = Agent::{
     logger,
     rand,
@@ -419,7 +421,7 @@ pub async fn new(
     tools: {},
     queue: [],
     pending_queue: @deque.Deque::new(),
-    event_target: @event.EventTarget::new(),
+    event_target,
     token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
