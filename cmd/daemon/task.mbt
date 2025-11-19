@@ -9,7 +9,66 @@ priv struct Task {
 }
 
 ///|
+async fn Task::queued_messages(task : Task) -> Array[QueuedMessage] {
+  let ms = []
+  let (r, b) = @http.get("http://localhost/v1/queued-messages", port=task.port) catch {
+    error =>
+      raise json_error(500, "Internal Server Error", {
+        "error": {
+          "code": -1,
+          "message": "Failed to get queued messages from task: \{error}",
+          "metadata": error.to_json(),
+        },
+      })
+  }
+  guard r.code is (200..=299) else {
+    raise json_error(500, "Internal Server Error", {
+      "error": {
+        "code": r.code,
+        "message": "Failed to get queued messages from task: \{r.code} \{r.reason}",
+        "metadata": { "code": r.code, "reason": r.reason, "body": b.json() },
+      },
+    })
+  }
+  let b = b.json() catch {
+    error =>
+      raise json_error(500, "Internal Server Error", {
+        "error": {
+          "code": -1,
+          "message": "Failed to parse queued messages JSON from task: \{error}",
+          "metadata": error.to_json(),
+        },
+      })
+  }
+  guard b is Array(queued_messages) else {
+    raise json_error(500, "Internal Server Error", {
+      "error": {
+        "code": -1,
+        "message": "Invalid queued messages format from task",
+        "metadata": { "body": b },
+      },
+    })
+  }
+  for m in queued_messages {
+    guard m is { "id": String(id), "message": message, .. } else { continue }
+    ms.push({ id, message })
+  }
+  ms
+}
+
+///|
+priv struct QueuedMessage {
+  id : String
+  message : Json
+} derive(ToJson)
+
+///|
 impl ToJson for Task with to_json(self : Task) -> Json {
+  Json::object(self.to_json_object())
+}
+
+///|
+fn Task::to_json_object(self : Task) -> Map[String, Json] {
   {
     "name": self.name,
     "id": self.id.to_string(),

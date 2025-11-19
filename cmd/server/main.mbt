@@ -172,6 +172,27 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
 }
 
 ///|
+async fn Server::get_queued_messages(
+  self : Server,
+  w : @http.ServerConnection,
+) -> Unit {
+  let queued_messages : Array[Json] = []
+  for m in self.maria.agent.queued_messages() {
+    let (id, message) = m
+    queued_messages.push({ "id": id, "message": message.to_json() })
+  }
+  let response : Json = queued_messages.to_json()
+  w.send_response(200, "OK", extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS, POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  })
+  w.write(response.stringify())
+  w.end_response()
+}
+
+///|
 async fn Server::create_message(
   self : Server,
   conn : @http.ServerConnection,
@@ -563,6 +584,7 @@ async fn main {
         w.write(response.stringify())
         w.end_response()
       }
+      (Get, "/v1/queued-messages") => server.get_queued_messages(w)
       (Get, "/v1/events") => server.get_events(w)
       (Post, "/v1/message") => server.create_message(w)
       (Get, "/v1/moonbit/modules") => list_moonbit_modules(w)
