@@ -38,7 +38,14 @@ manifests = [
         name="moonbit",
         is_pub=True,
         is_const=False,
-    )
+    ),
+    Manifest(
+        source=Path("tools/meta_write_to_file/syntax_error.md"),
+        destination=Path("tools/meta_write_to_file/prompt.mbt"),
+        name="syntax_error_expert_prompt",
+        is_pub=False,
+        is_const=False,
+    ),
 ]
 
 
