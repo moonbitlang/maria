@@ -14,6 +14,10 @@ declare global {
 
 const isInVscode = typeof acquireVsCodeApi === "function";
 
+if (isInVscode) {
+  document.getElementById("_defaultStyles")?.remove();
+}
+
 const container = document.getElementById("root")!;
 const root = createRoot(container);
 
