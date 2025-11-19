@@ -27,7 +27,7 @@ async fn run_server(
   f : async (@http.Request, @http.ServerConnection) -> Unit,
 ) -> Unit {
   let addr = try! @socket.Addr::parse("[::]:\{port}")
-  let server = @socket.TcpServer::new(addr, dual_stack=true)
+  let server = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
   let port = server.addr().port()
   if register is Some(register) {
     println("[INFO] (Server \{register.id}) Listening on port \{port}")
@@ -109,6 +109,7 @@ async fn collect_modules(
 
 ///|
 priv struct Server {
+  maria : @maria.Maria
   uuid : @uuid.Generator
   broadcast : @broadcast.Broadcast[Json]
   message_queue : @aqueue.Queue[
@@ -136,6 +137,7 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
         is Object(
           {
             "msg": "MessageAdded"
+            | "MessageQueued"
             | "MessageUnqueued"
             | "PreConversation"
             | "RequestCompleted"
@@ -155,6 +157,16 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
       w.write("event: maria\n")
       w.write("data: \{event.stringify()}\n\n")
       w.flush()
+      if event is { "msg": "MessageQueued" | "MessageUnqueued", .. } {
+        w.write("event: maria.queued_messages.synchronized\n")
+        let queued_messages : Array[Json] = []
+        for m in self.maria.agent.queued_messages() {
+          let (id, message) = m
+          queued_messages.push({ "id": id, "message": message.to_json() })
+        }
+        w.write("data: \{queued_messages.to_json().stringify()}\n\n")
+        w.flush()
+      }
     }
   })
 }
@@ -203,9 +215,9 @@ async fn Server::create_message(
       })
   }
   let (id, queued) = {
-    let aq = @aqueue.new()
-    self.message_queue.put((message, aq))
-    match aq.get() {
+    let idq = @aqueue.new()
+    self.message_queue.put((message, idq))
+    match idq.get() {
       Some(id) => (id, true)
       None => (self.uuid.v4(), false)
     }
@@ -481,13 +493,14 @@ async fn main {
       broadcast.put(Json::object(event))
     }),
   )
+  let maria = @maria.Maria::new(model?, logger~)
   let server = Server::{
+    maria,
     broadcast,
     message_queue: @aqueue.new(),
     status: Idle,
     uuid,
   }
-  let maria = @maria.Maria::new(model?, logger~)
   @async.with_task_group(group => {
     group.spawn_bg(
       () => while true {

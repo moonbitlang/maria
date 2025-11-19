@@ -40,14 +40,28 @@ Response:
 ## `GET /v1/events`
 
 ```plaintext
-event: maria.history
-data: [<event1>, <event2>, ...]
-
 event: maria
 data: <event>
+
+event: maria.queued_messages.synchronized
+data: [<queued-message-0>, <queued-message-1>, ...]
 ```
 
-Example JSON objects:
+`<queued_messages-i>` is a JSON object:
+
+```json
+{
+  "id": "<message-id>",
+  "message": {
+    "role": "user",
+    "content": "Hello, world!"
+  }
+}
+```
+
+`<event>` is a JSON object representing various events emitted by the Maria
+agent, such as `MessageAdded`, `MessageQueued`, `MessageUnqueued`, `PreConversation`,
+`RequestCompleted`, `TokenCounted`, and `ContextPruned`. For example:
 
 ```jsonl
 {"level":30,"pid":79372,"msg":"TokenCounted","hostname":"localhost","time":1762763278519,"tag":"server","token_count":16984}
