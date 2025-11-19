@@ -3,14 +3,13 @@ package "moonbitlang/maria/internal/tiktoken"
 
 import(
   "moonbitlang/maria/internal/pcre2"
+  "moonbitlang/regexp"
 )
 
 // Values
 fn cl100k_base(pcre2? : Bool) -> Encoding raise
 
-fn cl100k_base_tokenize(StringView) -> StringView?
-
-fn cl100k_base_tokenize_all(StringView) -> Array[StringView]
+fn cl100k_base_tokenize_all_with_regex(@regexp.Regexp, StringView) -> Array[StringView]
 
 // Errors
 type DecodingError
