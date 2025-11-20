@@ -141,12 +141,18 @@ let cl100k_base_regex : @regexp.Regexp = try! @regexp.compile(
 )
 
 ///|
+let r50k_regex : @regexp.Regexp = try! @regexp.compile(
+  (
+    #|'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+$|\s+(?<Assertion>\s)|\s
+  ),
+)
+
+///|
 pub fn Encoding::encode(self : Encoding, piece : StringView) -> Array[Int] {
   let tokens = []
   match self.pattern {
     Cl100kBase =>
-      for
-        matches in cl100k_base_tokenize_all_with_regex(cl100k_base_regex, piece) {
+      for matches in regexp_search_all(cl100k_base_regex, piece) {
         self.encode_piece(tokens, matches)
       }
   }

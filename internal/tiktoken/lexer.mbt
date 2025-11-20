@@ -1,5 +1,5 @@
 ///|
-pub fn cl100k_base_tokenize_all_with_regex(
+fn regexp_search_all(
   regex : @regexp.Regexp,
   input : StringView,
 ) -> Array[StringView] {

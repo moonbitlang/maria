@@ -1,14 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/tiktoken"
 
-import(
-  "moonbitlang/regexp"
-)
-
 // Values
 fn cl100k_base() -> Encoding raise
-
-fn cl100k_base_tokenize_all_with_regex(@regexp.Regexp, StringView) -> Array[StringView]
 
 // Errors
 type DecodingError

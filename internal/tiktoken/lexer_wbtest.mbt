@@ -40,16 +40,26 @@ let texts : ReadOnlyArray[String] = [
 
 ///|
 test (t : @test.Test) {
-  let str_regex =
-    #|'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s+$|\s*[\r\n]|\s+(?<Assertion>\s)|\s
-  let regex = @regexp.compile(str_regex)
   let data = []
   for text in texts {
-    let pieces = cl100k_base_tokenize_all_with_regex(regex, text).map(x => x.to_string())
+    let pieces = regexp_search_all(cl100k_base_regex, text).map(x => x.to_string())
     data.push(LexerResult::{ text, pieces })
   }
   let snapshot_data = SnapshotData::{ data, }
   let json = snapshot_data.to_json()
   t.writeln(json.stringify(indent=2))
   t.snapshot(filename="cl100k_base.json")
+}
+
+///|
+test (t : @test.Test) {
+  let data = []
+  for text in texts {
+    let pieces = regexp_search_all(r50k_regex, text).map(x => x.to_string())
+    data.push(LexerResult::{ text, pieces })
+  }
+  let snapshot_data = SnapshotData::{ data, }
+  let json = snapshot_data.to_json()
+  t.writeln(json.stringify(indent=2))
+  t.snapshot(filename="r50k.json")
 }

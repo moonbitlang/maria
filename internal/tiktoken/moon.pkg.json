@@ -1,3 +1,4 @@
 {
-  "import": ["moonbitlang/maria/internal/base64", "moonbitlang/regexp"]
+  "import": ["moonbitlang/maria/internal/base64", "moonbitlang/regexp"],
+  "warn-list": "-2"
 }
