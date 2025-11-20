@@ -52,13 +52,15 @@ async test "replace-segment" (t : @test.Test) {
         "content": "///|\nlet y : String = \"hello\"",
       },
     ])
-    file
-    .segment(0)
-    .replace(
-      (
-        #|///|
-        #|let x : Int = 100
-        #|
+    file.write(
+      file
+      .segment(0)
+      .replace(
+        (
+          #|///|
+          #|let x : Int = 100
+          #|
+        ),
       ),
     )
     @json.inspect(mock.json(file.segments()), content=[
@@ -83,13 +85,15 @@ async test "replace-segment" (t : @test.Test) {
         #|let y : String = "hello"
       ),
     )
-    file
-    .segment(1)
-    .replace(
-      (
-        #|///|
-        #|let y : String = "world"
-        #|
+    file.write(
+      file
+      .segment(1)
+      .replace(
+        (
+          #|///|
+          #|let y : String = "world"
+          #|
+        ),
       ),
     )
     inspect(
@@ -283,22 +287,24 @@ async test "replace_segment/list" (t : @test.Test) {
         #|
       ),
     )
-    file
-    .segment(2)
-    .replace(
-      (
-        #|///|
-        #|/// ToJson implementation for List.
-        #|/// Converts a list to a JSON array.
-        #|pub impl[A : ToJson] ToJson for List[A] with to_json(self) {
-        #|  let capacity = self.len()
-        #|  guard capacity != 0 else { return [] }
-        #|  let jsons = Array::new(capacity~)
-        #|  for a in self {
-        #|    jsons.push(a.to_json())
-        #|  }
-        #|  Json::array(jsons)
-        #|}
+    file.write(
+      file
+      .segment(2)
+      .replace(
+        (
+          #|///|
+          #|/// ToJson implementation for List.
+          #|/// Converts a list to a JSON array.
+          #|pub impl[A : ToJson] ToJson for List[A] with to_json(self) {
+          #|  let capacity = self.len()
+          #|  guard capacity != 0 else { return [] }
+          #|  let jsons = Array::new(capacity~)
+          #|  for a in self {
+          #|    jsons.push(a.to_json())
+          #|  }
+          #|  Json::array(jsons)
+          #|}
+        ),
       ),
     )
     inspect(

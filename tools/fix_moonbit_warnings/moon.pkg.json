@@ -10,5 +10,6 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/async/semaphore"
-  ]
+  ],
+  "test-import": ["moonbitlang/maria/internal/mock"]
 }
