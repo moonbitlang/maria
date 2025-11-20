@@ -1,12 +1,6 @@
 import { useAppSelector } from "@/app/hooks";
 import { AgentTodos } from "@/components/agent-todos";
-import {
-  PromptInput,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputTools,
-} from "@/components/ai/prompt-input";
+import { TaskPromptInput } from "@/components/task-prompt-input";
 import { EventsDisplay } from "@/components/events-display";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -100,32 +94,14 @@ function TaskInput({ taskId }: { taskId: string }) {
         </div>
       )}
 
-      <PromptInput
-        className="max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow"
+      <TaskPromptInput
+        value={input}
+        onChange={setInput}
         onSubmit={handleSubmit}
-      >
-        <PromptInputTextarea
-          className="text-base md:text-base min-h-[52px]"
-          value={input}
-          onFocus={(e) =>
-            e.target.scrollIntoView({ behavior: "smooth", block: "center" })
-          }
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            status === "generating"
-              ? "Agent is working..."
-              : "Input your task..."
-          }
-        />
-        <PromptInputToolbar>
-          <PromptInputTools></PromptInputTools>
-          <PromptInputSubmit
-            disabled={!input.trim()}
-            status={"ready"}
-            className="cursor-pointer transition-all"
-          ></PromptInputSubmit>
-        </PromptInputToolbar>
-      </PromptInput>
+        placeholder={
+          status === "generating" ? "Agent is working..." : "Input your task..."
+        }
+      />
     </div>
   );
 }
