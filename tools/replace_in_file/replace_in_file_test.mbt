@@ -57,13 +57,22 @@ async test "replace_in_file/fail-to-match" (t : @test.Test) {
       "replace": "New content",
     }
     let result = @replace_in_file.new(manager).call(args)
-    @json.inspect(result, content=[
-      "Error",
-      [
-        "ToolFailure", "Search content not found in file (tried all matching strategies): Non-matching content",
-      ],
-      "Search content not found in file (tried all matching strategies): Non-matching content",
-    ])
+    inspect(
+      result,
+      content=(
+        #|Search content not found in file (tried all matching strategies)
+        #|
+        #|```
+        #|Non-matching content
+        #|```
+        #|
+        #|File content:
+        #|
+        #|```
+        #|Old content
+        #|```
+      ),
+    )
   })
 }
 

@@ -76,7 +76,19 @@ async fn @file.Manager::execute_replace_in_file(
         match @fuzzy.find_match(content, search_content) {
           None =>
             return @tool.error(
-              "Search content not found in file (tried all matching strategies): \{search_content}",
+              (
+                $|Search content not found in file (tried all matching strategies)
+                $|
+                $|```
+                $|\{search_content}
+                $|```
+                $|
+                $|File content:
+                $|
+                $|```
+                $|\{content}
+                $|```
+              ),
             )
           Some(match_result) => {
             // Replace at the exact position to maintain formatting

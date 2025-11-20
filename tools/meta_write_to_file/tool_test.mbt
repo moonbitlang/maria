@@ -422,7 +422,7 @@ async test "fuzzy-search" (t : @test.Test) {
 
 ///|
 #skip
-async test "show-original-file-on-search-failure" (t : @test.Test) {
+async test "show-original-moonbit-file-on-search-failure" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
     // no syntax error triggered
@@ -458,6 +458,84 @@ async test "show-original-file-on-search-failure" (t : @test.Test) {
     ])
     let result = @tool.call(@meta_write_to_file.new(agent), {
       "path": "main.mbt",
+      "search": (
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+      ),
+      "replace": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+        #|
+      ),
+      "description": "Update the main function to print 'Hello, MoonBit!' instead of 'Hello, world!'.",
+    })
+    inspect(
+      mock.show(result),
+      content=(
+        #|Search content not found in file:
+        #|
+        #|**Search**:
+        #|
+        #|```
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+        #|```
+        #|
+        #|**File Content**:
+        #|
+        #|```
+        #|fn main {
+        #|  println("Hello, world!")
+        #|  println("This is a test.")
+        #|}
+        #|```
+      ),
+    )
+  })
+}
+
+///|
+#skip
+async test "show-original-non-moonbit-file-on-search-failure" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model()
+    // no syntax error triggered
+    mock.add_files([
+      (
+        "moon.mod.json",
+        (
+          #|{ "name": "example", "version": "0.1.0" }
+        ),
+      ),
+      (
+        "moon.pkg.json",
+        (
+          #|{ "is-main": true }
+        ),
+      ),
+    ])
+    let _ = mock.add_file(
+      "main.txt",
+      content=(
+        #|fn main {
+        #|  println("Hello, world!")
+        #|  println("This is a test.")
+        #|}
+      ),
+    )
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
+    agent.add_tools([
+      @replace_in_file.new(file_manager).to_agent_tool(),
+      @read_file.new(file_manager).to_agent_tool(),
+      @meta_write_to_file.new(agent).to_agent_tool(),
+    ])
+    let result = @tool.call(@meta_write_to_file.new(agent), {
+      "path": "main.txt",
       "search": (
         #|fn main {
         #|  println("Hello, world!")
