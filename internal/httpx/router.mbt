@@ -10,44 +10,17 @@ pub async fn Router::handle(
   r : RequestReader,
   w : ResponseWriter,
 ) -> Unit {
-  match (r.method_, r.path) {
-    (Options, "*") => {
-      w
-      .header()
-      .set(
-        "Allow",
-        self.allow.iterator().map(method_ => method_.to_string()).join(", "),
-      )
-      w.write_header(@status.NoContent)
-    }
-    (method_, ['/', .. path]) => {
-      let segments = path.split("/").collect()
-      guard self.layer.route(segments) is Some((routes, values)) else {
-        w.write_header(@status.NotFound)
-      }
-      guard routes.get(method_) is Some(route) else {
-        w
-        .header()
-        .set(
-          "Allow",
-          routes
-          .keys()
-          .iterator()
-          .map(method_ => method_.to_string())
-          .join(", "),
-        )
-        w.write_header(@status.MethodNotAllowed)
-        return
-      }
-      for i in 0..<route.names.length() {
-        let name = route.names[i]
-        let value = values[i]
-        r.vars[name] = value
-      }
-      (route.handle.0)(r, w)
-    }
-    (_, _) => w.write_header(@status.BadRequest)
-  }
+  (self.handler)(r, w)
+}
+
+///|
+pub fn Router::handler(self : Router) -> Handler {
+  self.handler
+}
+
+///|
+pub fn Router::middleware(self : Router) -> Middleware {
+  self.middleware
 }
 
 ///|
@@ -136,11 +109,51 @@ fn Layer::route(
 struct Router {
   layer : Layer
   allow : MethodSet
+  mut handler : Handler
+  middleware : Middleware
 }
 
 ///|
 pub fn Router::new() -> Router {
-  Router::{ layer: Layer::new(), allow: MethodSet::new() }
+  let layer = Layer::new()
+  let allow = MethodSet::new()
+  let middleware : Middleware = k => (r, w) => match (r.method_, r.path) {
+    (Options, "*") => {
+      w
+      .header()
+      .set(
+        "Allow",
+        allow.iterator().map(method_ => method_.to_string()).join(", "),
+      )
+      w.write_header(@status.NoContent)
+    }
+    (method_, ['/', .. path]) => {
+      let segments = path.split("/").collect()
+      guard layer.route(segments) is Some((routes, values)) else { k(r, w) }
+      guard routes.get(method_) is Some(route) else {
+        w
+        .header()
+        .set(
+          "Allow",
+          routes
+          .keys()
+          .iterator()
+          .map(method_ => method_.to_string())
+          .join(", "),
+        )
+        w.write_header(@status.MethodNotAllowed)
+        return
+      }
+      for i in 0..<route.names.length() {
+        let name = route.names[i]
+        let value = values[i]
+        r.vars[name] = value
+      }
+      (route.handle.0)(r, w)
+    }
+    (_, _) => w.write_header(@status.BadRequest)
+  }
+  Router::{ layer, allow, handler: middleware(not_found), middleware }
 }
 
 ///|
@@ -148,15 +161,20 @@ pub fn Router::add_handler(
   self : Router,
   method_ : Method,
   path : StringView,
-  handle : Handler,
+  handler : Handler,
 ) -> Unit {
   guard path is ['/', .. path] else {
     abort("Path must start with '/', got \{path}")
   }
   let segments = path.split("/").collect()
-  let route = Route::new(handle)
+  let route = Route::new(handler)
   self.allow[method_] = true
   self.layer.add_route(method_, segments, route)
+}
+
+///|
+pub fn Router::set_not_found_handler(self : Router, handler : Handler) -> Unit {
+  self.handler = (self.middleware)(handler)
 }
 
 ///|
