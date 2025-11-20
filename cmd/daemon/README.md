@@ -279,6 +279,11 @@ Response:
 }
 ```
 
+### `POST /v1/task/{id}/reset`
+
+Resets the task instance by clearing its working directory and re-initializing
+it.
+
 ### `POST /v1/moonbit/publish`
 
 Runs `moon publish` in the task's working directory.

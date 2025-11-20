@@ -522,6 +522,43 @@ async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
 }
 
 ///|
+async fn Daemon::reset_task_state(
+  self : Daemon,
+  id : StringView,
+  w : @http.ServerConnection,
+) -> Unit {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(task) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let (response, response_body) = @http.post(
+    "http://localhost/v1/reset",
+    port=task.port,
+    w.read_all(),
+  )
+  println(
+    "[INFO] (Daemon) Forwarded reset state to task \{id} @ localhost:\{task.port}",
+  )
+  w.send_response(response.code, response.reason, extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
+  })
+  w.write(response_body)
+  w.end_response()
+}
+
+///|
 pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
