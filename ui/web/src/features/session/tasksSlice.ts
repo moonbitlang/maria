@@ -2,7 +2,6 @@ import { createAppSlice } from "@/app/createAppSlice";
 import type { RootState } from "@/app/store";
 import type {
   Status,
-  NamedId,
   TaskOverview,
   Todo,
   TaskEvent,
@@ -23,17 +22,13 @@ type Task = TaskOverview & {
   eventIds: Record<number, true>;
 };
 
-export function defaultTask(
-  params: NamedId & Partial<Omit<Task, "name" | "id">>,
-): Task {
+export function defaultTask(params: TaskOverview): Task {
   return {
     todos: [],
     chatInput: "",
-    status: "idle",
     inputQueue: [],
     events: [],
     eventIds: {},
-    created: Math.floor(Date.now() / 1000),
     ...params,
   };
 }
@@ -54,17 +49,6 @@ export const tasksSlice = createAppSlice({
   reducers: {
     setActiveTaskId(state, action: PayloadAction<string | undefined>) {
       state.activeTask = action.payload;
-    },
-
-    newTask(state, action: PayloadAction<NamedId>) {
-      const { id, name } = action.payload;
-      if (!state.tasks[id]) {
-        state.tasks[id] = defaultTask({
-          name,
-          id,
-          status: "generating",
-        });
-      }
     },
 
     setTask(state, action: PayloadAction<TaskOverview>) {
@@ -190,7 +174,6 @@ export const tasksSlice = createAppSlice({
 });
 
 export const {
-  newTask,
   setTask,
   setTasks,
   setActiveTaskId,

@@ -2,7 +2,6 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   type DaemonTaskChangeEvent,
   type DaemonTaskSyncEvent,
-  type NamedId,
   type TaskEvent,
   type TaskOverview,
 } from "@/lib/types";
@@ -33,7 +32,7 @@ export const apiSlice = createApi({
       },
     }),
 
-    newTask: builder.mutation<{ task: NamedId }, string>({
+    newTask: builder.mutation<{ task: TaskOverview }, string>({
       query: (content) => ({
         url: "task",
         method: "POST",

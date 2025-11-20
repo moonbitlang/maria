@@ -3,7 +3,7 @@ import { TaskPromptInput } from "@/components/task-prompt-input";
 import { useNewTaskMutation } from "@/features/api/apiSlice";
 import { useNavigate } from "react-router";
 import { useAppDispatch } from "@/app/hooks";
-import { newTask, setActiveTaskId } from "@/features/session/tasksSlice";
+import { setActiveTaskId } from "@/features/session/tasksSlice";
 
 function Home() {
   const [input, setInput] = useState("");
@@ -20,8 +20,7 @@ function Home() {
     setInput("");
     const res = await postNewTask(input);
     if (res.data) {
-      const { id, name } = res.data.task;
-      dispatch(newTask({ id: id, name }));
+      const { id } = res.data.task;
       navigate(`tasks/${id}`);
     }
   };

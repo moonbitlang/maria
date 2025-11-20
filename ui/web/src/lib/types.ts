@@ -154,15 +154,14 @@ export type MessageAddedEvent = {
     (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
 };
 
-export type NamedId = {
-  id: string;
-  name: string;
-};
 export type Status = "idle" | "generating";
 
-export type TaskOverview = NamedId & {
+export type TaskOverview = {
+  id: string;
+  name: string;
   status: Status;
   created: number;
+  cwd: string;
 };
 
 export type DaemonTaskSyncEvent = {
