@@ -63,3 +63,16 @@ test (t : @test.Test) {
   t.writeln(json.stringify(indent=2))
   t.snapshot(filename="r50k.json")
 }
+
+///|
+test (t : @test.Test) {
+  let data = []
+  for text in texts {
+    let pieces = regexp_search_all(o200k_base_regex, text).map(x => x.to_string())
+    data.push(LexerResult::{ text, pieces })
+  }
+  let snapshot_data = SnapshotData::{ data, }
+  let json = snapshot_data.to_json()
+  t.writeln(json.stringify(indent=2))
+  t.snapshot(filename="o200k_base.json")
+}
