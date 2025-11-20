@@ -17,10 +17,13 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "moonbit-agent.view";
   private _context: vscode.ExtensionContext;
 
+  private _taskId: string | undefined;
+
   private _view: vscode.WebviewView | undefined;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, taskId: string | undefined) {
     this._context = context;
+    this._taskId = taskId;
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -44,7 +47,11 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
     and only allow scripts that have a specific nonce.
     (See the 'webview-sample' extension sample for img-src content security policy examples)
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${webview.cspSource} unsafe-inline; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${
+    webview.cspSource
+  } unsafe-inline; style-src ${
+      webview.cspSource
+    } 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -55,7 +62,7 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   <title>MoonBit Agent</title>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" data-task-id="${this._taskId ?? ""}"></div>
 </body>
 </html>`;
   }
