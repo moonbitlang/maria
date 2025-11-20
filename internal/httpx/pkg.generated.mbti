@@ -6,9 +6,11 @@ import(
 )
 
 // Values
-fn cors(Handler) -> Handler
+let cors : Middleware
 
 let methods : Array[Method]
+
+let not_found : Handler
 
 fn reason(Int) -> String
 
@@ -21,6 +23,14 @@ pub struct EventStreamWriter {
 fn EventStreamWriter::new(ResponseWriter) -> Self
 async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
 async fn EventStreamWriter::write_header(Self, Int) -> Unit
+
+type FileServer
+async fn FileServer::handle(Self, RequestReader, ResponseWriter) -> Unit
+fn FileServer::handler(Self) -> Handler
+fn FileServer::middleware(Self) -> Middleware
+fn FileServer::new(StringView) -> Self
+fn FileServer::path(Self) -> StringView
+async fn FileServer::set_not_found_handler(Self, Handler) -> Unit
 
 pub(all) struct Handler(async (RequestReader, ResponseWriter) -> Unit)
 #deprecated
@@ -50,12 +60,12 @@ impl Hash for Method
 impl Show for Method
 impl ToJson for Method
 
-pub struct OriginFormRequestTarget {
-  segments : Array[StringView]
-  query : StringView?
-}
-fn OriginFormRequestTarget::parse(StringView) -> Self
-impl ToJson for OriginFormRequestTarget
+pub(all) struct Middleware((Handler) -> Handler)
+fn Middleware::chain(Self, Self) -> Self
+async fn Middleware::handle(Self, RequestReader, ResponseWriter) -> Unit
+fn Middleware::handler(Self) -> Handler
+#deprecated
+fn Middleware::inner(Self) -> (Handler) -> Handler
 
 pub struct RequestReader {
   body : &@io.Reader
@@ -64,12 +74,6 @@ pub struct RequestReader {
   vars : Map[StringView, StringView]
 }
 impl @io.Reader for RequestReader
-
-pub enum RequestTarget {
-  Origin(OriginFormRequestTarget)
-  Asterisk
-}
-fn RequestTarget::parse(StringView) -> Self?
 
 type ResponseWriter
 async fn ResponseWriter::flush(Self) -> Unit
@@ -80,7 +84,10 @@ impl @io.Writer for ResponseWriter
 type Router
 fn Router::add_handler(Self, Method, StringView, Handler) -> Unit
 async fn Router::handle(Self, RequestReader, ResponseWriter) -> Unit
+fn Router::handler(Self) -> Handler
+fn Router::middleware(Self) -> Middleware
 fn Router::new() -> Self
+fn Router::set_not_found_handler(Self, Handler) -> Unit
 
 type Server
 fn Server::new(String, Int) -> Self raise

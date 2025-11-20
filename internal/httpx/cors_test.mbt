@@ -17,7 +17,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" {
   let server = @httpx.Server::new("[::1]", 0)
   @async.with_task_group(group => {
     group.spawn_bg(
-      () => server.serve(@httpx.cors((r, w) => router.handle(r, w))),
+      () => server.serve(@httpx.cors(router.handler())),
       no_wait=true,
     )
     let client = @http.Client::connect(

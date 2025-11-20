@@ -20,10 +20,7 @@ async test "@moonbitlang/maria/internal/httpx.Server" {
   })
   let server = @httpx.Server::new("[::1]", 0)
   @async.with_task_group(group => {
-    group.spawn_bg(
-      () => server.serve((r, w) => router.handle(r, w)),
-      no_wait=true,
-    )
+    group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
     let (r, b) = @http.post("http://localhost/hello", "", port=server.port())
     @json.inspect(r.code, content=200)
     @json.inspect(r.reason, content="OK")
