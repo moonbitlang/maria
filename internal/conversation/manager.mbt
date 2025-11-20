@@ -57,15 +57,17 @@ pub async fn Manager::list(self : Manager) -> Array[String] {
   let path = self.cwd |> @path.join(".moonagent") |> @path.join("conversations")
   let entries = @fsx.list_directory(path)
   let ids = []
+  // CR: if we are going to implement list comprehension
+  // we may need support continue/break keywords
+  // [for x in xs if condition => { continue else ...}]
   for entry in entries {
-    if !(entry.kind is Regular) {
-      continue
+    if entry is { kind: Regular, name: [.., .. ".json"] as name, .. } {
+      try @uuid.parse(@path.stem(name)) catch {
+        _ => continue
+      } noraise {
+        id => ids.push(id.to_string())
+      }
     }
-    if !entry.name.has_suffix(".json") {
-      continue
-    }
-    let id = @uuid.parse(@path.stem(entry.name)) catch { _ => continue }
-    ids.push(id.to_string())
   }
   ids
 }
@@ -76,7 +78,7 @@ pub fn Manager::new_conversation(
   name~ : String,
   description? : String,
 ) -> Conversation {
-  Conversation::{
+  {
     clock: self.clock,
     name,
     description,

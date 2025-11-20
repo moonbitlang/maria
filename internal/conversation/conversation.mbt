@@ -189,9 +189,5 @@ pub fn Conversation::id(self : Conversation) -> String {
 pub fn Conversation::to_param(
   self : Conversation,
 ) -> Array[@openai.ChatCompletionMessageParam] {
-  let messages = []
-  for m in self.messages {
-    messages.push(m.message)
-  }
-  messages
+  self.messages.map(m => m.message)
 }
