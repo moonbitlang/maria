@@ -46,6 +46,7 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="${styleUri}" rel="stylesheet">
+  <style>html, body, #root { height: 100%; margin: 0; }</style>
   <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 
   <title>MoonBit Agent</title>
