@@ -20,9 +20,15 @@ export class DaemonService {
   }
 
   private async _getTasks(): Promise<TaskOverview[]> {
-    const res = await fetch(`${this._api}/tasks`, { method: "GET" });
-    const data = (await res.json()) as { tasks: TaskOverview[] };
-    return data.tasks;
+    try {
+      const res = await fetch(`${this._api}/tasks`, { method: "GET" });
+      const data = (await res.json()) as { tasks: TaskOverview[] };
+      return data.tasks;
+    } catch {
+      throw new Error(
+        "Could not connect to daemon. Please ensure that the daemon is running.",
+      );
+    }
   }
 
   async getTaskIdOfDir(dir: string): Promise<string | undefined> {

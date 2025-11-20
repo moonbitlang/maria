@@ -1,7 +1,8 @@
 {
-  "name": "vsc-ext",
-  "displayName": "vsc-ext",
-  "description": "",
+  "name": "moonbit-agent",
+  "displayName": "MoonBit Agent",
+  "description": "Vscode extension for MoonBit Agent",
+  "publisher": "moonbit",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.106.1"
@@ -9,7 +10,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:moonbit-agent-activitybar"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -64,7 +67,9 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "watch:webview": "cd ../web && pnpm build --mode vscode --watch",
+    "build:webview": "cd ../web && pnpm build --mode vscode",
+    "package": "pnpm run check-types && pnpm run lint && pnpm run build:webview && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",

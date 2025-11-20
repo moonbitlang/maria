@@ -7,13 +7,12 @@ export async function activate(context: vscode.ExtensionContext) {
   const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 
   if (cwd === undefined) {
-    vscode.window.showErrorMessage(
+    throw new Error(
       "No workspace folder found. Please open a folder in VSCode to use MoonBit Agent.",
     );
   }
 
-  const taskId =
-    cwd === undefined ? undefined : await daemonService.getTaskIdOfDir(cwd);
+  const taskId = await daemonService.getTaskIdOfDir(cwd);
 
   const viewProvider = new MoonBitAgentViewProvider(context, cwd, taskId);
 
