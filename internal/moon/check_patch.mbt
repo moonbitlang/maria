@@ -22,9 +22,12 @@ pub async fn Module::check_patch_replace(
   segment : SegmentView,
   content : String,
 ) -> @diagnostics.Diagnostics {
+  guard segment.index >= 1 else {
+    abort("@internal/moon.check_patch_replace: segment.index must be >= 1")
+  }
   @fsx.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
-    let file_stem = @path.stem(segment.file.path())
+    let file_stem = @path.stem(@path.basename(segment.file.path()))
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_string("patch")
     for pat in ["_test", "_wbtest"] {
@@ -39,7 +42,7 @@ pub async fn Module::check_patch_replace(
     let patch_path = @path.join(target_dir, patch_name_index)
     let patch_name = "patch-\{mangled_file_stem}-replace-\{segment.index}.\{patch_name_index}"
     let patch = {
-      drops: [Drop::{ file: segment.file.path(), index: segment.index }],
+      drops: [Drop::{ file: segment.file.path(), index: segment.index - 1 }],
       patches: [Patched::{ content, name: patch_name }],
     }
     @fsx.write_to_file(patch_path, patch.to_json().stringify())

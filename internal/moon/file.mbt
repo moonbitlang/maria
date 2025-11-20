@@ -80,6 +80,11 @@ pub fn File::segments(self : File) -> ArrayView[SegmentView] {
 
 ///|
 pub fn File::segment(self : File, index : Int) -> SegmentView {
+  guard index >= 0 && index < self.segments.length() - 1 else {
+    abort(
+      "Segment index \{index} out of bounds [0, \{self.segments.length() - 1})",
+    )
+  }
   SegmentView::{ file: self, index: index + 1 }
 }
 
@@ -122,11 +127,7 @@ fn File::add_diagnostic(
 }
 
 ///|
-async fn File::replace_segment(
-  self : File,
-  index : Int,
-  content : String,
-) -> Unit {
+fn File::replace_segment(self : File, index : Int, content : String) -> String {
   let replaced = []
   for segment in self.segments[:index] {
     for i in 0..<segment.length {
@@ -151,8 +152,12 @@ async fn File::replace_segment(
       replaced.push(line)
     }
   }
-  let replaced = replaced.join("\n")
-  @fsx.write_to_file(self.path, replaced)
-  self.parse(replaced)
+  replaced.join("\n")
+}
+
+///|
+pub async fn File::write(self : File, content : String) -> Unit {
+  @fsx.write_to_file(self.path, content)
+  self.parse(content)
   self.mtime = @fsx.stat(self.path).mtime()
 }

@@ -35,7 +35,7 @@ fn submit_moonbit_segment_new(task : Task) -> @tool.Tool[String] {
         )
       }
       let overlay = {}
-      overlay[diagnostic.loc.path] = patched
+      overlay[diagnostic.loc.path] = segment.replace(patched)
       let rendered_diagnostics = diagnostics.render(
         context=1,
         limit=10,
@@ -162,6 +162,58 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 })
 
 ///|
+priv struct Stat {
+  mut files_updated : Int
+  mut segments_updated : Int
+}
+
+///|
+async fn process_file(
+  agent~ : @agent.Agent,
+  moon~ : @moon.Module,
+  file~ : @moon.File,
+  sem~ : @semaphore.Semaphore,
+  description~ : String,
+  stat~ : Stat,
+) -> Unit {
+  let segments_updates : Array[(@moon.SegmentView, Result[String?, Error])] = []
+  @async.with_task_group(group => for segment in file.segments() {
+    let warnings = segment.diagnostics().0.filter(d => d.level is Warning)
+    if warnings.is_empty() {
+      continue
+    }
+    sem.acquire()
+    group.spawn_bg(() => {
+      defer sem.release()
+      segments_updates.push(
+        (
+          segment,
+          try? @async.with_timeout(120_000 * 4, () => process_segment(
+            model=agent.model,
+            cwd=agent.cwd,
+            moon~,
+            segment~,
+            description~,
+            logger=agent.logger.child({
+              "tool": { "name": "fix_moonbit_warnings", "id": agent.uuid.v4() },
+            }),
+          )),
+        ),
+      )
+    })
+  })
+  stat.files_updated += 1
+  for su in segments_updates {
+    let (segment, update) = su
+    guard update is Ok(patched) else { continue }
+    if patched is Some(patched) {
+      file.write(segment.replace(patched))
+      stat.segments_updated += 1
+    }
+  }
+}
+
+///|
 pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
   @tool.new(
     name="fix_moonbit_warnings",
@@ -193,49 +245,37 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       ) catch {
         error => return @tool.error("Failed to check module: \{error}", error~)
       }
-      let mut files_updated = 0
-      let mut segments_updated = 0
-      let semaphore = @semaphore.Semaphore::new(4)
-      @async.with_timeout(60_000 * 10 * 8, () => @async.with_task_group(group => {
-        for file in files {
-          if file.path().has_suffix(".mbt.md") {
-            // Currently it is not supported to fix MoonBit code embedded in
-            // markdown files
-            continue
-          }
-          for segment in file.segments() {
-            if segment.diagnostics().is_empty() {
-              continue
-            }
-            semaphore.acquire()
-            group.spawn_bg(() => {
-              defer semaphore.release()
-              let updated_opt = @async.with_timeout_opt(120_000 * 4, () => process_segment(
-                model=agent.model,
-                cwd=agent.cwd,
-                moon~,
-                segment~,
-                description~,
-                logger=agent.logger.child({
-                  "tool": {
-                    "name": "fix_moonbit_warnings",
-                    "id": agent.uuid.v4(),
-                  },
-                }),
-              ))
-              if updated_opt is Some(Some(updated)) {
-                segment.replace(updated)
-                segments_updated += 1
-              }
-            })
-          }
-          files_updated += 1
+      let stat = Stat::{ files_updated: 0, segments_updated: 0 }
+      let sem = @semaphore.Semaphore::new(4)
+      let mut timed_out = false
+      @async.with_timeout(60_000 * 10 * 8, () => @async.with_task_group(group => for
+        file in files {
+        if file.path().has_suffix(".mbt.md") {
+          // Currently it is not supported to fix MoonBit code embedded in
+          // markdown files
+          continue
         }
-        @tool.ok(
-          "Processed \{files_updated} files and updated \{segments_updated} segments.",
-        )
+        group.spawn_bg(() => process_file(
+          agent~,
+          moon~,
+          file~,
+          sem~,
+          description~,
+          stat~,
+        ))
       })) catch {
-        error => @tool.error("Failed to process segments: \{error}")
+        @async.TimeoutError => timed_out = true
+        error =>
+          return @tool.error("Failed to process segments: \{error}", error~)
+      }
+      if timed_out {
+        @tool.error(
+          "Operation timed out after processing \{stat.files_updated} files and updating \{stat.segments_updated} segments.",
+        )
+      } else {
+        @tool.ok(
+          "Processed \{stat.files_updated} files and updated \{stat.segments_updated} segments.",
+        )
       }
     }),
   )

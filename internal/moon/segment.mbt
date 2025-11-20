@@ -42,6 +42,8 @@ pub fn SegmentView::diagnostics(self : SegmentView) -> @diagnostics.Diagnostics 
 }
 
 ///|
-pub async fn SegmentView::replace(self : SegmentView, content : String) -> Unit {
+/// Calculates the **full file content** after replacing the segment with new
+/// content.
+pub fn SegmentView::replace(self : SegmentView, content : String) -> String {
   self.file.replace_segment(self.index, content)
 }
