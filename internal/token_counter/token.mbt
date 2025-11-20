@@ -32,12 +32,12 @@ pub fn Counter::new(logger~ : @pino.Logger) -> Counter raise {
 }
 
 ///|
-fn Counter::_count_string(self : Counter, text : String) -> Int raise {
+fn Counter::_count_string(self : Counter, text : String) -> Int {
   self.encoding.encode(text).length()
 }
 
 ///|
-pub fn Counter::count_string(self : Counter, text : String) -> Int raise {
+pub fn Counter::count_string(self : Counter, text : String) -> Int {
   self.overhead + self._count_string(text)
 }
 
@@ -45,7 +45,7 @@ pub fn Counter::count_string(self : Counter, text : String) -> Int raise {
 fn Counter::count_content_parts(
   self : Counter,
   parts : Array[@openai.ChatCompletionContentPartParam],
-) -> Int raise {
+) -> Int {
   let mut count = 0
   for part in parts {
     match part {
@@ -59,7 +59,7 @@ fn Counter::count_content_parts(
 fn Counter::count_function(
   self : Counter,
   function : @openai.ChatCompletionMessageToolCallFunction,
-) -> Int raise {
+) -> Int {
   self._count_string(function.name) +
   (match function.arguments {
     Some(arguments) => self._count_string(arguments)
@@ -71,7 +71,7 @@ fn Counter::count_function(
 fn Counter::count_message(
   self : Counter,
   message : @openai.ChatCompletionMessageParam,
-) -> Int raise {
+) -> Int {
   match message {
     Assistant(assistant) => {
       let mut count = 0
@@ -92,7 +92,7 @@ fn Counter::count_message(
 fn Counter::count_messages(
   self : Counter,
   messages : Array[@openai.ChatCompletionMessageParam],
-) -> Int raise {
+) -> Int {
   let mut count = 0
   for message in messages {
     count += self.count_message(message)
@@ -104,7 +104,7 @@ fn Counter::count_messages(
 fn Counter::count_tool(
   self : Counter,
   tool : @openai.ChatCompletionToolParam,
-) -> Int raise {
+) -> Int {
   let mut count = 0
   count += ToolOverhead
   guard tool is @openai.Function(function)
