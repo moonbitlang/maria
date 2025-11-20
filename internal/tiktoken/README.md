@@ -1,10 +1,14 @@
 # Tiktoken
 
-## Check Inconsistencies
+`openai/tiktoken` encode has two phases processing.
 
-Unicode test cases are skipped because they can not be decode back to original
-text.
+1. convert text to pieces via fancy-regex engine.
+2. convert pieces to tokens via BPE algorithm.
 
-```bash
-uv run pytest ./scripts/validate.py -vv
+
+## Check phases 1 consistencies
+
+```bash 
+cd ./internal/tiktoken/tiktoken_lexer_rs/
+cargo run
 ```
