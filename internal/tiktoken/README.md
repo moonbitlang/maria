@@ -8,7 +8,7 @@
 
 ## Check phase 1 consistency
 
-```bash 
+```bash
 cd ./internal/tiktoken/tiktoken_lexer_rs/
 cargo run
 ```
