@@ -13,7 +13,7 @@ import(
 // Types and methods
 type Counter
 async fn Counter::count_param(Self, @openai.Request) -> Int
-fn Counter::count_string(Self, String) -> Int raise
+fn Counter::count_string(Self, String) -> Int
 fn Counter::new(logger~ : @pino.Logger) -> Self raise
 
 // Type aliases

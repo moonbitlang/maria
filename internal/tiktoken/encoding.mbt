@@ -10,17 +10,11 @@ struct Encoding {
 ///|
 pub enum Pattern {
   Cl100kBase
-  Pcre2(@pcre2.Code)
 }
 
 ///|
 pub fn Pattern::cl100k_base() -> Pattern {
   Cl100kBase
-}
-
-///|
-pub fn Pattern::pcre2(pat_str : String) -> Pattern raise {
-  Pcre2(@pcre2.compile(pat_str))
 }
 
 ///|
@@ -147,10 +141,7 @@ let cl100k_base_regex : @regexp.Regexp = try! @regexp.compile(
 )
 
 ///|
-pub fn Encoding::encode(
-  self : Encoding,
-  piece : StringView,
-) -> Array[Int] raise {
+pub fn Encoding::encode(self : Encoding, piece : StringView) -> Array[Int] {
   let tokens = []
   match self.pattern {
     Cl100kBase =>
@@ -158,12 +149,6 @@ pub fn Encoding::encode(
         matches in cl100k_base_tokenize_all_with_regex(cl100k_base_regex, piece) {
         self.encode_piece(tokens, matches)
       }
-    Pcre2(regex) => {
-      let matches = regex.matches(piece)
-      while matches.next() is Some(matched) {
-        self.encode_piece(tokens, matched[0])
-      }
-    }
   }
   tokens
 }
