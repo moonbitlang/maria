@@ -4,12 +4,22 @@ import { useNewTaskMutation } from "@/features/api/apiSlice";
 import { useNavigate } from "react-router";
 import { useAppDispatch } from "@/app/hooks";
 import { setActiveTaskId } from "@/features/session/tasksSlice";
+import { useRootTaskId } from "@/hooks/use-root-task-id";
+import { useCwd } from "@/hooks/use-cwd";
 
 function Home() {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
+  const rootTaskId = useRootTaskId();
+  const cwd = useCwd();
+
+  useEffect(() => {
+    if (rootTaskId) {
+      navigate(`tasks/${rootTaskId}`);
+    }
+  }, [rootTaskId, navigate]);
 
   useEffect(() => {
     dispatch(setActiveTaskId(undefined));
@@ -18,7 +28,7 @@ function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInput("");
-    const res = await postNewTask(input);
+    const res = await postNewTask({ message: input, cwd });
     if (res.data) {
       const { id } = res.data.task;
       navigate(`tasks/${id}`);

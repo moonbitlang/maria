@@ -22,7 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  const viewProvider = new MoonBitAgentViewProvider(context, taskId);
+  const viewProvider = new MoonBitAgentViewProvider(context, cwd, taskId);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

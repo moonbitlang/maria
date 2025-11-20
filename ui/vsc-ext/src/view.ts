@@ -19,11 +19,18 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
 
   private _taskId: string | undefined;
 
+  private _cwd: string;
+
   private _view: vscode.WebviewView | undefined;
 
-  constructor(context: vscode.ExtensionContext, taskId: string | undefined) {
+  constructor(
+    context: vscode.ExtensionContext,
+    cwd: string,
+    taskId: string | undefined,
+  ) {
     this._context = context;
     this._taskId = taskId;
+    this._cwd = cwd;
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -62,7 +69,9 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   <title>MoonBit Agent</title>
 </head>
 <body>
-  <div id="root" data-task-id="${this._taskId ?? ""}"></div>
+  <div id="root" data-task-id="${this._taskId ?? ""}" data-cwd="${
+      this._cwd
+    }"></div>
 </body>
 </html>`;
   }

@@ -32,19 +32,26 @@ export const apiSlice = createApi({
       },
     }),
 
-    newTask: builder.mutation<{ task: TaskOverview }, string>({
-      query: (content) => ({
-        url: "task",
-        method: "POST",
-        body: JSON.stringify({
-          name: content,
-          model: "anthropic/claude-sonnet-4.5",
-          message: {
-            role: "user",
-            content,
-          },
-        }),
-      }),
+    newTask: builder.mutation<
+      { task: TaskOverview },
+      { message: string; cwd?: string }
+    >({
+      query: (params) => {
+        const { message, cwd } = params;
+        return {
+          url: "task",
+          method: "POST",
+          body: JSON.stringify({
+            name: message,
+            model: "anthropic/claude-sonnet-4.5",
+            message: {
+              role: "user",
+              content: message,
+            },
+            cwd,
+          }),
+        };
+      },
       invalidatesTags: ["Tasks"],
     }),
 
