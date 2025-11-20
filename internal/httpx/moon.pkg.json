@@ -1,0 +1,11 @@
+{
+  "import": [
+    "moonbitlang/async/http",
+    "moonbitlang/async/io",
+    "moonbitlang/async/socket",
+    "moonbitlang/maria/internal/httpx/status",
+    "moonbitlang/maria/internal/httpx/reason"
+  ],
+  "wbtest-import": ["moonbitlang/async"],
+  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+}

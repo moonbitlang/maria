@@ -1,0 +1,93 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/httpx"
+
+import(
+  "moonbitlang/async/io"
+)
+
+// Values
+fn cors(Handler) -> Handler
+
+let methods : Array[Method]
+
+fn reason(Int) -> String
+
+// Errors
+
+// Types and methods
+pub struct EventStreamWriter {
+  w : ResponseWriter
+}
+fn EventStreamWriter::new(ResponseWriter) -> Self
+async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
+async fn EventStreamWriter::write_header(Self, Int) -> Unit
+
+pub(all) struct Handler(async (RequestReader, ResponseWriter) -> Unit)
+#deprecated
+fn Handler::inner(Self) -> async (RequestReader, ResponseWriter) -> Unit
+
+type Header
+fn Header::add(Self, String, String) -> Unit
+fn Header::new() -> Self
+fn Header::set(Self, String, String) -> Unit
+impl Show for Header
+impl ToJson for Header
+
+pub(all) enum Method {
+  Get
+  Head
+  Post
+  Put
+  Delete
+  Connect
+  Options
+  Trace
+  Patch
+}
+impl Compare for Method
+impl Eq for Method
+impl Hash for Method
+impl Show for Method
+impl ToJson for Method
+
+pub struct OriginFormRequestTarget {
+  segments : Array[StringView]
+  query : StringView?
+}
+fn OriginFormRequestTarget::parse(StringView) -> Self
+impl ToJson for OriginFormRequestTarget
+
+pub struct RequestReader {
+  body : &@io.Reader
+  method_ : Method
+  path : StringView
+  vars : Map[StringView, StringView]
+}
+impl @io.Reader for RequestReader
+
+pub enum RequestTarget {
+  Origin(OriginFormRequestTarget)
+  Asterisk
+}
+fn RequestTarget::parse(StringView) -> Self?
+
+type ResponseWriter
+async fn ResponseWriter::flush(Self) -> Unit
+fn ResponseWriter::header(Self) -> Header
+async fn ResponseWriter::write_header(Self, Int, reason? : String) -> Unit
+impl @io.Writer for ResponseWriter
+
+type Router
+fn Router::add_handler(Self, Method, StringView, Handler) -> Unit
+async fn Router::handle(Self, RequestReader, ResponseWriter) -> Unit
+fn Router::new() -> Self
+
+type Server
+fn Server::new(String, Int) -> Self raise
+fn Server::port(Self) -> Int
+async fn Server::serve(Self, Handler) -> Unit
+
+// Type aliases
+
+// Traits
+

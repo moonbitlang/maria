@@ -1,0 +1,146 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/httpx/status"
+
+// Values
+const Accepted : Int = 202
+
+const AlreadyReported : Int = 208
+
+const BadGateway : Int = 502
+
+const BadRequest : Int = 400
+
+const Conflict : Int = 409
+
+const Continue : Int = 100
+
+const Created : Int = 201
+
+const EarlyHints : Int = 103
+
+const ExpectationFailed : Int = 417
+
+const FailedDependency : Int = 424
+
+const Forbidden : Int = 403
+
+const Found : Int = 302
+
+const GatewayTimeout : Int = 504
+
+const Gone : Int = 410
+
+const HttpVersionNotSupported : Int = 505
+
+const ImATeapot : Int = 418
+
+const ImUsed : Int = 226
+
+const InsufficientStorage : Int = 507
+
+const InternalServerError : Int = 500
+
+const LengthRequired : Int = 411
+
+const Locked : Int = 423
+
+const LoopDetected : Int = 508
+
+const MethodNotAllowed : Int = 405
+
+const MisdirectedRequest : Int = 421
+
+const MovedPermanently : Int = 301
+
+const MultiStatus : Int = 207
+
+const MultipleChoices : Int = 300
+
+const NetworkAuthenticationRequired : Int = 511
+
+const NoContent : Int = 204
+
+const NonAuthoritativeInformation : Int = 203
+
+const NotAcceptable : Int = 406
+
+const NotExtended : Int = 510
+
+const NotFound : Int = 404
+
+const NotImplemented : Int = 501
+
+const NotModified : Int = 304
+
+const Ok : Int = 200
+
+const PartialContent : Int = 206
+
+const PayloadTooLarge : Int = 413
+
+const PaymentRequired : Int = 402
+
+const PermanentRedirect : Int = 308
+
+const PreconditionFailed : Int = 412
+
+const PreconditionRequired : Int = 428
+
+const Processing : Int = 102
+
+const ProxyAuthenticationRequired : Int = 407
+
+const RangeNotSatisfiable : Int = 416
+
+const RequestHeaderFieldsTooLarge : Int = 431
+
+const RequestTimeout : Int = 408
+
+const ResetContent : Int = 205
+
+const SeeOther : Int = 303
+
+const ServiceUnavailable : Int = 503
+
+const SwitchingProtocols : Int = 101
+
+const TemporaryRedirect : Int = 307
+
+const TooEarly : Int = 425
+
+const TooManyRequests : Int = 429
+
+const Unauthorized : Int = 401
+
+const UnavailableForLegalReasons : Int = 451
+
+const UnprocessableEntity : Int = 422
+
+const UnsupportedMediaType : Int = 415
+
+const UpgradeRequired : Int = 426
+
+const UriTooLong : Int = 414
+
+const UseProxy : Int = 305
+
+const VariantAlsoNegotiates : Int = 506
+
+fn classify(Int) -> Class
+
+// Errors
+
+// Types and methods
+pub(all) enum Class {
+  Informational
+  Successful
+  Redirection
+  ClientError
+  ServerError
+  Invalid
+}
+
+// Type aliases
+
+// Traits
+

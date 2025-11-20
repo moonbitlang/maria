@@ -1,0 +1,136 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/httpx/reason"
+
+// Values
+const Accepted : String = "Accepted"
+
+const AlreadyReported : String = "Already Reported"
+
+const BadGateway : String = "Bad Gateway"
+
+const BadRequest : String = "Bad Request"
+
+const Conflict : String = "Conflict"
+
+const Continue : String = "Continue"
+
+const Created : String = "Created"
+
+const EarlyHints : String = "Early Hints"
+
+const ExpectationFailed : String = "Expectation Failed"
+
+const FailedDependency : String = "Failed Dependency"
+
+const Forbidden : String = "Forbidden"
+
+const Found : String = "Found"
+
+const GatewayTimeout : String = "Gateway Timeout"
+
+const Gone : String = "Gone"
+
+const HttpVersionNotSupported : String = "HTTP Version Not Supported"
+
+const ImATeapot : String = "I'm a teapot"
+
+const ImUsed : String = "IM Used"
+
+const InsufficientStorage : String = "Insufficient Storage"
+
+const InternalServerError : String = "Internal Server Error"
+
+const LengthRequired : String = "Length Required"
+
+const Locked : String = "Locked"
+
+const LoopDetected : String = "Loop Detected"
+
+const MethodNotAllowed : String = "Method Not Allowed"
+
+const MisdirectedRequest : String = "Misdirected Request"
+
+const MovedPermanently : String = "Moved Permanently"
+
+const MultiStatus : String = "Multi-Status"
+
+const MultipleChoices : String = "Multiple Choices"
+
+const NetworkAuthenticationRequired : String = "Network Authentication Required"
+
+const NoContent : String = "No Content"
+
+const NonAuthoritativeInformation : String = "Non-Authoritative Information"
+
+const NotAcceptable : String = "Not Acceptable"
+
+const NotExtended : String = "Not Extended"
+
+const NotFound : String = "Not Found"
+
+const NotImplemented : String = "Not Implemented"
+
+const NotModified : String = "Not Modified"
+
+const Ok : String = "OK"
+
+const PartialContent : String = "Partial Content"
+
+const PayloadTooLarge : String = "Payload Too Large"
+
+const PaymentRequired : String = "Payment Required"
+
+const PermanentRedirect : String = "Permanent Redirect"
+
+const PreconditionFailed : String = "Precondition Failed"
+
+const PreconditionRequired : String = "Precondition Required"
+
+const Processing : String = "Processing"
+
+const ProxyAuthenticationRequired : String = "Proxy Authentication Required"
+
+const RangeNotSatisfiable : String = "Range Not Satisfiable"
+
+const RequestHeaderFieldsTooLarge : String = "Request Header Fields Too Large"
+
+const RequestTimeout : String = "Request Timeout"
+
+const ResetContent : String = "Reset Content"
+
+const SeeOther : String = "See Other"
+
+const ServiceUnavailable : String = "Service Unavailable"
+
+const SwitchingProtocols : String = "Switching Protocols"
+
+const TemporaryRedirect : String = "Temporary Redirect"
+
+const TooEarly : String = "Too Early"
+
+const TooManyRequests : String = "Too Many Requests"
+
+const Unauthorized : String = "Unauthorized"
+
+const UnavailableForLegalReasons : String = "Unavailable For Legal Reasons"
+
+const UnprocessableEntity : String = "Unprocessable Entity"
+
+const UnsupportedMediaType : String = "Unsupported Media Type"
+
+const UpgradeRequired : String = "Upgrade Required"
+
+const UriTooLong : String = "URI Too Long"
+
+const UseProxy : String = "Use Proxy"
+
+const VariantAlsoNegotiates : String = "Variant Also Negotiates"
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

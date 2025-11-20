@@ -1,0 +1,185 @@
+///|
+pub const Continue : Int = 100
+
+///|
+pub const SwitchingProtocols : Int = 101
+
+///|
+pub const Processing : Int = 102
+
+///|
+pub const EarlyHints : Int = 103
+
+///|
+pub const Ok : Int = 200
+
+///|
+pub const Created : Int = 201
+
+///|
+pub const Accepted : Int = 202
+
+///|
+pub const NonAuthoritativeInformation : Int = 203
+
+///|
+pub const NoContent : Int = 204
+
+///|
+pub const ResetContent : Int = 205
+
+///|
+pub const PartialContent : Int = 206
+
+///|
+pub const MultiStatus : Int = 207
+
+///|
+pub const AlreadyReported : Int = 208
+
+///|
+pub const ImUsed : Int = 226
+
+///|
+pub const MultipleChoices : Int = 300
+
+///|
+pub const MovedPermanently : Int = 301
+
+///|
+pub const Found : Int = 302
+
+///|
+pub const SeeOther : Int = 303
+
+///|
+pub const NotModified : Int = 304
+
+///|
+pub const UseProxy : Int = 305
+
+///|
+pub const TemporaryRedirect : Int = 307
+
+///|
+pub const PermanentRedirect : Int = 308
+
+///|
+pub const BadRequest : Int = 400
+
+///|
+pub const Unauthorized : Int = 401
+
+///|
+pub const PaymentRequired : Int = 402
+
+///|
+pub const Forbidden : Int = 403
+
+///|
+pub const NotFound : Int = 404
+
+///|
+pub const MethodNotAllowed : Int = 405
+
+///|
+pub const NotAcceptable : Int = 406
+
+///|
+pub const ProxyAuthenticationRequired : Int = 407
+
+///|
+pub const RequestTimeout : Int = 408
+
+///|
+pub const Conflict : Int = 409
+
+///|
+pub const Gone : Int = 410
+
+///|
+pub const LengthRequired : Int = 411
+
+///|
+pub const PreconditionFailed : Int = 412
+
+///|
+pub const PayloadTooLarge : Int = 413
+
+///|
+pub const UriTooLong : Int = 414
+
+///|
+pub const UnsupportedMediaType : Int = 415
+
+///|
+pub const RangeNotSatisfiable : Int = 416
+
+///|
+pub const ExpectationFailed : Int = 417
+
+///|
+pub const ImATeapot : Int = 418
+
+///|
+pub const MisdirectedRequest : Int = 421
+
+///|
+pub const UnprocessableEntity : Int = 422
+
+///|
+pub const Locked : Int = 423
+
+///|
+pub const FailedDependency : Int = 424
+
+///|
+pub const TooEarly : Int = 425
+
+///|
+pub const UpgradeRequired : Int = 426
+
+///|
+pub const PreconditionRequired : Int = 428
+
+///|
+pub const TooManyRequests : Int = 429
+
+///|
+pub const RequestHeaderFieldsTooLarge : Int = 431
+
+///|
+pub const UnavailableForLegalReasons : Int = 451
+
+///|
+pub const InternalServerError : Int = 500
+
+///|
+pub const NotImplemented : Int = 501
+
+///|
+pub const BadGateway : Int = 502
+
+///|
+pub const ServiceUnavailable : Int = 503
+
+///|
+pub const GatewayTimeout : Int = 504
+
+///|
+pub const HttpVersionNotSupported : Int = 505
+
+///|
+pub const VariantAlsoNegotiates : Int = 506
+
+///|
+pub const InsufficientStorage : Int = 507
+
+///|
+pub const LoopDetected : Int = 508
+
+///|
+pub const NotExtended : Int = 510
+
+///|
+pub const NetworkAuthenticationRequired : Int = 511
