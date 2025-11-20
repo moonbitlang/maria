@@ -56,10 +56,26 @@ fn test_cl100k_base_fancy_regex(snapshot: &SnapshotData) {
     }
 }
 
+fn test_r50k_fancy_regex(snapshot: &SnapshotData) {
+    let regex = Regex::new(R50K_PAT_STR).unwrap();
+    for expected in &snapshot.data {
+        let actual_tokens = tokenize(&regex, &expected.text);
+        let actual = LexerResult {
+            text: expected.text.clone(),
+            pieces: actual_tokens,
+        };
+        similar_asserts::assert_eq!(expected, &actual);
+    }
+}
+
 fn main() {
     let snapshot_path = "../__snapshot__/cl100k_base.json";
     let snapshot_str = fs::read_to_string(snapshot_path).unwrap();
-
     let expected: SnapshotData = serde_json::from_str(&snapshot_str).unwrap();
     test_cl100k_base_fancy_regex(&expected);
+
+    let snapshot_path = "../__snapshot__/r50k.json";
+    let snapshot_str = fs::read_to_string(snapshot_path).unwrap();
+    let expected: SnapshotData = serde_json::from_str(&snapshot_str).unwrap();
+    test_r50k_fancy_regex(&expected);
 }
