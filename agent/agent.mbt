@@ -316,11 +316,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       }
       // Retrieve and clear the message queue
       // staged contains messages that need to be sent in this call
-      let staged = agent.queue
-      agent.queue = []
       // Build the complete message array for the API call
       // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.to_param(), ..staged]
+      let messages = [..agent.history.to_param(), ..agent.queue]
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -342,8 +340,10 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 
       // Emit event with API usage statistics and the returned message
       agent.emit(RequestCompleted(usage~, message~))
+
       // Add all staged messages to permanent conversation history
-      agent.history.add_messages(staged)
+      agent.history.add_messages(agent.queue)
+      agent.queue = []
 
       // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
