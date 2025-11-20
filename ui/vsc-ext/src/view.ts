@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as endpoint from "../../common/endpoint";
 import * as api from "../../common/api";
 import * as comlink from "comlink";
+import * as globalState from "./global-state";
 
 function getNonce() {
   let text = "";
@@ -19,13 +20,13 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
 
   private _taskId: string | undefined;
 
-  private _cwd: string;
+  private _cwd: string | undefined;
 
   private _view: vscode.WebviewView | undefined;
 
   constructor(
     context: vscode.ExtensionContext,
-    cwd: string,
+    cwd: string | undefined,
     taskId: string | undefined,
   ) {
     this._context = context;
@@ -70,7 +71,7 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
   <div id="root" data-task-id="${this._taskId ?? ""}" data-cwd="${
-      this._cwd
+      this._cwd ?? ""
     }"></div>
 </body>
 </html>`;
@@ -119,6 +120,7 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
 
     const vscodeApi: api.VscodeApi = {};
     const webviewApi = comlink.wrap<api.WebviewApi>(consumeEndpoint);
+    globalState.set("webviewApi", webviewApi);
     comlink.expose(vscodeApi, provideEndpoint);
   }
 }

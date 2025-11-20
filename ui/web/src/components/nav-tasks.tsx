@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import {
   SidebarGroup,
@@ -16,16 +16,7 @@ import {
 import { Link } from "react-router";
 import { useAppSelector } from "@/app/hooks";
 import { selectActiveTaskId, selectTasks } from "@/features/session/tasksSlice";
-import type { Status } from "@/lib/types";
-
-function getTaskIcon(status: Status) {
-  switch (status) {
-    case "generating":
-      return <Loader2 className="h-4 w-4 ml-auto animate-spin" />;
-    case "idle":
-      return <CheckCircle2 className="h-4 w-4 ml-auto text-green-600" />;
-  }
-}
+import { getTaskIcon } from "@/lib/task-utils";
 
 export function NavTasks() {
   const tasks = useAppSelector(selectTasks);
@@ -43,7 +34,7 @@ export function NavTasks() {
         <CollapsibleContent>
           <SidebarMenu>
             {tasks.map(({ name, id, status }) => {
-              const url = `tasks/${id}`;
+              const path = `/tasks/${id}`;
               const isActive = activeTaskId === id;
               return (
                 <SidebarMenuItem key={id}>
@@ -58,7 +49,7 @@ export function NavTasks() {
                       }
                     }}
                   >
-                    <Link to={url}>
+                    <Link to={path}>
                       <span className="truncate">{name}</span>
                       {getTaskIcon(status)}
                     </Link>

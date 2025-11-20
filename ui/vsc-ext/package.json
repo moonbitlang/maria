@@ -12,7 +12,6 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [],
     "viewsContainers": {
       "activitybar": [
         {
@@ -31,7 +30,33 @@
           "icon": "$(robot)"
         }
       ]
-    }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "moonbit-agent.allTasksView",
+          "group": "navigation@1",
+          "when": "view == moonbit-agent.view"
+        },
+        {
+          "command": "moonbit-agent.taskView",
+          "group": "navigation@2",
+          "when": "view == moonbit-agent.view"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "moonbit-agent.allTasksView",
+        "title": "All Tasks",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "moonbit-agent.taskView",
+        "title": "Task",
+        "icon": "$(comment-discussion)"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",

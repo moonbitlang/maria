@@ -1,26 +1,19 @@
 import * as vscode from "vscode";
 import { MoonBitAgentViewProvider } from "./view";
 import { DaemonService } from "./daemon-service";
+import { allTasksView, taskView } from "./commands";
 export async function activate(context: vscode.ExtensionContext) {
-  const daemonService = new DaemonService();
+  const daemonService = DaemonService.instance();
   const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 
   if (cwd === undefined) {
     vscode.window.showErrorMessage(
       "No workspace folder found. Please open a folder in VSCode to use MoonBit Agent.",
     );
-    return;
   }
 
-  const tasks = await daemonService.getTasks();
-
-  let taskId: string | undefined = undefined;
-
-  for (const task of tasks) {
-    if (task.cwd === cwd) {
-      taskId = task.id;
-    }
-  }
+  const taskId =
+    cwd === undefined ? undefined : await daemonService.getTaskIdOfDir(cwd);
 
   const viewProvider = new MoonBitAgentViewProvider(context, cwd, taskId);
 
@@ -30,6 +23,8 @@ export async function activate(context: vscode.ExtensionContext) {
       viewProvider,
       { webviewOptions: { retainContextWhenHidden: true } },
     ),
+    vscode.commands.registerCommand("moonbit-agent.allTasksView", allTasksView),
+    vscode.commands.registerCommand("moonbit-agent.taskView", taskView),
   );
 }
 

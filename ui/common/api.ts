@@ -1,5 +1,5 @@
 export interface VscodeApi {}
 
 export interface WebviewApi {
-  hello(): number;
+  navigate(path: string): void;
 }
