@@ -1,14 +1,7 @@
+import { rootData } from "@/lib/utils";
 import { createContext, useContext } from "react";
 
-const root = document.getElementById("root")!;
-
-const dataCwd = root.getAttribute("data-cwd");
-
-let cwd: string | undefined = undefined;
-
-if (dataCwd && dataCwd.length > 0) {
-  cwd = dataCwd;
-}
+const cwd = rootData("cwd");
 
 export const CwdContext = createContext<string | undefined>(cwd);
 
