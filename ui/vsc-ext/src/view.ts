@@ -1,4 +1,7 @@
 import * as vscode from "vscode";
+import * as endpoint from "../../common/endpoint";
+import * as api from "../../common/api";
+import * as comlink from "comlink";
 
 function getNonce() {
   let text = "";
@@ -14,10 +17,20 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "moonbit-agent.view";
   private _context: vscode.ExtensionContext;
 
+  private _taskId: string | undefined;
+
+  private _cwd: string;
+
   private _view: vscode.WebviewView | undefined;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(
+    context: vscode.ExtensionContext,
+    cwd: string,
+    taskId: string | undefined,
+  ) {
     this._context = context;
+    this._taskId = taskId;
+    this._cwd = cwd;
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -41,17 +54,24 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
     and only allow scripts that have a specific nonce.
     (See the 'webview-sample' extension sample for img-src content security policy examples)
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${webview.cspSource} unsafe-inline; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${
+    webview.cspSource
+  } unsafe-inline; style-src ${
+      webview.cspSource
+    } 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="${styleUri}" rel="stylesheet">
+  <style>html, body, #root { height: 100%; margin: 0; }</style>
   <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 
   <title>MoonBit Agent</title>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" data-task-id="${this._taskId ?? ""}" data-cwd="${
+      this._cwd
+    }"></div>
 </body>
 </html>`;
   }
@@ -70,5 +90,35 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
     };
 
     this._view.webview.html = this._getHtmlForWebview(this._view.webview);
+
+    const listeners: Array<(event: unknown) => void> = [];
+
+    this._view.webview.onDidReceiveMessage((message) => {
+      for (const listener of listeners) {
+        listener({ data: message });
+      }
+    });
+
+    const endpointProvider: endpoint.EndpointProvider = {
+      addEventListener(_type, listener) {
+        listeners.push(listener);
+      },
+    };
+
+    const provideEndpoint = endpoint.newEndpoint(
+      endpointProvider,
+      webviewView.webview.postMessage.bind(webviewView.webview),
+      "vscode-provider",
+    );
+
+    const consumeEndpoint = endpoint.newEndpoint(
+      endpointProvider,
+      webviewView.webview.postMessage.bind(webviewView.webview),
+      "webview-provider",
+    );
+
+    const vscodeApi: api.VscodeApi = {};
+    const webviewApi = comlink.wrap<api.WebviewApi>(consumeEndpoint);
+    comlink.expose(vscodeApi, provideEndpoint);
   }
 }

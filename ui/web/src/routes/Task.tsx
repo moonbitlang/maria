@@ -1,16 +1,9 @@
 import { useAppSelector } from "@/app/hooks";
 import { AgentTodos } from "@/components/agent-todos";
-import {
-  PromptInput,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputTools,
-} from "@/components/ai/prompt-input";
+import { TaskPromptInput } from "@/components/task-prompt-input";
 import { EventsDisplay } from "@/components/events-display";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   useTaskEventsQuery,
   usePostMessageMutation,
@@ -100,32 +93,14 @@ function TaskInput({ taskId }: { taskId: string }) {
         </div>
       )}
 
-      <PromptInput
-        className="max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow"
+      <TaskPromptInput
+        value={input}
+        onChange={setInput}
         onSubmit={handleSubmit}
-      >
-        <PromptInputTextarea
-          className="text-base md:text-base min-h-[52px]"
-          value={input}
-          onFocus={(e) =>
-            e.target.scrollIntoView({ behavior: "smooth", block: "center" })
-          }
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            status === "generating"
-              ? "Agent is working..."
-              : "Input your task..."
-          }
-        />
-        <PromptInputToolbar>
-          <PromptInputTools></PromptInputTools>
-          <PromptInputSubmit
-            disabled={!input.trim()}
-            status={"ready"}
-            className="cursor-pointer transition-all"
-          ></PromptInputSubmit>
-        </PromptInputToolbar>
-      </PromptInput>
+        placeholder={
+          status === "generating" ? "Agent is working..." : "Input your task..."
+        }
+      />
     </div>
   );
 }
@@ -142,29 +117,7 @@ export default function Task() {
   useTaskEventsQuery(taskId, { skip: !isSuccess });
 
   if (isLoading) {
-    return (
-      <div className="flex-1 min-h-0 flex flex-col justify-end p-4">
-        <div className="max-w-4xl mx-auto w-full space-y-4 mb-4">
-          <div className="flex items-start gap-3">
-            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          </div>
-          <div className="flex items-start gap-3 flex-row-reverse">
-            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-4 w-1/3" />
-            </div>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto w-full">
-          <Skeleton className="h-24 w-full rounded-xl" />
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (isSuccess) {
