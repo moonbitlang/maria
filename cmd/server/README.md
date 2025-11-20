@@ -15,6 +15,10 @@ moon run cmd/main -- server --port 8090 --serve cmd/server
 Then open `http://localhost:8080` in your web browser to access the HTML
 frontend.
 
+## `POST /v1/reset`
+
+Resets the Maria agent's conversation state.
+
 ## `POST /v1/message`
 
 Request:

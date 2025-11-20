@@ -1,6 +1,6 @@
 ///|
 struct Server {
-  maria : @maria.Maria
+  maria : mut @maria.Maria
   broadcast : @broadcast.Broadcast[Json]
   message_queue : @aqueue.Queue[
     (CreateMessageRequest, @aqueue.Queue[@uuid.Uuid]),
@@ -11,6 +11,7 @@ struct Server {
   port : Int
   http_server : @httpx.Server
   cwd : String
+  model : String?
 }
 
 ///|
@@ -63,6 +64,7 @@ pub async fn Server::new(
     port,
     http_server,
     cwd,
+    model,
   }
 }
 
@@ -124,7 +126,22 @@ async fn Server::serve_http(self : Server) -> Unit {
             w.write(response.stringify())
           }
           (Post, "/v1/cancel") => self.cancel_maria(w)
-          (Get, "/v1/queued-messages") => self.get_queued_messages(w)
+          (Post, "/v1/reset") => {
+          let maria = @maria.Maria::new(
+            model?=self.model,
+            logger=self.maria.logger,
+            cwd=self.cwd,
+          )
+          self.maria = maria
+          w.header().set("Content-Type", "application/json")
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(200)
+          let res : Json = {}
+          w.write(res.stringify())
+        }
+        (Get, "/v1/queued-messages") => self.get_queued_messages(w)
           (Get, "/v1/events") => self.get_events(w)
           (Post, "/v1/message") => self.create_message(r, w)
           (Post, "/v1/external-event") => self.send_external_event(r, w)
