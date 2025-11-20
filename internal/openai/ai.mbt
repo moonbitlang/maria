@@ -23,6 +23,7 @@ pub async fn chat(
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
   extra_body? : Map[String, Json] = {},
 ) -> ChatCompletion {
+  let mut retry_count = 0
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
@@ -31,18 +32,21 @@ pub async fn chat(
       _ => false
     },
     () => {
-      logger.debug("RequestSent", data={
-        "model": { "name": model.model_name, "base_url": model.base_url },
-        "request": request,
-      })
-      let url = "\{model.base_url}/chat/completions"
-      let uri = Uri::parse(url)
-      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
-        "Authorization": "Bearer \{model.api_key}",
-        "Content-Type": "application/json",
-        "Connection": "close",
-      })
-      defer client.close()
+      let timeout = 30_000 * (1 << retry_count)
+      retry_count = retry_count + 1
+      @async.with_timeout(timeout, () => {
+        logger.debug("RequestSent", data={
+          "model": { "name": model.model_name, "base_url": model.base_url },
+          "request": request,
+        })
+        let url = "\{model.base_url}/chat/completions"
+        let uri = Uri::parse(url)
+        let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+          "Authorization": "Bearer \{model.api_key}",
+          "Content-Type": "application/json",
+          "Connection": "close",
+        })
+        defer client.close()
       let body = request.to_json()
       guard body is Object(body) else {
         abort("Request body is not a JSON object")
@@ -50,35 +54,36 @@ pub async fn chat(
       for k, v in extra_body {
         body[k] = v
       }
-      let response = client.post(uri.path, Json::object(body))
-      guard response.code is (200..=299) else {
-        raise HttpError(code=response.code, body=client.read_all().text())
-      }
-      if request.stream is Some(true) {
-        let reader = ChunkReader::new(client)
-        let builder = ChatCompletionBuilder::new()
-        while reader.read() is Some(chunk) {
-          logger.debug("ChunkReceived", data={ "chunk": chunk })
-          builder.add_chunk(chunk)
+        let response = client.post(uri.path, Json::object(body))
+        guard response.code is (200..=299) else {
+          raise HttpError(code=response.code, body=client.read_all().text())
         }
-        let chat_completion = builder.to_chat_completion()
-        logger.debug("ResponseReceived", data={
-          "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code,
-          "response_body": chat_completion,
-        })
-        chat_completion
-      } else {
-        let body = client.read_all().text()
-        let json = @json.parse(body)
-        let chat_completion : ChatCompletion = @json.from_json(json)
-        logger.debug("ResponseReceived", data={
-          "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code,
-          "response_body": chat_completion,
-        })
-        chat_completion
-      }
+        if request.stream is Some(true) {
+          let reader = ChunkReader::new(client)
+          let builder = ChatCompletionBuilder::new()
+          while reader.read() is Some(chunk) {
+            logger.debug("ChunkReceived", data={ "chunk": chunk })
+            builder.add_chunk(chunk)
+          }
+          let chat_completion = builder.to_chat_completion()
+          logger.debug("ResponseReceived", data={
+            "model": { "name": model.model_name, "base_url": model.base_url },
+            "response_code": response.code,
+            "response_body": chat_completion,
+          })
+          chat_completion
+        } else {
+          let body = client.read_all().text()
+          let json = @json.parse(body)
+          let chat_completion : ChatCompletion = @json.from_json(json)
+          logger.debug("ResponseReceived", data={
+            "model": { "name": model.model_name, "base_url": model.base_url },
+            "response_code": response.code,
+            "response_body": chat_completion,
+          })
+          chat_completion
+        }
+      })
     },
   )
 }
