@@ -189,7 +189,24 @@ async fn execute_replace_in_file(
       try {
         let content = @fsx.read_file(resolved_path)
         match @fuzzy.find_match(content, search) {
-          None => @tool.error("Search content not found in file: \{search}")
+          None =>
+            @tool.error(
+              (
+                $|Search content not found in file:
+                $|
+                $|**Search**:
+                $|
+                $|```
+                $|\{search}
+                $|```
+                $|
+                $|**File Content**:
+                $|
+                $|```
+                $|\{content}
+                $|```
+              ),
+            )
           Some(match_result) => {
             let before = content[0:match_result.position].to_string()
             let after = content[match_result.position + match_result.length:].to_string()
