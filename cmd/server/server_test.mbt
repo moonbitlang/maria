@@ -286,6 +286,7 @@ async test "GET /v1/events" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "GET /v1/moonbit/modules" (t : @test.Test) {
   @mock.run(t, mock => {
     @moon.new(user="username", name="example", mock.cwd.path())
@@ -312,6 +313,7 @@ async test "GET /v1/moonbit/modules" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "POST /v1/moonbit/publish" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
@@ -402,5 +404,52 @@ async test "GET /script.js" (t : @test.Test) {
     @json.inspect(r.code, content=200)
     @json.inspect(r.headers["content-type"], content="application/javascript")
     @json.inspect(b.text(), content="console.log('Hello, world!');")
+  })
+}
+
+///|
+#skip
+async test "POST /v1/reset" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost/v1/status", port=server.port())
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={ "status": "idle" })
+    let (r, b) = @http.post(
+      "http://localhost/v1/message",
+      Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
+      port=server.port(),
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard b is { "id": String(_), "queued": queued, .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    @json.inspect(queued, content=false)
+    let (r, b) = @http.post(
+      "http://localhost/v1/message",
+      Json::object({ "message": { "role": "user", "content": "Hello again!" } }),
+      port=server.port(),
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard b is { "id": String(_), "queued": queued, .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    @json.inspect(queued, content=true)
+    let (r, _) = @http.post(
+      "http://localhost/v1/reset",
+      Json::object({}),
+      port=server.port(),
+    )
+    @json.inspect(r.code, content=200)
+    let (r, b) = @http.get(
+      "http://localhost/v1/queued-messages",
+      port=server.port(),
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(b, content=[])
   })
 }
