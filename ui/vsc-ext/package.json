@@ -8,7 +8,8 @@
     "vscode": "^1.106.1"
   },
   "categories": [
-    "Other"
+    "AI",
+    "Visualization"
   ],
   "activationEvents": [
     "onView:moonbit-agent-activitybar"
