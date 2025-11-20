@@ -476,3 +476,35 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
     })
   })
 }
+
+///|
+#skip
+async test "POST /v1/task/{id}/reset" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port(),
+      )
+      @json.inspect(r.code, content=201)
+      let b = b.json()
+      guard b is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      let (r, _) = @http.post(
+        "http://localhost/v1/task/\{id}/reset",
+        Json::object({}),
+        port=daemon.port(),
+      )
+      @json.inspect(r.code, content=200)
+    })
+  })
+}
