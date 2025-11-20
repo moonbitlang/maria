@@ -1,11 +1,19 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/daemon"
 
+import(
+  "moonbitlang/maria/internal/uuid"
+)
+
 // Values
 
 // Errors
 
 // Types and methods
+type Daemon
+async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView) -> Self
+fn Daemon::port(Self) -> Int
+async fn Daemon::serve(Self) -> Unit
 
 // Type aliases
 
