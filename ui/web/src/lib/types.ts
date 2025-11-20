@@ -1,3 +1,7 @@
+import type { TaskOverview } from "../../../common/types";
+
+export type { TaskOverview, Status } from "../../../common/types";
+
 type TaskEventBase = {
   id: number;
 };
@@ -152,16 +156,6 @@ export type MessageAddedEvent = {
   msg: "MessageAdded";
   message: MessageBase &
     (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
-};
-
-export type Status = "idle" | "generating";
-
-export type TaskOverview = {
-  id: string;
-  name: string;
-  status: Status;
-  created: number;
-  cwd: string;
 };
 
 export type DaemonTaskSyncEvent = {
