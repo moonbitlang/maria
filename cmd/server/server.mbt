@@ -140,7 +140,7 @@ pub async fn Server::serve(server : Server) -> Unit {
             server.status = Idle
           }
           server.maria.agent.start() catch {
-            error => {
+            error =>
               server.maria.logger.error("MariaFailed", {
                 "error": {
                   "code": -1,
@@ -148,8 +148,6 @@ pub async fn Server::serve(server : Server) -> Unit {
                   "metadata": error,
                 },
               })
-              raise error
-            }
           }
         })
       },
