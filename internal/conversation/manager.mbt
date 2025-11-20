@@ -61,8 +61,8 @@ pub async fn Manager::list(self : Manager) -> Array[String] {
   // we may need support continue/break keywords
   // [for x in xs if condition => { continue else ...}]
   for entry in entries {
-    if entry is { kind: Regular, name: [.., .. ".json"] as name, .. } {
-      try @uuid.parse(@path.stem(name)) catch {
+    if entry is { kind: Regular, name: [.. name, .. ".json"], .. } {
+      try @uuid.parse(name) catch {
         _ => continue
       } noraise {
         id => ids.push(id.to_string())
