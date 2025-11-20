@@ -5,10 +5,21 @@ struct Server {
 }
 
 ///|
-pub fn Server::new(host : String, port : Int) -> Server raise {
+pub fn Server::close(self : Server) -> Unit {
+  self.tcp_server.close()
+}
+
+///|
+pub fn Server::new(
+  host : String,
+  port : Int,
+  dual_stack? : Bool = true,
+  reuse_addr? : Bool = false,
+) -> Server raise {
   let tcp_server = @socket.TcpServer::new(
     @socket.Addr::parse("\{host}:\{port}"),
-    dual_stack=true,
+    dual_stack~,
+    reuse_addr~,
   )
   let port = tcp_server.addr().port()
   Server::{ tcp_server, port }

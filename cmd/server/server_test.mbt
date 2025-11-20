@@ -50,7 +50,7 @@ async test "register" (t : @test.Test) {
       port: daemon.addr().port(),
       id: "test-server",
     })
-    mock.group.spawn_bg(() => server.serve(), no_wait=true)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (conn, _) = daemon.accept()
     let conn = @http.ServerConnection::new(conn)
     let r = conn.read_request()
@@ -58,7 +58,7 @@ async test "register" (t : @test.Test) {
     let rb = conn.read_all()
     @json.inspect(rb.json(), content={
       "id": "test-server",
-      "port": server.port,
+      "port": server.port(),
     })
   })
 }
@@ -68,14 +68,14 @@ async test "register" (t : @test.Test) {
 async test "POST /v1/message" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
-    mock.group.spawn_bg(() => server.serve(), no_wait=true)
-    let (r, b) = @http.get("http://localhost/v1/status", port=server.port)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost/v1/status", port=server.port())
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={ "status": "idle" })
     let (r, b) = @http.post(
       "http://localhost/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -86,7 +86,7 @@ async test "POST /v1/message" (t : @test.Test) {
     let (r, b) = @http.post(
       "http://localhost/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello again!" } }),
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -96,7 +96,7 @@ async test "POST /v1/message" (t : @test.Test) {
     @json.inspect(queued, content=true)
     let (r, b) = @http.get(
       "http://localhost/v1/queued-messages",
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -168,11 +168,11 @@ async test "GET /v1/events" (t : @test.Test) {
     let server = configure_server(mock)
     let events : Array[Json] = []
     @async.with_task_group(group => {
-      group.spawn_bg(() => server.serve(), no_wait=true)
+      group.spawn_bg(() => server.start(), no_wait=true)
       group.spawn_bg(() => {
         let (r, s) = @http.get_stream(
           "http://localhost/v1/events",
-          port=server.port,
+          port=server.port(),
         )
         @json.inspect(r.code, content=200)
         let mut last_event : String? = None
@@ -204,7 +204,7 @@ async test "GET /v1/events" (t : @test.Test) {
         Json::object({
           "message": { "role": "user", "content": "Hello, Maria!" },
         }),
-        port=server.port,
+        port=server.port(),
       )
       |> ignore()
       @http.post(
@@ -212,7 +212,7 @@ async test "GET /v1/events" (t : @test.Test) {
         Json::object({
           "message": { "role": "user", "content": "Hello, Maria!" },
         }),
-        port=server.port,
+        port=server.port(),
       )
       |> ignore()
     })
@@ -290,10 +290,10 @@ async test "GET /v1/moonbit/modules" (t : @test.Test) {
   @mock.run(t, mock => {
     @moon.new(user="username", name="example", mock.cwd.path())
     let server = configure_server(mock)
-    mock.group.spawn_bg(() => server.serve(), no_wait=true)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get(
       "http://localhost/v1/moonbit/modules",
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -315,11 +315,11 @@ async test "GET /v1/moonbit/modules" (t : @test.Test) {
 async test "POST /v1/moonbit/publish" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
-    mock.group.spawn_bg(() => server.serve(), no_wait=true)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.post(
       "http://localhost/v1/moonbit/publish",
       Json::object({ "module": { "path": mock.cwd.path() } }),
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=404)
     @json.inspect(mock.json(b.json()), content={
@@ -333,7 +333,7 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
     let (r, b) = @http.post(
       "http://localhost/v1/moonbit/publish",
       Json::object({ "module": { "path": mock.cwd.path() } }),
-      port=server.port,
+      port=server.port(),
     )
     @json.inspect(r.code, content=500)
     @json.inspect(
@@ -356,5 +356,51 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
         },
       },
     )
+  })
+}
+
+///|
+async test "CORS" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let c = @http.Client::connect(
+      "localhost",
+      protocol=Http,
+      port=server.port(),
+    )
+    defer c.close()
+    c.request(Options, "/v1/message")
+    let r = c.end_request()
+    @json.inspect(r.code, content=204)
+    @json.inspect(r.headers["access-control-allow-origin"], content="*")
+    @json.inspect(r.headers["access-control-allow-methods"], content="*")
+    @json.inspect(r.headers["access-control-allow-headers"], content="*")
+  })
+}
+
+///|
+async test "GET /" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock.add_file("index.html").write_string("<h1>Home Page</h1>")
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost/", port=server.port())
+    @json.inspect(r.code, content=200)
+    @json.inspect(r.headers["content-type"], content="text/html")
+    @json.inspect(b.text(), content="<h1>Home Page</h1>")
+  })
+}
+
+///|
+async test "GET /script.js" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock.add_file("script.js").write_string("console.log('Hello, world!');")
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost/script.js", port=server.port())
+    @json.inspect(r.code, content=200)
+    @json.inspect(r.headers["content-type"], content="application/javascript")
+    @json.inspect(b.text(), content="console.log('Hello, world!');")
   })
 }
