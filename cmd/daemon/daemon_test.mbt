@@ -26,7 +26,7 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 async fn configure_daemon(mock : @mock.Context) -> Daemon {
   let os_cwd = @os.cwd()
   configure_models(mock)
-  Daemon::new(
+  @daemon.Daemon::new(
     uuid=mock.uuid,
     cwd=mock.cwd.path(),
     exec_path=@path.join(
@@ -45,7 +45,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port())
       @json.inspect(r.code, content=200)
       @json.inspect(r.headers, content={
         "content-type": "application/json",
@@ -62,9 +62,9 @@ async test "GET /v1/tasks" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
-      let (_, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      let (_, b) = @http.get("http://localhost/v1/tasks", port=daemon.port())
       let b = b.json()
       guard b is { "tasks": Array(tasks), .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
@@ -89,7 +89,7 @@ async test "GET /v1/task/{id}" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       let b = b.json()
       guard b is { "task": { "id": String(id), .. }, .. } else {
@@ -100,9 +100,12 @@ async test "GET /v1/task/{id}" (t : @test.Test) {
         Json::object({
           "message": { "role": "user", "content": "How are you?" },
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
-      let (_, b) = @http.get("http://localhost/v1/task/\{id}", port=daemon.port)
+      let (_, b) = @http.get(
+        "http://localhost/v1/task/\{id}",
+        port=daemon.port(),
+      )
       let b = b.json()
       guard b
         is { "task": { "queued_messages": Array(queued_messages), .. }, .. } else {
@@ -133,7 +136,7 @@ async test "GET /v1/models" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.get("http://localhost/v1/models", port=daemon.port)
+      let (r, b) = @http.get("http://localhost/v1/models", port=daemon.port())
       @json.inspect(r.code, content=200)
       @json.inspect(r.headers, content={
         "content-type": "application/json",
@@ -169,7 +172,7 @@ async test "POST /v1/task" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -188,7 +191,7 @@ async test "POST /v1/task" (t : @test.Test) {
       }
       let status : @server.Status = @json.from_json(status)
       @json.inspect(status, content="idle")
-      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port)
+      let (r, b) = @http.get("http://localhost/v1/tasks", port=daemon.port())
       @json.inspect(r.code, content=200)
       let b = b.json()
       guard b is { "tasks": Array(tasks), .. } else {
@@ -197,7 +200,7 @@ async test "POST /v1/task" (t : @test.Test) {
       @json.inspect(tasks.length(), content=1)
       let (r, s) = @http.get_stream(
         "http://localhost/v1/task/\{id}/events",
-        port=daemon.port,
+        port=daemon.port(),
       )
       @json.inspect(r.code, content=200)
       @json.inspect(r.headers["content-type"], content="text/event-stream")
@@ -286,7 +289,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -298,7 +301,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         Json::object({
           "message": { "role": "user", "content": "How are you?" },
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       let b = b.json()
       guard b is { "id": String(msg_id), "queued": queued, .. } else {
@@ -308,7 +311,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
       @json.inspect(queued, content=true)
       let (_, s) = @http.get_stream(
         "http://localhost/v1/task/\{id}/events",
-        port=daemon.port,
+        port=daemon.port(),
       )
       let pop_ids : Array[String] = []
       let events : Array[Json] = []
@@ -430,7 +433,7 @@ async test "POST /v1/task with invalid cwd" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": "/non/existent/path",
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       @json.inspect(r.code, content=404)
       let b = b.json()
@@ -460,7 +463,7 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
           "model": "nonexistent-model",
           "cwd": mock.cwd.path(),
         }),
-        port=daemon.port,
+        port=daemon.port(),
       )
       @json.inspect(r.code, content=404)
       let b = b.json()

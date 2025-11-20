@@ -1,5 +1,5 @@
 ///|
-priv struct Daemon {
+struct Daemon {
   clock : &@clock.Clock
   models : @model.Loader
   uuid : @uuid.Generator
@@ -12,6 +12,11 @@ priv struct Daemon {
   port : Int
   events : @broadcast.Broadcast[Event]
   serve : String
+}
+
+///|
+pub fn Daemon::port(self : Daemon) -> Int {
+  self.port
 }
 
 ///|
@@ -524,7 +529,7 @@ async fn Daemon::create_task_message(
 }
 
 ///|
-async fn Daemon::new(
+pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
   port~ : Int,
@@ -574,7 +579,7 @@ async fn Daemon::new(
 }
 
 ///|
-async fn Daemon::serve(self : Daemon) -> Unit {
+pub async fn Daemon::serve(self : Daemon) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.process.start())
     self.tcp_server.run_forever((conn, _) => {
