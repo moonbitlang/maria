@@ -24,7 +24,7 @@ async fn html_read_file(path : String) -> String {
 
 ///|
 async fn serve_static_file(
-  w : @http.ServerConnection,
+  w : @httpx.ResponseWriter,
   serve~ : String,
   path~ : String,
 ) -> Unit {
@@ -41,15 +41,12 @@ async fn serve_static_file(
     }
     println("[INFO] (Daemon) Serving static file: \{path}")
     let content = html_read_file(path)
-    w
-    ..send_response(200, "OK", extra_headers={
-      "Content-Type": content_type,
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-    })
-    ..write(content)
-    ..end_response()
+    w.header().set("Content-Type", content_type)
+    w.header().set("Access-Control-Allow-Origin", "*")
+    w.header().set("Access-Control-Allow-Methods", "*")
+    w.header().set("Access-Control-Allow-Headers", "*")
+    w.write_header(200)
+    w.write(content)
   } else {
     raise json_error(404, "NotFound", {
       "error": {

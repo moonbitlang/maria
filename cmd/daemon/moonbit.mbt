@@ -1,6 +1,9 @@
 ///|
-async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
-  let request = conn.read_all().binary()
+async fn publish_moonbit_module(
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let request = r.read_all().binary()
   let request_text : String = @encoding/utf8.decode(request) catch {
     // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>
@@ -60,15 +63,12 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
         "stderr": process.stderr,
       },
     }
-    conn
-    ..send_response(201, "Created", extra_headers={
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-    })
-    ..write(response.stringify())
-    ..end_response()
+    w.header().set("Content-Type", "application/json")
+    w.header().set("Access-Control-Allow-Origin", "*")
+    w.header().set("Access-Control-Allow-Methods", "*")
+    w.header().set("Access-Control-Allow-Headers", "*")
+    w.write_header(201)
+    w.write(response.stringify())
   } else {
     let response : Json = {
       "error": {
@@ -89,14 +89,11 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
         },
       },
     }
-    conn
-    ..send_response(500, "InternalServerError", extra_headers={
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-    })
-    ..write(response.stringify())
-    ..end_response()
+    w.header().set("Content-Type", "application/json")
+    w.header().set("Access-Control-Allow-Origin", "*")
+    w.header().set("Access-Control-Allow-Methods", "*")
+    w.header().set("Access-Control-Allow-Headers", "*")
+    w.write_header(500)
+    w.write(response.stringify())
   }
 }
