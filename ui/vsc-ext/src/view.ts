@@ -1,4 +1,7 @@
 import * as vscode from "vscode";
+import * as endpoint from "../../common/endpoint";
+import * as api from "../../common/api";
+import * as comlink from "comlink";
 
 function getNonce() {
   let text = "";
@@ -71,5 +74,35 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
     };
 
     this._view.webview.html = this._getHtmlForWebview(this._view.webview);
+
+    const listeners: Array<(event: unknown) => void> = [];
+
+    this._view.webview.onDidReceiveMessage((message) => {
+      for (const listener of listeners) {
+        listener({ data: message });
+      }
+    });
+
+    const endpointProvider: endpoint.EndpointProvider = {
+      addEventListener(_type, listener) {
+        listeners.push(listener);
+      },
+    };
+
+    const provideEndpoint = endpoint.newEndpoint(
+      endpointProvider,
+      webviewView.webview.postMessage.bind(webviewView.webview),
+      "vscode-provider",
+    );
+
+    const consumeEndpoint = endpoint.newEndpoint(
+      endpointProvider,
+      webviewView.webview.postMessage.bind(webviewView.webview),
+      "webview-provider",
+    );
+
+    const vscodeApi: api.VscodeApi = {};
+    const webviewApi = comlink.wrap<api.WebviewApi>(consumeEndpoint);
+    comlink.expose(vscodeApi, provideEndpoint);
   }
 }
