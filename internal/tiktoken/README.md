@@ -6,7 +6,7 @@
 2. convert pieces to tokens via BPE algorithm.
 
 
-## Check phases 1 consistencies
+## Check phase 1 consistency
 
 ```bash 
 cd ./internal/tiktoken/tiktoken_lexer_rs/
