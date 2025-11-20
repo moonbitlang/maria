@@ -26,23 +26,16 @@ class VscodeApiWrapper {
 
 const vscodeApi = new VscodeApiWrapper();
 
-const provideEndpoint: endpoint.Endpoint = endpoint.newEndpoint(
+export const provideEndpoint: endpoint.Endpoint = endpoint.newEndpoint(
   window,
   vscodeApi.postMessage.bind(vscodeApi),
   "webview-provider",
 );
 
-const consumeEndpoint: endpoint.Endpoint = endpoint.newEndpoint(
+export const consumeEndpoint: endpoint.Endpoint = endpoint.newEndpoint(
   window,
   vscodeApi.postMessage.bind(vscodeApi),
   "vscode-provider",
 );
 
-const webviewApi: api.WebviewApi = {
-  hello() {
-    return 42;
-  },
-};
-
-comlink.expose(webviewApi, provideEndpoint);
 export const vscode = comlink.wrap<api.VscodeApi>(consumeEndpoint);

@@ -7,7 +7,6 @@ import { store } from "./app/store";
 import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/layout";
 import Task from "./routes/Task";
-import * as vscode from "@/lib/vscode";
 import VscodeLayout from "./components/vscode-layout";
 
 const isInVscode = typeof acquireVsCodeApi === "function";
