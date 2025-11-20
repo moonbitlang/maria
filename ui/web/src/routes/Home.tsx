@@ -17,7 +17,7 @@ function Home() {
 
   useEffect(() => {
     if (rootTaskId) {
-      navigate(`tasks/${rootTaskId}`);
+      navigate(`/tasks/${rootTaskId}`);
     }
   }, [rootTaskId, navigate]);
 
@@ -31,7 +31,7 @@ function Home() {
     const res = await postNewTask({ message: input, cwd });
     if (res.data) {
       const { id } = res.data.task;
-      navigate(`tasks/${id}`);
+      navigate(`/tasks/${id}`);
     }
   };
 

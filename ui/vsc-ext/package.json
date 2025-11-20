@@ -1,18 +1,21 @@
 {
-  "name": "vsc-ext",
-  "displayName": "vsc-ext",
-  "description": "",
+  "name": "moonbit-agent",
+  "displayName": "MoonBit Agent",
+  "description": "Vscode extension for MoonBit Agent",
+  "publisher": "moonbit",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.106.1"
   },
   "categories": [
-    "Other"
+    "AI",
+    "Visualization"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:moonbit-agent-activitybar"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [],
     "viewsContainers": {
       "activitybar": [
         {
@@ -31,7 +34,33 @@
           "icon": "$(robot)"
         }
       ]
-    }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "moonbit-agent.allTasksView",
+          "group": "navigation@1",
+          "when": "view == moonbit-agent.view"
+        },
+        {
+          "command": "moonbit-agent.taskView",
+          "group": "navigation@2",
+          "when": "view == moonbit-agent.view"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "moonbit-agent.allTasksView",
+        "title": "All Tasks",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "moonbit-agent.taskView",
+        "title": "Task",
+        "icon": "$(comment-discussion)"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -39,7 +68,9 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "watch:webview": "cd ../web && pnpm build --mode vscode --watch",
+    "build:webview": "cd ../web && pnpm build --mode vscode",
+    "package": "pnpm run check-types && pnpm run lint && pnpm run build:webview && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",

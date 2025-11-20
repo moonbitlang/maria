@@ -8,6 +8,7 @@ import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/layout";
 import Task from "./routes/Task";
 import VscodeLayout from "./components/vscode-layout";
+import AllTasks from "./routes/AllTasks";
 
 const isInVscode = typeof acquireVsCodeApi === "function";
 
@@ -26,7 +27,8 @@ root.render(
           <Routes>
             <Route element={<VscodeLayout />}>
               <Route index element={<Home />}></Route>
-              <Route path="tasks/:taskId" element={<Task />}></Route>
+              <Route path="/tasks/:taskId" element={<Task />}></Route>
+              <Route path="/all-tasks" element={<AllTasks />}></Route>
             </Route>
           </Routes>
         </MemoryRouter>
@@ -35,7 +37,8 @@ root.render(
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Home />}></Route>
-              <Route path="tasks/:taskId" element={<Task />}></Route>
+              <Route path="/tasks/:taskId" element={<Task />}></Route>
+              <Route path="/all-tasks" element={<AllTasks />}></Route>
             </Route>
           </Routes>
         </BrowserRouter>

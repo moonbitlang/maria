@@ -352,7 +352,7 @@ export function EventsDisplay(props: EventsDisplayProps) {
 
   return (
     <Conversation className="min-h-0">
-      <ConversationContent className="max-w-4xl mx-auto">
+      <ConversationContent className="max-w-4xl mx-auto overflow-x-hidden">
         {events.map((event, i) => {
           switch (event.msg) {
             case "MessageAdded":
