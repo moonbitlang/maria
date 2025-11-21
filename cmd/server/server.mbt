@@ -102,99 +102,76 @@ async fn Server::register(self : Server) -> Unit {
 
 ///|
 async fn Server::serve_http(self : Server) -> Unit {
-  self.http_server.serve(
-    @httpx.cors((r, w) => {
-      println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
-      try {
-        match (r.method_, r.path) {
-          (Options, _) => w.write_header(204)
-          (Get, "/") => {
-            let index_html = html_read_file(
-              @path.join(self.serve, "index.html"),
-            )
-            w.header().set("Content-Type", "text/html")
-            w.write_header(200)
-            w.write(index_html)
-          }
-          (Get, "/v1/status") => {
-            let response : Json = {
-              "status": self.status(),
-              "web_search": self.maria.agent.web_search,
-            }
-            w.header().set("Content-Type", "application/json")
-            w.write_header(200)
-            w.write(response.stringify())
-          }
-          (Post, "/v1/cancel") => self.cancel_maria(w)
-          (Post, "/v1/reset") => {
-            let maria = @maria.Maria::new(
-              model=self.model,
-              logger=self.maria.logger,
-              cwd=self.cwd,
-            )
-            self.maria = maria
-            w.header().set("Content-Type", "application/json")
-            w.header().set("Access-Control-Allow-Origin", "*")
-            w.header().set("Access-Control-Allow-Methods", "*")
-            w.header().set("Access-Control-Allow-Headers", "*")
-            w.write_header(200)
-            let res : Json = {}
-            w.write(res.stringify())
-          }
-          (Get, "/v1/queued-messages") => self.get_queued_messages(w)
-          (Get, "/v1/events") => self.get_events(w)
-          (Post, "/v1/message") => self.create_message(r, w)
-          (Post, "/v1/external-event") => self.send_external_event(r, w)
-          (Post, "/v1/external-event/diagnostics") =>
-            self.send_diagnostics_event(r, w)
-          (Post, "/v1/external-event/user-message") =>
-            self.send_user_message_event(r, w)
-          (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
-          (Get, "/v1/tools") => self.get_tools(w)
-          (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
-          (Get, "/v1/system-prompt") => self.get_system_prompt(w)
-          (Post, "/v1/system-prompt") => self.set_system_prompt(r, w)
-          (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
-          (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
-          (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
-            (try? @fsx.exists_as_file(path)) is Ok(true) => {
-            let content_type = match @path.ext(path) {
-              ".js" => "application/javascript"
-              ".css" => "text/css"
-              ".html" => "text/html"
-              ".png" => "image/png"
-              ".jpg" | ".jpeg" => "image/jpeg"
-              ".gif" => "image/gif"
-              _ => "application/octet-stream"
-            }
-            println("[DEBUG] (Server) Serving static file: \{path}")
-            let content = html_read_file(path)
-            w.header().set("Content-Type", content_type)
-            w.write_header(200)
-            w.write(content)
-          }
-          _ => {
-            w.header().set("Content-Type", "application/json")
-            w.write_header(404)
-            w.write(
-              Json::object({
-                "error": {
-                  "code": -1,
-                  "message": "Unknown endpoint: \{r.path}",
-                },
-              }),
-            )
-          }
+  let not_found : @httpx.Handler = (r, w) => {
+    w.header().set("Content-Type", "application/json")
+    w.write_header(404)
+    w.write(
+      Json::object({
+        "error": { "code": -1, "message": "Unknown endpoint: \{r.path}" },
+      }),
+    )
+  }
+  let fs = @httpx.FileServer::new(self.serve)
+  fs.set_not_found_handler(not_found)
+  let handler : @httpx.Handler = (r, w) => {
+    println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
+    try {
+      match (r.method_, r.path) {
+        (Get, "/") => {
+          let index_html = html_read_file(@path.join(self.serve, "index.html"))
+          w.header().set("Content-Type", "text/html")
+          w.write_header(200)
+          w.write(index_html)
         }
-      } catch {
-        HttpError(code~, reason~, body~) => {
-          w.write_header(code, reason~)
-          w.write(body)
+        (Get, "/v1/status") => {
+          let response : Json = {
+            "status": self.status(),
+            "web_search": self.maria.agent.web_search,
+          }
+          w.header().set("Content-Type", "application/json")
+          w.write_header(200)
+          w.write(response.stringify())
         }
-        error => raise error
+        (Post, "/v1/cancel") => self.cancel_maria(w)
+        (Post, "/v1/reset") => {
+          let maria = @maria.Maria::new(
+            model=self.model,
+            logger=self.maria.logger,
+            cwd=self.cwd,
+          )
+          self.maria = maria
+          w.header().set("Content-Type", "application/json")
+          w.write_header(200)
+          let res : Json = {}
+          w.write(res.stringify())
+        }
+        (Get, "/v1/queued-messages") => self.get_queued_messages(w)
+        (Get, "/v1/events") => self.get_events(w)
+        (Post, "/v1/message") => self.create_message(r, w)
+        (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
+        (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
+        (Post, "/v1/external-event") => self.send_external_event(r, w)
+        (Post, "/v1/external-event/diagnostics") =>
+          self.send_diagnostics_event(r, w)
+        (Post, "/v1/external-event/user-message") =>
+          self.send_user_message_event(r, w)
+        (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
+        (Get, "/v1/tools") => self.get_tools(w)
+        (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
+        (Get, "/v1/system-prompt") => self.get_system_prompt(w)
+        (Post, "/v1/system-prompt") => self.set_system_prompt(r, w)
+        (Get, _) => fs.handle(r, w)
+        _ => not_found(r, w)
       }
-    }),
-  )
+    } catch {
+      HttpError(code~, reason~, body~) => {
+        w.write_header(code, reason~)
+        w.write(body)
+      }
+      error => raise error
+    }
+  }
+  self.http_server.serve(@httpx.cors(handler))
 }
 
 ///|
