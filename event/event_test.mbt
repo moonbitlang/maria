@@ -13,6 +13,7 @@ async test "Event::ToJson/PreConversation" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(PreConversation)
   })
@@ -25,6 +26,7 @@ async test "Event::ToJson/PostConversation" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(PostConversation)
   })
@@ -37,6 +39,7 @@ async test "Event::ToJson/TokenCounted" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(TokenCounted(42))
   })
@@ -51,6 +54,7 @@ async test "Event::ToJson/ContextPruned" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(ContextPruned(origin_token_count=100, pruned_token_count=20))
   })
@@ -69,6 +73,7 @@ async test "Event::ToJson/PreToolCall" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PreToolCall(
@@ -103,6 +108,7 @@ async test "Event::ToJson/PostToolCall success" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PostToolCall(
@@ -140,6 +146,7 @@ async test "Event::ToJson/PostToolCall error" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PostToolCall(
@@ -177,6 +184,7 @@ async test "Event::ToJson/MessageAdded" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       MessageAdded(
@@ -198,6 +206,7 @@ async test "Event::ToJson/ToolAdded" {
   @async.with_task_group(group => {
     let emitter = @event.EventTarget::new()
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     emitter.add_listener(event => events.push(event))
     let tool = @tool.new(
       description="A sample tool for demonstration.",
@@ -226,6 +235,7 @@ async test "Event::ToJson/RequestCompleted" {
     let emitter = @event.EventTarget::new()
     emitter.add_listener(event => events.push(event))
     group.spawn_bg(() => emitter.start(), no_wait=true)
+    @async.pause()
     let usage : Json = {
       "completion_tokens": 50,
       "prompt_tokens": 150,
