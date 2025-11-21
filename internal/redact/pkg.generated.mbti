@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/redact"
+
+// Values
+
+// Errors
+
+// Types and methods
+type Redactor
+fn Redactor::add_regexp(Self, String, String) -> Unit raise
+fn Redactor::add_string(Self, String, String) -> Unit
+fn Redactor::new() -> Self
+fn Redactor::redact(Self, String) -> String
+
+// Type aliases
+
+// Traits
+
