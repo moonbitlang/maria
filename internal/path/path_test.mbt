@@ -28,6 +28,8 @@ test "basename" {
 ///|
 test "ext" {
   @json.inspect(@path.ext("a/b/c.jpg"), content=".jpg")
+  @json.inspect(@path.ext("a/b/c"), content="")
+  @json.inspect(@path.ext("a/b.c/d"), content="")
 }
 
 ///|

@@ -41,7 +41,7 @@ pub fn basename(path : StringView) -> StringView {
 ///|
 pub fn ext(path : StringView) -> StringView {
   loop path.view() {
-    [] => ""
+    [] | [.., '/'] => ""
     [.. view, '.'] => path.view(start_offset=view.end_offset())
     [.. view, _] => continue view
   }
