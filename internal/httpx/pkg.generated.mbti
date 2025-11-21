@@ -90,7 +90,8 @@ fn Router::new() -> Self
 fn Router::set_not_found_handler(Self, Handler) -> Unit
 
 type Server
-fn Server::new(String, Int) -> Self raise
+fn Server::close(Self) -> Unit
+fn Server::new(String, Int, dual_stack? : Bool, reuse_addr? : Bool) -> Self raise
 fn Server::port(Self) -> Int
 async fn Server::serve(Self, Handler) -> Unit
 

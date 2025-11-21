@@ -18,11 +18,11 @@ pub(all) struct Register {
 }
 
 pub struct Server {
-  port : Int
   // private fields
 }
 async fn Server::new(model? : String, log_level~ : @pino.Level, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
-async fn Server::serve(Self) -> Unit
+fn Server::port(Self) -> Int
+async fn Server::start(Self) -> Unit
 
 pub(all) enum Status {
   Idle
