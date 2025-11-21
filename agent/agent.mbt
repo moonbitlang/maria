@@ -406,6 +406,8 @@ pub async fn new(
     None => @uuid.generator(rand)
   }
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
+  let event_target = @event.EventTarget::new()
+  event_target.emit(ModelLoaded(name=model.name, model~))
   let agent = Agent::{
     logger,
     rand,

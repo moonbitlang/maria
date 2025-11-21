@@ -14,8 +14,12 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     [unknown, ..] => raise @argument.InvalidArgument(unknown)
     [] => break
   }
+  guard @model.load(name?=model) is Some(model) else {
+    println("No model available; please configure a model first.")
+    return
+  }
   @async.with_task_group(group => {
-    let maria = @maria.Maria::new(model?)
+    let maria = @maria.Maria::new(model~)
     maria.agent.add_listener(event => match event {
       RequestCompleted(message~, ..) => {
         guard message.content is Some(content) else { return }

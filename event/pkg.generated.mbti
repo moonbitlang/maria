@@ -3,6 +3,7 @@ package "moonbitlang/maria/event"
 
 import(
   "moonbitlang/maria/internal/uuid"
+  "moonbitlang/maria/model"
   "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
 )
@@ -13,6 +14,7 @@ import(
 
 // Types and methods
 pub(all) enum Event {
+  ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
   MessageAdded(@openai.ChatCompletionMessageParam)

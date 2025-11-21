@@ -4,12 +4,12 @@ package "moonbitlang/maria"
 import(
   "moonbitlang/maria/agent"
   "moonbitlang/maria/internal/pino"
+  "moonbitlang/maria/model"
 )
 
 // Values
 
 // Errors
-pub suberror ModelNotConfigured
 
 // Types and methods
 pub struct Maria {
@@ -18,7 +18,7 @@ pub struct Maria {
 }
 fn Maria::close(Self) -> Unit
 #as_free_fn
-async fn Maria::new(logger? : @pino.Logger, model? : String, cwd? : String) -> Self
+async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, cwd? : String) -> Self
 async fn Maria::start(Self, String) -> Unit
 
 // Type aliases
