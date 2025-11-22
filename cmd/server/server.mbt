@@ -1,6 +1,6 @@
 ///|
 pub struct Server {
-  priv maria : @maria.Maria
+  priv mut maria : @maria.Maria
   priv uuid : @uuid.Generator
   priv broadcast : @broadcast.Broadcast[Json]
   priv message_queue : @aqueue.Queue[
@@ -12,6 +12,7 @@ pub struct Server {
   priv port : Int
   priv http_server : @httpx.Server
   priv cwd : String
+  priv model : String?
 }
 
 ///|
@@ -57,6 +58,7 @@ pub async fn Server::new(
     port,
     http_server,
     cwd,
+    model,
   }
 }
 
@@ -119,6 +121,21 @@ async fn Server::serve_http(self : Server) -> Unit {
           w.header().set("Access-Control-Allow-Headers", "*")
           w.write_header(200)
           w.write(response.stringify())
+        }
+        (Post, "/v1/reset") => {
+          let maria = @maria.Maria::new(
+            model?=self.model,
+            logger=self.maria.logger,
+            cwd=self.cwd,
+          )
+          self.maria = maria
+          w.header().set("Content-Type", "application/json")
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(200)
+          let res : Json = {}
+          w.write(res.stringify())
         }
         (Get, "/v1/queued-messages") => self.get_queued_messages(w)
         (Get, "/v1/events") => self.get_events(w)

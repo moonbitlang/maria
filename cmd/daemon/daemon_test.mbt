@@ -33,7 +33,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
       os_cwd, "target/native/release/build/cmd/server/server.exe",
     ),
     port=0,
-    serve=@path.join(os_cwd, "cmd/daemon"),
+    serve=mock.cwd.path(),
   )
 }
 
@@ -473,6 +473,79 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
           "message": "Model not found: Some(\"nonexistent-model\")",
         },
       })
+    })
+  })
+}
+
+///|
+#skip
+async test "POST /v1/task/{id}/reset" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port(),
+      )
+      @json.inspect(r.code, content=201)
+      let b = b.json()
+      guard b is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      let (r, _) = @http.post(
+        "http://localhost/v1/task/\{id}/reset",
+        Json::object({}),
+        port=daemon.port(),
+      )
+      @json.inspect(r.code, content=200)
+    })
+  })
+}
+
+///|
+#skip
+async test "GET /" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock.add_file("index.html").write_string("<h1>Welcome to Maria</h1>")
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.get("http://localhost/", port=daemon.port())
+      @json.inspect(r.code, content=200)
+      @json.inspect(r.headers["content-type"], content="text/html")
+      @json.inspect(b.text(), content="<h1>Welcome to Maria</h1>")
+    })
+  })
+}
+
+///|
+#skip
+async test "CORS" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let c = @http.Client::connect(
+        "localhost",
+        protocol=Http,
+        port=daemon.port(),
+      )
+      defer c.close()
+      c.request(Options, "/v1/models")
+      let r = c.end_request()
+      @json.inspect(r.code, content=204)
+      @json.inspect(r.headers["access-control-allow-origin"], content="*")
+      @json.inspect(r.headers["access-control-allow-methods"], content="*")
+      @json.inspect(r.headers["access-control-allow-headers"], content="*")
     })
   })
 }

@@ -529,6 +529,43 @@ async fn Daemon::create_task_message(
 }
 
 ///|
+async fn Daemon::reset_task_state(
+  self : Daemon,
+  id : StringView,
+  w : @http.ServerConnection,
+) -> Unit {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(task) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let (response, response_body) = @http.post(
+    "http://localhost/v1/reset",
+    port=task.port,
+    w.read_all(),
+  )
+  println(
+    "[INFO] (Daemon) Forwarded reset state to task \{id} @ localhost:\{task.port}",
+  )
+  w.send_response(response.code, response.reason, extra_headers={
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "*",
+    "Access-Control-Allow-Headers": "*",
+  })
+  w.write(response_body)
+  w.end_response()
+}
+
+///|
 pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
@@ -627,6 +664,8 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             publish_moonbit_module(conn)
           (Post, ["", "v1", "task", id, "message"]) =>
             self.create_task_message(id, conn)
+          (Post, ["", "v1", "task", id, "reset"]) =>
+            self.reset_task_state(id, conn)
           (Get, ["", .. file]) =>
             serve_static_file(conn, serve=self.serve, path=file.join("/"))
           _ =>
