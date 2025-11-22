@@ -132,3 +132,10 @@ test "choose second if absolute" {
     content="/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/moonbit-taco-XXXXXXX",
   )
 }
+
+///|
+test "ext/stem:edge cases" {
+  let path = "proj.tar/file"
+  inspect(@path.ext(path), content="")
+  inspect(@path.stem(path), content="proj")
+}
