@@ -75,3 +75,75 @@ async test "@moonbitlang/maria/internal/httpx.Server" {
     @json.inspect(b.text(), content="Hello, world! from Task 100 Handler\n")
   })
 }
+
+///|
+async test "Connection: keep-alive" {
+  let server = @httpx.Server::new("[::1]", 0)
+  @async.with_task_group(group => {
+    group.spawn_bg(
+      () => server.serve((_, w) => {
+        w.write_header(@status.Ok)
+        w.write("Hello, world!\n")
+      }),
+      no_wait=true,
+    )
+    @async.pause()
+    let client = @http.Client::connect(
+      "localhost",
+      protocol=Http,
+      headers={ "Connection": "keep-alive" },
+      port=server.port(),
+    )
+    defer client.close()
+    client.request(Get, "/hello")
+    let r = client.end_request()
+    @json.inspect(r.code, content=200)
+    @json.inspect(r.reason, content="OK")
+    let b = client.read_all()
+    @json.inspect(b.text(), content="Hello, world!\n")
+    @json.inspect(
+      try? {
+        client.request(Get, "/hello")
+        let r = client.end_request()
+        { "code": r.code.to_json(), "body": client.read_all().text().to_json() }
+      },
+      content={ "Ok": { "code": 200, "body": "Hello, world!\n" } },
+    )
+  })
+}
+
+///|
+async test "Connection: close" {
+  let server = @httpx.Server::new("[::1]", 0)
+  @async.with_task_group(group => {
+    group.spawn_bg(
+      () => server.serve((_, w) => {
+        w.write_header(@status.Ok)
+        w.write("Hello, world!\n")
+      }),
+      no_wait=true,
+    )
+    @async.pause()
+    let client = @http.Client::connect(
+      "localhost",
+      protocol=Http,
+      headers={ "Connection": "close" },
+      port=server.port(),
+    )
+    defer client.close()
+    client.request(Get, "/hello")
+    let r = client.end_request()
+    @json.inspect(r.code, content=200)
+    @json.inspect(r.reason, content="OK")
+    let b = client.read_all()
+    @json.inspect(b.text(), content="Hello, world!\n")
+    @json.inspect(
+      try? {
+        client.request(Get, "/hello")
+        let r = client.end_request()
+        { "code": r.code.to_json(), "body": client.read_all().text().to_json() }
+      },
+      content={ "Err": "moonbitlang/async/io.ReaderClosed.ReaderClosed" },
+    )
+  })
+}

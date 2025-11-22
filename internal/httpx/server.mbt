@@ -44,14 +44,14 @@ pub async fn Server::serve(self : Server, handler : Handler) -> Unit {
     (sock, _) => {
       let conn = @http.ServerConnection::new(sock)
       for {
-        let request = conn.read_request()
-        let method_ = Method::from_async_http(request.meth)
-        let r : RequestReader = {
-          body: conn,
-          method_,
-          path: request.path,
-          vars: {},
+        let r = conn.read_request()
+        let close_conn = if r.headers.get("connection") is Some(connection) {
+          connection.to_lower() == "close"
+        } else {
+          false
         }
+        let method_ = Method::from_async_http(r.meth)
+        let r : RequestReader = { body: conn, method_, path: r.path, vars: {} }
         let w : ResponseWriter = ResponseWriter::new(conn)
         try (handler.0)(r, w) catch {
           error => {
@@ -59,7 +59,12 @@ pub async fn Server::serve(self : Server, handler : Handler) -> Unit {
             raise error
           }
         } noraise {
-          _ => conn.end_response()
+          _ => {
+            conn.end_response()
+            if close_conn {
+              break
+            }
+          }
         }
       }
     },

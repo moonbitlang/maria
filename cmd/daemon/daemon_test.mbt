@@ -476,3 +476,79 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
     })
   })
 }
+
+///|
+#skip
+async test "GET /v1/events" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    let event_lines : Array[Json] = []
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      group.spawn_bg(
+        () => {
+          let (_, s) = @http.get_stream(
+            "http://localhost/v1/events",
+            port=daemon.port(),
+          )
+          while s.read_until("\n") is Some(line) {
+            match line {
+              [.. "data: ", .. data] => {
+                let data = @json.parse(data)
+                event_lines.push({ "data": data })
+              }
+              [.. "event: ", .. event] =>
+                event_lines.push({ "event": event.to_string() })
+              _ => continue
+            }
+          }
+        },
+        no_wait=true,
+      )
+      @async.pause()
+      let (_, b) = @http.post(
+        "http://localhost/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+        port=daemon.port(),
+      )
+      guard b.json() is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.json().stringify(indent=2)}")
+      }
+      let (_, _) = @http.post(
+        "http://localhost/v1/task/\{id}/message",
+        Json::object({
+          "message": { "role": "user", "content": "How are you?" },
+        }),
+        port=daemon.port(),
+      )
+      let (_, s) = @http.get_stream(
+        "http://localhost/v1/task/\{id}/events",
+        port=daemon.port(),
+      )
+      while s.read_until("\n") is Some(line) {
+        guard line is [.. "data: ", .. line] else { continue }
+        let data = @json.parse(line)
+        if data is { "msg": "PostConversation", .. } {
+          break
+        }
+      }
+    })
+    @json.inspect(
+      event_lines
+      .to_json()
+      .transform(@json.Replacer::exclude(["id", "cwd", "port", "created"])),
+      content=[
+        { "event": "daemon.tasks.synchronized" },
+        { "data": { "tasks": [] } },
+        { "event": "daemon.task.changed" },
+        { "data": { "task": { "name": null, "status": "generating" } } },
+        { "event": "daemon.task.changed" },
+        { "data": { "task": { "name": null, "status": "idle" } } },
+      ],
+    )
+  })
+}

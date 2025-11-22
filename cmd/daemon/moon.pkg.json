@@ -3,7 +3,6 @@
   "import": [
     "moonbitlang/async",
     "moonbitlang/async/http",
-    "moonbitlang/async/socket",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/uuid",
@@ -19,7 +18,8 @@
     "moonbitlang/async/aqueue",
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/internal/broadcast",
-    "moonbitlang/maria/clock"
+    "moonbitlang/maria/clock",
+    "moonbitlang/maria/internal/httpx"
   ],
   "test-import": ["moonbitlang/maria/internal/mock"]
 }
