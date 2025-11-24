@@ -57,15 +57,11 @@ pub fn basename(path : StringView) -> StringView {
 }
 
 ///|
-/// Extract extension name exclude `.`
+/// Extract extension name include `.`
 /// 
 /// property: `stem(path) + "." + ext(path)`
 pub fn ext(path : StringView) -> StringView {
-  loop path.view() {
-    [] | [.., '/'] => ""
-    [.. view, '.'] => path.view(start_offset=view.end_offset())
-    [.. view, _] => continue view
-  }
+  Path::extname(path.to_string())
 }
 
 ///|
