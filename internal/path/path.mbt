@@ -17,6 +17,8 @@ pub let sep : Char = '/'
 /// 
 /// edge cases: when path is relative path without directory component, return "."
 pub fn dirname(path : StringView) -> StringView {
+  // TODO: `moonbitlang/x/path` not handle special case when path is `//` or `/`
+  // wait for `moonbitlang/x/path` bugfix.
   loop path {
     [] => "."
     "/" => "/"
