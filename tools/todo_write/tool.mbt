@@ -138,10 +138,6 @@ async fn @todo.Todo::execute_todo_write(
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
-  self.load() catch {
-    error =>
-      return @tool.error("Error loading existing todo list: \{error}", error~)
-  }
   match action {
     Create =>
       match content {
@@ -150,19 +146,13 @@ async fn @todo.Todo::execute_todo_write(
         Some(content) => {
           // Clear existing todos and create new ones
           self.parse(content, priority~, notes?)
-          try {
-            self.save()
-            let todos = self.todos()
-            return @tool.ok({
-              todos,
-              message: "Created \{todos.length()} new todo items",
-              updated_todos: todos,
-              is_new_creation: true,
-            })
-          } catch {
-            error =>
-              return @tool.error("Failed to save todo list: \{error}", error~)
-          }
+          let todos = self.todos()
+          return @tool.ok({
+            todos,
+            message: "Created \{todos.length()} new todo items",
+            updated_todos: todos,
+            is_new_creation: true,
+          })
         }
       }
     AddTask => {
@@ -170,17 +160,12 @@ async fn @todo.Todo::execute_todo_write(
         return @tool.error("Error: Content is required for adding a task.")
       }
       let item = self.add_task(content, status~, priority~, notes~)
-      try {
-        self.save()
-        return @tool.ok(TodoWriteResult::{
-          todos: self.todos().map(t => t),
-          message: "Added new task: \{item.content}",
-          updated_todos: [item],
-          is_new_creation: false,
-        })
-      } catch {
-        error => return @tool.error("Failed to save new task: \{error}", error~)
-      }
+      return @tool.ok(TodoWriteResult::{
+        todos: self.todos().map(t => t),
+        message: "Added new task: \{item.content}",
+        updated_todos: [item],
+        is_new_creation: false,
+      })
     }
     Update | MarkProgress | MarkCompleted => {
       guard task_id is Some(task_id) else {
@@ -225,18 +210,12 @@ async fn @todo.Todo::execute_todo_write(
         }
         _ => abort("unreachable")
       }
-      try {
-        self.save()
-        @tool.ok(TodoWriteResult::{
-          todos: self.todos(),
-          message: action_message,
-          updated_todos,
-          is_new_creation: false,
-        })
-      } catch {
-        error =>
-          return @tool.error("Failed to save task update: \{error}", error~)
-      }
+      @tool.ok(TodoWriteResult::{
+        todos: self.todos(),
+        message: action_message,
+        updated_todos,
+        is_new_creation: false,
+      })
     }
   }
 }

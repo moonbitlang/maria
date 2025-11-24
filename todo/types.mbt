@@ -8,15 +8,12 @@ struct Todo {
 priv struct Config {
   uuid : @uuid.Generator
   clock : &@clock.Clock
-  cwd : String
 }
 
 ///|
 priv struct Items {
   todos : Array[Item]
-  created_at : String
-  mut updated_at : String
-} derive(ToJson, FromJson)
+}
 
 ///|
 pub(all) enum Priority {

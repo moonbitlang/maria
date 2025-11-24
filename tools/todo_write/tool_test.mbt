@@ -1,11 +1,7 @@
 ///|
 async test "todo_write/create/plain" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
     let result = @todo_write.new(todo_list).call({
       "action": "create",
       "content": (
@@ -20,38 +16,38 @@ async test "todo_write/create/plain" (t : @test.Test) {
         "todos": [
           {
             "content": "Test todo item",
-            "created_at": "Tick:3",
+            "created_at": "Tick:0",
             "id": "ac8a366d",
             "priority": "High",
             "status": "Pending",
-            "updated_at": "Tick:3",
+            "updated_at": "Tick:0",
           },
           {
             "content": "Another test item",
-            "created_at": "Tick:4",
+            "created_at": "Tick:1",
             "id": "1ea1417c",
             "priority": "High",
             "status": "Pending",
-            "updated_at": "Tick:4",
+            "updated_at": "Tick:1",
           },
         ],
         "message": "Created 2 new todo items",
         "updated_todos": [
           {
             "content": "Test todo item",
-            "created_at": "Tick:3",
+            "created_at": "Tick:0",
             "id": "ac8a366d",
             "priority": "High",
             "status": "Pending",
-            "updated_at": "Tick:3",
+            "updated_at": "Tick:0",
           },
           {
             "content": "Another test item",
-            "created_at": "Tick:4",
+            "created_at": "Tick:1",
             "id": "1ea1417c",
             "priority": "High",
             "status": "Pending",
-            "updated_at": "Tick:4",
+            "updated_at": "Tick:1",
           },
         ],
         "is_new_creation": true,
@@ -78,11 +74,7 @@ async test "todo_write/create/plain" (t : @test.Test) {
 ///|
 async test "todo_write/create/<task>" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
     let result = @todo_write.new(todo_list).call({
       "action": "create",
       "content": (
@@ -101,118 +93,118 @@ async test "todo_write/create/<task>" (t : @test.Test) {
         "todos": [
           {
             "content": "Examine reference repository structure at .moonagent/repos/ini",
-            "created_at": "Tick:3",
+            "created_at": "Tick:0",
             "id": "ac8a366d",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:0",
+          },
+          {
+            "content": "Examine current MoonBit project structure",
+            "created_at": "Tick:1",
+            "id": "1ea1417c",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:1",
+          },
+          {
+            "content": "Analyze source files in ini repository",
+            "created_at": "Tick:2",
+            "id": "f378dd8d",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:2",
+          },
+          {
+            "content": "Plan migration strategy preserving original structure",
+            "created_at": "Tick:3",
+            "id": "42858c8d",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:3",
           },
           {
-            "content": "Examine current MoonBit project structure",
+            "content": "Translate C/C++ files to MoonBit file-by-file",
             "created_at": "Tick:4",
-            "id": "1ea1417c",
+            "id": "1258fdc0",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:4",
           },
           {
-            "content": "Analyze source files in ini repository",
+            "content": "Create appropriate MoonBit module structure",
             "created_at": "Tick:5",
-            "id": "f378dd8d",
+            "id": "aaa2f959",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:5",
           },
           {
-            "content": "Plan migration strategy preserving original structure",
-            "created_at": "Tick:6",
-            "id": "42858c8d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:6",
-          },
-          {
-            "content": "Translate C/C++ files to MoonBit file-by-file",
-            "created_at": "Tick:7",
-            "id": "1258fdc0",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:7",
-          },
-          {
-            "content": "Create appropriate MoonBit module structure",
-            "created_at": "Tick:8",
-            "id": "aaa2f959",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:8",
-          },
-          {
             "content": "Test migrated functionality",
-            "created_at": "Tick:9",
+            "created_at": "Tick:6",
             "id": "8f0ff2dc",
             "priority": "Medium",
             "status": "Pending",
-            "updated_at": "Tick:9",
+            "updated_at": "Tick:6",
           },
         ],
         "message": "Created 7 new todo items",
         "updated_todos": [
           {
             "content": "Examine reference repository structure at .moonagent/repos/ini",
-            "created_at": "Tick:3",
+            "created_at": "Tick:0",
             "id": "ac8a366d",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:0",
+          },
+          {
+            "content": "Examine current MoonBit project structure",
+            "created_at": "Tick:1",
+            "id": "1ea1417c",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:1",
+          },
+          {
+            "content": "Analyze source files in ini repository",
+            "created_at": "Tick:2",
+            "id": "f378dd8d",
+            "priority": "Medium",
+            "status": "Pending",
+            "updated_at": "Tick:2",
+          },
+          {
+            "content": "Plan migration strategy preserving original structure",
+            "created_at": "Tick:3",
+            "id": "42858c8d",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:3",
           },
           {
-            "content": "Examine current MoonBit project structure",
+            "content": "Translate C/C++ files to MoonBit file-by-file",
             "created_at": "Tick:4",
-            "id": "1ea1417c",
+            "id": "1258fdc0",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:4",
           },
           {
-            "content": "Analyze source files in ini repository",
+            "content": "Create appropriate MoonBit module structure",
             "created_at": "Tick:5",
-            "id": "f378dd8d",
+            "id": "aaa2f959",
             "priority": "Medium",
             "status": "Pending",
             "updated_at": "Tick:5",
           },
           {
-            "content": "Plan migration strategy preserving original structure",
-            "created_at": "Tick:6",
-            "id": "42858c8d",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:6",
-          },
-          {
-            "content": "Translate C/C++ files to MoonBit file-by-file",
-            "created_at": "Tick:7",
-            "id": "1258fdc0",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:7",
-          },
-          {
-            "content": "Create appropriate MoonBit module structure",
-            "created_at": "Tick:8",
-            "id": "aaa2f959",
-            "priority": "Medium",
-            "status": "Pending",
-            "updated_at": "Tick:8",
-          },
-          {
             "content": "Test migrated functionality",
-            "created_at": "Tick:9",
+            "created_at": "Tick:6",
             "id": "8f0ff2dc",
             "priority": "Medium",
             "status": "Pending",
-            "updated_at": "Tick:9",
+            "updated_at": "Tick:6",
           },
         ],
         "is_new_creation": true,
@@ -244,11 +236,7 @@ async test "todo_write/create/<task>" (t : @test.Test) {
 ///|
 async test "todo_write/update" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
     let result = @todo_write.new(todo_list).call({
       "action": "create",
       "content": (
@@ -303,11 +291,7 @@ async test "todo_write/update" (t : @test.Test) {
 ///|
 async test "todo_write/mark_completed" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
     let result = @todo_write.new(todo_list).call({
       "action": "create",
       "content": (
@@ -368,11 +352,7 @@ async test "todo_write/mark_completed" (t : @test.Test) {
 ///|
 async test "todo_write/mark_progress" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
     let result = @todo_write.new(todo_list).call({
       "action": "create",
       "content": (

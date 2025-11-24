@@ -64,46 +64,8 @@ pub fn Todo::uuid(self : Todo) -> String {
 pub fn new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
-  cwd~ : StringView,
 ) -> Todo {
-  {
-    config: { uuid, clock, cwd: cwd.to_string() },
-    items: {
-      todos: [],
-      created_at: clock.now_str(),
-      updated_at: clock.now_str(),
-    },
-  }
-}
-
-///|
-fn Config::todo_file_path(self : Config) -> String {
-  return self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("todos")
-    |> @path.join("current_session.json")
-}
-
-///|
-pub async fn Todo::load(self : Todo) -> Unit {
-  let path = self.config.todo_file_path()
-  guard @fsx.exists(path) else {
-    // TODO: document we skip it
-    return
-  }
-  self.items = @json.from_json(@json.parse(@fsx.read_file(path)))
-}
-
-///|
-pub async fn Todo::save(self : Todo) -> Unit {
-  let todo_file_path = self.config.todo_file_path()
-  @fsx.make_directory(
-    @path.dirname(todo_file_path),
-    recursive=true,
-    exists_ok=true,
-  )
-  self.items.updated_at = self.config.now()
-  @fsx.write_to_file(todo_file_path, self.items.to_json().stringify(indent=2))
+  { config: { uuid, clock }, items: { todos: [] } }
 }
 
 ///|
@@ -166,14 +128,12 @@ pub fn Todo::add_task(
     id=self.config.uuid(),
   )
   self.items.todos.push(item)
-  self.items.updated_at = self.now()
   item
 }
 
 ///|
 pub fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
   self.items.todos[index] = item
-  self.items.updated_at = self.config.now()
 }
 
 ///|
@@ -236,8 +196,7 @@ fn Items::parse(
   notes? : String,
   config~ : Config,
 ) -> Items {
-  let now = config.now()
-  let items = Items::{ todos: [], created_at: now, updated_at: now }
+  let items = Items::{ todos: [] }
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {
