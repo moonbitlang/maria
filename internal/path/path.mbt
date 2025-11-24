@@ -80,7 +80,7 @@ pub fn stem(path : StringView) -> StringView {
         .data()
         .view(start_offset=view.start_offset(), end_offset=path.end_offset())
       }
-    [.. view, '.'] => {
+    [.. view, '.'] if dot is None => {
       dot = Some(view)
       continue view
     }

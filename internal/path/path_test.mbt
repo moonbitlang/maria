@@ -37,11 +37,18 @@ test "stem" {
   @json.inspect(@path.stem("a/b/c.jpg"), content="a/b/c")
   @json.inspect(@path.stem("a/b/c"), content="a/b/c")
   @json.inspect(@path.stem("a/b.c/d"), content="a/b.c/d")
+  @json.inspect(@path.stem("a/."), content="a/")
+  @json.inspect(@path.stem("a/.."), content="a/.")
+  @json.inspect(@path.stem("a/..."), content="a/..")
+  @json.inspect(@path.stem("b/./."), content="b/./")
+  @json.inspect(@path.stem("a.b.c.d"), content="a.b.c")
 }
 
 ///|
 test "stem(path) + ext(path) == path" {
-  let paths = ["a/b/c.jpg", "a/b/c", "a/b.c/d", "proj.tar/file"]
+  let paths = [
+    "a/b/c.jpg", "a/b/c", "a/b.c/d", "proj.tar/file", "a/.", "a/..", "b/./.", "a.b.c.d",
+  ]
   for path in paths {
     let stem = @path.stem(path)
     let ext = @path.ext(path)
