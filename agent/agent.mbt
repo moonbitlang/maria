@@ -462,7 +462,7 @@ pub async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
   let json = event.to_json()
   guard json is Object({ "msg": String(msg), .. } as json) else {  }
   json.remove("msg")
-  agent.logger.info(msg, json)
+  agent.logger.info(msg, data=json)
 }
 
 ///|
