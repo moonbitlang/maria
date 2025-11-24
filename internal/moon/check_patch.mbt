@@ -27,7 +27,7 @@ pub async fn Module::check_patch_replace(
   }
   @fsx.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(segment.file.path())
-    let file_stem = @path.stem(@path.basename(segment.file.path()))
+    let file_stem = @path.no_ext(@path.basename(segment.file.path()))
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_string("patch")
     for pat in ["_test", "_wbtest"] {
@@ -68,7 +68,7 @@ pub async fn Module::check_patch_insert(
   @fsx.with_temporary_directory("moon-check-patch-XXXXXXX", target_dir => {
     let pkg = self.locate_package(file_path)
     // FIXME: This part of logic needs both the basename and non-basename
-    // version of the stem. If file is "a/b/c_test.mbt", then:
+    // version of the stem (no-ext). If file is "a/b/c_test.mbt", then:
     //
     // - "file_base" is "c_test.mbt"
     // - "file_base_stem" is "c_test"
@@ -77,8 +77,8 @@ pub async fn Module::check_patch_insert(
     // This part of logic should be refactored to use only the basename stem,
     // as in the `Module::check_patch_replace` function.
     let file_base = @path.basename(file_path)
-    let file_base_stem = @path.stem(file_base)
-    let file_stem = @path.stem(file_path)
+    let file_base_stem = @path.no_ext(file_base)
+    let file_stem = @path.no_ext(file_path)
     let patch_name_index = StringBuilder::new()
     patch_name_index.write_substring(
       file_base_stem.data(),

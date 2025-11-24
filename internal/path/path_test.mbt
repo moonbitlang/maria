@@ -34,14 +34,14 @@ test "ext" {
 
 ///|
 test "stem" {
-  @json.inspect(@path.stem("a/b/c.jpg"), content="a/b/c")
-  @json.inspect(@path.stem("a/b/c"), content="a/b/c")
-  @json.inspect(@path.stem("a/b.c/d"), content="a/b.c/d")
-  @json.inspect(@path.stem("a/."), content="a/")
-  @json.inspect(@path.stem("a/.."), content="a/.")
-  @json.inspect(@path.stem("a/..."), content="a/..")
-  @json.inspect(@path.stem("b/./."), content="b/./")
-  @json.inspect(@path.stem("a.b.c.d"), content="a.b.c")
+  @json.inspect(@path.no_ext("a/b/c.jpg"), content="a/b/c")
+  @json.inspect(@path.no_ext("a/b/c"), content="a/b/c")
+  @json.inspect(@path.no_ext("a/b.c/d"), content="a/b.c/d")
+  @json.inspect(@path.no_ext("a/."), content="a/")
+  @json.inspect(@path.no_ext("a/.."), content="a/.")
+  @json.inspect(@path.no_ext("a/..."), content="a/..")
+  @json.inspect(@path.no_ext("b/./."), content="b/./")
+  @json.inspect(@path.no_ext("a.b.c.d"), content="a.b.c")
 }
 
 ///|
@@ -50,7 +50,7 @@ test "stem(path) + ext(path) == path" {
     "a/b/c.jpg", "a/b/c", "a/b.c/d", "proj.tar/file", "a/.", "a/..", "b/./.", "a.b.c.d",
   ]
   for path in paths {
-    let stem = @path.stem(path)
+    let stem = @path.no_ext(path)
     let ext = @path.ext(path)
     inspect("\{stem}\{ext}", content=path)
   }
@@ -156,5 +156,5 @@ test "choose second if absolute" {
 test "ext/stem:edge cases" {
   let path = "proj.tar/file"
   inspect(@path.ext(path), content="")
-  inspect(@path.stem(path), content="proj.tar/file")
+  inspect(@path.no_ext(path), content="proj.tar/file")
 }

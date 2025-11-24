@@ -36,10 +36,10 @@ async fn main {
     output_path
   } else {
     // FIXME: This line changes the suffix of `input_path` to `.md`. It depends
-    // on the fact that `@path.stem` does not call `basename` internally and
+    // on the fact that `@path.no_ext` does not call `basename` internally and
     // thus keeps all path components except the extension, which is
     // inconsistent with typical `stem` implementations.
-    @path.stem(input_path).to_string() + ".md"
+    @path.no_ext(input_path).to_string() + ".md"
   }
   let formatter = Formatter::new(output_path, recover_diagnostics~)
   let jsonl_text = @fsx.read_file(input_path)

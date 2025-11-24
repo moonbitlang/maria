@@ -116,7 +116,7 @@ async fn main {
     return
   }
   @async.with_task_group(group => for prompt_file in prompt_files {
-    let name = @path.stem(@path.basename(prompt_file))
+    let name = @path.no_ext(@path.basename(prompt_file))
     for model in models {
       let log_dir = log_dir
         |> @path.join("\{timestamp}-\{@path.basename(model)}-\{name}")

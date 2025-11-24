@@ -54,7 +54,7 @@ pub fn basename(path : StringView) -> StringView {
 ///|
 /// Extract extension name exclude `.`
 ///
-/// property: `stem(path) + ext(path) == path`
+/// property: `no_ext(path) + ext(path) == path`
 pub fn ext(path : StringView) -> StringView {
   loop path.view() {
     [] | [.., '/'] => ""
@@ -64,10 +64,10 @@ pub fn ext(path : StringView) -> StringView {
 }
 
 ///|
-/// Extract stem part exclude `.`
+/// Remove the extension name including the last `.`
 ///
-/// property: `stem(path) + ext(path) == path`
-pub fn stem(path : StringView) -> StringView {
+/// property: `no_ext(path) + ext(path) == path`
+pub fn no_ext(path : StringView) -> StringView {
   let mut dot : StringView? = None
   loop path.view() {
     [] | [.., '/'] as view =>
