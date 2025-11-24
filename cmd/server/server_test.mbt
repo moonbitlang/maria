@@ -30,7 +30,6 @@ async fn configure_server(
   configure_models(mock)
   @server.Server::new(
     model="mock:claude-haiku-4.5",
-    log_level=Info,
     serve=mock.cwd.path(),
     register?,
     port=0,
