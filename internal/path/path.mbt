@@ -68,10 +68,23 @@ pub fn ext(path : StringView) -> StringView {
 ///
 /// property: `stem(path) + ext(path) == path`
 pub fn stem(path : StringView) -> StringView {
+  let mut dot : StringView? = None
   loop path.view() {
-    [] => path
-    [.. path, '.'] => path
-    [.. path, _] => continue path
+    [] | [.., '/'] as view =>
+      if dot is Some(dot) {
+        path
+        .data()
+        .view(start_offset=view.start_offset(), end_offset=dot.end_offset())
+      } else {
+        path
+        .data()
+        .view(start_offset=view.start_offset(), end_offset=path.end_offset())
+      }
+    [.. view, '.'] => {
+      dot = Some(view)
+      continue view
+    }
+    [.. view, _] => continue view
   }
 }
 

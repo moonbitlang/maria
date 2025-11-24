@@ -35,6 +35,18 @@ test "ext" {
 ///|
 test "stem" {
   @json.inspect(@path.stem("a/b/c.jpg"), content="a/b/c")
+  @json.inspect(@path.stem("a/b/c"), content="a/b/c")
+  @json.inspect(@path.stem("a/b.c/d"), content="a/b.c/d")
+}
+
+///|
+test "stem(path) + ext(path) == path" {
+  let paths = ["a/b/c.jpg", "a/b/c", "a/b.c/d", "proj.tar/file"]
+  for path in paths {
+    let stem = @path.stem(path)
+    let ext = @path.ext(path)
+    inspect("\{stem}\{ext}", content=path)
+  }
 }
 
 ///|
@@ -137,5 +149,5 @@ test "choose second if absolute" {
 test "ext/stem:edge cases" {
   let path = "proj.tar/file"
   inspect(@path.ext(path), content="")
-  inspect(@path.stem(path), content="proj")
+  inspect(@path.stem(path), content="proj.tar/file")
 }
