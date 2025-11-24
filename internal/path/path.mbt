@@ -185,25 +185,7 @@ pub fn normalize(view : StringView) -> String {
 /// 1. normalize path.
 /// 2. if rhs is absolute path, return rhs.
 pub fn join(p : StringView, q : StringView) -> String {
-  let p = normalize(p)
-  let q = normalize(q)
-  // confuse behvior.
-  // Python' os.path.join doesn't has this behavior.
-  if p is "." {
-    return q
-  }
-  if q is "." {
-    return p
-  }
-  // Python's os.path.join behavior or Node.js `path.resolve` semantics.
-  if is_absolute(q) {
-    return q
-  }
-  let path = StringBuilder::new()
-  path.write_string(p)
-  path.write_char(sep)
-  path.write_string(q)
-  normalize(path.to_string())
+  Path::join(p.to_string(), q.to_string()).normalize().0
 }
 
 ///|
