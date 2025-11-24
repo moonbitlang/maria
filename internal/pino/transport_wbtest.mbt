@@ -2,7 +2,14 @@
 async test "Transport::Channel" {
   let channel = @aqueue.new(kind=Unbounded)
   let transport = Transport::channel(channel)
-  transport.write(Json::string("test message"))
+  (transport.write)(Entry::{
+    level: Info,
+    msg: "test message",
+    data: {},
+    pid: 0,
+    hostname: None,
+    time: 0,
+  })
   @json.inspect(channel.try_get(), content=["test message"])
 }
 
@@ -11,7 +18,14 @@ async test "Transport::callback" {
   let logs = []
   let f = message => logs.push(message)
   let transport = Transport::callback(f)
-  transport.write(Json::string("callback message"))
+  (transport.write)(Entry::{
+    level: Info,
+    msg: "callback message",
+    data: {},
+    pid: 0,
+    hostname: None,
+    time: 0,
+  })
   @json.inspect(logs, content=["callback message"])
 }
 

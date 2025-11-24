@@ -58,24 +58,17 @@ pub async fn Logger::close(self : Logger) -> Unit {
 pub async fn Logger::log(
   self : Self,
   level : Level,
-  message : StringView,
+  message : String,
   data? : Map[String, Json],
 ) -> Unit {
   if level < self.level {
     return
   }
-  let object : Map[String, Json] = {
-    "level": level,
-    "pid": @spawn.getpid(),
-    "msg": message,
-  }
-  try {
-    object["hostname"] = @os.gethostname().to_json()
-  } catch {
-    _ => ()
-  }
-  let time_ms = @async.now()
-  object["time"] = Json::number(time_ms.to_double(), repr=time_ms.to_string())
+  let pid = @spawn.getpid()
+  let msg = message
+  let hostname = Some(@os.gethostname()) catch { _ => None }
+  let time = @async.now()
+  let object = {}
   for k, v in self.properties {
     object[k] = v
   }
@@ -84,7 +77,7 @@ pub async fn Logger::log(
       object[k] = v
     }
   }
-  self.transport.write(object.to_json())
+  (self.transport.write)(Entry::{ level, msg, data: object, pid, hostname, time })
 }
 
 ///|
@@ -96,7 +89,7 @@ pub async fn Logger::log(
 /// - `content`: Additional context to include with the error
 pub async fn Logger::error(
   self : Self,
-  message : StringView,
+  message : String,
   data? : Map[String, Json],
 ) -> Unit {
   self.log(Error, message, data?)
@@ -111,7 +104,7 @@ pub async fn Logger::error(
 /// - `content`: Additional context to include with the warning
 pub async fn Logger::warn(
   self : Self,
-  message : StringView,
+  message : String,
   data? : Map[String, Json],
 ) -> Unit {
   self.log(Warn, message, data?)
@@ -126,7 +119,7 @@ pub async fn Logger::warn(
 /// - `content`: Additional context to include with the message
 pub async fn Logger::info(
   self : Self,
-  message : StringView,
+  message : String,
   data? : Map[String, Json],
 ) -> Unit {
   self.log(Info, message, data?)
@@ -141,7 +134,7 @@ pub async fn Logger::info(
 /// - `content`: Additional context to include with the debug information
 pub async fn Logger::debug(
   self : Self,
-  message : StringView,
+  message : String,
   data? : Map[String, Json],
 ) -> Unit {
   self.log(Debug, message, data?)

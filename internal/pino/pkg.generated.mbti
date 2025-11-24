@@ -10,6 +10,8 @@ import(
 pub fn logger(String, level? : Level, Transport) -> Logger
 
 // Errors
+type InvalidTransport
+pub impl Show for InvalidTransport
 
 // Types and methods
 pub(all) enum Level {
@@ -28,11 +30,11 @@ pub impl ToJson for Level
 type Logger
 pub fn Logger::child(Self, Map[String, Json]) -> Self
 pub async fn Logger::close(Self) -> Unit
-pub async fn Logger::debug(Self, StringView, data? : Map[String, Json]) -> Unit
-pub async fn Logger::error(Self, StringView, data? : Map[String, Json]) -> Unit
-pub async fn Logger::info(Self, StringView, data? : Map[String, Json]) -> Unit
-pub async fn Logger::log(Self, Level, StringView, data? : Map[String, Json]) -> Unit
-pub async fn Logger::warn(Self, StringView, data? : Map[String, Json]) -> Unit
+pub async fn Logger::debug(Self, String, data? : Map[String, Json]) -> Unit
+pub async fn Logger::error(Self, String, data? : Map[String, Json]) -> Unit
+pub async fn Logger::info(Self, String, data? : Map[String, Json]) -> Unit
+pub async fn Logger::log(Self, Level, String, data? : Map[String, Json]) -> Unit
+pub async fn Logger::warn(Self, String, data? : Map[String, Json]) -> Unit
 
 type Transport
 pub fn Transport::callback((Json) -> Unit) -> Self
@@ -40,7 +42,7 @@ pub fn Transport::callback((Json) -> Unit) -> Self
 pub fn Transport::channel(@aqueue.Queue[Json]) -> Self
 pub fn Transport::console() -> Self
 pub fn Transport::file(StringView) -> Self
-pub fn Transport::parse(StringView) -> Self raise
+pub fn Transport::parse(StringView) -> Self raise InvalidTransport
 pub fn Transport::sink() -> Self
 
 // Type aliases

@@ -1,14 +1,49 @@
 ///|
-enum Transport {
-  Console
-  File(path~ : String, mut file~ : @fs.File?)
-  Channel(@aqueue.Queue[Json])
-  Sink
-  Callback((Json) -> Unit)
+priv struct Entry {
+  level : Level
+  pid : Int
+  hostname : String?
+  time : Int64
+  msg : String
+  data : Map[String, Json]
 }
 
 ///|
-priv suberror InvalidTransport StringView derive(Show)
+impl ToJson for Entry with to_json(self : Entry) -> Json {
+  let object : Map[String, Json] = {
+    "level": self.level,
+    "pid": self.pid,
+    "msg": self.msg,
+  }
+  if self.hostname is Some(hostname) {
+    object["hostname"] = hostname.to_json()
+  }
+  object["time"] = Json::number(
+    self.time.to_double(),
+    repr=self.time.to_string(),
+  )
+  for k, v in self.data {
+    object[k] = v
+  }
+  Json::object(object)
+}
+
+///|
+struct Transport {
+  write : async (Entry) -> Unit
+  close : (() -> Unit)?
+}
+
+///|
+fn Transport::new(
+  write : async (Entry) -> Unit,
+  close? : () -> Unit,
+) -> Transport {
+  Transport::{ write, close }
+}
+
+///|
+suberror InvalidTransport StringView derive(Show)
 
 ///|
 /// Parses a transport string and creates the corresponding Transport instance.
@@ -32,7 +67,7 @@ priv suberror InvalidTransport StringView derive(Show)
 /// let _ = transport("console:")
 /// let _ = transport("file:/var/log/app.log")
 /// ```
-pub fn Transport::parse(transport : StringView) -> Transport raise {
+pub fn Transport::parse(transport : StringView) -> Transport raise InvalidTransport {
   let schema = StringBuilder::new()
   let path : StringView = loop transport {
     [] as path => break path
@@ -47,7 +82,7 @@ pub fn Transport::parse(transport : StringView) -> Transport raise {
       if path != "" {
         raise InvalidTransport(transport)
       }
-      Transport::Console
+      Transport::console()
     }
     "file" => Transport::file(path)
     schema => raise InvalidTransport(schema)
@@ -75,47 +110,10 @@ async fn mkdir(path : String) -> Unit {
 }
 
 ///|
-async fn Transport::write(self : Transport, content : Json) -> Unit {
-  match self {
-    Console => println(content.stringify())
-    File(path~, file~) as transport => {
-      let file = match file {
-        Some(file) => file
-        None => {
-          let dir : String = [..@path.dirname(path)]
-          if !@fs.exists(dir) {
-            mkdir(dir)
-          }
-          let file = if @fs.exists(path) {
-            @fs.open(path, mode=WriteOnly, append=true, create=0o644)
-          } else {
-            @fs.create(path, permission=0o644)
-          }
-          transport.file = Some(file)
-          file
-        }
-      }
-      let content = content.to_json().stringify()
-      let buffer = @buffer.new()
-      buffer.write_bytes(@encoding/utf8.encode(content))
-      buffer.write_byte('\n')
-      file.write(buffer.to_bytes())
-    }
-    Channel(channel) => channel.put(content)
-    Callback(callback) => callback(content)
-    Sink => ()
-  }
-}
-
-///|
-async fn Transport::close(self : Transport) -> Unit {
-  match self {
-    Console => ()
-    File(file=Some(file), ..) => file.close()
-    File(..) => ()
-    Channel(_) => ()
-    Callback(_) => ()
-    Sink => ()
+fn Transport::close(self : Transport) -> Unit {
+  match self.close {
+    Some(close) => close()
+    None => ()
   }
 }
 
@@ -126,7 +124,13 @@ async fn Transport::close(self : Transport) -> Unit {
 ///
 /// Returns A Transport configured for console output
 pub fn Transport::console() -> Transport {
-  Transport::Console
+  Transport::new(entry => println(
+    if entry.data.is_empty() {
+      "[\{entry.level}] \{entry.msg}"
+    } else {
+      "[\{entry.level}] \{entry.msg} \{entry.data.to_json().stringify(indent=2)}"
+    },
+  ))
 }
 
 ///|
@@ -136,15 +140,35 @@ pub fn Transport::console() -> Transport {
 ///
 /// - `path`: The file path where logs will be written
 ///
-/// # Behavior
-/// - Creates parent directories if they don't exist
-/// - Opens the file in append mode if it exists
-/// - Creates the file with 0o644 permissions if it doesn't exist
-/// - Writes each log entry as a JSON object on a separate line
-///
 /// Returns A Transport configured for file output
 pub fn Transport::file(path : StringView) -> Transport {
-  Transport::File(path=path.to_string(), file=None)
+  let mut file = None
+  Transport::new(
+    entry => {
+      let file = match file {
+        Some(file) => file
+        None => {
+          let dir : String = [..@path.dirname(path)]
+          if !@fs.exists(dir) {
+            mkdir(dir)
+          }
+          let f = if @fs.exists(path) {
+            @fs.open(path, mode=WriteOnly, append=true, create=0o644)
+          } else {
+            @fs.create(path, permission=0o644)
+          }
+          file = Some(f)
+          f
+        }
+      }
+      let content = entry.to_json().stringify()
+      let buffer = @buffer.new()
+      buffer.write_bytes(@encoding/utf8.encode(content))
+      buffer.write_byte('\n')
+      file.write(buffer.to_bytes())
+    },
+    close=() => if file is Some(f) { f.close() },
+  )
 }
 
 ///|
@@ -155,7 +179,7 @@ pub fn Transport::file(path : StringView) -> Transport {
 ///
 /// Returns A Transport that silently discards all output
 pub fn Transport::sink() -> Transport {
-  Transport::Sink
+  Transport::new(_ => ())
 }
 
 ///|
@@ -171,7 +195,7 @@ pub fn Transport::sink() -> Transport {
 /// This method is deprecated; the alias "chan" is provided for backward compatibility
 #alias(chan, deprecated)
 pub fn Transport::channel(queue : @aqueue.Queue[Json]) -> Transport {
-  Transport::Channel(queue)
+  Transport::new(entry => queue.put(entry.to_json()))
 }
 
 ///|
@@ -188,5 +212,5 @@ pub fn Transport::channel(queue : @aqueue.Queue[Json]) -> Transport {
 /// - Integration with external logging systems
 /// - Testing and log capture
 pub fn Transport::callback(callback : (Json) -> Unit) -> Transport {
-  Transport::Callback(callback)
+  Transport::new(entry => callback(entry.to_json()))
 }
