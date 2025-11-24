@@ -22,7 +22,6 @@ pub fn Server::port(self : Server) -> Int {
 ///|
 pub async fn Server::new(
   model? : String,
-  log_level~ : @pino.Level,
   register? : Register,
   serve~ : String,
   port~ : Int,
@@ -30,16 +29,13 @@ pub async fn Server::new(
 ) -> Server {
   let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  let logger = @pino.logger(
-    "server",
-    level=log_level,
-    @pino.Transport::callback(event => {
-      guard event is Object(event) else { return }
-      event["id"] = uuid.v4().to_string().to_json()
-      broadcast.put(Json::object(event))
-    }),
-  )
-  let maria = @maria.Maria::new(model?, logger~, cwd?)
+  let maria = @maria.Maria::new(model?, cwd?)
+  maria.agent.add_listener(event => {
+    let event = event.to_json()
+    guard event is Object(event) else { return }
+    event["id"] = uuid.v4().to_string().to_json()
+    broadcast.put(Json::object(event))
+  })
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   let cwd = match cwd {

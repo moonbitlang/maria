@@ -525,7 +525,7 @@ pub async fn Daemon::new(
   let exec_path = @fsx.resolve(exec_path) catch {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
-  let httpx_server = @httpx.Server::new("[::1]", port)
+  let httpx_server = @httpx.Server::new("[::1]", port, reuse_addr=true)
   let port = httpx_server.port()
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")

@@ -3,7 +3,6 @@ package "moonbitlang/maria/cmd/server"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/internal/pino"
 )
 
 // Values
@@ -20,7 +19,7 @@ pub(all) struct Register {
 pub struct Server {
   // private fields
 }
-async fn Server::new(model? : String, log_level~ : @pino.Level, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
+async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
 fn Server::port(Self) -> Int
 async fn Server::start(Self) -> Unit
 

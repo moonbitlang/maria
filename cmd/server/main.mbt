@@ -179,7 +179,6 @@ async fn main {
   let mut model = None
   let mut port = 0
   let mut serve = @os.cwd()
-  let mut log_level = @pino.Info
   let mut register_host = None
   let mut register_port = None
   let mut register_id = None
@@ -220,16 +219,6 @@ async fn main {
         serve = s
         continue args
       }
-    ["--log-level", level, .. args] => {
-      log_level = match level.to_lower() {
-        "debug" => @pino.Debug
-        "info" => @pino.Info
-        "warn" => @pino.Warn
-        "error" => @pino.Error
-        _ => fail("Unknown log level: \{level}")
-      }
-      continue args
-    }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -246,6 +235,6 @@ async fn main {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  let server = Server::new(model?, log_level~, register?, serve~, port~)
+  let server = Server::new(model?, register?, serve~, port~)
   server.start()
 }
