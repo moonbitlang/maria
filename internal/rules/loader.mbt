@@ -17,7 +17,7 @@ async fn Loader::load_rules_from_directory(
   source~ : Source,
 ) -> Unit {
   if !@fsx.exists(directory) {
-    self.logger.warn("Directory '\{directory}' does not exist, skipping.", {})
+    self.logger.warn("Directory '\{directory}' does not exist, skipping.")
     return
   }
   let dir = @fsx.list_directory(directory).filter(e => e.kind

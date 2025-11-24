@@ -98,7 +98,7 @@ pub async fn Loader::get_model(
   } else {
     self.models.get(0)
   }
-  self.logger.info("ModelLoaded", {
+  self.logger.info("ModelLoaded", data={
     "name": name.to_json(),
     "model": if model is Some(model) {
       let json = model.to_json()

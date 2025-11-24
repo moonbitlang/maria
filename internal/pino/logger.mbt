@@ -56,7 +56,7 @@ pub async fn Logger::log(
   self : Self,
   level : Level,
   message : StringView,
-  content : Map[String, Json],
+  data? : Map[String, Json],
 ) -> Unit {
   if level < self.level {
     return
@@ -76,8 +76,10 @@ pub async fn Logger::log(
   for k, v in self.properties {
     object[k] = v
   }
-  for k, v in content {
-    object[k] = v
+  if data is Some(data) {
+    for k, v in data {
+      object[k] = v
+    }
   }
   self.transport.write(object.to_json())
 }
@@ -91,9 +93,9 @@ pub async fn Logger::log(
 pub async fn Logger::error(
   self : Self,
   message : StringView,
-  content : Map[String, Json],
+  data? : Map[String, Json],
 ) -> Unit {
-  self.log(Error, message, content)
+  self.log(Error, message, data?)
 }
 
 ///|
@@ -105,9 +107,9 @@ pub async fn Logger::error(
 pub async fn Logger::warn(
   self : Self,
   message : StringView,
-  content : Map[String, Json],
+  data? : Map[String, Json],
 ) -> Unit {
-  self.log(Warn, message, content)
+  self.log(Warn, message, data?)
 }
 
 ///|
@@ -119,9 +121,9 @@ pub async fn Logger::warn(
 pub async fn Logger::info(
   self : Self,
   message : StringView,
-  content : Map[String, Json],
+  data? : Map[String, Json],
 ) -> Unit {
-  self.log(Info, message, content)
+  self.log(Info, message, data?)
 }
 
 ///|
@@ -133,9 +135,9 @@ pub async fn Logger::info(
 pub async fn Logger::debug(
   self : Self,
   message : StringView,
-  content : Map[String, Json],
+  data? : Map[String, Json],
 ) -> Unit {
-  self.log(Debug, message, content)
+  self.log(Debug, message, data?)
 }
 
 ///|

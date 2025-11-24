@@ -133,7 +133,7 @@ async test "replace_in_file/agentic" (t : @test.Test) {
     let agent = @agent.new(model, cwd=mock.cwd.path())
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
-        mock.logger.info("PostToolCall", {
+        mock.logger.info("PostToolCall", data={
           "name": tool_call.function.name,
           "output": result,
           "text": rendered,

@@ -186,7 +186,7 @@ async fn Server::start_maria(self : Server) -> Unit {
       }
       self.maria.agent.start() catch {
         error =>
-          self.maria.logger.error("MariaFailed", {
+          self.maria.logger.error("MariaFailed", data={
             "error": {
               "code": -1,
               "message": error.to_string(),
