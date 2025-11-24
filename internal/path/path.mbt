@@ -1,4 +1,7 @@
 ///|
+using @xpath {type Path}
+
+///|
 fn StringView::end_offset(self : StringView) -> Int {
   self.start_offset() + self.length()
 }
@@ -205,7 +208,7 @@ pub fn join(p : StringView, q : StringView) -> String {
 
 ///|
 pub fn is_absolute(path : StringView) -> Bool {
-  path.length() >= 1 && path[0] == '/'
+  Path::is_absolute(path.to_string())
 }
 
 ///|
