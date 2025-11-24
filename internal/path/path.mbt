@@ -140,45 +140,9 @@ pub fn split(view : StringView) -> Iter[StringView] {
 }
 
 ///|
-fn join_parts(parts : Array[StringView]) -> String {
-  guard parts is [part, .. parts] else { return "." }
-  let path = StringBuilder::new()
-  if part is ("/" | "//") {
-    path.write_substring(part.data(), part.start_offset(), part.length())
-    path.write_string(parts.join("/"))
-  } else {
-    path.write_substring(part.data(), part.start_offset(), part.length())
-    for part in parts {
-      path.write_char(sep)
-      path.write_substring(part.data(), part.start_offset(), part.length())
-    }
-  }
-  path.to_string()
-}
-
-///|
-fn push_normalized_part(parts : Array[StringView], part : StringView) -> Unit {
-  if part is ("" | ".") {
-    return
-  }
-  if part is ".." {
-    match parts {
-      ["/"] | ["//"] | [] | [.., ".."] => parts.push("..")
-      parts => ignore(parts.pop())
-    }
-    return
-  }
-  parts.push(part)
-}
-
-///|
 /// Normalize path by resolving `.` and `..` and eliminating redundant slashes.
 pub fn normalize(view : StringView) -> String {
-  let parts = []
-  for part in split(view) {
-    push_normalized_part(parts, part)
-  }
-  join_parts(parts)
+  Path::normalize(view.to_string()).0
 }
 
 ///|
