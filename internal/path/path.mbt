@@ -222,29 +222,15 @@ pub fn is_relative(path : StringView) -> Bool {
 /// property: `join(from, relative(from, to)) == resolve(to)`
 /// 
 /// join already normalizes the path, so no need to normalize here.
+/// 
+/// edge cases: when from is equal to to, return "."
 pub fn relative(from : StringView, to : StringView) -> String raise {
-  let from = resolve(from)
-  let to = resolve(to)
-  if from == to {
-    return "."
+  let result = Path::relative(to.to_string(), base=from.to_string()).0
+  if result.is_empty() {
+    "."
+  } else {
+    result
   }
-  let from_parts = split(from).collect()
-  let to_parts = split(to).collect()
-  let mut i = 0
-  while i < from_parts.length() && i < to_parts.length() {
-    if from_parts[i] != to_parts[i] {
-      break
-    }
-    i += 1
-  }
-  let relative_parts : Array[StringView] = []
-  for _ in i..<from_parts.length() {
-    relative_parts.push("..")
-  }
-  for j in i..<to_parts.length() {
-    push_normalized_part(relative_parts, to_parts[j])
-  }
-  join_parts(relative_parts)
 }
 
 ///|
