@@ -410,3 +410,35 @@ async test "todo_write/mark_progress" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "todo_write/add_task" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let todo_list = @todo.new(clock=mock.clock, uuid=mock.uuid)
+    let tool = @todo_write.new(todo_list)
+    let result = tool.call({
+      "action": "add_task",
+      "content": (
+        #|First item
+      ),
+      "priority": "medium",
+    })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(
+      output,
+      content=(
+        #|✅ Operation completed: Added new task: First item
+        #|
+        #|📝 Current todo list:
+        #|  🟡 ⏳ [ac8a366d] First item
+        #|
+        #|✨ Updated items:
+        #|  🟡 ⏳ [ac8a366d] First item
+        #|
+        #|📊 Current summary: Total 1 items | Pending 1 | In Progress 0 | Completed 0
+      ),
+    )
+  })
+}
