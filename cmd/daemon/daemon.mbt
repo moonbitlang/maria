@@ -8,7 +8,7 @@ struct Daemon {
   by_id : Map[@uuid.Uuid, Task]
   rqs : Map[String, @aqueue.Queue[Int]]
   exec_path : String
-  tcp_server : @socket.TcpServer
+  httpx : @httpx.Server
   port : Int
   events : @broadcast.Broadcast[Event]
   serve : String
@@ -25,14 +25,13 @@ priv enum Event {
 }
 
 ///|
-async fn Daemon::get_events(self : Daemon, w : @http.ServerConnection) -> Unit {
-  w.send_response(200, "OK", extra_headers={
-    "Content-Type": "text/event-stream",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-    "X-Accel-Buffering": "no",
-  })
+async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
+  w.header().set("Content-Type", "text/event-stream")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.header().set("X-Accel-Buffering", "no")
+  w.write_header(200)
   let tasks : Array[Task] = self.by_cwd.values().collect()
   w.write("event: daemon.tasks.synchronized\n")
   let data : Json = { "tasks": tasks }
@@ -103,10 +102,11 @@ priv struct Register {
 async fn Daemon::create_task(
   self : Daemon,
   group~ : @async.TaskGroup[Unit],
-  w : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   guard {
-      let bytes = w.read_all().binary()
+      let bytes = r.read_all().binary()
       let text = @encoding/utf8.decode(bytes) catch {
         @encoding/utf8.Malformed(bytes) =>
           raise json_error(
@@ -287,45 +287,37 @@ async fn Daemon::create_task(
       })
     }
   }
-  w.send_response(201, "Created", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(201, reason="Created")
   let body : Json = { "task": task }
-  w.write(body)
-  w.flush()
-  w.end_response()
+  w.write(body.stringify())
 }
 
 ///|
-async fn Daemon::list_models(
-  self : Daemon,
-  conn : @http.ServerConnection,
-) -> Unit {
+async fn Daemon::list_models(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
   let models : Array[Json] = []
   for model in self.models.models() {
     models.push({ "name": model.name })
   }
   let response : Json = { "models": models }
-  conn
-  ..send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  ..write(response.stringify())
-  ..end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
 }
 
 ///|
 async fn Daemon::register_task(
   self : Daemon,
-  conn : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request_bytes = conn.read_all().binary()
+  let request_bytes = r.read_all().binary()
   let request_text = @encoding/utf8.decode(request_bytes) catch {
     @encoding/utf8.Malformed(bytes) =>
       raise json_error(
@@ -365,33 +357,29 @@ async fn Daemon::register_task(
   let register : Register = { id, port }
   println("[INFO] Registered task '\{register.id}' on port \{register.port}")
   self.rqs[id].put(register.port)
-  conn.send_response(200, "OK", extra_headers={
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  conn.end_response()
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
 }
 
 ///|
-async fn Daemon::list_tasks(self : Daemon, w : @http.ServerConnection) -> Unit {
+async fn Daemon::list_tasks(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
   let tasks = self.by_cwd.values().collect()
   let response : Json = { "tasks": tasks }
-  w.send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
   w.write(response.stringify())
-  w.end_response()
 }
 
 ///|
 async fn Daemon::get_task(
   self : Daemon,
   id : StringView,
-  conn : @http.ServerConnection,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   guard self.by_id.get(
       @uuid.parse(id) catch {
@@ -409,21 +397,20 @@ async fn Daemon::get_task(
   let task_json = task.to_json_object()
   task_json["queued_messages"] = task.queued_messages().to_json()
   let response : Json = { "task": task_json }
-  conn.send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  conn.write(response.stringify())
-  conn.end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
 }
 
 ///|
 async fn Daemon::get_task_events(
   self : Daemon,
   id : StringView,
-  w : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   guard self.by_id.get(
       @uuid.parse(id) catch {
@@ -438,28 +425,27 @@ async fn Daemon::get_task_events(
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  let (response, client) = @http.get_stream(
+  let (r, c) = @http.get_stream(
     "http://localhost/v1/events",
     port=task.port,
-    body=w.read_all(),
+    body=r.read_all(),
   )
-  w.send_response(response.code, response.reason, extra_headers={
-    "Content-Type": "text/event-stream",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-    "X-Accel-Buffering": "no",
-  })
-  w.write_reader(client)
-  w.end_response()
+  w.header().set("Content-Type", "text/event-stream")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.header().set("X-Accel-Buffering", "no")
+  w.write_header(r.code, reason=r.reason)
+  w.write_reader(c)
+  w.flush()
 }
 
 ///|
 async fn Daemon::list_moonbit_modules(
   self : Daemon,
   id : StringView,
-  request : @http.Request,
-  conn : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   guard self.by_id.get(
       @uuid.parse(id) catch {
@@ -475,27 +461,25 @@ async fn Daemon::list_moonbit_modules(
     })
   }
   println("[INFO] Forwarding moonbit modules request to task \{id}...")
-  let (response, response_body) = @http.get(
+  let (r, b) = @http.get(
     "http://localhost/v1/moonbit/modules",
-    headers=request.headers,
     port=server.port,
-    body=conn.read_all(),
+    body=r.read_all(),
   )
-  conn.send_response(response.code, response.reason, extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  conn.write(response_body)
-  conn.end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(r.code, reason=r.reason)
+  w.write(b)
 }
 
 ///|
 async fn Daemon::create_task_message(
   self : Daemon,
   id : StringView,
-  conn : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   guard self.by_id.get(
       @uuid.parse(id) catch {
@@ -513,19 +497,17 @@ async fn Daemon::create_task_message(
   let (response, response_body) = @http.post(
     "http://localhost/v1/message",
     port=task.port,
-    conn.read_all(),
+    r.read_all(),
   )
   println(
     "[INFO] (Daemon) Forwarded message to task \{id} @ localhost:\{task.port}",
   )
-  conn.send_response(response.code, response.reason, extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  conn.write(response_body)
-  conn.end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(response.code, reason=response.reason)
+  w.write(response_body)
 }
 
 ///|
@@ -543,14 +525,8 @@ pub async fn Daemon::new(
   let exec_path = @fsx.resolve(exec_path) catch {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
-  // Create TCP server.
-  let addr = try! @socket.Addr::parse("[::]:\{port}")
-  let tcp_server = @socket.TcpServer::new(
-    addr,
-    dual_stack=true,
-    reuse_addr=true,
-  )
-  let port = tcp_server.addr().port()
+  let httpx_server = @httpx.Server::new("[::1]", port)
+  let port = httpx_server.port()
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
   let logger = @pino.logger("daemon", @pino.Transport::console())
@@ -571,7 +547,7 @@ pub async fn Daemon::new(
     by_id: {},
     rqs: {},
     exec_path,
-    tcp_server,
+    httpx: httpx_server,
     port,
     events: @broadcast.Broadcast::new(),
     serve,
@@ -582,72 +558,63 @@ pub async fn Daemon::new(
 pub async fn Daemon::serve(self : Daemon) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.process.start())
-    self.tcp_server.run_forever((conn, _) => {
-      let conn = @http.ServerConnection::new(conn)
-      let r = conn.read_request()
-      println("[INFO] (Daemon) Received request: \{r.meth} \{r.path}")
+    self.httpx.serve((r, w) => {
+      println("[INFO] (Daemon) Received request: \{r.method_} \{r.path}")
       let paths = r.path.split("/").collect()
       println("[INFO] (Daemon) Handling request paths: \{paths}")
       try {
-        match (r.meth, paths) {
+        match (r.method_, paths) {
           (Options, _) => {
-            conn.send_response(204, "No Content", extra_headers={
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "*",
-              "Access-Control-Allow-Headers": "*",
-            })
-            conn.end_response()
+            w.header().set("Access-Control-Allow-Origin", "*")
+            w.header().set("Access-Control-Allow-Methods", "*")
+            w.header().set("Access-Control-Allow-Headers", "*")
+            w.write_header(204)
           }
           // GET /
           (Get, ["", ""]) => {
             let index_html = html_read_file(
               @path.join(self.serve, "index.html"),
             )
-            conn
-            ..send_response(200, "OK", extra_headers={
-              "Content-Type": "text/html",
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "*",
-              "Access-Control-Allow-Headers": "*",
-            })
-            ..write(index_html)
-            ..end_response()
+            w.header().set("Content-Type", "text/html")
+            w.header().set("Access-Control-Allow-Origin", "*")
+            w.header().set("Access-Control-Allow-Methods", "*")
+            w.header().set("Access-Control-Allow-Headers", "*")
+            w.write_header(200)
+            w.write(index_html)
           }
-          (Get, ["", "v1", "events"]) => self.get_events(conn)
-          (Get, ["", "v1", "models"]) => self.list_models(conn)
-          (Post, ["", "v1", "task", "register"]) => self.register_task(conn)
-          (Get, ["", "v1", "tasks"]) => self.list_tasks(conn)
-          (Post, ["", "v1", "task"]) => self.create_task(group~, conn)
-          (Get, ["", "v1", "task", id]) => self.get_task(id, conn)
+          (Get, ["", "v1", "events"]) => self.get_events(w)
+          (Get, ["", "v1", "models"]) => self.list_models(w)
+          (Post, ["", "v1", "task", "register"]) => self.register_task(r, w)
+          (Get, ["", "v1", "tasks"]) => self.list_tasks(w)
+          (Post, ["", "v1", "task"]) => self.create_task(group~, r, w)
+          (Get, ["", "v1", "task", id]) => self.get_task(id, w)
           (Get, ["", "v1", "task", id, "events"]) =>
-            self.get_task_events(id, conn)
+            self.get_task_events(id, r, w)
           (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
-            self.list_moonbit_modules(id, r, conn)
+            self.list_moonbit_modules(id, r, w)
           (Post, ["", "v1", "moonbit", "publish"]) =>
-            publish_moonbit_module(conn)
+            publish_moonbit_module(r, w)
           (Post, ["", "v1", "task", id, "message"]) =>
-            self.create_task_message(id, conn)
+            self.create_task_message(id, r, w)
           (Get, ["", .. file]) =>
-            serve_static_file(conn, serve=self.serve, path=file.join("/"))
+            serve_static_file(w, serve=self.serve, path=file.join("/"))
           _ =>
             raise json_error(404, "NotFound", {
               "error": {
                 "code": -1,
                 "message": "Unknown endpoint: \{r.path}",
-                "metadata": { "method": r.meth.to_string(), "path": r.path },
+                "metadata": { "method": r.method_.to_string(), "path": r.path },
               },
             })
         }
       } catch {
         HttpError(code~, reason~, body~) => {
-          conn.send_response(code, reason, extra_headers={
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-          })
-          conn.write(body)
-          conn.end_response()
+          w.header().set("Content-Type", "application/json")
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(code, reason~)
+          w.write(body)
         }
         error => raise error
       }

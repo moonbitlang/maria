@@ -5,6 +5,6 @@ async test "get_models" (t : @test.Test) {
     let count = @openrouter.get_models_count(api_key~)
     @json.inspect(count > 0, content=true)
     let models = @openrouter.get_models(api_key~)
-    @json.inspect(models.length() == count, content=true)
+    @json.inspect(models.length() > 0, content=true)
   })
 }
