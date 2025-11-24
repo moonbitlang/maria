@@ -9,9 +9,9 @@ pub let sep : Char = '/'
 
 ///|
 /// Return the directory name of path.
-/// 
+///
 /// This behavior is similar to Python `os.path.dirname`, but inconsistent with Posix convention dirname command.
-/// 
+///
 /// edge cases: when path is relative path without directory component, return "."
 pub fn dirname(path : StringView) -> StringView {
   loop path {
@@ -32,13 +32,13 @@ pub fn dirname(path : StringView) -> StringView {
 }
 
 ///|
-/// Return the basename of path 
-/// 
+/// Return the basename of path
+///
 /// 1. first trim trailing `/` if not root `/`
 /// 2. extract last component after last `/`
-/// 
+///
 /// This behavior is consistent with Posix convention basename command, but inconsistent with Python `os.path.basename`
-/// 
+///
 pub fn basename(path : StringView) -> StringView {
   let path = match path {
     [.. path, '/'] => path
@@ -53,7 +53,7 @@ pub fn basename(path : StringView) -> StringView {
 
 ///|
 /// Extract extension name exclude `.`
-/// 
+///
 /// property: `stem(path) + "." + ext(path)`
 pub fn ext(path : StringView) -> StringView {
   loop path.view() {
@@ -65,7 +65,7 @@ pub fn ext(path : StringView) -> StringView {
 
 ///|
 /// Extract stem part exclude `.`
-/// 
+///
 /// property: `stem(path) + "." + ext(path)`
 pub fn stem(path : StringView) -> StringView {
   loop path.view() {
@@ -217,7 +217,7 @@ pub fn is_relative(path : StringView) -> Bool {
 /// Return relative path from `from` to `to`, `from` treated as current working directory.
 ///
 /// property: `join(from, relative(from, to)) == resolve(to)`
-/// 
+///
 /// join already normalizes the path, so no need to normalize here.
 pub fn relative(from : StringView, to : StringView) -> String raise {
   let from = resolve(from)
@@ -246,7 +246,7 @@ pub fn relative(from : StringView, to : StringView) -> String raise {
 
 ///|
 /// Resolve relative path to absolute path.
-/// 
+///
 /// 1. if absolute path is given, normalize and return it.
 /// 2. if relative path is given, join it with current working directory,
 pub fn resolve(view : StringView) -> String raise {
