@@ -6,6 +6,7 @@ import(
 )
 
 // Values
+async fn start(ArrayView[String]) -> Unit
 
 // Errors
 

@@ -6,7 +6,9 @@
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/cmd/main/migrator",
     "moonbitlang/maria/cmd/main/conversation",
-    "moonbitlang/maria/cmd/main/interactive"
+    "moonbitlang/maria/cmd/main/interactive",
+    "moonbitlang/maria/cmd/server",
+    "moonbitlang/maria/cmd/daemon"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"]
 }

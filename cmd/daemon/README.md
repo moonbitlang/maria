@@ -5,8 +5,7 @@
 From the root directory of the repository, run:
 
 ```bash
-moon build cmd/server --release
-moon run cmd/daemon -- --port 8090 --serve cmd/daemon ./target/native/release/build/cmd/server/server.exe
+moon run cmd/main -- daemon --port 8090 --serve cmd/daemon
 ```
 
 ## API
