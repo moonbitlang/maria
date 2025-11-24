@@ -11,7 +11,8 @@
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/async",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/event"
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/internal/rules"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
