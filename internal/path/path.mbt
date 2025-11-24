@@ -253,10 +253,5 @@ pub fn relative(from : StringView, to : StringView) -> String raise {
 /// 1. if absolute path is given, normalize and return it.
 /// 2. if relative path is given, join it with current working directory,
 pub fn resolve(view : StringView) -> String raise {
-  if is_absolute(view) {
-    return normalize(view)
-  } else {
-    let cwd = @os.cwd()
-    normalize(join(cwd, view))
-  }
+  Path::resolve(view.to_string()).0
 }
