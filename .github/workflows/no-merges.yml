@@ -1,0 +1,40 @@
+# Copyright 2025 International Digital Economy Academy
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: no-merges
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for merge commits
+        run: |
+          merge_commits=$(git log --merges --format=%H ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          if [ -n "$merge_commits" ]; then
+            echo "::error::Merge commits are not allowed in pull requests. Found the following merge commits:"
+            for commit in $merge_commits; do
+              echo "::error::- $commit"
+            done
+            exit 1
+          else
+            echo "No merge commits found."
+          fi
