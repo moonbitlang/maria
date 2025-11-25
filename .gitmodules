@@ -1,3 +1,6 @@
 [submodule "prompt/system-prompt"]
 	path = prompt/system-prompt
 	url = https://github.com/moonbitlang/system-prompt.git
+[submodule "external/async"]
+	path = external/async
+	url = https://github.com/moonbitlang/async.git
