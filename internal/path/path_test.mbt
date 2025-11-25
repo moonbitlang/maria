@@ -26,15 +26,16 @@ test "basename" {
 }
 
 ///|
-test "ext" {
+test "stem/ext" {
+  // property: `stem(path) + ext(path) == basename(path)`
+  @json.inspect(@path.stem("a/b/c.jpg"), content="c")
   @json.inspect(@path.ext("a/b/c.jpg"), content=".jpg")
+  //
+  @json.inspect(@path.stem("a/b/c"), content="c")
   @json.inspect(@path.ext("a/b/c"), content="")
+  //
+  @json.inspect(@path.stem("a/b.c/d"), content="d")
   @json.inspect(@path.ext("a/b.c/d"), content="")
-}
-
-///|
-test "stem" {
-  @json.inspect(@path.stem("a/b/c.jpg"), content="a/b/c")
 }
 
 ///|
@@ -131,13 +132,6 @@ test "choose second if absolute" {
     @path.join(p, q),
     content="/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/moonbit-taco-XXXXXXX",
   )
-}
-
-///|
-test "ext/stem:edge cases" {
-  let path = "proj.tar/file"
-  inspect(@path.ext(path), content="")
-  inspect(@path.stem(path), content="proj")
 }
 
 ///|

@@ -59,7 +59,7 @@ pub fn basename(path : StringView) -> StringView {
 ///|
 /// Extract extension name include `.`
 /// 
-/// property: `stem(path) + "." + ext(path)`
+/// property: `stem(path) + ext(path) == basename(path)`
 pub fn ext(path : StringView) -> StringView {
   Path::extname(path.to_string())
 }
@@ -82,13 +82,11 @@ pub fn replace_ext(path : StringView, ext : StringView) -> String {
 ///|
 /// Extract stem part exclude `.`
 /// 
-/// property: `stem(path) + "." + ext(path)`
+/// property: `stem(path) + ext(path) == basename(path)`
 pub fn stem(path : StringView) -> StringView {
-  loop path.view() {
-    [] => path
-    [.. path, '.'] => path
-    [.. path, _] => continue path
-  }
+  let base = basename(path)
+  let ext = ext(path)
+  base.view(start_offset=0, end_offset=base.length() - ext.length())
 }
 
 ///|
