@@ -1,14 +1,7 @@
+import { rootData } from "@/lib/utils";
 import { createContext, useContext } from "react";
 
-const root = document.getElementById("root")!;
-
-const dataTaskId = root.getAttribute("data-task-id");
-
-let taskId: string | undefined = undefined;
-
-if (dataTaskId && dataTaskId.length > 0) {
-  taskId = dataTaskId;
-}
+const taskId = rootData("task-id");
 
 export const RootTaskIdContext = createContext<string | undefined>(taskId);
 

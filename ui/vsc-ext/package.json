@@ -3,6 +3,10 @@
   "displayName": "MoonBit Agent",
   "description": "Vscode extension for MoonBit Agent",
   "publisher": "moonbit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moonbitlang/maria"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.106.1"
@@ -21,7 +25,7 @@
         {
           "id": "moonbit-agent-activitybar",
           "title": "MoonBit Agent",
-          "icon": "$(robot)"
+          "icon": "moonbit-head.svg"
         }
       ]
     },
@@ -31,7 +35,7 @@
           "type": "webview",
           "id": "moonbit-agent.view",
           "name": "MoonBit Agent",
-          "icon": "$(robot)"
+          "icon": "moonbit-head.svg"
         }
       ]
     },
@@ -63,14 +67,16 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
+    "vscode:prepublish": "pnpm run build",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "watch:webview": "cd ../web && pnpm build --mode vscode --watch",
     "build:webview": "cd ../web && pnpm build --mode vscode",
-    "package": "pnpm run check-types && pnpm run lint && pnpm run build:webview && node esbuild.js --production",
+    "build:self": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "build": "npm-run-all -p build:*",
+    "package": "vsce package --no-dependencies",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
@@ -84,6 +90,7 @@
     "@types/vscode": "^1.106.1",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.0",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.1",
     "npm-run-all": "^4.1.5",

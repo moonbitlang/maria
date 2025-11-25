@@ -9,6 +9,7 @@ import { Layout } from "./components/layout";
 import Task from "./routes/Task";
 import VscodeLayout from "./components/vscode-layout";
 import AllTasks from "./routes/AllTasks";
+import { rootData } from "./lib/utils";
 
 const isInVscode = typeof acquireVsCodeApi === "function";
 
@@ -17,13 +18,22 @@ if (isInVscode) {
 }
 
 const container = document.getElementById("root")!;
+
+const taskId = rootData("task-id");
+
+let initialEntries = ["/"];
+
+if (taskId) {
+  initialEntries = [`/tasks/${taskId}`];
+}
+
 const root = createRoot(container);
 
 root.render(
   <StrictMode>
     <Provider store={store}>
       {isInVscode ? (
-        <MemoryRouter initialEntries={["/"]} initialIndex={0}>
+        <MemoryRouter initialEntries={initialEntries} initialIndex={0}>
           <Routes>
             <Route element={<VscodeLayout />}>
               <Route index element={<Home />}></Route>

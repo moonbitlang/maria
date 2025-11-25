@@ -4,7 +4,6 @@ import { useNewTaskMutation } from "@/features/api/apiSlice";
 import { useNavigate } from "react-router";
 import { useAppDispatch } from "@/app/hooks";
 import { setActiveTaskId } from "@/features/session/tasksSlice";
-import { useRootTaskId } from "@/hooks/use-root-task-id";
 import { useCwd } from "@/hooks/use-cwd";
 
 function Home() {
@@ -12,14 +11,7 @@ function Home() {
   const navigate = useNavigate();
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
-  const rootTaskId = useRootTaskId();
   const cwd = useCwd();
-
-  useEffect(() => {
-    if (rootTaskId) {
-      navigate(`/tasks/${rootTaskId}`);
-    }
-  }, [rootTaskId, navigate]);
 
   useEffect(() => {
     dispatch(setActiveTaskId(undefined));
