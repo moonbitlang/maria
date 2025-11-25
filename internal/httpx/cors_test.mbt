@@ -20,11 +20,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" {
       () => server.serve(@httpx.cors(router.handler())),
       no_wait=true,
     )
-    let client = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let client = @http.Client::new("http://localhost:\{server.port()}")
     client.request(Options, "*")
     let response = client.end_request()
     @json.inspect(response.code, content=204)
@@ -35,11 +31,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" {
       "access-control-allow-headers": "*",
       "transfer-encoding": "chunked",
     })
-    let client = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let client = @http.Client::new("http://localhost:\{server.port()}")
     client.request(Options, "/task")
     let response = client.end_request()
     @json.inspect(response.code, content=204)
@@ -50,11 +42,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" {
       "access-control-allow-headers": "*",
       "transfer-encoding": "chunked",
     })
-    let client = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let client = @http.Client::new("http://localhost:\{server.port()}")
     client.request(Options, "/tasks")
     let response = client.end_request()
     @json.inspect(response.code, content=204)
@@ -66,15 +54,13 @@ async test "@moonbitlang/maria/internal/httpx.cors" {
       "transfer-encoding": "chunked",
     })
     let (response, body) = @http.get(
-      "http://localhost/task/42",
-      port=server.port(),
+      "http://localhost:\{server.port()}/task/42",
     )
     @json.inspect(response.code, content=200)
     @json.inspect(response.reason, content="OK")
     @json.inspect(body.text(), content="Hello, world! from Task 42 Handler\n")
     let (response, body) = @http.get(
-      "http://localhost/task/100",
-      port=server.port(),
+      "http://localhost:\{server.port()}/task/100",
     )
     @json.inspect(response.code, content=200)
     @json.inspect(response.reason, content="OK")

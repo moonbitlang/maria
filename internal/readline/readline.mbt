@@ -60,9 +60,9 @@ priv struct Events {
 ///|
 fn Events::new() -> Events {
   Events::{
-    line: @aqueue.Queue::new(),
-    keypress: @aqueue.Queue::new(),
-    key: @aqueue.Queue::new(),
+    line: @aqueue.Queue::new(kind=Unbounded),
+    keypress: @aqueue.Queue::new(kind=Unbounded),
+    key: @aqueue.Queue::new(kind=Unbounded),
   }
 }
 

@@ -21,55 +21,43 @@ async test "@moonbitlang/maria/internal/httpx.Server" {
   let server = @httpx.Server::new("[::1]", 0)
   @async.with_task_group(group => {
     group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
-    let (r, b) = @http.post("http://localhost/hello", "", port=server.port())
+    let (r, b) = @http.post("http://localhost:\{server.port()}/hello", "")
     @json.inspect(r.code, content=200)
     @json.inspect(r.reason, content="OK")
     @json.inspect(b.text(), content="Hello, world! from Post Handler\n")
-    let (r, body) = @http.get("http://localhost/hello", port=server.port())
+    let (r, body) = @http.get("http://localhost:\{server.port()}/hello")
     @json.inspect(r.code, content=200)
     @json.inspect(r.reason, content="OK")
     @json.inspect(body.text(), content="Hello, world! from Get Handler\n")
-    let (r, body) = @http.get("http://localhost/notfound", port=server.port())
+    let (r, body) = @http.get("http://localhost:\{server.port()}/notfound")
     @json.inspect(r.code, content=404)
     @json.inspect(r.reason, content="Not Found")
     @json.inspect(body.text(), content="")
-    let c = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let c = @http.Client::new("http://localhost:\{server.port()}")
     defer c.close()
     c.request(Options, "*")
     let r = c.end_request()
     @json.inspect(r.code, content=204)
     @json.inspect(r.reason, content="No Content")
     @json.inspect(r.headers["allow"], content="GET, POST")
-    let c = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let c = @http.Client::new("http://localhost:\{server.port()}")
     defer c.close()
     c.request(Options, "/hello")
     let r = c.end_request()
     @json.inspect(r.code, content=405)
     @json.inspect(r.reason, content="Method Not Allowed")
     @json.inspect(r.headers["allow"], content="GET, POST")
-    let client = @http.Client::connect(
-      "localhost",
-      protocol=Http,
-      port=server.port(),
-    )
+    let client = @http.Client::new("http://localhost:\{server.port()}")
     client.request(Options, "/tasks")
     let r = client.end_request()
     @json.inspect(r.code, content=405)
     @json.inspect(r.reason, content="Method Not Allowed")
     @json.inspect(r.headers["allow"], content="GET")
-    let (r, b) = @http.get("http://localhost/task/42", port=server.port())
+    let (r, b) = @http.get("http://localhost:\{server.port()}/task/42")
     @json.inspect(r.code, content=200)
     @json.inspect(r.reason, content="OK")
     @json.inspect(b.text(), content="Hello, world! from Task 42 Handler\n")
-    let (r, b) = @http.get("http://localhost/task/100", port=server.port())
+    let (r, b) = @http.get("http://localhost:\{server.port()}/task/100")
     @json.inspect(r.code, content=200)
     @json.inspect(r.reason, content="OK")
     @json.inspect(b.text(), content="Hello, world! from Task 100 Handler\n")

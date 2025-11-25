@@ -1,12 +1,12 @@
 ///|
 struct Server {
-  tcp_server : @socket.TcpServer
+  server : @http.Server
   port : Int
 }
 
 ///|
 pub fn Server::close(self : Server) -> Unit {
-  self.tcp_server.close()
+  self.server.close()
 }
 
 ///|
@@ -16,13 +16,13 @@ pub fn Server::new(
   dual_stack? : Bool = true,
   reuse_addr? : Bool = false,
 ) -> Server raise {
-  let tcp_server = @socket.TcpServer::new(
+  let server = @http.Server::new(
     @socket.Addr::parse("\{host}:\{port}"),
     dual_stack~,
     reuse_addr~,
   )
-  let port = tcp_server.addr().port()
-  Server::{ tcp_server, port }
+  let port = server.addr().port()
+  Server::{ server, port }
 }
 
 ///|
@@ -40,28 +40,12 @@ pub fn Server::port(self : Server) -> Int {
 ///
 /// This function never returns.
 pub async fn Server::serve(self : Server, handler : Handler) -> Unit {
-  self.tcp_server.run_forever(
-    (sock, _) => {
-      let conn = @http.ServerConnection::new(sock)
-      for {
-        let request = conn.read_request()
-        let method_ = Method::from_async_http(request.meth)
-        let r : RequestReader = {
-          body: conn,
-          method_,
-          path: request.path,
-          vars: {},
-        }
-        let w : ResponseWriter = ResponseWriter::new(conn)
-        try (handler.0)(r, w) catch {
-          error => {
-            conn.end_response()
-            raise error
-          }
-        } noraise {
-          _ => conn.end_response()
-        }
-      }
+  self.server.run_forever(
+    (rh, rb, w) => {
+      let method_ = Method::from_async_http(rh.meth)
+      let r : RequestReader = { body: rb, method_, path: rh.path, vars: {} }
+      let w : ResponseWriter = ResponseWriter::new(w)
+      (handler.0)(r, w)
     },
     allow_failure=true,
   )

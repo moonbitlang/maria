@@ -17,7 +17,7 @@ async test "event-stream" (t : @test.Test) {
         }),
         no_wait=true,
       )
-      let c = @http.Client::connect("localhost", protocol=Http, port=s.port())
+      let c = @http.Client::new("http://localhost:\{s.port()}")
       defer c.close()
       c.request(Get, "/")
       let r = c.end_request()

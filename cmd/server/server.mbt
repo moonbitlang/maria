@@ -45,7 +45,7 @@ pub async fn Server::new(
   Server::{
     maria,
     broadcast,
-    message_queue: @aqueue.new(),
+    message_queue: @aqueue.new(kind=Unbounded),
     status: Idle,
     uuid,
     register,
@@ -74,9 +74,8 @@ async fn Server::register(self : Server) -> Unit {
     "[INFO] (Server \{register.id}) Visit http://localhost:\{self.port}/ to access the server.",
   )
   let (r, b) = @http.post(
-    "http://\{register.host}/v1/task/register",
+    "http://\{register.host}:\{register.port}/v1/task/register",
     Json::object({ "id": register.id, "port": self.port }),
-    port=register.port,
   )
   guard r.code is (200..=299) else {
     raise json_error(500, "InternalServerError", {
@@ -326,7 +325,7 @@ async fn Server::create_message(
       })
   }
   let (id, queued) = {
-    let idq = @aqueue.new()
+    let idq = @aqueue.new(kind=Unbounded)
     self.message_queue.put((message, idq))
     match idq.get() {
       Some(id) => (id, true)
