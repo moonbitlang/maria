@@ -1,4 +1,7 @@
 ///|
+using @xpath {type Path}
+
+///|
 fn StringView::end_offset(self : StringView) -> Int {
   self.start_offset() + self.length()
 }
@@ -14,6 +17,8 @@ pub let sep : Char = '/'
 /// 
 /// edge cases: when path is relative path without directory component, return "."
 pub fn dirname(path : StringView) -> StringView {
+  // TODO: `moonbitlang/x/path` not handle special case when path is `//` or `/`
+  // wait for `moonbitlang/x/path` bugfix.
   loop path {
     [] => "."
     "/" => "/"
@@ -52,15 +57,11 @@ pub fn basename(path : StringView) -> StringView {
 }
 
 ///|
-/// Extract extension name exclude `.`
+/// Extract extension name include `.`
 /// 
 /// property: `stem(path) + "." + ext(path)`
 pub fn ext(path : StringView) -> StringView {
-  loop path.view() {
-    [] | [.., '/'] => ""
-    [.. view, '.'] => path.view(start_offset=view.end_offset())
-    [.. view, _] => continue view
-  }
+  Path::extname(path.to_string())
 }
 
 ///|
@@ -137,75 +138,21 @@ pub fn split(view : StringView) -> Iter[StringView] {
 }
 
 ///|
-fn join_parts(parts : Array[StringView]) -> String {
-  guard parts is [part, .. parts] else { return "." }
-  let path = StringBuilder::new()
-  if part is ("/" | "//") {
-    path.write_substring(part.data(), part.start_offset(), part.length())
-    path.write_string(parts.join("/"))
-  } else {
-    path.write_substring(part.data(), part.start_offset(), part.length())
-    for part in parts {
-      path.write_char(sep)
-      path.write_substring(part.data(), part.start_offset(), part.length())
-    }
-  }
-  path.to_string()
-}
-
-///|
-fn push_normalized_part(parts : Array[StringView], part : StringView) -> Unit {
-  if part is ("" | ".") {
-    return
-  }
-  if part is ".." {
-    match parts {
-      ["/"] | ["//"] | [] | [.., ".."] => parts.push("..")
-      parts => ignore(parts.pop())
-    }
-    return
-  }
-  parts.push(part)
-}
-
-///|
 /// Normalize path by resolving `.` and `..` and eliminating redundant slashes.
 pub fn normalize(view : StringView) -> String {
-  let parts = []
-  for part in split(view) {
-    push_normalized_part(parts, part)
-  }
-  join_parts(parts)
+  Path::normalize(view.to_string()).0
 }
 
 ///|
 /// 1. normalize path.
 /// 2. if rhs is absolute path, return rhs.
 pub fn join(p : StringView, q : StringView) -> String {
-  let p = normalize(p)
-  let q = normalize(q)
-  // confuse behvior.
-  // Python' os.path.join doesn't has this behavior.
-  if p is "." {
-    return q
-  }
-  if q is "." {
-    return p
-  }
-  // Python's os.path.join behavior or Node.js `path.resolve` semantics.
-  if is_absolute(q) {
-    return q
-  }
-  let path = StringBuilder::new()
-  path.write_string(p)
-  path.write_char(sep)
-  path.write_string(q)
-  normalize(path.to_string())
+  Path::join(p.to_string(), q.to_string()).normalize().0
 }
 
 ///|
 pub fn is_absolute(path : StringView) -> Bool {
-  path.length() >= 1 && path[0] == '/'
+  Path::is_absolute(path.to_string())
 }
 
 ///|
@@ -219,29 +166,15 @@ pub fn is_relative(path : StringView) -> Bool {
 /// property: `join(from, relative(from, to)) == resolve(to)`
 /// 
 /// join already normalizes the path, so no need to normalize here.
+/// 
+/// edge cases: when from is equal to to, return "."
 pub fn relative(from : StringView, to : StringView) -> String raise {
-  let from = resolve(from)
-  let to = resolve(to)
-  if from == to {
-    return "."
+  let result = Path::relative(to.to_string(), base=from.to_string()).0
+  if result.is_empty() {
+    "."
+  } else {
+    result
   }
-  let from_parts = split(from).collect()
-  let to_parts = split(to).collect()
-  let mut i = 0
-  while i < from_parts.length() && i < to_parts.length() {
-    if from_parts[i] != to_parts[i] {
-      break
-    }
-    i += 1
-  }
-  let relative_parts : Array[StringView] = []
-  for _ in i..<from_parts.length() {
-    relative_parts.push("..")
-  }
-  for j in i..<to_parts.length() {
-    push_normalized_part(relative_parts, to_parts[j])
-  }
-  join_parts(relative_parts)
 }
 
 ///|
@@ -250,10 +183,5 @@ pub fn relative(from : StringView, to : StringView) -> String raise {
 /// 1. if absolute path is given, normalize and return it.
 /// 2. if relative path is given, join it with current working directory,
 pub fn resolve(view : StringView) -> String raise {
-  if is_absolute(view) {
-    return normalize(view)
-  } else {
-    let cwd = @os.cwd()
-    normalize(join(cwd, view))
-  }
+  Path::resolve(view.to_string()).0
 }

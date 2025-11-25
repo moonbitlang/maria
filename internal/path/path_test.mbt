@@ -47,10 +47,10 @@ test "join" {
   @json.inspect(@path.join("a/", "b/"), content="a/b")
   @json.inspect(@path.join("", "b"), content="b")
   @json.inspect(@path.join("a", ""), content="a")
-  @json.inspect(@path.join("", ""), content=".")
+  @json.inspect(@path.join("", ""), content="")
   @json.inspect(@path.join(".", "b"), content="b")
   @json.inspect(@path.join("a", "."), content="a")
-  @json.inspect(@path.join(".", "."), content=".")
+  @json.inspect(@path.join(".", "."), content="")
   @json.inspect(@path.join("a/b", "c/d"), content="a/b/c/d")
   @json.inspect(@path.join("a/b/", "c/d"), content="a/b/c/d")
   @json.inspect(@path.join("a/b", "c/d/"), content="a/b/c/d")
@@ -88,7 +88,7 @@ test "normalize" {
   @json.inspect(@path.normalize("a/b/../../../c/./d//e"), content="../c/d/e")
   @json.inspect(@path.normalize("/a/b/../c/./d//e"), content="/a/c/d/e")
   @json.inspect(@path.normalize("/a/b/../../c/./d//e"), content="/c/d/e")
-  @json.inspect(@path.normalize("/a/b/../../../c/./d//e"), content="/../c/d/e")
+  @json.inspect(@path.normalize("/a/b/../../../c/./d//e"), content="/c/d/e")
   @json.inspect(@path.normalize("a/b/c/.."), content="a/b")
   @json.inspect(@path.normalize("a/b/c/."), content="a/b/c")
   @json.inspect(@path.normalize("a/b/c//"), content="a/b/c")
@@ -100,8 +100,8 @@ test "normalize" {
   @json.inspect(@path.normalize("../.."), content="../..")
   @json.inspect(@path.normalize("../../.."), content="../../..")
   @json.inspect(@path.normalize("../../c/d"), content="../../c/d")
-  @json.inspect(@path.normalize("."), content=".")
-  @json.inspect(@path.normalize(""), content=".")
+  @json.inspect(@path.normalize("."), content="")
+  @json.inspect(@path.normalize(""), content="")
 }
 
 ///|
