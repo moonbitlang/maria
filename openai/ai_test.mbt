@@ -280,3 +280,90 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
     ])
   })
 }
+
+///|
+async test "deepseek" {
+  guard @os.getenv("DEEPSEEK_API_KEY") is Some(api_key) else {
+    fail("DEEPSEEK_API_KEY not set")
+  }
+  let model = @model.new(
+    api_key~,
+    base_url="https://api.deepseek.com",
+    name="deepseek-chat",
+    safe_zone_tokens=128_000,
+  )
+  let completion = @openai.chat(
+    model~,
+    chat_completion(
+      model=model.model_name,
+      messages=[
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
+      ],
+      max_tokens=50,
+      temperature=0.7,
+    ),
+  )
+  guard completion.choices[0].message.content is Some(content) else {
+    fail("Expected message content")
+  }
+  @json.inspect(content.contains("Hello"), content=true)
+}
+
+///|
+async test "kimi-k2" {
+  guard @os.getenv("MOONSHOT_API_KEY") is Some(api_key) else {
+    fail("MOONSHOT_API_KEY not set")
+  }
+  let model = @model.new(
+    api_key~,
+    base_url="https://api.moonshot.cn/v1",
+    name="kimi-k2-turbo-preview",
+    safe_zone_tokens=262_144,
+  )
+  let completion = @openai.chat(
+    model~,
+    chat_completion(
+      model=model.model_name,
+      messages=[
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
+      ],
+      max_tokens=50,
+      temperature=0.7,
+    ),
+  )
+  guard completion.choices[0].message.content is Some(content) else {
+    fail("Expected message content")
+  }
+  @json.inspect(content.contains("Hello"), content=true)
+}
+
+///|
+async test "dashscope" {
+  guard @os.getenv("DASHSCOPE_API_KEY") is Some(api_key) else {
+    fail("DASHSCOPE_API_KEY not set")
+  }
+  let model = @model.new(
+    api_key~,
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    name="qwen3-coder-plus",
+    safe_zone_tokens=997_952,
+  )
+  let completion = @openai.chat(
+    model~,
+    chat_completion(
+      model=model.model_name,
+      messages=[
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
+      ],
+      max_tokens=50,
+      temperature=0.7,
+    ),
+  )
+  guard completion.choices[0].message.content is Some(content) else {
+    fail("Expected message content")
+  }
+  @json.inspect(content.contains("Hello"), content=true)
+}
