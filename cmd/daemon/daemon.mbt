@@ -53,7 +53,7 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
   println(
     "[INFO] (Daemon) Listening for status changes from task \{task.id}...",
   )
-  let (er, eb) = @http.get_stream("http://localhost/v1/events", port=task.port)
+  let (er, eb) = @http.get_stream("http://localhost:\{task.port}/v1/events")
   defer eb.close()
   guard er.code is (200..=299) else {
     raise json_error(500, "Internal Server Error", {
@@ -235,7 +235,7 @@ async fn Daemon::create_task(
   println(
     "[INFO] (Daemon) Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
   )
-  let rq = @aqueue.Queue::new()
+  let rq = @aqueue.Queue::new(kind=Unbounded)
   self.rqs[id.to_string()] = rq
   let task_port = @async.with_timeout(300_000, () => rq.get()) catch {
     @async.TimeoutError => {
@@ -273,9 +273,8 @@ async fn Daemon::create_task(
   if message is Some(message) {
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
-      "http://localhost/v1/message",
+      "http://localhost:\{task_port}/v1/message",
       ({ "message": message } : Json),
-      port=task_port,
     )
     guard r.code is (200..=299) else {
       raise json_error(500, "Internal Server Error", {
@@ -426,8 +425,7 @@ async fn Daemon::get_task_events(
     })
   }
   let (r, c) = @http.get_stream(
-    "http://localhost/v1/events",
-    port=task.port,
+    "http://localhost:\{task.port}/v1/events",
     body=r.read_all(),
   )
   w.header().set("Content-Type", "text/event-stream")
@@ -462,8 +460,7 @@ async fn Daemon::list_moonbit_modules(
   }
   println("[INFO] Forwarding moonbit modules request to task \{id}...")
   let (r, b) = @http.get(
-    "http://localhost/v1/moonbit/modules",
-    port=server.port,
+    "http://localhost:\{server.port}/v1/moonbit/modules",
     body=r.read_all(),
   )
   w.header().set("Content-Type", "application/json")
@@ -495,8 +492,7 @@ async fn Daemon::create_task_message(
     })
   }
   let (response, response_body) = @http.post(
-    "http://localhost/v1/message",
-    port=task.port,
+    "http://localhost:\{task.port}/v1/message",
     r.read_all(),
   )
   println(

@@ -32,7 +32,7 @@ pub async fn chat(
       })
       let url = "\{model.base_url}/chat/completions"
       let uri = Uri::parse(url)
-      let client = @http.Client::connect(uri.host, protocol=uri.protocol, headers={
+      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
         "Authorization": "Bearer \{model.api_key}",
         "Content-Type": "application/json",
         "Connection": "close",

@@ -11,7 +11,7 @@ priv struct Task {
 ///|
 async fn Task::queued_messages(task : Task) -> Array[QueuedMessage] {
   let ms = []
-  let (r, b) = @http.get("http://localhost/v1/queued-messages", port=task.port) catch {
+  let (r, b) = @http.get("http://localhost:\{task.port}/v1/queued-messages") catch {
     error =>
       raise json_error(500, "Internal Server Error", {
         "error": {

@@ -99,12 +99,14 @@ struct EventTarget {
 
 ///|
 pub fn EventTarget::new() -> EventTarget {
-  EventTarget::{ queue: @aqueue.Queue::new(), listeners: [] }
+  EventTarget::{ queue: @aqueue.Queue::new(kind=Unbounded), listeners: [] }
 }
 
 ///|
 pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
-  self.queue.put(event)
+  guard self.queue.try_put(event) else {
+    abort("Event queue is full, cannot emit event")
+  }
 }
 
 ///|
