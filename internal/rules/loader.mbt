@@ -43,6 +43,23 @@ pub async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
+pub fn Loader::apply(
+  self : Loader,
+  messages : Array[@openai.ChatCompletionMessageParam],
+) -> Unit {
+  if self.rules.is_empty() {
+    return
+  }
+  let usr_msg = @openai.user_message(content=self.format())
+  let ins_pos : ArrayView[@openai.ChatCompletionMessageParam] = loop
+    messages[:] {
+    [System(_), .. rest] => continue rest
+    msgs => break msgs
+  }
+  messages.insert(ins_pos.start_offset(), usr_msg)
+}
+
+///|
 pub enum Source {
   Global
   Local
@@ -105,7 +122,20 @@ test "Rule::parse" {
 }
 
 ///|
-pub fn Loader::format(self : Loader) -> String {
+test "Rule::parse/no-front-matter" {
+  let content =
+    #|# No front matter
+  let rule = Rule::parse(content, source=Local)
+  @json.inspect(rule, content={
+    "globs": [],
+    "always_apply": false,
+    "content": "",
+    "source": "Local",
+  })
+}
+
+///|
+fn Loader::format(self : Loader) -> String {
   let always_applied = []
   let conditional = []
   for name, rule in self.rules {

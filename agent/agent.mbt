@@ -36,6 +36,7 @@ pub struct Agent {
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
   priv session_manager : @conversation.Manager
+  priv rules : @rules.Loader
 }
 
 ///|
@@ -235,6 +236,7 @@ async fn Agent::prepare_messages_for_request(
   messages : Array[@openai.ChatCompletionMessageParam],
   tools~ : Array[@openai.ChatCompletionToolParam],
 ) -> Array[@openai.ChatCompletionMessageParam] {
+  agent.rules.apply(messages)
   // Count tokens before pruning to track context size
   let origin_token_count = agent.token_counter.count_param(
     @openai.chat_completion(
@@ -406,6 +408,7 @@ pub async fn new(
     None => @uuid.generator(rand)
   }
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
+  let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let agent = Agent::{
     logger,
     rand,
@@ -423,7 +426,9 @@ pub async fn new(
       logger~,
     ),
     session_manager,
+    rules,
   }
+  rules.load()
   match system_message {
     Some(message) => agent.add_message(@openai.system_message(content=message))
     None => ()
