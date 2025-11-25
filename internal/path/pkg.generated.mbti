@@ -18,6 +18,8 @@ fn normalize(StringView) -> String
 
 fn relative(StringView, StringView) -> String raise
 
+fn replace_ext(StringView, StringView) -> String
+
 fn resolve(StringView) -> String raise
 
 let sep : Char
