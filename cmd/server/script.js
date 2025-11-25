@@ -3,8 +3,20 @@ const messagesDiv = document.getElementById("messages");
 const statusDiv = document.getElementById("status");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 const modulesListDiv = document.getElementById("modulesList");
 const refreshModulesBtn = document.getElementById("refreshModulesBtn");
+
+// Task status
+let isTaskRunning = false;
+
+// Update UI based on task status
+function updateTaskStatus(running) {
+  isTaskRunning = running;
+  if (cancelBtn) {
+    cancelBtn.disabled = !running;
+  }
+}
 
 // Message queue state
 let queuedMessages = [];
@@ -442,6 +454,13 @@ function connect() {
       return;
     }
 
+    // Update task status based on events
+    if (data.msg === "PreConversation") {
+      updateTaskStatus(true);
+    } else if (data.msg === "PostConversation" || data.msg === "MariaFailed") {
+      updateTaskStatus(false);
+    }
+
     // Handle queue events
     if (data.msg === "MessageQueued") {
       queuedMessages.push({
@@ -503,6 +522,32 @@ sendBtn.addEventListener("click", async () => {
 messageInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     sendBtn.click();
+  }
+});
+
+cancelBtn.addEventListener("click", async () => {
+  if (!isTaskRunning) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/v1/cancel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      addMessage("✓ Task cancellation requested");
+      updateTaskStatus(false);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to cancel task: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error cancelling task: ${error.message}`);
   }
 });
 

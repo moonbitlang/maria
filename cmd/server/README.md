@@ -61,6 +61,21 @@ Where `<queued-message-i>` is a JSON object:
 }
 ```
 
+## `POST /v1/cancel`
+
+Cancels the current message processing task.
+
+If there is no ongoing task, returns 404 Not Found:
+
+```json
+{
+  "error": {
+    "code": -1,
+    "message": "No ongoing task to cancel."
+  }
+}
+```
+
 ## `GET /v1/events`
 
 ```plaintext
