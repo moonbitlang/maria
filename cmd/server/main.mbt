@@ -50,7 +50,7 @@ async fn collect_modules(
 ///|
 async fn Server::list_moonbit_modules(
   server : Server,
-  conn : @http.ServerConnection,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   let modules = []
   collect_modules(server.cwd, modules)
@@ -64,20 +64,20 @@ async fn Server::list_moonbit_modules(
     })
   }
   let response : Json = { "modules": modules_json }
-  conn
-  ..send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  ..write(response.stringify())
-  ..end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
 }
 
 ///|
-async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
-  let request = conn.read_all().binary()
+async fn publish_moonbit_module(
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let request = r.read_all().binary()
   let request_text : String = @encoding/utf8.decode(request) catch {
     // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>
@@ -138,15 +138,12 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
         "stderr": process.stderr,
       },
     }
-    conn
-    ..send_response(201, "Created", extra_headers={
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-    })
-    ..write(response.stringify())
-    ..end_response()
+    w.header().set("Content-Type", "application/json")
+    w.header().set("Access-Control-Allow-Origin", "*")
+    w.header().set("Access-Control-Allow-Methods", "*")
+    w.header().set("Access-Control-Allow-Headers", "*")
+    w.write_header(201)
+    w.write(response.stringify())
   } else {
     let response : Json = {
       "error": {
@@ -167,15 +164,12 @@ async fn publish_moonbit_module(conn : @http.ServerConnection) -> Unit {
         },
       },
     }
-    conn
-    ..send_response(500, "InternalServerError", extra_headers={
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Headers": "*",
-    })
-    ..write(response.stringify())
-    ..end_response()
+    w.header().set("Content-Type", "application/json")
+    w.header().set("Access-Control-Allow-Origin", "*")
+    w.header().set("Access-Control-Allow-Methods", "*")
+    w.header().set("Access-Control-Allow-Headers", "*")
+    w.write_header(500)
+    w.write(response.stringify())
   }
 }
 
@@ -185,7 +179,6 @@ async fn main {
   let mut model = None
   let mut port = 0
   let mut serve = @os.cwd()
-  let mut log_level = @pino.Info
   let mut register_host = None
   let mut register_port = None
   let mut register_id = None
@@ -226,16 +219,6 @@ async fn main {
         serve = s
         continue args
       }
-    ["--log-level", level, .. args] => {
-      log_level = match level.to_lower() {
-        "debug" => @pino.Debug
-        "info" => @pino.Info
-        "warn" => @pino.Warn
-        "error" => @pino.Error
-        _ => fail("Unknown log level: \{level}")
-      }
-      continue args
-    }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -252,6 +235,6 @@ async fn main {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  let server = Server::new(model?, log_level~, register?, serve~, port~)
-  server.serve()
+  let server = Server::new(model?, register?, serve~, port~)
+  server.start()
 }

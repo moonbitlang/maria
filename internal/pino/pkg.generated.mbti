@@ -30,11 +30,11 @@ impl ToJson for Level
 type Logger
 fn Logger::child(Self, Map[String, Json]) -> Self
 async fn Logger::close(Self) -> Unit
-async fn Logger::debug(Self, StringView, Map[String, Json]) -> Unit
-async fn Logger::error(Self, StringView, Map[String, Json]) -> Unit
-async fn Logger::info(Self, StringView, Map[String, Json]) -> Unit
-async fn Logger::log(Self, Level, StringView, Map[String, Json]) -> Unit
-async fn Logger::warn(Self, StringView, Map[String, Json]) -> Unit
+async fn Logger::debug(Self, StringView, data? : Map[String, Json]) -> Unit
+async fn Logger::error(Self, StringView, data? : Map[String, Json]) -> Unit
+async fn Logger::info(Self, StringView, data? : Map[String, Json]) -> Unit
+async fn Logger::log(Self, Level, StringView, data? : Map[String, Json]) -> Unit
+async fn Logger::warn(Self, StringView, data? : Map[String, Json]) -> Unit
 
 type Transport
 fn Transport::callback((Json) -> Unit) -> Self

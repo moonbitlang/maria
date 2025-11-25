@@ -9,15 +9,19 @@ pub struct Server {
   priv mut status : Status
   priv register : Register?
   priv serve : String
-  port : Int
-  priv tcp_server : @socket.TcpServer
+  priv port : Int
+  priv http_server : @httpx.Server
   priv cwd : String
+}
+
+///|
+pub fn Server::port(self : Server) -> Int {
+  self.port
 }
 
 ///|
 pub async fn Server::new(
   model? : String,
-  log_level~ : @pino.Level,
   register? : Register,
   serve~ : String,
   port~ : Int,
@@ -25,23 +29,15 @@ pub async fn Server::new(
 ) -> Server {
   let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  let logger = @pino.logger(
-    "server",
-    level=log_level,
-    @pino.Transport::callback(event => {
-      guard event is Object(event) else { return }
-      event["id"] = uuid.v4().to_string().to_json()
-      broadcast.put(Json::object(event))
-    }),
-  )
-  let maria = @maria.Maria::new(model?, logger~, cwd?)
-  let addr = try! @socket.Addr::parse("[::]:\{port}")
-  let tcp_server = @socket.TcpServer::new(
-    addr,
-    dual_stack=true,
-    reuse_addr=true,
-  )
-  let port = tcp_server.addr().port()
+  let maria = @maria.Maria::new(model?, cwd?)
+  maria.agent.add_listener(event => {
+    let event = event.to_json()
+    guard event is Object(event) else { return }
+    event["id"] = uuid.v4().to_string().to_json()
+    broadcast.put(Json::object(event))
+  })
+  let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
+  let port = http_server.port()
   let cwd = match cwd {
     Some(cwd) => cwd
     None => @os.cwd()
@@ -55,177 +51,165 @@ pub async fn Server::new(
     register,
     serve,
     port,
-    tcp_server,
+    http_server,
     cwd,
   }
 }
 
 ///|
-async fn run_server(
-  tcp_server : @socket.TcpServer,
-  port~ : Int,
-  register? : Register,
-  f : async (@http.Request, @http.ServerConnection) -> Unit,
-) -> Unit {
-  if register is Some(register) {
-    println("[INFO] (Server \{register.id}) Listening on port \{port}")
-    println(
-      "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
-    )
-    let register_body : Json = { "id": register.id, "port": port }
-    let (register_response, register_body) = @http.post(
-      "http://\{register.host}/v1/task/register",
-      register_body,
-      port=register.port,
-    )
-    guard register_response.code is (200..=299) else {
-      raise json_error(500, "InternalServerError", {
-        "error": {
-          "code": register_response.code,
-          "message": register_response.reason,
-          "metadata": { "body": register_body.text() },
-        },
-      })
-    }
-  } else {
+async fn Server::register(self : Server) -> Unit {
+  guard self.register is Some(register) else {
     println(
       "[WARN] (Server) No register information provided; skipping registration.",
     )
     let pid = @spawn.getpid()
-    println("[INFO] (Server \{pid}) Listening on port \{port}")
+    println("[INFO] (Server \{pid}) Listening on port \{self.port}")
     println(
-      "[INFO] (Server \{pid}) Visit http://localhost:\{port}/ to access the server.",
+      "[INFO] (Server \{pid}) Visit http://localhost:\{self.port}/ to access the server.",
     )
+    return
   }
-  tcp_server.run_forever((sock, _) => for {
-    let conn = @http.ServerConnection::new(sock)
+  println("[INFO] (Server \{register.id}) Listening on port \{self.port}")
+  println(
+    "[INFO] (Server \{register.id}) Visit http://localhost:\{self.port}/ to access the server.",
+  )
+  let (r, b) = @http.post(
+    "http://\{register.host}/v1/task/register",
+    Json::object({ "id": register.id, "port": self.port }),
+    port=register.port,
+  )
+  guard r.code is (200..=299) else {
+    raise json_error(500, "InternalServerError", {
+      "error": {
+        "code": r.code,
+        "message": r.reason,
+        "metadata": { "body": b.text() },
+      },
+    })
+  }
+}
+
+///|
+async fn Server::serve_http(self : Server) -> Unit {
+  self.http_server.serve((r, w) => {
+    println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
     try {
-      let request = conn.read_request()
-      println(
-        "[INFO] (Server) Received request: \{request.meth} \{request.path}",
-      )
-      f(request, conn)
+      match (r.method_, r.path) {
+        (Options, _) => {
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(204)
+        }
+        (Get, "/") => {
+          let index_html = html_read_file(@path.join(self.serve, "index.html"))
+          w.header().set("Content-Type", "text/html")
+          w.write_header(200)
+          w.write(index_html)
+        }
+        (Get, "/v1/status") => {
+          let response : Json = { "status": self.status }
+          w.header().set("Content-Type", "application/json")
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(200)
+          w.write(response.stringify())
+        }
+        (Get, "/v1/queued-messages") => self.get_queued_messages(w)
+        (Get, "/v1/events") => self.get_events(w)
+        (Post, "/v1/message") => self.create_message(r, w)
+        (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
+        (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
+        (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
+          (try? @fsx.exists_as_file(path)) is Ok(true) => {
+          let content_type = match @path.ext(path) {
+            ".js" => "application/javascript"
+            ".css" => "text/css"
+            ".html" => "text/html"
+            ".png" => "image/png"
+            ".jpg" | ".jpeg" => "image/jpeg"
+            ".gif" => "image/gif"
+            _ => "application/octet-stream"
+          }
+          println("[DEBUG] (Server) Serving static file: \{path}")
+          let content = html_read_file(path)
+          w.header().set("Content-Type", content_type)
+          w.write_header(200)
+          w.write(content)
+        }
+        _ => {
+          w.header().set("Content-Type", "application/json")
+          w.header().set("Access-Control-Allow-Origin", "*")
+          w.header().set("Access-Control-Allow-Methods", "*")
+          w.header().set("Access-Control-Allow-Headers", "*")
+          w.write_header(404)
+          w.write(
+            Json::object({
+              "error": { "code": -1, "message": "Unknown endpoint: \{r.path}" },
+            }),
+          )
+        }
+      }
     } catch {
-      HttpError(code~, reason~, body~) =>
-        conn
-        ..send_response(code, reason, extra_headers={
-          "Content-Type": "application/json",
-        })
-        ..write(body)
-        ..end_response()
+      HttpError(code~, reason~, body~) => {
+        w.write_header(code, reason~)
+        w.write(body)
+      }
       error => raise error
     }
   })
 }
 
 ///|
-pub async fn Server::serve(server : Server) -> Unit {
-  @async.with_task_group(group => {
-    group.spawn_bg(
-      () => while true {
-        @async.with_task_group(group => {
-          let (msg, idq) = server.message_queue.get()
-          server.maria.agent.add_message(msg)
-          group.spawn_bg(
-            () => while true {
-              let (msg, idq) = server.message_queue.get()
-              let id = server.maria.agent.queue_message(msg)
-              idq.put(Some(id))
+async fn Server::start_maria(self : Server) -> Unit {
+  while true {
+    @async.with_task_group(group => {
+      let (msg, idq) = self.message_queue.get()
+      self.maria.agent.add_message(msg)
+      group.spawn_bg(
+        () => while true {
+          let (msg, idq) = self.message_queue.get()
+          let id = self.maria.agent.queue_message(msg)
+          idq.put(Some(id))
+        },
+        no_wait=true,
+      )
+      idq.put(None)
+      self.status = Busy
+      defer {
+        self.status = Idle
+      }
+      self.maria.agent.start() catch {
+        error =>
+          self.maria.logger.error("MariaFailed", data={
+            "error": {
+              "code": -1,
+              "message": error.to_string(),
+              "metadata": error,
             },
-            no_wait=true,
-          )
-          idq.put(None)
-          server.status = Busy
-          defer {
-            server.status = Idle
-          }
-          server.maria.agent.start() catch {
-            error =>
-              server.maria.logger.error("MariaFailed", {
-                "error": {
-                  "code": -1,
-                  "message": error.to_string(),
-                  "metadata": error,
-                },
-              })
-          }
-        })
-      },
-      allow_failure=true,
-    )
-    run_server(port=server.port, server.tcp_server, register?=server.register, (
-      request,
-      w,
-    ) => match (request.meth, request.path) {
-      (Options, _) => {
-        w.send_response(204, "No Content", extra_headers={
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "*",
-          "Access-Control-Allow-Headers": "*",
-        })
-        w.end_response()
+          })
       }
-      (Get, "/") => {
-        let index_html = html_read_file(@path.join(server.serve, "index.html"))
-        w.send_response(200, "OK", extra_headers={ "Content-Type": "text/html" })
-        w.write(index_html)
-        w.end_response()
-      }
-      (Get, "/v1/status") => {
-        let response : Json = { "status": server.status }
-        w.send_response(200, "OK", extra_headers={
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "*",
-          "Access-Control-Allow-Headers": "*",
-        })
-        w.write(response.stringify())
-        w.end_response()
-      }
-      (Get, "/v1/queued-messages") => server.get_queued_messages(w)
-      (Get, "/v1/events") => server.get_events(w)
-      (Post, "/v1/message") => server.create_message(w)
-      (Get, "/v1/moonbit/modules") => server.list_moonbit_modules(w)
-      (Post, "/v1/moonbit/publish") => publish_moonbit_module(w)
-      (Get, ['/', .. file]) if "\{server.serve}/\{file}" is path &&
-        (try? @fsx.exists_as_file(path)) is Ok(true) => {
-        let content_type = match @path.ext(path) {
-          ".js" => "application/javascript"
-          ".css" => "text/css"
-          ".html" => "text/html"
-          ".png" => "image/png"
-          ".jpg" | ".jpeg" => "image/jpeg"
-          ".gif" => "image/gif"
-          _ => "application/octet-stream"
-        }
-        println("[DEBUG] (Server) Serving static file: \{path}")
-        let content = html_read_file(path)
-        w.send_response(200, "OK", extra_headers={
-          "Content-Type": content_type,
-        })
-        w.write(content)
-        w.end_response()
-      }
-      _ =>
-        raise json_error(404, "NotFound", {
-          "error": {
-            "code": -1,
-            "message": "Unknown endpoint: \{request.path}",
-          },
-        })
     })
+  }
+}
+
+///|
+pub async fn Server::start(self : Server) -> Unit {
+  @async.with_task_group(group => {
+    group.spawn_bg(() => self.start_maria(), allow_failure=true)
+    self.register()
+    self.serve_http()
   })
 }
 
 ///|
-async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
-  w.send_response(200, "OK", extra_headers={
-    "Content-Type": "text/event-stream",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-    "X-Accel-Buffering": "no",
-  })
+async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  w.header().set("Content-Type", "text/event-stream")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
   w.write("event: maria.queued_messages.synchronized\n")
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
@@ -281,7 +265,7 @@ async fn Server::get_events(self : Server, w : @http.ServerConnection) -> Unit {
 ///|
 async fn Server::get_queued_messages(
   self : Server,
-  w : @http.ServerConnection,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
@@ -289,22 +273,21 @@ async fn Server::get_queued_messages(
     queued_messages.push({ "id": id, "message": message.to_json() })
   }
   let response : Json = queued_messages.to_json()
-  w.send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
   w.write(response.stringify())
-  w.end_response()
 }
 
 ///|
 async fn Server::create_message(
   self : Server,
-  conn : @http.ServerConnection,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = conn.read_all().binary()
+  let body_data = r.read_all().binary()
   let body_text : String = @encoding/utf8.decode(body_data) catch {
     // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>
@@ -351,12 +334,10 @@ async fn Server::create_message(
     }
   }
   let response : Json = { "id": id, "queued": queued }
-  conn.send_response(200, "OK", extra_headers={
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  conn.write(response.stringify())
-  conn.end_response()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
 }

@@ -26,7 +26,7 @@ pub async fn chat(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
     () => {
-      logger.debug("RequestSent", {
+      logger.debug("RequestSent", data={
         "model": { "name": model.model_name, "base_url": model.base_url },
         "request": request,
       })
@@ -46,11 +46,11 @@ pub async fn chat(
         let reader = ChunkReader::new(client)
         let builder = ChatCompletionBuilder::new()
         while reader.read() is Some(chunk) {
-          logger.debug("ChunkReceived", { "chunk": chunk })
+          logger.debug("ChunkReceived", data={ "chunk": chunk })
           builder.add_chunk(chunk)
         }
         let chat_completion = builder.to_chat_completion()
-        logger.debug("ResponseReceived", {
+        logger.debug("ResponseReceived", data={
           "model": { "name": model.model_name, "base_url": model.base_url },
           "response_code": response.code,
           "response_body": chat_completion,
@@ -60,7 +60,7 @@ pub async fn chat(
         let body = client.read_all().text()
         let json = @json.parse(body)
         let chat_completion : ChatCompletion = @json.from_json(json)
-        logger.debug("ResponseReceived", {
+        logger.debug("ResponseReceived", data={
           "model": { "name": model.model_name, "base_url": model.base_url },
           "response_code": response.code,
           "response_body": chat_completion,

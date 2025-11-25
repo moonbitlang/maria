@@ -124,13 +124,13 @@ async fn Extractor::extract_code_snippets_from_chunk(
 }
 
 ///|
-struct Range {
+priv struct Range {
   start_line : Int
   end_line : Int
 }
 
 ///|
-pub impl @json.FromJson for Range with from_json(
+impl @json.FromJson for Range with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Range raise {
@@ -160,7 +160,7 @@ fn merge_overlapping_snippets(snippets : Array[Range]) -> Array[Range] {
   let mut current = snippets[0]
   for i in 1..<snippets.length() {
     let snippet = snippets[i]
-    if snippet.start_line <= current.end_line {
+    if snippet.start_line <= current.end_line && merged.last() is Some(_) {
       merged[merged.length() - 1] = Range::{
         start_line: current.start_line,
         end_line: @cmp.maximum(current.end_line, snippet.end_line),
@@ -185,9 +185,10 @@ fn build_snippet_content(content : String, snippets : Array[Range]) -> String {
     builder.write_string("# Lines \{start + 1}-\{end}\n")
     for i in start..<end {
       let line = lines[i]
-      builder.write_substring(line.data(), 0, line.length())
+      builder.write_stringview(line)
       builder.write_char('\n')
     }
+    builder.write_char('\n')
   }
   builder.to_string()
 }
@@ -214,8 +215,8 @@ pub async fn Extractor::extract_code_snippets(
         partial=true,
       )
       try {
-        let snippet : Range = extracted |> @json.from_json()
-        snippets.push(snippet)
+        let extracted : Array[Range] = extracted |> @json.from_json()
+        snippets.append(extracted)
       } catch {
         _ => continue
       }

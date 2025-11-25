@@ -134,6 +134,33 @@ fn Encoding::encode_piece(
 }
 
 ///|
+/// There are three regex patterns to split text into pieces.
+///
+/// - `cl100k_base`
+/// - `r50k`
+/// - `o200k_base`
+/// 
+/// The main purpose of these regexes is only for English text splitting.
+/// 
+/// 1. Enclitics, e.g. 's, 't, Warning: `r50k` is case-sensitive, both `cl100k_base` and `o200k_base` are case-insensitive.
+/// 2. letters with optional leading 1 space, Warning: `cl100k_base` and `o200k_base` start with non-letter and non-digit, `o200k_base`'s letter pattern is more refined to distinguish upper case and lower case letters.
+/// 3. integer with optional leading 1 space, Warning: `r50k` has no limit on digits, but others limit to 1-3 digits.
+/// 4. non-letter and non-digit with optional leading 1 space, Warning: this is not very friendly to CJK characters, this split algorithm is too rough, highly relying on the transformer model's ability to handle such cases.
+/// 5. space excluding last space (except end of text) 
+/// 
+/// `cl100k_base` and `o200k_base` also handle end of line characters for semantic text splitting.
+/// 
+/// These regex patterns seem to be a quick and dirty solution in `openai/tiktoken`'s early stage, but retraining the model is too costly.
+/// Blame the OpenAI Python developers who didn't consider regex maintainability and performance—none of the regexes, and regex not work well for edge cases.
+/// 
+/// To improve performance, Rust developers use `fancy-regex` and multi-threading instead of the `regex` Python module (whose underlying implementation is `mrab-regex`) used by previous Python developers.
+/// 
+/// Some Rust developers rewrote these regexes and replaced `fancy-regex` with the `regex` crate—6x speed up in [openai/tiktoken#331](https://github.com/openai/tiktoken/pull/331), but no one dares to merge it due to potential risk.
+/// 
+/// This is a classic tech debt story: OpenAI in the early stage couldn't predict they would succeed so well, 
+/// and in the later development stage, they became path dependent on the regex solution instead of adopting a more robust text splitting solution.
+
+///|
 let cl100k_base_regex : @regexp.Regexp = try! @regexp.compile(
   (
     #|'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s+$|\s*[\r\n]|\s+(?<Assertion>\s)|\s

@@ -3,7 +3,6 @@
   "import": [
     "moonbitlang/async/http",
     "moonbitlang/async",
-    "moonbitlang/async/socket",
     "moonbitlang/async/io",
     "moonbitlang/maria",
     "moonbitlang/maria/internal/os",
@@ -18,8 +17,9 @@
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/maria/internal/rand"
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/httpx",
+    "moonbitlang/maria/event"
   ],
-  "wbtest-import": ["moonbitlang/maria/internal/mock"],
-  "test-import": ["moonbitlang/maria/internal/mock"]
+  "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async/socket"]
 }

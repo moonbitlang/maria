@@ -37,7 +37,7 @@ async fn generate(
       let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
       maria.start(prompt) catch {
         error => {
-          logger.error("MariaFailed", { "error": error.to_string() })
+          logger.error("MariaFailed", data={ "error": error.to_string() })
           raise error
         }
       }

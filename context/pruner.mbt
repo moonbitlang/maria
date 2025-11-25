@@ -74,7 +74,7 @@ pub async fn Pruner::prune_messages(
   } else {
     false
   }
-  pruner.logger.info("ContextPruned", {
+  pruner.logger.info("ContextPruned", data={
     "origin_token_count": tokens,
     "pruned_token_count": pruned_tokens,
     "pruned_index": pruned_index,

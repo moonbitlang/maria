@@ -4,9 +4,15 @@ fn StringView::end_offset(self : StringView) -> Int {
 }
 
 ///|
+/// Path component separator
 pub let sep : Char = '/'
 
 ///|
+/// Return the directory name of path.
+/// 
+/// This behavior is similar to Python `os.path.dirname`, but inconsistent with Posix convention dirname command.
+/// 
+/// edge cases: when path is relative path without directory component, return "."
 pub fn dirname(path : StringView) -> StringView {
   loop path {
     [] => "."
@@ -26,6 +32,13 @@ pub fn dirname(path : StringView) -> StringView {
 }
 
 ///|
+/// Return the basename of path 
+/// 
+/// 1. first trim trailing `/` if not root `/`
+/// 2. extract last component after last `/`
+/// 
+/// This behavior is consistent with Posix convention basename command, but inconsistent with Python `os.path.basename`
+/// 
 pub fn basename(path : StringView) -> StringView {
   let path = match path {
     [.. path, '/'] => path
@@ -39,15 +52,21 @@ pub fn basename(path : StringView) -> StringView {
 }
 
 ///|
+/// Extract extension name exclude `.`
+/// 
+/// property: `stem(path) + "." + ext(path)`
 pub fn ext(path : StringView) -> StringView {
   loop path.view() {
-    [] => ""
+    [] | [.., '/'] => ""
     [.. view, '.'] => path.view(start_offset=view.end_offset())
     [.. view, _] => continue view
   }
 }
 
 ///|
+/// Extract stem part exclude `.`
+/// 
+/// property: `stem(path) + "." + ext(path)`
 pub fn stem(path : StringView) -> StringView {
   loop path.view() {
     [] => path
@@ -57,6 +76,7 @@ pub fn stem(path : StringView) -> StringView {
 }
 
 ///|
+/// Split each path component, handle redundant slashes but doesn't resolve `.` and `..`.
 pub fn split(view : StringView) -> Iter[StringView] {
   Iter::new(each => {
     let view = match view {
@@ -149,6 +169,7 @@ fn push_normalized_part(parts : Array[StringView], part : StringView) -> Unit {
 }
 
 ///|
+/// Normalize path by resolving `.` and `..` and eliminating redundant slashes.
 pub fn normalize(view : StringView) -> String {
   let parts = []
   for part in split(view) {
@@ -158,15 +179,20 @@ pub fn normalize(view : StringView) -> String {
 }
 
 ///|
+/// 1. normalize path.
+/// 2. if rhs is absolute path, return rhs.
 pub fn join(p : StringView, q : StringView) -> String {
   let p = normalize(p)
   let q = normalize(q)
+  // confuse behvior.
+  // Python' os.path.join doesn't has this behavior.
   if p is "." {
     return q
   }
   if q is "." {
     return p
   }
+  // Python's os.path.join behavior or Node.js `path.resolve` semantics.
   if is_absolute(q) {
     return q
   }
@@ -188,6 +214,11 @@ pub fn is_relative(path : StringView) -> Bool {
 }
 
 ///|
+/// Return relative path from `from` to `to`, `from` treated as current working directory.
+///
+/// property: `join(from, relative(from, to)) == resolve(to)`
+/// 
+/// join already normalizes the path, so no need to normalize here.
 pub fn relative(from : StringView, to : StringView) -> String raise {
   let from = resolve(from)
   let to = resolve(to)
@@ -214,6 +245,10 @@ pub fn relative(from : StringView, to : StringView) -> String raise {
 }
 
 ///|
+/// Resolve relative path to absolute path.
+/// 
+/// 1. if absolute path is given, normalize and return it.
+/// 2. if relative path is given, join it with current working directory,
 pub fn resolve(view : StringView) -> String raise {
   if is_absolute(view) {
     return normalize(view)

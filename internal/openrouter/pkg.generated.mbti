@@ -1,0 +1,70 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/openrouter"
+
+import(
+  "moonbitlang/async/http"
+  "moonbitlang/async/io"
+  "moonbitlang/core/json"
+)
+
+// Values
+async fn get_models(api_key~ : StringView) -> Array[Model]
+
+async fn get_models_count(api_key~ : StringView) -> Int
+
+// Errors
+pub suberror InvalidResponse {
+  InvalidResponse(@http.Response, &@io.Data)
+}
+
+// Types and methods
+pub struct Architecture {
+  input_modalities : Array[String]
+  output_modalities : Array[String]
+  tokenizer : String
+  instruct_type : String?
+}
+impl ToJson for Architecture
+impl @json.FromJson for Architecture
+
+pub struct Model {
+  id : String
+  canonical_slug : String
+  name : String
+  created : Int64
+  description : String
+  context_length : Int
+  architecture : Architecture
+  pricing : Pricing
+  top_provider : TopProvider
+  per_request_limits : Json?
+  supported_parameters : Array[String]
+}
+impl ToJson for Model
+impl @json.FromJson for Model
+
+pub struct Pricing {
+  prompt : String
+  completion : String
+  request : String?
+  image : String?
+  web_search : String?
+  internal_reasoning : String?
+  input_cache_read : String?
+  input_cache_write : String?
+}
+impl ToJson for Pricing
+impl @json.FromJson for Pricing
+
+pub struct TopProvider {
+  context_length : Int?
+  max_completion_tokens : Int?
+  is_moderated : Bool
+}
+impl ToJson for TopProvider
+impl @json.FromJson for TopProvider
+
+// Type aliases
+
+// Traits
+

@@ -28,6 +28,8 @@ test "basename" {
 ///|
 test "ext" {
   @json.inspect(@path.ext("a/b/c.jpg"), content=".jpg")
+  @json.inspect(@path.ext("a/b/c"), content="")
+  @json.inspect(@path.ext("a/b.c/d"), content="")
 }
 
 ///|
@@ -129,4 +131,11 @@ test "choose second if absolute" {
     @path.join(p, q),
     content="/var/folders/rd/k3wf07sd32g2cdsy6q13jp3c0000gn/T/moonbit-taco-XXXXXXX",
   )
+}
+
+///|
+test "ext/stem:edge cases" {
+  let path = "proj.tar/file"
+  inspect(@path.ext(path), content="")
+  inspect(@path.stem(path), content="proj")
 }
