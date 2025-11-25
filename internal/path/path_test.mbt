@@ -139,3 +139,32 @@ test "ext/stem:edge cases" {
   inspect(@path.ext(path), content="")
   inspect(@path.stem(path), content="proj")
 }
+
+///|
+test "replace_ext" {
+  let path = "main.mbt"
+  inspect(replace_ext(path, ".c"), content="main.c")
+  let path = "main"
+  inspect(replace_ext(path, ".mbt"), content="main.mbt")
+  let path = "main.com/file"
+  inspect(replace_ext(path, ".c"), content="main.com/file.c")
+}
+
+///|
+test "replace_ext: undefined behavior" {
+  // This test cases define `replace_ext` undefined behavior.
+  // user should not abuse this behavior in some uncommon cases.
+  //
+  // some input would disappear when path is resolved and normalized.
+  let ext = ".md"
+  // empty file name.
+  inspect(replace_ext("", ext), content=".md")
+  // special file name.
+  inspect(replace_ext(".", ext), content=".md")
+  inspect(replace_ext("..", ext), content="..md")
+  // POSIX platform specific cases
+  inspect(replace_ext("//", ext), content="//.md")
+  // root cases 
+  inspect(replace_ext("/", ext), content="/.md")
+  inspect(replace_ext("///", ext), content="///.md")
+}

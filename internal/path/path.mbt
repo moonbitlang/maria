@@ -65,6 +65,21 @@ pub fn ext(path : StringView) -> StringView {
 }
 
 ///|
+pub fn replace_ext(path : StringView, ext : StringView) -> String {
+  let old_ext_len = Path::extname(path.to_string()).length()
+  let directory_stem = path.view(
+    start_offset=0,
+    end_offset=path.length() - old_ext_len,
+  )
+  let buffer = StringBuilder::new(
+    size_hint=(directory_stem.length() + ext.length()) << 1,
+  )
+  buffer.write_stringview(directory_stem)
+  buffer.write_stringview(ext)
+  buffer.to_string()
+}
+
+///|
 /// Extract stem part exclude `.`
 /// 
 /// property: `stem(path) + "." + ext(path)`
