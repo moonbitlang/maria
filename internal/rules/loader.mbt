@@ -24,9 +24,6 @@ async fn Loader::load_rules_from_directory(
     is @fsx.FileKind::Regular &&
     e.name.has_suffix(".md"))
   for rule_path in dir {
-    // Entry::name is the basename of the directory entry, so here
-    // the @path.stem application is equivalent to
-    // `@path.stem(@path.basename(...))`.
     let name = @path.stem(rule_path.name).to_string()
     self.rules[name] = Rule::parse(@fsx.read_file(rule_path.path), source~)
   }
