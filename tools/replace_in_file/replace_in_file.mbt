@@ -67,7 +67,7 @@ async fn @file.Manager::execute_replace_in_file(
 
     // Read existing file content
     let content = match search {
-      None =>
+      None | Some("") =>
         // No search provided, replace entire file content
         replace
       Some(search_content) => {
