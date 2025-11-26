@@ -145,20 +145,20 @@ test "replace_ext" {
 }
 
 ///|
-test "replace_ext: undefined behavior" {
+test "replace_ext: failed cases" {
   // This test cases define `replace_ext` undefined behavior.
   // user should not abuse this behavior in some uncommon cases.
   //
   // some input would disappear when path is resolved and normalized.
   let ext = ".md"
   // empty file name.
-  inspect(replace_ext("", ext), content=".md")
+  inspect(replace_ext("", ext), content="")
   // special file name.
-  inspect(replace_ext(".", ext), content=".md")
-  inspect(replace_ext("..", ext), content="..md")
+  inspect(replace_ext(".", ext), content=".")
+  inspect(replace_ext("..", ext), content="..")
   // POSIX platform specific cases
-  inspect(replace_ext("//", ext), content="//.md")
+  inspect(replace_ext("//", ext), content="//")
   // root cases 
-  inspect(replace_ext("/", ext), content="/.md")
-  inspect(replace_ext("///", ext), content="///.md")
+  inspect(replace_ext("/", ext), content="/")
+  inspect(replace_ext("///", ext), content="///")
 }

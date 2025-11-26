@@ -65,18 +65,44 @@ pub fn ext(path : StringView) -> StringView {
 }
 
 ///|
+/// replace extension name with `ext`, if basename exists.
+/// 
+/// failed cases: 
+///   1. if `basename(path)` is empty, return original path. 
+///   2. if `basename(path)` is `.` or `..`, return original path.
+/// 
+/// This API is not consistent with Python `pathlib.Path.with_suffix`, which would raise exception in failed cases.
+/// 
+/// Justification:
+/// 
+/// when `replace_ext` fails, returning original path is logging friendly behavior,
+/// by the way if `replace_ext` fails, user also hasn't good way to handle this error case.
+/// 
+/// for other purpose, if return original path LLM can re-try to diagnostic the issue.
+/// 
 pub fn replace_ext(path : StringView, ext : StringView) -> String {
-  let old_ext_len = Path::extname(path.to_string()).length()
-  let directory_stem = path.view(
-    start_offset=0,
-    end_offset=path.length() - old_ext_len,
-  )
-  let buffer = StringBuilder::new(
-    size_hint=(directory_stem.length() + ext.length()) << 1,
-  )
-  buffer.write_stringview(directory_stem)
-  buffer.write_stringview(ext)
-  buffer.to_string()
+  let basename = basename(path)
+  match basename {
+    "" => return path.to_string()
+    "." => return path.to_string()
+    ".." => return path.to_string()
+    _ => {
+      let old_ext_len = match basename.rev_find(".") {
+        None => 0
+        Some(idx) => basename.length() - idx
+      }
+      let directory_stem = path.view(
+        start_offset=0,
+        end_offset=path.length() - old_ext_len,
+      )
+      let buffer = StringBuilder::new(
+        size_hint=(directory_stem.length() + ext.length()) << 1,
+      )
+      buffer.write_stringview(directory_stem)
+      buffer.write_stringview(ext)
+      buffer.to_string()
+    }
+  }
 }
 
 ///|
