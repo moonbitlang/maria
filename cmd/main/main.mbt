@@ -6,6 +6,8 @@ async fn main {
     ["migrate", .. rest] => @migrator.migrate(rest)
     ["conversations"] => @conversation.list()
     ["conversation", .. rest] => @conversation.show(rest)
+    ["server", .. rest] => @server.start(rest)
+    ["daemon", .. rest] => @daemon.start(rest)
     [.. rest] => @interactive.interactive(rest)
   }
 }

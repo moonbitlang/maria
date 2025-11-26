@@ -1,10 +1,9 @@
 ///|
-async fn main {
-  let args = @os.args()
+pub async fn start(args : ArrayView[String]) -> Unit {
   let mut port = 8090
   let mut serve = @os.cwd()
   let mut exec_path = None
-  loop args[1:] {
+  loop args {
     ["-p" | "--port", p, .. args] => {
       port = @strconv.parse_int(p)
       continue args
@@ -23,8 +22,10 @@ async fn main {
     }
     [] => break
   }
-  guard exec_path is Some(exec_path) else {
-    fail("Expected exec path as the first argument")
+  let exec_path = if exec_path is Some(exec_path) {
+    exec_path
+  } else {
+    @os.executable()
   }
   let daemon = Daemon::new(exec_path~, port~, serve~)
   daemon.serve()

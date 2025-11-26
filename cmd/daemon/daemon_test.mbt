@@ -30,7 +30,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
     uuid=mock.uuid,
     cwd=mock.cwd.path(),
     exec_path=@path.join(
-      os_cwd, "target/native/release/build/cmd/server/server.exe",
+      os_cwd, "target/native/release/build/cmd/main/main.exe",
     ),
     port=0,
     serve=@path.join(os_cwd, "cmd/daemon"),

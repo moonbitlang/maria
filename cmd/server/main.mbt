@@ -174,15 +174,14 @@ async fn publish_moonbit_module(
 }
 
 ///|
-async fn main {
-  let args = @os.args()
+pub async fn start(args : ArrayView[String]) -> Unit {
   let mut model = None
   let mut port = 0
   let mut serve = @os.cwd()
   let mut register_host = None
   let mut register_port = None
   let mut register_id = None
-  loop args[1:] {
+  loop args {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
         fail("Expected model name after \{args[0]}")

@@ -211,6 +211,7 @@ async fn Daemon::create_task(
   }
   let id = self.uuid.v4()
   let args = [
+    "server",
     "--model",
     model.name,
     "--port",
