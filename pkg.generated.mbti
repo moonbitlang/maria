@@ -15,10 +15,12 @@ import(
 pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
+  // private fields
 }
 fn Maria::close(Self) -> Unit
 #as_free_fn
 async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, cwd? : String) -> Self
+fn Maria::result(Self) -> String?
 async fn Maria::start(Self, String) -> Unit
 
 // Type aliases

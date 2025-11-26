@@ -2,6 +2,7 @@
 pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
+  priv result : Ref[String?]
 }
 
 ///|
@@ -22,6 +23,7 @@ pub async fn Maria::new(
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
   let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
+  let result : Ref[String?] = Ref::new(None)
   agent.add_tools([
     @execute_command.new(job_manager).to_agent_tool(),
     @list_files.new(file_manager).to_agent_tool(),
@@ -30,13 +32,14 @@ pub async fn Maria::new(
     @todo_write.new(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
     @meta_write_to_file.new(agent).to_agent_tool(),
+    @attempt_completion.new(result).to_agent_tool(),
   ])
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
   ].join("\n")
   let system_message = @openai.system_message(content=system_prompt)
   agent.add_message(system_message)
-  Maria::{ logger, agent }
+  Maria::{ logger, agent, result }
 }
 
 ///|
@@ -49,4 +52,9 @@ pub async fn Maria::start(self : Maria, prompt : String) -> Unit {
   let user_message = @openai.user_message(content=prompt)
   self.agent.add_message(user_message)
   self.agent.start()
+}
+
+///|
+pub fn Maria::result(self : Maria) -> String? {
+  self.result.val
 }

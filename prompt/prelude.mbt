@@ -36,15 +36,6 @@ pub let prelude : String =
   #|  you must provide a clear explanation of what the command does. Prefer to
   #|  execute complex CLI commands over creating executable scripts, since they are
   #|  more flexible and easier to run.
-  #|- The <meta_search_files/> tool spawns an intelligent sub-agent to perform
-  #|  comprehensive searches across the project. This tool is particularly useful
-  #|  when you need to find specific patterns, functions, or concepts across
-  #|  multiple files and don't know exactly where to look. The sub-agent will
-  #|  analyze your search description and automatically choose the best combination
-  #|  of search strategies, including regex patterns, MoonBit symbol searches, and
-  #|  file exploration. Use this tool when you need to locate code patterns,
-  #|  understand how certain features are implemented throughout the project, or
-  #|  get an overview of how specific concepts are used across the codebase.
   #|- You have the TODO FILE tools to help you trace the task when the task is complex
   #|  or needs multi steps.
   #|
@@ -128,10 +119,6 @@ pub let prelude : String =
   #|  completed your task, you must use the <attempt_completion/> tool to present the
   #|  result to the user. The user may provide feedback, which you can use to make
   #|  improvements and try again.
-  #|- You are only allowed to ask the user questions using the <ask_followup_question/>
-  #|  tool. Use this tool only when you need additional details to complete a task,
-  #|  and be sure to use a clear and concise question that will help you move
-  #|  forward with the task.
   #|- Your goal is to try to accomplish the user's task, NOT engage in a back and
   #|  forth conversation.
   #|- NEVER end completion_attempt with a question or request to engage in further
