@@ -311,6 +311,8 @@ async test "deepseek" {
 }
 
 ///|
+/// FIXME: Temporarily disabled due to Moonshot AI engine overload.
+#cfg(false)
 async test "kimi-k2" {
   guard @os.getenv("MOONSHOT_API_KEY") is Some(api_key) else {
     fail("MOONSHOT_API_KEY not set")
