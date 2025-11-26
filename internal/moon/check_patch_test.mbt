@@ -138,3 +138,51 @@ async test "check_patch" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "check_patch_test" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock
+    .add_file("moon.mod.json")
+    .write_json({ "name": "username/example", "version": "0.1.0" })
+    mock.add_file("moon.pkg.json").write_json({})
+    mock
+    .add_file("a.mbt")
+    .write_string(
+      (
+        #|///|
+        #|pub let x : Int = 42
+      ),
+    )
+    let moon = @moon.Module::load(mock.cwd.path())
+    moon.check()
+    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
+    @json.inspect(
+      mock.json(
+        moon.check_patch_insert(
+          @path.join(mock.cwd.path(), "a_test.mbt"),
+          (
+            #|test "patched-test" {
+            #|  @json.inspect(@example.x, 42)
+            #|}
+          ),
+        ),
+      ),
+      content=[
+        "Diagnostics",
+        [
+          {
+            "error_code": 4080,
+            "level": "Error",
+            "loc": {
+              "end": { "col": 32, "line": 2 },
+              "path": "(mock:cwd)/a_test.mbt",
+              "start": { "col": 3, "line": 2 },
+            },
+            "message": "This function has type: \n\t#callsite(autofill(args_loc, loc))\n\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\nwhich requires 1 positional arguments, but is given 2 positional arguments.",
+          },
+        ],
+      ],
+    )
+  })
+}
