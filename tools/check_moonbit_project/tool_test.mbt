@@ -69,7 +69,7 @@ async test "check_moonbit_project" (t : @test.Test) {
 }
 
 ///|
-async test "check_moonbit_project/patch-insert" (t : @test.Test) {
+async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_files([
       (
@@ -132,7 +132,7 @@ async test "check_moonbit_project/patch-insert" (t : @test.Test) {
           ],
         ],
         "diagnostic_limit": 10,
-        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:1:18-20: Expr Type Mismatch\n        has type : Int\n        wanted   : String\n 1 │ ///|\n   │                  ^^\n\nwarning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'y'\n 1 │ ///|\n   │     ^",
+        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:1:18-20: Expr Type Mismatch\n        has type : Int\n        wanted   : String\n 1 │ let y : String = 42\n   │                  ^^\n\nwarning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'y'\n 1 │ let y : String = 42\n   │     ^",
       },
     ])
     inspect(
@@ -143,12 +143,80 @@ async test "check_moonbit_project/patch-insert" (t : @test.Test) {
         #|error[4014]: (mock:cwd)/example.mbt:1:18-20: Expr Type Mismatch
         #|        has type : Int
         #|        wanted   : String
-        #| 1 │ ///|
+        #| 1 │ let y : String = 42
         #|   │                  ^^
         #|
         #|warning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'y'
-        #| 1 │ ///|
+        #| 1 │ let y : String = 42
         #|   │     ^
+      ),
+    )
+  })
+}
+
+///|
+async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
+  @mock.run(t, mock => {
+    mock.add_files([
+      (
+        "moon.mod.json",
+        { "name": "username/example", "version": "0.1.0" }.to_json().stringify(),
+      ),
+      ("moon.pkg.json", Json::object({}).stringify()),
+      (
+        "example.mbt",
+        (
+          #|///|
+          #|pub let x : Int = 42
+          #|
+        ),
+      ),
+    ])
+    let args = @check_moonbit_project.input_json(
+      diagnostic_limit=10,
+      project_path=mock.cwd.path(),
+      patch_code=(
+        #|test "patched-test" {
+        #|  @json.inspect(@example.x, "string")
+        #|}
+      ),
+      patch_file_name="example_test.mbt",
+    )
+    let tool = @check_moonbit_project.new(mock.cwd.path())
+    let result = tool.call(args)
+    @json.inspect(mock.json(result), content=[
+      "Ok",
+      {
+        "diagnostics": [
+          "Diagnostics",
+          [
+            {
+              "error_code": 4080,
+              "level": "Error",
+              "loc": {
+                "end": { "col": 38, "line": 2 },
+                "path": "(mock:cwd)/example_test.mbt",
+                "start": { "col": 3, "line": 2 },
+              },
+              "message": "This function has type: \n\t#callsite(autofill(args_loc, loc))\n\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\nwhich requires 1 positional arguments, but is given 2 positional arguments.",
+            },
+          ],
+        ],
+        "diagnostic_limit": 10,
+        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4080]: (mock:cwd)/example_test.mbt:2:3-38: This function has type: \n\t#callsite(autofill(args_loc, loc))\n\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\nwhich requires 1 positional arguments, but is given 2 positional arguments.\n 2 │   @json.inspect(@example.x, \"string\")\n   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      },
+    ])
+    inspect(
+      mock.show(result),
+      content=(
+        #|MoonBit project check found the following diagnostics:
+        #|
+        #|error[4080]: (mock:cwd)/example_test.mbt:2:3-38: This function has type: 
+        $|\t#callsite(autofill(args_loc, loc))
+        $|\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError
+        #|which requires 1 positional arguments, but is given 2 positional arguments.
+        #| 2 │   @json.inspect(@example.x, "string")
+        #|   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
       ),
     )
   })

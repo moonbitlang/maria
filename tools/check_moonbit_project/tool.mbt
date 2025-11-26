@@ -114,6 +114,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
             error~,
           )
       }
+      let overlay = {}
       let diagnostics = if args.patch_code is Some(code) &&
         args.patch_file_name is Some(file_path) {
         let resolved_file_path = if @path.is_absolute(file_path) {
@@ -121,6 +122,7 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
         } else {
           @path.join(resolved_project_path, file_path)
         }
+        overlay[resolved_file_path] = code
         moon.check_patch_insert(resolved_file_path, code) catch {
           error =>
             return @tool.error("Error: Failed to check patch: \{error}", error~)
@@ -144,12 +146,18 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
           rendered_diagnostics: "MoonBit project check passed with no diagnostics found.",
         })
       } else {
-        let rendered_diagnostics = diagnostics.render(limit=diagnostic_limit)
+        let rendered_diagnostics = diagnostics.render(
+          limit=diagnostic_limit,
+          overlay~,
+        )
         @tool.ok(CheckMoonbitProjectResult::{
           diagnostics,
           diagnostic_limit,
-          rendered_diagnostics: "MoonBit project check found the following diagnostics:\n\n" +
-          "\{rendered_diagnostics}",
+          rendered_diagnostics: (
+            $|MoonBit project check found the following diagnostics:
+            $|
+            $|\{rendered_diagnostics}
+          ),
         })
       }
     },
