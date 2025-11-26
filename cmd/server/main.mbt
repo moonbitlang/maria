@@ -77,7 +77,7 @@ async fn publish_moonbit_module(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request = r.read_all().binary()
+  let request = r.body.read_all().binary()
   let request_text : String = @encoding/utf8.decode(request) catch {
     // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>

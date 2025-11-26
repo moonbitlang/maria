@@ -289,7 +289,7 @@ async fn Server::create_message(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = r.read_all().binary()
+  let body_data = r.body.read_all().binary()
   let body_text : String = @encoding/utf8.decode(body_data) catch {
     // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>
