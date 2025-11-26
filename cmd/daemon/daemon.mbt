@@ -106,7 +106,7 @@ async fn Daemon::create_task(
   w : @httpx.ResponseWriter,
 ) -> Unit {
   guard {
-      let bytes = r.read_all().binary()
+      let bytes = r.body.read_all().binary()
       let text = @encoding/utf8.decode(bytes) catch {
         @encoding/utf8.Malformed(bytes) =>
           raise json_error(
@@ -317,7 +317,7 @@ async fn Daemon::register_task(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request_bytes = r.read_all().binary()
+  let request_bytes = r.body.read_all().binary()
   let request_text = @encoding/utf8.decode(request_bytes) catch {
     @encoding/utf8.Malformed(bytes) =>
       raise json_error(
@@ -427,7 +427,7 @@ async fn Daemon::get_task_events(
   }
   let (r, c) = @http.get_stream(
     "http://localhost:\{task.port}/v1/events",
-    body=r.read_all(),
+    body=r.body.read_all(),
   )
   w.header().set("Content-Type", "text/event-stream")
   w.header().set("Access-Control-Allow-Origin", "*")
@@ -462,7 +462,7 @@ async fn Daemon::list_moonbit_modules(
   println("[INFO] Forwarding moonbit modules request to task \{id}...")
   let (r, b) = @http.get(
     "http://localhost:\{server.port}/v1/moonbit/modules",
-    body=r.read_all(),
+    body=r.body.read_all(),
   )
   w.header().set("Content-Type", "application/json")
   w.header().set("Access-Control-Allow-Origin", "*")
@@ -494,7 +494,7 @@ async fn Daemon::create_task_message(
   }
   let (response, response_body) = @http.post(
     "http://localhost:\{task.port}/v1/message",
-    r.read_all(),
+    r.body.read_all(),
   )
   println(
     "[INFO] (Daemon) Forwarded message to task \{id} @ localhost:\{task.port}",

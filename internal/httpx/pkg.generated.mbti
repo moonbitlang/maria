@@ -73,7 +73,6 @@ pub struct RequestReader {
   path : StringView
   vars : Map[StringView, StringView]
 }
-impl @io.Reader for RequestReader
 
 type ResponseWriter
 async fn ResponseWriter::flush(Self) -> Unit
