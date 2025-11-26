@@ -381,7 +381,7 @@ pub async fn new(
   uuid? : @uuid.Generator,
   logger? : @pino.Logger = @pino.logger(
     "agent",
-    try! @pino.transport("file:.moonagent/log.jsonl"),
+    try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
   system_message? : String,
   user_message? : String,

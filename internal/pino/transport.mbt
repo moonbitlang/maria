@@ -28,10 +28,10 @@ priv suberror InvalidTransport StringView derive(Show)
 ///
 /// # Example
 /// ```moonbit
-/// let _t1 = transport("console:")
-/// let _t2 = transport("file:/var/log/app.log")
+/// let _t1 = Transport::parse("console:")
+/// let _t2 = Transport::parse("file:/var/log/app.log")
 /// ```
-pub fn transport(transport : StringView) -> Transport raise {
+pub fn Transport::parse(transport : StringView) -> Transport raise {
   let schema = StringBuilder::new()
   let path : StringView = loop transport {
     [] as path => break path

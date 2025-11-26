@@ -291,7 +291,7 @@ Logs are written to `.moonagent/log` by default, but can be customized:
 async test "custom-logging" {
   let custom_logger = @pino.logger(
     "my_agent",
-    @pino.transport("file:custom_log_path"),
+    @pino.Transport::parse("file:custom_log_path"),
   )
   let agent = @agent.new(
     model,
