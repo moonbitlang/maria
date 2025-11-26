@@ -17,7 +17,7 @@ let schema : @tool.JsonSchema = {
       "description": "The content to search for. If not provided, the entire file will be replaced with the replace content.",
     },
   },
-  "required": ["path", "replace"],
+  "required": ["path", "replace", "search"],
 }
 
 ///|

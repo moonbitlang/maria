@@ -28,7 +28,7 @@ async test "replace_in_file/replace" (t : @test.Test) {
     ])
     let args : Json = {
       "path": "file.txt",
-      "search": "Old content",
+      "search": "",
       "replace": "New content",
     }
     let result = @replace_in_file.new(manager).call(args)
@@ -43,6 +43,29 @@ async test "replace_in_file/replace" (t : @test.Test) {
         "content": "New content",
       },
     ])
+  })
+}
+
+///|
+async test "replace_in_file/search-is-required" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file("file.txt", content="Old content")
+    let args : Json = { "path": "file.txt", "replace": "New content" }
+    let result = @replace_in_file.new(manager).call(args)
+    @json.inspect(result, content=[
+      "Ok",
+      {
+        "path": "file.txt",
+        "operation": "Replaced",
+        "bytes_written": 11,
+        "search_used": false,
+        "message": "Changes applied to file.txt",
+        "content": "New content",
+      },
+    ])
+    guard result is Ok(result) else { fail("Expected Ok result") }
+    inspect(result, content="Changes applied to file.txt")
   })
 }
 
