@@ -80,8 +80,6 @@ pub fn ext(path : StringView) -> StringView {
 /// 
 /// for other purpose, if return original path LLM can re-try to diagnostic the issue.
 /// 
-/// if return original path, user can use `physical_equal` to check whether this operation is successful.
-///
 pub fn replace_ext(path : StringView, ext : StringView) -> String {
   let basename = basename(path)
   match basename {
