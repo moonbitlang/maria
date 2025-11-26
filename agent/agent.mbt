@@ -8,7 +8,6 @@
 ///
 /// Fields:
 ///
-/// * `rand` : Random number generator for generating UUIDs and other random values.
 /// * `uuid` : UUID generator for creating unique identifiers.
 /// * `cwd` : Current working directory used as the base path for tool operations.
 /// * `model` : The AI model configuration and endpoint for generating responses.
