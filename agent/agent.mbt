@@ -21,7 +21,6 @@
 /// * `context_pruner` : Pruner for managing context size within token budgets.
 /// * `session_manager` : Manager for persisting and loading conversation sessions.
 pub struct Agent {
-  rand : @random.Rand
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
@@ -389,7 +388,6 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 /// setting to automatically manage conversation history size.
 pub async fn new(
   model : @model.Model,
-  rand? : @random.Rand,
   uuid? : @uuid.Generator,
   logger? : @pino.Logger = @pino.logger(
     "agent",
@@ -400,13 +398,9 @@ pub async fn new(
   cwd~ : StringView,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
-  let rand = match rand {
-    Some(rand) => rand
-    None => @rand.chacha8()
-  }
   let uuid = match uuid {
     Some(uuid) => uuid
-    None => @uuid.generator(rand)
+    None => @uuid.generator(@rand.chacha8())
   }
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
@@ -414,7 +408,6 @@ pub async fn new(
   event_target.emit(ModelLoaded(name=model.name, model~))
   let agent = Agent::{
     logger,
-    rand,
     uuid,
     history: session_manager.new_conversation(name="history"),
     cwd: cwd.to_string(),
