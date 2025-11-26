@@ -79,7 +79,7 @@ pub async fn Agent::queue_message(
 ///|
 pub fn Agent::queued_messages(
   self : Agent,
-) -> ArrayView[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
+) -> Array[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
   self.pending_queue.to_array()
 }
 
