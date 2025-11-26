@@ -150,7 +150,15 @@ test "response_format" {
 
 ///|
 async test "streaming" (t : @test.Test) {
-  @mock.run(t, mock => {
+  // Sometimes this test fails on CI, but unable to reproduce locally.
+  //
+  // OpenRouter might choose to route to different providers depending on load
+  // and geo-location, and the CI environment might have different network
+  // conditions compared to local runs, and OpenRouter might decide to route to
+  // a different provider in CI causing the test to fail intermittently.
+  //
+  // Increase the retry count to 3 to reduce flakiness.
+  @mock.run(t, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = deepseek_model(api_key)
     let chat_completion = @openai.chat(
