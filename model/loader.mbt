@@ -1,6 +1,5 @@
 ///|
 struct Loader {
-  logger : @pino.Logger
   home : StringView
   cwd : StringView
   models : Array[Model]
@@ -25,12 +24,16 @@ struct Loader {
 /// current working directory first, then the user's home directory. If
 /// either file exists, the models defined there are appended to the
 /// loader's cache.
-pub async fn Loader::new(
-  home~ : StringView,
-  cwd~ : StringView,
-  logger~ : @pino.Logger,
-) -> Loader {
-  let loader = Loader::{ home, cwd, models: [], logger }
+pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
+  let cwd = match cwd {
+    Some(cwd) => cwd
+    None => @os.cwd()
+  }
+  let loader = Loader::{ home, cwd, models: [] }
   // let load_from_path = async fn (path) => {
   //   let text = @fsx.read_file(path)
   //   let json = @json.parse(text)
@@ -98,20 +101,6 @@ pub async fn Loader::get_model(
   } else {
     self.models.get(0)
   }
-  self.logger.info("ModelLoaded", data={
-    "name": name.to_json(),
-    "model": if model is Some(model) {
-      let json = model.to_json()
-      if json is Object(obj) {
-        obj["api_key"] = "****"
-        Json::array([Json::object(obj)])
-      } else {
-        Json::array([json])
-      }
-    } else {
-      Json::null()
-    },
-  })
   if model is Some(model) {
     let model = if api_key is Some(api_key) {
       { ..model, api_key, }
@@ -143,4 +132,13 @@ pub async fn Loader::get_model(
 /// Returns an `ArrayView[Model]` containing all cached models.
 pub fn Loader::models(self : Loader) -> ArrayView[Model] {
   self.models
+}
+
+///|
+pub async fn load(
+  home? : StringView,
+  cwd? : StringView,
+  name? : String,
+) -> Model? {
+  Loader::new(home?, cwd?).get_model(name?)
 }

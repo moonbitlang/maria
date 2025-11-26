@@ -10,6 +10,11 @@ async fn generate(
   } else {
     println("Generating for prompt file \{prompt_file} with default model")
   }
+  let model = @model.load(name?=model)
+  guard model is Some(model) else {
+    println("No model available; please configure a model first.")
+    return
+  }
   let prompt = @fsx.read_file(prompt_file)
   let log_file = @path.join(log_dir, "log.jsonl")
   let gen_dir = @path.join(log_dir, "cwd")
@@ -34,7 +39,7 @@ async fn generate(
           )
         }
       }))
-      let maria = @maria.Maria::new(logger~, model?, cwd=tmpdir)
+      let maria = @maria.Maria::new(logger~, model~, cwd=tmpdir)
       maria.start(prompt) catch {
         error => {
           logger.error("MariaFailed", data={ "error": error.to_string() })

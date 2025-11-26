@@ -26,6 +26,8 @@
 /// PostConversation
 /// ```
 pub(all) enum Event {
+  /// Event triggered when a model is loaded.
+  ModelLoaded(name~ : String, model~ : @model.Model)
   /// Event triggered before a conversation starts.
   PreConversation
   /// Event triggered after a conversation ends.
@@ -130,6 +132,20 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 ///|
 pub impl ToJson for Event with to_json(self : Event) -> Json {
   match self {
+    ModelLoaded(name~, model~) =>
+      {
+        "msg": "ModelLoaded",
+        "name": name.to_json(),
+        "model": {
+          let json = model.to_json()
+          if json is Object(obj) {
+            obj["api_key"] = "****"
+            Json::object(obj)
+          } else {
+            json
+          }
+        },
+      }
     TokenCounted(token_count) =>
       { "msg": "TokenCounted", "token_count": token_count }
     ContextPruned(origin_token_count~, pruned_token_count~) =>

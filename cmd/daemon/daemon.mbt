@@ -526,7 +526,6 @@ pub async fn Daemon::new(
   let port = httpx_server.port()
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
-  let logger = @pino.logger("daemon", @pino.Transport::console())
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())
@@ -537,7 +536,7 @@ pub async fn Daemon::new(
   }
   Daemon::{
     clock: @clock.epoch,
-    models: @model.Loader::new(home=@os.home(), cwd~, logger~),
+    models: @model.Loader::new(home=@os.home(), cwd~),
     uuid,
     process: @spawn.Manager::new(cwd~),
     by_cwd: {},
