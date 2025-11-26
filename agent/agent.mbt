@@ -79,7 +79,7 @@ pub async fn Agent::queue_message(
 ///|
 pub fn Agent::queued_messages(
   self : Agent,
-) -> ArrayView[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
+) -> Array[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
   self.pending_queue.to_array()
 }
 
@@ -131,34 +131,25 @@ async fn Agent::execute_tool(
     )
   }
   agent.emit(PreToolCall(tool_call))
-  match tool_call.function.arguments {
-    None =>
-      return @openai.tool_message(
-        content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
-        tool_call_id=tool_call.id,
-      )
+  let arguments : Json = match tool_call.function.arguments {
+    None | Some("") =>
+      // when models like haiku return empty arguments, we treat it as empty object 
+      {}
     Some(arguments) =>
-      if arguments.is_empty() {
-        return @openai.tool_message(
-          content="No arguments provided for tool call. To call a tool with empty arguments, supply an empty JSON object: {}",
-          tool_call_id=tool_call.id,
-        )
-      } else {
-        let arguments = @json.parse(arguments) catch {
-          error =>
-            return @openai.tool_message(
-              content="Error parsing tool arguments: \{error}",
-              tool_call_id=tool_call.id,
-            )
-        }
-        let (result, rendered) = match tool.call(arguments) {
-          Ok((json, text)) => (Ok(json), text)
-          Error(error, text) => (Err(error), text)
-        }
-        agent.emit(PostToolCall(tool_call, result~, rendered~))
-        @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+      @json.parse(arguments) catch {
+        error =>
+          return @openai.tool_message(
+            content="Error parsing tool arguments: \{error}, arguments: \{arguments}",
+            tool_call_id=tool_call.id,
+          )
       }
   }
+  let (result, rendered) = match tool.call(arguments) {
+    Ok((json, text)) => (Ok(json), text)
+    Error(error, text) => (Err(error), text)
+  }
+  agent.emit(PostToolCall(tool_call, result~, rendered~))
+  @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
 ///|
@@ -291,17 +282,17 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
     // Signal the start of conversation
     agent.emit(PreConversation)
-    while true {
+    while !(agent.queue.is_empty() && agent.pending_queue.is_empty()) {
       // Test if the agent.queue is empty, if so, pop from pending_queue
-      if agent.queue.is_empty() &&
-        agent.pending_queue.pop_front() is Some((id, message)) {
-        agent.queue.push(message)
-        agent.emit(MessageUnqueued(id~))
-        agent.emit(MessageAdded(message))
-      }
       if agent.queue.is_empty() {
-        break
+        if agent.pending_queue.pop_front() is Some((id, message)) {
+          // For sure to happen
+          agent.queue.push(message)
+          agent.emit(MessageUnqueued(id~))
+          agent.emit(MessageAdded(message))
+        }
       }
+
       // Build the tools array for this API call
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
