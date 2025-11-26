@@ -392,3 +392,114 @@ async test "GET /script.js" (t : @test.Test) {
     @json.inspect(b.text(), content="console.log('Hello, world!');")
   })
 }
+
+///|
+#skip
+async test "POST /v1/cancel" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    let events : Array[Json] = []
+    @async.with_task_group(group => {
+      group.spawn_bg(() => server.start(), no_wait=true)
+      group.spawn_bg(() => {
+        let (r, s) = @http.get_stream(
+          "http://localhost:\{server.port()}/v1/events",
+        )
+        @json.inspect(r.code, content=200)
+        let mut last_event : String? = None
+        while s.read_until("\n") is Some(line) {
+          match line {
+            [.. "event: ", .. event] => {
+              last_event = Some(event.to_string())
+              continue
+            }
+            [.. "data: ", .. data] => {
+              let data = @json.parse(data)
+              if last_event is Some(event) {
+                events.push({ "event": event, "data": data })
+              } else {
+                events.push({ "data": data })
+              }
+              last_event = None
+              if events.last() is Some(event) &&
+                event is { "data": { "msg": "PostConversation", .. }, .. } {
+                break
+              }
+            }
+            _ => continue
+          }
+        }
+      })
+      let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
+      @json.inspect(r.code, content=200)
+      @json.inspect(b.json(), content={ "status": "idle" })
+      let (r, b) = @http.post(
+        "http://localhost:\{server.port()}/v1/message",
+        Json::object({
+          "message": { "role": "user", "content": "Hello, Maria!" },
+        }),
+      )
+      @json.inspect(r.code, content=200)
+      let b = b.json()
+      guard b is { "id": String(_), "queued": queued, .. } else {
+        fail("Invalid response body: \{b.stringify(indent=2)}")
+      }
+      @json.inspect(queued, content=false)
+      let (r, _) = @http.post(
+        "http://localhost:\{server.port()}/v1/cancel",
+        Json::object({}),
+      )
+      @json.inspect(r.code, content=200)
+      // Should be able to send another message after cancellation
+      @http.post(
+        "http://localhost:\{server.port()}/v1/message",
+        Json::object({
+          "message": { "role": "user", "content": "Hello, Maria!" },
+        }),
+      )
+      |> ignore()
+    })
+    @json.inspect(redact_events(events), content=[
+      { "event": "maria.queued_messages.synchronized", "data": [] },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "system", "content": "<redacted>" },
+        },
+      },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello, Maria!" },
+        },
+      },
+      { "event": "maria", "data": { "msg": "PreConversation" } },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MariaCancelled",
+          "error": { "code": -1, "message": "Task was cancelled." },
+        },
+      },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello, Maria!" },
+        },
+      },
+      { "event": "maria", "data": { "msg": "PreConversation" } },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "RequestCompleted",
+          "usage": "<redacted>",
+          "message": "<redacted>",
+        },
+      },
+      { "event": "maria", "data": { "msg": "PostConversation" } },
+    ])
+  })
+}

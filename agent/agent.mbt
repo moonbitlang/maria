@@ -297,8 +297,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Test if the agent.queue is empty, if so, pop from pending_queue
       if agent.queue.is_empty() &&
         agent.pending_queue.pop_front() is Some((id, message)) {
+        agent.queue.push(message)
         agent.emit(MessageUnqueued(id~))
-        agent.add_message(message)
+        agent.emit(MessageAdded(message))
       }
       if agent.queue.is_empty() {
         break

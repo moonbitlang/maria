@@ -6,12 +6,20 @@ pub struct Server {
   priv message_queue : @aqueue.Queue[
     (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid?]),
   ]
-  priv mut status : Status
+  priv mut task : @async.Task[Unit]?
   priv register : Register?
   priv serve : String
   priv port : Int
   priv http_server : @httpx.Server
   priv cwd : String
+}
+
+///|
+fn Server::status(self : Server) -> Status {
+  match self.task {
+    None => Status::Idle
+    Some(_) => Status::Busy
+  }
 }
 
 ///|
@@ -49,7 +57,7 @@ pub async fn Server::new(
     maria,
     broadcast,
     message_queue: @aqueue.new(kind=Unbounded),
-    status: Idle,
+    task: None,
     uuid,
     register,
     serve,
@@ -110,7 +118,7 @@ async fn Server::serve_http(self : Server) -> Unit {
           w.write(index_html)
         }
         (Get, "/v1/status") => {
-          let response : Json = { "status": self.status }
+          let response : Json = { "status": self.status() }
           w.header().set("Content-Type", "application/json")
           w.header().set("Access-Control-Allow-Origin", "*")
           w.header().set("Access-Control-Allow-Methods", "*")
@@ -118,6 +126,7 @@ async fn Server::serve_http(self : Server) -> Unit {
           w.write_header(200)
           w.write(response.stringify())
         }
+        (Post, "/v1/cancel") => self.cancel_maria(w)
         (Get, "/v1/queued-messages") => self.get_queued_messages(w)
         (Get, "/v1/events") => self.get_events(w)
         (Post, "/v1/message") => self.create_message(r, w)
@@ -178,22 +187,63 @@ async fn Server::start_maria(self : Server) -> Unit {
         no_wait=true,
       )
       idq.put(None)
-      self.status = Busy
+      let task = group.spawn(
+        () => {
+          println("[INFO] (Server) Starting Maria task...")
+          self.maria.agent.start() catch {
+            error => {
+              println("[ERROR] (Server) Maria task failed: \{error}")
+              if !@async.is_being_cancelled() {
+                self.broadcast.put(
+                  Json::object({
+                    "msg": "MariaFailed",
+                    "error": {
+                      "code": -1,
+                      "message": error.to_string(),
+                      "metadata": error,
+                    },
+                  }),
+                )
+              } else {
+                self.broadcast.put(
+                  Json::object({
+                    "msg": "MariaCancelled",
+                    "error": { "code": -1, "message": "Task was cancelled." },
+                  }),
+                )
+              }
+              raise error
+            }
+          }
+        },
+        allow_failure=true,
+      )
+      self.task = Some(task)
       defer {
-        self.status = Idle
+        self.task = None
       }
-      self.maria.agent.start() catch {
-        error =>
-          self.maria.logger.error("MariaFailed", data={
-            "error": {
-              "code": -1,
-              "message": error.to_string(),
-              "metadata": error,
-            },
-          })
+      task.wait() catch {
+        _ => ()
       }
     })
   }
+}
+
+///|
+async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  guard self.task is Some(task) else {
+    w.header().set("Content-Type", "application/json")
+    w.write_header(404)
+    w.write(
+      Json::object({
+        "error": { "code": -1, "message": "No running task to cancel." },
+      }),
+    )
+  }
+  task.cancel()
+  w.header().set("Content-Type", "application/json")
+  w.write_header(200)
+  w.write(Json::object({}))
 }
 
 ///|
@@ -236,7 +286,8 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
             | "RequestCompleted"
             | "PostToolCall"
             | "PostConversation"
-            | "MariaFailed",
+            | "MariaFailed"
+            | "MariaCancelled",
             ..
           } as event
         ) else {

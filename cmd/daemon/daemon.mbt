@@ -508,6 +508,38 @@ async fn Daemon::create_task_message(
 }
 
 ///|
+async fn Daemon::cancel_task(
+  self : Daemon,
+  id : StringView,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(task) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let (r, b) = @http.post(
+    "http://localhost:\{task.port}/v1/cancel",
+    Json::object({}),
+  )
+  println("[INFO] (Daemon) Sent cancel request to task \{id}")
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(r.code, reason=r.reason)
+  w.write(b)
+}
+
+///|
 pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
@@ -592,6 +624,7 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             publish_moonbit_module(r, w)
           (Post, ["", "v1", "task", id, "message"]) =>
             self.create_task_message(id, r, w)
+          (Post, ["", "v1", "task", id, "cancel"]) => self.cancel_task(id, w)
           (Get, ["", .. file]) =>
             serve_static_file(w, serve=self.serve, path=file.join("/"))
           _ =>

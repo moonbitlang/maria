@@ -5,7 +5,6 @@
     "moonbitlang/async/io",
     "moonbitlang/maria",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/pino",
     "moonbitlang/async/aqueue",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/openai",

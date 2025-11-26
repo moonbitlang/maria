@@ -530,3 +530,83 @@ async test "GET /v1/events" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    let events : Array[Json] = []
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (r, b) = @http.post(
+        "http://localhost:\{daemon.port()}/v1/task",
+        Json::object({
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+        }),
+      )
+      @json.inspect(r.code, content=201)
+      let b = b.json()
+      guard b is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.stringify(indent=2)}")
+      }
+      group.spawn_bg(() => {
+        let (_, s) = @http.get_stream(
+          "http://localhost:\{daemon.port()}/v1/task/\{id}/events",
+        )
+        let mut last_event : String? = None
+        while s.read_until("\n") is Some(line) {
+          if line is [.. "event: ", .. event] {
+            last_event = Some(event.to_string())
+            continue
+          }
+          guard line is [.. "data: ", .. line] else { continue }
+          let data = @json.parse(line)
+          if last_event is Some(event) {
+            events.push({ "event": event, "data": data })
+          } else {
+            events.push({ "data": data })
+          }
+          last_event = None
+          match data {
+            { "msg": "PostConversation" | "MariaFailed" | "MariaCancelled", .. } =>
+              break
+            _ => ()
+          }
+        }
+      })
+      let (r, _) = @http.post(
+        "http://localhost:\{daemon.port()}/v1/task/\{id}/cancel",
+        Json::null(),
+      )
+      @json.inspect(r.code, content=200)
+    })
+    @json.inspect(redact_events(events), content=[
+      { "event": "maria.queued_messages.synchronized", "data": [] },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "system", "content": "<redacted>" },
+        },
+      },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello!" },
+        },
+      },
+      { "event": "maria", "data": { "msg": "PreConversation" } },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MariaCancelled",
+          "error": { "code": -1, "message": "Task was cancelled." },
+        },
+      },
+    ])
+  })
+}

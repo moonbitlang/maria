@@ -33,6 +33,13 @@
         margin: 10px 5px 10px 0;
         cursor: pointer;
       }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #cancelBtn:hover:not(:disabled) {
+        background: #d32f2f !important;
+      }
 
       /* Pretty-printed log entry styles */
       .log-entry {
@@ -359,6 +366,7 @@
         style="width: 70%; padding: 8px"
       />
       <button id="sendBtn" style="padding: 8px 20px">Send</button>
+      <button id="cancelBtn" style="padding: 8px 20px; background: #f44336; color: white; border: none; cursor: pointer" disabled>Cancel</button>
     </div>
 
     <h2>Message Queue:</h2>

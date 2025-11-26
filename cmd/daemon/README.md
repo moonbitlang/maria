@@ -179,6 +179,22 @@ Sends a message to the specified task instance.
 }
 ```
 
+### `POST /v1/task/{id}/cancel`
+
+Cancels the current generation of the specified task instance.
+
+If there is no ongoing task, i.e. current status is `"idle"`, returns 404 Not
+Found:
+
+```json
+{
+  "error": {
+    "code": -1,
+    "message": "No ongoing task to cancel."
+  }
+}
+```
+
 ### `POST /v1/task/{id}/publish`
 
 Run `moon publish` in the task's working directory.
