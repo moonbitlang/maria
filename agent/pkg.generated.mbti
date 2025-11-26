@@ -2,7 +2,6 @@
 package "moonbitlang/maria/agent"
 
 import(
-  "moonbitlang/core/random"
   "moonbitlang/maria/event"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
@@ -12,13 +11,12 @@ import(
 )
 
 // Values
-async fn new(@model.Model, rand? : @random.Rand, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView) -> Agent
+async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView) -> Agent
 
 // Errors
 
 // Types and methods
 pub struct Agent {
-  rand : @random.Rand
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
