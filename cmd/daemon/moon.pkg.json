@@ -17,7 +17,10 @@
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/clock",
-    "moonbitlang/maria/internal/httpx"
+    "moonbitlang/maria/internal/httpx",
+    "moonbitlang/maria/internal/errno",
+    "moonbitlang/async/fs",
+    "moonbitlang/async/process"
   ],
   "test-import": ["moonbitlang/maria/internal/mock"]
 }
