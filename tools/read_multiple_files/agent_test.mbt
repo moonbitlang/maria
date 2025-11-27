@@ -30,8 +30,18 @@ let system_prompt : String =
 #skip
 async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
+    // Ask agent to create and read a file
+    let content =
+      #| you should concat foo.txt Line 3 - Line 4, and bar.txt Line 3,
+      #| and then write to output.txt
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      system_message=system_prompt,
+      user_message=content,
+    )
 
     // Add file management tools
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -50,7 +60,6 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
         }
       _ => ()
     })
-    ..add_message(@openai.system_message(content=system_prompt))
     mock.add_files([
       (
         "foo.txt",
@@ -74,12 +83,6 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
         ),
       ),
     ])
-
-    // Ask agent to create and read a file
-    let content =
-      #| you should concat foo.txt Line 3 - Line 4, and bar.txt Line 3,
-      #| and then write to output.txt
-    agent.add_message(@openai.user_message(content~))
     agent.start()
     inspect(multiple_files_read, content="true")
     // Verify file was actually created

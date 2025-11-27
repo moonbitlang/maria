@@ -153,7 +153,11 @@ async test "replace_in_file/agentic" (t : @test.Test) {
       name="qwen/qwen3-coder-plus",
       safe_zone_tokens=200000,
     )
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Update line 2 in file.txt to say 'line 2 modified via agent'.",
+    )
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
         mock.logger.info("PostToolCall", data={
@@ -164,11 +168,6 @@ async test "replace_in_file/agentic" (t : @test.Test) {
       _ => ()
     })
     agent.add_tool(@replace_in_file.new(manager))
-    agent.add_message(
-      @openai.user_message(
-        content="Update line 2 in file.txt to say 'line 2 modified via agent'.",
-      ),
-    )
     agent.start()
     inspect(
       file.read(),

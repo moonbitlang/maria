@@ -18,7 +18,10 @@ pub async fn Maria::new(
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  let agent = @agent.new(model, logger~, cwd~)
+  let system_prompt = [
+    @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
+  ].join("\n")
+  let agent = @agent.new(model, logger~, cwd~, system_message=system_prompt)
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
   let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
@@ -31,11 +34,6 @@ pub async fn Maria::new(
     @search_files.new(agent.cwd).to_agent_tool(),
     @meta_write_to_file.new(agent).to_agent_tool(),
   ])
-  let system_prompt = [
-    @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
-  ].join("\n")
-  let system_message = @openai.system_message(content=system_prompt)
-  agent.add_message(system_message)
   Maria::{ logger, agent }
 }
 

@@ -384,26 +384,24 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
 async test "agent/conversation_history" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message=(
+        $|You are a helpful assistant.
+        $|Say 'Hello' and nothing else.
+        $|
+      ),
+    )
     let mut message_count = 0
     agent.add_listener(event => match event {
       MessageAdded(_) => message_count = message_count + 1
       _ => ()
     })
-
-    // Add system message
-    agent.add_message(
-      @openai.system_message(content="You are a helpful assistant."),
-    )
-
-    // Add user message
-    agent.add_message(
-      @openai.user_message(content="Say 'Hello' and nothing else."),
-    )
     agent.start()
 
     // Verify messages were tracked
-    inspect(message_count >= 2, content="true")
+    assert_true(message_count >= 1)
   })
 }
 
