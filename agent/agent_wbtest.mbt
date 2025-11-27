@@ -24,6 +24,6 @@ async test "queue_message" (t : @test.Test) {
     )
     agent.start()
     @json.inspect(agent.pending_queue.length(), content=0)
-    @json.inspect(agent.queue.length(), content=0)
+    @json.inspect(agent.input_queue.length(), content=0)
   })
 }
