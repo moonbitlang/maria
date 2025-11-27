@@ -21,6 +21,7 @@ pub async fn chat(
   model~ : @model.Model,
   request : Request,
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
+  extra_body? : Map[String, Json] = {},
 ) -> ChatCompletion {
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
@@ -38,7 +39,14 @@ pub async fn chat(
         "Connection": "close",
       })
       defer client.close()
-      let response = client.post(uri.path, request.to_json())
+      let body = request.to_json()
+      guard body is Object(body) else {
+        abort("Request body is not a JSON object")
+      }
+      for k, v in extra_body {
+        body[k] = v
+      }
+      let response = client.post(uri.path, Json::object(body))
       guard response.code is (200..=299) else {
         raise HttpError(code=response.code, body=client.read_all().text())
       }
