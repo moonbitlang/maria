@@ -26,7 +26,7 @@ pub struct Agent {
   logger : @pino.Logger
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
-  priv mut queue : Array[@openai.ChatCompletionMessageParam]
+  priv mut input_queue : Array[@openai.ChatCompletionMessageParam]
   priv pending_queue : @deque.Deque[
     (@uuid.Uuid, @openai.ChatCompletionMessageParam),
   ]
@@ -59,7 +59,7 @@ pub async fn Agent::add_message(
   agent : Agent,
   message : @openai.ChatCompletionMessageParam,
 ) -> Unit {
-  agent.queue.push(message)
+  agent.input_queue.push(message)
   agent.emit(MessageAdded(message))
 }
 
@@ -282,12 +282,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     group.spawn_bg(() => agent.event_target.start(), no_wait=true)
     // Signal the start of conversation
     agent.emit(PreConversation)
-    while !(agent.queue.is_empty() && agent.pending_queue.is_empty()) {
-      // Test if the agent.queue is empty, if so, pop from pending_queue
-      if agent.queue.is_empty() {
+    while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
+      // Test if the agent.input_queue is empty, if so, pop from pending_queue
+      if agent.input_queue.is_empty() {
         if agent.pending_queue.pop_front() is Some((id, message)) {
           // For sure to happen
-          agent.queue.push(message)
+          agent.input_queue.push(message)
           agent.emit(MessageUnqueued(id~))
           agent.emit(MessageAdded(message))
         }
@@ -310,7 +310,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // staged contains messages that need to be sent in this call
       // Build the complete message array for the API call
       // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.to_param(), ..agent.queue]
+      let messages = [..agent.history.to_param(), ..agent.input_queue]
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -334,8 +334,8 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.emit(RequestCompleted(usage~, message~))
 
       // Add all staged messages to permanent conversation history
-      agent.history.add_messages(agent.queue)
-      agent.queue = []
+      agent.history.add_messages(agent.input_queue)
+      agent.input_queue = []
 
       // Add the model's response to conversation history
       agent.history.add_message(message.to_param())
@@ -403,7 +403,7 @@ pub async fn new(
     cwd: cwd.to_string(),
     model,
     tools: {},
-    queue: [],
+    input_queue: [],
     pending_queue: @deque.Deque::new(),
     event_target,
     token_counter: @token_counter.Counter::new(logger~),

@@ -31,10 +31,11 @@ let model : @model.Model = @model.new(
 ///|
 async test "basic-example" {
   // Create the agent
-  let agent = @agent.new(model, cwd=@os.cwd())
-  // Add a user message
-  agent.add_message(@openai.user_message(content="Hello, what can you do?"))
-  // Start the conversation
+  let agent = @agent.new(
+    model,
+    cwd=@os.cwd(),
+    user_message="Hello, what can you do?",
+  )
   agent.start()
 }
 ```
@@ -292,8 +293,12 @@ async test "custom-logging" {
     "my_agent",
     @pino.transport("file:custom_log_path"),
   )
-  let agent = @agent.new(model, cwd=@os.cwd(), logger=custom_logger)
-  agent.add_message(@openai.user_message(content="Hello, custom logger!"))
+  let agent = @agent.new(
+    model,
+    cwd=@os.cwd(),
+    logger=custom_logger,
+    user_message="Hello, custom logger!",
+  )
   agent.start()
 }
 ```

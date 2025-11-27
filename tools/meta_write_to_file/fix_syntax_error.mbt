@@ -41,6 +41,12 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
 ///|
 /// Fix syntax errors using a sub-agent
 async fn fix_syntax_errors(ctx : FixingContext) -> Unit {
+  // Add user message
+  let user_message = build_fixing_user_message(
+    ctx.description,
+    ctx.content,
+    ctx.syntax_errors,
+  )
   // Create sub-agent
   let subagent = @agent.new(
     ctx.parent_agent.model,
@@ -48,6 +54,8 @@ async fn fix_syntax_errors(ctx : FixingContext) -> Unit {
       "tool": { "name": "meta_write_to_file", "id": ctx.parent_agent.uuid.v4() },
     }),
     cwd=ctx.cwd,
+    system_message=syntax_error_expert_prompt,
+    user_message~,
   )
 
   // Add tools using factory functions
@@ -55,19 +63,6 @@ async fn fix_syntax_errors(ctx : FixingContext) -> Unit {
     submit_fixed_file_new(ctx).to_agent_tool(),
     attempt_completion_new(ctx).to_agent_tool(),
   ])
-
-  // Add system message
-  subagent.add_message(
-    @openai.system_message(content=syntax_error_expert_prompt),
-  )
-
-  // Add user message
-  let user_message = build_fixing_user_message(
-    ctx.description,
-    ctx.content,
-    ctx.syntax_errors,
-  )
-  subagent.add_message(@openai.user_message(content=user_message))
 
   // Start the sub-agent with a timeout (5 minutes)
   @async.with_timeout(300_000, () => subagent.start())

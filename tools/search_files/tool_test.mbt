@@ -152,7 +152,15 @@ async test "search_files/agentic" (t : @test.Test) {
       ),
     ])
     let model = mock.model(name=ClaudeHaiku4_5)
-    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message=(
+        $|You are an AI assistant that helps users search for text in files.
+        $|The user wants to find the phrase "search files" in the project files.
+        $|Use the `search_files` tool to perform the search and provide the results by writing to `results.txt`.
+      ),
+    )
     agent.add_listener(event => match event {
       PostToolCall(tool_call, result~, rendered~) =>
         mock.logger.info("PostToolCall", data={
@@ -167,15 +175,6 @@ async test "search_files/agentic" (t : @test.Test) {
       @replace_in_file.new(file_manager).to_agent_tool(),
       @search_files.new(mock.cwd.path()).to_agent_tool(),
     ])
-    agent.add_message(
-      @openai.user_message(
-        content=(
-          $|You are an AI assistant that helps users search for text in files.
-          $|The user wants to find the phrase "search files" in the project files.
-          $|Use the `search_files` tool to perform the search and provide the results by writing to `results.txt`.
-        ),
-      ),
-    )
     agent.start()
     inspect(
       @fsx.read_file(@path.join(mock.cwd.path(), "results.txt")).contains(
