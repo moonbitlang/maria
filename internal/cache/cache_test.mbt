@@ -232,7 +232,7 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
   @mock.run(t, mock => {
     let uuid = @uuid.generator(@rand.chacha8())
     let cached_tokens = []
-    let model = mock.model(name=ClaudeSonnet4_5)
+    let model = mock.model(name=ClaudeHaiku4_5)
     let messages = [
       @openai.system_message(
         content=(
@@ -256,6 +256,7 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
           messages=@cache.cache_messages(messages),
           usage=@openai.usage(include_=true),
         ),
+        extra_body={ "provider": { "only": ["anthropic"] } },
       )
       println(response.to_json().stringify(indent=2))
       if response.usage is Some(usage) &&
