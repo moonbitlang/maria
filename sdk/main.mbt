@@ -16,7 +16,7 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       println(error.stringify())
       return
     }
-    let maria = @maria.Maria::new(model~)
+    let maria = @maria.Maria::new(model~, user_message=prompt)
     maria.agent.add_listener(event => match event {
       ToolAdded(desc) => {
         let response : Json = {
@@ -62,7 +62,7 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       }
       _ => ()
     })
-    maria.start(prompt)
+    maria.start()
   } catch {
     @io.ReaderClosed => ()
     error => {

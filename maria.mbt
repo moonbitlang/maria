@@ -13,6 +13,7 @@ pub async fn Maria::new(
   ),
   model~ : @model.Model,
   cwd? : String,
+  user_message? : String,
 ) -> Maria {
   let cwd = match cwd {
     Some(cwd) => cwd
@@ -21,7 +22,13 @@ pub async fn Maria::new(
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo_read.prompt, @todo_write.prompt, @search_files.prompt,
   ].join("\n")
-  let agent = @agent.new(model, logger~, cwd~, system_message=system_prompt)
+  let agent = @agent.new(
+    model,
+    logger~,
+    cwd~,
+    system_message=system_prompt,
+    user_message?,
+  )
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
   let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
@@ -43,8 +50,10 @@ pub fn Maria::close(self : Maria) -> Unit {
 }
 
 ///|
-pub async fn Maria::start(self : Maria, prompt : String) -> Unit {
-  let user_message = @openai.user_message(content=prompt)
-  self.agent.add_message(user_message)
+pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
+  if prompt is Some(prompt) {
+    let user_message = @openai.user_message(content=prompt)
+    self.agent.add_message(user_message)
+  }
   self.agent.start()
 }
