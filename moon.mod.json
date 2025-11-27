@@ -4,7 +4,8 @@
   "deps": {
     "moonbitlang/async": "0.14.1",
     "moonbitlang/x": "0.4.37",
-    "moonbitlang/regexp": "0.3.4"
+    "moonbitlang/regexp": "0.3.4",
+    "moonbit-community/yaml": "0.0.1"
   },
   "readme": "README.md",
   "repository": "",
