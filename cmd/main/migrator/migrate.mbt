@@ -75,13 +75,13 @@ async fn Migrator::migrate(
       @git.clone(self.repo, to=src_path, cwd=dst_path)
     }
     println("cloned into \{src_path}")
-    let maria = @maria.Maria::new(model~)
-    println("Migration attempt #\{loop_index}")
     let prompt =
       $|Using the reference at \{src_path}, migrate the target repository into
       $|the current MoonBit project. Translate file-by-file and preserve original
       $|structure; avoid freeform rewrites.
-    maria.start(prompt)
+    let maria = @maria.Maria::new(model~, user_message=prompt)
+    println("Migration attempt #\{loop_index}")
+    maria.start()
   }
 }
 

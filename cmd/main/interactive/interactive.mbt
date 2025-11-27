@@ -46,7 +46,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     group.spawn_bg(() => rl.start())
     if prompt is Some(prompt) {
       println("$ \{prompt}")
-      maria.start(prompt) catch {
+      maria.start(prompt~) catch {
         error => println("! \{error}")
       }
     }
@@ -54,7 +54,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       rl.set_prompt("$ ")
       rl.prompt()
       let prompt = rl.read_line()
-      maria.start(prompt) catch {
+      maria.start(prompt~) catch {
         error => println("! \{error}")
       }
     }
