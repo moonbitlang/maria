@@ -1,11 +1,3 @@
 {
-  "import": ["moonbitlang/maria/openai"],
-  "test-import": [
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/maria/model",
-    "moonbitlang/async",
-    "moonbitlang/maria/prompt",
-    "moonbitlang/maria/internal/uuid",
-    "moonbitlang/maria/internal/rand"
-  ]
+  "import": ["moonbitlang/maria/openai"]
 }

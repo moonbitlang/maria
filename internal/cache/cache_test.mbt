@@ -227,12 +227,18 @@ test "last-two" {
 }
 
 ///|
+/// FIXME: This test is currently disabled due to flakiness in the CI
+/// environment. The TTL of Anthropic's cache is 5-minutes, and is a relatively
+/// short duration in a heavy-loaded CI environment. If this test yields to
+/// other coroutines too often, the 5-minute TTL may expire before the second
+/// and third requests are made, leading to unexpected cache misses.
 #skip
+#cfg(false)
 async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
   @mock.run(t, mock => {
     let uuid = @uuid.generator(@rand.chacha8())
     let cached_tokens = []
-    let model = mock.model(name=ClaudeSonnet4_5)
+    let model = mock.model(name=ClaudeHaiku4_5)
     let messages = [
       @openai.system_message(
         content=(
@@ -256,6 +262,7 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
           messages=@cache.cache_messages(messages),
           usage=@openai.usage(include_=true),
         ),
+        extra_body={ "provider": { "only": ["anthropic"] } },
       )
       println(response.to_json().stringify(indent=2))
       if response.usage is Some(usage) &&

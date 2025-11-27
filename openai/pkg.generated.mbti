@@ -11,7 +11,7 @@ import(
 // Values
 fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam
 
-async fn chat(model~ : @model.Model, Request, logger? : @pino.Logger) -> ChatCompletion
+async fn chat(model~ : @model.Model, Request, logger? : @pino.Logger, extra_body? : Map[String, Json]) -> ChatCompletion
 
 fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
 
