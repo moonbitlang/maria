@@ -12,29 +12,10 @@ pub impl Show for TodoReadResult with output(
   let output = []
   output.push("=== Current Session Todo List ===\n")
 
-  // Status emoji mapping
-  fn get_status_emoji(status : @todo.Status) -> String {
-    match status {
-      Completed => "✅"
-      InProgress => "🔄"
-      Pending => "⏳"
-    }
-  }
-
-  // Priority icon mapping
-  fn get_priority_icon(priority : @todo.Priority) -> String {
-    match priority {
-      High => "🔴"
-      Medium => "🟡"
-      Low => "🟢"
-    }
-  }
-
   // Display todos in a single list with status markers
-  for i = 0; i < todos.length(); i = i + 1 {
-    let todo = todos[i]
-    let status_mark = get_status_emoji(todo.status)
-    let priority_mark = get_priority_icon(todo.priority)
+  for i, todo in todos {
+    let status_mark = todo.status.icon()
+    let priority_mark = todo.priority.icon()
 
     // Format each todo item
     output.push(
@@ -76,11 +57,11 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+let schema : @tool.JsonSchema = {
   "type": "object",
   "properties": {},
   "required": [],
-})
+}
 
 ///|
 pub fn new(list : @todo.Todo) -> @tool.Tool[TodoReadResult] {
@@ -88,9 +69,9 @@ pub fn new(list : @todo.Todo) -> @tool.Tool[TodoReadResult] {
     description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
     name="todo_read",
     schema~,
-    @tool.ToolFn(async fn(_args) -> @tool.ToolResult[TodoReadResult] noraise {
-      @tool.ok(TodoReadResult::{ todos: list.todos() })
-    }),
+    async fn(_args) -> @tool.ToolResult[TodoReadResult] noraise {
+      @tool.ok({ todos: list.todos() })
+    },
   )
 }
 
