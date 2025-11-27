@@ -1,0 +1,13 @@
+check-core:
+  cd core && pnpm check
+
+check-web:
+  cd web && pnpm check
+
+check-vsc-ext:
+  cd vsc-ext && pnpm check-types
+
+check-vsc-ext-webview:
+  cd vsc-ext-webview && pnpm check
+
+check: check-core check-web check-vsc-ext check-vsc-ext-webview

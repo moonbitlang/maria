@@ -1,58 +1,30 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import Home from "./routes/Home";
+import Home from "@maria/core/routes/Home.js";
 import { Provider } from "react-redux";
-import { store } from "./app/store";
-import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router";
-import { Layout } from "./components/layout";
-import Task from "./routes/Task";
-import VscodeLayout from "./components/vscode-layout";
-import AllTasks from "./routes/AllTasks";
-import { rootData } from "./lib/utils";
-
-const isInVscode = typeof acquireVsCodeApi === "function";
-
-if (isInVscode) {
-  document.getElementById("_defaultStyles")?.remove();
-}
+import { store } from "@maria/core/app/store.ts";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { Layout } from "./layout";
+import Task from "@maria/core/routes/Task.tsx";
 
 const container = document.getElementById("root")!;
-
-const taskId = rootData("task-id");
-
-let initialEntries = ["/"];
-
-if (taskId) {
-  initialEntries = [`/tasks/${taskId}`];
-}
 
 const root = createRoot(container);
 
 root.render(
   <StrictMode>
     <Provider store={store}>
-      {isInVscode ? (
-        <MemoryRouter initialEntries={initialEntries} initialIndex={0}>
-          <Routes>
-            <Route element={<VscodeLayout />}>
-              <Route index element={<Home />}></Route>
-              <Route path="/tasks/:taskId" element={<Task />}></Route>
-              <Route path="/all-tasks" element={<AllTasks />}></Route>
-            </Route>
-          </Routes>
-        </MemoryRouter>
-      ) : (
+      {
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Home />}></Route>
               <Route path="/tasks/:taskId" element={<Task />}></Route>
-              <Route path="/all-tasks" element={<AllTasks />}></Route>
             </Route>
           </Routes>
         </BrowserRouter>
-      )}
+      }
     </Provider>
   </StrictMode>,
 );

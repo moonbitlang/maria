@@ -1,0 +1,5 @@
+packages:
+  - core
+  - web
+  - vsc-ext
+  - vsc-ext-webview

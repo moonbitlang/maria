@@ -22,14 +22,7 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-
-    "baseUrl": ".",
-    "paths": {
-      "@/components/ai/*": ["./src/components/ui/shadcn-io/ai/*"],
-      "@/*": ["./src/*"],
-      "@repo/shadcn-ui/*": ["./src/*"]
-    }
+    "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "../core/src/routes/Home.tsx"]
 }

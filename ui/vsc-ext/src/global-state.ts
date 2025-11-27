@@ -1,5 +1,5 @@
 import type * as comlink from "comlink";
-import type * as api from "../../common/api";
+import type * as api from "../../vsc-common/api";
 
 type GlobalState = {
   webviewApi?: comlink.Remote<api.WebviewApi>;
