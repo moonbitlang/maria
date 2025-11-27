@@ -17,34 +17,28 @@ pub impl Show for TodoWriteResult with output(
   let is_new_creation = self.is_new_creation
   let output = []
   output.push("✅ Operation completed: \{action_performed}\n")
-
-  // Show newly created todos specifically for create action
-  if is_new_creation {
-    if updated_todos.length() > 0 {
-      output.push("📝 Newly created todos:")
-      for todo in updated_todos {
-        output.push(
-          "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
-        )
-      }
-    }
-  } else {
-    // Always show all todos
-    output.push("📝 Current todo list:")
+  fn output_todos(todos : Array[@todo.Item]) {
     for todo in todos {
       output.push(
         "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
       )
     }
+  }
+  // Show newly created todos specifically for create action
+  if is_new_creation {
+    if updated_todos.length() > 0 {
+      output.push("📝 Newly created todos:")
+      output_todos(updated_todos)
+    }
+  } else {
+    // Always show all todos
+    output.push("📝 Current todo list:")
+    output_todos(todos)
 
     // Highlight updated todos if provided
     if updated_todos.length() > 0 {
       output.push("\n✨ Updated items:")
-      for todo in updated_todos {
-        output.push(
-          "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
-        )
-      }
+      output_todos(updated_todos)
     }
   }
   let mut pending_count = 0
@@ -52,9 +46,9 @@ pub impl Show for TodoWriteResult with output(
   let mut completed_count = 0
   for todo in todos {
     match todo.status {
-      Pending => pending_count = pending_count + 1
-      InProgress => in_progress_count = in_progress_count + 1
-      Completed => completed_count = completed_count + 1
+      Pending => pending_count += 1
+      InProgress => in_progress_count += 1
+      Completed => completed_count += 1
     }
   }
   output.push(
@@ -235,7 +229,7 @@ async fn @todo.Todo::execute_todo_write(
 }
 
 ///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+let schema : @tool.JsonSchema = {
   "type": "object",
   "properties": {
     "action": {
@@ -264,7 +258,7 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
     },
   },
   "required": ["action"],
-})
+}
 
 ///|
 /// @param list the todolist is shared globally
