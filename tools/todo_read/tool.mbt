@@ -11,38 +11,25 @@ pub impl Show for TodoReadResult with output(
   let todos = self.todos
   let output = []
   output.push("=== Current Session Todo List ===\n")
-
-  // Display todos in a single list with status markers
-  for i, todo in todos {
-    let status_mark = todo.status.icon()
-    let priority_mark = todo.priority.icon()
-
-    // Format each todo item
-    output.push(
-      "\{i + 1}. \{status_mark} \{priority_mark} [\{todo.id}] \{todo.content}",
-    )
-
-    // Add notes if present
-    match todo.notes {
-      Some(notes) => output.push("   └─ 📝 \{notes}")
-      None => ()
-    }
-  }
-  output.push("")
-
-  // Add summary statistics
-  let total = todos.length()
   let mut pending_count = 0
   let mut in_progress_count = 0
   let mut completed_count = 0
-  for todo in todos {
+  // Display todos in a single list with status markers
+  for i, todo in todos {
+    output.push(
+      "\{i + 1}. \{todo.status.icon()} \{todo.priority.icon()} [\{todo.id}] \{todo.content}",
+    )
+    if todo.notes is Some(notes) {
+      output.push("   └─ 📝 \{notes}")
+    }
     match todo.status {
-      Pending => pending_count = pending_count + 1
-      InProgress => in_progress_count = in_progress_count + 1
-      Completed => completed_count = completed_count + 1
+      Pending => pending_count += 1
+      InProgress => in_progress_count += 1
+      Completed => completed_count += 1
     }
   }
-  let summary_parts = ["Total: \{total}"]
+  output.push("")
+  let summary_parts = ["Total: \{todos.length()}"]
   if completed_count > 0 {
     summary_parts.push("✅ Completed: \{completed_count}")
   }
@@ -69,7 +56,7 @@ pub fn new(list : @todo.Todo) -> @tool.Tool[TodoReadResult] {
     description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
     name="todo_read",
     schema~,
-    async fn(_args) -> @tool.ToolResult[TodoReadResult] noraise {
+    async fn(_) -> @tool.ToolResult[TodoReadResult] noraise {
       @tool.ok({ todos: list.todos() })
     },
   )
