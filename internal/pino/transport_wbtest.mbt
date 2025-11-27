@@ -14,3 +14,13 @@ async test "Transport::callback" {
   transport.write(Json::string("callback message"))
   @json.inspect(logs, content=["callback message"])
 }
+
+///|
+async test "Transport::parse" {
+  @json.inspect(Transport::parse("console:") is Console, content=true)
+  @json.inspect(
+    Transport::parse("file:/tmp/log.txt") is File(path="/tmp/log.txt", ..),
+    content=true,
+  )
+  @json.inspect((try? Transport::parse("channel:")) is Err(_), content=true)
+}

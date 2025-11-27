@@ -9,7 +9,7 @@ pub struct Maria {
 pub async fn Maria::new(
   logger? : @pino.Logger = @pino.logger(
     "maria",
-    try! @pino.transport("file:.moonagent/log.jsonl"),
+    try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
   model~ : @model.Model,
   cwd? : String,

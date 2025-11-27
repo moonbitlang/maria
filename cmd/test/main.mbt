@@ -26,7 +26,7 @@ async fn generate(
   }
   let logger = @pino.logger(
     "maria_test",
-    try! @pino.transport("file:\{log_file}"),
+    try! @pino.Transport::parse("file:\{log_file}"),
   )
   @fsx.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")

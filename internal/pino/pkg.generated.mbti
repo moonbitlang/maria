@@ -9,8 +9,6 @@ import(
 // Values
 fn logger(String, level? : Level, Transport) -> Logger
 
-fn transport(StringView) -> Transport raise
-
 // Errors
 
 // Types and methods
@@ -42,6 +40,7 @@ fn Transport::callback((Json) -> Unit) -> Self
 fn Transport::channel(@aqueue.Queue[Json]) -> Self
 fn Transport::console() -> Self
 fn Transport::file(StringView) -> Self
+fn Transport::parse(StringView) -> Self raise
 fn Transport::sink() -> Self
 
 // Type aliases
