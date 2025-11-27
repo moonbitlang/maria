@@ -3,9 +3,7 @@ pub struct Server {
   priv maria : @maria.Maria
   priv uuid : @uuid.Generator
   priv broadcast : @broadcast.Broadcast[Json]
-  priv message_queue : @aqueue.Queue[
-    (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid?]),
-  ]
+  priv message_queue : @aqueue.Queue[(@ai.Message, @aqueue.Queue[@uuid.Uuid?])]
   priv mut task : @async.Task[Unit]?
   priv register : Register?
   priv serve : String
@@ -368,7 +366,7 @@ async fn Server::create_message(
       },
     })
   }
-  let message : @openai.ChatCompletionMessageParam = @json.from_json(message) catch {
+  let message : @ai.Message = @json.from_json(message) catch {
     @json.JsonDecodeError(_) as error =>
       raise json_error(400, "BadRequest", {
         "error": {

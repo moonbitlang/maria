@@ -54,7 +54,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     ])
     ..add_listener(event => match event {
       PreToolCall(tool_call) =>
-        match tool_call.function.name {
+        match tool_call.name {
           "read_multiple_files" => multiple_files_read = true
           _ => ()
         }

@@ -4,26 +4,14 @@ test "Message to_json" {
     {
       timestamp: 1625079600,
       usage: None,
-      message: User(
-        @openai.ChatCompletionUserMessageParam::new(content=[
-          @openai.ChatCompletionContentPartParam::new(text="Hello, world!"),
-        ]),
-      ),
+      message: @ai.user_message(content="Hello, world!"),
     },
     {
       timestamp: 1625079600,
       usage: Some(
-        @openai.CompletionUsage::new(
-          prompt_tokens=10,
-          total_tokens=20,
-          completion_tokens=10,
-        ),
+        @ai.usage(input_tokens=10, output_tokens=20, cache_read_tokens=10),
       ),
-      message: User(
-        @openai.ChatCompletionUserMessageParam::new(content=[
-          @openai.ChatCompletionContentPartParam::new(text="Hello, world!"),
-        ]),
-      ),
+      message: @ai.user_message(content="Hello, world!"),
     },
   ]
   @json.inspect(messages, content=[

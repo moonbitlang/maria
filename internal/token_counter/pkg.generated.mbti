@@ -2,8 +2,9 @@
 package "moonbitlang/maria/internal/token_counter"
 
 import(
-  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/pino"
+  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -12,7 +13,7 @@ import(
 
 // Types and methods
 type Counter
-async fn Counter::count_param(Self, messages~ : Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Int
+async fn Counter::count_param(Self, messages~ : Array[@ai.Message], tools? : Array[@tool.ToolDesc]) -> Int
 fn Counter::count_string(Self, String) -> Int
 fn Counter::new(logger~ : @pino.Logger) -> Self raise
 

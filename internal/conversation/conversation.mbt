@@ -12,45 +12,21 @@ pub fn Conversation::display(
     for i, message in self.messages {
       let message = message.message
       match message {
-        Assistant(assistant) => {
+        Assistant(content, ..) => {
           lines.push("\{i}. [assistant]")
-          let parts = assistant.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        User(user) => {
+        User(content) => {
           lines.push("\{i}. [user]")
-          let parts = user.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        System(system) => {
+        System(content) => {
           lines.push("\{i}. [system]")
-          let parts = system.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        Tool(tool) => {
+        Tool(content, ..) => {
           lines.push("\{i}. [tool]")
-          let parts = tool.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
       }
     }
@@ -161,8 +137,8 @@ pub impl @json.FromJson for Conversation with from_json(
 ///|
 pub fn Conversation::add_message(
   self : Conversation,
-  message : @openai.ChatCompletionMessageParam,
-  usage? : @openai.CompletionUsage,
+  message : @ai.Message,
+  usage? : @ai.Usage,
 ) -> Unit {
   let now = self.clock.now()
   let message = Message::{ timestamp: now, usage, message }
@@ -173,7 +149,7 @@ pub fn Conversation::add_message(
 ///|
 pub fn Conversation::add_messages(
   self : Conversation,
-  messages : Array[@openai.ChatCompletionMessageParam],
+  messages : Array[@ai.Message],
 ) -> Unit {
   for message in messages {
     self.add_message(message)
@@ -186,8 +162,6 @@ pub fn Conversation::id(self : Conversation) -> String {
 }
 
 ///|
-pub fn Conversation::to_param(
-  self : Conversation,
-) -> Array[@openai.ChatCompletionMessageParam] {
+pub fn Conversation::to_param(self : Conversation) -> Array[@ai.Message] {
   self.messages.map(m => m.message)
 }

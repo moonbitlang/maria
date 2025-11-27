@@ -54,39 +54,34 @@ fn format_timestamp(timestamp : Int64) -> String {
 }
 
 ///|
-fn get_role_title(message : @openai.ChatCompletionMessageParam) -> String {
+fn get_role_title(message : @ai.Message) -> String {
   match message {
-    @openai.ChatCompletionMessageParam::Assistant(_) => "🤖 Assistant"
-    @openai.ChatCompletionMessageParam::System(_) => "⚙️ System"
-    @openai.ChatCompletionMessageParam::Tool(_) => "🔧 Tool"
-    @openai.ChatCompletionMessageParam::User(_) => "👤 User"
+    @ai.Message::Assistant(_) => "🤖 Assistant"
+    @ai.Message::System(_) => "⚙️ System"
+    @ai.Message::Tool(_) => "🔧 Tool"
+    @ai.Message::User(_) => "👤 User"
   }
 }
 
 ///|
-fn format_message_content(
-  message : @openai.ChatCompletionMessageParam,
-  lines : Array[String],
-) -> Unit {
+fn format_message_content(message : @ai.Message, lines : Array[String]) -> Unit {
   match message {
-    @openai.ChatCompletionMessageParam::User(user_msg) =>
-      format_content_parts(user_msg.content, lines)
-    @openai.ChatCompletionMessageParam::Assistant(assistant_msg) => {
+    @ai.Message::User(content) => format_content_parts(content, lines)
+    @ai.Message::Assistant(content, tool_calls~) => {
       // Add assistant content
-      if not(assistant_msg.content.is_empty()) {
-        format_content_parts(assistant_msg.content, lines)
+      if not(content.is_empty()) {
+        format_content_parts(content, lines)
       }
 
       // Handle tool calls
-      if not(assistant_msg.tool_calls.is_empty()) {
-        for tool_call in assistant_msg.tool_calls {
+      if not(tool_calls.is_empty()) {
+        for tool_call in tool_calls {
           lines.push("")
-          let tool_name = tool_call.function.name
+          let tool_name = tool_call.name
           lines.push(
             "**🔧 Tool Call:** \{get_tool_description(tool_name)} (\{tool_name})",
           )
-          if tool_call.function.arguments is Some(arguments) &&
-            !arguments.is_empty() {
+          if tool_call.arguments is Some(arguments) && !arguments.is_empty() {
             lines.push("")
             lines.push("**Parameters:**")
 
@@ -107,37 +102,26 @@ fn format_message_content(
         }
       }
     }
-    @openai.ChatCompletionMessageParam::Tool(tool_msg) => {
-      lines.push("**🔧 Tool:** \{tool_msg.tool_call_id}")
+    @ai.Message::Tool(content, tool_call_id~) => {
+      lines.push("**🔧 Tool:** \{tool_call_id}")
       lines.push("")
       lines.push("**Result:**")
       lines.push("")
       lines.push("```")
-      format_content_parts(tool_msg.content, lines)
+      format_content_parts(content, lines)
       lines.push("```")
     }
-    @openai.ChatCompletionMessageParam::System(system_msg) =>
-      format_content_parts(system_msg.content, lines)
+    @ai.Message::System(content) => format_content_parts(content, lines)
   }
 }
 
 ///|
-fn format_content_parts(
-  content_parts : Array[@openai.ChatCompletionContentPartParam],
-  lines : Array[String],
-) -> Unit {
+fn format_content_parts(content_parts : String, lines : Array[String]) -> Unit {
   if content_parts.is_empty() {
     lines.push("*No content*")
     return
   }
-  for part in content_parts {
-    match part {
-      @openai.ChatCompletionContentPartParam::Text(text_part) =>
-        if not(text_part.text.is_empty()) {
-          lines.push(text_part.text)
-        }
-    }
-  }
+  lines.push(content_parts)
 }
 
 ///|

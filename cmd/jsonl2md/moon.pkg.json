@@ -6,10 +6,10 @@
     "moonbitlang/maria/internal/backtrace",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/git",
     "moonbitlang/x/time",
-    "moonbitlang/regexp"
+    "moonbitlang/regexp",
+    "moonbitlang/maria/ai"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"],
   "wbtest-import": ["moonbitlang/maria/internal/mock"]

@@ -9,9 +9,9 @@ async test "queue_message" (t : @test.Test) {
       cwd=mock.cwd.path(),
       logger=mock.logger,
     )
-    agent.add_message(@openai.user_message(content="Hello."))
+    agent.add_message(@ai.user_message(content="Hello."))
     let _ = agent.queue_message(
-      @openai.user_message(content="First queued message."),
+      @ai.user_message(content="First queued message."),
     )
     @json.inspect(
       @json.inspect(agent.queued_messages(), content=[

@@ -84,7 +84,7 @@ const ExtractorTaskPrompt : String =
 async fn Extractor::extract_code_snippets_from_chunk(
   self : Extractor,
   content : String,
-  history~ : Array[@openai.ChatCompletionMessageParam],
+  history~ : Array[@ai.Message],
   partial? : Bool = false,
 ) -> Json {
   let prompts = [ExtractorRolePrompt]
@@ -98,23 +98,12 @@ async fn Extractor::extract_code_snippets_from_chunk(
   prompts.push("</code_file>")
   prompts.push("2. Conversation history:")
   prompts.push("<conversation_history>")
-  fn content(parts : Array[@openai.ChatCompletionContentPartParam]) -> String {
-    let builder = StringBuilder::new()
-    for part in parts {
-      match part {
-        Text(text) => builder.write_string(text.text)
-      }
-    }
-    builder.to_string()
-  }
-
   for message in history {
     match message {
-      User(user) => prompts.push("User: \{content(user.content)}")
-      Assistant(assistant) =>
-        prompts.push("Assistant: \{content(assistant.content)}")
-      System(system) => prompts.push("System: \{content(system.content)}")
-      Tool(tool) => prompts.push("Tool: \{content(tool.content)}")
+      User(content) => prompts.push("User: \{content}")
+      Assistant(content, ..) => prompts.push("Assistant: \{content}")
+      System(content) => prompts.push("System: \{content}")
+      Tool(content, ..) => prompts.push("Tool: \{content}")
     }
   }
   prompts.push("</conversation_history>")
@@ -197,7 +186,7 @@ fn build_snippet_content(content : String, snippets : Array[Range]) -> String {
 pub async fn Extractor::extract_code_snippets(
   self : Extractor,
   content : String,
-  history~ : Array[@openai.ChatCompletionMessageParam],
+  history~ : Array[@ai.Message],
 ) -> String? {
   let token_count = self.token_counter.count_string(content)
   if token_count > self.safe_zone_tokens {

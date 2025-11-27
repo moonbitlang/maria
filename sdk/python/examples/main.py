@@ -12,8 +12,8 @@ async def main():
                 print(content)
         elif event.method == "maria.agent.post_tool_call":
             tool_call = event.params.tool_call
-            tool_name = tool_call.function.name
-            tool_args = tool_call.function.arguments
+            tool_name = tool_call.name
+            tool_args = tool_call.arguments
             try:
                 tool_args = json.loads(tool_args)
                 print(f"% {tool_name} {json.dumps(tool_args, indent=2)}")

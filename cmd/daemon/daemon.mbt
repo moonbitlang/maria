@@ -157,9 +157,7 @@ async fn Daemon::create_task(
         "error": { "code": -1, "message": "Invalid 'name' field: \{error}" },
       })
   }
-  let message : @openai.ChatCompletionMessageParam? = message.map(message => @json.from_json(
-    message,
-  )) catch {
+  let message : @ai.Message? = message.map(message => @json.from_json(message)) catch {
     error =>
       raise json_error(400, "Bad Request", {
         "error": { "code": -1, "message": "Invalid 'message' field: \{error}" },

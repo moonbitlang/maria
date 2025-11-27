@@ -77,7 +77,7 @@ async test "Event::ToJson/PreToolCall" {
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PreToolCall(
-        @openai.tool_call(
+        @ai.tool_call(
           id="tool_call_1",
           name="example_tool",
           arguments="{\"param1\": \"value1\", \"param2\": 123}",
@@ -112,7 +112,7 @@ async test "Event::ToJson/PostToolCall success" {
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PostToolCall(
-        @openai.tool_call(
+        @ai.tool_call(
           id="tool_call_1",
           name="example_tool",
           arguments="{\"param1\": \"value1\", \"param2\": 123}",
@@ -150,7 +150,7 @@ async test "Event::ToJson/PostToolCall error" {
     emitter.add_listener(event => events.push(event))
     emitter.emit(
       PostToolCall(
-        @openai.tool_call(
+        @ai.tool_call(
           id="tool_call_2",
           name="failing_tool",
           arguments="{\"paramA\": \"valueA\"}",
@@ -187,9 +187,7 @@ async test "Event::ToJson/MessageAdded" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      MessageAdded(
-        @openai.user_message(content="Hello, this is a user message."),
-      ),
+      MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
     )
   })
   @json.inspect(redact_events(events), content=[
@@ -236,18 +234,15 @@ async test "Event::ToJson/RequestCompleted" {
     emitter.add_listener(event => events.push(event))
     group.spawn_bg(() => emitter.start(), no_wait=true)
     @async.pause()
-    let usage : Json = {
-      "completion_tokens": 50,
-      "prompt_tokens": 150,
-      "total_tokens": 200,
-    }
-    let usage : @openai.CompletionUsage = @json.from_json(usage)
-    let message : Json = {
-      "content": "This is the final message from the model.",
-      "role": "assistant",
-      "tool_calls": [],
-    }
-    let message : @openai.ChatCompletionMessage = @json.from_json(message)
+    let usage : @ai.Usage = @ai.usage(
+      input_tokens=150,
+      output_tokens=50,
+      total_tokens=200,
+    )
+    let message : @ai.Message = @ai.assistant_message(
+      content="This is the final message from the model.",
+      tool_calls=[],
+    )
     emitter.emit(RequestCompleted(usage=Some(usage), message~))
   })
   @json.inspect(redact_events(events), content=[
@@ -257,9 +252,9 @@ async test "Event::ToJson/RequestCompleted" {
         { "completion_tokens": 50, "prompt_tokens": 150, "total_tokens": 200 },
       ],
       "message": {
-        "content": "This is the final message from the model.",
         "role": "assistant",
         "tool_calls": [],
+        "content": "This is the final message from the model.",
       },
     },
   ])

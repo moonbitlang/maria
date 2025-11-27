@@ -12,7 +12,6 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/moon",
-    "moonbitlang/maria/internal/openai",
     "moonbitlang/async/aqueue",
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/internal/broadcast",
@@ -20,7 +19,8 @@
     "moonbitlang/maria/internal/httpx",
     "moonbitlang/maria/internal/errno",
     "moonbitlang/async/fs",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/maria/ai"
   ],
   "test-import": ["moonbitlang/maria/internal/mock"]
 }

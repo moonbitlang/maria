@@ -7,7 +7,6 @@
     "moonbitlang/maria/internal/os",
     "moonbitlang/async/aqueue",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/path",
     "moonbitlang/async/os_error",
@@ -18,7 +17,8 @@
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/internal/httpx",
     "moonbitlang/maria/event",
-    "moonbitlang/maria/model"
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/ai"
   ],
   "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async/socket"]
 }

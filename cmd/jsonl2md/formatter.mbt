@@ -179,10 +179,10 @@ async fn Formatter::format_submit_fixed_file(
 /// Formats tool call from a MessageAdded log entry.
 async fn Formatter::format_tool_call(
   self : Formatter,
-  tool_call : @openai.ChatCompletionMessageToolCall,
+  tool_call : @ai.ToolCall,
 ) -> Unit {
-  guard tool_call.function.arguments is Some(arguments) else {
-    self.push_title("Tool call argument: <\{tool_call.function.name}>", level=2)
+  guard tool_call.arguments is Some(arguments) else {
+    self.push_title("Tool call argument: <\{tool_call.name}>", level=2)
     self.lines.push("")
     self.lines.push("No arguments provided.")
     self.lines.push("")
@@ -190,10 +190,7 @@ async fn Formatter::format_tool_call(
   }
   try @json.parse(arguments) catch {
     error => {
-      self.push_title(
-        "Tool call argument: <\{tool_call.function.name}>",
-        level=2,
-      )
+      self.push_title("Tool call argument: <\{tool_call.name}>", level=2)
       self.lines.push("")
       self.lines.push("Failed to parse tool call arguments as JSON: \{error}")
       self.lines.push("")
@@ -203,12 +200,12 @@ async fn Formatter::format_tool_call(
     }
   } noraise {
     args => {
-      if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
-        self.format_replace_in_file(tool_call.function.name, args)
-      } else if tool_call.function.name is "submit_fixed_file" {
-        self.format_submit_fixed_file(tool_call.function.name, args)
+      if tool_call.name is ("replace_in_file" | "meta_write_to_file") {
+        self.format_replace_in_file(tool_call.name, args)
+      } else if tool_call.name is "submit_fixed_file" {
+        self.format_submit_fixed_file(tool_call.name, args)
       } else {
-        self.format_tool_call_as_xml(tool_call.function.name, args)
+        self.format_tool_call_as_xml(tool_call.name, args)
       }
       self.lines.push("")
       self.push_title("Original JSON payload", level=3)
@@ -320,7 +317,7 @@ fn Formatter::format_timestamp(
 /// Formats a MessageAdded log entry.
 async fn Formatter::format_message_added(
   self : Formatter,
-  message : @openai.ChatCompletionMessageParam,
+  message : @ai.Message,
   timestamp? : Int64,
 ) -> Unit {
   // Tool is already handled when formatting PostToolCall
@@ -502,11 +499,9 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   }
   match json {
     { "msg": "RequestCompleted", "message": message, .. } => {
-      let message : @openai.ChatCompletionMessage = @json.from_json(message)
-      let content = message.content
-        .unwrap_or("")
-        .trim(char_set=" \n\r\t")
-        .to_string()
+      let message : @ai.Message = @json.from_json(message)
+      guard message is Assistant(content, tool_calls~) else { return }
+      let content = content.trim(char_set=" \n\r\t").to_string()
       let title = content.split("\n").drop_while(line => line.is_blank()).peek()
       if title is Some(title) {
         self.push_title("Assistant: \{title}", numbered=true, timestamp?)
@@ -521,8 +516,8 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         }
         self.lines.push("")
       }
-      if message.tool_calls.length() > 0 {
-        for tool_call in message.tool_calls {
+      if tool_calls.length() > 0 {
+        for tool_call in tool_calls {
           self.format_tool_call(tool_call)
         }
       }
@@ -536,9 +531,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         self.format_post_tool_call(name, text, timestamp?)
       }
     { "msg": "MessageAdded", "message": message, .. } => {
-      let message : @openai.ChatCompletionMessageParam = @json.from_json(
-        message,
-      )
+      let message : @ai.Message = @json.from_json(message)
       self.format_message_added(message, timestamp?)
     }
     { "msg": "ModelLoaded", "name": String(name) | [String(name)], .. } => {

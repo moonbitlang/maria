@@ -40,16 +40,12 @@ pub async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
-pub fn Loader::apply(
-  self : Loader,
-  messages : Array[@openai.ChatCompletionMessageParam],
-) -> Unit {
+pub fn Loader::apply(self : Loader, messages : Array[@ai.Message]) -> Unit {
   if self.rules.is_empty() {
     return
   }
-  let usr_msg = @openai.user_message(content=self.format())
-  let ins_pos : ArrayView[@openai.ChatCompletionMessageParam] = loop
-    messages[:] {
+  let usr_msg = @ai.user_message(content=self.format())
+  let ins_pos : ArrayView[@ai.Message] = loop messages[:] {
     [System(_), .. rest] => continue rest
     msgs => break msgs
   }

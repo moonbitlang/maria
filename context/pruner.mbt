@@ -38,8 +38,8 @@ const ClearedToolOutputPlaceholder : String = "[Cleared: tool output. If you wan
 /// and stops once the budget is respected or no more tool messages are available.
 pub async fn Pruner::prune_messages(
   pruner : Pruner,
-  messages : Array[@openai.ChatCompletionMessageParam],
-  tools? : Array[@openai.ChatCompletionToolParam] = [],
+  messages : Array[@ai.Message],
+  tools? : Array[@tool.ToolDesc] = [],
 ) -> Unit {
   let tokens = pruner.token_counter.count_param(messages~, tools~)
   if tokens <= pruner.safe_zone_tokens {
@@ -49,14 +49,11 @@ pub async fn Pruner::prune_messages(
   let pruned_index = []
   let prune_goal_met = for i, message in messages {
     match message {
-      Tool(tool) => {
-        if tool.content is [Text({ text: ClearedToolOutputPlaceholder, .. })] {
-          // Already cleared, skip
-          continue
-        }
-        messages[i] = @openai.tool_message(
+      Tool(ClearedToolOutputPlaceholder, ..) => continue
+      Tool(_, tool_call_id~) => {
+        messages[i] = @ai.tool_message(
           content=ClearedToolOutputPlaceholder,
-          tool_call_id=tool.tool_call_id,
+          tool_call_id~,
         )
         pruned_index.push(i)
         // TODO: this is O(n^2), optimize by tracking deltas

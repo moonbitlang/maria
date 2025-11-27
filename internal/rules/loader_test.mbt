@@ -51,10 +51,10 @@ async test "Loader::apply" (t : @test.Test) {
       let rules = Loader::new(project.path(), logger=mock.logger)
       rules.load()
       let messages = [
-        @openai.system_message(content="System message"),
-        @openai.user_message(content="User message"),
-        @openai.assistant_message(content="Assistant message"),
-        @openai.tool_message(tool_call_id="tool_call_1", content="Tool message"),
+        @ai.system_message(content="System message"),
+        @ai.user_message(content="User message"),
+        @ai.assistant_message(content="Assistant message"),
+        @ai.tool_message(tool_call_id="tool_call_1", content="Tool message"),
       ]
       rules.apply(messages)
       @json.inspect(messages, content=[

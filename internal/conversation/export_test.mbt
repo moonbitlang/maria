@@ -7,11 +7,9 @@ async test "export_to_markdown" (t : @test.Test) {
       cwd=mock.cwd.path(),
     )
     let conversation = manager.new_conversation(name="Test Conversation")
+    conversation.add_message(@ai.user_message(content="Hello, how are you?"))
     conversation.add_message(
-      @openai.user_message(content="Hello, how are you?"),
-    )
-    conversation.add_message(
-      @openai.assistant_message(content="I'm fine, thank you!"),
+      @ai.assistant_message(content="I'm fine, thank you!"),
     )
     inspect(
       conversation.export_to_markdown(),

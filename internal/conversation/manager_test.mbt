@@ -17,7 +17,7 @@ async test "Manager" (t : @test.Test) {
     let conversations = @path.join(dot_moonagent, "conversations")
     @json.inspect(mock.json(@fsx.list_directory(conversations)), content=[])
     let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@openai.user_message(content="Hello"))
+    conversation.add_message(@ai.user_message(content="Hello"))
     manager.save(conversation)
     @json.inspect(manager.list(), content=[
       "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",

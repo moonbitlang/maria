@@ -2,9 +2,10 @@
 package "moonbitlang/maria/context"
 
 import(
-  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/model"
+  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -13,12 +14,12 @@ import(
 
 // Types and methods
 type Extractor
-async fn Extractor::extract_code_snippets(Self, String, history~ : Array[@openai.ChatCompletionMessageParam]) -> String?
+async fn Extractor::extract_code_snippets(Self, String, history~ : Array[@ai.Message]) -> String?
 fn Extractor::new(model~ : @model.Model, safe_zone_tokens~ : Int, window_size? : Int, overlap? : Int, logger~ : @pino.Logger) -> Self raise
 
 type Pruner
 fn Pruner::new(safe_zone_tokens~ : Int, logger~ : @pino.Logger) -> Self raise
-async fn Pruner::prune_messages(Self, Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Unit
+async fn Pruner::prune_messages(Self, Array[@ai.Message], tools? : Array[@tool.ToolDesc]) -> Unit
 
 // Type aliases
 

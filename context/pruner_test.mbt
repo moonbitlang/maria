@@ -810,14 +810,14 @@ async test "pruner" (t : @test.Test) {
     #|    "content": "Let me fix the error handling properly. In MoonBit, we need to use `try?` to convert to Result or `try!` to panic, or handle errors explicitly. Let me correct this:\n\n"
     #|  }
     #|]
-  let messages : Array[@openai.ChatCompletionMessageParam] = messages
+  let messages : Array[@ai.Message] = messages
     |> @json.parse()
     |> @json.from_json()
   let tools = [
-    @openai.tool(
+    @tool.tool_desc(
       name="meta_write_to_file",
       description="Write content to a file at the specified path, replacing existing content.",
-      parameters={
+      schema={
         "type": "object",
         "properties": {
           "path": {
@@ -832,10 +832,10 @@ async test "pruner" (t : @test.Test) {
         "required": ["path", "replace"],
       },
     ),
-    @openai.tool(
+    @tool.tool_desc(
       name="read_file",
       description="Read the content of a file at the specified path.",
-      parameters={
+      schema={
         "type": "object",
         "properties": {
           "path": {
@@ -846,10 +846,10 @@ async test "pruner" (t : @test.Test) {
         "required": ["path"],
       },
     ),
-    @openai.tool(
+    @tool.tool_desc(
       name="list_files",
       description="List all files in the specified directory path.",
-      parameters={
+      schema={
         "type": "object",
         "properties": {
           "directory_path": {
@@ -860,15 +860,15 @@ async test "pruner" (t : @test.Test) {
         "required": ["directory_path"],
       },
     ),
-    @openai.tool(
+    @tool.tool_desc(
       name="todo_read",
       description="Read the current TODO list from the project's TODO.md file.",
-      parameters={ "type": "object", "properties": {}, "required": [] },
+      schema={ "type": "object", "properties": {}, "required": [] },
     ),
-    @openai.tool(
+    @tool.tool_desc(
       name="todo_write",
       description="Write a new TODO item to the project's TODO.md file.",
-      parameters={
+      schema={
         "type": "object",
         "properties": {
           "item": {
@@ -895,9 +895,9 @@ async test "pruner" (t : @test.Test) {
 ///|
 async test "prune_basic" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Hello"),
-    @openai.assistant_message(content="Hi!"),
-    @openai.user_message(content="What's the weather?"),
+    @ai.user_message(content="Hello"),
+    @ai.assistant_message(content="Hi!"),
+    @ai.user_message(content="What's the weather?"),
   ]
   @mock.run(t, mock => {
     let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
@@ -910,11 +910,11 @@ async test "prune_basic" (t : @test.Test) {
 ///|
 async test "prune_large_tool_output" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Run command"),
-    @openai.assistant_message(content="Running", tool_calls=[
-      @openai.tool_call(id="call_1", name="execute", arguments="{}"),
+    @ai.user_message(content="Run command"),
+    @ai.assistant_message(content="Running", tool_calls=[
+      @ai.tool_call(id="call_1", name="execute", arguments="{}"),
     ]),
-    @openai.tool_message(tool_call_id="call_1", content="x".repeat(10000)),
+    @ai.tool_message(tool_call_id="call_1", content="x".repeat(10000)),
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
@@ -930,8 +930,8 @@ async test "prune_large_tool_output" (t : @test.Test) {
 ///|
 async test "prune_already_cleared" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Test"),
-    @openai.tool_message(
+    @ai.user_message(content="Test"),
+    @ai.tool_message(
       tool_call_id="call_1",
       content="[Cleared: tool output. If you want to see the output, you can use the tool again.]",
     ),
@@ -949,10 +949,10 @@ async test "prune_already_cleared" (t : @test.Test) {
 ///|
 async test "prune_multiple_tools" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Test"),
-    @openai.tool_message(tool_call_id="call_1", content="output1".repeat(1000)),
-    @openai.tool_message(tool_call_id="call_2", content="output2".repeat(1000)),
-    @openai.tool_message(tool_call_id="call_3", content="output3".repeat(1000)),
+    @ai.user_message(content="Test"),
+    @ai.tool_message(tool_call_id="call_1", content="output1".repeat(1000)),
+    @ai.tool_message(tool_call_id="call_2", content="output2".repeat(1000)),
+    @ai.tool_message(tool_call_id="call_3", content="output3".repeat(1000)),
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
@@ -969,9 +969,9 @@ async test "prune_multiple_tools" (t : @test.Test) {
 ///|
 async test "prune_stops_at_budget" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Test"),
-    @openai.tool_message(tool_call_id="call_1", content="x".repeat(5000)),
-    @openai.tool_message(tool_call_id="call_2", content="x".repeat(5000)),
+    @ai.user_message(content="Test"),
+    @ai.tool_message(tool_call_id="call_1", content="x".repeat(5000)),
+    @ai.tool_message(tool_call_id="call_2", content="x".repeat(5000)),
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
@@ -986,8 +986,8 @@ async test "prune_stops_at_budget" (t : @test.Test) {
 ///|
 async test "prune_no_tools" (t : @test.Test) {
   let messages = [
-    @openai.user_message(content="Hello"),
-    @openai.assistant_message(content="Hi there!"),
+    @ai.user_message(content="Hello"),
+    @ai.assistant_message(content="Hi there!"),
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
@@ -1001,7 +1001,7 @@ async test "prune_no_tools" (t : @test.Test) {
 
 ///|
 async test "prune_empty_messages" (t : @test.Test) {
-  let messages : Array[@openai.ChatCompletionMessageParam] = []
+  let messages : Array[@ai.Message] = []
   @mock.run(t, mock => {
     let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
     pruner.prune_messages(messages)

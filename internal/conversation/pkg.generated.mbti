@@ -3,8 +3,8 @@ package "moonbitlang/maria/internal/conversation"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/clock"
-  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/uuid"
 )
 
@@ -14,12 +14,12 @@ import(
 
 // Types and methods
 type Conversation
-fn Conversation::add_message(Self, @openai.ChatCompletionMessageParam, usage? : @openai.CompletionUsage) -> Unit
-fn Conversation::add_messages(Self, Array[@openai.ChatCompletionMessageParam]) -> Unit
+fn Conversation::add_message(Self, @ai.Message, usage? : @ai.Usage) -> Unit
+fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
 fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
 fn Conversation::export_to_markdown(Self) -> String
 fn Conversation::id(Self) -> String
-fn Conversation::to_param(Self) -> Array[@openai.ChatCompletionMessageParam]
+fn Conversation::to_param(Self) -> Array[@ai.Message]
 impl ToJson for Conversation
 impl @json.FromJson for Conversation
 
