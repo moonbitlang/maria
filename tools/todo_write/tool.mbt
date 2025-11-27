@@ -23,10 +23,8 @@ pub impl Show for TodoWriteResult with output(
     if updated_todos.length() > 0 {
       output.push("📝 Newly created todos:")
       for todo in updated_todos {
-        let priority_icon = todo.priority.icon()
-        let status_icon = todo.status.icon()
         output.push(
-          "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+          "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
         )
       }
     }
@@ -34,10 +32,8 @@ pub impl Show for TodoWriteResult with output(
     // Always show all todos
     output.push("📝 Current todo list:")
     for todo in todos {
-      let priority_icon = todo.priority.icon()
-      let status_icon = todo.status.icon()
       output.push(
-        "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+        "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
       )
     }
 
@@ -45,15 +41,12 @@ pub impl Show for TodoWriteResult with output(
     if updated_todos.length() > 0 {
       output.push("\n✨ Updated items:")
       for todo in updated_todos {
-        let priority_icon = todo.priority.icon()
-        let status_icon = todo.status.icon()
         output.push(
-          "  \{priority_icon} \{status_icon} [\{todo.id}] \{todo.content}",
+          "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
         )
       }
     }
   }
-  let total_todos = todos.length()
   let mut pending_count = 0
   let mut in_progress_count = 0
   let mut completed_count = 0
@@ -65,7 +58,7 @@ pub impl Show for TodoWriteResult with output(
     }
   }
   output.push(
-    "\n📊 Current summary: Total \{total_todos} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
+    "\n📊 Current summary: Total \{todos.length()} items | Pending \{pending_count} | In Progress \{in_progress_count} | Completed \{completed_count}",
   )
   logger.write_string(output.join("\n"))
 }
