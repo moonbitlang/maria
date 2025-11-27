@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import * as endpoint from "../../common/endpoint";
-import * as api from "../../common/api";
+import * as endpoint from "../../vsc-common/endpoint";
+import * as api from "../../vsc-common/api";
 import * as comlink from "comlink";
 import * as globalState from "./global-state";
 
