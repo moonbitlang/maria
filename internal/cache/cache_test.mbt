@@ -225,3 +225,62 @@ test "last-two" {
     },
   ])
 }
+
+///|
+#skip
+async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let uuid = @uuid.generator(@rand.chacha8())
+    let cached_tokens = []
+    let model = mock.model(name=ClaudeSonnet4_5)
+    let messages = [
+      @openai.system_message(
+        content=(
+          // Insert a randomly generated UUID to avoid cache hits from previous
+          // test runs
+          $|---
+          $|id: \{uuid.v4()}
+          $|---
+          $|
+          $|\{@prompt.moonbit}
+        ),
+      ),
+      @openai.user_message(content="Hello"),
+    ]
+    // Make a request, record cached tokens, and append response to messages.
+    async fn make_request() {
+      let response = @openai.chat(
+        model~,
+        @openai.chat_completion(
+          model=model.name,
+          messages=@cache.cache_messages(messages),
+          usage=@openai.usage(include_=true),
+        ),
+      )
+      println(response.to_json().stringify(indent=2))
+      if response.usage is Some(usage) &&
+        usage.prompt_tokens_details is Some(details) &&
+        details.cached_tokens is Some(count) {
+        cached_tokens.push(count)
+      }
+      messages.push(response.choices[0].message.to_param())
+    }
+
+    make_request()
+    messages.push(
+      @openai.user_message(content="Please tell me what MoonBit is?"),
+    )
+    make_request()
+    messages.push(@openai.user_message(content="Thank you!"))
+    make_request()
+    @json.inspect(cached_tokens.length(), content=3)
+    // First request should have 0 cached tokens, as we used a unique UUID
+    // in system prompt to avoid cache hits.
+    @json.inspect(cached_tokens[0], content=0)
+    // Second request should cache the system prompt and the first user message.
+    @json.inspect(cached_tokens[1] > 0, content=true)
+    // Third request should additionally cached the second user message, thus a
+    // greater number of cached tokens than the second request.
+    @json.inspect(cached_tokens[2] > cached_tokens[1], content=true)
+  })
+}
