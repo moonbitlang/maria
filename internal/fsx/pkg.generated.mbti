@@ -1,14 +1,22 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/fsx"
 
+import(
+  "moonbitlang/async/fs"
+)
+
 // Values
 async fn exists(StringView) -> Bool
 
 async fn exists_as_file(StringView) -> Bool
 
+fn get_lock_owner(@fs.File) -> Int? raise
+
 async fn kind(StringView) -> FileKind
 
 async fn list_directory(StringView) -> Array[DirectoryEntry]
+
+fn lock_file(@fs.File) -> Unit raise
 
 async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
 

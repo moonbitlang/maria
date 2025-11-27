@@ -13,7 +13,11 @@
       "path": "moonbitlang/maria/internal/fsx",
       "alias": "this"
     },
-    "moonbitlang/maria/internal/mock"
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/async/process",
+    "moonbitlang/maria/internal/signal",
+    "moonbitlang/async/pipe"
   ],
-  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c"]
+  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c", "lock.c"]
 }
