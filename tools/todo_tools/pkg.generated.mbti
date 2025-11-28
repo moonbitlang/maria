@@ -3,14 +3,17 @@ package "moonbitlang/maria/tools/todo_tools"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/todo"
+  "moonbitlang/maria/clock"
+  "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/tool"
 )
 
 // Values
-fn new_read(@todo.Todo) -> @tool.Tool[TodoReadResult]
+fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
 
-fn new_write(@todo.Todo) -> @tool.Tool[TodoWriteResult]
+fn new_read(Todo) -> @tool.Tool[TodoReadResult]
+
+fn new_write(Todo) -> @tool.Tool[TodoWriteResult]
 
 let read_prompt : String
 
@@ -19,6 +22,47 @@ let write_prompt : String
 // Errors
 
 // Types and methods
+pub(all) struct Item {
+  content : String
+  created_at : String
+  id : String
+  notes : String?
+  priority : Priority
+  status : Status
+  updated_at : String
+}
+fn Item::update(Self, content? : String, notes? : String?, status? : Status, priority? : Priority, updated_at~ : String) -> Self
+impl ToJson for Item
+impl @json.FromJson for Item
+
+pub(all) enum Priority {
+  High
+  Medium
+  Low
+}
+impl ToJson for Priority
+impl @json.FromJson for Priority
+
+pub(all) enum Status {
+  Pending
+  InProgress
+  Completed
+}
+impl ToJson for Status
+impl @json.FromJson for Status
+
+type Todo
+fn Todo::add_task(Self, String, status? : Status, priority? : Priority, notes? : String?) -> Item
+fn Todo::find(Self, String) -> Int?
+fn Todo::get(Self, Int) -> Item
+async fn Todo::load(Self) -> Unit
+fn Todo::now(Self) -> String
+fn Todo::parse(Self, String, priority~ : Priority, notes? : String) -> Unit
+async fn Todo::save(Self) -> Unit
+fn Todo::todos(Self) -> Array[Item]
+fn Todo::update_task(Self, Int, Item) -> Unit
+fn Todo::uuid(Self) -> String
+
 type TodoReadResult
 impl Show for TodoReadResult
 impl ToJson for TodoReadResult

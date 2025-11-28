@@ -1,5 +1,5 @@
 ///|
-pub fn Priority::icon(self : Priority) -> String {
+fn Priority::icon(self : Priority) -> String {
   match self {
     High => "🔴"
     Medium => "🟡"
@@ -8,7 +8,7 @@ pub fn Priority::icon(self : Priority) -> String {
 }
 
 ///|
-pub fn Status::icon(self : Status) -> String {
+fn Status::icon(self : Status) -> String {
   match self {
     Completed => "✅"
     InProgress => "🔄"
