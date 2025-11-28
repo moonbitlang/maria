@@ -23,14 +23,14 @@ pub(all) enum Priority {
   High
   Medium
   Low
-} derive(ToJson, FromJson, Eq)
+} derive(ToJson, FromJson)
 
 ///|
 pub(all) enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson, FromJson, Eq)
+} derive(ToJson, FromJson)
 
 ///|
 pub(all) struct Item {

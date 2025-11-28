@@ -1,11 +1,11 @@
-///| Tests for todo_read
+///| Tests for todo tool
 
 ///|
-async test "todo_read/empty" (t : @test.Test) {
+async test "todo/read/empty" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let result = read_tool.call({})
+    let todo_tool = @todo_tools.new(todo_list)
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(result, content=["Ok", { "todos": [] }])
     inspect(
       result,
@@ -20,17 +20,16 @@ async test "todo_read/empty" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/single_task" (t : @test.Test) {
+async test "todo/read/single_task" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
-    let _ = write_tool.call({
+    let todo_tool = @todo_tools.new(todo_list)
+    let _ = todo_tool.call({
       "action": "create",
       "content": "A sample task",
       "priority": "medium",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -62,14 +61,13 @@ async test "todo_read/single_task" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
+async test "todo/read/multiple_tasks_mixed_status" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create multiple tasks
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|Task one
@@ -80,14 +78,14 @@ async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
     })
 
     // Mark first task as in-progress
-    let _ = write_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
+    let _ = todo_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
 
     // Mark second task as completed
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "mark_completed",
       "task_id": "1ea1417c",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -123,14 +121,13 @@ async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/different_priorities" (t : @test.Test) {
+async test "todo/read/different_priorities" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create tasks with different priorities
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|High priority task
@@ -141,17 +138,17 @@ async test "todo_read/different_priorities" (t : @test.Test) {
     })
 
     // Update priorities individually
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "1ea1417c",
       "priority": "medium",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "f378dd8d",
       "priority": "low",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -195,14 +192,13 @@ async test "todo_read/different_priorities" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/with_notes" (t : @test.Test) {
+async test "todo/read/with_notes" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create tasks
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|Task with notes
@@ -212,17 +208,17 @@ async test "todo_read/with_notes" (t : @test.Test) {
     })
 
     // Add notes to first task and change second priority
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "ac8a366d",
       "notes": "This is an important detail to remember",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "1ea1417c",
       "priority": "low",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -262,14 +258,13 @@ async test "todo_read/with_notes" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/all_completed" (t : @test.Test) {
+async test "todo/read/all_completed" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create and complete multiple tasks
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|Completed task 1
@@ -278,19 +273,19 @@ async test "todo_read/all_completed" (t : @test.Test) {
       ),
       "priority": "high",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "mark_completed",
       "task_id": "1ea1417c",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "mark_completed",
       "task_id": "f378dd8d",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -334,14 +329,13 @@ async test "todo_read/all_completed" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/all_in_progress" (t : @test.Test) {
+async test "todo/read/all_in_progress" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create and mark all tasks as in progress
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|In progress task 1
@@ -349,9 +343,9 @@ async test "todo_read/all_in_progress" (t : @test.Test) {
       ),
       "priority": "medium",
     })
-    let _ = write_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
-    let _ = write_tool.call({ "action": "mark_progress", "task_id": "1ea1417c" })
-    let result = read_tool.call({})
+    let _ = todo_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
+    let _ = todo_tool.call({ "action": "mark_progress", "task_id": "1ea1417c" })
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -389,14 +383,13 @@ async test "todo_read/all_in_progress" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/complex_scenario" (t : @test.Test) {
+async test "todo/read/complex_scenario" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create a complex scenario with mixed priorities, statuses, and notes
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": (
         #|Critical bug fix
@@ -408,17 +401,17 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
     })
 
     // Update priorities and add notes
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "ac8a366d",
       "notes": "Blocking production release",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "1ea1417c",
       "priority": "medium",
     })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "f378dd8d",
       "priority": "low",
@@ -426,12 +419,12 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
     })
 
     // Update statuses
-    let _ = write_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
-    let _ = write_tool.call({
+    let _ = todo_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
+    let _ = todo_tool.call({
       "action": "mark_completed",
       "task_id": "1ea1417c",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -485,28 +478,27 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
 }
 
 ///|
-async test "todo_read/updated_task_content" (t : @test.Test) {
+async test "todo/read/updated_task_content" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let read_tool = @todo_tools.new_read(todo_list)
-    let write_tool = @todo_tools.new_write(todo_list)
+    let todo_tool = @todo_tools.new(todo_list)
 
     // Create a task
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "create",
       "content": "Original task content",
       "priority": "medium",
     })
 
     // Update the task content
-    let _ = write_tool.call({
+    let _ = todo_tool.call({
       "action": "update",
       "task_id": "ac8a366d",
       "content": "Updated task content",
       "priority": "high",
       "notes": "Added some context",
     })
-    let result = read_tool.call({})
+    let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
       .to_json()
@@ -542,10 +534,10 @@ async test "todo_read/updated_task_content" (t : @test.Test) {
 ///| Tests for todo_write
 
 ///|
-async test "todo_write/create/plain" (t : @test.Test) {
+async test "todo/create/plain" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|Test todo item
@@ -615,10 +607,10 @@ async test "todo_write/create/plain" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/create/<task>" (t : @test.Test) {
+async test "todo/create/<task>" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|<task>Examine reference repository structure at .moonagent/repos/ini</task>
@@ -777,10 +769,10 @@ async test "todo_write/create/<task>" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/update" (t : @test.Test) {
+async test "todo/update" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|First item
@@ -803,7 +795,7 @@ async test "todo_write/update" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "ac8a366d",
       "status": "in-progress",
@@ -832,10 +824,10 @@ async test "todo_write/update" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/mark_completed" (t : @test.Test) {
+async test "todo/mark_completed" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|First item
@@ -858,7 +850,7 @@ async test "todo_write/mark_completed" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "nonexistent",
     })
@@ -867,7 +859,7 @@ async test "todo_write/mark_completed" (t : @test.Test) {
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
     ])
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
@@ -893,10 +885,10 @@ async test "todo_write/mark_completed" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/mark_progress" (t : @test.Test) {
+async test "todo/mark_progress" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|First item
@@ -919,7 +911,7 @@ async test "todo_write/mark_progress" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "nonexistent",
     })
@@ -929,7 +921,7 @@ async test "todo_write/mark_progress" (t : @test.Test) {
       "Error: Task with ID 'nonexistent' not found.",
     ])
     inspect(result, content="Error: Task with ID 'nonexistent' not found.")
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "ac8a366d",
     })
@@ -955,18 +947,18 @@ async test "todo_write/mark_progress" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/add_task" (t : @test.Test) {
+async test "todo/add_task" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Initial task",
       "priority": "medium",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Add a new task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "add_task",
       "content": "Additional task to be added",
       "priority": "high",
@@ -1032,10 +1024,10 @@ async test "todo_write/add_task" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/multiple_priority_levels" (t : @test.Test) {
+async test "todo/multiple_priority_levels" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|High priority task
@@ -1061,13 +1053,13 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
       ),
     )
     // Update priorities
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "1ea1417c",
       "priority": "medium",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "f378dd8d",
       "priority": "low",
@@ -1095,11 +1087,11 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
+async test "todo/workflow_complete_cycle" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create tasks
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|Design API endpoints
@@ -1111,25 +1103,25 @@ async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Start first task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "ac8a366d",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Complete first task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Start second task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_progress",
       "task_id": "1ea1417c",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Complete second task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "1ea1417c",
     })
@@ -1157,10 +1149,10 @@ async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_invalid_action" (t : @test.Test) {
+async test "todo/error_invalid_action" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "invalid_action",
       "content": "Test task",
     })
@@ -1179,10 +1171,10 @@ async test "todo_write/error_invalid_action" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
+async test "todo/error_missing_content_for_create" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({ "action": "create" })
+    let result = @todo_tools.new(todo_list).call({ "action": "create" })
     @json.inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Content is required for creating todos."],
@@ -1193,10 +1185,10 @@ async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
+async test "todo/error_missing_content_for_add_task" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({ "action": "add_task" })
+    let result = @todo_tools.new(todo_list).call({ "action": "add_task" })
     @json.inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Content is required for adding a task."],
@@ -1207,10 +1199,10 @@ async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
+async test "todo/error_missing_task_id_for_update" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "content": "New content",
     })
@@ -1224,10 +1216,10 @@ async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_invalid_priority" (t : @test.Test) {
+async test "todo/error_invalid_priority" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Test task",
       "priority": "urgent",
@@ -1249,10 +1241,10 @@ async test "todo_write/error_invalid_priority" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/error_invalid_status" (t : @test.Test) {
+async test "todo/error_invalid_status" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Test task",
       "status": "done",
@@ -1274,18 +1266,18 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/update_with_notes" (t : @test.Test) {
+async test "todo/update_with_notes" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Implement feature X",
       "priority": "high",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Update with notes
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "ac8a366d",
       "notes": "Need to consider edge cases and backward compatibility",
@@ -1341,18 +1333,18 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/update_content_only" (t : @test.Test) {
+async test "todo/update_content_only" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Original task description",
       "priority": "medium",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Update content only
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "ac8a366d",
       "content": "Updated task description with more details",
@@ -1405,18 +1397,18 @@ async test "todo_write/update_content_only" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
+async test "todo/add_task_with_in_progress_status" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "First task",
       "priority": "medium",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Add a new task directly as in-progress
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "add_task",
       "content": "Urgent task to start immediately",
       "priority": "high",
@@ -1444,10 +1436,10 @@ async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/create_with_low_priority" (t : @test.Test) {
+async test "todo/create_with_low_priority" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": (
         #|Clean up code comments
@@ -1476,24 +1468,24 @@ async test "todo_write/create_with_low_priority" (t : @test.Test) {
 }
 
 ///|
-async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
+async test "todo/mark_completed_then_reopen" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create task
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "create",
       "content": "Task that needs rework",
       "priority": "high",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Mark as completed
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
     guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
     // Reopen task by updating status back to pending
-    let result = @todo_tools.new_write(todo_list).call({
+    let result = @todo_tools.new(todo_list).call({
       "action": "update",
       "task_id": "ac8a366d",
       "status": "pending",

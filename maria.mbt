@@ -20,7 +20,7 @@ pub async fn Maria::new(
     None => @os.cwd()
   }
   let system_prompt = [
-    @prompt.prelude, @prompt.moonbit, @todo_tools.read_prompt, @todo_tools.write_prompt,
+    @prompt.prelude, @prompt.moonbit, @todo_tools.prompt,
     @search_files.prompt,
   ].join("\n")
   let agent = @agent.new(
@@ -37,8 +37,7 @@ pub async fn Maria::new(
     @execute_command.new(job_manager).to_agent_tool(),
     @list_files.new(file_manager).to_agent_tool(),
     @read_file.new(file_manager).to_agent_tool(),
-    @todo_tools.new_read(todo_list).to_agent_tool(),
-    @todo_tools.new_write(todo_list).to_agent_tool(),
+    @todo_tools.new(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
     @meta_write_to_file.new(agent).to_agent_tool(),
   ])
