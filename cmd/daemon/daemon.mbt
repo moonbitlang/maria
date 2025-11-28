@@ -32,7 +32,16 @@ async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
   w.header().set("Access-Control-Allow-Headers", "*")
   w.header().set("X-Accel-Buffering", "no")
   w.write_header(200)
-  let tasks : Array[Task] = self.by_cwd.values().collect()
+  let tasks : Array[Task] = []
+  for task in self.by_cwd.values().collect() {
+    task.sync_status() catch {
+      error =>
+        println(
+          "[WARN] (Daemon) Failed to sync status from task \{task.id}: \{error}",
+        )
+    }
+    tasks.push(task)
+  }
   w.write("event: daemon.tasks.synchronized\n")
   let data : Json = { "tasks": tasks }
   w.write("data: \{data.stringify()}\n\n")
@@ -75,7 +84,7 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
       guard line is [.. "data: ", .. data] else { continue eb.read_until("\n") }
       let json = @json.parse(data)
       match json {
-        { "msg": "PostConversation", .. } => {
+        { "msg": "PostConversation" | "MariaFailed" | "MariaCancelled", .. } => {
           println("[INFO] (Daemon) Task \{task.id} is now idle.")
           task.status = Idle
           self.events.put(StatusChange(task.id))
