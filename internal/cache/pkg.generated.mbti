@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/cache"
 
 import(
-  "moonbitlang/maria/openai"
+  "moonbitlang/maria/internal/openai"
 )
 
 // Values

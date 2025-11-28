@@ -9,7 +9,7 @@
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/tools/todo_read",
     "moonbitlang/maria/tools/todo_write",
     "moonbitlang/maria/tools/search_files",

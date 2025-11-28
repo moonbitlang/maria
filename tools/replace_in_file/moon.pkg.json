@@ -12,7 +12,7 @@
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/event"
   ]

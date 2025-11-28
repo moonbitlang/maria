@@ -5,7 +5,7 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/yamd",
-    "moonbitlang/maria/openai"
+    "moonbitlang/maria/internal/openai"
   ],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"],
   "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]

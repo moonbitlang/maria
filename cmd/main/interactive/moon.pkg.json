@@ -5,7 +5,7 @@
     "moonbitlang/async/stdio",
     "moonbitlang/maria",
     "moonbitlang/maria/agent",
-    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/cmd/main/argument",
     "moonbitlang/maria/event",
     "moonbitlang/maria/model"

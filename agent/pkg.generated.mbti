@@ -3,10 +3,10 @@ package "moonbitlang/maria/agent"
 
 import(
   "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
-  "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
 )
 

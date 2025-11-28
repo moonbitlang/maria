@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
-    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/internal/cache",
     "moonbitlang/maria/context",
