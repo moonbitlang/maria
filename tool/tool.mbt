@@ -6,6 +6,15 @@ pub struct ToolDesc {
 } derive(ToJson)
 
 ///|
+pub fn tool_desc(
+  description~ : String,
+  name~ : String,
+  schema~ : JsonSchema,
+) -> ToolDesc {
+  ToolDesc::{ description, name, schema }
+}
+
+///|
 pub struct Tool[Output] {
   desc : ToolDesc
   priv f : ToolFn[Output]

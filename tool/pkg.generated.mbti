@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool"
 
 // Values
+fn tool_desc(description~ : String, name~ : String, schema~ : JsonSchema) -> ToolDesc
 
 // Errors
 
