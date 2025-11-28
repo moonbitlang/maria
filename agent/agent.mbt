@@ -33,6 +33,7 @@ pub struct Agent {
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
+  priv web_search : Bool
 }
 
 ///|
@@ -292,6 +293,22 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
 
+      // Enable web search plugin if configured
+      let extra_body : Map[String, Json] = {}
+      if agent.web_search {
+        // We only support web search plugin for OpenRouter models for now.
+        //
+        // FIXME: We should encode how to enable web search plugin in model
+        // configuration.
+        if agent.model.base_url.contains("openrouter.ai/api/v1") {
+          extra_body["plugins"] = [{ "id": "web" }]
+        } else {
+          agent.logger.warn(
+            "Web search plugin is only supported for OpenRouter models.",
+          )
+        }
+      }
+
       // Make the API request to get the model's response
       let response = @openai.chat(
         model=agent.model,
@@ -303,6 +320,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
             tool,
           )),
         ),
+        extra_body~,
       )
       // Extract the message from the response, raise error if no choices returned
       guard response is { choices: [{ message, .. }, ..], usage, .. } else {
@@ -371,6 +389,7 @@ pub async fn new(
   system_message? : String,
   user_message? : String,
   cwd~ : StringView,
+  web_search? : Bool = false,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -398,6 +417,7 @@ pub async fn new(
     ),
     session_manager,
     rules,
+    web_search,
   }
   rules.load()
   match system_message {

@@ -11,7 +11,7 @@ import(
 )
 
 // Values
-async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView) -> Agent
+async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView, web_search? : Bool) -> Agent
 
 // Errors
 

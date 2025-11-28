@@ -14,6 +14,7 @@ pub async fn Maria::new(
   model~ : @model.Model,
   cwd? : String,
   user_message? : String,
+  web_search? : Bool = false,
 ) -> Maria {
   let cwd = match cwd {
     Some(cwd) => cwd
@@ -29,6 +30,7 @@ pub async fn Maria::new(
     cwd~,
     system_message=system_prompt,
     user_message?,
+    web_search~,
   )
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
