@@ -6,5 +6,12 @@
     "moonbitlang/maria/clock",
     "moonbitlang/maria/tool"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/maria/agent",
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/internal/openai"
+  ]
 }
