@@ -155,6 +155,7 @@ pub async fn Logger::debug(
 /// # Example
 /// ```moonbit
 /// let parent = logger("app", Transport::console())
+///
 /// let _child = parent.child({ "module": "auth" })
 /// // All logs from child will include both "tag": "app" and "module": "auth"
 /// ```

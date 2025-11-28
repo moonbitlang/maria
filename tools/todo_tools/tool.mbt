@@ -1,4 +1,18 @@
 ///|
+enum TodoResult {
+  Read(TodoReadResult)
+  Write(TodoWriteResult)
+} derive(ToJson, FromJson)
+
+///|
+pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
+  match self {
+    Read(result) => result.output(logger)
+    Write(result) => result.output(logger)
+  }
+}
+
+///|
 /// TodoReadResult
 struct TodoReadResult {
   todos : Array[Item]
@@ -45,65 +59,48 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
-let read_schema : @tool.JsonSchema = {
+let todo_schema : @tool.JsonSchema = {
   "type": "object",
-  "properties": {},
-  "required": [],
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "The action to perform: 'read' (read current todo list), 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
+    },
+    "content": {
+      "type": "string",
+      "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
+    },
+    "task_id": {
+      "type": "string",
+      "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
+    },
+    "priority": {
+      "type": "string",
+      "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
+    },
+    "status": {
+      "type": "string",
+      "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or details about the task",
+    },
+  },
+  "required": ["action"],
 }
 
 ///|
-pub fn new_read(list : Todo) -> @tool.Tool[TodoReadResult] {
+pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
   @tool.new(
-    description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
-    name="todo_read",
-    schema=read_schema,
-    async fn(_) -> @tool.ToolResult[TodoReadResult] noraise {
-      @tool.ok({ todos: list.todos() })
+    description="Request to manage the todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
+    name="todo",
+    schema=todo_schema,
+    async fn(args) -> @tool.ToolResult[TodoResult] noraise {
+      list.execute_todo(args)
     },
   )
 }
-
-///|
-pub let read_prompt : String =
-  #|# todo_read
-  #|
-  #|## Purpose
-  #|
-  #|- Read and display the current session's todo list to understand task progress
-  #|- Get an overview of all pending, in-progress, and completed tasks
-  #|- Track the status of complex multi-step operations
-  #|
-  #|## When to Use
-  #|
-  #|Use this tool proactively and frequently to ensure awareness of current task
-  #|status:
-  #|
-  #|- **At the beginning of conversations** to see what's pending
-  #|- **Before starting new tasks** to prioritize work appropriately
-  #|- **When the user asks about previous tasks** or plans
-  #|- **Whenever you're uncertain about what to do next**
-  #|- **After completing tasks** to update understanding of remaining work
-  #|- **After every few messages** to ensure you're staying on track
-  #|- **Periodically during long sessions** to review progress and stay organized
-  #|
-  #|## Important Considerations
-  #|
-  #|- This tool takes **no parameters** - leave the input completely blank or empty
-  #|- **DO NOT** include dummy objects, placeholder strings, or keys like "input" or
-  #|  "empty"
-  #|- **LEAVE IT BLANK** - the tool will automatically read the current session's
-  #|  todo list
-  #|- Returns formatted output showing tasks grouped by status (In Progress,
-  #|  Pending, Completed)
-  #|- Provides summary statistics about task completion rates
-  #|
-  #|## Benefits
-  #|
-  #|- Helps maintain context and continuity across complex tasks
-  #|- Provides clear visibility into what has been accomplished and what remains
-  #|- Demonstrates organized approach to problem-solving
-  #|- Helps prioritize next steps based on current task status
-  #|
 
 ///|
 /// TodoWriteResult
@@ -166,10 +163,36 @@ pub impl Show for TodoWriteResult with output(
 }
 
 ///|
-async fn Todo::execute_todo_write(
+async fn Todo::execute_todo(
   self : Todo,
   args : Json,
-) -> @tool.ToolResult[TodoWriteResult] noraise {
+) -> @tool.ToolResult[TodoResult] noraise {
+  // Parse required action parameter
+  guard args is { "action": String(action), .. } else {
+    return @tool.error("Error: 'action' parameter is required")
+  }
+  let action = action.to_lower()
+
+  // Handle read action separately
+  if action == "read" {
+    try {
+      self.load()
+      return @tool.ok(TodoResult::Read({ todos: self.todos() }))
+    } catch {
+      error => return @tool.error("Error loading todo list: \{error}", error~)
+    }
+  }
+
+  // Handle write actions
+  self.execute_todo_write(action, args)
+}
+
+///|
+async fn Todo::execute_todo_write(
+  self : Todo,
+  action : String,
+  args : Json,
+) -> @tool.ToolResult[TodoResult] noraise {
   enum Action {
     Create
     AddTask
@@ -177,11 +200,6 @@ async fn Todo::execute_todo_write(
     MarkProgress
     MarkCompleted
   }
-  // Parse required action parameter
-  guard args is { "action": String(action), .. } else {
-    return @tool.error("Error: 'action' parameter is required")
-  }
-  let action = action.to_lower()
   let action = match action {
     "create" => Create
     "add_task" => AddTask
@@ -190,7 +208,7 @@ async fn Todo::execute_todo_write(
     "mark_completed" => MarkCompleted
     _ =>
       return @tool.error(
-        "Error: Invalid action '\{action}'. Supported actions: create, add_task, update, mark_progress, mark_completed.",
+        "Error: Invalid action '\{action}'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
       )
   }
 
@@ -248,12 +266,14 @@ async fn Todo::execute_todo_write(
           try {
             self.save()
             let todos = self.todos()
-            return @tool.ok({
-              todos,
-              message: "Created \{todos.length()} new todo items",
-              updated_todos: todos,
-              is_new_creation: true,
-            })
+            return @tool.ok(
+              TodoResult::Write({
+                todos,
+                message: "Created \{todos.length()} new todo items",
+                updated_todos: todos,
+                is_new_creation: true,
+              }),
+            )
           } catch {
             error =>
               return @tool.error("Failed to save todo list: \{error}", error~)
@@ -267,12 +287,14 @@ async fn Todo::execute_todo_write(
       let item = self.add_task(content, status~, priority~, notes~)
       try {
         self.save()
-        return @tool.ok(TodoWriteResult::{
-          todos: self.todos().map(t => t),
-          message: "Added new task: \{item.content}",
-          updated_todos: [item],
-          is_new_creation: false,
-        })
+        return @tool.ok(
+          TodoResult::Write({
+            todos: self.todos().map(t => t),
+            message: "Added new task: \{item.content}",
+            updated_todos: [item],
+            is_new_creation: false,
+          }),
+        )
       } catch {
         error => return @tool.error("Failed to save new task: \{error}", error~)
       }
@@ -322,12 +344,14 @@ async fn Todo::execute_todo_write(
       }
       try {
         self.save()
-        @tool.ok(TodoWriteResult::{
-          todos: self.todos(),
-          message: action_message,
-          updated_todos,
-          is_new_creation: false,
-        })
+        @tool.ok(
+          TodoResult::Write({
+            todos: self.todos(),
+            message: action_message,
+            updated_todos,
+            is_new_creation: false,
+          }),
+        )
       } catch {
         error =>
           return @tool.error("Failed to save task update: \{error}", error~)
@@ -337,64 +361,37 @@ async fn Todo::execute_todo_write(
 }
 
 ///|
-let write_schema : @tool.JsonSchema = {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "description": "The action to perform: 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
-    },
-    "content": {
-      "type": "string",
-      "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
-    },
-    "task_id": {
-      "type": "string",
-      "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
-    },
-    "priority": {
-      "type": "string",
-      "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-    },
-    "status": {
-      "type": "string",
-      "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-    },
-    "notes": {
-      "type": "string",
-      "description": "Additional notes or details about the task",
-    },
-  },
-  "required": ["action"],
-}
-
-///|
-/// @param list the todolist is shared globally
-pub fn new_write(list : Todo) -> @tool.Tool[TodoWriteResult] {
-  @tool.new(
-    description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
-    name="todo_write",
-    schema=write_schema,
-    async fn(args) -> @tool.ToolResult[TodoWriteResult] noraise {
-      list.execute_todo_write(args)
-    },
-  )
-}
-
-///|
-pub let write_prompt : String =
-  #|# todo_write
+pub let prompt : String =
+  #|# todo
   #|
   #|## Purpose
   #|
   #|- Create and manage structured task lists for complex coding sessions
+  #|- Read and display the current session's todo list to understand task progress
   #|- Track progress on multi-step operations with status updates
   #|- Organize work into manageable, prioritized tasks
   #|- Provide clear progress visibility to users
   #|
   #|## When to Use
   #|
-  #|Use this tool proactively in these scenarios, but ONLY AFTER thorough project exploration:
+  #|### Reading the Todo List (action='read')
+  #|
+  #|Use the read action proactively and frequently to ensure awareness of current task status:
+  #|
+  #|- **At the beginning of conversations** to see what's pending
+  #|- **Before starting new tasks** to prioritize work appropriately
+  #|- **When the user asks about previous tasks** or plans
+  #|- **Whenever you're uncertain about what to do next**
+  #|- **After completing tasks** to update understanding of remaining work
+  #|- **After every few messages** to ensure you're staying on track
+  #|- **Periodically during long sessions** to review progress and stay organized
+  #|
+  #|The read action takes only the `action` parameter set to 'read'. It returns formatted
+  #|output showing tasks grouped by status with summary statistics.
+  #|
+  #|### Writing/Managing Tasks
+  #|
+  #|Use write actions (create, add_task, update, mark_progress, mark_completed) proactively in these scenarios, but ONLY AFTER thorough project exploration:
   #|
   #|- **FIRST EXPLORE THE PROJECT**: Always start with project exploration using
   #|  search_files, execute_command, and AC module searches
@@ -455,16 +452,17 @@ pub let write_prompt : String =
   #|
   #|## Workflow Tips
   #|
-  #|1. **Start with creation**: Use 'create' action to establish the initial task list for complex projects
-  #|2. **Add tasks incrementally**: Use 'add_task' as new requirements emerge during implementation
-  #|3. **Track progress actively**: Use 'mark_progress' when starting work on a task
-  #|4. **Complete tasks promptly**: Use 'mark_completed' when tasks are finished
-  #|5. **Add context**: Use 'notes' parameter to record important decisions or challenges
-  #|6. **Review regularly**: Use todo_read to maintain awareness of overall progress
+  #|1. **Read first**: Use 'read' action to check existing todos before planning new work
+  #|2. **Start with creation**: Use 'create' action to establish the initial task list for complex projects
+  #|3. **Add tasks incrementally**: Use 'add_task' as new requirements emerge during implementation
+  #|4. **Track progress actively**: Use 'mark_progress' when starting work on a task
+  #|5. **Complete tasks promptly**: Use 'mark_completed' when tasks are finished
+  #|6. **Add context**: Use 'notes' parameter to record important decisions or challenges
+  #|7. **Review regularly**: Use 'read' action to maintain awareness of overall progress
   #|
-  #|By using these TODO tools effectively, you can maintain better organization, provide clear progress visibility, and demonstrate a systematic approach to complex coding tasks.
+  #|By using this TODO tool effectively, you can maintain better organization, provide clear progress visibility, and demonstrate a systematic approach to complex coding tasks.
   #|
-  #|IMPORTANT: BEFORE USING TODO TOOLS, ALWAYS CONDUCT THOROUGH PROJECT EXPLORATION FIRST!
+  #|IMPORTANT: BEFORE USING TODO TOOL FOR TASK MANAGEMENT, ALWAYS CONDUCT THOROUGH PROJECT EXPLORATION FIRST!
   #|
   #|Begin every task by systematically exploring the project:
   #|
@@ -474,5 +472,5 @@ pub let write_prompt : String =
   #|
   #|Only after gathering sufficient information about the project structure, existing patterns, and available modules should you proceed to planning tasks with TODO tools.
   #|
-  #|The TODO tools help you manage and track task progress during complex coding sessions. They provide structured task management capabilities that enhance productivity and demonstrate thoroughness to users.
+  #|The TODO tool helps you manage and track task progress during complex coding sessions. It provides structured task management capabilities that enhance productivity and demonstrate thoroughness to users.
   #|
