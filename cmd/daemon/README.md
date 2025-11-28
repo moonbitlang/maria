@@ -8,6 +8,40 @@ From the root directory of the repository, run:
 moon run cmd/main -- daemon --port 8090 --serve cmd/daemon
 ```
 
+It will first test if there is a running instance of the daemon server by
+reading the `~/.moonagent/daemon.json` file. If there is no running instance, it
+will start a new one (detach from the terminal if `--detach` flag is specified);
+if there is a running instance, it exit immediately.
+
+To detach the daemon from the terminal, you can use `--detach` flag:
+
+```bash
+moon run cmd/main -- daemon --port 8090 --serve cmd/daemon --detach
+```
+
+Consumers of this daemon server would typically spawn the daemon server with
+random port (`--port 0`) and `--detach` flag, as it provides a uniformed way
+to spawn and obtain the port of the daemon server:
+
+1. Spawn the daemon server with:
+
+   ```bash
+   moon run cmd/main -- daemon --port 0 --serve cmd/daemon --detach
+   ```
+
+2. Read the port from the `~/.moonagent/daemon.json` file. Once the process
+   exits with `0`, The file is guaranteed to exist and contains a valid JSON
+   object with the `port` and `pid` fields.
+
+   ```json
+   {
+     "port": 8090,
+     "pid": 12345
+   }
+   ```
+
+3. Interact with the daemon server using the port obtained from the file.
+
 ## API
 
 ### `GET /v1/events`
