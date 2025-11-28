@@ -16,6 +16,7 @@ const confirmCreateBtn = document.getElementById("confirmCreateBtn");
 const cancelCreateBtn = document.getElementById("cancelCreateBtn");
 const taskView = document.getElementById("taskView");
 const noTaskSelected = document.getElementById("noTaskSelected");
+const cancelBtn = document.getElementById("cancelBtn");
 const modulesBtn = document.getElementById("modulesBtn");
 const modulesModal = document.getElementById("modulesModal");
 const closeModulesBtn = document.getElementById("closeModulesBtn");
@@ -663,6 +664,33 @@ function hideModulesModal() {
 createTaskBtn.addEventListener("click", showCreateTaskModal);
 
 cancelCreateBtn.addEventListener("click", hideCreateTaskModal);
+
+cancelBtn.addEventListener("click", async () => {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      addMessage("✓ Task cancelled");
+    } else if (response.status === 404) {
+      const data = await response.json();
+      showError(data.error?.message || "No ongoing task to cancel");
+    } else {
+      showError(`Failed to cancel task: ${response.statusText}`);
+    }
+  } catch (error) {
+    showError(`Error: ${error.message}`);
+  }
+});
 
 modulesBtn.addEventListener("click", loadModules);
 
