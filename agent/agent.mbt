@@ -26,10 +26,8 @@ pub struct Agent {
   logger : @pino.Logger
   priv tools : Map[String, @tool.AgentTool]
   priv history : @conversation.Conversation
-  priv mut input_queue : Array[@openai.ChatCompletionMessageParam]
-  priv pending_queue : @deque.Deque[
-    (@uuid.Uuid, @openai.ChatCompletionMessageParam),
-  ]
+  priv mut input_queue : Array[@ai.Message]
+  priv pending_queue : @deque.Deque[(@uuid.Uuid, @ai.Message)]
   priv event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context.Pruner
@@ -55,10 +53,7 @@ priv suberror EmptyChoices
 ///
 /// * `agent` : The agent instance to add the message to.
 /// * `message` : The chat completion message to queue for sending.
-pub async fn Agent::add_message(
-  agent : Agent,
-  message : @openai.ChatCompletionMessageParam,
-) -> Unit {
+pub async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
   agent.input_queue.push(message)
   agent.emit(MessageAdded(message))
 }
@@ -68,7 +63,7 @@ pub async fn Agent::add_message(
 /// conversation.
 pub async fn Agent::queue_message(
   agent : Agent,
-  message : @openai.ChatCompletionMessageParam,
+  message : @ai.Message,
 ) -> @uuid.Uuid {
   let id = agent.uuid.v4()
   agent.pending_queue.push_back((id, message))
@@ -77,9 +72,7 @@ pub async fn Agent::queue_message(
 }
 
 ///|
-pub fn Agent::queued_messages(
-  self : Agent,
-) -> Array[(@uuid.Uuid, @openai.ChatCompletionMessageParam)] {
+pub fn Agent::queued_messages(self : Agent) -> Array[(@uuid.Uuid, @ai.Message)] {
   self.pending_queue.to_array()
 }
 
@@ -113,7 +106,7 @@ pub fn Agent::close(_ : Agent) -> Unit {
 /// * `tool_call` : The tool call request from the AI model, containing the tool
 ///   name, arguments, and call ID.
 ///
-/// Returns a `@openai.ChatCompletionMessageParam` containing either:
+/// Returns a `@ai.Message` containing either:
 /// * The tool's successful output
 /// * An error message if the tool doesn't exist, arguments are invalid, or
 ///   execution fails
@@ -122,23 +115,23 @@ pub fn Agent::close(_ : Agent) -> Unit {
 /// original request.
 async fn Agent::execute_tool(
   agent : Agent,
-  tool_call : @openai.ChatCompletionMessageToolCall,
-) -> @openai.ChatCompletionMessageParam {
-  guard agent.tools.get(tool_call.function.name) is Some(tool) else {
-    @openai.tool_message(
-      content="Unknown tool: \{tool_call.function.name}",
+  tool_call : @ai.ToolCall,
+) -> @ai.Message {
+  guard agent.tools.get(tool_call.name) is Some(tool) else {
+    @ai.tool_message(
+      content="Unknown tool: \{tool_call.name}",
       tool_call_id=tool_call.id,
     )
   }
   agent.emit(PreToolCall(tool_call))
-  let arguments : Json = match tool_call.function.arguments {
+  let arguments : Json = match tool_call.arguments {
     None | Some("") =>
       // when models like haiku return empty arguments, we treat it as empty object 
       {}
     Some(arguments) =>
       @json.parse(arguments) catch {
         error =>
-          return @openai.tool_message(
+          return @ai.tool_message(
             content="Error parsing tool arguments: \{error}, arguments: \{arguments}",
             tool_call_id=tool_call.id,
           )
@@ -149,7 +142,7 @@ async fn Agent::execute_tool(
     Error(error, text) => (Err(error), text)
   }
   agent.emit(PostToolCall(tool_call, result~, rendered~))
-  @openai.tool_message(content=rendered, tool_call_id=tool_call.id)
+  @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
 ///|
@@ -222,9 +215,13 @@ pub async fn[Output : ToJson + Show] Agent::add_tool(
 /// Returns the cached messages ready to be sent to the API.
 async fn Agent::prepare_messages_for_request(
   agent : Agent,
-  messages : Array[@openai.ChatCompletionMessageParam],
-  tools~ : Array[@openai.ChatCompletionToolParam],
+  messages : Array[@ai.Message],
+  tools~ : Array[@tool.ToolDesc],
 ) -> Array[@openai.ChatCompletionMessageParam] {
+  let messages = messages.map(
+    @openai.ChatCompletionMessageParam::from_ai_message,
+  )
+  let tools = tools.map(@openai.ChatCompletionToolParam::from_tool_desc)
   agent.rules.apply(messages)
   // Count tokens before pruning to track context size
   let origin_token_count = agent.token_counter.count_param(messages~, tools~)
@@ -282,15 +279,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Build the tools array for this API call
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
-      for name, tool in agent.tools {
+      for _, tool in agent.tools {
         let desc = tool.desc()
-        tools.push(
-          @openai.tool(
-            name~,
-            description=desc.description,
-            parameters=desc.schema.to_json(),
-          ),
-        )
+        tools.push(desc)
       }
       // Retrieve and clear the message queue
       // staged contains messages that need to be sent in this call
@@ -308,28 +299,36 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         @openai.chat_completion(
           messages=cache_messages,
           model=agent.model.model_name,
-          tools~,
+          tools=tools.map(tool => @openai.ChatCompletionToolParam::from_tool_desc(
+            tool,
+          )),
         ),
       )
       // Extract the message from the response, raise error if no choices returned
       guard response is { choices: [{ message, .. }, ..], usage, .. } else {
         raise EmptyChoices
       }
+      let ai_message = message.to_ai_message()
 
       // Emit event with API usage statistics and the returned message
-      agent.emit(RequestCompleted(usage~, message~))
+      agent.emit(
+        RequestCompleted(
+          usage=usage.map(usage => usage.to_ai_usage()),
+          message=ai_message,
+        ),
+      )
 
       // Add all staged messages to permanent conversation history
       agent.history.add_messages(agent.input_queue)
       agent.input_queue = []
 
       // Add the model's response to conversation history
-      agent.history.add_message(message.to_param())
+      agent.history.add_message(ai_message)
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
       // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
-        agent.add_message(agent.execute_tool(call))
+        agent.add_message(agent.execute_tool(call.to_ai_tool_call()))
       }
     }
     // Signal the end of conversation
@@ -402,11 +401,11 @@ pub async fn new(
   }
   rules.load()
   match system_message {
-    Some(message) => agent.add_message(@openai.system_message(content=message))
+    Some(message) => agent.add_message(@ai.system_message(content=message))
     None => ()
   }
   match user_message {
-    Some(message) => agent.add_message(@openai.user_message(content=message))
+    Some(message) => agent.add_message(@ai.user_message(content=message))
     None => ()
   }
   agent

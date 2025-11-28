@@ -9,17 +9,25 @@ async test "queue_message" (t : @test.Test) {
       cwd=mock.cwd.path(),
       logger=mock.logger,
     )
-    agent.add_message(@openai.user_message(content="Hello."))
+    agent.add_message(@ai.user_message(content="Hello."))
     let _ = agent.queue_message(
-      @openai.user_message(content="First queued message."),
+      @ai.user_message(content="First queued message."),
     )
     @json.inspect(
-      @json.inspect(agent.queued_messages(), content=[
-        [
-          "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
-          { "role": "user", "content": "First queued message." },
+      @json.inspect(
+        agent
+        .queued_messages()
+        .map(id_msg => {
+          let (id, msg) = id_msg
+          (id, @openai.ChatCompletionMessageParam::from_ai_message(msg))
+        }),
+        content=[
+          [
+            "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+            { "role": "user", "content": "First queued message." },
+          ],
         ],
-      ]),
+      ),
       content=null,
     )
     agent.start()

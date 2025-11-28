@@ -177,10 +177,12 @@ async fn Server::start_maria(self : Server) -> Unit {
   while true {
     @async.with_task_group(group => {
       let (msg, idq) = self.message_queue.get()
+      let msg = msg.to_ai_message()
       self.maria.agent.add_message(msg)
       group.spawn_bg(
         () => while true {
           let (msg, idq) = self.message_queue.get()
+          let msg = msg.to_ai_message()
           let id = self.maria.agent.queue_message(msg)
           idq.put(Some(id))
         },
@@ -266,7 +268,10 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
     let (id, message) = m
-    queued_messages.push({ "id": id, "message": message.to_json() })
+    queued_messages.push({
+      "id": id,
+      "message": @openai.ChatCompletionMessageParam::from_ai_message(message).to_json(),
+    })
   }
   w.write("data: \{queued_messages.to_json().stringify()}\n\n")
   w.flush()
@@ -306,7 +311,12 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
         let queued_messages : Array[Json] = []
         for m in self.maria.agent.queued_messages() {
           let (id, message) = m
-          queued_messages.push({ "id": id, "message": message.to_json() })
+          queued_messages.push({
+            "id": id,
+            "message": @openai.ChatCompletionMessageParam::from_ai_message(
+              message,
+            ).to_json(),
+          })
         }
         w.write("data: \{queued_messages.to_json().stringify()}\n\n")
         w.flush()
@@ -323,7 +333,10 @@ async fn Server::get_queued_messages(
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
     let (id, message) = m
-    queued_messages.push({ "id": id, "message": message.to_json() })
+    queued_messages.push({
+      "id": id,
+      "message": @openai.ChatCompletionMessageParam::from_ai_message(message).to_json(),
+    })
   }
   let response : Json = queued_messages.to_json()
   w.header().set("Content-Type", "application/json")

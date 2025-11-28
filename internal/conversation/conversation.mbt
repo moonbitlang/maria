@@ -161,10 +161,12 @@ pub impl @json.FromJson for Conversation with from_json(
 ///|
 pub fn Conversation::add_message(
   self : Conversation,
-  message : @openai.ChatCompletionMessageParam,
-  usage? : @openai.CompletionUsage,
+  message : @ai.Message,
+  usage? : @ai.Usage,
 ) -> Unit {
   let now = self.clock.now()
+  let usage = usage.map(@openai.CompletionUsage::from_ai_usage)
+  let message = @openai.ChatCompletionMessageParam::from_ai_message(message)
   let message = Message::{ timestamp: now, usage, message }
   self.messages.push(message)
   self.updated_at = now
@@ -173,7 +175,7 @@ pub fn Conversation::add_message(
 ///|
 pub fn Conversation::add_messages(
   self : Conversation,
-  messages : Array[@openai.ChatCompletionMessageParam],
+  messages : Array[@ai.Message],
 ) -> Unit {
   for message in messages {
     self.add_message(message)
@@ -186,8 +188,6 @@ pub fn Conversation::id(self : Conversation) -> String {
 }
 
 ///|
-pub fn Conversation::to_param(
-  self : Conversation,
-) -> Array[@openai.ChatCompletionMessageParam] {
-  self.messages.map(m => m.message)
+pub fn Conversation::to_param(self : Conversation) -> Array[@ai.Message] {
+  self.messages.map(m => m.message.to_ai_message())
 }

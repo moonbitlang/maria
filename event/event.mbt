@@ -42,16 +42,16 @@ pub(all) enum Event {
   /// the `MessageAdded` event for tool messages.
   ///
   /// FIXME: emit this event for assistant messages as well.
-  MessageAdded(@openai.ChatCompletionMessageParam)
+  MessageAdded(@ai.Message)
   /// Event triggered when a message is unqueued from the pending queue.
   MessageUnqueued(id~ : @uuid.Uuid)
   /// Event triggered when a message is queued to be sent to the model.
-  MessageQueued(id~ : @uuid.Uuid, @openai.ChatCompletionMessageParam)
+  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
   /// Event triggered when a tool is added to the agent. This message will only
   /// be triggered once per agent instance.
   ToolAdded(@tool.ToolDesc)
   /// Event triggered before a tool is called.
-  PreToolCall(@openai.ChatCompletionMessageToolCall)
+  PreToolCall(@ai.ToolCall)
   /// Event triggered after a tool call is completed.
   ///
   /// If you are interested in the result of the tool call, then this is the
@@ -62,11 +62,7 @@ pub(all) enum Event {
   /// The `result` field can be used to determine whether the tool call was
   /// successful or not. `rendered` field is the string representation of the
   /// tool call result, which can be used for both human and LLM consumption.
-  PostToolCall(
-    @openai.ChatCompletionMessageToolCall,
-    result~ : Result[Json, Error],
-    rendered~ : String
-  )
+  PostToolCall(@ai.ToolCall, result~ : Result[Json, Error], rendered~ : String)
   /// Event triggered when tokens are counted for a message or tool call.
   /// Tokens are counted in following scenarios:
   ///
@@ -87,10 +83,7 @@ pub(all) enum Event {
   /// If you are interested in details in the assistant response, then this is
   /// the event you might want to listen for. Compared to `MessageAdded` event,
   /// this event contains more information like `usage` and `tool_calls`.
-  RequestCompleted(
-    usage~ : @openai.CompletionUsage?,
-    message~ : @openai.ChatCompletionMessage
-  )
+  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
 }
 
 ///|
@@ -154,7 +147,10 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
         "origin_token_count": origin_token_count,
         "pruned_token_count": pruned_token_count,
       }
-    PreToolCall(tool_call) =>
+    PreToolCall(tool_call) => {
+      let tool_call = @openai.ChatCompletionMessageToolCall::from_ai_tool_call(
+        tool_call,
+      )
       match tool_call.function.arguments {
         None =>
           {
@@ -182,7 +178,11 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
               }
           }
       }
-    PostToolCall(tool_call, result~, rendered~) =>
+    }
+    PostToolCall(tool_call, result~, rendered~) => {
+      let tool_call = @openai.ChatCompletionMessageToolCall::from_ai_tool_call(
+        tool_call,
+      )
       match result {
         Ok(output) =>
           {
@@ -201,11 +201,24 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
             "text": rendered,
           }
       }
+    }
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
-    MessageAdded(message) => { "msg": "MessageAdded", "message": message }
+    MessageAdded(message) =>
+      {
+        "msg": "MessageAdded",
+        "message": @openai.ChatCompletionMessageParam::from_ai_message(message),
+      }
     MessageQueued(id~, message) =>
-      { "msg": "MessageQueued", "message": { "id": id, "message": message } }
+      {
+        "msg": "MessageQueued",
+        "message": {
+          "id": id,
+          "message": @openai.ChatCompletionMessageParam::from_ai_message(
+            message,
+          ),
+        },
+      }
     MessageUnqueued(id~) =>
       { "msg": "MessageUnqueued", "message": { "id": id } }
     ToolAdded(tool_desc) =>
@@ -217,7 +230,10 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
           "schema": tool_desc.schema,
         },
       }
-    RequestCompleted(usage~, message~) =>
+    RequestCompleted(usage~, message~) => {
+      let usage = usage.map(@openai.CompletionUsage::from_ai_usage)
+      let message = @openai.ChatCompletionMessageParam::from_ai_message(message)
       { "msg": "RequestCompleted", "usage": usage, "message": message }
+    }
   }
 }

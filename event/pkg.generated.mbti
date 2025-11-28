@@ -2,7 +2,7 @@
 package "moonbitlang/maria/event"
 
 import(
-  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
   "moonbitlang/maria/tool"
@@ -17,15 +17,15 @@ pub(all) enum Event {
   ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
-  MessageAdded(@openai.ChatCompletionMessageParam)
+  MessageAdded(@ai.Message)
   MessageUnqueued(id~ : @uuid.Uuid)
-  MessageQueued(id~ : @uuid.Uuid, @openai.ChatCompletionMessageParam)
+  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
   ToolAdded(@tool.ToolDesc)
-  PreToolCall(@openai.ChatCompletionMessageToolCall)
-  PostToolCall(@openai.ChatCompletionMessageToolCall, result~ : Result[Json, Error], rendered~ : String)
+  PreToolCall(@ai.ToolCall)
+  PostToolCall(@ai.ToolCall, result~ : Result[Json, Error], rendered~ : String)
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  RequestCompleted(usage~ : @openai.CompletionUsage?, message~ : @openai.ChatCompletionMessage)
+  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
 }
 impl ToJson for Event
 

@@ -10,8 +10,8 @@
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/tools/replace_in_file",
-    "moonbitlang/maria/event"
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/ai"
   ]
 }

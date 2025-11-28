@@ -22,20 +22,20 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     let maria = @maria.Maria::new(model~)
     maria.agent.add_listener(event => match event {
       RequestCompleted(message~, ..) => {
-        guard message.content is Some(content) else { return }
-        println(content)
+        let content = message.content()
+        if !content.is_blank() {
+          println(content)
+        }
       }
       PreToolCall(tool_call) =>
-        match tool_call.function.arguments {
-          None => println("% \{tool_call.function.name}")
+        match tool_call.arguments {
+          None => println("% \{tool_call.name}")
           Some(arguments) =>
             try {
               let arguments = @json.parse(arguments)
-              println(
-                "% \{tool_call.function.name} \{arguments.stringify(indent=2)}",
-              )
+              println("% \{tool_call.name} \{arguments.stringify(indent=2)}")
             } catch {
-              _ => println("% \{tool_call.function.name}\n  \{arguments}")
+              _ => println("% \{tool_call.name}\n  \{arguments}")
             }
         }
       PostToolCall(_, rendered~, ..) =>

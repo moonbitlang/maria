@@ -125,14 +125,13 @@ async test "track-tool-calls" {
   let tool_calls = Ref::new([])
   agent.add_listener(event => match event {
     PreToolCall(tool_call) => {
-      println("Calling tool: \{tool_call.function.name}")
-      tool_calls.val.push(tool_call.function.name)
+      println("Calling tool: \{tool_call.name}")
+      tool_calls.val.push(tool_call.name)
     }
     PostToolCall(tool_call, result~, ..) =>
       match result {
-        Ok(_) => println("Tool \{tool_call.function.name} succeeded")
-        Err(error) =>
-          println("Tool \{tool_call.function.name} failed: \{error}")
+        Ok(_) => println("Tool \{tool_call.name} succeeded")
+        Err(error) => println("Tool \{tool_call.name} failed: \{error}")
       }
     _ => ()
   })
@@ -206,8 +205,8 @@ Event Flow:
                         ↓
 ┌─────────────────────────────────────────────────────────────┐
 │ 6. PreToolCall                                              │
-│    - tool_call.function.name: "add_numbers"                 │
-│    - tool_call.function.arguments: '{"a": 5, "b": 3}'       │
+│    - tool_call.name: "add_numbers"                          │
+│    - tool_call.arguments: '{"a": 5, "b": 3}'                │
 └─────────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────────┐

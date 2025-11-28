@@ -88,7 +88,7 @@ async test "agent/single_tool_call" (t : @test.Test) {
     )
     agent.add_tools([calculator_tool.to_agent_tool()])
     agent.add_listener(event => match event {
-      PreToolCall(tool_call) => tool_name = tool_call.function.name
+      PreToolCall(tool_call) => tool_name = tool_call.name
       _ => ()
     })
     agent.start()
@@ -145,7 +145,7 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
     )
     agent.add_tools([add_tool.to_agent_tool(), multiply_tool.to_agent_tool()])
     agent.add_listener(event => match event {
-      PreToolCall(tool_call) => tool_calls.push(tool_call.function.name)
+      PreToolCall(tool_call) => tool_calls.push(tool_call.name)
       _ => ()
     })
     agent.start()
@@ -184,7 +184,7 @@ async test "agent/event_system" (t : @test.Test) {
         request_completed = true
         // DONT use inspect since it may happen multiple times asynchronously
         assert_true(usage is Some(_) || usage is None)
-        assert_true(message.role is Assistant)
+        assert_true(message is Assistant(_))
       }
       _ => ()
     })
@@ -227,7 +227,7 @@ async test "agent/file_operations" (t : @test.Test) {
     let mut _file_read = false
     agent.add_listener(event => match event {
       PreToolCall(tool_call) =>
-        match tool_call.function.name {
+        match tool_call.name {
           "replace_in_file" => file_written = true
           "read_file" => _file_read = true
           _ => ()
@@ -368,7 +368,7 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
     agent.add_tools(tools.map(fn(t) { t.to_agent_tool() }))
     let tool_names : Array[String] = []
     agent.add_listener(event => match event {
-      PreToolCall(tool_call) => tool_names.push(tool_call.function.name)
+      PreToolCall(tool_call) => tool_names.push(tool_call.name)
       _ => ()
     })
     agent.start()
@@ -459,7 +459,7 @@ async test "agent/read_multiple_files" (t : @test.Test) {
     let mut multiple_files_read = false
     agent.add_listener(event => match event {
       PreToolCall(tool_call) =>
-        match tool_call.function.name {
+        match tool_call.name {
           "replace_in_file" => file_written = true
           "read_multiple_files" => multiple_files_read = true
           _ => ()

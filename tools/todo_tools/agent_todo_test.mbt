@@ -20,7 +20,7 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
     ])
     agent.add_listener(event => match event {
       @event.PreToolCall(tool_call) =>
-        match tool_call.function.name {
+        match tool_call.name {
           "todo_write" => write_called = true
           "todo_read" => read_called = true
           _ => ()
@@ -57,7 +57,7 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
     agent.add_tools([new_read(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
       @event.PreToolCall(tool_call) =>
-        match tool_call.function.name {
+        match tool_call.name {
           "todo_read" => read_called = true
           _ => ()
         }
@@ -88,8 +88,8 @@ async test "agent/todo_tools/priority_handling" (t : @test.Test) {
     agent.add_tools([new_write(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
       @event.PreToolCall(tool_call) =>
-        match tool_call.function.name {
-          "todo_write" => tool_calls.push(tool_call.function.name)
+        match tool_call.name {
+          "todo_write" => tool_calls.push(tool_call.name)
           _ => ()
         }
       _ => ()

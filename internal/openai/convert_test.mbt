@@ -51,11 +51,7 @@ test "ChatCompletionMessage::to_ai_message" {
     "tool_calls": [],
   })
   let ai_message = openai_message.to_ai_message()
-  @json.inspect(ai_message, content=[
-    "Assistant",
-    "Hello, AI!",
-    { "tool_calls": [] },
-  ])
+  @json.inspect(ai_message.content(), content="Hello, AI!")
 }
 
 ///|
@@ -72,12 +68,11 @@ test "usage" {
     "prompt_tokens_details": { "cached_tokens": 100 },
     "total_tokens": 500,
   })
-  @json.inspect(openai_usage.to_ai_usage(), content={
-    "input_tokens": 150,
-    "output_tokens": 350,
-    "total_tokens": 500,
-    "cache_read_tokens": 100,
-  })
+  let ai_usage = openai_usage.to_ai_usage()
+  @json.inspect(ai_usage.input_tokens, content=150)
+  @json.inspect(ai_usage.output_tokens, content=350)
+  @json.inspect(ai_usage.total_tokens, content=500)
+  @json.inspect(ai_usage.cache_read_tokens, content=[100])
 }
 
 ///|
@@ -98,16 +93,15 @@ test "tool_call" {
     },
     "type": "function",
   })
-  @json.inspect(openai_tool_call.to_ai_tool_call(), content={
-    "id": "tool_call_1",
-    "name": "fetch_data",
-    "arguments": "{\"query\": \"latest news\"}",
-  })
+  @json.inspect(openai_tool_call.to_ai_tool_call().id, content="tool_call_1")
+  @json.inspect(openai_tool_call.to_ai_tool_call().name, content="fetch_data")
+  @json.inspect(openai_tool_call.to_ai_tool_call().arguments, content=[
+    "{\"query\": \"latest news\"}",
+  ])
   let tc_wo_args = @openai.tool_call(id="tool_call_1", name="fetch_data")
-  @json.inspect(tc_wo_args.to_ai_tool_call(), content={
-    "id": "tool_call_1",
-    "name": "fetch_data",
-  })
+  @json.inspect(tc_wo_args.to_ai_tool_call().id, content="tool_call_1")
+  @json.inspect(tc_wo_args.to_ai_tool_call().name, content="fetch_data")
+  @json.inspect(tc_wo_args.to_ai_tool_call().arguments, content=null)
 }
 
 ///|
