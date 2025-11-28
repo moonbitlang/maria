@@ -9,6 +9,44 @@ priv struct Task {
 }
 
 ///|
+async fn Task::sync_status(task : Task) -> Unit {
+  let (r, b) = @http.get("http://localhost:\{task.port}/v1/status") catch {
+    error => {
+      println(
+        "[WARN] (Daemon) Failed to sync status from task \{task.id}: \{error}",
+      )
+      raise error
+    }
+  }
+  guard r.code is (200..=299) else {
+    println(
+      "[WARN] (Daemon) Failed to sync status from task \{task.id}: \{r.code} \{r.reason}",
+    )
+    return
+  }
+  let b = b.json() catch {
+    error => {
+      println(
+        "[WARN] (Daemon) Failed to parse status JSON from task \{task.id}: \{error}",
+      )
+      raise error
+    }
+  }
+  guard b is { "status": String(status_str), .. } else {
+    println("[WARN] (Daemon) Invalid status format from task \{task.id}")
+    return
+  }
+  match status_str.to_lower() {
+    "idle" => task.status = @server.Idle
+    "generating" => task.status = @server.Busy
+    _ =>
+      println(
+        "[WARN] (Daemon) Unknown status '\{status_str}' from task \{task.id}",
+      )
+  }
+}
+
+///|
 async fn Task::queued_messages(task : Task) -> Array[QueuedMessage] {
   let ms = []
   let (r, b) = @http.get("http://localhost:\{task.port}/v1/queued-messages") catch {
