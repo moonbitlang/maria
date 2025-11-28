@@ -177,7 +177,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_a55fe2665c3b4c2b88910567",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"create\", \"content\": \"1. Design the data structures for representing TOML values\\n2. Implement lexer to tokenize TOML input\\n3. Implement parser to convert tokens into AST representation\\n4. Create functions to convert AST to user-friendly data structures\\n5. Add error handling for malformed TOML\\n6. Write comprehensive tests for the parser\\n7. Document the API with examples\"}"
     #|        },
     #|        "type": "function"
@@ -201,7 +201,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_06588b435b2f48fbb8f38892",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"mark_progress\", \"task_id\": \"af607429\"}"
     #|        },
     #|        "type": "function"
@@ -321,7 +321,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_3db39919dc984c6c8179654f",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"mark_completed\", \"task_id\": \"af607429\"}"
     #|        },
     #|        "type": "function"
@@ -345,7 +345,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_4d8b9850771f4b269b9e0b3d",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"mark_progress\", \"task_id\": \"fe7f038a\"}"
     #|        },
     #|        "type": "function"
@@ -561,7 +561,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_359cf68f10d1483692745bf2",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"mark_completed\", \"task_id\": \"fe7f038a\"}"
     #|        },
     #|        "type": "function"
@@ -585,7 +585,7 @@ async test "pruner" (t : @test.Test) {
     #|      {
     #|        "id": "call_09052f3ce7af42e4a09ab6d5",
     #|        "function": {
-    #|          "name": "todo_write",
+    #|          "name": "todo",
     #|          "arguments": "{\"action\": \"mark_progress\", \"task_id\": \"592070b6\"}"
     #|        },
     #|        "type": "function"
@@ -861,12 +861,12 @@ async test "pruner" (t : @test.Test) {
       },
     ),
     @openai.tool(
-      name="todo_read",
+      name="todo",
       description="Read the current TODO list from the project's TODO.md file.",
       parameters={ "type": "object", "properties": {}, "required": [] },
     ),
     @openai.tool(
-      name="todo_write",
+      name="todo",
       description="Write a new TODO item to the project's TODO.md file.",
       parameters={
         "type": "object",

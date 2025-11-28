@@ -21,14 +21,24 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
       @event.PreToolCall(tool_call) =>
         match tool_call.name {
           "todo" => {
-            // Check the action from the tool call arguments
+            // Parse the arguments string as JSON to check the action
             match tool_call.arguments {
-              { "action": String(action), .. } =>
-                match action {
-                  "read" => read_called = true
-                  _ => write_called = true
+              Some(args_str) => {
+                let args = @json.parse(args_str)
+                match args {
+                  Object(map) =>
+                    match map.get("action") {
+                      Some(String(action_str)) =>
+                        match action_str {
+                          "read" => read_called = true
+                          _ => write_called = true
+                        }
+                      _ => ()
+                    }
+                  _ => ()
                 }
-              _ => ()
+              }
+              None => ()
             }
           }
           _ => ()
@@ -68,8 +78,18 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
         match tool_call.name {
           "todo" => {
             match tool_call.arguments {
-              { "action": String("read"), .. } => read_called = true
-              _ => ()
+              Some(args_str) => {
+                let args = @json.parse(args_str)
+                match args {
+                  Object(map) =>
+                    match map.get("action") {
+                      Some(String("read")) => read_called = true
+                      _ => ()
+                    }
+                  _ => ()
+                }
+              }
+              None => ()
             }
           }
           _ => ()
