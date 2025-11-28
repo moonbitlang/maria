@@ -146,16 +146,17 @@ fn Counter::add_tool(
 /// parameters.
 pub async fn Counter::count_param(
   self : Counter,
-  param : @openai.Request,
+  messages~ : Array[@openai.ChatCompletionMessageParam],
+  tools? : Array[@openai.ChatCompletionToolParam] = [],
 ) -> Int {
   let mut count = SystemOverhead
-  if !param.tools.is_empty() {
+  if !tools.is_empty() {
     count += ToolsOverhead
   }
-  for tool in param.tools {
+  for tool in tools {
     count += self.count_tool(tool)
   }
-  count += self.count_messages(param.messages)
+  count += self.count_messages(messages)
   self.logger.info("TokenCounted", data={ "token_count": count })
   count
 }

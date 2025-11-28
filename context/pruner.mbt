@@ -41,9 +41,7 @@ pub async fn Pruner::prune_messages(
   messages : Array[@openai.ChatCompletionMessageParam],
   tools? : Array[@openai.ChatCompletionToolParam] = [],
 ) -> Unit {
-  let tokens = pruner.token_counter.count_param(
-    @openai.chat_completion(messages~, model="gpt-4o", tools~),
-  )
+  let tokens = pruner.token_counter.count_param(messages~, tools~)
   if tokens <= pruner.safe_zone_tokens {
     return
   }
@@ -62,9 +60,7 @@ pub async fn Pruner::prune_messages(
         )
         pruned_index.push(i)
         // TODO: this is O(n^2), optimize by tracking deltas
-        pruned_tokens = pruner.token_counter.count_param(
-          @openai.chat_completion(messages~, model="gpt-4o", tools~),
-        )
+        pruned_tokens = pruner.token_counter.count_param(messages~, tools~)
         if pruned_tokens <= pruner.safe_zone_tokens {
           break true
         }
