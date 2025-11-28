@@ -6,7 +6,7 @@ async test "lock_file" (t : @test.Test) {
     file.write_string("test content")
     let path = file.path()
     let file = @fs.open(path, mode=ReadWrite)
-    @this.lock_file(file)
+    @fsx.lock_file(file)
     let process = @spawn.spawn(
       @path.join(cwd, "target/native/release/build/cmd/test-lock/test-lock.exe"),
       [path],
@@ -25,7 +25,7 @@ async test "get_lock_owner" (t : @test.Test) {
     {
       let file = @fs.open(path, mode=ReadWrite)
       defer file.close()
-      @json.inspect(@this.get_lock_owner(file) == None, content=true)
+      @json.inspect(@fsx.get_lock_owner(file) == None, content=true)
     }
     let stdin = @process.write_to_process()
     let stdout = @process.read_from_process()
@@ -41,7 +41,7 @@ async test "get_lock_owner" (t : @test.Test) {
     {
       let file = @fs.open(path, mode=ReadWrite)
       defer file.close()
-      @json.inspect(@this.get_lock_owner(file) == Some(pid), content=true)
+      @json.inspect(@fsx.get_lock_owner(file) == Some(pid), content=true)
     }
     stdin.1.write(b"exit\n")
   })
