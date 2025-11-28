@@ -5,7 +5,6 @@
     "moonbitlang/maria/file",
     "moonbitlang/maria/tools/list_files",
     "moonbitlang/maria/tools/read_file",
-    "moonbitlang/maria/todo",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",

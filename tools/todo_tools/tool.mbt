@@ -1,7 +1,7 @@
 ///|
 /// TodoReadResult
 struct TodoReadResult {
-  todos : Array[@todo.Item]
+  todos : Array[Item]
 } derive(ToJson, FromJson)
 
 ///|
@@ -52,7 +52,7 @@ let read_schema : @tool.JsonSchema = {
 }
 
 ///|
-pub fn new_read(list : @todo.Todo) -> @tool.Tool[TodoReadResult] {
+pub fn new_read(list : Todo) -> @tool.Tool[TodoReadResult] {
   @tool.new(
     description="Request to read the current todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
     name="todo_read",
@@ -108,9 +108,9 @@ pub let read_prompt : String =
 ///|
 /// TodoWriteResult
 struct TodoWriteResult {
-  todos : Array[@todo.Item]
+  todos : Array[Item]
   message : String
-  updated_todos : Array[@todo.Item]
+  updated_todos : Array[Item]
   is_new_creation : Bool
 } derive(ToJson, @json.FromJson)
 
@@ -125,7 +125,7 @@ pub impl Show for TodoWriteResult with output(
   let is_new_creation = self.is_new_creation
   let output = []
   output.push("✅ Operation completed: \{action_performed}\n")
-  fn output_todos(todos : Array[@todo.Item]) {
+  fn output_todos(todos : Array[Item]) {
     for todo in todos {
       output.push(
         "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",
@@ -166,8 +166,8 @@ pub impl Show for TodoWriteResult with output(
 }
 
 ///|
-async fn @todo.Todo::execute_todo_write(
-  self : @todo.Todo,
+async fn Todo::execute_todo_write(
+  self : Todo,
   args : Json,
 ) -> @tool.ToolResult[TodoWriteResult] noraise {
   enum Action {
@@ -203,7 +203,7 @@ async fn @todo.Todo::execute_todo_write(
     { "task_id": String(t), .. } => Some(t)
     _ => None
   }
-  let priority : @todo.Priority = match args {
+  let priority : Priority = match args {
     { "priority": p, .. } =>
       match p {
         "high" => High
@@ -216,7 +216,7 @@ async fn @todo.Todo::execute_todo_write(
       }
     _ => Medium
   }
-  let status : @todo.Status = match args {
+  let status : Status = match args {
     { "status": s, .. } =>
       match s {
         "pending" => Pending
@@ -370,7 +370,7 @@ let write_schema : @tool.JsonSchema = {
 
 ///|
 /// @param list the todolist is shared globally
-pub fn new_write(list : @todo.Todo) -> @tool.Tool[TodoWriteResult] {
+pub fn new_write(list : Todo) -> @tool.Tool[TodoWriteResult] {
   @tool.new(
     description="Request to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their request. Use this tool proactively for complex multi-step tasks, when explicitly requested by the user, or when you need to organize multiple operations.",
     name="todo_write",

@@ -3,11 +3,7 @@
 ///|
 async test "todo_read/empty" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let result = read_tool.call({})
     @json.inspect(result, content=["Ok", { "todos": [] }])
@@ -26,11 +22,7 @@ async test "todo_read/empty" (t : @test.Test) {
 ///|
 async test "todo_read/single_task" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
     let _ = write_tool.call({
@@ -72,11 +64,7 @@ async test "todo_read/single_task" (t : @test.Test) {
 ///|
 async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -137,11 +125,7 @@ async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
 ///|
 async test "todo_read/different_priorities" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -213,11 +197,7 @@ async test "todo_read/different_priorities" (t : @test.Test) {
 ///|
 async test "todo_read/with_notes" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -284,11 +264,7 @@ async test "todo_read/with_notes" (t : @test.Test) {
 ///|
 async test "todo_read/all_completed" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -360,11 +336,7 @@ async test "todo_read/all_completed" (t : @test.Test) {
 ///|
 async test "todo_read/all_in_progress" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -419,11 +391,7 @@ async test "todo_read/all_in_progress" (t : @test.Test) {
 ///|
 async test "todo_read/complex_scenario" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -519,11 +487,7 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
 ///|
 async test "todo_read/updated_task_content" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let read_tool = @todo_tools.new_read(todo_list)
     let write_tool = @todo_tools.new_write(todo_list)
 
@@ -580,11 +544,7 @@ async test "todo_read/updated_task_content" (t : @test.Test) {
 ///|
 async test "todo_write/create/plain" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -657,11 +617,7 @@ async test "todo_write/create/plain" (t : @test.Test) {
 ///|
 async test "todo_write/create/<task>" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -823,11 +779,7 @@ async test "todo_write/create/<task>" (t : @test.Test) {
 ///|
 async test "todo_write/update" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -882,11 +834,7 @@ async test "todo_write/update" (t : @test.Test) {
 ///|
 async test "todo_write/mark_completed" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -947,11 +895,7 @@ async test "todo_write/mark_completed" (t : @test.Test) {
 ///|
 async test "todo_write/mark_progress" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -1013,11 +957,7 @@ async test "todo_write/mark_progress" (t : @test.Test) {
 ///|
 async test "todo_write/add_task" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
@@ -1094,11 +1034,7 @@ async test "todo_write/add_task" (t : @test.Test) {
 ///|
 async test "todo_write/multiple_priority_levels" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -1161,11 +1097,7 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
 ///|
 async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create tasks
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
@@ -1227,11 +1159,7 @@ async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
 ///|
 async test "todo_write/error_invalid_action" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "invalid_action",
       "content": "Test task",
@@ -1253,11 +1181,7 @@ async test "todo_write/error_invalid_action" (t : @test.Test) {
 ///|
 async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({ "action": "create" })
     @json.inspect(result, content=[
       "Error",
@@ -1271,11 +1195,7 @@ async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
 ///|
 async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({ "action": "add_task" })
     @json.inspect(result, content=[
       "Error",
@@ -1289,11 +1209,7 @@ async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
 ///|
 async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "update",
       "content": "New content",
@@ -1310,11 +1226,7 @@ async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
 ///|
 async test "todo_write/error_invalid_priority" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": "Test task",
@@ -1339,11 +1251,7 @@ async test "todo_write/error_invalid_priority" (t : @test.Test) {
 ///|
 async test "todo_write/error_invalid_status" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": "Test task",
@@ -1368,11 +1276,7 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
 ///|
 async test "todo_write/update_with_notes" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
@@ -1439,11 +1343,7 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
 ///|
 async test "todo_write/update_content_only" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
@@ -1507,11 +1407,7 @@ async test "todo_write/update_content_only" (t : @test.Test) {
 ///|
 async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
@@ -1550,11 +1446,7 @@ async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
 ///|
 async test "todo_write/create_with_low_priority" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
       "content": (
@@ -1586,11 +1478,7 @@ async test "todo_write/create_with_low_priority" (t : @test.Test) {
 ///|
 async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
   @mock.run(t, mock => {
-    let todo_list = @todo.new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-    )
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create task
     let result = @todo_tools.new_write(todo_list).call({
       "action": "create",
