@@ -882,13 +882,13 @@ async test "pruner" (t : @test.Test) {
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
-    @json.inspect(counter.count_param(messages~, tools~), content=63138)
+    @json.inspect(counter.count_param(messages~, tools~), content=63130)
     let pruner = @context_pruner.Pruner::new(
       safe_zone_tokens=32000,
       logger=mock.logger,
     )
     pruner.prune_messages(messages, tools~)
-    @json.inspect(counter.count_param(messages~, tools~), content=31081)
+    @json.inspect(counter.count_param(messages~, tools~), content=31073)
   })
 }
 
