@@ -1,10 +1,9 @@
 ///|
 pub struct Server {
   priv maria : @maria.Maria
-  priv uuid : @uuid.Generator
   priv broadcast : @broadcast.Broadcast[Json]
   priv message_queue : @aqueue.Queue[
-    (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid?]),
+    (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid]),
   ]
   priv mut task : @async.Task[Unit]?
   priv register : Register?
@@ -58,7 +57,6 @@ pub async fn Server::new(
     broadcast,
     message_queue: @aqueue.new(kind=Unbounded),
     task: None,
-    uuid,
     register,
     serve,
     port,
@@ -178,17 +176,17 @@ async fn Server::start_maria(self : Server) -> Unit {
     @async.with_task_group(group => {
       let (msg, idq) = self.message_queue.get()
       let msg = msg.to_ai_message()
-      self.maria.agent.add_message(msg)
+      let id = self.maria.agent.queue_message(msg)
       group.spawn_bg(
         () => while true {
           let (msg, idq) = self.message_queue.get()
           let msg = msg.to_ai_message()
           let id = self.maria.agent.queue_message(msg)
-          idq.put(Some(id))
+          idq.put(id)
         },
         no_wait=true,
       )
-      idq.put(None)
+      idq.put(id)
       let task = group.spawn(
         () => {
           println("[INFO] (Server) Starting Maria task...")
@@ -391,15 +389,12 @@ async fn Server::create_message(
         },
       })
   }
-  let (id, queued) = {
+  let id = {
     let idq = @aqueue.new(kind=Unbounded)
     self.message_queue.put((message, idq))
-    match idq.get() {
-      Some(id) => (id, true)
-      None => (self.uuid.v4(), false)
-    }
+    idq.get()
   }
-  let response : Json = { "id": id, "queued": queued }
+  let response : Json = { "id": id, "queued": true }
   w.header().set("Content-Type", "application/json")
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")

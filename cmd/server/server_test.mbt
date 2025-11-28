@@ -80,7 +80,7 @@ async test "POST /v1/message" (t : @test.Test) {
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=false)
+    @json.inspect(queued, content=true)
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello again!" } }),
@@ -103,8 +103,16 @@ async test "POST /v1/message" (t : @test.Test) {
 }
 
 ///|
-fn redact_events(events : Array[Json]) -> Array[Json] {
-  events.map(event => {
+fn redact_events(
+  events : Array[Json],
+  remove_events? : Array[String] = [],
+) -> Array[Json] {
+  events
+  .filter(event => {
+    guard event is Object({ "event": String(ev), .. }) else { return true }
+    !remove_events.contains(ev)
+  })
+  .map(event => {
     if event
       is Object(
         { "event": "maria.queued_messages.synchronized", "data": Array(ms), .. } as event
@@ -209,72 +217,84 @@ async test "GET /v1/events" (t : @test.Test) {
       )
       |> ignore()
     })
-    @json.inspect(redact_events(events), content=[
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "system", "content": "<redacted>" },
+    @json.inspect(
+      redact_events(events, remove_events=["maria.queued_messages.synchronized"]),
+      content=[
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
+            "message": { "role": "system", "content": "<redacted>" },
+          },
         },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello, Maria!" },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageQueued",
+            "message": {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "Hello, Maria!" },
+            },
+          },
         },
-      },
-      { "event": "maria", "data": { "msg": "PreConversation" } },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageQueued",
-          "message": {
-            "id": "<redacted>",
+        { "event": "maria", "data": { "msg": "PreConversation" } },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageUnqueued",
+            "message": { "id": "<redacted>" },
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
             "message": { "role": "user", "content": "Hello, Maria!" },
           },
         },
-      },
-      {
-        "event": "maria.queued_messages.synchronized",
-        "data": [
-          {
-            "id": "<redacted>",
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageQueued",
+            "message": {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "Hello, Maria!" },
+            },
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "RequestCompleted",
+            "usage": "<redacted>",
+            "message": "<redacted>",
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageUnqueued",
+            "message": { "id": "<redacted>" },
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
             "message": { "role": "user", "content": "Hello, Maria!" },
           },
-        ],
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
         },
-      },
-      {
-        "event": "maria",
-        "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello, Maria!" },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "RequestCompleted",
+            "usage": "<redacted>",
+            "message": "<redacted>",
+          },
         },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
-        },
-      },
-      { "event": "maria", "data": { "msg": "PostConversation" } },
-    ])
+        { "event": "maria", "data": { "msg": "PostConversation" } },
+      ],
+    )
   })
 }
 
@@ -444,7 +464,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       guard b is { "id": String(_), "queued": queued, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
-      @json.inspect(queued, content=false)
+      @json.inspect(queued, content=true)
       let (r, _) = @http.post(
         "http://localhost:\{server.port()}/v1/cancel",
         Json::object({}),
@@ -454,7 +474,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       @http.post(
         "http://localhost:\{server.port()}/v1/message",
         Json::object({
-          "message": { "role": "user", "content": "Hello, Maria!" },
+          "message": { "role": "user", "content": "Hello again, Maria!" },
         }),
       )
       |> ignore()
@@ -471,11 +491,43 @@ async test "POST /v1/cancel" (t : @test.Test) {
       {
         "event": "maria",
         "data": {
+          "msg": "MessageQueued",
+          "message": {
+            "id": "<redacted>",
+            "message": { "role": "user", "content": "Hello, Maria!" },
+          },
+        },
+      },
+      {
+        "event": "maria.queued_messages.synchronized",
+        "data": [
+          {
+            "id": "<redacted>",
+            "message": { "role": "user", "content": "Hello again, Maria!" },
+          },
+        ],
+      },
+      { "event": "maria", "data": { "msg": "PreConversation" } },
+      {
+        "event": "maria",
+        "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
+      },
+      {
+        "event": "maria.queued_messages.synchronized",
+        "data": [
+          {
+            "id": "<redacted>",
+            "message": { "role": "user", "content": "Hello again, Maria!" },
+          },
+        ],
+      },
+      {
+        "event": "maria",
+        "data": {
           "msg": "MessageAdded",
           "message": { "role": "user", "content": "Hello, Maria!" },
         },
       },
-      { "event": "maria", "data": { "msg": "PreConversation" } },
       {
         "event": "maria",
         "data": {
@@ -486,11 +538,43 @@ async test "POST /v1/cancel" (t : @test.Test) {
       {
         "event": "maria",
         "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello, Maria!" },
+          "msg": "MessageQueued",
+          "message": {
+            "id": "<redacted>",
+            "message": { "role": "user", "content": "Hello again, Maria!" },
+          },
         },
       },
+      {
+        "event": "maria.queued_messages.synchronized",
+        "data": [
+          {
+            "id": "<redacted>",
+            "message": { "role": "user", "content": "Hello again, Maria!" },
+          },
+        ],
+      },
       { "event": "maria", "data": { "msg": "PreConversation" } },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "RequestCompleted",
+          "usage": "<redacted>",
+          "message": "<redacted>",
+        },
+      },
+      {
+        "event": "maria",
+        "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
+      },
+      { "event": "maria.queued_messages.synchronized", "data": [] },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello again, Maria!" },
+        },
+      },
       {
         "event": "maria",
         "data": {

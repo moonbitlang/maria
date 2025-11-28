@@ -123,6 +123,15 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 }
 
 ///|
+pub async fn EventTarget::flush(self : EventTarget) -> Unit {
+  while self.queue.try_get() is Some(event) {
+    for listener in self.listeners {
+      listener(event)
+    }
+  }
+}
+
+///|
 pub impl ToJson for Event with to_json(self : Event) -> Json {
   match self {
     ModelLoaded(name~, model~) =>
