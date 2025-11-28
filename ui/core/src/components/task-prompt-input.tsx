@@ -27,7 +27,7 @@ export function TaskPromptInput({
   placeholder = "Input your task...",
   className = "",
   inputTools,
-  status,
+  status = "ready",
 }: TaskPromptInputProps) {
   const tools = inputTools ? inputTools : <PromptInputTools></PromptInputTools>;
   let disabled;
@@ -64,7 +64,7 @@ export function TaskPromptInput({
         {tools}
         <PromptInputSubmit
           disabled={disabled}
-          status={status ?? "ready"}
+          status={status}
           className="cursor-pointer transition-all"
         ></PromptInputSubmit>
       </PromptInputToolbar>

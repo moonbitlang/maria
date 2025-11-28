@@ -20,12 +20,23 @@ import {
   selectTaskTodos,
   selectTaskEvents,
   setStatusForTask,
+  selectTaskCwd,
 } from "../features/session/tasksSlice.ts";
-import { Clock } from "lucide-react";
+import { Clock, Folder } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import type { ChatStatus } from "ai";
+import {
+  PromptInputButton,
+  PromptInputTools,
+} from "../components/ui/shadcn-io/ai/prompt-input.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../components/ui/tooltip.tsx";
+import { base } from "../lib/utils.ts";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();
@@ -37,7 +48,10 @@ function useSetActiveTaskId(taskId: string) {
 
 function Input({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
+
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
+  const cwd = useAppSelector((state) => selectTaskCwd(state, taskId))!;
+  const baseCwd = base(cwd);
   const inputQueue = useAppSelector((state) =>
     selectInputQueue(state, taskId),
   )!;
@@ -118,6 +132,21 @@ function Input({ taskId }: { taskId: string }) {
           taskStatus === "generating"
             ? "Agent is working..."
             : "Input your task..."
+        }
+        inputTools={
+          <PromptInputTools>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PromptInputButton>
+                  <Folder size={16} />
+                  {baseCwd && <span>{baseCwd}</span>}
+                </PromptInputButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{cwd}</p>
+              </TooltipContent>
+            </Tooltip>
+          </PromptInputTools>
         }
       />
     </div>

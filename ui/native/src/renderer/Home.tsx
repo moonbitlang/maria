@@ -34,8 +34,7 @@ export default function Home() {
     dispatch(setActiveTaskId(undefined));
   }, [dispatch]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReadySubmit = async () => {
     dispatch(setInput("")); // Clear input field
     const res = await postNewTask({ message: input, cwd });
     if (res.data) {
@@ -50,7 +49,7 @@ export default function Home() {
         <TaskPromptInput
           value={input}
           onChange={(value) => dispatch(setInput(value))}
-          onSubmit={handleSubmit}
+          onReadySubmit={handleReadySubmit}
           placeholder="Input your task..."
           inputTools={
             <PromptInputTools>

@@ -153,6 +153,10 @@ export const tasksSlice = createAppSlice({
       return state.activeTask;
     },
 
+    selectTaskCwd(state: TasksSliceState, taskId: string): string | undefined {
+      return state.tasks[taskId]?.cwd;
+    },
+
     selectTaskTodos(
       state: TasksSliceState,
       taskId: string,
@@ -203,6 +207,7 @@ export const {
   selectInputQueue,
   selectTaskEvents,
   selectTaskTodos,
+  selectTaskCwd,
 } = tasksSlice.selectors;
 
 // Memoized selector to prevent unnecessary re-renders
