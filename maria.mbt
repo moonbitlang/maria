@@ -37,7 +37,7 @@ pub async fn Maria::new(
     @execute_command.new(job_manager).to_agent_tool(),
     @list_files.new(file_manager).to_agent_tool(),
     @read_file.new(file_manager).to_agent_tool(),
-    @todo_tools.new(todo_list).to_agent_tool(),
+    @todo_tools.new_tool(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
     @meta_write_to_file.new(agent).to_agent_tool(),
   ])

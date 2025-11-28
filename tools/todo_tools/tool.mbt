@@ -129,7 +129,7 @@ let todo_schema : @tool.JsonSchema = {
 }
 
 ///|
-pub fn new(list : Todo) -> @tool.Tool[TodoResult] {
+pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
   @tool.new(
     description="Request to read and manage the todo list for the current coding session. This tool helps you track progress, organize complex tasks, and demonstrate thoroughness. Use 'read' action to view current todos, or use write actions (create, add_task, update, mark_progress, mark_completed) to manage tasks.",
     name="todo",
