@@ -4,25 +4,25 @@ async test "readlink" (t : @test.Test) {
     mock.add_file("source.txt").write_string("Hello, World!")
     mock.add_symlink("link.txt", to="source.txt")
     @json.inspect(
-      @this.read_file(@path.join(mock.cwd.path(), "link.txt")),
+      @fsx.read_file(@path.join(mock.cwd.path(), "link.txt")),
       content="Hello, World!",
     )
     @json.inspect(
-      @this.readlink(@path.join(mock.cwd.path(), "link.txt")),
+      @fsx.readlink(@path.join(mock.cwd.path(), "link.txt")),
       content="source.txt",
     )
     @json.inspect(
-      @this.readlink(@path.join(mock.cwd.path(), "link.txt"), bufsize=2),
+      @fsx.readlink(@path.join(mock.cwd.path(), "link.txt"), bufsize=2),
       content="source.txt",
     )
     @json.inspect(
-      (try? @this.readlink(@path.join(mock.cwd.path(), "nonexistent")))
+      (try? @fsx.readlink(@path.join(mock.cwd.path(), "nonexistent")))
       is Err(@errno.Errno(errno)) &&
       errno == @errno.enoent,
       content=true,
     )
     @json.inspect(
-      (try? @this.readlink(@path.join(mock.cwd.path(), "source.txt")))
+      (try? @fsx.readlink(@path.join(mock.cwd.path(), "source.txt")))
       is Err(@errno.Errno(errno)) &&
       errno == @errno.einval,
       content=true,
