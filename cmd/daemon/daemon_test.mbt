@@ -34,7 +34,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
     ),
     port=0,
     serve=@path.join(os_cwd, "cmd/daemon"),
-  )
+  ).unwrap()
 }
 
 ///|

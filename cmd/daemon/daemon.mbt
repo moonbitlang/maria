@@ -540,13 +540,33 @@ async fn Daemon::cancel_task(
 }
 
 ///|
+async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
+  let path = home |> @path.join(".moonagent") |> @path.join("daemon.json")
+  let dir = @path.dirname(path)
+  @fsx.make_directory(dir, recursive=true, exists_ok=true)
+  let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
+  @fsx.lock_file(file) catch {
+    @errno.Errno(errno) if errno == @errno.eacces || errno == @errno.eagain =>
+      return None
+    error => raise error
+  }
+  // Note that file is intentionally not closed here to keep the lock.
+  return Some(file)
+}
+
+///|
 pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
   port~ : Int,
   serve~ : String,
   cwd? : StringView,
-) -> Daemon {
+  home? : StringView,
+) -> Daemon? {
+  let home = match home {
+    None => @os.home()
+    Some(home) => home.to_string()
+  }
   // Validate exec_path points to an existing file.
   if !@fsx.exists(exec_path) {
     fail("Exec path does not exist: \{exec_path}")
@@ -554,8 +574,19 @@ pub async fn Daemon::new(
   let exec_path = @fsx.resolve(exec_path) catch {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
+  // Grab daemon lock file
+  guard lock_daemon_file(home~) is Some(info_file) else {
+    println(
+      "[INFO] Another Maria daemon is already running for home '\{home}'. Exiting.",
+    )
+    return None
+  }
+  // Listen on port
   let httpx_server = @httpx.Server::new("[::1]", port, reuse_addr=true)
   let port = httpx_server.port()
+  info_file.write(
+    DaemonInfo::{ port, pid: @spawn.getpid() }.to_json().stringify(),
+  )
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
   let uuid = match uuid {
@@ -566,7 +597,7 @@ pub async fn Daemon::new(
     Some(cwd) => cwd.to_string()
     None => @os.cwd()
   }
-  Daemon::{
+  Some(Daemon::{
     clock: @clock.epoch,
     models: @model.Loader::new(home=@os.home(), cwd~),
     uuid,
@@ -579,7 +610,7 @@ pub async fn Daemon::new(
     port,
     events: @broadcast.Broadcast::new(),
     serve,
-  }
+  })
 }
 
 ///|

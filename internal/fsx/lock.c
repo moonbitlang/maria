@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <moonbit.h>
-#include <stdio.h>
 
 MOONBIT_FFI_EXPORT
 int32_t
