@@ -1338,14 +1338,11 @@ pub impl ToJson for ResponseFormat with to_json(self : ResponseFormat) -> Json {
 pub fn tool_call(
   id~ : String,
   name~ : String,
-  arguments~ : String,
+  arguments? : String,
 ) -> ChatCompletionMessageToolCall {
   ChatCompletionMessageToolCall::{
     id,
-    function: ChatCompletionMessageToolCallFunction::{
-      name,
-      arguments: Some(arguments),
-    },
+    function: ChatCompletionMessageToolCallFunction::{ name, arguments },
   }
 }
 

@@ -3,9 +3,11 @@ package "moonbitlang/maria/internal/openai"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/schema"
   "moonbitlang/maria/model"
+  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -41,7 +43,7 @@ fn text_content_part(String, cache_control? : CacheControl) -> ChatCompletionCon
 
 fn tool(name~ : String, description~ : String, parameters~ : Json, strict? : Bool) -> ChatCompletionToolParam
 
-fn tool_call(id~ : String, name~ : String, arguments~ : String) -> ChatCompletionMessageToolCall
+fn tool_call(id~ : String, name~ : String, arguments? : String) -> ChatCompletionMessageToolCall
 
 fn[T : ToChatCompletionMessageParamContent] tool_message(content~ : T, tool_call_id~ : String) -> ChatCompletionMessageParam
 
@@ -169,6 +171,7 @@ pub struct ChatCompletionMessage {
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
 }
+fn ChatCompletionMessage::to_ai_message(Self) -> @ai.Message
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 impl Show for ChatCompletionMessage
 impl ToJson for ChatCompletionMessage
@@ -180,6 +183,7 @@ pub(all) enum ChatCompletionMessageParam {
   Assistant(ChatCompletionAssistantMessageParam)
   Tool(ChatCompletionToolMessageParam)
 }
+fn ChatCompletionMessageParam::from_ai_message(@ai.Message) -> Self
 impl ToJson for ChatCompletionMessageParam
 impl @json.FromJson for ChatCompletionMessageParam
 
@@ -194,6 +198,8 @@ pub struct ChatCompletionMessageToolCall {
   id : String
   function : ChatCompletionMessageToolCallFunction
 }
+fn ChatCompletionMessageToolCall::from_ai_tool_call(@ai.ToolCall) -> Self
+fn ChatCompletionMessageToolCall::to_ai_tool_call(Self) -> @ai.ToolCall
 impl Show for ChatCompletionMessageToolCall
 impl ToJson for ChatCompletionMessageToolCall
 
@@ -250,6 +256,7 @@ pub struct ChatCompletionToolMessageParam {
 pub enum ChatCompletionToolParam {
   Function(FunctionDefinition)
 }
+fn ChatCompletionToolParam::from_tool_desc(@tool.ToolDesc) -> Self
 impl ToJson for ChatCompletionToolParam
 
 pub struct ChatCompletionUserMessageParam {
@@ -273,7 +280,9 @@ pub struct CompletionUsage {
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 }
+fn CompletionUsage::from_ai_usage(@ai.Usage) -> Self
 fn CompletionUsage::new(completion_tokens~ : Int, completion_tokens_details? : CompletionTokensDetails, cost? : Double, cost_details? : CostDetails, prompt_tokens~ : Int, prompt_tokens_details? : PromptTokensDetails, total_tokens~ : Int) -> Self
+fn CompletionUsage::to_ai_usage(Self) -> @ai.Usage
 impl Show for CompletionUsage
 impl ToJson for CompletionUsage
 impl @json.FromJson for CompletionUsage
