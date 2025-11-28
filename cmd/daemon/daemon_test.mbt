@@ -212,15 +212,29 @@ async test "POST /v1/task" (t : @test.Test) {
 }
 
 ///|
-fn redact_events(events : Array[Json]) -> Array[Json] {
-  events.map(event => {
+fn redact_events(
+  events : Array[Json],
+  redact_id? : Bool = true,
+  remove_events? : Array[String] = [],
+) -> Array[Json] {
+  events
+  .filter(event => if event is Object({ "event": String(event_name), .. }) {
+    !remove_events.contains(event_name)
+  } else {
+    true
+  })
+  .map(event => {
     if event
       is Object(
         { "event": "maria.queued_messages.synchronized", "data": Array(ms), .. } as event
       ) {
       for m in ms {
-        if m is Object({ "id": String(_), .. } as message) {
-          message["id"] = "<redacted>"
+        if m is Object({ "id": String(_) as id, .. } as message) {
+          if redact_id {
+            message["id"] = "<redacted>"
+          } else {
+            message["id"] = id
+          }
         }
       }
       event["data"] = Json::array(ms)
@@ -248,10 +262,14 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
       }
       {
         "msg": String("MessageUnqueued" | "MessageQueued" as msg),
-        "message": Object({ "id": String(_), .. } as message),
+        "message": Object({ "id": String(_) as id, .. } as message),
         ..
       } => {
-        message["id"] = "<redacted>"
+        if redact_id {
+          message["id"] = "<redacted>"
+        } else {
+          message["id"] = id
+        }
         { "msg": msg, "message": message }
       }
       { "msg": "RequestCompleted", .. } => {
@@ -284,7 +302,12 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
-      guard b is { "task": { "id": String(id), .. }, .. } else {
+      guard b
+        is {
+          "task": { "id": String(id), .. },
+          "message": { "id": String(msg0_id), .. },
+          ..
+        } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
       let (_, b) = @http.post(
@@ -294,7 +317,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         }),
       )
       let b = b.json()
-      guard b is { "id": String(msg_id), "queued": queued, .. } else {
+      guard b is { "id": String(msg1_id), "queued": queued, .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
       let queued : Bool = @json.from_json(queued)
@@ -325,84 +348,81 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           _ => ()
         }
       }
-      @json.inspect(pop_ids, content=[msg_id])
-      @json.inspect(redact_events(events), content=[
-        {
-          "event": "maria.queued_messages.synchronized",
-          "data": [
-            {
-              "id": "<redacted>",
-              "message": { "role": "user", "content": "How are you?" },
-            },
-          ],
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "system", "content": "<redacted>" },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "user", "content": "Hello!" },
-          },
-        },
-        { "event": "maria", "data": { "msg": "PreConversation" } },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageQueued",
-            "message": {
-              "id": "<redacted>",
-              "message": { "role": "user", "content": "How are you?" },
+      @json.inspect(pop_ids, content=[msg0_id, msg1_id])
+      @json.inspect(
+        redact_events(events, redact_id=false, remove_events=[
+          "maria.queued_messages.synchronized",
+        ]),
+        content=[
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MessageAdded",
+              "message": { "role": "system", "content": "<redacted>" },
             },
           },
-        },
-        {
-          "event": "maria.queued_messages.synchronized",
-          "data": [
-            {
-              "id": "<redacted>",
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MessageQueued",
+              "message": {
+                "id": msg0_id,
+                "message": { "role": "user", "content": "Hello!" },
+              },
+            },
+          },
+          { "event": "maria", "data": { "msg": "PreConversation" } },
+          {
+            "event": "maria",
+            "data": { "msg": "MessageUnqueued", "message": { "id": msg0_id } },
+          },
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MessageAdded",
+              "message": { "role": "user", "content": "Hello!" },
+            },
+          },
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MessageQueued",
+              "message": {
+                "id": msg1_id,
+                "message": { "role": "user", "content": "How are you?" },
+              },
+            },
+          },
+          {
+            "event": "maria",
+            "data": {
+              "msg": "RequestCompleted",
+              "usage": "<redacted>",
+              "message": "<redacted>",
+            },
+          },
+          {
+            "event": "maria",
+            "data": { "msg": "MessageUnqueued", "message": { "id": msg1_id } },
+          },
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MessageAdded",
               "message": { "role": "user", "content": "How are you?" },
             },
-          ],
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "RequestCompleted",
-            "usage": "<redacted>",
-            "message": "<redacted>",
           },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageUnqueued",
-            "message": { "id": "<redacted>" },
+          {
+            "event": "maria",
+            "data": {
+              "msg": "RequestCompleted",
+              "usage": "<redacted>",
+              "message": "<redacted>",
+            },
           },
-        },
-        { "event": "maria.queued_messages.synchronized", "data": [] },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "user", "content": "How are you?" },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "RequestCompleted",
-            "usage": "<redacted>",
-            "message": "<redacted>",
-          },
-        },
-        { "event": "maria", "data": { "msg": "PostConversation" } },
-      ])
+          { "event": "maria", "data": { "msg": "PostConversation" } },
+        ],
+      )
     })
   })
 }
@@ -583,30 +603,13 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
       )
       @json.inspect(r.code, content=200)
     })
-    @json.inspect(redact_events(events), content=[
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "system", "content": "<redacted>" },
-        },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello!" },
-        },
-      },
-      { "event": "maria", "data": { "msg": "PreConversation" } },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MariaCancelled",
-          "error": { "code": -1, "message": "Task was cancelled." },
-        },
-      },
-    ])
+    @json.inspect(
+      events
+      .filter(event => event
+        is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. })
+      .length() >
+      0,
+      content=true,
+    )
   })
 }

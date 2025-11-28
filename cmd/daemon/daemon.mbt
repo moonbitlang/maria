@@ -280,7 +280,7 @@ async fn Daemon::create_task(
   // FIXME: The daemon does not ends anyway, so the `no_wait` option is
   // unnecessary.
   group.spawn_bg(() => self.listen_for_status_change(task), no_wait=true)
-  if message is Some(message) {
+  let message = if message is Some(message) {
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
       "http://localhost:\{task_port}/v1/message",
@@ -295,14 +295,29 @@ async fn Daemon::create_task(
         },
       })
     }
+    Some(b.json()) catch {
+      error =>
+        raise json_error(500, "Internal Server Error", {
+          "error": {
+            "code": -1,
+            "message": "Failed to parse response JSON from task: \{error}",
+            "metadata": { "body": b.binary() },
+          },
+        })
+    }
+  } else {
+    None
   }
   w.header().set("Content-Type", "application/json")
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")
   w.header().set("Access-Control-Allow-Headers", "*")
   w.write_header(201, reason="Created")
-  let body : Json = { "task": task }
-  w.write(body.stringify())
+  let body : Map[String, Json] = { "task": task }
+  if message is Some(message) {
+    body["message"] = message
+  }
+  w.write(Json::object(body).stringify())
 }
 
 ///|

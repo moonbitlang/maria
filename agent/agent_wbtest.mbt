@@ -8,8 +8,8 @@ async test "queue_message" (t : @test.Test) {
       uuid=mock.uuid,
       cwd=mock.cwd.path(),
       logger=mock.logger,
+      user_message="Hello.",
     )
-    agent.add_message(@ai.user_message(content="Hello."))
     let _ = agent.queue_message(
       @ai.user_message(content="First queued message."),
     )
