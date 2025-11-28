@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { TaskPromptInput } from "../components/task-prompt-input.tsx";
 import { useNewTaskMutation } from "../features/api/apiSlice.ts";
 import { useNavigate } from "react-router";
-import { useAppDispatch } from "../app/hooks.ts";
+import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import { setActiveTaskId } from "../features/session/tasksSlice.ts";
+import { selectInput, setInput } from "../features/session/homeSlice.ts";
 
 type HomeProps = {
   cwd?: string;
 };
 
-function Home({ cwd }: HomeProps) {
-  const [input, setInput] = useState("");
+export default function Home({ cwd }: HomeProps) {
+  const input = useAppSelector(selectInput);
   const navigate = useNavigate();
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
@@ -21,7 +22,7 @@ function Home({ cwd }: HomeProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setInput("");
+    dispatch(setInput("")); // Clear input field
     const res = await postNewTask({ message: input, cwd });
     if (res.data) {
       const { id } = res.data.task;
@@ -34,7 +35,7 @@ function Home({ cwd }: HomeProps) {
       <div className="p-4">
         <TaskPromptInput
           value={input}
-          onChange={setInput}
+          onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
           placeholder="Input your task..."
         />
@@ -42,5 +43,3 @@ function Home({ cwd }: HomeProps) {
     </div>
   );
 }
-
-export default Home;

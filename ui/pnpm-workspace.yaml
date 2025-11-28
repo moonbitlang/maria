@@ -3,3 +3,8 @@ packages:
   - web
   - vsc-ext
   - vsc-ext-webview
+  - native
+
+onlyBuiltDependencies:
+  - electron
+  - electron-winstaller

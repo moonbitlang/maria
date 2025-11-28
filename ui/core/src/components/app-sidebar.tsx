@@ -23,11 +23,11 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 export function AppSidebar(props: AppSidebarProps) {
-  const { activeTaskId, tasks } = props;
+  const { activeTaskId, tasks, ...sidebarProps } = props;
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

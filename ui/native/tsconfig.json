@@ -1,0 +1,18 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.vite.renderer.json"
+    },
+    {
+      "path": "./tsconfig.renderer.json"
+    },
+    {
+      "path": "./tsconfig.main.json"
+    },
+    {
+      "path": "./tsconfig.preload.json"
+    }
+  ],
+  "compilerOptions": {}
+}
