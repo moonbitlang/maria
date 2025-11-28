@@ -30,7 +30,7 @@ pub struct Agent {
   priv pending_queue : @deque.Deque[(@uuid.Uuid, @ai.Message)]
   priv event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
-  priv context_pruner : @context.Pruner
+  priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
 }
@@ -392,7 +392,7 @@ pub async fn new(
     pending_queue: @deque.Deque::new(),
     event_target,
     token_counter: @token_counter.Counter::new(logger~),
-    context_pruner: @context.Pruner::new(
+    context_pruner: @context_pruner.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
       logger~,
     ),

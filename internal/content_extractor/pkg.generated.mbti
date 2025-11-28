@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/content_extractor"
+
+import(
+  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/internal/pino"
+  "moonbitlang/maria/model"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Extractor
+async fn Extractor::extract_code_snippets(Self, String, history~ : Array[@openai.ChatCompletionMessageParam]) -> String?
+fn Extractor::new(model~ : @model.Model, safe_zone_tokens~ : Int, window_size? : Int, overlap? : Int, logger~ : @pino.Logger) -> Self raise
+
+// Type aliases
+
+// Traits
+

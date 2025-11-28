@@ -4,7 +4,6 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/internal/cache",
-    "moonbitlang/maria/context",
     "moonbitlang/maria/internal/conversation",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/internal/uuid",
@@ -13,7 +12,8 @@
     "moonbitlang/maria/event",
     "moonbitlang/maria/internal/rules",
     "moonbitlang/maria/ai",
-    "moonbitlang/maria/internal/openai"
+    "moonbitlang/maria/internal/openai",
+    "moonbitlang/maria/internal/context_pruner"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
