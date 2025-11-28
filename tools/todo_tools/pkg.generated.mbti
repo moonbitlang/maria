@@ -40,7 +40,6 @@ pub(all) enum Priority {
   Medium
   Low
 }
-fn Priority::icon(Self) -> String
 impl ToJson for Priority
 impl @json.FromJson for Priority
 
@@ -49,7 +48,6 @@ pub(all) enum Status {
   InProgress
   Completed
 }
-fn Status::icon(Self) -> String
 impl ToJson for Status
 impl @json.FromJson for Status
 

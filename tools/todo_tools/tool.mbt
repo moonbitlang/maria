@@ -112,7 +112,7 @@ struct TodoWriteResult {
   message : String
   updated_todos : Array[Item]
   is_new_creation : Bool
-} derive(ToJson, @json.FromJson)
+} derive(ToJson, FromJson)
 
 ///|
 pub impl Show for TodoWriteResult with output(
