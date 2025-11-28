@@ -8,13 +8,10 @@ struct TodoResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoResult with output(
-  self : TodoResult,
-  logger : &Logger,
-) -> Unit {
+pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
   let todos = self.todos
   let output = []
-  
+
   // Check if this is a read action (no message means read)
   if self.message is None {
     // Display for read action
@@ -53,7 +50,6 @@ pub impl Show for TodoResult with output(
     let action_performed = self.message.unwrap()
     let updated_todos = self.updated_todos.unwrap_or([])
     let is_new_creation = self.is_new_creation.unwrap_or(false)
-    
     output.push("✅ Operation completed: \{action_performed}\n")
     fn output_todos(todos : Array[Item]) {
       for todo in todos {
@@ -276,8 +272,6 @@ pub let prompt : String =
   #|By using this TODO tool effectively, you can maintain better organization, provide clear progress visibility, and demonstrate a systematic approach to complex coding tasks.
   #|
 
-
-
 ///|
 async fn Todo::execute_todo(
   self : Todo,
@@ -353,10 +347,14 @@ async fn Todo::execute_todo(
       return @tool.error("Error loading existing todo list: \{error}", error~)
   }
   match action {
-    Read => {
+    Read =>
       // Simple read action - just return current todos
-      return @tool.ok({ todos: self.todos(), message: None, updated_todos: None, is_new_creation: None })
-    }
+      return @tool.ok({
+        todos: self.todos(),
+        message: None,
+        updated_todos: None,
+        is_new_creation: None,
+      })
     Create =>
       match content {
         None =>
@@ -454,5 +452,3 @@ async fn Todo::execute_todo(
     }
   }
 }
-
-

@@ -11,13 +11,9 @@ import(
 // Values
 fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
 
-fn new_read(Todo) -> @tool.Tool[TodoReadResult]
+fn new_tool(Todo) -> @tool.Tool[TodoResult]
 
-fn new_write(Todo) -> @tool.Tool[TodoWriteResult]
-
-let read_prompt : String
-
-let write_prompt : String
+let prompt : String
 
 // Errors
 
@@ -40,7 +36,6 @@ pub(all) enum Priority {
   Medium
   Low
 }
-impl Eq for Priority
 impl ToJson for Priority
 impl @json.FromJson for Priority
 
@@ -49,7 +44,6 @@ pub(all) enum Status {
   InProgress
   Completed
 }
-impl Eq for Status
 impl ToJson for Status
 impl @json.FromJson for Status
 
@@ -65,15 +59,10 @@ fn Todo::todos(Self) -> Array[Item]
 fn Todo::update_task(Self, Int, Item) -> Unit
 fn Todo::uuid(Self) -> String
 
-type TodoReadResult
-impl Show for TodoReadResult
-impl ToJson for TodoReadResult
-impl @json.FromJson for TodoReadResult
-
-type TodoWriteResult
-impl Show for TodoWriteResult
-impl ToJson for TodoWriteResult
-impl @json.FromJson for TodoWriteResult
+type TodoResult
+impl Show for TodoResult
+impl ToJson for TodoResult
+impl @json.FromJson for TodoResult
 
 // Type aliases
 

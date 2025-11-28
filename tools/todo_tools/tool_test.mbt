@@ -81,10 +81,7 @@ async test "todo/read/multiple_tasks_mixed_status" (t : @test.Test) {
     let _ = todo_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
 
     // Mark second task as completed
-    let _ = todo_tool.call({
-      "action": "mark_completed",
-      "task_id": "1ea1417c",
-    })
+    let _ = todo_tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
     let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
@@ -273,18 +270,9 @@ async test "todo/read/all_completed" (t : @test.Test) {
       ),
       "priority": "high",
     })
-    let _ = todo_tool.call({
-      "action": "mark_completed",
-      "task_id": "ac8a366d",
-    })
-    let _ = todo_tool.call({
-      "action": "mark_completed",
-      "task_id": "1ea1417c",
-    })
-    let _ = todo_tool.call({
-      "action": "mark_completed",
-      "task_id": "f378dd8d",
-    })
+    let _ = todo_tool.call({ "action": "mark_completed", "task_id": "ac8a366d" })
+    let _ = todo_tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
+    let _ = todo_tool.call({ "action": "mark_completed", "task_id": "f378dd8d" })
     let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
@@ -420,10 +408,7 @@ async test "todo/read/complex_scenario" (t : @test.Test) {
 
     // Update statuses
     let _ = todo_tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
-    let _ = todo_tool.call({
-      "action": "mark_completed",
-      "task_id": "1ea1417c",
-    })
+    let _ = todo_tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
     let result = todo_tool.call({ "action": "read" })
     @json.inspect(
       result
