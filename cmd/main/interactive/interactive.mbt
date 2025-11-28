@@ -1,4 +1,9 @@
 ///|
+async fn println(msg : String) -> Unit {
+  @stdio.stdout.write("\{msg}\n")
+}
+
+///|
 pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut prompt : String? = None
   let mut model : String? = None
@@ -44,7 +49,9 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
             }
         }
       PostToolCall(_, rendered~, ..) =>
-        rendered.split("\n").each(text => println("> \{text}"))
+        for text in rendered.split("\n").collect().iterator() {
+          println("> \{text}")
+        }
       _ => ()
     })
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)

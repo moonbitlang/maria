@@ -8,6 +8,7 @@
     "moonbitlang/maria/cmd/main/argument",
     "moonbitlang/maria/event",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/ai",
+    "moonbitlang/async/io"
   ]
 }
