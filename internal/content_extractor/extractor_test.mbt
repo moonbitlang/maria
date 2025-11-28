@@ -3,7 +3,7 @@
 async test "@context.Extractor" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
-    let extractor = @context.Extractor::new(
+    let extractor = @content_extractor.Extractor::new(
       model~,
       logger=mock.logger,
       safe_zone_tokens=2000,

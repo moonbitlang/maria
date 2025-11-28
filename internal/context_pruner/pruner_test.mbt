@@ -883,7 +883,7 @@ async test "pruner" (t : @test.Test) {
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
     @json.inspect(counter.count_param(messages~, tools~), content=63138)
-    let pruner = @context.Pruner::new(
+    let pruner = @context_pruner.Pruner::new(
       safe_zone_tokens=32000,
       logger=mock.logger,
     )
@@ -900,7 +900,10 @@ async test "prune_basic" (t : @test.Test) {
     @openai.user_message(content="What's the weather?"),
   ]
   @mock.run(t, mock => {
-    let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=100,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     // Should not modify anything since there are no tool messages
     @json.inspect(messages.length(), content=3)
@@ -919,7 +922,10 @@ async test "prune_large_tool_output" (t : @test.Test) {
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
     let tokens_before = counter.count_param(messages~)
-    let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=100,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Tool output should be replaced with placeholder
@@ -938,7 +944,10 @@ async test "prune_already_cleared" (t : @test.Test) {
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
-    let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=100,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should skip already-cleared messages (already cleared so no change)
@@ -957,7 +966,10 @@ async test "prune_multiple_tools" (t : @test.Test) {
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
     let tokens_before = counter.count_param(messages~)
-    let pruner = @context.Pruner::new(safe_zone_tokens=200, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=200,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Multiple tool outputs should be cleared
@@ -975,7 +987,10 @@ async test "prune_stops_at_budget" (t : @test.Test) {
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
-    let pruner = @context.Pruner::new(safe_zone_tokens=2000, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=2000,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should stop pruning once budget is met
@@ -991,7 +1006,10 @@ async test "prune_no_tools" (t : @test.Test) {
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
-    let pruner = @context.Pruner::new(safe_zone_tokens=10, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=10,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should not modify messages without tools
@@ -1003,7 +1021,10 @@ async test "prune_no_tools" (t : @test.Test) {
 async test "prune_empty_messages" (t : @test.Test) {
   let messages : Array[@openai.ChatCompletionMessageParam] = []
   @mock.run(t, mock => {
-    let pruner = @context.Pruner::new(safe_zone_tokens=100, logger=mock.logger)
+    let pruner = @context_pruner.Pruner::new(
+      safe_zone_tokens=100,
+      logger=mock.logger,
+    )
     pruner.prune_messages(messages)
     // Should handle empty array gracefully
     @json.inspect(messages.length(), content=0)
