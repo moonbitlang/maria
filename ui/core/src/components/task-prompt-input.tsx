@@ -1,5 +1,6 @@
 import {
   PromptInput,
+  PromptInputButton,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
@@ -13,6 +14,7 @@ interface TaskPromptInputProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  inputTools?: React.ReactNode;
 }
 
 export function TaskPromptInput({
@@ -22,7 +24,9 @@ export function TaskPromptInput({
   placeholder = "Input your task...",
   disabled = false,
   className = "",
+  inputTools,
 }: TaskPromptInputProps) {
+  const tools = inputTools ? inputTools : <PromptInputTools></PromptInputTools>;
   return (
     <PromptInput
       className={`max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow ${className}`}
@@ -38,7 +42,7 @@ export function TaskPromptInput({
         placeholder={placeholder}
       />
       <PromptInputToolbar>
-        <PromptInputTools></PromptInputTools>
+        {tools}
         <PromptInputSubmit
           disabled={disabled || !value.trim()}
           status="ready"

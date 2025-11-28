@@ -26,4 +26,12 @@
  * ```
  */
 
+import type { ElectronAPI } from "../api.ts";
+
+declare global {
+  interface Window {
+    electronAPI: ElectronAPI;
+  }
+}
+
 import "./app.tsx";
