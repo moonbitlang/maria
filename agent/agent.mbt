@@ -227,28 +227,14 @@ async fn Agent::prepare_messages_for_request(
 ) -> Array[@openai.ChatCompletionMessageParam] {
   agent.rules.apply(messages)
   // Count tokens before pruning to track context size
-  let origin_token_count = agent.token_counter.count_param(
-    @openai.chat_completion(
-      messages~,
-      model=agent.model.model_name,
-      tools~,
-      usage=@openai.usage(include_=true),
-    ),
-  )
+  let origin_token_count = agent.token_counter.count_param(messages~, tools~)
   // Emit event with original token count for monitoring
   agent.emit(TokenCounted(origin_token_count))
   // Prune messages if they exceed the safe zone token budget
   // This modifies the messages array in place
   agent.context_pruner.prune_messages(messages, tools~)
   // Count tokens after pruning to verify we're within budget
-  let pruned_token_count = agent.token_counter.count_param(
-    @openai.chat_completion(
-      messages~,
-      model=agent.model.model_name,
-      tools~,
-      usage=@openai.usage(include_=true),
-    ),
-  )
+  let pruned_token_count = agent.token_counter.count_param(messages~, tools~)
   // Emit event with before/after token counts (only logged if pruning occurred)
   agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
   // Apply prompt caching to messages to improve API performance

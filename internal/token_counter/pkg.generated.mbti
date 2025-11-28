@@ -12,7 +12,7 @@ import(
 
 // Types and methods
 type Counter
-async fn Counter::count_param(Self, @openai.Request) -> Int
+async fn Counter::count_param(Self, messages~ : Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Int
 fn Counter::count_string(Self, String) -> Int
 fn Counter::new(logger~ : @pino.Logger) -> Self raise
 
