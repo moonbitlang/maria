@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8090;
 
 // Enable CORS for development
 app.use((req, res, next) => {
@@ -80,6 +80,12 @@ for (const t of tasks) {
   });
 
   app.post(`/v1/task/${t.id}/message`, (req, res) => {
+    res.writeHead(200, "OK");
+    res.end();
+  });
+
+  app.post(`/v1/task/${t.id}/cancel`, (req, res) => {
+    console.log(`Task ${t.id} cancelled`);
     res.writeHead(200, "OK");
     res.end();
   });

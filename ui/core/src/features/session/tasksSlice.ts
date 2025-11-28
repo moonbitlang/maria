@@ -51,6 +51,17 @@ export const tasksSlice = createAppSlice({
       state.activeTask = action.payload;
     },
 
+    setStatusForTask(
+      state,
+      action: PayloadAction<{ taskId: string; status: Status }>,
+    ) {
+      const { taskId, status } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.status = status;
+      }
+    },
+
     setTask(state, action: PayloadAction<TaskOverview>) {
       const t = action.payload;
       const task = state.tasks[t.id];
@@ -178,6 +189,7 @@ export const {
   setTasks,
   setActiveTaskId,
   setInputForTask,
+  setStatusForTask,
   addToInputQueueForTask,
   removeFromInputQueueForTask,
   pushEventForTask,
