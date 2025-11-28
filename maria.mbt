@@ -53,7 +53,7 @@ pub fn Maria::close(self : Maria) -> Unit {
 ///|
 pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
   if prompt is Some(prompt) {
-    let user_message = @openai.user_message(content=prompt)
+    let user_message = @ai.user_message(content=prompt)
     self.agent.add_message(user_message)
   }
   self.agent.start()

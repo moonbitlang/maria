@@ -26,6 +26,9 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         @stdio.stdout.writeln(response.stringify())
       }
       MessageAdded(message) => {
+        let message = @openai.ChatCompletionMessageParam::from_ai_message(
+          message,
+        )
         let response : Json = {
           "method": "maria.agent.message_added",
           "params": { "message": message },
@@ -47,6 +50,10 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         @stdio.stdout.writeln(response.stringify())
       }
       RequestCompleted(usage~, message~) => {
+        let usage = usage.map(@openai.CompletionUsage::from_ai_usage)
+        let message = @openai.ChatCompletionMessageParam::from_ai_message(
+          message,
+        )
         let response : Json = {
           "method": "maria.agent.request_completed",
           "params": { "usage": usage, "message": message },
@@ -54,6 +61,9 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         @stdio.stdout.writeln(response.stringify())
       }
       PostToolCall(tool_call, result~, rendered~) => {
+        let tool_call = @openai.ChatCompletionMessageToolCall::from_ai_tool_call(
+          tool_call,
+        )
         let response : Json = {
           "method": "maria.agent.post_tool_call",
           "params": { "tool_call": tool_call, "json": result, "text": rendered },

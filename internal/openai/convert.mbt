@@ -31,6 +31,58 @@ pub fn ChatCompletionMessageParam::from_ai_message(
 }
 
 ///|
+pub fn ChatCompletionMessageParam::to_ai_message(
+  self : ChatCompletionMessageParam,
+) -> @ai.Message {
+  match self {
+    User(user) => {
+      let content = StringBuilder::new()
+      for part in user.content {
+        match part {
+          Text(text) => content.write_string(text.text)
+        }
+      }
+      @ai.user_message(content=content.to_string())
+    }
+    System(system) => {
+      let content = StringBuilder::new()
+      for part in system.content {
+        match part {
+          Text(text) => content.write_string(text.text)
+        }
+      }
+      @ai.system_message(content=content.to_string())
+    }
+    Assistant(assistant) => {
+      let content = StringBuilder::new()
+      for part in assistant.content {
+        match part {
+          Text(text) => content.write_string(text.text)
+        }
+      }
+      @ai.assistant_message(
+        content=content.to_string(),
+        tool_calls=assistant.tool_calls.map(tc => ChatCompletionMessageToolCall::to_ai_tool_call(
+          tc,
+        )),
+      )
+    }
+    Tool(tool) => {
+      let content = StringBuilder::new()
+      for part in tool.content {
+        match part {
+          Text(text) => content.write_string(text.text)
+        }
+      }
+      @ai.tool_message(
+        content=content.to_string(),
+        tool_call_id=tool.tool_call_id,
+      )
+    }
+  }
+}
+
+///|
 pub fn ChatCompletionMessageToolCall::from_ai_tool_call(
   self : @ai.ToolCall,
 ) -> ChatCompletionMessageToolCall {

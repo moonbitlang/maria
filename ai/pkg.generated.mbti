@@ -1,10 +1,6 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/ai"
 
-import(
-  "moonbitlang/core/json"
-)
-
 // Values
 fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Message
 
@@ -28,16 +24,12 @@ pub enum Message {
   Tool(String, tool_call_id~ : String)
 }
 fn Message::content(Self) -> String
-impl ToJson for Message
-impl @json.FromJson for Message
 
 pub struct ToolCall {
   id : String
   name : String
   arguments : String?
 }
-impl ToJson for ToolCall
-impl @json.FromJson for ToolCall
 
 pub struct Usage {
   input_tokens : Int
@@ -45,8 +37,6 @@ pub struct Usage {
   total_tokens : Int
   cache_read_tokens : Int?
 }
-impl ToJson for Usage
-impl @json.FromJson for Usage
 
 // Type aliases
 

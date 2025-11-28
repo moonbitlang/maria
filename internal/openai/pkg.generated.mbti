@@ -184,6 +184,7 @@ pub(all) enum ChatCompletionMessageParam {
   Tool(ChatCompletionToolMessageParam)
 }
 fn ChatCompletionMessageParam::from_ai_message(@ai.Message) -> Self
+fn ChatCompletionMessageParam::to_ai_message(Self) -> @ai.Message
 impl ToJson for ChatCompletionMessageParam
 impl @json.FromJson for ChatCompletionMessageParam
 

@@ -1,12 +1,13 @@
 {
   "import": [
-    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/lru",
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/x/time",
-    "moonbitlang/maria/clock"
+    "moonbitlang/maria/clock",
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/internal/openai"
   ],
   "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
 }
