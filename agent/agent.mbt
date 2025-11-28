@@ -400,10 +400,11 @@ pub async fn new(
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
   event_target.emit(ModelLoaded(name=model.name, model~))
+  let history = session_manager.new_conversation(name="history")
   let agent = Agent::{
     logger,
     uuid,
-    history: session_manager.new_conversation(name="history"),
+    history,
     cwd: cwd.to_string(),
     model,
     tools: {},
@@ -420,9 +421,9 @@ pub async fn new(
     web_search,
   }
   rules.load()
-  match system_message {
-    Some(message) => agent.add_message(@ai.system_message(content=message))
-    None => ()
+  if system_message is Some(system_message) {
+    history.add_message(@ai.system_message(content=system_message))
+    agent.emit(MessageAdded(@ai.system_message(content=system_message)))
   }
   match user_message {
     Some(message) => agent.add_message(@ai.user_message(content=message))
