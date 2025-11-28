@@ -87,7 +87,7 @@ function Input({ taskId }: { taskId: string }) {
   const handleStreamingSubmit = async () => {
     const { data, error } = await postCancel({ taskId });
     // either success or error, we set status back to idle
-    if (data === null || error !== undefined) {
+    if (data !== undefined || error !== undefined) {
       dispatch(setStatusForTask({ taskId, status: "idle" }));
     }
   };
