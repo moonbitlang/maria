@@ -75,3 +75,15 @@ extern "c" fn errno_EINVAL() -> Int = "moonbit_maria_errno_EINVAL"
 
 ///|
 pub let einval : Int = errno_EINVAL()
+
+///|
+extern "c" fn errno_EAGAIN() -> Int = "moonbit_maria_errno_EAGAIN"
+
+///|
+pub let eagain : Int = errno_EAGAIN()
+
+///|
+extern "c" fn errno_EACCES() -> Int = "moonbit_maria_errno_EACCES"
+
+///|
+pub let eacces : Int = errno_EACCES()

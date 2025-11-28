@@ -2,6 +2,10 @@
 package "moonbitlang/maria/internal/errno"
 
 // Values
+let eacces : Int
+
+let eagain : Int
+
 let ebadf : Int
 
 let eexist : Int

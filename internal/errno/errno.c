@@ -55,3 +55,15 @@ int32_t
 moonbit_maria_errno_ENOENT(void) {
   return ENOENT;
 }
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_EAGAIN(void) {
+  return EAGAIN;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_errno_EACCES(void) {
+  return EACCES;
+}
