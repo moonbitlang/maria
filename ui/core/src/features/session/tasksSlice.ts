@@ -51,6 +51,17 @@ export const tasksSlice = createAppSlice({
       state.activeTask = action.payload;
     },
 
+    setStatusForTask(
+      state,
+      action: PayloadAction<{ taskId: string; status: Status }>,
+    ) {
+      const { taskId, status } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.status = status;
+      }
+    },
+
     setTask(state, action: PayloadAction<TaskOverview>) {
       const t = action.payload;
       const task = state.tasks[t.id];
@@ -142,6 +153,10 @@ export const tasksSlice = createAppSlice({
       return state.activeTask;
     },
 
+    selectTaskCwd(state: TasksSliceState, taskId: string): string | undefined {
+      return state.tasks[taskId]?.cwd;
+    },
+
     selectTaskTodos(
       state: TasksSliceState,
       taskId: string,
@@ -178,6 +193,7 @@ export const {
   setTasks,
   setActiveTaskId,
   setInputForTask,
+  setStatusForTask,
   addToInputQueueForTask,
   removeFromInputQueueForTask,
   pushEventForTask,
@@ -191,6 +207,7 @@ export const {
   selectInputQueue,
   selectTaskEvents,
   selectTaskTodos,
+  selectTaskCwd,
 } = tasksSlice.selectors;
 
 // Memoized selector to prevent unnecessary re-renders

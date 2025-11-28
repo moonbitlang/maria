@@ -8,6 +8,7 @@ import {
   useTaskEventsQuery,
   usePostMessageMutation,
   useTaskQuery,
+  usePostCancelMutation,
 } from "../features/api/apiSlice.ts";
 import {
   selectTaskInput,
@@ -18,11 +19,24 @@ import {
   selectInputQueue,
   selectTaskTodos,
   selectTaskEvents,
+  setStatusForTask,
+  selectTaskCwd,
 } from "../features/session/tasksSlice.ts";
-import { Clock } from "lucide-react";
+import { Clock, Folder } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
+import type { ChatStatus } from "ai";
+import {
+  PromptInputButton,
+  PromptInputTools,
+} from "../components/ui/shadcn-io/ai/prompt-input.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../components/ui/tooltip.tsx";
+import { base } from "../lib/utils.ts";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();
@@ -34,21 +48,26 @@ function useSetActiveTaskId(taskId: string) {
 
 function Input({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
+
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
+  const cwd = useAppSelector((state) => selectTaskCwd(state, taskId))!;
+  const baseCwd = base(cwd);
   const inputQueue = useAppSelector((state) =>
     selectInputQueue(state, taskId),
   )!;
-  const status = useAppSelector((state) =>
+  const taskStatus = useAppSelector((state) =>
     selectConversationStatus(state, taskId),
   )!;
+  const chatStatus: ChatStatus =
+    taskStatus === "generating" ? "streaming" : "ready";
   const [postMessage] = usePostMessageMutation();
+  const [postCancel] = usePostCancelMutation();
 
   function setInput(value: string) {
     dispatch(setInputForTask({ taskId, input: value }));
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReadySubmit = async () => {
     const content = input.trim();
     const { data, error } = await postMessage({
       taskId,
@@ -63,6 +82,14 @@ function Input({ taskId }: { taskId: string }) {
       console.error(error);
     }
     setInput("");
+  };
+
+  const handleStreamingSubmit = async () => {
+    const { data, error } = await postCancel({ taskId });
+    // either success or error, we set status back to idle
+    if (data === null || error !== undefined) {
+      dispatch(setStatusForTask({ taskId, status: "idle" }));
+    }
   };
 
   return (
@@ -98,9 +125,28 @@ function Input({ taskId }: { taskId: string }) {
       <TaskPromptInput
         value={input}
         onChange={setInput}
-        onSubmit={handleSubmit}
+        onReadySubmit={handleReadySubmit}
+        onStreamingSubmit={handleStreamingSubmit}
+        status={chatStatus}
         placeholder={
-          status === "generating" ? "Agent is working..." : "Input your task..."
+          taskStatus === "generating"
+            ? "Agent is working..."
+            : "Input your task..."
+        }
+        inputTools={
+          <PromptInputTools>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PromptInputButton>
+                  <Folder size={16} />
+                  {baseCwd && <span>{baseCwd}</span>}
+                </PromptInputButton>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{cwd}</p>
+              </TooltipContent>
+            </Tooltip>
+          </PromptInputTools>
         }
       />
     </div>

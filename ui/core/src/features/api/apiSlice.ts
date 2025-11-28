@@ -71,6 +71,13 @@ export const apiSlice = createApi({
       }),
     }),
 
+    postCancel: builder.mutation<null, { taskId: string }>({
+      query: ({ taskId }) => ({
+        url: `task/${taskId}/cancel`,
+        method: "POST",
+      }),
+    }),
+
     events: builder.query<undefined, void>({
       queryFn: () => ({ data: undefined }),
       keepUnusedDataFor: 0,
@@ -161,4 +168,5 @@ export const {
   useTaskEventsQuery,
   useNewTaskMutation,
   usePostMessageMutation,
+  usePostCancelMutation,
 } = apiSlice;
