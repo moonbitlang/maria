@@ -29,6 +29,7 @@ priv suberror InvalidTransport StringView derive(Show)
 /// # Example
 /// ```moonbit
 /// let _t1 = Transport::parse("console:")
+///
 /// let _t2 = Transport::parse("file:/var/log/app.log")
 /// ```
 pub fn Transport::parse(transport : StringView) -> Transport raise {

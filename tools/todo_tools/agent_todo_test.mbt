@@ -14,13 +14,11 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
     let mut write_called = false
     let mut read_called = false
     let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
-    agent.add_tools([
-      new_tool(todo_list).to_agent_tool(),
-    ])
+    agent.add_tools([new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
       @event.PreToolCall(tool_call) =>
         match tool_call.name {
-          "todo" => {
+          "todo" =>
             // Parse the arguments string as JSON to check the action
             match tool_call.arguments {
               Some(args_str) => {
@@ -40,7 +38,6 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
               }
               None => ()
             }
-          }
           _ => ()
         }
       _ => ()
@@ -76,7 +73,7 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
     agent.add_listener(event => match event {
       @event.PreToolCall(tool_call) =>
         match tool_call.name {
-          "todo" => {
+          "todo" =>
             match tool_call.arguments {
               Some(args_str) => {
                 let args = @json.parse(args_str)
@@ -91,7 +88,6 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
               }
               None => ()
             }
-          }
           _ => ()
         }
       _ => ()

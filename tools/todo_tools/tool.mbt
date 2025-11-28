@@ -5,10 +5,7 @@ enum TodoResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoResult with output(
-  self : TodoResult,
-  logger : &Logger,
-) -> Unit {
+pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
   match self {
     Read(result) => result.output(logger)
     Write(result) => result.output(logger)

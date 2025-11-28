@@ -138,7 +138,6 @@ pub struct ChatCompletionStreamOptionsParam {
 /// })
 /// defer client.close()
 /// let response = client.post(uri.path, (request : ChatCompletionParam).to_json())
-/// 
 /// ```
 pub struct Request {
   model : String
