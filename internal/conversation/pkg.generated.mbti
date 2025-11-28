@@ -4,8 +4,8 @@ package "moonbitlang/maria/internal/conversation"
 import(
   "moonbitlang/core/json"
   "moonbitlang/maria/clock"
+  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/openai"
 )
 
 // Values

@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/maria/openai",
+    "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino"

@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/openai"
+package "moonbitlang/maria/internal/openai"
 
 import(
   "moonbitlang/core/json"

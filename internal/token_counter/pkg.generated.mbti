@@ -2,8 +2,8 @@
 package "moonbitlang/maria/internal/token_counter"
 
 import(
+  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/openai"
 )
 
 // Values

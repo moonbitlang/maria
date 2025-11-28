@@ -2,9 +2,9 @@
 package "moonbitlang/maria/context"
 
 import(
+  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/model"
-  "moonbitlang/maria/openai"
 )
 
 // Values

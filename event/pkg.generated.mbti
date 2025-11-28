@@ -2,9 +2,9 @@
 package "moonbitlang/maria/event"
 
 import(
+  "moonbitlang/maria/internal/openai"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
-  "moonbitlang/maria/openai"
   "moonbitlang/maria/tool"
 )
 
