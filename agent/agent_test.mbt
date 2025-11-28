@@ -521,3 +521,34 @@ async test "load-model-name" (t : @test.Test) {
     ).start()
   })
 }
+
+///|
+#skip
+async test "agent/queue_message" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(
+      model,
+      uuid=mock.uuid,
+      cwd=mock.cwd.path(),
+      user_message="Hello!",
+    )
+    @json.inspect(
+      agent.queue_message(@ai.user_message(content="How are you?")),
+      content="1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+    )
+    @json.inspect(
+      agent.queue_message(@ai.user_message(content="Thank you")),
+      content="f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
+    )
+    let message_unqueued = []
+    agent.add_listener(event => match event {
+      MessageUnqueued(id~) => message_unqueued.push(id)
+      _ => ()
+    })
+    agent.start()
+    @json.inspect(message_unqueued, content=[
+      "1ea1417c-a31f-4b1b-8494-d8486add6aa4", "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
+    ])
+  })
+}
