@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/maria/internal/tiktoken",
     "moonbitlang/maria/internal/openai",
-    "moonbitlang/maria/internal/pino"
+    "moonbitlang/maria/event"
   ],
   "wbtest-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
 }

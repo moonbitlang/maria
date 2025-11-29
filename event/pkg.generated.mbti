@@ -1,41 +1,22 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/event"
 
-import(
-  "moonbitlang/maria/ai"
-  "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/model"
-  "moonbitlang/maria/tool"
-)
-
 // Values
+let default_target : EventTarget
 
 // Errors
 
 // Types and methods
-pub(all) enum Event {
-  ModelLoaded(name~ : String, model~ : @model.Model)
-  PreConversation
-  PostConversation
-  MessageAdded(@ai.Message)
-  MessageUnqueued(id~ : @uuid.Uuid)
-  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
-  ToolAdded(@tool.ToolDesc)
-  PreToolCall(@ai.ToolCall)
-  PostToolCall(@ai.ToolCall, result~ : Result[Json, Error], rendered~ : String)
-  TokenCounted(Int)
-  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
-}
-impl ToJson for Event
-
 type EventTarget
-fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
-fn EventTarget::emit(Self, Event) -> Unit
+fn[T : Event] EventTarget::add_listener(Self, async (T) -> Unit) -> Unit
+fn[T : Event] EventTarget::emit(Self, T) -> Unit
 fn EventTarget::new() -> Self
 async fn EventTarget::start(Self) -> Unit
 
 // Type aliases
 
 // Traits
+pub(open) trait Event : ToJson {
+  id() -> Unit = _
+}
 

@@ -140,13 +140,10 @@ async test "track-tool-calls" {
 ///|
 async test "track-token-pruning" {
   let agent = @agent.new(model, cwd=@os.cwd())
-  agent.add_listener(event => match event {
-    TokenCounted(count) => println("Tokens before pruning: \{count}")
-    ContextPruned(origin_token_count~, pruned_token_count~) => {
-      let saved = origin_token_count - pruned_token_count
-      println("Pruned \{saved} tokens")
-    }
-    _ => ()
+  agent.event_target.add_listener((event : @token_counter.TokenCounted) => println("Tokens before pruning: \{event.token_count}"))
+  agent.event_target.add_listener((event : @context_pruner.ContextPruned) => {
+    let saved = event.origin_token_count - event.pruned_token_count
+    println("Pruned \{saved} tokens")
   })
 }
 ```

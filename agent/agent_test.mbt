@@ -179,7 +179,6 @@ async test "agent/event_system" (t : @test.Test) {
       PreConversation => pre_conversation = true
       PostConversation => post_conversation = true
       MessageAdded(_) => message_added = true
-      TokenCounted(_) => token_counted = true
       RequestCompleted(usage~, message~) => {
         request_completed = true
         // DONT use inspect since it may happen multiple times asynchronously
@@ -188,6 +187,8 @@ async test "agent/event_system" (t : @test.Test) {
       }
       _ => ()
     })
+    agent.event_target.add_listener((_ : @token_counter.TokenCounted) => token_counted
+    = true)
     agent.start()
 
     // Give events time to process
@@ -258,13 +259,14 @@ async test "agent/token_management" (t : @test.Test) {
     )
     let mut token_count = 0
     let mut _context_pruned = false
-    agent.add_listener(event => match event {
-      TokenCounted(count) => token_count = count
-      ContextPruned(origin_token_count~, pruned_token_count~) => {
-        _context_pruned = true
-        inspect(origin_token_count >= pruned_token_count, content="true")
-      }
-      _ => ()
+    agent.event_target.add_listener((event : @token_counter.TokenCounted) => token_count
+    = event.token_count)
+    agent.event_target.add_listener((event : @context_pruner.ContextPruned) => {
+      _context_pruned = true
+      @json.inspect(
+        event.origin_token_count >= event.pruned_token_count,
+        content="true",
+      )
     })
     agent.start()
 

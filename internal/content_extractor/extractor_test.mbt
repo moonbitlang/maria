@@ -5,7 +5,6 @@ async test "@context.Extractor" (t : @test.Test) {
     let model = mock.model(name=ClaudeHaiku4_5)
     let extractor = @content_extractor.Extractor::new(
       model~,
-      logger=mock.logger,
       safe_zone_tokens=2000,
     )
     let history : Array[@openai.ChatCompletionMessageParam] = [

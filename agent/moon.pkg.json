@@ -2,7 +2,6 @@
   "import": [
     "moonbitlang/maria/model",
     "moonbitlang/maria/tool",
-    "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/internal/cache",
     "moonbitlang/maria/internal/conversation",
     "moonbitlang/maria/internal/rand",
@@ -23,7 +22,8 @@
     "moonbitlang/maria/tools/read_file",
     "moonbitlang/maria/tools/read_multiple_files",
     "moonbitlang/maria/internal/path",
-    "moonbitlang/maria/internal/os"
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/token_counter"
   ],
   "wbtest-import": ["moonbitlang/maria/internal/mock"]
 }

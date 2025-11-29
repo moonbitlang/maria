@@ -15,7 +15,7 @@ async test "Event::ToJson/PreConversation" {
     group.spawn_bg(() => emitter.start(), no_wait=true)
     @async.pause()
     emitter.add_listener(event => events.push(event))
-    emitter.emit(PreConversation)
+    emitter.emit(@agent.PreConversation)
   })
   @json.inspect(redact_events(events), content=[{ "msg": "PreConversation" }])
 }
@@ -28,7 +28,7 @@ async test "Event::ToJson/PostConversation" {
     group.spawn_bg(() => emitter.start(), no_wait=true)
     @async.pause()
     emitter.add_listener(event => events.push(event))
-    emitter.emit(PostConversation)
+    emitter.emit(@agent.PostConversation)
   })
   @json.inspect(redact_events(events), content=[{ "msg": "PostConversation" }])
 }
@@ -41,7 +41,7 @@ async test "Event::ToJson/TokenCounted" {
     group.spawn_bg(() => emitter.start(), no_wait=true)
     @async.pause()
     emitter.add_listener(event => events.push(event))
-    emitter.emit(TokenCounted(42))
+    emitter.emit(@token_counter.TokenCounted::new(token_count=42))
   })
   @json.inspect(redact_events(events), content=[
     { "msg": "TokenCounted", "token_count": 42 },
@@ -56,7 +56,12 @@ async test "Event::ToJson/ContextPruned" {
     group.spawn_bg(() => emitter.start(), no_wait=true)
     @async.pause()
     emitter.add_listener(event => events.push(event))
-    emitter.emit(ContextPruned(origin_token_count=100, pruned_token_count=20))
+    emitter.emit(
+      @context_pruner.ContextPruned::new(
+        origin_token_count=100,
+        pruned_token_count=20,
+      ),
+    )
   })
   @json.inspect(redact_events(events), content=[
     {
@@ -76,7 +81,7 @@ async test "Event::ToJson/PreToolCall" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      PreToolCall(
+      @agent.PreToolCall(
         @ai.tool_call(
           id="tool_call_1",
           name="example_tool",
@@ -111,7 +116,7 @@ async test "Event::ToJson/PostToolCall success" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      PostToolCall(
+      @agent.PostToolCall(
         @ai.tool_call(
           id="tool_call_1",
           name="example_tool",
@@ -149,7 +154,7 @@ async test "Event::ToJson/PostToolCall error" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      PostToolCall(
+      @agent.PostToolCall(
         @ai.tool_call(
           id="tool_call_2",
           name="failing_tool",
@@ -187,7 +192,9 @@ async test "Event::ToJson/MessageAdded" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
+      @agent.MessageAdded(
+        @ai.user_message(content="Hello, this is a user message."),
+      ),
     )
   })
   @json.inspect(redact_events(events), content=[
@@ -212,7 +219,7 @@ async test "Event::ToJson/ToolAdded" {
       schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
       _ => @tool.ToolResult::ok("Sample output"),
     )
-    emitter.emit(ToolAdded(tool.desc))
+    emitter.emit(@agent.ToolAdded(tool.desc))
   })
   @json.inspect(redact_events(events), content=[
     {
@@ -243,7 +250,7 @@ async test "Event::ToJson/RequestCompleted" {
       content="This is the final message from the model.",
       tool_calls=[],
     )
-    emitter.emit(RequestCompleted(usage=Some(usage), message~))
+    emitter.emit(@agent.RequestCompleted(usage=Some(usage), message~))
   })
   @json.inspect(redact_events(events), content=[
     {
@@ -269,7 +276,7 @@ async test "Event::ModelLoaded" {
     @async.pause()
     emitter.add_listener(event => events.push(event))
     emitter.emit(
-      ModelLoaded(
+      @agent.ModelLoaded(
         name="test_model",
         model=@model.Model::new(
           api_key="test_api_key",

@@ -23,7 +23,7 @@ pub struct Agent {
   logger : @pino.Logger
   // private fields
 }
-fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
+fn Agent::add_listener(Self, async (Event) -> Unit) -> Unit
 async fn Agent::add_message(Self, @ai.Message) -> Unit
 async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
@@ -31,6 +31,21 @@ fn Agent::close(Self) -> Unit
 async fn Agent::queue_message(Self, @ai.Message) -> @uuid.Uuid
 fn Agent::queued_messages(Self) -> Array[(@uuid.Uuid, @ai.Message)]
 async fn Agent::start(Self) -> Unit
+
+pub(all) enum Event {
+  ModelLoaded(name~ : String, model~ : @model.Model)
+  PreConversation
+  PostConversation
+  MessageAdded(@ai.Message)
+  MessageUnqueued(id~ : @uuid.Uuid)
+  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
+  ToolAdded(@tool.ToolDesc)
+  PreToolCall(@ai.ToolCall)
+  PostToolCall(@ai.ToolCall, result~ : Result[Json, Error], rendered~ : String)
+  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
+}
+impl ToJson for Event
+impl @event.Event for Event
 
 // Type aliases
 

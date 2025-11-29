@@ -28,8 +28,7 @@ pub struct Agent {
   priv history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[(@uuid.Uuid, @ai.Message)]
-  priv event_target : @event.EventTarget
-  priv token_counter : @token_counter.Counter
+  event_target : @event.EventTarget
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
@@ -224,17 +223,9 @@ async fn Agent::prepare_messages_for_request(
   )
   let tools = tools.map(@openai.ChatCompletionToolParam::from_tool_desc)
   agent.rules.apply(messages)
-  // Count tokens before pruning to track context size
-  let origin_token_count = agent.token_counter.count_param(messages~, tools~)
-  // Emit event with original token count for monitoring
-  agent.emit(TokenCounted(origin_token_count))
   // Prune messages if they exceed the safe zone token budget
   // This modifies the messages array in place
   agent.context_pruner.prune_messages(messages, tools~)
-  // Count tokens after pruning to verify we're within budget
-  let pruned_token_count = agent.token_counter.count_param(messages~, tools~)
-  // Emit event with before/after token counts (only logged if pruning occurred)
-  agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
   // Apply prompt caching to messages to improve API performance
   @cache.cache_messages(messages)
 }
@@ -411,10 +402,8 @@ pub async fn new(
     input_queue: [],
     pending_queue: @deque.Deque::new(),
     event_target,
-    token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context_pruner.Pruner::new(
       safe_zone_tokens=model.safe_zone_tokens,
-      logger~,
     ),
     session_manager,
     rules,
@@ -471,9 +460,6 @@ async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
 /// * `f` : The asynchronous callback function to execute when the event is
 ///   triggered. The function receives an `Event` containing relevant
 ///   event data.
-pub fn Agent::add_listener(
-  agent : Agent,
-  f : async (@event.Event) -> Unit,
-) -> Unit {
+pub fn Agent::add_listener(agent : Agent, f : async (Event) -> Unit) -> Unit {
   agent.event_target.add_listener(f)
 }

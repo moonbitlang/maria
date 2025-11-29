@@ -13,7 +13,6 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/event",
     "moonbitlang/maria/ai"
   ]
 }

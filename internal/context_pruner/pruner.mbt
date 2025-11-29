@@ -1,19 +1,61 @@
 ///|
 struct Pruner {
-  logger : @pino.Logger
   token_counter : @token_counter.Counter
   safe_zone_tokens : Int
+  event_target : @event.EventTarget
 }
+
+///|
+pub struct ContextPruned {
+  origin_token_count : Int
+  pruned_token_count : Int
+  pruned_index : Array[Int]?
+  prune_goal_met : Bool?
+}
+
+///|
+pub fn ContextPruned::new(
+  origin_token_count~ : Int,
+  pruned_token_count~ : Int,
+  pruned_index? : Array[Int],
+  prune_goal_met? : Bool,
+) -> ContextPruned {
+  ContextPruned::{
+    origin_token_count,
+    pruned_token_count,
+    pruned_index,
+    prune_goal_met,
+  }
+}
+
+///|
+pub impl ToJson for ContextPruned with to_json(self : ContextPruned) -> Json {
+  let object : Map[String, Json] = {
+    "msg": "ContextPruned",
+    "origin_token_count": self.origin_token_count,
+    "pruned_token_count": self.pruned_token_count,
+  }
+  if self.pruned_index is Some(pruned_index) {
+    object["pruned_index"] = pruned_index.to_json()
+  }
+  if self.prune_goal_met is Some(prune_goal_met) {
+    object["prune_goal_met"] = prune_goal_met.to_json()
+  }
+  Json::object(object)
+}
+
+///|
+pub impl @event.Type for ContextPruned
 
 ///|
 pub fn Pruner::new(
   safe_zone_tokens~ : Int,
-  logger~ : @pino.Logger,
+  event_target? : @event.EventTarget = @event.default_target,
 ) -> Pruner raise {
   Pruner::{
-    logger,
-    token_counter: @token_counter.Counter::new(logger~),
+    token_counter: @token_counter.Counter::new(event_target~),
     safe_zone_tokens,
+    event_target,
   }
 }
 
@@ -70,10 +112,12 @@ pub async fn Pruner::prune_messages(
   } else {
     false
   }
-  pruner.logger.info("ContextPruned", data={
-    "origin_token_count": tokens,
-    "pruned_token_count": pruned_tokens,
-    "pruned_index": pruned_index,
-    "pruned_goal_met": prune_goal_met,
-  })
+  pruner.event_target.emit(
+    ContextPruned::new(
+      origin_token_count=tokens,
+      pruned_token_count=pruned_tokens,
+      pruned_index~,
+      prune_goal_met~,
+    ),
+  )
 }

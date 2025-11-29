@@ -1,10 +1,28 @@
 ///|
 struct Counter {
-  logger : @pino.Logger
+  event_target : @event.EventTarget
   overhead : Int
   // mut tools : Bool
   encoding : @tiktoken.Encoding
 }
+
+///|
+pub struct TokenCounted {
+  token_count : Int
+}
+
+///|
+pub fn TokenCounted::new(token_count~ : Int) -> TokenCounted {
+  TokenCounted::{ token_count, }
+}
+
+///|
+pub impl ToJson for TokenCounted with to_json(self : TokenCounted) -> Json {
+  { "msg": "TokenCounted", "token_count": self.token_count }
+}
+
+///|
+pub impl @event.Type for TokenCounted
 
 ///|
 const SystemOverhead : Int = 7
@@ -22,9 +40,11 @@ const ToolOverhead : Int = 20
 /// encoding, which is commonly used for OpenAI's GPT models.
 ///
 /// Throws an error if the cl100k\_base encoding cannot be initialized.
-pub fn Counter::new(logger~ : @pino.Logger) -> Counter raise {
+pub fn Counter::new(
+  event_target? : @event.EventTarget = @event.default_target,
+) -> Counter raise {
   {
-    logger,
+    event_target,
     overhead: SystemOverhead,
     // tools: false, 
     encoding: @tiktoken.cl100k_base(),
@@ -157,6 +177,6 @@ pub async fn Counter::count_param(
     count += self.count_tool(tool)
   }
   count += self.count_messages(messages)
-  self.logger.info("TokenCounted", data={ "token_count": count })
+  self.event_target.emit(TokenCounted::{ token_count: count })
   count
 }

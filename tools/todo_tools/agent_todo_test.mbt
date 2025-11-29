@@ -16,7 +16,7 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
     let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
     agent.add_tools([new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
-      @event.PreToolCall(tool_call) =>
+      @agent.PreToolCall(tool_call) =>
         match tool_call.name {
           "todo" =>
             // Parse the arguments string as JSON to check the action
@@ -71,7 +71,7 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
     let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
     agent.add_tools([new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
-      @event.PreToolCall(tool_call) =>
+      @agent.PreToolCall(tool_call) =>
         match tool_call.name {
           "todo" =>
             match tool_call.arguments {
@@ -116,7 +116,7 @@ async test "agent/todo_tools/priority_handling" (t : @test.Test) {
     let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
     agent.add_tools([new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => match event {
-      @event.PreToolCall(tool_call) =>
+      @agent.PreToolCall(tool_call) =>
         match tool_call.name {
           "todo" => tool_calls.push(tool_call.name)
           _ => ()

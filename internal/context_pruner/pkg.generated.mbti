@@ -2,8 +2,8 @@
 package "moonbitlang/maria/internal/context_pruner"
 
 import(
+  "moonbitlang/maria/event"
   "moonbitlang/maria/internal/openai"
-  "moonbitlang/maria/internal/pino"
 )
 
 // Values
@@ -11,8 +11,18 @@ import(
 // Errors
 
 // Types and methods
+pub struct ContextPruned {
+  origin_token_count : Int
+  pruned_token_count : Int
+  pruned_index : Array[Int]?
+  prune_goal_met : Bool?
+}
+fn ContextPruned::new(origin_token_count~ : Int, pruned_token_count~ : Int, pruned_index? : Array[Int], prune_goal_met? : Bool) -> Self
+impl ToJson for ContextPruned
+impl @event.Event for ContextPruned
+
 type Pruner
-fn Pruner::new(safe_zone_tokens~ : Int, logger~ : @pino.Logger) -> Self raise
+fn Pruner::new(safe_zone_tokens~ : Int, event_target? : @event.EventTarget) -> Self raise
 async fn Pruner::prune_messages(Self, Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Unit
 
 // Type aliases
