@@ -454,7 +454,7 @@ pub async fn new(
 ///
 /// * `agent` : The agent instance emitting the event.
 /// * `event` : The event to emit and log.
-pub async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
+async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
   agent.event_target.emit(event)
   let json = event.to_json()
   guard json is Object({ "msg": String(msg), .. } as json) else {  }
