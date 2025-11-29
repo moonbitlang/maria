@@ -399,6 +399,12 @@ pub async fn new(
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
+  event_target.add_listener(event => {
+    let json = event.to_json()
+    guard json is Object({ "msg": String(msg), .. } as json) else {  }
+    json.remove("msg")
+    logger.info(msg, data=json)
+  })
   event_target.emit(ModelLoaded(name=model.name, model~))
   let history = session_manager.new_conversation(name="history")
   let agent = Agent::{
@@ -454,12 +460,8 @@ pub async fn new(
 ///
 /// * `agent` : The agent instance emitting the event.
 /// * `event` : The event to emit and log.
-async fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
+fn Agent::emit(agent : Agent, event : @event.Event) -> Unit {
   agent.event_target.emit(event)
-  let json = event.to_json()
-  guard json is Object({ "msg": String(msg), .. } as json) else {  }
-  json.remove("msg")
-  agent.logger.info(msg, data=json)
 }
 
 ///|
