@@ -240,6 +240,66 @@ async fn Agent::prepare_messages_for_request(
 }
 
 ///|
+/// Performs a single step of the agent's conversation loop by sending messages
+/// to the AI model.
+async fn Agent::step(
+  agent : Agent,
+  messages : Array[@ai.Message],
+) -> @ai.Message {
+  // Build the tools array for this API call
+  // Convert each registered tool into OpenAI's tool parameter format
+  let tools = []
+  for _, tool in agent.tools {
+    let desc = tool.desc()
+    tools.push(desc)
+  }
+
+  // Count tokens, prune if needed, and apply caching
+  let cache_messages = agent.prepare_messages_for_request(messages, tools~)
+
+  // Enable web search plugin if configured
+  let extra_body : Map[String, Json] = {}
+  if agent.web_search {
+    // We only support web search plugin for OpenRouter models for now.
+    //
+    // FIXME: We should encode how to enable web search plugin in model
+    // configuration.
+    if agent.model.base_url.contains("openrouter.ai/api/v1") {
+      extra_body["plugins"] = [{ "id": "web" }]
+    } else {
+      agent.logger.warn(
+        "Web search plugin is only supported for OpenRouter models.",
+      )
+    }
+  }
+
+  // Make the API request to get the model's response
+  let response = @openai.chat(
+    model=agent.model,
+    logger=agent.logger,
+    @openai.chat_completion(
+      messages=cache_messages,
+      model=agent.model.model_name,
+      tools=tools.map(tool => @openai.ChatCompletionToolParam::from_tool_desc(
+        tool,
+      )),
+    ),
+    extra_body~,
+  )
+  // Extract the message from the response, raise error if no choices returned
+  guard response is { choices: [{ message, .. }, ..], usage, .. } else {
+    raise EmptyChoices
+  }
+  let message = message.to_ai_message()
+
+  // Emit event with API usage statistics and the returned message
+  agent.emit(
+    RequestCompleted(usage=usage.map(usage => usage.to_ai_usage()), message~),
+  )
+  message
+}
+
+///|
 /// Starts the agent's conversation loop and executes tool calls until completion.
 ///
 /// This function implements the main agent execution loop:
@@ -276,77 +336,26 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           agent.emit(MessageAdded(message))
         }
       }
-
-      // Build the tools array for this API call
-      // Convert each registered tool into OpenAI's tool parameter format
-      let tools = []
-      for _, tool in agent.tools {
-        let desc = tool.desc()
-        tools.push(desc)
-      }
       // Retrieve and clear the message queue
       // staged contains messages that need to be sent in this call
       // Build the complete message array for the API call
       // Start with conversation history, then append any queued messages
       let messages = [..agent.history.to_param(), ..agent.input_queue]
-
-      // Count tokens, prune if needed, and apply caching
-      let cache_messages = agent.prepare_messages_for_request(messages, tools~)
-
-      // Enable web search plugin if configured
-      let extra_body : Map[String, Json] = {}
-      if agent.web_search {
-        // We only support web search plugin for OpenRouter models for now.
-        //
-        // FIXME: We should encode how to enable web search plugin in model
-        // configuration.
-        if agent.model.base_url.contains("openrouter.ai/api/v1") {
-          extra_body["plugins"] = [{ "id": "web" }]
-        } else {
-          agent.logger.warn(
-            "Web search plugin is only supported for OpenRouter models.",
-          )
-        }
-      }
-
-      // Make the API request to get the model's response
-      let response = @openai.chat(
-        model=agent.model,
-        logger=agent.logger,
-        @openai.chat_completion(
-          messages=cache_messages,
-          model=agent.model.model_name,
-          tools=tools.map(tool => @openai.ChatCompletionToolParam::from_tool_desc(
-            tool,
-          )),
-        ),
-        extra_body~,
-      )
-      // Extract the message from the response, raise error if no choices returned
-      guard response is { choices: [{ message, .. }, ..], usage, .. } else {
-        raise EmptyChoices
-      }
-      let ai_message = message.to_ai_message()
-
-      // Emit event with API usage statistics and the returned message
-      agent.emit(
-        RequestCompleted(
-          usage=usage.map(usage => usage.to_ai_usage()),
-          message=ai_message,
-        ),
-      )
+      let message = agent.step(messages)
 
       // Add all staged messages to permanent conversation history
       agent.history.add_messages(agent.input_queue)
       agent.input_queue = []
 
       // Add the model's response to conversation history
-      agent.history.add_message(ai_message)
+      agent.history.add_message(message)
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
       // Execute each tool call and queue the results for the next iteration
-      for call in message.tool_calls {
-        agent.add_message(agent.execute_tool(call.to_ai_tool_call()))
+      if message is Assistant(_, tool_calls~) {
+        for call in tool_calls {
+          agent.add_message(agent.execute_tool(call))
+        }
       }
     }
     // Signal the end of conversation
