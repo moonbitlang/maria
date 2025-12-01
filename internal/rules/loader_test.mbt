@@ -4,9 +4,8 @@ async test "Loader::apply" (t : @test.Test) {
     let home = mock.cwd
     @mock.with_home(home, () => {
       let home_rules = home.add_directory(".moonagent").add_directory("rules")
-      let _ = home_rules.add_file(
-        "a.md",
-        content=(
+      home_rules.add_files({
+        "a.md": (
           #|---
           #|description: This is rule A
           #|globs:
@@ -14,10 +13,7 @@ async test "Loader::apply" (t : @test.Test) {
           #|---
           #|Content of rule A
         ),
-      )
-      let _ = home_rules.add_file(
-        "b.md",
-        content=(
+        "b.md": (
           #|---
           #|description: This is rule B
           #|globs: ["*.txt", "*.md"]
@@ -25,14 +21,13 @@ async test "Loader::apply" (t : @test.Test) {
           #|---
           #|Content of rule B
         ),
-      )
+      })
       let project = home.add_directory("project")
       let project_rules = project
         .add_directory(".moonagent")
         .add_directory("rules")
-      let _ = project_rules.add_file(
-        "c.md",
-        content=(
+      project_rules.add_files({
+        "c.md": (
           #|---
           #|description: This is rule C
           #|globs: ["*.txt"]
@@ -40,15 +35,13 @@ async test "Loader::apply" (t : @test.Test) {
           #|---
           #|Content of rule C
         ),
-      )
-      let _ = project_rules.add_file(
-        "d.md",
-        content=(
+        "d.md": (
           #|This is a plain text file with no front matter, the application
           #|of the rule is solely determined by the file name.
         ),
-      )
+      })
       let rules = Loader::new(project.path(), logger=mock.logger)
+      // Load rules
       rules.load()
       let messages = [
         @openai.system_message(content="System message"),
