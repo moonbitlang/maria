@@ -48,8 +48,12 @@ async test "agent/todo/create_and_add_tasks" (t : @test.Test) {
     inspect(write_called, content="true")
     inspect(read_called, content="true")
 
-    // Verify tasks were added
-    let todos = todo_list.todos()
+    // Verify tasks were added using tool.call with read action
+    let result = new_tool(todo_list).call({ "action": "read" })
+    guard result is Ok(output) else { return }
+    // Check the JSON to verify at least 2 todos
+    let json = output.to_json()
+    guard json is ["Read", { "todos": Array(todos), .. }] else { return }
     inspect(todos.length() >= 2, content="true")
   })
 }
@@ -125,19 +129,25 @@ async test "agent/todo/priority_handling" (t : @test.Test) {
     })
     agent.start()
 
-    // Verify tasks were created
-    let todos = todo_list.todos()
+    // Verify tasks were created using tool.call with read action
+    let result = new_tool(todo_list).call({ "action": "read" })
+    guard result is Ok(output) else { return }
+    // Check the JSON to verify at least 3 todos
+    let json = output.to_json()
+    guard json is ["Read", { "todos": Array(todos), .. }] else { return }
     inspect(todos.length() >= 3, content="true")
 
-    // Verify different priorities exist
+    // Verify different priorities exist by checking the JSON
     let mut high_priority = false
     let mut medium_priority = false
     let mut low_priority = false
     for todo in todos {
-      match todo.priority {
-        High => high_priority = true
-        Medium => medium_priority = true
-        Low => low_priority = true
+      guard todo is { "priority": String(priority), .. } else { continue }
+      match priority {
+        "High" => high_priority = true
+        "Medium" => medium_priority = true
+        "Low" => low_priority = true
+        _ => ()
       }
     }
     inspect(high_priority || medium_priority || low_priority, content="true")

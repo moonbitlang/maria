@@ -19,21 +19,21 @@ priv struct Items {
 } derive(ToJson, FromJson)
 
 ///|
-pub(all) enum Priority {
+priv enum Priority {
   High
   Medium
   Low
-} derive(ToJson, FromJson, Eq, Show)
+} derive(ToJson, FromJson, Show)
 
 ///|
-pub(all) enum Status {
+priv enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson, FromJson, Eq, Show)
+} derive(ToJson, FromJson, Show)
 
 ///|
-pub(all) struct Item {
+priv struct Item {
   content : String
   created_at : String
   id : String
