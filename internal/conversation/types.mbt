@@ -4,6 +4,7 @@ struct Conversation {
   name : String
   description : String?
   id : String
+  mut system_prompt : String?
   messages : Array[Message]
   created_at : Int64
   mut updated_at : Int64
@@ -16,4 +17,4 @@ priv struct Message {
   /// Usage statistics for the completion request.
   message : @openai.ChatCompletionMessageParam
   usage : @openai.CompletionUsage?
-} derive(ToJson)
+}

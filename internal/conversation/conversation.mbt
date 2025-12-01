@@ -76,13 +76,13 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
     Json::number(value.to_double(), repr=value.to_string())
   }
 
-  let object : Map[String, Json] = {
-    "name": self.name,
-    "id": self.id,
-    "messages": self.messages,
-    "created_at": int64_to_json(self.created_at),
-    "updated_at": int64_to_json(self.updated_at),
+  let object : Map[String, Json] = { "name": self.name, "id": self.id }
+  if self.system_prompt is Some(system_prompt) {
+    object["system_prompt"] = system_prompt.to_json()
   }
+  object["messages"] = self.messages.to_json()
+  object["created_at"] = int64_to_json(self.created_at).to_json()
+  object["updated_at"] = int64_to_json(self.updated_at).to_json()
   if self.description is Some(description) {
     object["description"] = description.to_json()
   }
@@ -115,6 +115,14 @@ pub impl @json.FromJson for Conversation with from_json(
     Some(id) => @json.from_json(id, path=json_path.add_key("id"))
     None =>
       raise @json.JsonDecodeError((json_path.add_key("id"), "Missing field"))
+  }
+  let system_prompt : String? = match json.get("system_prompt") {
+    Some(Null) => None
+    Some(system_prompt) =>
+      Some(
+        @json.from_json(system_prompt, path=json_path.add_key("system_prompt")),
+      )
+    None => None
   }
   let messages = match json.get("messages") {
     Some(json) => {
@@ -152,6 +160,7 @@ pub impl @json.FromJson for Conversation with from_json(
     name,
     description,
     id,
+    system_prompt,
     messages,
     created_at,
     updated_at,
@@ -188,6 +197,29 @@ pub fn Conversation::id(self : Conversation) -> String {
 }
 
 ///|
-pub fn Conversation::to_param(self : Conversation) -> Array[@ai.Message] {
-  self.messages.map(m => m.message.to_ai_message())
+pub fn Conversation::messages(
+  self : Conversation,
+  include_system? : Bool = true,
+) -> Array[@ai.Message] {
+  let msgs = []
+  if include_system && self.system_prompt is Some(system_prompt) {
+    msgs.push(@ai.system_message(content=system_prompt))
+  }
+  for m in self.messages {
+    msgs.push(m.message.to_ai_message())
+  }
+  msgs
+}
+
+///|
+pub fn Conversation::system_prompt(self : Conversation) -> String? {
+  self.system_prompt
+}
+
+///|
+pub fn Conversation::set_system_prompt(
+  self : Conversation,
+  prompt : String,
+) -> Unit {
+  self.system_prompt = Some(prompt)
 }

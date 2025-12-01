@@ -83,6 +83,7 @@ pub fn Manager::new_conversation(
     name,
     description,
     id: self.uuid.v4().to_string(),
+    system_prompt: None,
     messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),

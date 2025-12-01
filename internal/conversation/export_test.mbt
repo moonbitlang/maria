@@ -11,6 +11,18 @@ async test "export_to_markdown" (t : @test.Test) {
     conversation.add_message(
       @ai.assistant_message(content="I'm fine, thank you!"),
     )
+    conversation.add_message(
+      @ai.user_message(content="What's the weather today?"),
+    )
+    conversation.add_message(
+      @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
+        @ai.tool_call(
+          id="tc_0",
+          name="get_weather",
+          arguments="{\"location\":\"San Francisco\"}",
+        ),
+      ]),
+    )
     inspect(
       conversation.export_to_markdown(),
       content=(
@@ -18,8 +30,8 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|**Name:** Test Conversation
         #|**Created:** 0
-        #|**Updated:** 3
-        #|**Messages:** 2
+        #|**Updated:** 5
+        #|**Messages:** 4
         #|
         #|## 👤 User
         #|
@@ -38,6 +50,31 @@ async test "export_to_markdown" (t : @test.Test) {
         #|I'm fine, thank you!
         #|
         #|**Timestamp:** 3
+        #|
+        #|---
+        #|
+        #|## 👤 User
+        #|
+        #|### Content
+        #|
+        #|What's the weather today?
+        #|
+        #|**Timestamp:** 4
+        #|
+        #|---
+        #|
+        #|## 🤖 Assistant
+        #|
+        #|### Content
+        #|
+        #|I'll use the weather tool to check.
+        #|
+        #|**🔧 Tool Call:** Execute get_weather (get_weather)
+        #|
+        #|**Parameters:**
+        #|- **location:** San Francisco
+        #|
+        #|**Timestamp:** 5
       ),
     )
   })

@@ -28,17 +28,17 @@ test "Message to_json" {
   ]
   @json.inspect(messages, content=[
     {
-      "timestamp": "1625079600",
+      "timestamp": 1625079600,
       "message": { "role": "user", "content": "Hello, world!" },
     },
     {
-      "timestamp": "1625079600",
-      "message": { "role": "user", "content": "Hello, world!" },
+      "timestamp": 1625079600,
       "usage": {
         "completion_tokens": 10,
         "prompt_tokens": 10,
         "total_tokens": 20,
       },
+      "message": { "role": "user", "content": "Hello, world!" },
     },
   ])
 }
@@ -95,4 +95,18 @@ impl @json.FromJson for Message with from_json(
     }
   }
   Message::{ timestamp, usage, message }
+}
+
+///|
+impl ToJson for Message with to_json(self : Message) -> Json {
+  let object : Map[String, Json] = {}
+  object["timestamp"] = Json::number(
+    self.timestamp.to_double(),
+    repr=self.timestamp.to_string(),
+  )
+  if self.usage is Some(usage) {
+    object["usage"] = usage.to_json()
+  }
+  object["message"] = self.message.to_json()
+  Json::object(object)
 }
