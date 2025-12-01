@@ -13,9 +13,13 @@ fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> To
 
 fn new_tool(Todo) -> @tool.Tool[TodoResult]
 
+fn parse_todo_args(Json) -> TodoArgs raise TodoArgsError
+
 let prompt : String
 
 // Errors
+type TodoArgsError
+impl Show for TodoArgsError
 
 // Types and methods
 pub(all) struct Item {
@@ -62,6 +66,10 @@ async fn Todo::save(Self) -> Unit
 fn Todo::todos(Self) -> Array[Item]
 fn Todo::update_task(Self, Int, Item) -> Unit
 fn Todo::uuid(Self) -> String
+
+type TodoArgs
+impl Show for TodoArgs
+impl ToJson for TodoArgs
 
 type TodoResult
 impl Show for TodoResult

@@ -149,7 +149,7 @@ struct TodoArgs {
   priority : Priority
   status : Status
   notes : String?
-}derive(Show, ToJson)
+} derive(Show, ToJson)
 
 ///|
 /// Parse error type for todo arguments
