@@ -22,6 +22,16 @@ function buildMaria() {
   );
 }
 
+function dateString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+const today = dateString();
+
 async function main() {
   // Build the native app
   buildUI();
@@ -44,6 +54,15 @@ async function main() {
   sh("zip -r -X -y ../maria.zip Maria.app", {
     cwd: "./out/Maria-darwin-arm64",
   });
+  sh(
+    `rclone copyto -P ./out/maria.zip minio:maria-electron/${today}/darwin-arm64/maria.zip`,
+  );
+
+  console.log("Build and upload completed.");
+
+  console.log(
+    `Download url: http://192.168.209.231:9000/maria-electron/${today}/darwin-arm64/maria.zip`,
+  );
 }
 
 main();
