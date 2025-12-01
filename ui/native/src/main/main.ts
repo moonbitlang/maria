@@ -46,7 +46,7 @@ function spawnMariaProcess() {
           __dirname,
           "../../../../target/native/release/build/cmd/main/main.exe",
         )
-      : path.join(__dirname, "../bin/maria");
+      : path.join(__dirname, "../../app.asar.unpacked/bin/maria");
 
     const result = cp.spawnSync(
       mariaPath,

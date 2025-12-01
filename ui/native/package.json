@@ -15,7 +15,7 @@
     "build": "run-p build:*",
     "dev": "MARIA_DEV=true electron .",
     "preview": "pnpm build && electron .",
-    "package": "",
+    "package": "node ./script/package.js",
     "make": "",
     "publish": "",
     "lint": ""

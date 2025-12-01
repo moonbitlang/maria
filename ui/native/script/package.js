@@ -17,7 +17,7 @@ function buildMaria() {
   sh("moon build", { cwd: path.join(__dirname, "..") });
   fs.mkdirSync("./dist/bin", { recursive: true });
   fs.copyFileSync(
-    "../target/native/release/build/cmd/main/main.exe",
+    "../../target/native/release/build/cmd/main/main.exe",
     "./dist/bin/maria",
   );
 }
@@ -27,13 +27,22 @@ async function main() {
   buildUI();
   buildMaria();
   fs.copyFileSync("./package.dist.json", "./dist/package.json");
+
+  fs.rmSync("./out", { recursive: true, force: true });
   await packager({
+    asar: {
+      unpackDir: "bin",
+    },
     dir: "./dist",
     platform: "darwin",
-    arch: "universal",
+    arch: "arm64",
     out: "./out",
     overwrite: true,
     quiet: false,
+    osxSign: true,
+  });
+  sh("zip -r -X -y ../maria.zip Maria.app", {
+    cwd: "./out/Maria-darwin-arm64",
   });
 }
 
