@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/maria/tools/todo_tools"
+package "moonbitlang/maria/tools/todo"
 
 import(
   "moonbitlang/core/json"
