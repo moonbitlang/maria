@@ -14,12 +14,12 @@ pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) ->
 
 ///|
 /// TodoReadResult
-struct TodoReadResult {
+priv struct TodoReadResult {
   todos : Array[Item]
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoReadResult with output(
+impl Show for TodoReadResult with output(
   self : TodoReadResult,
   logger : &Logger,
 ) -> Unit {
@@ -59,38 +59,6 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
-let todo_schema : @tool.JsonSchema = {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "description": "The action to perform: 'read' (read current todo list), 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
-    },
-    "content": {
-      "type": "string",
-      "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
-    },
-    "task_id": {
-      "type": "string",
-      "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
-    },
-    "priority": {
-      "type": "string",
-      "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-    },
-    "status": {
-      "type": "string",
-      "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-    },
-    "notes": {
-      "type": "string",
-      "description": "Additional notes or details about the task",
-    },
-  },
-  "required": ["action"],
-}
-
-///|
 pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
   @tool.new(
     description="Request to manage the todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
@@ -104,7 +72,7 @@ pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
 
 ///|
 /// TodoWriteResult
-struct TodoWriteResult {
+priv struct TodoWriteResult {
   todos : Array[Item]
   message : String
   updated_todos : Array[Item]
@@ -112,7 +80,7 @@ struct TodoWriteResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoWriteResult with output(
+impl Show for TodoWriteResult with output(
   self : TodoWriteResult,
   logger : &Logger,
 ) -> Unit {

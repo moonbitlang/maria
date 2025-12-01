@@ -5,7 +5,7 @@ pub fn Todo::todos(self : Todo) -> Array[Item] {
 
 ///|
 fn Config::uuid(self : Config) -> String {
-  self.uuid.v4().to_string()[0:8].to_string() catch {
+  self.uuid.v4().to_string()[:8].to_string() catch {
     err => "UUID error: \{err}"
   }
 }
