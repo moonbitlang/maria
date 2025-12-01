@@ -24,7 +24,7 @@ pub struct Agent {
   cwd : String
   model : @model.Model
   logger : @pino.Logger
-  priv tools : Map[String, @tool.AgentTool]
+  priv tools : Map[String, Tool]
   priv history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[(@uuid.Uuid, @ai.Message)]
@@ -177,7 +177,7 @@ pub async fn Agent::add_tools(
 /// * `tool` : The agent tool to register.
 async fn Agent::add_agent_tool(agent : Agent, tool : @tool.AgentTool) -> Unit {
   let desc = tool.desc()
-  agent.tools[desc.name] = tool
+  agent.tools[desc.name] = Tool::new(tool)
   agent.emit(ToolAdded(desc))
 }
 
@@ -281,8 +281,10 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Convert each registered tool into OpenAI's tool parameter format
       let tools = []
       for _, tool in agent.tools {
-        let desc = tool.desc()
-        tools.push(desc)
+        if tool.enabled {
+          let desc = tool.desc()
+          tools.push(desc)
+        }
       }
       // Retrieve and clear the message queue
       // staged contains messages that need to be sent in this call
@@ -476,4 +478,52 @@ pub fn Agent::add_listener(
   f : async (@event.Event) -> Unit,
 ) -> Unit {
   agent.event_target.add_listener(f)
+}
+
+///|
+priv struct Tool {
+  mut enabled : Bool
+  tool : @tool.AgentTool
+}
+
+///|
+fn Tool::new(tool : @tool.AgentTool) -> Tool {
+  Tool::{ enabled: true, tool }
+}
+
+///|
+fn Tool::desc(self : Tool) -> @tool.ToolDesc {
+  self.tool.desc()
+}
+
+///|
+async fn Tool::call(
+  self : Tool,
+  args : Json,
+) -> @tool.ToolResult[(Json, String)] noraise {
+  guard self.enabled else {
+    return @tool.error("Tool '\{self.tool.desc().name}' is disabled.")
+  }
+  self.tool.call(args)
+}
+
+///|
+/// Enables or disables tools based on the provided set of tool names.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance whose tools will be enabled or disabled.
+/// * `tool_names` : A set containing the names of tools that should be enabled.
+///   Tools not in this set will be disabled.
+pub async fn Agent::set_enabled_tools(
+  agent : Agent,
+  tool_names : Set[String],
+) -> Unit {
+  for name, tool in agent.tools {
+    if tool_names.contains(name) {
+      tool.enabled = true
+    } else {
+      tool.enabled = false
+    }
+  }
 }
