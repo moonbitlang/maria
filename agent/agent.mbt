@@ -290,7 +290,10 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // staged contains messages that need to be sent in this call
       // Build the complete message array for the API call
       // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.to_param(), ..agent.input_queue]
+      let messages = [
+        ..agent.history.messages(include_system=true),
+        ..agent.input_queue,
+      ]
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -424,7 +427,7 @@ pub async fn new(
   }
   rules.load()
   if system_message is Some(system_message) {
-    history.add_message(@ai.system_message(content=system_message))
+    history.set_system_prompt(system_message)
     agent.emit(MessageAdded(@ai.system_message(content=system_message)))
   }
   match user_message {
