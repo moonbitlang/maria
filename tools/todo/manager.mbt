@@ -1,5 +1,5 @@
 ///|
-pub fn Todo::todos(self : Todo) -> Array[Item] {
+fn Todo::todos(self : Todo) -> Array[Item] {
   self.items.todos.copy()
 }
 

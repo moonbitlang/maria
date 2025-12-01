@@ -22,40 +22,7 @@ type TodoArgsError
 impl Show for TodoArgsError
 
 // Types and methods
-pub(all) struct Item {
-  content : String
-  created_at : String
-  id : String
-  notes : String?
-  priority : Priority
-  status : Status
-  updated_at : String
-}
-impl ToJson for Item
-impl @json.FromJson for Item
-
-pub(all) enum Priority {
-  High
-  Medium
-  Low
-}
-impl Eq for Priority
-impl Show for Priority
-impl ToJson for Priority
-impl @json.FromJson for Priority
-
-pub(all) enum Status {
-  Pending
-  InProgress
-  Completed
-}
-impl Eq for Status
-impl Show for Status
-impl ToJson for Status
-impl @json.FromJson for Status
-
 type Todo
-fn Todo::todos(Self) -> Array[Item]
 
 type TodoArgs
 impl Show for TodoArgs
