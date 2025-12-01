@@ -54,7 +54,7 @@ pub fn Maria::close(self : Maria) -> Unit {
 pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
   if prompt is Some(prompt) {
     let user_message = @ai.user_message(content=prompt)
-    self.agent.add_message(user_message)
+    self.agent.queue_message(user_message) |> ignore()
   }
   self.agent.start()
 }

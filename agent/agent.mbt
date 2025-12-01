@@ -54,7 +54,7 @@ priv suberror EmptyChoices
 ///
 /// * `agent` : The agent instance to add the message to.
 /// * `message` : The chat completion message to queue for sending.
-pub async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
+async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
   agent.input_queue.push(message)
   agent.emit(MessageAdded(message))
 }

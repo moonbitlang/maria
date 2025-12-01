@@ -25,7 +25,6 @@ pub struct Agent {
   // private fields
 }
 fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
-async fn Agent::add_message(Self, @ai.Message) -> Unit
 async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 fn Agent::close(Self) -> Unit
