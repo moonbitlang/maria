@@ -186,6 +186,16 @@ pub async fn Directory::add_file(
 }
 
 ///|
+pub async fn Directory::add_files(
+  self : Directory,
+  files : Map[String, String],
+) -> Unit {
+  for name, content in files {
+    self.add_file(name, content~) |> ignore
+  }
+}
+
+///|
 /// Creates a nested directory relative to this directory and returns it.
 pub async fn Directory::add_directory(
   self : Directory,

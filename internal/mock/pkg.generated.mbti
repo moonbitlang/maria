@@ -43,6 +43,7 @@ fn[T : Show] Context::show(Self, T) -> String
 type Directory
 async fn Directory::add_directory(Self, String) -> Self
 async fn Directory::add_file(Self, String, content? : String) -> File
+async fn Directory::add_files(Self, Map[String, String]) -> Unit
 async fn Directory::list(Self) -> Array[Entry]
 fn Directory::path(Self) -> String
 

@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/rules"
 
 import(
-  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/pino"
 )
 
@@ -12,7 +12,7 @@ import(
 
 // Types and methods
 type Loader
-fn Loader::apply(Self, Array[@openai.ChatCompletionMessageParam]) -> Unit
+fn Loader::apply(Self, Array[@ai.Message]) -> Unit
 async fn Loader::load(Self) -> Unit
 fn Loader::new(String, logger~ : @pino.Logger) -> Self
 
