@@ -45,17 +45,19 @@ async fn Package::new(path~ : String, name~ : String) -> Package {
   try {
     if @json.parse(moon_pkg_text) is Object(moon_pkg_json) {
       if moon_pkg_json.get("import") is Some(import_json) {
-        import_.append(@json.from_json(import_json)) catch {
+        import_.append((@json.from_json(import_json) : Array[Import])) catch {
           _ => ()
         }
       }
       if moon_pkg_json.get("test-import") is Some(test_import_json) {
-        test_import.append(@json.from_json(test_import_json)) catch {
+        test_import.append((@json.from_json(test_import_json) : Array[Import])) catch {
           _ => ()
         }
       }
       if moon_pkg_json.get("wbtest-import") is Some(wbtest_import_json) {
-        wbtest_import.append(@json.from_json(wbtest_import_json)) catch {
+        wbtest_import.append(
+          (@json.from_json(wbtest_import_json) : Array[Import]),
+        ) catch {
           _ => ()
         }
       }
