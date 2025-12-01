@@ -326,6 +326,13 @@ async test "agent/tool_error_handling" (t : @test.Test) {
 }
 
 ///|
+let empty_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+  "type": "object",
+  "properties": {},
+  "required": [],
+})
+
+///|
 /// Test agent with batch tool registration
 #skip
 async test "agent/batch_tool_registration" (t : @test.Test) {
@@ -336,11 +343,6 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
       cwd=mock.cwd.path(),
       user_message="I have three tools available: tool1, tool2, and tool3. Please call tool1.",
     )
-    let empty_schema = @tool.JsonSchema::from_json({
-      "type": "object",
-      "properties": {},
-      "required": [],
-    })
 
     // Create multiple tools
     let tools = [
@@ -550,5 +552,68 @@ async test "agent/queue_message" (t : @test.Test) {
     @json.inspect(message_unqueued, content=[
       "1ea1417c-a31f-4b1b-8494-d8486add6aa4", "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
     ])
+  })
+}
+
+///|
+#skip
+async test "agent/set_enabled_tools" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      user_message="Can you please submit a list of available tools to me using the <submit_available_tools> tool?",
+    )
+    let mut result = Json::null()
+    agent.add_tools([
+      @tool.new(
+        name="tool1",
+        description="First tool",
+        schema=empty_schema,
+        ToolFn(_ => @tool.ok({ "result": "tool1" })),
+      ).to_agent_tool(),
+      @tool.new(
+        name="tool2",
+        description="Second tool",
+        schema=empty_schema,
+        ToolFn(_ => @tool.ok({ "result": "tool2" })),
+      ).to_agent_tool(),
+      @tool.new(
+        name="tool3",
+        description="Third tool",
+        schema=empty_schema,
+        ToolFn(_ => @tool.ok({ "result": "tool3" })),
+      ).to_agent_tool(),
+      @tool.new(
+        name="submit_available_tools",
+        description="Submit a list of available tools to user. You should exclude this tool (submit_available_tools) from the list.",
+        schema=@tool.JsonSchema::from_json({
+          "type": "object",
+          "properties": {
+            "tools": { "type": "array", "items": { "type": "string" } },
+          },
+          "required": ["tools"],
+        }),
+        ToolFn(args => {
+          result = args
+          @tool.ok("Tools submitted successfully")
+        }),
+      ).to_agent_tool(),
+    ])
+    agent.start()
+    @json.inspect(result, content={ "tools": ["tool1", "tool2", "tool3"] })
+    result = Json::null()
+    agent.set_enabled_tools(
+      Set::from_array(["tool1", "tool2", "submit_available_tools"]),
+    )
+    agent.queue_message(
+      @ai.user_message(
+        content="Can you please check which tools are available again, and submit the list to me using the submit_available_tools again?",
+      ),
+    )
+    |> ignore()
+    agent.start()
+    @json.inspect(result, content={ "tools": ["tool1", "tool2"] })
   })
 }
