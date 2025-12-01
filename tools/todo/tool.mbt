@@ -131,6 +131,15 @@ impl Show for TodoWriteResult with output(
 }
 
 ///|
+priv enum Action {
+  Create
+  AddTask
+  Update
+  MarkProgress
+  MarkCompleted
+}
+
+///|
 async fn Todo::execute_todo(
   self : Todo,
   args : Json,
@@ -152,23 +161,7 @@ async fn Todo::execute_todo(
   }
 
   // Handle write actions
-  self.execute_todo_write(action, args)
-}
-
-///|
-async fn Todo::execute_todo_write(
-  self : Todo,
-  action : String,
-  args : Json,
-) -> @tool.ToolResult[TodoResult] noraise {
-  enum Action {
-    Create
-    AddTask
-    Update
-    MarkProgress
-    MarkCompleted
-  }
-  let action = match action {
+  let action : Action = match action {
     "create" => Create
     "add_task" => AddTask
     "update" => Update
