@@ -17,4 +17,4 @@ priv struct Message {
   /// Usage statistics for the completion request.
   message : @openai.ChatCompletionMessageParam
   usage : @openai.CompletionUsage?
-} derive(ToJson)
+}
