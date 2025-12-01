@@ -1,7 +1,7 @@
 ///|
 /// Test agent creating a new todo list and adding tasks
 #skip
-async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
+async test "agent/todo/create_and_add_tasks" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(
@@ -57,7 +57,7 @@ async test "agent/todo_tools/create_and_add_tasks" (t : @test.Test) {
 ///|
 /// Test agent reading empty todo list
 #skip
-async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
+async test "agent/todo/read_empty_list" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(
@@ -102,7 +102,7 @@ async test "agent/todo_tools/read_empty_list" (t : @test.Test) {
 ///|
 /// Test agent creating tasks with different priorities
 #skip
-async test "agent/todo_tools/priority_handling" (t : @test.Test) {
+async test "agent/todo/priority_handling" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(

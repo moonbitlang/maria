@@ -8,7 +8,7 @@
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/tools/todo_tools",
+    "moonbitlang/maria/tools/todo",
     "moonbitlang/maria/tools/search_files",
     "moonbitlang/maria/prompt",
     "moonbitlang/maria/job",
