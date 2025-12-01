@@ -132,37 +132,45 @@ impl Show for TodoWriteResult with output(
 
 ///|
 priv enum Action {
+  Read
   Create
   AddTask
   Update
   MarkProgress
   MarkCompleted
-}
+} derive(Show)
 
 ///|
-async fn Todo::execute_todo(
-  self : Todo,
-  args : Json,
-) -> @tool.ToolResult[TodoResult] noraise {
+/// Parsed arguments from JSON input for todo operations
+priv struct TodoArgs {
+  action : Action
+  content : String?
+  task_id : String?
+  priority : Priority
+  status : Status
+  notes : String?
+} derive(Show)
+
+///|
+/// Parse error type for todo arguments
+priv suberror TodoArgsError String derive(Show)
+
+///|
+/// Parse JSON arguments into TodoArgs
+fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
   // Parse required action parameter
   guard args is { "action": String(action), .. } else {
-    return @tool.error("Error: 'action' parameter is required")
+    raise TodoArgsError("Error: 'action' parameter is required")
   }
-  let action = action.to_lower()
-  self.load() catch {
-    error =>
-      return @tool.error("Error loading existing todo list: \{error}", error~)
-  }
-  // Handle write actions
-  let action : Action = match action {
-    "read" => return @tool.ok(TodoResult::Read({ todos: self.todos() }))
+  let action : Action = match action.to_lower() {
+    "read" => Read
     "create" => Create
     "add_task" => AddTask
     "update" => Update
     "mark_progress" => MarkProgress
     "mark_completed" => MarkCompleted
     _ =>
-      return @tool.error(
+      raise TodoArgsError(
         "Error: Invalid action '\{action}'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
       )
   }
@@ -183,7 +191,7 @@ async fn Todo::execute_todo(
         "medium" => Medium
         "low" => Low
         _ =>
-          return @tool.error(
+          raise TodoArgsError(
             "Error: Invalid priority '\{p}'. Must be 'high', 'medium', or 'low'.",
           )
       }
@@ -196,7 +204,7 @@ async fn Todo::execute_todo(
         "in_progress" | "in-progress" => InProgress
         "completed" => Completed
         _ =>
-          return @tool.error(
+          raise TodoArgsError(
             "Error: Invalid status '\{s}'. Must be 'pending', 'in_progress', or 'completed'.",
           )
       }
@@ -206,7 +214,28 @@ async fn Todo::execute_todo(
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
+  { action, content, task_id, priority, status, notes }
+}
+
+///|
+async fn Todo::execute_todo(
+  self : Todo,
+  args : Json,
+) -> @tool.ToolResult[TodoResult] noraise {
+  let todo_args = parse_todo_args(args) catch {
+    TodoArgsError(msg) => return @tool.error(msg)
+  }
+  self.load() catch {
+    error =>
+      return @tool.error("Error loading existing todo list: \{error}", error~)
+  }
+  // Handle read action
+  if todo_args.action is Read {
+    return @tool.ok(TodoResult::Read({ todos: self.todos() }))
+  }
+  let { action, content, task_id, priority, status, notes } = todo_args
   match action {
+    Read => abort("unreachable") // Already handled above
     Create =>
       match content {
         None =>
