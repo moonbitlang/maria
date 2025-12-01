@@ -31,7 +31,7 @@ fn Config::now(self : Config) -> String {
 }
 
 ///|
-pub fn Item::update(
+fn Item::update(
   self : Item,
   content? : String,
   notes? : String?,
@@ -51,13 +51,8 @@ pub fn Item::update(
 }
 
 ///|
-pub fn Todo::now(self : Todo) -> String {
+fn Todo::now(self : Todo) -> String {
   self.config.now()
-}
-
-///|
-pub fn Todo::uuid(self : Todo) -> String {
-  self.config.uuid()
 }
 
 ///|
@@ -85,7 +80,7 @@ fn Config::todo_file_path(self : Config) -> String {
 }
 
 ///|
-pub async fn Todo::load(self : Todo) -> Unit {
+async fn Todo::load(self : Todo) -> Unit {
   let path = self.config.todo_file_path()
   guard @fsx.exists(path) else {
     // TODO: document we skip it
@@ -95,7 +90,7 @@ pub async fn Todo::load(self : Todo) -> Unit {
 }
 
 ///|
-pub async fn Todo::save(self : Todo) -> Unit {
+async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
   @fsx.make_directory(
     @path.dirname(todo_file_path),
@@ -146,7 +141,7 @@ test "extract_task_tags" {
 }
 
 ///|
-pub fn Todo::add_task(
+fn Todo::add_task(
   self : Todo,
   content : String,
   status? : Status = Pending,
@@ -171,13 +166,13 @@ pub fn Todo::add_task(
 }
 
 ///|
-pub fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
+fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
   self.items.todos[index] = item
   self.items.updated_at = self.config.now()
 }
 
 ///|
-pub fn Todo::find(self : Todo, id : String) -> Int? {
+fn Todo::find(self : Todo, id : String) -> Int? {
   for i, todo in self.items.todos {
     if todo.id == id {
       return Some(i)
@@ -187,7 +182,7 @@ pub fn Todo::find(self : Todo, id : String) -> Int? {
 }
 
 ///|
-pub fn Todo::get(self : Todo, index : Int) -> Item {
+fn Todo::get(self : Todo, index : Int) -> Item {
   self.items.todos[index]
 }
 
@@ -285,7 +280,7 @@ fn Items::parse(
 }
 
 ///|
-pub fn Todo::parse(
+fn Todo::parse(
   self : Todo,
   content : String,
   priority~ : Priority,
