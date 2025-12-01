@@ -62,6 +62,6 @@ app.on("activate", () => {
 ipcMain.handle("select-directory", async (): Promise<OpenDialogReturnValue> => {
   if (!mainWindow) return { canceled: true, filePaths: [] };
   return await dialog.showOpenDialog(mainWindow, {
-    properties: ["openDirectory"],
+    properties: ["openDirectory", "createDirectory", "promptToCreate"],
   });
 });
