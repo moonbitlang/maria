@@ -50,10 +50,7 @@ async test "Loader::apply" (t : @test.Test) {
         @ai.tool_message(tool_call_id="tool_call_1", content="Tool message"),
       ]
       rules.apply(messages)
-      inspect(
-        messages.length(),
-        content="5",
-      )
+      inspect(messages.length(), content="5")
     })
   })
 }

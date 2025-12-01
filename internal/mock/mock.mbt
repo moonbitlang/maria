@@ -185,12 +185,13 @@ pub async fn Directory::add_file(
   File(path)
 }
 
+///|
 pub async fn Directory::add_files(
   self : Directory,
   files : Map[String, String],
 ) -> Unit {
   for name, content in files {
-    self.add_file(name, content=content) |> ignore
+    self.add_file(name, content~) |> ignore
   }
 }
 
