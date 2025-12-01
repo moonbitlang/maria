@@ -37,6 +37,7 @@ pub(all) enum Priority {
   Low
 }
 impl Eq for Priority
+impl Show for Priority
 impl ToJson for Priority
 impl @json.FromJson for Priority
 
@@ -46,6 +47,7 @@ pub(all) enum Status {
   Completed
 }
 impl Eq for Status
+impl Show for Status
 impl ToJson for Status
 impl @json.FromJson for Status
 
