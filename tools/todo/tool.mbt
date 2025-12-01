@@ -14,12 +14,12 @@ pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) ->
 
 ///|
 /// TodoReadResult
-struct TodoReadResult {
+priv struct TodoReadResult {
   todos : Array[Item]
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoReadResult with output(
+impl Show for TodoReadResult with output(
   self : TodoReadResult,
   logger : &Logger,
 ) -> Unit {
@@ -59,38 +59,6 @@ pub impl Show for TodoReadResult with output(
 }
 
 ///|
-let todo_schema : @tool.JsonSchema = {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "description": "The action to perform: 'read' (read current todo list), 'create' (create new todo list), 'add_task' (add single task), 'update' (update existing task), 'mark_progress' (mark task as in progress), 'mark_completed' (mark task as completed)",
-    },
-    "content": {
-      "type": "string",
-      "description": "The task content or description (required for create, add_task actions). Can contain <task>...</task> tags for structured input.",
-    },
-    "task_id": {
-      "type": "string",
-      "description": "The ID of the task to update (required for update, mark_progress, mark_completed actions)",
-    },
-    "priority": {
-      "type": "string",
-      "description": "Task priority level: 'high', 'medium', 'low' (default: 'medium')",
-    },
-    "status": {
-      "type": "string",
-      "description": "Task status: 'pending', 'in_progress', 'completed' (default: 'pending')",
-    },
-    "notes": {
-      "type": "string",
-      "description": "Additional notes or details about the task",
-    },
-  },
-  "required": ["action"],
-}
-
-///|
 pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
   @tool.new(
     description="Request to manage the todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
@@ -104,7 +72,7 @@ pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
 
 ///|
 /// TodoWriteResult
-struct TodoWriteResult {
+priv struct TodoWriteResult {
   todos : Array[Item]
   message : String
   updated_todos : Array[Item]
@@ -112,7 +80,7 @@ struct TodoWriteResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for TodoWriteResult with output(
+impl Show for TodoWriteResult with output(
   self : TodoWriteResult,
   logger : &Logger,
 ) -> Unit {
@@ -163,51 +131,46 @@ pub impl Show for TodoWriteResult with output(
 }
 
 ///|
-async fn Todo::execute_todo(
-  self : Todo,
-  args : Json,
-) -> @tool.ToolResult[TodoResult] noraise {
-  // Parse required action parameter
-  guard args is { "action": String(action), .. } else {
-    return @tool.error("Error: 'action' parameter is required")
-  }
-  let action = action.to_lower()
-
-  // Handle read action separately
-  if action == "read" {
-    try {
-      self.load()
-      return @tool.ok(TodoResult::Read({ todos: self.todos() }))
-    } catch {
-      error => return @tool.error("Error loading todo list: \{error}", error~)
-    }
-  }
-
-  // Handle write actions
-  self.execute_todo_write(action, args)
-}
+priv enum Action {
+  Read
+  Create
+  AddTask
+  Update
+  MarkProgress
+  MarkCompleted
+} derive(Show, ToJson)
 
 ///|
-async fn Todo::execute_todo_write(
-  self : Todo,
-  action : String,
-  args : Json,
-) -> @tool.ToolResult[TodoResult] noraise {
-  enum Action {
-    Create
-    AddTask
-    Update
-    MarkProgress
-    MarkCompleted
+/// Parsed arguments from JSON input for todo operations
+struct TodoArgs {
+  action : Action
+  content : String?
+  task_id : String?
+  priority : Priority
+  status : Status
+  notes : String?
+} derive(Show, ToJson)
+
+///|
+/// Parse error type for todo arguments
+suberror TodoArgsError String derive(Show)
+
+///|
+/// Parse JSON arguments into TodoArgs
+pub fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
+  // Parse required action parameter
+  guard args is { "action": String(action), .. } else {
+    raise TodoArgsError("Error: 'action' parameter is required")
   }
-  let action = match action {
+  let action : Action = match action.to_lower() {
+    "read" => Read
     "create" => Create
     "add_task" => AddTask
     "update" => Update
     "mark_progress" => MarkProgress
     "mark_completed" => MarkCompleted
     _ =>
-      return @tool.error(
+      raise TodoArgsError(
         "Error: Invalid action '\{action}'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
       )
   }
@@ -228,7 +191,7 @@ async fn Todo::execute_todo_write(
         "medium" => Medium
         "low" => Low
         _ =>
-          return @tool.error(
+          raise TodoArgsError(
             "Error: Invalid priority '\{p}'. Must be 'high', 'medium', or 'low'.",
           )
       }
@@ -241,7 +204,7 @@ async fn Todo::execute_todo_write(
         "in_progress" | "in-progress" => InProgress
         "completed" => Completed
         _ =>
-          return @tool.error(
+          raise TodoArgsError(
             "Error: Invalid status '\{s}'. Must be 'pending', 'in_progress', or 'completed'.",
           )
       }
@@ -251,11 +214,28 @@ async fn Todo::execute_todo_write(
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
+  { action, content, task_id, priority, status, notes }
+}
+
+///|
+async fn Todo::execute_todo(
+  self : Todo,
+  args : Json,
+) -> @tool.ToolResult[TodoResult] noraise {
+  let todo_args = parse_todo_args(args) catch {
+    TodoArgsError(msg) => return @tool.error(msg)
+  }
   self.load() catch {
     error =>
       return @tool.error("Error loading existing todo list: \{error}", error~)
   }
+  // Handle read action
+  if todo_args.action is Read {
+    return @tool.ok(TodoResult::Read({ todos: self.todos() }))
+  }
+  let { action, content, task_id, priority, status, notes } = todo_args
   match action {
+    Read => abort("unreachable") // Already handled above
     Create =>
       match content {
         None =>
