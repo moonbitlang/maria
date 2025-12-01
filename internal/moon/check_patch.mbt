@@ -71,11 +71,7 @@ pub async fn Module::check_patch_insert(
     let file_base_stem = @path.stem(file_base)
     let file_stem = @path.stem(file_path)
     let patch_name_index = StringBuilder::new()
-    patch_name_index.write_substring(
-      file_base_stem.data(),
-      file_base_stem.start_offset(),
-      file_base_stem.length(),
-    )
+    patch_name_index.write_stringview(file_base_stem)
     for pat in ["_test", "_wbtest"] {
       if file_stem.has_suffix(pat) {
         patch_name_index.write_string(pat)

@@ -304,7 +304,7 @@ async fn search_files_impl(
   // 
   // in order to to keep behavior simple, here just replace the first `~` in the string with HOME directory.
   //
-  let search_path = if search_path.length() > 0 && search_path[0] == '~' {
+  let search_path = if search_path.length() > 0 && search_path.has_prefix("~") {
     let os_home = @os.home() catch {
       _ => return @tool.error("failed to get HOME directory")
     }
