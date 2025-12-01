@@ -46,28 +46,34 @@ function useSetActiveTaskId(taskId: string) {
   }, [taskId, dispatch]);
 }
 
-function Input({ taskId }: { taskId: string }) {
+function PromptInput({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
-
+  const [postMessage] = usePostMessageMutation();
+  const [postCancel] = usePostCancelMutation();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
   const cwd = useAppSelector((state) => selectTaskCwd(state, taskId))!;
   const baseCwd = base(cwd);
-  const inputQueue = useAppSelector((state) =>
-    selectInputQueue(state, taskId),
-  )!;
+
   const taskStatus = useAppSelector((state) =>
     selectConversationStatus(state, taskId),
   )!;
-  const chatStatus: ChatStatus =
-    taskStatus === "generating" ? "streaming" : "ready";
-  const [postMessage] = usePostMessageMutation();
-  const [postCancel] = usePostCancelMutation();
 
-  function setInput(value: string) {
-    dispatch(setInputForTask({ taskId, input: value }));
+  let chatStatus: ChatStatus;
+
+  if (
+    taskStatus === "idle" ||
+    (taskStatus === "generating" && input.trim() === "")
+  ) {
+    chatStatus = "ready";
+  } else {
+    chatStatus = "streaming";
   }
 
-  const handleReadySubmit = async () => {
+  function setInput(input: string) {
+    dispatch(setInputForTask({ taskId, input }));
+  }
+
+  async function addMessage() {
     const content = input.trim();
     const { data, error } = await postMessage({
       taskId,
@@ -82,15 +88,59 @@ function Input({ taskId }: { taskId: string }) {
       console.error(error);
     }
     setInput("");
-  };
+  }
 
-  const handleStreamingSubmit = async () => {
-    const { data, error } = await postCancel({ taskId });
-    // either success or error, we set status back to idle
-    if (data !== undefined || error !== undefined) {
-      dispatch(setStatusForTask({ taskId, status: "idle" }));
+  async function handleSubmit() {
+    if (taskStatus === "idle") {
+      await addMessage();
+    } else if (taskStatus === "generating" && input.trim() !== "") {
+      // on user preference
+      // 1. either we queue the message
+      await addMessage();
+      // 2. or we cancel the current generation and send the new message immediately
+    } else if (taskStatus === "generating") {
+      const { data, error } = await postCancel({ taskId });
+      // either success or error, we set status back to idle
+      if (data !== undefined || error !== undefined) {
+        dispatch(setStatusForTask({ taskId, status: "idle" }));
+      }
     }
-  };
+  }
+
+  return (
+    <TaskPromptInput
+      value={input}
+      onChange={setInput}
+      onSubmit={handleSubmit}
+      chatStatus={chatStatus}
+      placeholder={
+        taskStatus === "generating"
+          ? "Agent is working..."
+          : "Input your task..."
+      }
+      inputTools={
+        <PromptInputTools>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PromptInputButton>
+                <Folder size={16} />
+                {baseCwd && <span>{baseCwd}</span>}
+              </PromptInputButton>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{cwd}</p>
+            </TooltipContent>
+          </Tooltip>
+        </PromptInputTools>
+      }
+    />
+  );
+}
+
+function Input({ taskId }: { taskId: string }) {
+  const inputQueue = useAppSelector((state) =>
+    selectInputQueue(state, taskId),
+  )!;
 
   return (
     <div className="p-4 flex flex-col">
@@ -121,34 +171,7 @@ function Input({ taskId }: { taskId: string }) {
           </ScrollArea>
         </div>
       )}
-
-      <TaskPromptInput
-        value={input}
-        onChange={setInput}
-        onReadySubmit={handleReadySubmit}
-        onStreamingSubmit={handleStreamingSubmit}
-        status={chatStatus}
-        placeholder={
-          taskStatus === "generating"
-            ? "Agent is working..."
-            : "Input your task..."
-        }
-        inputTools={
-          <PromptInputTools>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PromptInputButton>
-                  <Folder size={16} />
-                  {baseCwd && <span>{baseCwd}</span>}
-                </PromptInputButton>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{cwd}</p>
-              </TooltipContent>
-            </Tooltip>
-          </PromptInputTools>
-        }
-      />
+      <PromptInput taskId={taskId} />
     </div>
   );
 }
