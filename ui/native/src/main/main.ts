@@ -38,9 +38,20 @@ function createWindow() {
   }
 }
 
+function discoverMoonBitPath(): string {
+  let moonHome;
+  if (process.env.MOON_HOME) {
+    moonHome = process.env.MOON_HOME;
+  } else {
+    moonHome = path.join(os.homedir(), ".moon");
+  }
+  return path.join(moonHome, "bin");
+}
+
 let url = "";
 function spawnMariaProcess() {
   try {
+    const newPath = process.env.PATH + path.delimiter + discoverMoonBitPath();
     const mariaPath = process.env.MARIA_DEV
       ? path.join(
           __dirname,
@@ -51,7 +62,7 @@ function spawnMariaProcess() {
     const result = cp.spawnSync(
       mariaPath,
       ["daemon", "--port", "0", "--detach"],
-      { stdio: "ignore" },
+      { stdio: "ignore", env: { ...process.env, PATH: newPath } },
     );
 
     if (result.error) {
