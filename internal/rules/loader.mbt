@@ -40,6 +40,13 @@ pub async fn Loader::load(self : Loader) -> Unit {
 }
 
 ///|
+/// Apply loaded rules to the message array by inserting a formatted rules message
+///
+/// This function inserts a user message containing all loaded rules into the messages array.
+/// The message is inserted after any system messages but before other message types.
+/// If no rules are loaded, this function returns without making any changes.
+///
+/// @param messages The array of chat completion messages to modify
 pub fn Loader::apply(
   self : Loader,
   messages : Array[@openai.ChatCompletionMessageParam],
