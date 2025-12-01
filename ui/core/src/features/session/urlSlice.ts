@@ -4,8 +4,16 @@ type UrlState = {
   url: string;
 };
 
+async function getDefaultUrl(): Promise<string> {
+  if (window.electronAPI) {
+    const url = await window.electronAPI.getUrl();
+    return url;
+  }
+  return import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
+}
+
 const initialState: UrlState = {
-  url: import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1",
+  url: await getDefaultUrl(),
 };
 
 export const urlSlice = createAppSlice({

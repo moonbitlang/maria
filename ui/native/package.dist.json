@@ -1,0 +1,8 @@
+{
+  "$schema": "https://www.schemastore.org/package",
+  "name": "maria",
+  "productName": "Maria",
+  "version": "0.0.1",
+  "description": "Electron app for Maria",
+  "main": "./main/main.js"
+}

@@ -6,6 +6,9 @@ import {
   OpenDialogReturnValue,
 } from "electron";
 import path from "path";
+import fs from "fs";
+import os from "os";
+import cp from "child_process";
 import started from "electron-squirrel-startup";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -15,7 +18,7 @@ if (started) {
 
 let mainWindow: BrowserWindow | null;
 
-const createWindow = () => {
+function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
@@ -26,19 +29,72 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  if (process.env.MARIA_VITE_DEV_URL) {
-    mainWindow.loadURL(process.env.MARIA_VITE_DEV_URL);
+  if (process.env.MARIA_DEV) {
+    mainWindow.loadURL(`http://localhost:5173`);
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/index.html`));
   }
+}
+
+let url = "";
+function spawnMariaProcess() {
+  try {
+    const mariaPath = process.env.MARIA_DEV
+      ? path.join(
+          __dirname,
+          "../../../../target/native/release/build/cmd/main/main.exe",
+        )
+      : path.join(__dirname, "../bin/maria");
+
+    const result = cp.spawnSync(
+      mariaPath,
+      ["daemon", "--port", "0", "--detach"],
+      { stdio: "ignore" },
+    );
+
+    if (result.error) {
+      throw new Error(
+        `Failed to spawn Maria daemon process:\n${result.error.message}\n\nPath: ${mariaPath}`,
+      );
+    }
+
+    if (result.status !== 0) {
+      const stderr = result.stderr?.toString() || "No error output";
+      throw new Error(
+        `Maria daemon exited with code ${result.status}:\n${stderr}`,
+      );
+    }
+
+    const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
+
+    if (!fs.existsSync(daemonJsonPath)) {
+      throw new Error(
+        `Daemon configuration file not found:\n${daemonJsonPath}\n\nThe daemon may have failed to start properly.`,
+      );
+    }
+
+    const daemonJson: { pid: number; port: number } = JSON.parse(
+      fs.readFileSync(daemonJsonPath, "utf-8"),
+    );
+    url = `http://localhost:${daemonJson.port}/v1`;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    dialog.showErrorBox("Maria Startup Error", errorMessage);
+    app.quit();
+  }
+}
+
+const onReady = () => {
+  spawnMariaProcess();
+  createWindow();
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", onReady);
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -64,4 +120,8 @@ ipcMain.handle("select-directory", async (): Promise<OpenDialogReturnValue> => {
   return await dialog.showOpenDialog(mainWindow, {
     properties: ["openDirectory", "createDirectory", "promptToCreate"],
   });
+});
+
+ipcMain.handle("get-url", () => {
+  return url;
 });

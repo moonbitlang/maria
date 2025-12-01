@@ -13,7 +13,7 @@
     "build:renderer": "vite -c vite.renderer.config.ts build",
     "watch": "run-p watch:*",
     "build": "run-p build:*",
-    "dev": "MARIA_VITE_DEV_URL=http://localhost:5173 electron .",
+    "dev": "MARIA_DEV=true electron .",
     "preview": "pnpm build && electron .",
     "package": "",
     "make": "",
