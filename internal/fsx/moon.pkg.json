@@ -15,5 +15,5 @@
     "moonbitlang/maria/internal/signal",
     "moonbitlang/async/pipe"
   ],
-  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c", "lock.c"]
+  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c", "lock.c", "truncate.c"]
 }
