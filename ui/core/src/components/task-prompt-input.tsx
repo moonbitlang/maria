@@ -11,45 +11,31 @@ import { cn } from "../lib/utils";
 interface TaskPromptInputProps {
   value: string;
   onChange: (value: string) => void;
-  onReadySubmit: () => void;
-  onStreamingSubmit?: () => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   placeholder?: string;
   className?: string;
   inputTools?: React.ReactNode;
-  status?: ChatStatus;
+  chatStatus?: ChatStatus;
 }
 
 export function TaskPromptInput({
   value,
   onChange,
-  onReadySubmit,
-  onStreamingSubmit,
+  onSubmit,
   placeholder = "Input your task...",
   className = "",
   inputTools,
-  status = "ready",
+  chatStatus = "ready",
 }: TaskPromptInputProps) {
   const tools = inputTools ? inputTools : <PromptInputTools></PromptInputTools>;
-  let disabled;
-  if (status === "ready" && value.trim() === "") {
-    disabled = true;
-  } else {
-    disabled = false;
-  }
+  const disabled = chatStatus === "ready" && value.trim() === "";
   return (
     <PromptInput
       className={cn(
         `max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow`,
         className,
       )}
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (status === "ready") {
-          onReadySubmit();
-        } else if (status === "streaming" && onStreamingSubmit) {
-          onStreamingSubmit();
-        }
-      }}
+      onSubmit={onSubmit}
     >
       <PromptInputTextarea
         className="text-base md:text-base min-h-[52px]"
@@ -64,7 +50,7 @@ export function TaskPromptInput({
         {tools}
         <PromptInputSubmit
           disabled={disabled}
-          status={status}
+          status={chatStatus}
           className="cursor-pointer transition-all"
         ></PromptInputSubmit>
       </PromptInputToolbar>
