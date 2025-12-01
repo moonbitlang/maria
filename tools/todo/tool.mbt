@@ -149,19 +149,13 @@ async fn Todo::execute_todo(
     return @tool.error("Error: 'action' parameter is required")
   }
   let action = action.to_lower()
-
-  // Handle read action separately
-  if action == "read" {
-    try {
-      self.load()
-      return @tool.ok(TodoResult::Read({ todos: self.todos() }))
-    } catch {
-      error => return @tool.error("Error loading todo list: \{error}", error~)
-    }
+  self.load() catch {
+    error =>
+      return @tool.error("Error loading existing todo list: \{error}", error~)
   }
-
   // Handle write actions
   let action : Action = match action {
+    "read" => return @tool.ok(TodoResult::Read({ todos: self.todos() }))
     "create" => Create
     "add_task" => AddTask
     "update" => Update
@@ -211,10 +205,6 @@ async fn Todo::execute_todo(
   let notes : String? = match args {
     { "notes": String(n), .. } => Some(n)
     _ => None
-  }
-  self.load() catch {
-    error =>
-      return @tool.error("Error loading existing todo list: \{error}", error~)
   }
   match action {
     Create =>
