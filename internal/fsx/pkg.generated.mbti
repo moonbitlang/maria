@@ -32,6 +32,8 @@ async fn resolve(StringView) -> String
 
 fn stat(StringView) -> Stat raise
 
+fn truncate(@fs.File, Int64) -> Unit raise
+
 async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
 async fn write_bytes_to_file(StringView, Bytes) -> Unit

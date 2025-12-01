@@ -568,7 +568,7 @@ async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   let path = home |> @path.join(".moonagent") |> @path.join("daemon.json")
   let dir = @path.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
-  let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
+  let file = @fs.open(path, mode=WriteOnly, create=0o644)
   @fsx.lock_file(file) catch {
     @errno.Errno(errno) if errno == @errno.eacces || errno == @errno.eagain =>
       return None
@@ -608,6 +608,7 @@ pub async fn Daemon::new(
   // Listen on port
   let httpx_server = @httpx.Server::new("[::1]", port, reuse_addr=true)
   let port = httpx_server.port()
+  @fsx.truncate(info_file, 0)
   info_file.write(
     DaemonInfo::{ port, pid: @spawn.getpid() }.to_json().stringify(),
   )
