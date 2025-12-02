@@ -47,10 +47,7 @@ jobs:
           moon check --deny-warn
 
   test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     continue-on-error: true
 
     env:
@@ -83,6 +80,53 @@ jobs:
         run: |
           moon build --release
           moon test --include-skipped -v
+
+  coverage:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install MoonBit
+        uses: ./.github/actions/install-moonbit
+        with:
+          channel: latest
+
+      - name: Inspect MoonBit version
+        run: |
+          moon version --all
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "maria-ci"
+          git config --global user.email "maria-ci@example.com"
+
+      - name: Run tests
+        run: |
+          moon build --release
+          moon test --include-skipped -v --enable-coverage
+
+      - name: Upload coverage reports to Codecov
+        run: |
+          moon coverage report \
+            -f coveralls \
+            -o codecov_report.json \
+            --service-name github \
+            --service-job-id "$GITHUB_RUN_ID" \
+            --service-pull-request "${{ github.event.pull_request.number }}" \
+            --send-to codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   info:
     runs-on: ubuntu-latest
