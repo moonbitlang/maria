@@ -53,11 +53,11 @@ async test "render_diagnostics" (t : @test.Test) {
         #| 3 │ }
         #|   │ ^
         #|
-        #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning: Unused variable 'x'
+        #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning (unused_value): Unused variable 'x'
         #| 2 │ let x : Int = "string"
         #|   │     ^
         #|
-        #|warning[0002]: (mock:cwd)/example2.mbt:2:7-8: Warning: Unused variable 'y'
+        #|warning[0002]: (mock:cwd)/example2.mbt:2:7-8: Warning (unused_value): Unused variable 'y'
         #| 2 │   let y = "hello"
         #|   │       ^
       ),
@@ -137,13 +137,13 @@ async test "render-diagnostics-context" (t : @test.Test) {
         #| 9 │ }
         #|   │ ^
         #|
-        #|warning[0001]: (mock:cwd)/example.mbt:2:4-19: Warning: Unused function 'skip_whitespace'
+        #|warning[0001]: (mock:cwd)/example.mbt:2:4-19: Warning (unused_value): Unused function 'skip_whitespace'
         #|   │ ///|
         #| 2 │ fn skip_whitespace(lexer : Lexer) -> Unit {
         #|   │    ^^^^^^^^^^^^^^^
         #|   │   loop {
         #|
-        #|warning[0018]: (mock:cwd)/example.mbt:3:3-9:2: Warning: There is no [continue] in this loop expression, so [loop] is useless here.
+        #|warning[0018]: (mock:cwd)/example.mbt:3:3-9:2: Warning (useless_loop): There is no [continue] in this loop expression, so [loop] is useless here.
         #|   │ fn skip_whitespace(lexer : Lexer) -> Unit {
         #| 3 │   loop {
         #|   │   ^^^^^^
@@ -487,30 +487,30 @@ async test "render_empty_line" (t : @test.Test) {
         #| 15 │ }
         #|    │ ^
         #|
-        #|warning[0004]: (mock:cwd)/example.mbt:1:8-13: Warning: The type 'Point' does not occur in public signature of current package, consider marking it as `priv`.
+        #|warning[0004]: (mock:cwd)/example.mbt:1:8-13: Warning (missing_priv): The type 'Point' does not occur in public signature of current package, consider marking it as `priv`.
         #| 1 │ struct Point {
         #|   │        ^^^^^
         #|   │   x : Int
         #|
-        #|warning[0007]: (mock:cwd)/example.mbt:2:3-4: Warning: Field 'x' is never read
+        #|warning[0007]: (mock:cwd)/example.mbt:2:3-4: Warning (unused_field): Field 'x' is never read
         #|   │ struct Point {
         #| 2 │   x : Int
         #|   │   ^
         #|   │   y : Int
         #|
-        #|warning[0007]: (mock:cwd)/example.mbt:3:3-4: Warning: Field 'y' is never read
+        #|warning[0007]: (mock:cwd)/example.mbt:3:3-4: Warning (unused_field): Field 'y' is never read
         #|   │   x : Int
         #| 3 │   y : Int
         #|   │   ^
         #|   │ }
         #|
-        #|warning[0001]: (mock:cwd)/example.mbt:6:11-14: Warning: Unused function 'new'
+        #|warning[0001]: (mock:cwd)/example.mbt:6:11-14: Warning (unused_value): Unused function 'new'
         #|   │
         #| 6 │ fn Point::new(x~ : Int, y~ : Int) -> Point {
         #|   │           ^^^
         #|   │   Point { x, y }
         #|
-        #|warning[0042]: (mock:cwd)/example.mbt:10:1-6: Warning: unknown attribute load
+        #|warning[0042]: (mock:cwd)/example.mbt:10:1-6: Warning (invalid_attribute): unknown attribute load
         #|    │
         #| 10 │ #load
         #|    │ ^^^^^
@@ -596,14 +596,14 @@ async test "render_diagnostics_with_context_2" (t : @test.Test) {
         #|    │   }
         #|    │ }
         #|
-        #|warning[0006]: (mock:cwd)/main.mbt:2:3-6: Warning: Variant 'Red' is never constructed
+        #|warning[0006]: (mock:cwd)/main.mbt:2:3-6: Warning (unused_constructor): Variant 'Red' is never constructed
         #|   │ enum Color {
         #| 2 │   Red
         #|   │   ^^^
         #|   │   Green
         #|   │   Blue
         #|
-        #|warning[0006]: (mock:cwd)/main.mbt:3:3-8: Warning: Variant 'Green' is never constructed
+        #|warning[0006]: (mock:cwd)/main.mbt:3:3-8: Warning (unused_constructor): Variant 'Green' is never constructed
         #|   │ enum Color {
         #|   │   Red
         #| 3 │   Green

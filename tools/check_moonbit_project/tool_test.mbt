@@ -31,7 +31,7 @@ async test "check_moonbit_project" (t : @test.Test) {
                 "path": "(mock:cwd)/example.mbt",
                 "start": { "col": 5, "line": 2 },
               },
-              "message": "Warning: Unused variable 'x'",
+              "message": "Warning (unused_value): Unused variable 'x'",
             },
             {
               "error_code": 4014,
@@ -46,7 +46,7 @@ async test "check_moonbit_project" (t : @test.Test) {
           ],
         ],
         "diagnostic_limit": 10,
-        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch\n        has type : String\n        wanted   : Int\n 2 │ let x : Int = \"string\"\n   │               ^^^^^^^^\n\nwarning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning: Unused variable 'x'\n 2 │ let x : Int = \"string\"\n   │     ^",
+        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:2:15-23: Expr Type Mismatch\n        has type : String\n        wanted   : Int\n 2 │ let x : Int = \"string\"\n   │               ^^^^^^^^\n\nwarning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning (unused_value): Unused variable 'x'\n 2 │ let x : Int = \"string\"\n   │     ^",
       },
     ])
     inspect(
@@ -60,7 +60,7 @@ async test "check_moonbit_project" (t : @test.Test) {
         #| 2 │ let x : Int = "string"
         #|   │               ^^^^^^^^
         #|
-        #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning: Unused variable 'x'
+        #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning (unused_value): Unused variable 'x'
         #| 2 │ let x : Int = "string"
         #|   │     ^
       ),
@@ -117,7 +117,7 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
                 "path": "(mock:cwd)/example.mbt",
                 "start": { "col": 5, "line": 1 },
               },
-              "message": "Warning: Unused variable 'y'",
+              "message": "Warning (unused_value): Unused variable 'y'",
             },
             {
               "error_code": 4014,
@@ -132,7 +132,7 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
           ],
         ],
         "diagnostic_limit": 10,
-        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:1:18-20: Expr Type Mismatch\n        has type : Int\n        wanted   : String\n 1 │ let y : String = 42\n   │                  ^^\n\nwarning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'y'\n 1 │ let y : String = 42\n   │     ^",
+        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4014]: (mock:cwd)/example.mbt:1:18-20: Expr Type Mismatch\n        has type : Int\n        wanted   : String\n 1 │ let y : String = 42\n   │                  ^^\n\nwarning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning (unused_value): Unused variable 'y'\n 1 │ let y : String = 42\n   │     ^",
       },
     ])
     inspect(
@@ -146,7 +146,7 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
         #| 1 │ let y : String = 42
         #|   │                  ^^
         #|
-        #|warning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning: Unused variable 'y'
+        #|warning[0002]: (mock:cwd)/example.mbt:1:5-6: Warning (unused_value): Unused variable 'y'
         #| 1 │ let y : String = 42
         #|   │     ^
       ),

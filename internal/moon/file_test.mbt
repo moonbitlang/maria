@@ -213,14 +213,14 @@ async test "replace_segment/list" (t : @test.Test) {
       "Diagnostics",
       [
         {
-          "error_code": 2000,
+          "error_code": 20,
           "level": "Warning",
           "loc": {
             "end": { "col": 29, "line": 15 },
             "path": "(mock:cwd)/list/list.mbt",
             "start": { "col": 23, "line": 15 },
           },
-          "message": "Warning (Alert deprecated): `length` is deprecated, use `len` instead",
+          "message": "Warning (deprecated): `length` is deprecated, use `len` instead",
         },
       ],
     ])

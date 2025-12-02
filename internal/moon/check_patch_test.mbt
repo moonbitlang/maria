@@ -55,7 +55,7 @@ async test "check_patch" (t : @test.Test) {
                     "path": "(mock:cwd)/example.mbt",
                     "start": { "col": 5, "line": 2 },
                   },
-                  "message": "Warning: Unused variable 'x'",
+                  "message": "Warning (unused_value): Unused variable 'x'",
                 },
                 {
                   "error_code": 4014,
@@ -82,7 +82,7 @@ async test "check_patch" (t : @test.Test) {
                 "path": "(mock:cwd)/example.mbt",
                 "start": { "col": 5, "line": 2 },
               },
-              "message": "Warning: Unused variable 'x'",
+              "message": "Warning (unused_value): Unused variable 'x'",
             },
             {
               "error_code": 4014,
@@ -121,7 +121,7 @@ async test "check_patch" (t : @test.Test) {
               "path": "(mock:cwd)/example.mbt",
               "start": { "col": 5, "line": 2 },
             },
-            "message": "Warning: Unused variable 'x'",
+            "message": "Warning (unused_value): Unused variable 'x'",
           },
           {
             "error_code": 4014,
