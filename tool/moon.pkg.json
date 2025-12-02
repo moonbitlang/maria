@@ -1,1 +1,3 @@
-{}
+{
+    "import": ["moonbitlang/maria/internal/openai"]
+}

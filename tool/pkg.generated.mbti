@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tool"
 
+import(
+  "moonbitlang/maria/internal/openai"
+)
+
 // Values
 fn tool_desc(description~ : String, name~ : String, schema~ : JsonSchema) -> ToolDesc
 
@@ -32,6 +36,7 @@ pub struct ToolDesc {
   name : String
   schema : JsonSchema
 }
+fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
 impl ToJson for ToolDesc
 
 pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)

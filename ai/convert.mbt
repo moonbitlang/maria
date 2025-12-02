@@ -112,15 +112,3 @@ pub fn Usage::from_openai(u : @openai.CompletionUsage) -> Usage {
     cache_read_tokens?=u.prompt_tokens_details.bind(details => details.cached_tokens),
   )
 }
-
-///|
-/// Convert a ToolDesc to an OpenAI ChatCompletionToolParam.
-pub fn tool_desc_to_openai(
-  tool_desc : @tool.ToolDesc,
-) -> @openai.ChatCompletionToolParam {
-  @openai.tool(
-    name=tool_desc.name,
-    description=tool_desc.description,
-    parameters=tool_desc.schema.to_json(),
-  )
-}
