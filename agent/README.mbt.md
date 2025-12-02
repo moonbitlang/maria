@@ -19,7 +19,7 @@ An `Agent` is an autonomous entity that:
 
 ### Creating an Agent
 
-```moonbit
+```moonbit check
 ///|
 let model : @model.Model = @model.new(
   api_key=try! @os.getenv("OPENAI_API_KEY").unwrap(),
@@ -45,7 +45,7 @@ async test "basic-example" {
 Tools extend what the agent can do beyond simple conversation. Here's how to
 create a simple addition tool and add it to the agent:
 
-```moonbit
+```moonbit check
 ///|
 let add_numbers_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
@@ -108,7 +108,7 @@ internal event queue.
 Event listeners are async functions that receive events. You can add multiple
 listeners to track different aspects of agent behavior:
 
-```moonbit
+```moonbit check
 ///|
 async test "track-conversation" {
   let agent = @agent.new(model, cwd=@os.cwd())
@@ -285,7 +285,7 @@ All events are automatically logged in structured JSON format:
 
 Logs are written to `.moonagent/log` by default, but can be customized:
 
-```moonbit
+```moonbit check
 ///|
 async test "custom-logging" {
   let custom_logger = @pino.logger(
