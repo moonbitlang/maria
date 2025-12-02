@@ -14,7 +14,7 @@ async fn start(ArrayView[String]) -> Unit
 
 // Types and methods
 type Daemon
-async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView) -> Self?
+async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
 fn Daemon::port(Self) -> Int
 async fn Daemon::serve(Self) -> Unit
 

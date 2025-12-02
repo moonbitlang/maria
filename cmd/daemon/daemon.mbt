@@ -586,6 +586,7 @@ pub async fn Daemon::new(
   serve~ : String,
   cwd? : StringView,
   home? : StringView,
+  lock? : Bool = true,
 ) -> Daemon? {
   let home = match home {
     None => @os.home()
@@ -598,20 +599,27 @@ pub async fn Daemon::new(
   let exec_path = @fsx.resolve(exec_path) catch {
     error => fail("Failed to resolve exec path '\{exec_path}': \{error}")
   }
-  // Grab daemon lock file
-  guard lock_daemon_file(home~) is Some(info_file) else {
-    println(
-      "[INFO] Another Maria daemon is already running for home '\{home}'. Exiting.",
-    )
-    return None
+  let info_file = if lock {
+    // Grab daemon lock file
+    guard lock_daemon_file(home~) is Some(info_file) else {
+      println(
+        "[INFO] Another Maria daemon is already running for home '\{home}'. Exiting.",
+      )
+      return None
+    }
+    Some(info_file)
+  } else {
+    None
   }
   // Listen on port
   let httpx_server = @httpx.Server::new("[::1]", port, reuse_addr=true)
   let port = httpx_server.port()
-  @fsx.truncate(info_file, 0)
-  info_file.write(
-    DaemonInfo::{ port, pid: @spawn.getpid() }.to_json().stringify(),
-  )
+  if info_file is Some(info_file) {
+    @fsx.truncate(info_file, 0)
+    info_file.write(
+      DaemonInfo::{ port, pid: @spawn.getpid() }.to_json().stringify(),
+    )
+  }
   println("[INFO] Starting HTTP server on port \{port}...")
   println("[INFO] Visit http://localhost:\{port}/")
   let uuid = match uuid {

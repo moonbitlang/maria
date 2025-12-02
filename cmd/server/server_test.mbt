@@ -169,105 +169,109 @@ fn redact_events(
 #skip
 async test "GET /v1/events" (t : @test.Test) {
   @mock.run(t, mock => {
+    let group = mock.group
     let server = configure_server(mock)
+    group.spawn_bg(() => server.start(), no_wait=true)
     let events : Array[Json] = []
-    @async.with_task_group(group => {
-      group.spawn_bg(() => server.start(), no_wait=true)
-      group.spawn_bg(() => {
-        let (r, s) = @http.get_stream(
-          "http://localhost:\{server.port()}/v1/events",
-        )
-        @json.inspect(r.code, content=200)
-        let mut last_event : String? = None
-        while s.read_until("\n") is Some(line) {
-          match line {
-            [.. "event: ", .. event] => {
-              last_event = Some(event.to_string())
-              continue
-            }
-            [.. "data: ", .. data] => {
-              let data = @json.parse(data)
-              if last_event is Some(event) {
-                events.push({ "event": event, "data": data })
-              } else {
-                events.push({ "data": data })
-              }
-              last_event = None
-              if events.last() is Some(event) &&
-                event is { "data": { "msg": "PostConversation", .. }, .. } {
-                break
-              }
-            }
-            _ => continue
+    let collector = group.spawn(() => {
+      let (r, s) = @http.get_stream(
+        "http://localhost:\{server.port()}/v1/events",
+      )
+      @json.inspect(r.code, content=200)
+      let mut last_event : String? = None
+      while s.read_until("\n") is Some(line) {
+        match line {
+          [.. "event: ", .. event] => {
+            last_event = Some(event.to_string())
+            continue
           }
+          [.. "data: ", .. data] => {
+            let data = @json.parse(data)
+            if last_event is Some(event) {
+              events.push({ "event": event, "data": data })
+            } else {
+              events.push({ "data": data })
+            }
+            last_event = None
+            if events.last() is Some(event) &&
+              event is { "data": { "msg": "PostConversation", .. }, .. } {
+              break
+            }
+          }
+          _ => continue
         }
-      })
-      @http.post(
-        "http://localhost:\{server.port()}/v1/message",
-        Json::object({
-          "message": { "role": "user", "content": "Hello, Maria!" },
-        }),
-      )
-      |> ignore()
-      @http.post(
-        "http://localhost:\{server.port()}/v1/message",
-        Json::object({
-          "message": { "role": "user", "content": "Hello, Maria!" },
-        }),
-      )
-      |> ignore()
+      }
     })
+    let (_, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
+    )
+    let b = b.json()
+    guard b is { "id": String(msg0_id), .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    let (_, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({
+        "message": { "role": "user", "content": "Hello again, Maria!" },
+      }),
+    )
+    let b = b.json()
+    guard b is { "id": String(msg1_id), .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    collector.wait()
+    fn extract_events_for_message(
+      events : Array[Json],
+      id : String,
+      content : String,
+    ) -> Array[Json] {
+      events.filter(e => (
+          e
+          is {
+            "event": "maria",
+            "data": {
+              "msg": "MessageAdded",
+              "message": { "content": String(s), .. },
+              ..
+            }
+            | {
+              "msg": "MessageQueued",
+              "message": { "message": { "content": String(s), .. }, .. },
+              ..
+            },
+            ..
+          } &&
+          s == content
+        ) ||
+        (
+          e
+          is {
+            "event": "maria",
+            "data": {
+              "msg": "MessageUnqueued",
+              "message": { "id": String(mid), .. },
+              ..
+            },
+            ..
+          } &&
+          mid == id
+        ))
+    }
+
     @json.inspect(
-      redact_events(events, remove_events=["maria.queued_messages.synchronized"]),
+      redact_events(
+        extract_events_for_message(events, msg0_id, "Hello, Maria!"),
+      ),
       content=[
         {
           "event": "maria",
           "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "system", "content": "<redacted>" },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
             "msg": "MessageQueued",
             "message": {
               "id": "<redacted>",
               "message": { "role": "user", "content": "Hello, Maria!" },
             },
-          },
-        },
-        { "event": "maria", "data": { "msg": "PreConversation" } },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageUnqueued",
-            "message": { "id": "<redacted>" },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "user", "content": "Hello, Maria!" },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageQueued",
-            "message": {
-              "id": "<redacted>",
-              "message": { "role": "user", "content": "Hello, Maria!" },
-            },
-          },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "RequestCompleted",
-            "usage": "<redacted>",
-            "message": "<redacted>",
           },
         },
         {
@@ -284,15 +288,37 @@ async test "GET /v1/events" (t : @test.Test) {
             "message": { "role": "user", "content": "Hello, Maria!" },
           },
         },
+      ],
+    )
+    @json.inspect(
+      redact_events(
+        extract_events_for_message(events, msg1_id, "Hello again, Maria!"),
+      ),
+      content=[
         {
           "event": "maria",
           "data": {
-            "msg": "RequestCompleted",
-            "usage": "<redacted>",
-            "message": "<redacted>",
+            "msg": "MessageQueued",
+            "message": {
+              "id": "<redacted>",
+              "message": { "role": "user", "content": "Hello again, Maria!" },
+            },
           },
         },
-        { "event": "maria", "data": { "msg": "PostConversation" } },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageUnqueued",
+            "message": { "id": "<redacted>" },
+          },
+        },
+        {
+          "event": "maria",
+          "data": {
+            "msg": "MessageAdded",
+            "message": { "role": "user", "content": "Hello again, Maria!" },
+          },
+        },
       ],
     )
   })
