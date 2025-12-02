@@ -1,44 +1,32 @@
 ///|
 async test "Coverage::report" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|pub fn fib(n : Int) -> Int {
-          #|  if n == 0 {
-          #|    1
-          #|  } else if n == 1 {
-          #|    1
-          #|  } else {
-          #|    fib(n - 1) + fib(n - 2)
-          #|  }
-          #|}
-        ),
+      "example.mbt": (
+        #|///|
+        #|pub fn fib(n : Int) -> Int {
+        #|  if n == 0 {
+        #|    1
+        #|  } else if n == 1 {
+        #|    1
+        #|  } else {
+        #|    fib(n - 1) + fib(n - 2)
+        #|  }
+        #|}
       ),
-      (
-        "example_test.mbt",
-        (
-          #|///|
-          #|test "fib" {
-          #|  @json.inspect(@example.fib(0), content=1)
-          #|}
-        ),
+      "example_test.mbt": (
+        #|///|
+        #|test "fib" {
+        #|  @json.inspect(@example.fib(0), content=1)
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
@@ -75,44 +63,32 @@ async test "Coverage::report" (t : @test.Test) {
 ///|
 async test "Coverage::analyze" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|pub fn fib(n : Int) -> Int {
-          #|  if n == 0 {
-          #|    1
-          #|  } else if n == 1 {
-          #|    1
-          #|  } else {
-          #|    fib(n - 1) + fib(n - 2)
-          #|  }
-          #|}
-        ),
+      "example.mbt": (
+        #|///|
+        #|pub fn fib(n : Int) -> Int {
+        #|  if n == 0 {
+        #|    1
+        #|  } else if n == 1 {
+        #|    1
+        #|  } else {
+        #|    fib(n - 1) + fib(n - 2)
+        #|  }
+        #|}
       ),
-      (
-        "example_test.mbt",
-        (
-          #|///|
-          #|test "fib" {
-          #|  @json.inspect(@example.fib(0), content=1)
-          #|}
-        ),
+      "example_test.mbt": (
+        #|///|
+        #|test "fib" {
+        #|  @json.inspect(@example.fib(0), content=1)
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
@@ -147,44 +123,32 @@ async test "Coverage::analyze" (t : @test.Test) {
 ///|
 async test "Coverage::clean" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|pub fn fib(n : Int) -> Int {
-          #|  if n == 0 {
-          #|    1
-          #|  } else if n == 1 {
-          #|    1
-          #|  } else {
-          #|    fib(n - 1) + fib(n - 2)
-          #|  }
-          #|}
-        ),
+      "example.mbt": (
+        #|///|
+        #|pub fn fib(n : Int) -> Int {
+        #|  if n == 0 {
+        #|    1
+        #|  } else if n == 1 {
+        #|    1
+        #|  } else {
+        #|    fib(n - 1) + fib(n - 2)
+        #|  }
+        #|}
       ),
-      (
-        "example_test.mbt",
-        (
-          #|///|
-          #|test "fib" {
-          #|  @json.inspect(@example.fib(0), content=1)
-          #|}
-        ),
+      "example_test.mbt": (
+        #|///|
+        #|test "fib" {
+        #|  @json.inspect(@example.fib(0), content=1)
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
