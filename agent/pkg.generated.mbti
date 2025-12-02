@@ -31,6 +31,7 @@ fn Agent::close(Self) -> Unit
 async fn Agent::queue_message(Self, @ai.Message) -> @uuid.Uuid
 fn Agent::queued_messages(Self) -> Array[(@uuid.Uuid, @ai.Message)]
 async fn Agent::set_enabled_tools(Self, @set.Set[String]) -> Unit
+async fn Agent::set_system_prompt(Self, String) -> Unit
 async fn Agent::start(Self) -> Unit
 
 // Type aliases

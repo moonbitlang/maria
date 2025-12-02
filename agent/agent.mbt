@@ -427,14 +427,26 @@ pub async fn new(
   }
   rules.load()
   if system_message is Some(system_message) {
-    history.set_system_prompt(system_message)
-    agent.emit(MessageAdded(@ai.system_message(content=system_message)))
+    agent.set_system_prompt(system_message)
   }
   match user_message {
     Some(message) => agent.add_message(@ai.user_message(content=message))
     None => ()
   }
   agent
+}
+
+///|
+/// Sets the system prompt for the agent's conversation history and emits an
+/// event notification.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance whose system prompt will be set.
+/// * `prompt` : The system prompt text to be set for the agent's conversation.
+pub async fn Agent::set_system_prompt(agent : Agent, prompt : String) -> Unit {
+  agent.history.set_system_prompt(prompt)
+  agent.emit(MessageAdded(@ai.system_message(content=prompt)))
 }
 
 ///|
