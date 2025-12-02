@@ -8,7 +8,7 @@ import {
   PromptInputButton,
   PromptInputTools,
 } from "@maria/core/components/ui/shadcn-io/ai/prompt-input.js";
-import { Folder } from "lucide-react";
+import { Folder, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -37,9 +37,10 @@ export default function Home() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dispatch(setInput("")); // Clear input field
-    const res = await postNewTask({ message: input, cwd });
-    if (res.data) {
-      const { id } = res.data.task;
+    dispatch(setCwd(undefined)); // Clear cwd
+    const { data } = await postNewTask({ message: input, cwd });
+    if (data) {
+      const { id } = data.task;
       navigate(`/tasks/${id}`);
     }
   };
@@ -70,6 +71,17 @@ export default function Home() {
                   >
                     <Folder size={16} />
                     {baseCwd && <span>{baseCwd}</span>}
+                    {baseCwd && (
+                      <button
+                        className="hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(setCwd(undefined));
+                        }}
+                      >
+                        <X />
+                      </button>
+                    )}
                   </PromptInputButton>
                 </TooltipTrigger>
                 <TooltipContent>
