@@ -32,7 +32,7 @@ pub struct Context {
 }
 async fn Context::add_directory(Self, String) -> Directory
 async fn Context::add_file(Self, String, content? : String) -> File
-async fn Context::add_files(Self, Array[(String, String)]) -> Unit
+async fn Context::add_files(Self, Map[String, String]) -> Unit
 async fn Context::add_symlink(Self, String, to~ : String) -> Unit
 fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
 fn[T : ToJson] Context::json(Self, T) -> Json

@@ -1,35 +1,23 @@
 ///|
 async test "render_diagnostics" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|let x : Int = "string"
-        ),
+      "example.mbt": (
+        #|///|
+        #|let x : Int = "string"
       ),
-      (
-        "example2.mbt",
-        (
-          #|fn main() {
-          #|  let y = "hello"
-          #|}
-        ),
+      "example2.mbt": (
+        #|fn main() {
+        #|  let y = "hello"
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
@@ -80,34 +68,25 @@ async test "render_diagnostics" (t : @test.Test) {
 ///|
 async test "render-diagnostics-context" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|fn skip_whitespace(lexer : Lexer) -> Unit {
-          #|  loop {
-          #|    match lexer.ch {
-          #|      Some(' ' | '\t' | '\r' | '\n') => { read_char(lexer) }
-          #|      _ => { break }
-          #|    }
-          #|  }
-          #|}
-        ),
+      "example.mbt": (
+        #|///|
+        #|fn skip_whitespace(lexer : Lexer) -> Unit {
+        #|  loop {
+        #|    match lexer.ch {
+        #|      Some(' ' | '\t' | '\r' | '\n') => { read_char(lexer) }
+        #|      _ => { break }
+        #|    }
+        #|  }
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
@@ -432,40 +411,31 @@ test "from_jsonl - round trip" {
 ///|
 async test "render_empty_line" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|struct Point {
-          #|  x : Int
-          #|  y : Int
-          #|}
-          #|
-          #|fn Point::new(x~ : Int, y~ : Int) -> Point {
-          #|  Point { x, y }
-          #|}
-          #|
-          #|#load
-          #|
-          #|/// Well
-          #|fn main {
-          #|  println("Hello, World!")
-          #|}
-        ),
+      "example.mbt": (
+        #|struct Point {
+        #|  x : Int
+        #|  y : Int
+        #|}
+        #|
+        #|fn Point::new(x~ : Int, y~ : Int) -> Point {
+        #|  Point { x, y }
+        #|}
+        #|
+        #|#load
+        #|
+        #|/// Well
+        #|fn main {
+        #|  println("Hello, World!")
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
@@ -534,38 +504,32 @@ async test "render_empty_line" (t : @test.Test) {
 ///|
 async test "render_diagnostics_with_context_2" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-      (
-        "main.mbt",
-        (
-          #|enum Color {
-          #|  Red
-          #|  Green
-          #|  Blue
-          #|}
-          #|
-          #|fn Color::to_string(self : Color) -> String {
-          #|  match self {
-          #|    Red => "red",
-          #|    Green => "green",
-          #|    Blue => "blue",
-          #|  }
-          #|}
-          #|
-          #|fn main {
-          #|  let color : Color = Blue
-          #|  println(color.to_string())
-          #|}
-        ),
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+      "main.mbt": (
+        #|enum Color {
+        #|  Red
+        #|  Green
+        #|  Blue
+        #|}
+        #|
+        #|fn Color::to_string(self : Color) -> String {
+        #|  match self {
+        #|    Red => "red",
+        #|    Green => "green",
+        #|    Blue => "blue",
+        #|  }
+        #|}
+        #|
+        #|fn main {
+        #|  let color : Color = Blue
+        #|  println(color.to_string())
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()

@@ -1,21 +1,15 @@
 ///|
 async test "files" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      ("example.mbt", "///|\nlet x : Int = 42"),
-    ])
+      "example.mbt": "///|\nlet x : Int = 42",
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[
@@ -91,21 +85,15 @@ async test "files" (t : @test.Test) {
 ///|
 async test "interface" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      ("example.mbt", "let x : Int = 42"),
-    ])
+      "example.mbt": "let x : Int = 42",
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     let pkg = moon.find_package("example")
     @json.inspect(mock.json(pkg), content=[

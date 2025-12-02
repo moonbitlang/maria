@@ -63,7 +63,7 @@ pub async fn Context::add_file(
 /// Creates multiple files under the mock workspace in a single batch.
 pub async fn Context::add_files(
   self : Context,
-  files : Array[(String, String)],
+  files : Map[String, String],
 ) -> Unit {
   for item in files {
     self.cwd.add_file(item.0, content=item.1) |> ignore
