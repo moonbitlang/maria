@@ -265,8 +265,10 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
   w.write("event: maria.queued_messages.synchronized\n")
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
-    let (id, message) = m
-    queued_messages.push({ "id": id, "message": message.to_openai().to_json() })
+    queued_messages.push({
+      "id": m.id,
+      "message": m.message.to_openai().to_json(),
+    })
   }
   w.write("data: \{queued_messages.to_json().stringify()}\n\n")
   w.flush()
@@ -305,10 +307,9 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
         w.write("event: maria.queued_messages.synchronized\n")
         let queued_messages : Array[Json] = []
         for m in self.maria.agent.queued_messages() {
-          let (id, message) = m
           queued_messages.push({
-            "id": id,
-            "message": message.to_openai().to_json(),
+            "id": m.id,
+            "message": m.message.to_openai().to_json(),
           })
         }
         w.write("data: \{queued_messages.to_json().stringify()}\n\n")
@@ -325,8 +326,10 @@ async fn Server::get_queued_messages(
 ) -> Unit {
   let queued_messages : Array[Json] = []
   for m in self.maria.agent.queued_messages() {
-    let (id, message) = m
-    queued_messages.push({ "id": id, "message": message.to_openai().to_json() })
+    queued_messages.push({
+      "id": m.id,
+      "message": m.message.to_openai().to_json(),
+    })
   }
   let response : Json = queued_messages.to_json()
   w.header().set("Content-Type", "application/json")
