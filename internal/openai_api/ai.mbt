@@ -19,10 +19,10 @@ priv suberror HttpError {
 /// Raises HttpError if the API returns a non-2xx status code.
 pub async fn chat(
   model~ : @model.Model,
-  request : Request,
+  request : @openai.Request,
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
   extra_body? : Map[String, Json] = {},
-) -> ChatCompletion {
+) -> @openai.ChatCompletion {
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
@@ -67,7 +67,7 @@ pub async fn chat(
       } else {
         let body = client.read_all().text()
         let json = @json.parse(body)
-        let chat_completion : ChatCompletion = @json.from_json(json)
+        let chat_completion : @openai.ChatCompletion = @json.from_json(json)
         logger.debug("ResponseReceived", data={
           "model": { "name": model.model_name, "base_url": model.base_url },
           "response_code": response.code,
@@ -88,7 +88,7 @@ fn ChunkReader::new(reader : &@io.Reader) -> ChunkReader {
 }
 
 ///|
-async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
+async fn ChunkReader::read(self : ChunkReader) -> @openai.ChatCompletionChunk? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
@@ -96,7 +96,7 @@ async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
       return None
     }
     let json = @json.parse(rest)
-    let chunk : ChatCompletionChunk = @json.from_json(json)
+    let chunk : @openai.ChatCompletionChunk = @json.from_json(json)
     return Some(chunk)
   }
 }
@@ -117,11 +117,11 @@ async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
 pub async fn text(model~ : @model.Model, prompt~ : String) -> String {
   let completion = chat(
     model~,
-    chat_completion(
+    @openai.chat_completion(
       model=model.model_name,
       messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content=prompt),
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
@@ -184,11 +184,11 @@ test "extract_first_json_block" {
 pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
   let completion = chat(
     model~,
-    chat_completion(
+    @openai.chat_completion(
       model=model.model_name,
       messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content=prompt),
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
@@ -237,15 +237,15 @@ pub(open) trait Structural: @json.FromJson {
 pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T {
   let completion = chat(
     model~,
-    chat_completion(
+    @openai.chat_completion(
       model=model.model_name,
       messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content=prompt),
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content=prompt),
       ],
       max_tokens=150,
       temperature=0.7,
-      response_format=json_schema(
+      response_format=@openai.json_schema(
         name=T::name(),
         schema=T::schema().to_json(),
         description=T::description(),

@@ -45,8 +45,18 @@ pub struct ChatCompletionMessage {
 } derive(Show, ToJson)
 
 ///|
+pub fn ChatCompletionMessage::new(
+  content? : String,
+  refusal? : String,
+  role? : ChatCompletionMessageRole = Assistant,
+  tool_calls? : Array[ChatCompletionMessageToolCall] = [],
+) -> ChatCompletionMessage {
+  { content, refusal, role, tool_calls }
+}
+
+///|
 /// Reason why the model stopped generating tokens.
-pub enum ChatCompletionChoiceFinishReason {
+pub(all) enum ChatCompletionChoiceFinishReason {
   Stop
   Length
   ToolCalls
@@ -61,6 +71,15 @@ pub struct ChatCompletionChoice {
   index : Int
   message : ChatCompletionMessage
 } derive(Show)
+
+///|
+pub fn ChatCompletionChoice::new(
+  finish_reason? : ChatCompletionChoiceFinishReason,
+  index~ : Int,
+  message~ : ChatCompletionMessage,
+) -> ChatCompletionChoice {
+  { finish_reason, index, message }
+}
 
 ///|
 /// Token usage details for the model-completion segment.
@@ -80,6 +99,14 @@ pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
 } derive(Show, ToJson)
+
+///|
+pub fn PromptTokensDetails::new(
+  cached_tokens? : Int,
+  audio_tokens? : Int,
+) -> PromptTokensDetails {
+  { cached_tokens, audio_tokens }
+}
 
 ///|
 /// Aggregated usage information for a completion response.
@@ -222,6 +249,19 @@ pub struct ChatCompletion {
 } derive(Show)
 
 ///|
+pub fn ChatCompletion::new(
+  id~ : String,
+  choices~ : Array[ChatCompletionChoice],
+  created~ : Int,
+  model~ : String,
+  usage? : CompletionUsage,
+  system_fingerprint? : String,
+  service_tier? : ChatCompletionServiceTier,
+) -> ChatCompletion {
+  { id, choices, created, model, usage, system_fingerprint, service_tier }
+}
+
+///|
 /// Content parts supported in chat completion parameters.
 pub enum ChatCompletionContentPartParam {
   Text(ChatCompletionContentPartTextParam)
@@ -326,7 +366,7 @@ pub struct ChatCompletionChunkChoiceDeltaToolCall {
 
 ///|
 /// Roles that may appear in streamed completion deltas.
-pub enum ChatCompletionRole {
+pub(all) enum ChatCompletionRole {
   Developer
   System
   User

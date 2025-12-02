@@ -22,6 +22,7 @@ fn Conversation::id(Self) -> String
 fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
 fn Conversation::set_system_prompt(Self, String) -> Unit
 fn Conversation::system_prompt(Self) -> String?
+fn Conversation::to_param(Self) -> Array[@ai.Message]
 impl ToJson for Conversation
 impl @json.FromJson for Conversation
 

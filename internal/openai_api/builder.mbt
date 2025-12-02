@@ -20,7 +20,7 @@ fn ChatCompletionMessageToolCallBuilder::new(
 ///|
 fn ChatCompletionMessageToolCallBuilder::add_delta(
   self : ChatCompletionMessageToolCallBuilder,
-  delta : ChatCompletionChunkChoiceDeltaToolCall,
+  delta : @openai.ChatCompletionChunkChoiceDeltaToolCall,
 ) -> Unit {
   if delta.function.arguments is Some(arguments) {
     self.arguments.write_string(arguments)
@@ -30,8 +30,12 @@ fn ChatCompletionMessageToolCallBuilder::add_delta(
 ///|
 fn ChatCompletionMessageToolCallBuilder::to_tool_call(
   self : ChatCompletionMessageToolCallBuilder,
-) -> ChatCompletionMessageToolCall {
-  tool_call(id=self.id, name=self.name, arguments=self.arguments.to_string())
+) -> @openai.ChatCompletionMessageToolCall {
+  @openai.tool_call(
+    id=self.id,
+    name=self.name,
+    arguments=self.arguments.to_string(),
+  )
 }
 
 ///|
@@ -49,7 +53,7 @@ fn ChatCompletionMessageBuilder::new() -> ChatCompletionMessageBuilder {
 ///|
 fn ChatCompletionMessageBuilder::add_delta(
   self : ChatCompletionMessageBuilder,
-  delta : ChatCompletionChunkChoiceDelta,
+  delta : @openai.ChatCompletionChunkChoiceDelta,
 ) -> Unit {
   if delta.content is Some(content) {
     if self.content is Some(builder) {
@@ -93,23 +97,22 @@ fn ChatCompletionMessageBuilder::add_delta(
 ///|
 fn ChatCompletionMessageBuilder::to_message(
   self : ChatCompletionMessageBuilder,
-) -> ChatCompletionMessage {
-  let tool_calls : Array[ChatCompletionMessageToolCall] = []
+) -> @openai.ChatCompletionMessage {
+  let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = []
   for builder in self.tool_calls {
     guard builder is Some(builder) else { continue }
     tool_calls.push(builder.to_tool_call())
   }
-  ChatCompletionMessage::{
-    content: self.content.map(b => b.to_string()),
-    refusal: self.refusal.map(b => b.to_string()),
-    tool_calls,
-    role: ChatCompletionMessageRole::Assistant,
-  }
+  @openai.ChatCompletionMessage::new(
+    content?=self.content.map(b => b.to_string()),
+    refusal?=self.refusal.map(b => b.to_string()),
+    tool_calls~,
+  )
 }
 
 ///|
 priv struct ChatCompletionChoiceBuilder {
-  mut finish_reason : ChatCompletionChoiceFinishReason?
+  mut finish_reason : @openai.ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessageBuilder
 }
@@ -126,7 +129,7 @@ fn ChatCompletionChoiceBuilder::new(index : Int) -> ChatCompletionChoiceBuilder 
 ///|
 fn ChatCompletionChoiceBuilder::add_chunk(
   self : ChatCompletionChoiceBuilder,
-  chunk : ChatCompletionChunkChoice,
+  chunk : @openai.ChatCompletionChunkChoice,
 ) -> Unit {
   if chunk.finish_reason is Some(reason) {
     self.finish_reason = Some(reason)
@@ -137,12 +140,12 @@ fn ChatCompletionChoiceBuilder::add_chunk(
 ///|
 fn ChatCompletionChoiceBuilder::to_choice(
   self : ChatCompletionChoiceBuilder,
-) -> ChatCompletionChoice {
-  ChatCompletionChoice::{
-    finish_reason: self.finish_reason,
-    index: self.index,
-    message: self.message.to_message(),
-  }
+) -> @openai.ChatCompletionChoice {
+  @openai.ChatCompletionChoice::new(
+    finish_reason?=self.finish_reason,
+    index=self.index,
+    message=self.message.to_message(),
+  )
 }
 
 ///|
@@ -151,10 +154,10 @@ priv struct ChatCompletionBuilder {
   choices : Array[ChatCompletionChoiceBuilder?]
   mut created : Int?
   mut model : String?
-  mut usage : CompletionUsage?
+  mut usage : @openai.CompletionUsage?
   mut system_fingerprint : String?
-  mut service_tier : ChatCompletionServiceTier?
-  mut error : OpenRouterErrorResponse?
+  mut service_tier : @openai.ChatCompletionServiceTier?
+  mut error : @openai.OpenRouterErrorResponse?
 }
 
 ///|
@@ -174,7 +177,7 @@ fn ChatCompletionBuilder::new() -> ChatCompletionBuilder {
 ///|
 fn ChatCompletionBuilder::add_chunk(
   self : ChatCompletionBuilder,
-  chunk : ChatCompletionChunk,
+  chunk : @openai.ChatCompletionChunk,
 ) -> Unit {
   if self.id is None {
     self.id = Some(chunk.id)
@@ -216,17 +219,17 @@ fn ChatCompletionBuilder::add_chunk(
 ///|
 fn ChatCompletionBuilder::to_chat_completion(
   self : ChatCompletionBuilder,
-) -> ChatCompletion {
-  ChatCompletion::{
-    id: self.id.unwrap(),
-    choices: self.choices
-    .iter()
-    .filter_map(builder => builder.map(b => b.to_choice()))
-    .to_array(),
-    created: self.created.unwrap(),
-    model: self.model.unwrap(),
-    usage: self.usage,
-    system_fingerprint: self.system_fingerprint,
-    service_tier: self.service_tier,
-  }
+) -> @openai.ChatCompletion {
+  @openai.ChatCompletion::new(
+    id=self.id.unwrap(),
+    choices=self.choices
+      .iter()
+      .filter_map(builder => builder.map(b => b.to_choice()))
+      .to_array(),
+    created=self.created.unwrap(),
+    model=self.model.unwrap(),
+    usage?=self.usage,
+    system_fingerprint?=self.system_fingerprint,
+    service_tier?=self.service_tier,
+  )
 }

@@ -19,7 +19,7 @@ async test "queue_message" (t : @test.Test) {
         .queued_messages()
         .map(id_msg => {
           let (id, msg) = id_msg
-          (id, @openai.ChatCompletionMessageParam::from_ai_message(msg))
+          (id, msg.to_openai())
         }),
         content=[
           [

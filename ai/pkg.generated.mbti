@@ -1,12 +1,19 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/ai"
 
+import(
+  "moonbitlang/maria/internal/openai"
+  "moonbitlang/maria/tool"
+)
+
 // Values
 fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Message
 
 fn system_message(content~ : String) -> Message
 
 fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall
+
+fn tool_desc_to_openai(@tool.ToolDesc) -> @openai.ChatCompletionToolParam
 
 fn tool_message(content~ : String, tool_call_id~ : String) -> Message
 
@@ -24,12 +31,17 @@ pub enum Message {
   Tool(String, tool_call_id~ : String)
 }
 fn Message::content(Self) -> String
+fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
+fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
+fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
 
 pub struct ToolCall {
   id : String
   name : String
   arguments : String?
 }
+fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
+fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
 
 pub struct Usage {
   input_tokens : Int
@@ -37,6 +49,8 @@ pub struct Usage {
   total_tokens : Int
   cache_read_tokens : Int?
 }
+fn Usage::from_openai(@openai.CompletionUsage) -> Self
+fn Usage::to_openai(Self) -> @openai.CompletionUsage
 
 // Type aliases
 
