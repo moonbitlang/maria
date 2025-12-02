@@ -219,7 +219,7 @@ pub fn Conversation::system_prompt(self : Conversation) -> String? {
 ///|
 pub fn Conversation::set_system_prompt(
   self : Conversation,
-  prompt : String,
+  prompt : String?,
 ) -> Unit {
-  self.system_prompt = Some(prompt)
+  self.system_prompt = prompt
 }

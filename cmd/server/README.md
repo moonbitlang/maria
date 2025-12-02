@@ -228,3 +228,27 @@ Request:
   "write_to_file",
 ]
 ```
+
+## `GET /v1/system-prompt`
+
+Gets the current system prompt.
+
+Response:
+
+```json
+"You are a helpful assistant."
+```
+
+`null` is returned if no system prompt is set.
+
+## `POST /v1/system-prompt`
+
+Sets the system prompt.
+
+Request:
+
+```json
+"You are an expert assistant specialized in software development."
+```
+
+Send `null` to clear the system prompt.

@@ -722,3 +722,27 @@ async test "GET /v1/tools" (t : @test.Test) {
     })
   })
 }
+
+///|
+#skip
+async test "GET /v1/system-prompt" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(b is String(text) && text.length() > 0, content=true)
+    let (r, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/system-prompt",
+      Json::string("New system prompt."),
+    )
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={})
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(r.code, content=200)
+    @json.inspect(b, content="New system prompt.")
+  })
+}

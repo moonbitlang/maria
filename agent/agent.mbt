@@ -443,9 +443,7 @@ pub async fn new(
     web_search,
   }
   rules.load()
-  if system_message is Some(system_message) {
-    agent.set_system_prompt(system_message)
-  }
+  agent.set_system_prompt(system_message)
   match user_message {
     Some(message) => agent.add_message(@ai.user_message(content=message))
     None => ()
@@ -461,9 +459,17 @@ pub async fn new(
 ///
 /// * `agent` : The agent instance whose system prompt will be set.
 /// * `prompt` : The system prompt text to be set for the agent's conversation.
-pub async fn Agent::set_system_prompt(agent : Agent, prompt : String) -> Unit {
+pub async fn Agent::set_system_prompt(agent : Agent, prompt : String?) -> Unit {
   agent.history.set_system_prompt(prompt)
-  agent.emit(MessageAdded(@ai.system_message(content=prompt)))
+  if prompt is Some(prompt) {
+    agent.emit(MessageAdded(@ai.system_message(content=prompt)))
+  }
+}
+
+///|
+/// Retrieves the current system prompt from the agent's conversation history.
+pub async fn Agent::system_prompt(agent : Agent) -> String? {
+  agent.history.system_prompt()
 }
 
 ///|
