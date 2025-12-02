@@ -35,8 +35,6 @@
     "harden-react-markdown": "^1.1.5",
     "katex": "^0.16.25",
     "lucide-react": "^0.553.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.9.5",
@@ -49,7 +47,13 @@
     "tailwindcss": "^4.1.17",
     "use-stick-to-bottom": "^1.1.1"
   },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
   "devDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
