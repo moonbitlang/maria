@@ -1,4 +1,15 @@
 ///|
+pub struct QueuedMessage {
+  id : @uuid.Uuid
+  message : @ai.Message
+}
+
+///|
+pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
+  { "id": self.id.to_string(), "message": self.message.to_openai().to_json() }
+}
+
+///|
 /// Represents an AI agent that interacts with language models and executes tools.
 ///
 /// The `Agent` struct encapsulates the complete state and behavior of an AI agent,
@@ -27,7 +38,7 @@ pub struct Agent {
   priv tools : Map[String, Tool]
   priv history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
-  priv pending_queue : @deque.Deque[(@uuid.Uuid, @ai.Message)]
+  priv pending_queue : @deque.Deque[QueuedMessage]
   priv event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context_pruner.Pruner
@@ -67,13 +78,13 @@ pub async fn Agent::queue_message(
   message : @ai.Message,
 ) -> @uuid.Uuid {
   let id = agent.uuid.v4()
-  agent.pending_queue.push_back((id, message))
+  agent.pending_queue.push_back(QueuedMessage::{ id, message })
   agent.emit(MessageQueued(id~, message))
   id
 }
 
 ///|
-pub fn Agent::queued_messages(self : Agent) -> Array[(@uuid.Uuid, @ai.Message)] {
+pub fn Agent::queued_messages(self : Agent) -> Array[QueuedMessage] {
   self.pending_queue.to_array()
 }
 
@@ -267,11 +278,11 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
       // Test if the agent.input_queue is empty, if so, pop from pending_queue
       if agent.input_queue.is_empty() {
-        if agent.pending_queue.pop_front() is Some((id, message)) {
+        if agent.pending_queue.pop_front() is Some(msg) {
           // For sure to happen
-          agent.input_queue.push(message)
-          agent.emit(MessageUnqueued(id~))
-          agent.emit(MessageAdded(message))
+          agent.input_queue.push(msg.message)
+          agent.emit(MessageUnqueued(id=msg.id))
+          agent.emit(MessageAdded(msg.message))
         }
       }
 

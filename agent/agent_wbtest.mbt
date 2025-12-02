@@ -14,20 +14,12 @@ async test "queue_message" (t : @test.Test) {
       @ai.user_message(content="First queued message."),
     )
     @json.inspect(
-      @json.inspect(
-        agent
-        .queued_messages()
-        .map(id_msg => {
-          let (id, msg) = id_msg
-          (id, msg.to_openai())
-        }),
-        content=[
-          [
-            "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
-            { "role": "user", "content": "First queued message." },
-          ],
-        ],
-      ),
+      @json.inspect(agent.queued_messages(), content=[
+        {
+          "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+          "message": { "role": "user", "content": "First queued message." },
+        },
+      ]),
       content=null,
     )
     agent.start()
