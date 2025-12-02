@@ -13,8 +13,8 @@ import(
 
 // Types and methods
 type Extractor
-async fn Extractor::extract_code_snippets(Self, String, history~ : Array[@openai.ChatCompletionMessageParam]) -> String?
-fn Extractor::new(model~ : @model.Model, safe_zone_tokens~ : Int, window_size? : Int, overlap? : Int, logger~ : @pino.Logger) -> Self raise
+pub async fn Extractor::extract_code_snippets(Self, String, history~ : Array[@openai.ChatCompletionMessageParam]) -> String?
+pub fn Extractor::new(model~ : @model.Model, safe_zone_tokens~ : Int, window_size? : Int, overlap? : Int, logger~ : @pino.Logger) -> Self raise
 
 // Type aliases
 

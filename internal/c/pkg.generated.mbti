@@ -2,17 +2,17 @@
 package "moonbitlang/maria/internal/c"
 
 // Values
-fn[T] exit(Int) -> T
+pub fn[T] exit(Int) -> T
 
-fn[T] free(Pointer[T]) -> Unit
+pub fn[T] free(Pointer[T]) -> Unit
 
-fn[T] malloc(UInt64) -> Pointer[T]
+pub fn[T] malloc(UInt64) -> Pointer[T]
 
-fn memcpy(Pointer[Byte], Pointer[Byte], UInt64) -> Unit
+pub fn memcpy(Pointer[Byte], Pointer[Byte], UInt64) -> Unit
 
-let null : Null
+pub let null : Null
 
-fn strlen(Pointer[Byte]) -> UInt64
+pub fn strlen(Pointer[Byte]) -> UInt64
 
 // Errors
 
@@ -23,15 +23,15 @@ pub type Null
 #alias(Ptr)
 #external
 pub type Pointer[_]
-fn[T, U] Pointer::cast(Self[T]) -> Self[U]
-fn[T] Pointer::is_null(Self[T]) -> Bool
-fn[T : Load] Pointer::load(Self[T], offset? : Int) -> T
-fn[T] Pointer::null() -> Self[T]
-fn Pointer::op_equal(Self[Unit], Self[Unit]) -> Bool
-fn[T : Load] Pointer::op_get(Self[T], Int) -> T
-fn[T : Store] Pointer::op_set(Self[T], Int, T) -> Unit
-fn[T : Store] Pointer::store(Self[T], offset? : Int, T) -> Unit
-impl[T] Eq for Pointer[T]
+pub fn[T, U] Pointer::cast(Self[T]) -> Self[U]
+pub fn[T] Pointer::is_null(Self[T]) -> Bool
+pub fn[T : Load] Pointer::load(Self[T], offset? : Int) -> T
+pub fn[T] Pointer::null() -> Self[T]
+pub fn Pointer::op_equal(Self[Unit], Self[Unit]) -> Bool
+pub fn[T : Load] Pointer::op_get(Self[T], Int) -> T
+pub fn[T : Store] Pointer::op_set(Self[T], Int, T) -> Unit
+pub fn[T : Store] Pointer::store(Self[T], offset? : Int, T) -> Unit
+pub impl[T] Eq for Pointer[T]
 
 // Type aliases
 
@@ -39,24 +39,24 @@ impl[T] Eq for Pointer[T]
 pub(open) trait Load {
   load(Pointer[Self], Int) -> Self
 }
-impl Load for Byte
-impl Load for Int
-impl Load for Int16
-impl Load for Int64
-impl Load for UInt
-impl Load for UInt16
-impl Load for UInt64
-impl Load for Float
-impl Load for Double
+pub impl Load for Byte
+pub impl Load for Int
+pub impl Load for Int16
+pub impl Load for Int64
+pub impl Load for UInt
+pub impl Load for UInt16
+pub impl Load for UInt64
+pub impl Load for Float
+pub impl Load for Double
 
 trait Store
-impl Store for Byte
-impl Store for Int
-impl Store for Int16
-impl Store for Int64
-impl Store for UInt
-impl Store for UInt16
-impl Store for UInt64
-impl Store for Float
-impl Store for Double
+pub impl Store for Byte
+pub impl Store for Int
+pub impl Store for Int16
+pub impl Store for Int64
+pub impl Store for UInt
+pub impl Store for UInt16
+pub impl Store for UInt64
+pub impl Store for Float
+pub impl Store for Double
 

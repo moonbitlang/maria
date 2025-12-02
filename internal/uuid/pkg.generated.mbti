@@ -7,36 +7,36 @@ import(
 )
 
 // Values
-fn[Source : Source] generator(Source) -> Generator
+pub fn[Source : Source] generator(Source) -> Generator
 
-let max : Uuid
+pub let max : Uuid
 
-let nil : Uuid
+pub let nil : Uuid
 
-fn parse(StringView) -> Uuid raise ParseError
+pub fn parse(StringView) -> Uuid raise ParseError
 
 // Errors
 type ParseError
-impl Show for ParseError
-impl ToJson for ParseError
+pub impl Show for ParseError
+pub impl ToJson for ParseError
 
 // Types and methods
 type Generator
-fn Generator::v4(Self) -> Uuid
+pub fn Generator::v4(Self) -> Uuid
 
 type Uuid
 #as_free_fn
-fn Uuid::of_bytes(Bytes) -> Self
-fn Uuid::to_bytes(Self) -> Bytes
-fn Uuid::to_string(Self) -> String
-fn Uuid::variant(Self) -> Variant
-fn Uuid::version(Self) -> Version?
-impl Compare for Uuid
-impl Eq for Uuid
-impl Hash for Uuid
-impl Show for Uuid
-impl ToJson for Uuid
-impl @json.FromJson for Uuid
+pub fn Uuid::of_bytes(Bytes) -> Self
+pub fn Uuid::to_bytes(Self) -> Bytes
+pub fn Uuid::to_string(Self) -> String
+pub fn Uuid::variant(Self) -> Variant
+pub fn Uuid::version(Self) -> Version?
+pub impl Compare for Uuid
+pub impl Eq for Uuid
+pub impl Hash for Uuid
+pub impl Show for Uuid
+pub impl ToJson for Uuid
+pub impl @json.FromJson for Uuid
 
 pub enum Variant {
   ReservedNCS
@@ -44,8 +44,8 @@ pub enum Variant {
   ReservedMicrosoft
   ReservedFuture
 }
-impl Show for Variant
-impl ToJson for Variant
+pub impl Show for Variant
+pub impl ToJson for Variant
 
 pub(all) enum Version {
   V0
@@ -65,8 +65,8 @@ pub(all) enum Version {
   V14
   V15
 }
-impl Show for Version
-impl ToJson for Version
+pub impl Show for Version
+pub impl ToJson for Version
 
 // Type aliases
 
@@ -74,5 +74,5 @@ impl ToJson for Version
 pub(open) trait Source {
   uint64(Self) -> UInt64
 }
-impl Source for @random.Rand
+pub impl Source for @random.Rand
 

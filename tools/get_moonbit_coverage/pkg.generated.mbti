@@ -7,15 +7,15 @@ import(
 )
 
 // Values
-fn new(String) -> @tool.Tool[CoverageResult]
+pub fn new(String) -> @tool.Tool[CoverageResult]
 
 // Errors
 
 // Types and methods
 type CoverageResult
-impl Show for CoverageResult
-impl ToJson for CoverageResult
-impl @json.FromJson for CoverageResult
+pub impl Show for CoverageResult
+pub impl ToJson for CoverageResult
+pub impl @json.FromJson for CoverageResult
 
 // Type aliases
 

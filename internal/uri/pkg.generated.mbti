@@ -12,8 +12,8 @@ pub struct Authority {
   mut host : StringView
   mut port : Int?
 }
-impl Eq for Authority
-impl Show for Authority
+pub impl Eq for Authority
+pub impl Show for Authority
 
 pub struct Uri {
   mut scheme : StringView
@@ -22,9 +22,9 @@ pub struct Uri {
   mut query : StringView?
   mut fragment : StringView?
 }
-fn Uri::parse(StringView) -> Self raise ParseError
-impl Eq for Uri
-impl Show for Uri
+pub fn Uri::parse(StringView) -> Self raise ParseError
+pub impl Eq for Uri
+pub impl Show for Uri
 
 // Type aliases
 

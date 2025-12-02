@@ -2,11 +2,11 @@
 package "moonbitlang/maria/internal/readline/unicode/width"
 
 // Values
-fn char(Char, cjk? : Bool) -> Int?
+pub fn char(Char, cjk? : Bool) -> Int?
 
-fn string(StringView, cjk? : Bool) -> Int
+pub fn string(StringView, cjk? : Bool) -> Int
 
-let unicode_version : (Int, Int, Int)
+pub let unicode_version : (Int, Int, Int)
 
 // Errors
 

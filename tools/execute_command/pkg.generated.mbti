@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@job.Manager) -> @tool.Tool[CommandResult]
+pub fn new(@job.Manager) -> @tool.Tool[CommandResult]
 
 // Errors
 
@@ -18,17 +18,17 @@ pub struct CommandOutput {
   truncated_lines : Int
   original_lines : Int
 }
-impl ToJson for CommandOutput
-impl @json.FromJson for CommandOutput
+pub impl ToJson for CommandOutput
+pub impl @json.FromJson for CommandOutput
 
 pub enum CommandResult {
   Completed(command~ : String, status~ : Int, stdout~ : String, stderr~ : String, max_output_lines~ : Int)
   TimedOut(command~ : String, timeout~ : Int, stdout~ : String, stderr~ : String, max_output_lines~ : Int)
   Background(command~ : String, job_id~ : @job.Id)
 }
-impl Show for CommandResult
-impl ToJson for CommandResult
-impl @json.FromJson for CommandResult
+pub impl Show for CommandResult
+pub impl ToJson for CommandResult
+pub impl @json.FromJson for CommandResult
 
 // Type aliases
 

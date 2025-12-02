@@ -2,13 +2,13 @@
 package "moonbitlang/maria/internal/readline/unicode"
 
 // Values
-fn char_size_left(BytesView, Int) -> Int
+pub fn char_size_left(BytesView, Int) -> Int
 
-fn char_size_right(BytesView, Int) -> Int
+pub fn char_size_right(BytesView, Int) -> Int
 
-fn char_width_left(BytesView, Int) -> Int
+pub fn char_width_left(BytesView, Int) -> Int
 
-fn char_width_right(BytesView, Int) -> Int
+pub fn char_width_right(BytesView, Int) -> Int
 
 // Errors
 

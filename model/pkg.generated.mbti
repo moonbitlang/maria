@@ -6,9 +6,9 @@ import(
 )
 
 // Values
-async fn load(home? : StringView, cwd? : StringView, name? : String) -> Model?
+pub async fn load(home? : StringView, cwd? : StringView, name? : String) -> Model?
 
-fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
+pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
 
 // Errors
 
@@ -28,12 +28,12 @@ pub(all) enum CommonModels {
   Glm4_6
   MinimaxM2
 }
-impl Show for CommonModels
+pub impl Show for CommonModels
 
 type Loader
-async fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
-fn Loader::models(Self) -> ArrayView[Model]
-async fn Loader::new(home? : StringView, cwd? : StringView) -> Self
+pub async fn Loader::get_model(Self, name? : String, api_key? : String, base_url? : String) -> Model?
+pub fn Loader::models(Self) -> ArrayView[Model]
+pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Self
 
 pub struct Model {
   name : String
@@ -46,9 +46,9 @@ pub struct Model {
   supports_anthropic_prompt_caching : Bool
 }
 #as_free_fn
-fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
-impl ToJson for Model
-impl @json.FromJson for Model
+pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
+pub impl ToJson for Model
+pub impl @json.FromJson for Model
 
 pub(all) enum Provider {
   OpenAI
@@ -57,8 +57,8 @@ pub(all) enum Provider {
 pub(all) enum Type {
   SaaS(Provider)
 }
-impl ToJson for Type
-impl @json.FromJson for Type
+pub impl ToJson for Type
+pub impl @json.FromJson for Type
 
 // Type aliases
 

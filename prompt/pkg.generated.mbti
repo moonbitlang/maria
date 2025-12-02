@@ -2,9 +2,9 @@
 package "moonbitlang/maria/prompt"
 
 // Values
-let moonbit : String
+pub let moonbit : String
 
-let prelude : String
+pub let prelude : String
 
 // Errors
 

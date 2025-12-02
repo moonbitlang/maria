@@ -2,131 +2,131 @@
 package "moonbitlang/maria/internal/httpx/status"
 
 // Values
-const Accepted : Int = 202
+pub const Accepted : Int = 202
 
-const AlreadyReported : Int = 208
+pub const AlreadyReported : Int = 208
 
-const BadGateway : Int = 502
+pub const BadGateway : Int = 502
 
-const BadRequest : Int = 400
+pub const BadRequest : Int = 400
 
-const Conflict : Int = 409
+pub const Conflict : Int = 409
 
-const Continue : Int = 100
+pub const Continue : Int = 100
 
-const Created : Int = 201
+pub const Created : Int = 201
 
-const EarlyHints : Int = 103
+pub const EarlyHints : Int = 103
 
-const ExpectationFailed : Int = 417
+pub const ExpectationFailed : Int = 417
 
-const FailedDependency : Int = 424
+pub const FailedDependency : Int = 424
 
-const Forbidden : Int = 403
+pub const Forbidden : Int = 403
 
-const Found : Int = 302
+pub const Found : Int = 302
 
-const GatewayTimeout : Int = 504
+pub const GatewayTimeout : Int = 504
 
-const Gone : Int = 410
+pub const Gone : Int = 410
 
-const HttpVersionNotSupported : Int = 505
+pub const HttpVersionNotSupported : Int = 505
 
-const ImATeapot : Int = 418
+pub const ImATeapot : Int = 418
 
-const ImUsed : Int = 226
+pub const ImUsed : Int = 226
 
-const InsufficientStorage : Int = 507
+pub const InsufficientStorage : Int = 507
 
-const InternalServerError : Int = 500
+pub const InternalServerError : Int = 500
 
-const LengthRequired : Int = 411
+pub const LengthRequired : Int = 411
 
-const Locked : Int = 423
+pub const Locked : Int = 423
 
-const LoopDetected : Int = 508
+pub const LoopDetected : Int = 508
 
-const MethodNotAllowed : Int = 405
+pub const MethodNotAllowed : Int = 405
 
-const MisdirectedRequest : Int = 421
+pub const MisdirectedRequest : Int = 421
 
-const MovedPermanently : Int = 301
+pub const MovedPermanently : Int = 301
 
-const MultiStatus : Int = 207
+pub const MultiStatus : Int = 207
 
-const MultipleChoices : Int = 300
+pub const MultipleChoices : Int = 300
 
-const NetworkAuthenticationRequired : Int = 511
+pub const NetworkAuthenticationRequired : Int = 511
 
-const NoContent : Int = 204
+pub const NoContent : Int = 204
 
-const NonAuthoritativeInformation : Int = 203
+pub const NonAuthoritativeInformation : Int = 203
 
-const NotAcceptable : Int = 406
+pub const NotAcceptable : Int = 406
 
-const NotExtended : Int = 510
+pub const NotExtended : Int = 510
 
-const NotFound : Int = 404
+pub const NotFound : Int = 404
 
-const NotImplemented : Int = 501
+pub const NotImplemented : Int = 501
 
-const NotModified : Int = 304
+pub const NotModified : Int = 304
 
-const Ok : Int = 200
+pub const Ok : Int = 200
 
-const PartialContent : Int = 206
+pub const PartialContent : Int = 206
 
-const PayloadTooLarge : Int = 413
+pub const PayloadTooLarge : Int = 413
 
-const PaymentRequired : Int = 402
+pub const PaymentRequired : Int = 402
 
-const PermanentRedirect : Int = 308
+pub const PermanentRedirect : Int = 308
 
-const PreconditionFailed : Int = 412
+pub const PreconditionFailed : Int = 412
 
-const PreconditionRequired : Int = 428
+pub const PreconditionRequired : Int = 428
 
-const Processing : Int = 102
+pub const Processing : Int = 102
 
-const ProxyAuthenticationRequired : Int = 407
+pub const ProxyAuthenticationRequired : Int = 407
 
-const RangeNotSatisfiable : Int = 416
+pub const RangeNotSatisfiable : Int = 416
 
-const RequestHeaderFieldsTooLarge : Int = 431
+pub const RequestHeaderFieldsTooLarge : Int = 431
 
-const RequestTimeout : Int = 408
+pub const RequestTimeout : Int = 408
 
-const ResetContent : Int = 205
+pub const ResetContent : Int = 205
 
-const SeeOther : Int = 303
+pub const SeeOther : Int = 303
 
-const ServiceUnavailable : Int = 503
+pub const ServiceUnavailable : Int = 503
 
-const SwitchingProtocols : Int = 101
+pub const SwitchingProtocols : Int = 101
 
-const TemporaryRedirect : Int = 307
+pub const TemporaryRedirect : Int = 307
 
-const TooEarly : Int = 425
+pub const TooEarly : Int = 425
 
-const TooManyRequests : Int = 429
+pub const TooManyRequests : Int = 429
 
-const Unauthorized : Int = 401
+pub const Unauthorized : Int = 401
 
-const UnavailableForLegalReasons : Int = 451
+pub const UnavailableForLegalReasons : Int = 451
 
-const UnprocessableEntity : Int = 422
+pub const UnprocessableEntity : Int = 422
 
-const UnsupportedMediaType : Int = 415
+pub const UnsupportedMediaType : Int = 415
 
-const UpgradeRequired : Int = 426
+pub const UpgradeRequired : Int = 426
 
-const UriTooLong : Int = 414
+pub const UriTooLong : Int = 414
 
-const UseProxy : Int = 305
+pub const UseProxy : Int = 305
 
-const VariantAlsoNegotiates : Int = 506
+pub const VariantAlsoNegotiates : Int = 506
 
-fn classify(Int) -> Class
+pub fn classify(Int) -> Class
 
 // Errors
 

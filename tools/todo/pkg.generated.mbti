@@ -9,29 +9,29 @@ import(
 )
 
 // Values
-fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
+pub fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
 
-fn new_tool(Todo) -> @tool.Tool[TodoResult]
+pub fn new_tool(Todo) -> @tool.Tool[TodoResult]
 
-fn parse_todo_args(Json) -> TodoArgs raise TodoArgsError
+pub fn parse_todo_args(Json) -> TodoArgs raise TodoArgsError
 
-let prompt : String
+pub let prompt : String
 
 // Errors
 type TodoArgsError
-impl Show for TodoArgsError
+pub impl Show for TodoArgsError
 
 // Types and methods
 type Todo
 
 type TodoArgs
-impl Show for TodoArgs
-impl ToJson for TodoArgs
+pub impl Show for TodoArgs
+pub impl ToJson for TodoArgs
 
 type TodoResult
-impl Show for TodoResult
-impl ToJson for TodoResult
-impl @json.FromJson for TodoResult
+pub impl Show for TodoResult
+pub impl ToJson for TodoResult
+pub impl @json.FromJson for TodoResult
 
 // Type aliases
 

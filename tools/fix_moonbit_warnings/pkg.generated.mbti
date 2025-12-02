@@ -7,7 +7,7 @@ import(
 )
 
 // Values
-fn new(@agent.Agent) -> @tool.Tool[String]
+pub fn new(@agent.Agent) -> @tool.Tool[String]
 
 // Errors
 

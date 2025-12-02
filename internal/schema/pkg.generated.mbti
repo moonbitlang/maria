@@ -2,23 +2,23 @@
 package "moonbitlang/maria/internal/schema"
 
 // Values
-fn array(Schema) -> Schema
+pub fn array(Schema) -> Schema
 
-fn enums(Array[Json]) -> Schema
+pub fn enums(Array[Json]) -> Schema
 
-fn integer() -> Schema
+pub fn integer() -> Schema
 
-fn object(Map[String, Schema], additional_properties? : Bool, required? : Array[String]) -> Schema
+pub fn object(Map[String, Schema], additional_properties? : Bool, required? : Array[String]) -> Schema
 
-fn string() -> Schema
+pub fn string() -> Schema
 
 // Errors
 
 // Types and methods
 type Schema
-fn Schema::to_json(Self) -> Map[String, Json]
-fn Schema::verify(Self, Json) -> Bool
-impl ToJson for Schema
+pub fn Schema::to_json(Self) -> Map[String, Json]
+pub fn Schema::verify(Self, Json) -> Bool
+pub impl ToJson for Schema
 
 // Type aliases
 

@@ -2,30 +2,30 @@
 package "moonbitlang/maria/internal/errno"
 
 // Values
-let eacces : Int
+pub let eacces : Int
 
-let eagain : Int
+pub let eagain : Int
 
-let ebadf : Int
+pub let ebadf : Int
 
-let eexist : Int
+pub let eexist : Int
 
-let einval : Int
+pub let einval : Int
 
-let enametoolong : Int
+pub let enametoolong : Int
 
-let enoent : Int
+pub let enoent : Int
 
-let enotty : Int
+pub let enotty : Int
 
-let erange : Int
+pub let erange : Int
 
-fn get() -> Int
+pub fn get() -> Int
 
 // Errors
 pub(all) suberror Errno Int
-impl Show for Errno
-impl ToJson for Errno
+pub impl Show for Errno
+pub impl ToJson for Errno
 
 // Types and methods
 

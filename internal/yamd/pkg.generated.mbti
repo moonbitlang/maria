@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/yamd"
 
 // Values
-fn parse(String) -> Document
+pub fn parse(String) -> Document
 
 // Errors
 

@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-async fn start(ArrayView[String]) -> Unit
+pub async fn start(ArrayView[String]) -> Unit
 
 // Errors
 
@@ -20,16 +20,16 @@ pub(all) struct Register {
 pub struct Server {
   // private fields
 }
-async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
-fn Server::port(Self) -> Int
-async fn Server::start(Self) -> Unit
+pub async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
+pub fn Server::port(Self) -> Int
+pub async fn Server::start(Self) -> Unit
 
 pub(all) enum Status {
   Idle
   Busy
 }
-impl ToJson for Status
-impl @json.FromJson for Status
+pub impl ToJson for Status
+pub impl @json.FromJson for Status
 
 // Type aliases
 

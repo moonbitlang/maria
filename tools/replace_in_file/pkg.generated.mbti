@@ -8,15 +8,15 @@ import(
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[WriteResult]
+pub fn new(@file.Manager) -> @tool.Tool[WriteResult]
 
 // Errors
 
 // Types and methods
 type WriteResult
-impl Show for WriteResult
-impl ToJson for WriteResult
-impl @json.FromJson for WriteResult
+pub impl Show for WriteResult
+pub impl ToJson for WriteResult
+pub impl @json.FromJson for WriteResult
 
 // Type aliases
 
