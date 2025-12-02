@@ -157,9 +157,7 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
         "pruned_token_count": pruned_token_count,
       }
     PreToolCall(tool_call) => {
-      let tool_call = @openai.ChatCompletionMessageToolCall::from_ai_tool_call(
-        tool_call,
-      )
+      let tool_call = tool_call.to_openai()
       match tool_call.function.arguments {
         None =>
           {
@@ -189,9 +187,7 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
       }
     }
     PostToolCall(tool_call, result~, rendered~) => {
-      let tool_call = @openai.ChatCompletionMessageToolCall::from_ai_tool_call(
-        tool_call,
-      )
+      let tool_call = tool_call.to_openai()
       match result {
         Ok(output) =>
           {
@@ -214,19 +210,11 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
     MessageAdded(message) =>
-      {
-        "msg": "MessageAdded",
-        "message": @openai.ChatCompletionMessageParam::from_ai_message(message),
-      }
+      { "msg": "MessageAdded", "message": message.to_openai() }
     MessageQueued(id~, message) =>
       {
         "msg": "MessageQueued",
-        "message": {
-          "id": id,
-          "message": @openai.ChatCompletionMessageParam::from_ai_message(
-            message,
-          ),
-        },
+        "message": { "id": id, "message": message.to_openai() },
       }
     MessageUnqueued(id~) =>
       { "msg": "MessageUnqueued", "message": { "id": id } }
@@ -240,8 +228,8 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
         },
       }
     RequestCompleted(usage~, message~) => {
-      let usage = usage.map(@openai.CompletionUsage::from_ai_usage)
-      let message = @openai.ChatCompletionMessageParam::from_ai_message(message)
+      let usage = usage.map(fn(u) { u.to_openai() })
+      let message = message.to_openai()
       { "msg": "RequestCompleted", "usage": usage, "message": message }
     }
   }

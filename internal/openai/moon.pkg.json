@@ -5,12 +5,12 @@
     "moonbitlang/maria/internal/schema",
     "moonbitlang/async/io",
     "moonbitlang/async",
-    "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/tool",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/internal/pino"
   ],
   "test-import": [
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/mock"
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/tool"
   ]
 }

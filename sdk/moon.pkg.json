@@ -6,6 +6,7 @@
     "moonbitlang/async/stdio",
     "moonbitlang/maria",
     "moonbitlang/maria/agent",
+    "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/backtrace",
     "moonbitlang/maria/tool",

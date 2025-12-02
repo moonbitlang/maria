@@ -99,12 +99,11 @@ fn ChatCompletionMessageBuilder::to_message(
     guard builder is Some(builder) else { continue }
     tool_calls.push(builder.to_tool_call())
   }
-  ChatCompletionMessage::{
-    content: self.content.map(b => b.to_string()),
-    refusal: self.refusal.map(b => b.to_string()),
-    tool_calls,
-    role: ChatCompletionMessageRole::Assistant,
-  }
+  ChatCompletionMessage::new(
+    content?=self.content.map(b => b.to_string()),
+    refusal?=self.refusal.map(b => b.to_string()),
+    tool_calls~,
+  )
 }
 
 ///|
@@ -138,11 +137,11 @@ fn ChatCompletionChoiceBuilder::add_chunk(
 fn ChatCompletionChoiceBuilder::to_choice(
   self : ChatCompletionChoiceBuilder,
 ) -> ChatCompletionChoice {
-  ChatCompletionChoice::{
-    finish_reason: self.finish_reason,
-    index: self.index,
-    message: self.message.to_message(),
-  }
+  ChatCompletionChoice::new(
+    finish_reason?=self.finish_reason,
+    index=self.index,
+    message=self.message.to_message(),
+  )
 }
 
 ///|
@@ -217,16 +216,16 @@ fn ChatCompletionBuilder::add_chunk(
 fn ChatCompletionBuilder::to_chat_completion(
   self : ChatCompletionBuilder,
 ) -> ChatCompletion {
-  ChatCompletion::{
-    id: self.id.unwrap(),
-    choices: self.choices
-    .iter()
-    .filter_map(builder => builder.map(b => b.to_choice()))
-    .to_array(),
-    created: self.created.unwrap(),
-    model: self.model.unwrap(),
-    usage: self.usage,
-    system_fingerprint: self.system_fingerprint,
-    service_tier: self.service_tier,
-  }
+  ChatCompletion::new(
+    id=self.id.unwrap(),
+    choices=self.choices
+      .iter()
+      .filter_map(builder => builder.map(b => b.to_choice()))
+      .to_array(),
+    created=self.created.unwrap(),
+    model=self.model.unwrap(),
+    usage?=self.usage,
+    system_fingerprint?=self.system_fingerprint,
+    service_tier?=self.service_tier,
+  )
 }

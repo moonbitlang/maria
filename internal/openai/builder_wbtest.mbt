@@ -193,18 +193,15 @@ test "ChatCompletionBuilder" {
               ),
             ),
           ]),
-          finish_reason=Stop,
+          finish_reason=ChatCompletionChoiceFinishReason::Stop,
         ),
       ],
-      usage=CompletionUsage::{
-        prompt_tokens: 10,
-        prompt_tokens_details: None,
-        completion_tokens: 20,
-        completion_tokens_details: None,
-        total_tokens: 30,
-        cost: Some(0.002),
-        cost_details: None,
-      },
+      usage=CompletionUsage::new(
+        prompt_tokens=10,
+        completion_tokens=20,
+        total_tokens=30,
+        cost=0.002,
+      ),
     ),
   )
   @json.inspect(builder.to_chat_completion(), content={

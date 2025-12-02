@@ -10,6 +10,7 @@
   ],
   "test-import": [
     "moonbitlang/async",
+    "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/file",
     "moonbitlang/maria/agent",

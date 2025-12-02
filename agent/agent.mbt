@@ -220,10 +220,8 @@ async fn Agent::prepare_messages_for_request(
   tools~ : Array[@tool.ToolDesc],
 ) -> Array[@openai.ChatCompletionMessageParam] {
   agent.rules.apply(messages)
-  let messages = messages.map(
-    @openai.ChatCompletionMessageParam::from_ai_message,
-  )
-  let tools = tools.map(@openai.ChatCompletionToolParam::from_tool_desc)
+  let messages = messages.map(fn(msg) { msg.to_openai() })
+  let tools = tools.map(@ai.tool_desc_to_openai)
   // Count tokens before pruning to track context size
   let origin_token_count = agent.token_counter.count_param(messages~, tools~)
   // Emit event with original token count for monitoring
@@ -321,9 +319,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         @openai.chat_completion(
           messages=cache_messages,
           model=agent.model.model_name,
-          tools=tools.map(tool => @openai.ChatCompletionToolParam::from_tool_desc(
-            tool,
-          )),
+          tools=tools.map(@ai.tool_desc_to_openai),
         ),
         extra_body~,
       )
@@ -331,12 +327,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       guard response is { choices: [{ message, .. }, ..], usage, .. } else {
         raise EmptyChoices
       }
-      let ai_message = message.to_ai_message()
+      let ai_message = @ai.Message::from_openai_response(message)
 
       // Emit event with API usage statistics and the returned message
       agent.emit(
         RequestCompleted(
-          usage=usage.map(usage => usage.to_ai_usage()),
+          usage=usage.map(fn(u) { @ai.Usage::from_openai(u) }),
           message=ai_message,
         ),
       )
@@ -351,7 +347,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.session_manager.save(agent.history)
       // Execute each tool call and queue the results for the next iteration
       for call in message.tool_calls {
-        agent.add_message(agent.execute_tool(call.to_ai_tool_call()))
+        agent.add_message(
+          agent.execute_tool(@ai.ToolCall::from_openai_tool_call(call)),
+        )
       }
     }
     // Signal the end of conversation

@@ -3,11 +3,9 @@ package "moonbitlang/maria/internal/openai"
 
 import(
   "moonbitlang/core/json"
-  "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/schema"
   "moonbitlang/maria/model"
-  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -68,6 +66,7 @@ pub struct ChatCompletion {
   system_fingerprint : String?
   service_tier : ChatCompletionServiceTier?
 }
+fn ChatCompletion::new(id~ : String, choices~ : Array[ChatCompletionChoice], created~ : Int, model~ : String, usage? : CompletionUsage, system_fingerprint? : String, service_tier? : ChatCompletionServiceTier) -> Self
 impl Show for ChatCompletion
 impl ToJson for ChatCompletion
 impl @json.FromJson for ChatCompletion
@@ -93,9 +92,10 @@ pub struct ChatCompletionChoice {
   index : Int
   message : ChatCompletionMessage
 }
+fn ChatCompletionChoice::new(finish_reason? : ChatCompletionChoiceFinishReason, index~ : Int, message~ : ChatCompletionMessage) -> Self
 impl Show for ChatCompletionChoice
 
-pub enum ChatCompletionChoiceFinishReason {
+pub(all) enum ChatCompletionChoiceFinishReason {
   Stop
   Length
   ToolCalls
@@ -171,7 +171,7 @@ pub struct ChatCompletionMessage {
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
 }
-fn ChatCompletionMessage::to_ai_message(Self) -> @ai.Message
+fn ChatCompletionMessage::new(content? : String, refusal? : String, role? : ChatCompletionMessageRole, tool_calls? : Array[ChatCompletionMessageToolCall]) -> Self
 fn ChatCompletionMessage::to_param(Self) -> ChatCompletionMessageParam
 impl Show for ChatCompletionMessage
 impl ToJson for ChatCompletionMessage
@@ -183,8 +183,6 @@ pub(all) enum ChatCompletionMessageParam {
   Assistant(ChatCompletionAssistantMessageParam)
   Tool(ChatCompletionToolMessageParam)
 }
-fn ChatCompletionMessageParam::from_ai_message(@ai.Message) -> Self
-fn ChatCompletionMessageParam::to_ai_message(Self) -> @ai.Message
 impl ToJson for ChatCompletionMessageParam
 impl @json.FromJson for ChatCompletionMessageParam
 
@@ -199,8 +197,6 @@ pub struct ChatCompletionMessageToolCall {
   id : String
   function : ChatCompletionMessageToolCallFunction
 }
-fn ChatCompletionMessageToolCall::from_ai_tool_call(@ai.ToolCall) -> Self
-fn ChatCompletionMessageToolCall::to_ai_tool_call(Self) -> @ai.ToolCall
 impl Show for ChatCompletionMessageToolCall
 impl ToJson for ChatCompletionMessageToolCall
 
@@ -210,7 +206,7 @@ pub struct ChatCompletionMessageToolCallFunction {
 }
 impl Show for ChatCompletionMessageToolCallFunction
 
-pub enum ChatCompletionRole {
+pub(all) enum ChatCompletionRole {
   Developer
   System
   User
@@ -257,7 +253,6 @@ pub struct ChatCompletionToolMessageParam {
 pub enum ChatCompletionToolParam {
   Function(FunctionDefinition)
 }
-fn ChatCompletionToolParam::from_tool_desc(@tool.ToolDesc) -> Self
 impl ToJson for ChatCompletionToolParam
 
 pub struct ChatCompletionUserMessageParam {
@@ -281,9 +276,7 @@ pub struct CompletionUsage {
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
 }
-fn CompletionUsage::from_ai_usage(@ai.Usage) -> Self
 fn CompletionUsage::new(completion_tokens~ : Int, completion_tokens_details? : CompletionTokensDetails, cost? : Double, cost_details? : CostDetails, prompt_tokens~ : Int, prompt_tokens_details? : PromptTokensDetails, total_tokens~ : Int) -> Self
-fn CompletionUsage::to_ai_usage(Self) -> @ai.Usage
 impl Show for CompletionUsage
 impl ToJson for CompletionUsage
 impl @json.FromJson for CompletionUsage
@@ -319,6 +312,7 @@ pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
 }
+fn PromptTokensDetails::new(cached_tokens? : Int, audio_tokens? : Int) -> Self
 impl Show for PromptTokensDetails
 impl ToJson for PromptTokensDetails
 

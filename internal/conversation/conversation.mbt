@@ -174,8 +174,8 @@ pub fn Conversation::add_message(
   usage? : @ai.Usage,
 ) -> Unit {
   let now = self.clock.now()
-  let usage = usage.map(@openai.CompletionUsage::from_ai_usage)
-  let message = @openai.ChatCompletionMessageParam::from_ai_message(message)
+  let usage = usage.map(fn(u) { u.to_openai() })
+  let message = message.to_openai()
   let message = Message::{ timestamp: now, usage, message }
   self.messages.push(message)
   self.updated_at = now
@@ -206,7 +206,7 @@ pub fn Conversation::messages(
     msgs.push(@ai.system_message(content=system_prompt))
   }
   for m in self.messages {
-    msgs.push(m.message.to_ai_message())
+    msgs.push(@ai.Message::from_openai(m.message))
   }
   msgs
 }

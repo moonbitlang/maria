@@ -114,7 +114,7 @@ async test "chat_with_usage" {
 ///|
 /// Test tool definition
 test "tool_definition" {
-  let tool_def = @openai.tool(
+  let tool_def = tool(
     name="get_weather",
     description="Get the current weather in a location",
     parameters={
@@ -161,7 +161,7 @@ async test "streaming" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = deepseek_model(api_key)
-    let chat_completion = @openai.chat(
+    let chat_completion = chat(
       model~,
       chat_completion(
         model=model.model_name,
@@ -188,7 +188,7 @@ async test "streaming_tool_call" (t : @test.Test) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
-    let chat_completion = @openai.chat(
+    let chat_completion = chat(
       model~,
       chat_completion(
         model=model.model_name,
@@ -199,7 +199,7 @@ async test "streaming_tool_call" (t : @test.Test) {
           ),
         ],
         tools=[
-          @openai.tool(
+          tool(
             name="get_weather",
             description="Get the current weather in a location",
             parameters={
@@ -232,7 +232,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = claude_sonnet_model(api_key)
-    let chat_completion = @openai.chat(
+    let chat_completion = chat(
       model~,
       chat_completion(
         model=model.model_name,
@@ -243,7 +243,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
           ),
         ],
         tools=[
-          @openai.tool(
+          tool(
             name="get_weather",
             description="Get the current weather in a location",
             parameters={
@@ -258,7 +258,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
         stream=true,
       ),
     )
-    let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
+    let tool_calls : Array[ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
     let tool_calls = tool_calls.map(tc => {
       guard tc.to_json() is Object(tc_object)
       tc_object.remove("id")
@@ -300,7 +300,7 @@ async test "deepseek" {
     name="deepseek-chat",
     safe_zone_tokens=128_000,
   )
-  let completion = @openai.chat(
+  let completion = chat(
     model~,
     chat_completion(
       model=model.model_name,
@@ -331,7 +331,7 @@ async test "kimi-k2" {
     name="kimi-k2-turbo-preview",
     safe_zone_tokens=262_144,
   )
-  let completion = @openai.chat(
+  let completion = chat(
     model~,
     chat_completion(
       model=model.model_name,
@@ -360,7 +360,7 @@ async test "dashscope" {
     name="qwen3-coder-plus",
     safe_zone_tokens=997_952,
   )
-  let completion = @openai.chat(
+  let completion = chat(
     model~,
     chat_completion(
       model=model.model_name,
