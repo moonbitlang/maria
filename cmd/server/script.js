@@ -10,6 +10,9 @@ const refreshModulesBtn = document.getElementById("refreshModulesBtn");
 // Task status
 let isTaskRunning = false;
 
+// Tools state
+let availableTools = {};
+
 // Update UI based on task status
 function updateTaskStatus(running) {
   isTaskRunning = running;
@@ -199,6 +202,168 @@ async function publishModule(modulePath, moduleIndex) {
 }
 
 refreshModulesBtn.addEventListener("click", loadModules);
+
+// Tools Management
+async function loadTools() {
+  try {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = '<div class="loading">Loading tools...</div>';
+    const response = await fetch("/v1/tools");
+
+    if (!response.ok) {
+      throw new Error(`Failed to load tools: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    availableTools = data;
+    displayTools(data);
+  } catch (error) {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = `<div class="no-modules">Error: ${escapeHtml(
+      error.message
+    )}</div>`;
+    addMessage(`✗ Failed to load tools: ${error.message}`);
+  }
+}
+
+function displayTools(tools) {
+  const toolsListDiv = document.getElementById("toolsList");
+  const toolEntries = Object.entries(tools);
+
+  if (toolEntries.length === 0) {
+    toolsListDiv.innerHTML = '<div class="no-modules">No tools available.</div>';
+    return;
+  }
+
+  toolsListDiv.innerHTML = toolEntries
+    .map(
+      ([toolName, toolInfo]) => `
+    <div class="tool-item">
+      <input
+        type="checkbox"
+        id="tool-${escapeHtml(toolName)}"
+        data-tool-name="${escapeHtml(toolName)}"
+        ${toolInfo.enabled ? "checked" : ""}
+      />
+      <label for="tool-${escapeHtml(toolName)}">${escapeHtml(toolName)}</label>
+    </div>
+  `
+    )
+    .join("");
+}
+
+async function updateEnabledTools() {
+  const checkboxes = document.querySelectorAll('.tool-item input[type="checkbox"]');
+  const enabledTools = Array.from(checkboxes)
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.getAttribute("data-tool-name"));
+
+  try {
+    const response = await fetch("/v1/enabled-tools", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(enabledTools),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully updated enabled tools`);
+      await loadTools(); // Reload to show updated state
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to update tools: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error updating tools: ${error.message}`);
+  }
+}
+
+const updateToolsBtn = document.getElementById("updateToolsBtn");
+if (updateToolsBtn) {
+  updateToolsBtn.addEventListener("click", updateEnabledTools);
+}
+
+// System Prompt Management
+async function loadSystemPrompt() {
+  try {
+    const response = await fetch("/v1/system-prompt");
+
+    if (!response.ok) {
+      throw new Error(`Failed to load system prompt: ${response.statusText}`);
+    }
+
+    const systemPrompt = await response.json();
+    const systemPromptInput = document.getElementById("systemPromptInput");
+    if (systemPromptInput) {
+      systemPromptInput.value = systemPrompt || "";
+    }
+  } catch (error) {
+    addMessage(`✗ Failed to load system prompt: ${error.message}`);
+  }
+}
+
+async function saveSystemPrompt() {
+  const systemPromptInput = document.getElementById("systemPromptInput");
+  const systemPrompt = systemPromptInput.value.trim();
+
+  try {
+    const response = await fetch("/v1/system-prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(systemPrompt || null),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully saved system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to save system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error saving system prompt: ${error.message}`);
+  }
+}
+
+async function clearSystemPrompt() {
+  try {
+    const response = await fetch("/v1/system-prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(null),
+    });
+
+    if (response.ok) {
+      const systemPromptInput = document.getElementById("systemPromptInput");
+      if (systemPromptInput) {
+        systemPromptInput.value = "";
+      }
+      addMessage(`✓ Successfully cleared system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to clear system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error clearing system prompt: ${error.message}`);
+  }
+}
+
+const saveSystemPromptBtn = document.getElementById("saveSystemPromptBtn");
+if (saveSystemPromptBtn) {
+  saveSystemPromptBtn.addEventListener("click", saveSystemPrompt);
+}
+
+const clearSystemPromptBtn = document.getElementById("clearSystemPromptBtn");
+if (clearSystemPromptBtn) {
+  clearSystemPromptBtn.addEventListener("click", clearSystemPrompt);
+}
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -567,4 +732,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   connect();
   loadModules();
+  loadTools();
+  loadSystemPrompt();
 });
