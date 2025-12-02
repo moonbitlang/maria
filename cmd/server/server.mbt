@@ -132,6 +132,8 @@ async fn Server::serve_http(self : Server) -> Unit {
         (Get, "/v1/queued-messages") => self.get_queued_messages(w)
         (Get, "/v1/events") => self.get_events(w)
         (Post, "/v1/message") => self.create_message(r, w)
+        (Get, "/v1/tools") => self.get_tools(w)
+        (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
         (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
         (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
         (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
@@ -428,6 +430,94 @@ async fn Server::create_message(
     idq.get()
   }
   let response : Json = { "id": id, "queued": true }
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
+}
+
+///|
+async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  let tools = self.maria.agent.tools()
+  let tools_json : Map[String, Json] = {}
+  for name, tool in tools {
+    tools_json[name] = { "enabled": tool.enabled() }
+  }
+  let response : Json = Json::object(tools_json)
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
+}
+
+///|
+priv struct PostEnabledToolsRequest(Array[String])
+
+///|
+impl @json.FromJson for PostEnabledToolsRequest with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> PostEnabledToolsRequest raise @json.JsonDecodeError {
+  let tools : Array[String] = @json.from_json(json, path=json_path)
+  PostEnabledToolsRequest(tools)
+}
+
+///|
+async fn Server::set_enabled_tools(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let request : PostEnabledToolsRequest = {
+    let data = r.body.read_all().binary()
+    let text : String = @encoding/utf8.decode(data) catch {
+      // TODO(upstream): impl Show for @encoding/utf8.Malformed
+      @encoding/utf8.Malformed(bytes) =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid UTF-8 in request body: \{bytes}",
+          },
+        })
+    }
+    let json = @json.parse(text) catch {
+      error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid JSON in request body: \{error}",
+          },
+        })
+    }
+    @json.from_json(json) catch {
+      @json.JsonDecodeError(_) as error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid request body: \{error}",
+            "data": { "error": error, "body": json },
+          },
+        })
+    }
+  }
+  let tools = Set::new()
+  for tool_name in request.0 {
+    if tools.contains(tool_name) {
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Duplicate tool name in request: \{tool_name}",
+        },
+      })
+    }
+    tools.add(tool_name)
+  }
+  self.maria.agent.set_enabled_tools(tools)
+  let response : Json = {}
   w.header().set("Content-Type", "application/json")
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")

@@ -197,3 +197,34 @@ If failed, returns 500 Internal Server Error:
   },
 }
 ```
+
+## `GET /v1/tools`
+
+Returns the list of tools available in the server's working directory.
+
+```json
+{
+  "read_files": {
+    "enabled": true,
+  },
+  "write_to_file": {
+    "enabled": true,
+  },
+  "execute_command": {
+    "enabled": true,
+  }
+}
+```
+
+## `POST /v1/enabled-tools`
+
+Sets the list of available tools. Tools not included in the list will be disabled.
+
+Request:
+
+```json
+[
+  "read_files",
+  "write_to_file",
+]
+```

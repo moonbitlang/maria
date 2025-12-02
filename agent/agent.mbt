@@ -513,7 +513,7 @@ pub fn Agent::add_listener(
 }
 
 ///|
-priv struct Tool {
+struct Tool {
   mut enabled : Bool
   tool : @tool.AgentTool
 }
@@ -524,7 +524,7 @@ fn Tool::new(tool : @tool.AgentTool) -> Tool {
 }
 
 ///|
-fn Tool::desc(self : Tool) -> @tool.ToolDesc {
+pub fn Tool::desc(self : Tool) -> @tool.ToolDesc {
   self.tool.desc()
 }
 
@@ -537,6 +537,11 @@ async fn Tool::call(
     return @tool.error("Tool '\{self.tool.desc().name}' is disabled.")
   }
   self.tool.call(args)
+}
+
+///|
+pub fn Tool::enabled(self : Tool) -> Bool {
+  self.enabled
 }
 
 ///|
@@ -558,4 +563,9 @@ pub async fn Agent::set_enabled_tools(
       tool.enabled = false
     }
   }
+}
+
+///|
+pub fn Agent::tools(self : Agent) -> Map[String, Tool] {
+  self.tools
 }
