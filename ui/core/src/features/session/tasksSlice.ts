@@ -20,6 +20,7 @@ type Task = TaskOverview & {
   inputQueue: QueuedMessage[];
   events: TaskEvent[];
   eventIds: Record<number, true>;
+  webSearchEnabled: boolean;
 };
 
 export function defaultTask(params: TaskOverview): Task {
@@ -29,6 +30,7 @@ export function defaultTask(params: TaskOverview): Task {
     inputQueue: [],
     events: [],
     eventIds: {},
+    webSearchEnabled: false,
     ...params,
   };
 }
@@ -89,6 +91,14 @@ export const tasksSlice = createAppSlice({
       const task = state.tasks[taskId];
       if (task) {
         task.chatInput = input;
+      }
+    },
+
+    toggleWebSearchForTask(state, action: PayloadAction<{ taskId: string }>) {
+      const { taskId } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        task.webSearchEnabled = !task.webSearchEnabled;
       }
     },
 
@@ -185,6 +195,13 @@ export const tasksSlice = createAppSlice({
       const task = state.tasks[taskId];
       return task?.inputQueue;
     },
+
+    selectWebSearchEnabledForTask(
+      state: TasksSliceState,
+      taskId: string,
+    ): boolean | undefined {
+      return state.tasks[taskId]?.webSearchEnabled;
+    },
   },
 });
 
@@ -197,6 +214,7 @@ export const {
   addToInputQueueForTask,
   removeFromInputQueueForTask,
   pushEventForTask,
+  toggleWebSearchForTask,
 } = tasksSlice.actions;
 
 export const {
@@ -208,6 +226,7 @@ export const {
   selectTaskEvents,
   selectTaskTodos,
   selectTaskCwd,
+  selectWebSearchEnabledForTask,
 } = tasksSlice.selectors;
 
 // Memoized selector to prevent unnecessary re-renders

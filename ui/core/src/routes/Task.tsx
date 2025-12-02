@@ -21,6 +21,8 @@ import {
   selectTaskEvents,
   setStatusForTask,
   selectTaskCwd,
+  selectWebSearchEnabledForTask,
+  toggleWebSearchForTask,
 } from "../features/session/tasksSlice.ts";
 import { Clock, Folder } from "lucide-react";
 import { Fragment, useEffect, type FormEvent } from "react";
@@ -37,6 +39,7 @@ import {
   TooltipTrigger,
 } from "../components/ui/tooltip.tsx";
 import { base } from "../lib/utils.ts";
+import { WebSearchToggleTool } from "../components/web-search-toggle-tool.tsx";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();
@@ -48,6 +51,9 @@ function useSetActiveTaskId(taskId: string) {
 
 function PromptInput({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
+  const webSearchEnabled = useAppSelector((state) =>
+    selectWebSearchEnabledForTask(state, taskId),
+  )!;
   const [postMessage] = usePostMessageMutation();
   const [postCancel] = usePostCancelMutation();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
@@ -132,6 +138,12 @@ function PromptInput({ taskId }: { taskId: string }) {
               <p>{cwd}</p>
             </TooltipContent>
           </Tooltip>
+          <WebSearchToggleTool
+            webSearchEnabled={webSearchEnabled}
+            onClick={() => {
+              dispatch(toggleWebSearchForTask({ taskId }));
+            }}
+          />
         </PromptInputTools>
       }
     />
