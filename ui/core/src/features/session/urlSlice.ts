@@ -1,4 +1,3 @@
-import * as _ from "../../lib/electronApi";
 import { createAppSlice } from "../../app/createAppSlice";
 
 type UrlState = {
@@ -6,8 +5,8 @@ type UrlState = {
 };
 
 async function getDefaultUrl(): Promise<string> {
-  if (window.electronAPI) {
-    const url = await window.electronAPI.getUrl();
+  if ((window as any).electronAPI) {
+    const url = await (window as any).electronAPI.getUrl();
     return url;
   }
   return import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/v1";
