@@ -17,14 +17,18 @@ import {
 import {
   selectCwd,
   selectInput,
+  selectWebSearchEnabled,
   setCwd,
   setInput,
+  toggleWebSearchEnabled,
 } from "@maria/core/features/session/homeSlice.js";
 import { base } from "@maria/core/lib/utils.js";
+import { WebSearchToggleTool } from "@maria/core/components/web-search-toggle-tool.js";
 
 export default function Home() {
   const input = useAppSelector(selectInput);
   const cwd = useAppSelector(selectCwd);
+  const webSearchEnabled = useAppSelector(selectWebSearchEnabled);
   const baseCwd = cwd ? base(cwd) : undefined;
   const navigate = useNavigate();
   const [postNewTask] = useNewTaskMutation();
@@ -87,6 +91,12 @@ export default function Home() {
                 <TooltipContent>
                   <p>Choose a working directory</p>
                 </TooltipContent>
+                <WebSearchToggleTool
+                  onClick={() => {
+                    dispatch(toggleWebSearchEnabled());
+                  }}
+                  webSearchEnabled={webSearchEnabled}
+                />
               </Tooltip>
             </PromptInputTools>
           }
