@@ -621,7 +621,7 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
 ///|
 #skip
 async test "agent/web_search" (t : @test.Test) {
-  @mock.run(t, retry=3, mock => {
+  @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=mock.cwd.path())
     let mut result = Json::null()
@@ -642,7 +642,7 @@ async test "agent/web_search" (t : @test.Test) {
     )
     agent.queue_message(
       @ai.user_message(
-        content="Can you please search the web for MoonBit to find out which year it is initiated?",
+        content="Can you please search the web for MoonBit to find out which year it is initiated, and submit the year using the submit_moonbit_initiation_year tool?",
       ),
       web_search=true,
     )
