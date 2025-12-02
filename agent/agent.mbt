@@ -221,7 +221,7 @@ async fn Agent::prepare_messages_for_request(
 ) -> Array[@openai.ChatCompletionMessageParam] {
   agent.rules.apply(messages)
   let messages = messages.map(fn(msg) { msg.to_openai() })
-  let tools = tools.map(@ai.tool_desc_to_openai)
+  let tools = tools.map(x => x.to_openai())
   // Count tokens before pruning to track context size
   let origin_token_count = agent.token_counter.count_param(messages~, tools~)
   // Emit event with original token count for monitoring
@@ -319,7 +319,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         @openai.chat_completion(
           messages=cache_messages,
           model=agent.model.model_name,
-          tools=tools.map(@ai.tool_desc_to_openai),
+          tools=tools.map(x => x.to_openai()),
         ),
         extra_body~,
       )
