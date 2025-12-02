@@ -11,6 +11,7 @@ import {
   type MessageAddedEvent,
   type MetaWriteToFileTool,
   type PostToolCallEvent,
+  type PreToolCallEvent,
   type ReadFileTool,
   type RequestCompletedEvent,
   type TaskEvent,
@@ -344,6 +345,20 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
   );
 }
 
+function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
+  return (
+    <Tool>
+      <ToolHeader
+        type={event.tool_call.function.name}
+        state="input-available"
+      />
+      <ToolContent>
+        <ToolInput input={JSON.parse(event.tool_call.function.arguments)} />
+      </ToolContent>
+    </Tool>
+  );
+}
+
 export function EventsDisplay(props: EventsDisplayProps) {
   const { events } = props;
   return (
@@ -351,6 +366,8 @@ export function EventsDisplay(props: EventsDisplayProps) {
       <ConversationContent className="mx-auto max-w-4xl overflow-x-hidden">
         {events.map((event, i) => {
           switch (event.msg) {
+            case "PreToolCall":
+              return <ShowPreToolCall key={i} event={event} />;
             case "MessageAdded":
               return <ShowMessageAdded key={i} event={event} />;
             case "PostToolCall":

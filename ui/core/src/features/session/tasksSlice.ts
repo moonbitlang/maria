@@ -136,12 +136,33 @@ export const tasksSlice = createAppSlice({
         if (task.eventIds[event.id]) {
           return;
         }
-        task.events.push(event);
-        task.eventIds[event.id] = true;
 
         if (event.msg === "PostToolCall" && event.name === "todo") {
           const result = (event as TodoTool).result;
           task.todos = result.todos;
+        }
+
+        if (event.msg === "PostToolCall") {
+          // search back for the respective PreToolCall event and change it to PostToolCall
+          const toolCallId = event.tool_call.id;
+          let found = false;
+          for (let i = task.events.length - 1; i >= 0; i--) {
+            const e = task.events[i];
+            if (e.msg === "PreToolCall" && e.tool_call.id === toolCallId) {
+              // replace the PreToolCall event with PostToolCall event
+              found = true;
+              task.events[i] = event;
+              task.eventIds[event.id] = true;
+              break;
+            }
+          }
+          if (!found) {
+            task.events.push(event);
+            task.eventIds[event.id] = true;
+          }
+        } else {
+          task.events.push(event);
+          task.eventIds[event.id] = true;
         }
       }
     },

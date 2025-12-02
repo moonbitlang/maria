@@ -155,6 +155,7 @@ export const apiSlice = createApi({
             const data = JSON.parse(event.data) as TaskEvent;
             switch (data.msg) {
               case "RequestCompleted":
+              case "PreToolCall":
               case "PostToolCall":
               case "MessageAdded": {
                 dispatch(pushEventForTask({ taskId: id, event: data }));

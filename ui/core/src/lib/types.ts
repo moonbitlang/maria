@@ -28,6 +28,7 @@ type TaskEventBase = {
 export type TaskEvent = TaskEventBase &
   (
     | RequestCompletedEvent
+    | PreToolCallEvent
     | PostToolCallEvent
     | MessageAddedEvent
     | PostConversationEvent
@@ -124,6 +125,11 @@ export type TodoTool = {
 
 type UnknownTool = {
   name: string;
+};
+
+export type PreToolCallEvent = {
+  msg: "PreToolCall";
+  tool_call: ToolCall;
 };
 
 type PostToolCallBase = {
