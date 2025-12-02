@@ -132,7 +132,7 @@ test "tool_desc" {
       "required": ["query"],
     }),
   )
-  @json.inspect(@ai.tool_desc_to_openai(tool_desc), content={
+  @json.inspect(tool_desc.to_openai(), content={
     "type": "function",
     "function": {
       "name": "fetch_data",

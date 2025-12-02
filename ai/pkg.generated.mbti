@@ -3,7 +3,6 @@ package "moonbitlang/maria/ai"
 
 import(
   "moonbitlang/maria/internal/openai"
-  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -12,8 +11,6 @@ fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Messag
 fn system_message(content~ : String) -> Message
 
 fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall
-
-fn tool_desc_to_openai(@tool.ToolDesc) -> @openai.ChatCompletionToolParam
 
 fn tool_message(content~ : String, tool_call_id~ : String) -> Message
 

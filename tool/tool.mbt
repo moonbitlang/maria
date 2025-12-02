@@ -6,6 +6,17 @@ pub struct ToolDesc {
 } derive(ToJson)
 
 ///|
+pub fn ToolDesc::to_openai(
+  tool_desc : ToolDesc,
+) -> @openai.ChatCompletionToolParam {
+  @openai.tool(
+    name=tool_desc.name,
+    description=tool_desc.description,
+    parameters=tool_desc.schema.to_json(),
+  )
+}
+
+///|
 pub fn tool_desc(
   description~ : String,
   name~ : String,
