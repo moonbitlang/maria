@@ -112,8 +112,8 @@ export type Todo = {
   updated_at: string;
 };
 
-export type TodoWriteTool = {
-  name: "todo_write";
+export type TodoTool = {
+  name: "todo";
   result: {
     message: string;
     todos: Todo[];
@@ -141,7 +141,7 @@ export type PostToolCallEvent = PostToolCallBase &
     | ListFilesTool
     | ReadFileTool
     | MetaWriteToFileTool
-    | TodoWriteTool
+    | TodoTool
     | UnknownTool
   );
 

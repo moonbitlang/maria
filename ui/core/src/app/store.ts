@@ -4,10 +4,11 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { homeSlice } from "../features/session/homeSlice";
 import { tasksSlice } from "../features/session/tasksSlice";
 import { apiSlice } from "../features/api/apiSlice";
+import { urlSlice } from "../features/session/urlSlice";
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
-const rootReducer = combineSlices(homeSlice, tasksSlice, apiSlice);
+const rootReducer = combineSlices(homeSlice, tasksSlice, urlSlice, apiSlice);
 // Infer the `RootState` type from the root reducer
 export type RootState = ReturnType<typeof rootReducer>;
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type FormEvent } from "react";
 import { TaskPromptInput } from "@maria/core/components/task-prompt-input.tsx";
 import { useNewTaskMutation } from "@maria/core/features/api/apiSlice.ts";
 import { useNavigate } from "react-router";
@@ -34,7 +34,8 @@ export default function Home() {
     dispatch(setActiveTaskId(undefined));
   }, [dispatch]);
 
-  const handleReadySubmit = async () => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     dispatch(setInput("")); // Clear input field
     const res = await postNewTask({ message: input, cwd });
     if (res.data) {
@@ -49,7 +50,7 @@ export default function Home() {
         <TaskPromptInput
           value={input}
           onChange={(value) => dispatch(setInput(value))}
-          onReadySubmit={handleReadySubmit}
+          onSubmit={handleSubmit}
           placeholder="Input your task..."
           inputTools={
             <PromptInputTools>

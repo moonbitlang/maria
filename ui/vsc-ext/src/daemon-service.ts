@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { TaskOverview } from "../../vsc-common/types";
 
 export class DaemonService {

@@ -23,7 +23,7 @@ import {
   selectTaskCwd,
 } from "../features/session/tasksSlice.ts";
 import { Clock, Folder } from "lucide-react";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, type FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import type { ChatStatus } from "ai";
@@ -90,7 +90,8 @@ function PromptInput({ taskId }: { taskId: string }) {
     setInput("");
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     if (taskStatus === "idle") {
       await addMessage();
     } else if (taskStatus === "generating" && input.trim() !== "") {

@@ -20,7 +20,8 @@ export default function Home({ cwd }: HomeProps) {
     dispatch(setActiveTaskId(undefined));
   }, [dispatch]);
 
-  const handleReadySubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     dispatch(setInput("")); // Clear input field
     const res = await postNewTask({ message: input, cwd });
     if (res.data) {
@@ -35,7 +36,7 @@ export default function Home({ cwd }: HomeProps) {
         <TaskPromptInput
           value={input}
           onChange={(value) => dispatch(setInput(value))}
-          onReadySubmit={handleReadySubmit}
+          onSubmit={handleSubmit}
           placeholder="Input your task..."
         />
       </div>

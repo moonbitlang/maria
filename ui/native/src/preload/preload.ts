@@ -6,4 +6,5 @@ import { ElectronAPI } from "../api";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   selectDirectory: () => ipcRenderer.invoke("select-directory"),
+  getUrl: () => ipcRenderer.invoke("get-url"),
 } as ElectronAPI);
