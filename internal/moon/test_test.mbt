@@ -1,35 +1,26 @@
 ///|
 async test "test" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "test.mbt",
-        (
-          #|///|
-          #|test "add" {
-          #|  let x = 2 + 2
-          #|  @json.inspect(x, content=3)
-          #|}
-          #|
-          #|///|
-          #|test "eq" {
-          #|  assert_eq(1 + 1, 3)
-          #|}
-        ),
+      "test.mbt": (
+        #|///|
+        #|test "add" {
+        #|  let x = 2 + 2
+        #|  @json.inspect(x, content=3)
+        #|}
+        #|
+        #|///|
+        #|test "eq" {
+        #|  assert_eq(1 + 1, 3)
+        #|}
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(mock.json(moon.test_()), content=[

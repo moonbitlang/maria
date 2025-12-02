@@ -97,7 +97,7 @@ async test "line_range" (t : @test.Test) {
 async test "directory" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    mock.add_files([("file1.txt", "content1"), ("file2.txt", "content2")])
+    mock.add_files({ "file1.txt": "content1", "file2.txt": "content2" })
     let subdir = mock.add_directory("subdir")
     let _ = subdir.add_file("file3.txt", content="content3")
     let args : Json = { "path": "." }

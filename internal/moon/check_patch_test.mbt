@@ -1,27 +1,18 @@
 ///|
 async test "check_patch" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|let x : Int = "string"
-        ),
+      "example.mbt": (
+        #|///|
+        #|let x : Int = "string"
       ),
-    ])
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
     @json.inspect(files, content=[

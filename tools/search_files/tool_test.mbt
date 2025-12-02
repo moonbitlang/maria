@@ -41,24 +41,18 @@ async test "search_files" (t : @test.Test) {
 ///|
 async test "search_files-moon-definition" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "username/example", "version": "0.1.0" }
-        .to_json()
-        .stringify(indent=2),
+    mock.add_files({
+      "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
+      .to_json()
+      .stringify(indent=2),
+      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "main.mbt": (
+        #|///|
+        #|pub fn greet(name : String) -> String {
+        #|  println("Hello, \{name}!")
+        #|}
       ),
-      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
-      (
-        "main.mbt",
-        (
-          #|///|
-          #|pub fn greet(name : String) -> String {
-          #|  println("Hello, \{name}!")
-          #|}
-        ),
-      ),
-    ])
+    })
     let args : Json = {
       "path": ".",
       "regex": "@username/example greet",
@@ -85,29 +79,23 @@ async test "search_files-moon-definition" (t : @test.Test) {
 ///|
 async test "search_files-moon-references" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "username/example", "version": "0.1.0" }
-        .to_json()
-        .stringify(indent=2),
+    mock.add_files({
+      "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
+      .to_json()
+      .stringify(indent=2),
+      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "main.mbt": (
+        #|///|
+        #|pub fn greet(name : String) -> String {
+        #|  println("Hello, \{name}!")
+        #|}
+        #|
+        #|fn main {
+        #|  greet("World")
+        #|  greet("MoonBit")
+        #|}
       ),
-      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
-      (
-        "main.mbt",
-        (
-          #|///|
-          #|pub fn greet(name : String) -> String {
-          #|  println("Hello, \{name}!")
-          #|}
-          #|
-          #|fn main {
-          #|  greet("World")
-          #|  greet("MoonBit")
-          #|}
-        ),
-      ),
-    ])
+    })
     let args : Json = {
       "path": ".",
       "regex": "@username/example greet",
@@ -134,23 +122,17 @@ async test "search_files-moon-references" (t : @test.Test) {
 ///|
 async test "search_files/agentic" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "notes.txt",
-        (
-          #|These are some notes about the project.
-          #|We need to implement a feature to search files.
-          #|The search should be efficient and accurate.
-        ),
+    mock.add_files({
+      "notes.txt": (
+        #|These are some notes about the project.
+        #|We need to implement a feature to search files.
+        #|The search should be efficient and accurate.
       ),
-      (
-        "file.txt",
-        (
-          #|This file contains some important information.
-          #|Make sure to read it carefully.
-        ),
+      "file.txt": (
+        #|This file contains some important information.
+        #|Make sure to read it carefully.
       ),
-    ])
+    })
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(
       model,
@@ -209,26 +191,17 @@ async test "search_files/with tilde expansion" (t : @test.Test) {
 async test "search_files/gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
-    mock.add_files([
-      (
-        ".gitignore",
-        (
-          #|ignored.txt
-        ),
+    mock.add_files({
+      ".gitignore": (
+        #|ignored.txt
       ),
-      (
-        "ignored.txt",
-        (
-          #|This file should be ignored by git.
-        ),
+      "ignored.txt": (
+        #|This file should be ignored by git.
       ),
-      (
-        "not_ignored.txt",
-        (
-          #|This file should not be ignored by git.
-        ),
+      "not_ignored.txt": (
+        #|This file should not be ignored by git.
       ),
-    ])
+    })
     let args : Json = { "path": ".", "regex": "file", "kind": "regex" }
     let result = @search_files.new(mock.cwd.path()).call(args)
     guard result is Ok(output) else {
@@ -251,26 +224,17 @@ async test "search_files/gitignore" (t : @test.Test) {
 ///|
 async test "search_files/gitignore-without-git" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        ".gitignore",
-        (
-          #|ignored.txt
-        ),
+    mock.add_files({
+      ".gitignore": (
+        #|ignored.txt
       ),
-      (
-        "ignored.txt",
-        (
-          #|This file should be ignored by git.
-        ),
+      "ignored.txt": (
+        #|This file should be ignored by git.
       ),
-      (
-        "not_ignored.txt",
-        (
-          #|This file should not be ignored by git.
-        ),
+      "not_ignored.txt": (
+        #|This file should not be ignored by git.
       ),
-    ])
+    })
     let args : Json = { "path": ".", "regex": "file", "kind": "regex" }
     let tool = @search_files.new(mock.cwd.path())
     let result = tool.call(args)
@@ -298,26 +262,17 @@ async test "search_files/gitignore-without-git" (t : @test.Test) {
 async test "search_files/does-not-respect-gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
-    mock.add_files([
-      (
-        ".gitignore",
-        (
-          #|ignored.txt
-        ),
+    mock.add_files({
+      ".gitignore": (
+        #|ignored.txt
       ),
-      (
-        "ignored.txt",
-        (
-          #|This file should be ignored by git.
-        ),
+      "ignored.txt": (
+        #|This file should be ignored by git.
       ),
-      (
-        "not_ignored.txt",
-        (
-          #|This file should not be ignored by git.
-        ),
+      "not_ignored.txt": (
+        #|This file should not be ignored by git.
       ),
-    ])
+    })
     let args : Json = {
       "path": ".",
       "regex": "ignored",
