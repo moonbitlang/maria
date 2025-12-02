@@ -34,6 +34,7 @@ pub fn Agent::queued_messages(Self) -> Array[QueuedMessage]
 pub async fn Agent::set_enabled_tools(Self, @set.Set[String]) -> Unit
 pub async fn Agent::set_system_prompt(Self, String) -> Unit
 pub async fn Agent::start(Self) -> Unit
+pub fn Agent::tools(Self) -> Map[String, Tool]
 
 pub struct QueuedMessage {
   id : @uuid.Uuid
@@ -41,6 +42,10 @@ pub struct QueuedMessage {
   web_search : Bool
 }
 pub impl ToJson for QueuedMessage
+
+type Tool
+pub fn Tool::desc(Self) -> @tool.ToolDesc
+pub fn Tool::enabled(Self) -> Bool
 
 // Type aliases
 

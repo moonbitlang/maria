@@ -683,3 +683,42 @@ async test "web_search" (t : @test.Test) {
     )
   })
 }
+
+///|
+#skip
+async test "GET /v1/tools" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/tools")
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(b, content={
+      "execute_command": { "enabled": true },
+      "list_files": { "enabled": true },
+      "read_file": { "enabled": true },
+      "todo": { "enabled": true },
+      "search_files": { "enabled": true },
+      "meta_write_to_file": { "enabled": true },
+    })
+    let (r, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/enabled-tools",
+      Json::array([
+        "list_files", "read_file", "todo", "search_files", "meta_write_to_file",
+      ]),
+    )
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={})
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/tools")
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(b, content={
+      "execute_command": { "enabled": false },
+      "list_files": { "enabled": true },
+      "read_file": { "enabled": true },
+      "todo": { "enabled": true },
+      "search_files": { "enabled": true },
+      "meta_write_to_file": { "enabled": true },
+    })
+  })
+}
