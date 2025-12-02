@@ -20,7 +20,7 @@ pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
 pub fn Conversation::export_to_markdown(Self) -> String
 pub fn Conversation::id(Self) -> String
 pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
-pub fn Conversation::set_system_prompt(Self, String) -> Unit
+pub fn Conversation::set_system_prompt(Self, String?) -> Unit
 pub fn Conversation::system_prompt(Self) -> String?
 pub impl ToJson for Conversation
 pub impl @json.FromJson for Conversation

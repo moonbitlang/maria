@@ -134,6 +134,8 @@ async fn Server::serve_http(self : Server) -> Unit {
         (Post, "/v1/message") => self.create_message(r, w)
         (Get, "/v1/tools") => self.get_tools(w)
         (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
+        (Get, "/v1/system-prompt") => self.get_system_prompt(w)
+        (Post, "/v1/system-prompt") => self.set_system_prompt(r, w)
         (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
         (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
         (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
@@ -524,4 +526,84 @@ async fn Server::set_enabled_tools(
   w.header().set("Access-Control-Allow-Headers", "*")
   w.write_header(200)
   w.write(response.stringify())
+}
+
+///|
+async fn Server::get_system_prompt(
+  self : Server,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let res : Json = match self.maria.agent.system_prompt() {
+    Some(sys) => sys.to_json()
+    None => Json::null()
+  }
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(res.stringify())
+}
+
+///|
+priv struct PostSystemPromptRequest(String?)
+
+///|
+impl @json.FromJson for PostSystemPromptRequest with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> PostSystemPromptRequest raise @json.JsonDecodeError {
+  let system_prompt : String? = match json {
+    Null => None
+    _ => Some(@json.from_json(json, path=json_path))
+  }
+  PostSystemPromptRequest(system_prompt)
+}
+
+///|
+async fn Server::set_system_prompt(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let req : PostSystemPromptRequest = {
+    let data = r.body.read_all().binary()
+    let text : String = @encoding/utf8.decode(data) catch {
+      // TODO(upstream): impl Show for @encoding/utf8.Malformed
+      @encoding/utf8.Malformed(bytes) =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid UTF-8 in request body: \{bytes}",
+          },
+        })
+    }
+    let json = @json.parse(text) catch {
+      error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid JSON in request body: \{error}",
+          },
+        })
+    }
+    @json.from_json(json) catch {
+      @json.JsonDecodeError(_) as error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid request body: \{error}",
+            "data": { "error": error, "body": json },
+          },
+        })
+    }
+  }
+  self.maria.agent.set_system_prompt(req.0)
+  let res : Json = {}
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(res.stringify())
 }
