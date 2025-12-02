@@ -1,19 +1,32 @@
-import { Message, MessageContent } from "./ui/shadcn-io/ai/message";
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "./ui/shadcn-io/ai/conversation";
+  CheckCircle2,
+  FileIcon,
+  FolderIcon,
+  Terminal,
+  XCircle,
+} from "lucide-react";
 import {
   type ExecuteCommandTool,
   type ListFilesTool,
   type MessageAddedEvent,
   type MetaWriteToFileTool,
   type PostToolCallEvent,
+  type PreToolCallEvent,
   type ReadFileTool,
   type RequestCompletedEvent,
   type TaskEvent,
 } from "../lib/types";
+import { Badge } from "./ui/badge";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
+import { CodeBlock } from "./ui/shadcn-io/ai/code-block";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "./ui/shadcn-io/ai/conversation";
+import { Message, MessageContent } from "./ui/shadcn-io/ai/message";
+import { Response } from "./ui/shadcn-io/ai/response";
 import {
   Tool,
   ToolContent,
@@ -21,18 +34,6 @@ import {
   ToolInput,
   ToolOutput,
 } from "./ui/shadcn-io/ai/tool";
-import { Response } from "./ui/shadcn-io/ai/response";
-import { CodeBlock } from "./ui/shadcn-io/ai/code-block";
-import { Badge } from "./ui/badge";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
-import {
-  FileIcon,
-  FolderIcon,
-  CheckCircle2,
-  XCircle,
-  Terminal,
-} from "lucide-react";
 
 interface EventsDisplayProps {
   events: TaskEvent[];
@@ -100,7 +101,7 @@ function ListFiles({ listFiles }: { listFiles: ListFilesTool }) {
         <ToolInput input={{ path: result.path }} />
         <ToolOutput
           output={
-            <div className="p-3 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 p-3">
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="font-normal">
                   {total_count} {total_count !== 1 ? "items" : "item"}
@@ -124,14 +125,14 @@ function ListFiles({ listFiles }: { listFiles: ListFilesTool }) {
                   {entries.map((e, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-accent rounded-md transition-colors group"
+                      className="hover:bg-accent group flex items-center gap-2 rounded-md px-3 py-2 transition-colors"
                     >
                       {e.kind === "directory" ? (
-                        <FolderIcon className="h-4 w-4 text-blue-500 shrink-0" />
+                        <FolderIcon className="h-4 w-4 shrink-0 text-blue-500" />
                       ) : (
-                        <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <FileIcon className="text-muted-foreground h-4 w-4 shrink-0" />
                       )}
-                      <span className="font-mono text-sm truncate">
+                      <span className="truncate font-mono text-sm">
                         {e.name}
                       </span>
                     </div>
@@ -158,7 +159,7 @@ function MetaWriteToFile({ event }: { event: MetaWriteToFileTool }) {
           errorText={undefined}
           output={
             <div className="p-3">
-              <p className="text-base text-foreground mb-3">{result.message}</p>
+              <p className="text-foreground mb-3 text-base">{result.message}</p>
               {result.diff && (
                 <CodeBlock
                   language="diff"
@@ -221,13 +222,13 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
         <ToolOutput
           errorText={undefined}
           output={
-            <div className="p-3 space-y-3">
+            <div className="space-y-3 p-3">
               {/* Status Header */}
               <div className="flex items-center gap-2">
                 {isSuccess ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                  <XCircle className="text-destructive h-4 w-4 shrink-0" />
                 )}
                 <Badge
                   variant={isSuccess ? "outline" : "destructive"}
@@ -255,7 +256,7 @@ function ExecuteCommand({ event }: { event: ExecuteCommandTool }) {
               )}
 
               {!hasOutput && isSuccess && (
-                <p className="text-sm text-muted-foreground italic">
+                <p className="text-muted-foreground text-sm italic">
                   Command executed successfully with no output.
                 </p>
               )}
@@ -287,8 +288,8 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
       case "execute_command": {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
-      case "todo_write": {
-        // No need to render anything for todo_write tool calls
+      case "todo": {
+        // No need to render anything for todo tool calls
         return <></>;
       }
     }
@@ -344,14 +345,29 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
   );
 }
 
+function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
+  return (
+    <Tool>
+      <ToolHeader
+        type={event.tool_call.function.name}
+        state="input-available"
+      />
+      <ToolContent>
+        <ToolInput input={JSON.parse(event.tool_call.function.arguments)} />
+      </ToolContent>
+    </Tool>
+  );
+}
+
 export function EventsDisplay(props: EventsDisplayProps) {
   const { events } = props;
-
   return (
     <Conversation className="min-h-0">
-      <ConversationContent className="max-w-4xl mx-auto overflow-x-hidden">
+      <ConversationContent className="mx-auto max-w-4xl overflow-x-hidden">
         {events.map((event, i) => {
           switch (event.msg) {
+            case "PreToolCall":
+              return <ShowPreToolCall key={i} event={event} />;
             case "MessageAdded":
               return <ShowMessageAdded key={i} event={event} />;
             case "PostToolCall":

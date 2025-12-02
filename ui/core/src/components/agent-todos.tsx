@@ -1,7 +1,7 @@
+import { CheckCircle2, ChevronDown, Circle, Clock } from "lucide-react";
 import { Fragment, useState } from "react";
-import { CheckCircle2, Circle, Clock, ChevronDown } from "lucide-react";
-import { cn } from "../lib/utils";
 import type { Todo } from "../lib/types";
+import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import {
   Collapsible,
@@ -84,7 +84,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
         )}
       >
         <div className="mt-0.5">{getStatusIcon(todo.status)}</div>
-        <CollapsibleTrigger className="flex-1 min-w-0 text-left">
+        <CollapsibleTrigger className="min-w-0 flex-1 text-left">
           <div className="flex items-start gap-1.5">
             <div className="flex-1">
               <div
@@ -92,7 +92,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
                   "text-sm wrap-break-word",
                   !isExpanded && "line-clamp-1",
                   todo.status === "Completed" &&
-                    "line-through text-muted-foreground",
+                    "text-muted-foreground line-through",
                 )}
               >
                 {todo.content}
@@ -102,7 +102,7 @@ function TodoItem({ todo, isExpanded, onToggleExpanded }: TodoItemProps) {
               variant={"outline"}
               className={cn(
                 getPriorityColor(todo.priority),
-                "text-xs py-0.5 px-1",
+                "px-1 py-0.5 text-xs",
               )}
             >
               {todo.priority}
@@ -139,12 +139,12 @@ export function AgentTodos({ todos }: AgentTodosProps) {
   return (
     <div className="px-4 pt-2">
       <Collapsible
-        className="max-w-4xl mx-auto"
+        className="mx-auto max-w-4xl"
         open={expandTodos}
         onOpenChange={() => setExpandTodos(!expandTodos)}
       >
-        <CollapsibleTrigger className="flex items-center gap-1.5 pb-2 w-full">
-          <div className="font-semibold text-foreground">Todos</div>
+        <CollapsibleTrigger className="flex w-full items-center gap-1.5 pb-2">
+          <div className="text-foreground font-semibold">Todos</div>
           <Badge variant="outline" className="p1">
             {completed} Completed
           </Badge>
@@ -156,7 +156,7 @@ export function AgentTodos({ todos }: AgentTodosProps) {
           </Badge>
           <ChevronDown
             className={cn(
-              "size-3.5 ml-auto transition-transform",
+              "ml-auto size-3.5 transition-transform",
               expandTodos && "rotate-180",
             )}
           />

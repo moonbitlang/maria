@@ -1,8 +1,9 @@
+import crypto from "crypto";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import readline from "readline";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,12 +23,14 @@ const task = {
   name: "Test Task",
   id: "test",
   status: "generating",
+  cwd: "/home/user/test",
 };
 
 const longTask = {
   name: "A very long task name, to test UI handling of long names in various components",
   id: "long-task",
   status: "generating",
+  cwd: "/home/user/long-task",
 };
 
 const tasks = [task, longTask];
@@ -130,10 +133,11 @@ for (const t of tasks) {
         if (line.trim()) {
           try {
             // Validate JSON
-            JSON.parse(line);
+            const json = JSON.parse(line);
+            json.id = crypto.randomUUID(); // Add an ID for tracking
 
             // Send the event
-            res.write(`event: maria\ndata: ${line}\n\n`);
+            res.write(`event: maria\ndata: ${JSON.stringify(json)}\n\n`);
             lineCount++;
 
             // Small delay to simulate streaming (optional, can be removed for faster streaming)

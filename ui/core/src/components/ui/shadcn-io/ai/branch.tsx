@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "../../button";
-import { cn } from "../../../../lib/utils";
 import type { UIMessage } from "ai";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
+import { cn } from "../../../../lib/utils";
+import { Button } from "../../button";
 
 type BranchContextType = {
   currentBranch: number;
@@ -146,7 +146,7 @@ export const BranchPrevious = ({
     <Button
       aria-label="Previous branch"
       className={cn(
-        "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
+        "text-muted-foreground size-7 shrink-0 rounded-full transition-colors",
         "hover:bg-accent hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
@@ -176,7 +176,7 @@ export const BranchNext = ({
     <Button
       aria-label="Next branch"
       className={cn(
-        "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
+        "text-muted-foreground size-7 shrink-0 rounded-full transition-colors",
         "hover:bg-accent hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
@@ -201,7 +201,7 @@ export const BranchPage = ({ className, ...props }: BranchPageProps) => {
   return (
     <span
       className={cn(
-        "font-medium text-muted-foreground text-xs tabular-nums",
+        "text-muted-foreground text-xs font-medium tabular-nums",
         className,
       )}
       {...props}

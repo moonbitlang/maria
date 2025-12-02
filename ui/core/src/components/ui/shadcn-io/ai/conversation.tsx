@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "../../button";
-import { cn } from "../../../../lib/utils";
 import { ArrowDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { cn } from "../../../../lib/utils";
+import { Button } from "../../button";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
 

@@ -1,6 +1,4 @@
 import { useAppSelector } from "@maria/core/app/hooks.ts";
-import { selectTasks } from "@maria/core/features/session/tasksSlice.ts";
-import type { TaskOverview } from "@maria/core/lib/types.ts";
 import {
   Card,
   CardDescription,
@@ -8,9 +6,11 @@ import {
   CardTitle,
 } from "@maria/core/components/ui/card.tsx";
 import { ScrollArea } from "@maria/core/components/ui/scroll-area.tsx";
+import { selectTasks } from "@maria/core/features/session/tasksSlice.ts";
+import { getTaskIcon } from "@maria/core/lib/task-utils.tsx";
+import type { TaskOverview } from "@maria/core/lib/types.ts";
 import { Clock, Folder } from "lucide-react";
 import { useNavigate } from "react-router";
-import { getTaskIcon } from "@maria/core/lib/task-utils.tsx";
 
 function formatDate(timestamp: number) {
   const date = new Date(timestamp * 1000);
@@ -37,9 +37,9 @@ export default function AllTasks() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col m-auto w-full max-w-4xl">
+    <div className="m-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-4">
+        <div className="space-y-4 p-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">All Tasks</h1>
             <p className="text-muted-foreground mt-2">
@@ -56,13 +56,13 @@ export default function AllTasks() {
               {tasks.map((task) => (
                 <Card
                   key={task.id}
-                  className="cursor-pointer transition-colors hover:bg-accent/50"
+                  className="hover:bg-accent/50 cursor-pointer transition-colors"
                   onClick={() => handleTaskClick(task.id)}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg line-clamp-2">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="line-clamp-2 text-lg">
                           {task.name}
                         </CardTitle>
                         <CardDescription className="mt-2 flex flex-wrap items-center gap-3">
@@ -73,7 +73,7 @@ export default function AllTasks() {
                           <span className="flex items-center gap-1">
                             <Folder className="h-3 w-3" />
                             <span
-                              className="truncate max-w-[200px]"
+                              className="max-w-[200px] truncate"
                               title={task.cwd}
                             >
                               {task.cwd}

@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "../../button";
-import { cn } from "../../../../lib/utils";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import { createContext, useContext, useState } from "react";
@@ -10,6 +8,8 @@ import {
   oneDark,
   oneLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { cn } from "../../../../lib/utils";
+import { Button } from "../../button";
 
 type CodeBlockContextType = {
   code: string;
@@ -37,7 +37,7 @@ export const CodeBlock = ({
   <CodeBlockContext.Provider value={{ code }}>
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-md border bg-background text-foreground",
+        "bg-background text-foreground relative w-full overflow-hidden rounded-md border",
         className,
       )}
       {...props}

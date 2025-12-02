@@ -1,10 +1,10 @@
-import { consumeEndpoint, provideEndpoint } from "./vscode";
+import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
 import * as comlink from "comlink";
-import * as api from "../../vsc-common/api";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
+import * as api from "../../vsc-common/api";
 import { VscodeContext } from "./use-vscode";
-import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
+import { consumeEndpoint, provideEndpoint } from "./vscode";
 
 export default function Layout() {
   useEventsQuery();
@@ -23,7 +23,7 @@ export default function Layout() {
   }, [routerNav]);
   return (
     <VscodeContext.Provider value={vscode}>
-      <div className="flex flex-col min-h-0 h-full overflow-x-hidden">
+      <div className="flex h-full min-h-0 flex-col overflow-x-hidden">
         <Outlet />
       </div>
     </VscodeContext.Provider>

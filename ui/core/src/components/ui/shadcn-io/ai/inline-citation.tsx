@@ -1,5 +1,15 @@
 "use client";
 
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ComponentProps,
+} from "react";
+import { cn } from "../../../../lib/utils";
 import { Badge } from "../../badge";
 import {
   Carousel,
@@ -12,16 +22,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "../../hover-card";
-import { cn } from "../../../../lib/utils";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  useCallback,
-  useEffect,
-  useState,
-  createContext,
-  useContext,
-} from "react";
 
 // Context to share carousel API with child components
 const CarouselApiContext = createContext<CarouselApi | undefined>(undefined);
@@ -51,7 +51,7 @@ export const InlineCitationText = ({
   ...props
 }: InlineCitationTextProps) => (
   <span
-    className={cn("transition-colors group-hover:bg-accent", className)}
+    className={cn("group-hover:bg-accent transition-colors", className)}
     {...props}
   />
 );
@@ -139,7 +139,7 @@ export const InlineCitationCarouselHeader = ({
 }: InlineCitationCarouselHeaderProps) => (
   <div
     className={cn(
-      "flex items-center justify-between gap-2 rounded-t-md bg-secondary p-2",
+      "bg-secondary flex items-center justify-between gap-2 rounded-t-md p-2",
       className,
     )}
     {...props}
@@ -173,7 +173,7 @@ export const InlineCitationCarouselIndex = ({
   return (
     <div
       className={cn(
-        "flex flex-1 items-center justify-end px-3 py-1 text-muted-foreground text-xs",
+        "text-muted-foreground flex flex-1 items-center justify-end px-3 py-1 text-xs",
         className,
       )}
       {...props}
@@ -205,7 +205,7 @@ export const InlineCitationCarouselPrev = ({
       type="button"
       {...props}
     >
-      <ArrowLeftIcon className="size-4 text-muted-foreground" />
+      <ArrowLeftIcon className="text-muted-foreground size-4" />
     </button>
   );
 };
@@ -232,7 +232,7 @@ export const InlineCitationCarouselNext = ({
       type="button"
       {...props}
     >
-      <ArrowRightIcon className="size-4 text-muted-foreground" />
+      <ArrowRightIcon className="text-muted-foreground size-4" />
     </button>
   );
 };
@@ -253,13 +253,13 @@ export const InlineCitationSource = ({
 }: InlineCitationSourceProps) => (
   <div className={cn("space-y-1", className)} {...props}>
     {title && (
-      <h4 className="truncate font-medium text-sm leading-tight">{title}</h4>
+      <h4 className="truncate text-sm leading-tight font-medium">{title}</h4>
     )}
     {url && (
-      <p className="truncate break-all text-muted-foreground text-xs">{url}</p>
+      <p className="text-muted-foreground truncate text-xs break-all">{url}</p>
     )}
     {description && (
-      <p className="line-clamp-3 text-muted-foreground text-sm leading-relaxed">
+      <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
         {description}
       </p>
     )}
@@ -276,7 +276,7 @@ export const InlineCitationQuote = ({
 }: InlineCitationQuoteProps) => (
   <blockquote
     className={cn(
-      "border-muted border-l-2 pl-3 text-muted-foreground text-sm italic",
+      "border-muted text-muted-foreground border-l-2 pl-3 text-sm italic",
       className,
     )}
     {...props}

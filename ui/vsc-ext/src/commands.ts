@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import * as globalState from "./global-state";
 import { DaemonService } from "./daemon-service";
+import * as globalState from "./global-state";
 
 function getWebviewApi() {
   const webviewApi = globalState.get("webviewApi");

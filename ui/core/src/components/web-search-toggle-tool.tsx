@@ -1,7 +1,7 @@
 import { Globe } from "lucide-react";
+import { cn } from "../lib/utils";
 import { PromptInputButton } from "./ui/shadcn-io/ai/prompt-input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { cn } from "../lib/utils";
 
 type WebSearchToggleToolProps = {
   webSearchEnabled: boolean;

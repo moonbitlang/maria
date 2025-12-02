@@ -1,5 +1,12 @@
 import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 
+import { Link } from "react-router";
+import type { Status, Task } from "../lib/types";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -8,20 +15,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Link } from "react-router";
-import type { Status, Task } from "../lib/types";
 
 export function getTaskIcon(status: Status) {
   switch (status) {
     case "generating":
-      return <Loader2 className="h-4 w-4 ml-auto animate-spin" />;
+      return <Loader2 className="ml-auto h-4 w-4 animate-spin" />;
     case "idle":
-      return <CheckCircle2 className="h-4 w-4 ml-auto text-green-600" />;
+      return <CheckCircle2 className="ml-auto h-4 w-4 text-green-600" />;
   }
 }
 
@@ -36,7 +36,7 @@ export function NavTasks(props: NavTasksProps) {
   return (
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="text-base opacity-60 font-normal" asChild>
+        <SidebarGroupLabel className="text-base font-normal opacity-60" asChild>
           <CollapsibleTrigger className="cursor-pointer">
             Tasks
             <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

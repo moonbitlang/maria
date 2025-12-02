@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { MoonBitAgentViewProvider } from "./view";
-import { DaemonService } from "./daemon-service";
 import { allTasksView, taskView } from "./commands";
+import { DaemonService } from "./daemon-service";
+import { MoonBitAgentViewProvider } from "./view";
 export async function activate(context: vscode.ExtensionContext) {
   const daemonService = DaemonService.instance();
   const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;

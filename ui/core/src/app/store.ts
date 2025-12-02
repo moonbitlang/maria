@@ -1,9 +1,9 @@
 import type { Action, ThunkAction } from "@reduxjs/toolkit";
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import { apiSlice } from "../features/api/apiSlice";
 import { homeSlice } from "../features/session/homeSlice";
 import { tasksSlice } from "../features/session/tasksSlice";
-import { apiSlice } from "../features/api/apiSlice";
 import { urlSlice } from "../features/session/urlSlice";
 
 // `combineSlices` automatically combines the reducers using
