@@ -11,9 +11,9 @@ import(
 
 // Types and methods
 type Broadcast[T]
-async fn[T, R] Broadcast::listen(Self[T], async (ArrayView[T], @aqueue.Queue[T]) -> R) -> R
-fn[T] Broadcast::new() -> Self[T]
-fn[T] Broadcast::put(Self[T], T) -> Unit
+pub async fn[T, R] Broadcast::listen(Self[T], async (ArrayView[T], @aqueue.Queue[T]) -> R) -> R
+pub fn[T] Broadcast::new() -> Self[T]
+pub fn[T] Broadcast::put(Self[T], T) -> Unit
 
 // Type aliases
 

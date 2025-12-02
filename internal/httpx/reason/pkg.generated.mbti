@@ -2,129 +2,129 @@
 package "moonbitlang/maria/internal/httpx/reason"
 
 // Values
-const Accepted : String = "Accepted"
+pub const Accepted : String = "Accepted"
 
-const AlreadyReported : String = "Already Reported"
+pub const AlreadyReported : String = "Already Reported"
 
-const BadGateway : String = "Bad Gateway"
+pub const BadGateway : String = "Bad Gateway"
 
-const BadRequest : String = "Bad Request"
+pub const BadRequest : String = "Bad Request"
 
-const Conflict : String = "Conflict"
+pub const Conflict : String = "Conflict"
 
-const Continue : String = "Continue"
+pub const Continue : String = "Continue"
 
-const Created : String = "Created"
+pub const Created : String = "Created"
 
-const EarlyHints : String = "Early Hints"
+pub const EarlyHints : String = "Early Hints"
 
-const ExpectationFailed : String = "Expectation Failed"
+pub const ExpectationFailed : String = "Expectation Failed"
 
-const FailedDependency : String = "Failed Dependency"
+pub const FailedDependency : String = "Failed Dependency"
 
-const Forbidden : String = "Forbidden"
+pub const Forbidden : String = "Forbidden"
 
-const Found : String = "Found"
+pub const Found : String = "Found"
 
-const GatewayTimeout : String = "Gateway Timeout"
+pub const GatewayTimeout : String = "Gateway Timeout"
 
-const Gone : String = "Gone"
+pub const Gone : String = "Gone"
 
-const HttpVersionNotSupported : String = "HTTP Version Not Supported"
+pub const HttpVersionNotSupported : String = "HTTP Version Not Supported"
 
-const ImATeapot : String = "I'm a teapot"
+pub const ImATeapot : String = "I'm a teapot"
 
-const ImUsed : String = "IM Used"
+pub const ImUsed : String = "IM Used"
 
-const InsufficientStorage : String = "Insufficient Storage"
+pub const InsufficientStorage : String = "Insufficient Storage"
 
-const InternalServerError : String = "Internal Server Error"
+pub const InternalServerError : String = "Internal Server Error"
 
-const LengthRequired : String = "Length Required"
+pub const LengthRequired : String = "Length Required"
 
-const Locked : String = "Locked"
+pub const Locked : String = "Locked"
 
-const LoopDetected : String = "Loop Detected"
+pub const LoopDetected : String = "Loop Detected"
 
-const MethodNotAllowed : String = "Method Not Allowed"
+pub const MethodNotAllowed : String = "Method Not Allowed"
 
-const MisdirectedRequest : String = "Misdirected Request"
+pub const MisdirectedRequest : String = "Misdirected Request"
 
-const MovedPermanently : String = "Moved Permanently"
+pub const MovedPermanently : String = "Moved Permanently"
 
-const MultiStatus : String = "Multi-Status"
+pub const MultiStatus : String = "Multi-Status"
 
-const MultipleChoices : String = "Multiple Choices"
+pub const MultipleChoices : String = "Multiple Choices"
 
-const NetworkAuthenticationRequired : String = "Network Authentication Required"
+pub const NetworkAuthenticationRequired : String = "Network Authentication Required"
 
-const NoContent : String = "No Content"
+pub const NoContent : String = "No Content"
 
-const NonAuthoritativeInformation : String = "Non-Authoritative Information"
+pub const NonAuthoritativeInformation : String = "Non-Authoritative Information"
 
-const NotAcceptable : String = "Not Acceptable"
+pub const NotAcceptable : String = "Not Acceptable"
 
-const NotExtended : String = "Not Extended"
+pub const NotExtended : String = "Not Extended"
 
-const NotFound : String = "Not Found"
+pub const NotFound : String = "Not Found"
 
-const NotImplemented : String = "Not Implemented"
+pub const NotImplemented : String = "Not Implemented"
 
-const NotModified : String = "Not Modified"
+pub const NotModified : String = "Not Modified"
 
-const Ok : String = "OK"
+pub const Ok : String = "OK"
 
-const PartialContent : String = "Partial Content"
+pub const PartialContent : String = "Partial Content"
 
-const PayloadTooLarge : String = "Payload Too Large"
+pub const PayloadTooLarge : String = "Payload Too Large"
 
-const PaymentRequired : String = "Payment Required"
+pub const PaymentRequired : String = "Payment Required"
 
-const PermanentRedirect : String = "Permanent Redirect"
+pub const PermanentRedirect : String = "Permanent Redirect"
 
-const PreconditionFailed : String = "Precondition Failed"
+pub const PreconditionFailed : String = "Precondition Failed"
 
-const PreconditionRequired : String = "Precondition Required"
+pub const PreconditionRequired : String = "Precondition Required"
 
-const Processing : String = "Processing"
+pub const Processing : String = "Processing"
 
-const ProxyAuthenticationRequired : String = "Proxy Authentication Required"
+pub const ProxyAuthenticationRequired : String = "Proxy Authentication Required"
 
-const RangeNotSatisfiable : String = "Range Not Satisfiable"
+pub const RangeNotSatisfiable : String = "Range Not Satisfiable"
 
-const RequestHeaderFieldsTooLarge : String = "Request Header Fields Too Large"
+pub const RequestHeaderFieldsTooLarge : String = "Request Header Fields Too Large"
 
-const RequestTimeout : String = "Request Timeout"
+pub const RequestTimeout : String = "Request Timeout"
 
-const ResetContent : String = "Reset Content"
+pub const ResetContent : String = "Reset Content"
 
-const SeeOther : String = "See Other"
+pub const SeeOther : String = "See Other"
 
-const ServiceUnavailable : String = "Service Unavailable"
+pub const ServiceUnavailable : String = "Service Unavailable"
 
-const SwitchingProtocols : String = "Switching Protocols"
+pub const SwitchingProtocols : String = "Switching Protocols"
 
-const TemporaryRedirect : String = "Temporary Redirect"
+pub const TemporaryRedirect : String = "Temporary Redirect"
 
-const TooEarly : String = "Too Early"
+pub const TooEarly : String = "Too Early"
 
-const TooManyRequests : String = "Too Many Requests"
+pub const TooManyRequests : String = "Too Many Requests"
 
-const Unauthorized : String = "Unauthorized"
+pub const Unauthorized : String = "Unauthorized"
 
-const UnavailableForLegalReasons : String = "Unavailable For Legal Reasons"
+pub const UnavailableForLegalReasons : String = "Unavailable For Legal Reasons"
 
-const UnprocessableEntity : String = "Unprocessable Entity"
+pub const UnprocessableEntity : String = "Unprocessable Entity"
 
-const UnsupportedMediaType : String = "Unsupported Media Type"
+pub const UnsupportedMediaType : String = "Unsupported Media Type"
 
-const UpgradeRequired : String = "Upgrade Required"
+pub const UpgradeRequired : String = "Upgrade Required"
 
-const UriTooLong : String = "URI Too Long"
+pub const UriTooLong : String = "URI Too Long"
 
-const UseProxy : String = "Use Proxy"
+pub const UseProxy : String = "Use Proxy"
 
-const VariantAlsoNegotiates : String = "Variant Also Negotiates"
+pub const VariantAlsoNegotiates : String = "Variant Also Negotiates"
 
 // Errors
 

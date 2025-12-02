@@ -8,15 +8,15 @@ import(
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[ReadFileToolResult]
+pub fn new(@file.Manager) -> @tool.Tool[ReadFileToolResult]
 
 // Errors
 
 // Types and methods
 type ReadFileToolResult
-impl Show for ReadFileToolResult
-impl ToJson for ReadFileToolResult
-impl @json.FromJson for ReadFileToolResult
+pub impl Show for ReadFileToolResult
+pub impl ToJson for ReadFileToolResult
+pub impl @json.FromJson for ReadFileToolResult
 
 // Type aliases
 

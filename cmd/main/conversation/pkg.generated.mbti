@@ -2,9 +2,9 @@
 package "moonbitlang/maria/cmd/main/conversation"
 
 // Values
-async fn list() -> Unit
+pub async fn list() -> Unit
 
-async fn show(ArrayView[String]) -> Unit
+pub async fn show(ArrayView[String]) -> Unit
 
 // Errors
 

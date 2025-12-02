@@ -2,11 +2,11 @@
 package "moonbitlang/maria/internal/signal"
 
 // Values
-let sigkill : Int
+pub let sigkill : Int
 
-let sigterm : Int
+pub let sigterm : Int
 
-let sigtstp : Int
+pub let sigtstp : Int
 
 // Errors
 

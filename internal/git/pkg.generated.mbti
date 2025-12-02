@@ -2,25 +2,25 @@
 package "moonbitlang/maria/internal/git"
 
 // Values
-async fn add_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView) -> Unit
+pub async fn add_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView) -> Unit
 
-async fn check_ignore(Array[StringView], cwd? : StringView) -> Array[String]
+pub async fn check_ignore(Array[StringView], cwd? : StringView) -> Array[String]
 
-async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) -> Unit
+pub async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) -> Unit
 
-async fn commit(StringView, Array[StringView], cwd? : StringView) -> Unit
+pub async fn commit(StringView, Array[StringView], cwd? : StringView) -> Unit
 
-async fn generate_git_diff(original~ : String, modified~ : String, line_number? : Bool) -> String
+pub async fn generate_git_diff(original~ : String, modified~ : String, line_number? : Bool) -> String
 
-async fn init_(String) -> Unit
+pub async fn init_(String) -> Unit
 
-async fn is_ignored(StringView, cwd? : StringView) -> Bool
+pub async fn is_ignored(StringView, cwd? : StringView) -> Bool
 
-async fn list_files(cwd? : StringView) -> Array[String]
+pub async fn list_files(cwd? : StringView) -> Array[String]
 
-async fn remove_worktree(String, force? : Bool, cwd? : StringView) -> Unit
+pub async fn remove_worktree(String, force? : Bool, cwd? : StringView) -> Unit
 
-async fn[T] with_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView, async () -> T) -> T
+pub async fn[T] with_worktree(String, new_branch? : String, force_new_branch? : Bool, commit? : String, cwd? : StringView, async () -> T) -> T
 
 // Errors
 

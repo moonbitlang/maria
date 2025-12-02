@@ -7,7 +7,7 @@ import(
 )
 
 // Values
-fn new(@job.Manager) -> @tool.Tool[String]
+pub fn new(@job.Manager) -> @tool.Tool[String]
 
 // Errors
 

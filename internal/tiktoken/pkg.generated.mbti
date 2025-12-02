@@ -2,23 +2,23 @@
 package "moonbitlang/maria/internal/tiktoken"
 
 // Values
-fn cl100k_base() -> Encoding raise
+pub fn cl100k_base() -> Encoding raise
 
 // Errors
 type DecodingError
-impl Show for DecodingError
+pub impl Show for DecodingError
 
 // Types and methods
 type Encoding
-fn Encoding::decode(Self, ArrayView[Int]) -> String raise DecodingError
-fn Encoding::encode(Self, StringView) -> Array[Int]
-fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int], special_tokens~ : Map[String, Int], pattern~ : Pattern) -> Self
-fn Encoding::special_tokens(Self, String) -> Int?
+pub fn Encoding::decode(Self, ArrayView[Int]) -> String raise DecodingError
+pub fn Encoding::encode(Self, StringView) -> Array[Int]
+pub fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int], special_tokens~ : Map[String, Int], pattern~ : Pattern) -> Self
+pub fn Encoding::special_tokens(Self, String) -> Int?
 
 pub enum Pattern {
   Cl100kBase
 }
-fn Pattern::cl100k_base() -> Self
+pub fn Pattern::cl100k_base() -> Self
 
 // Type aliases
 

@@ -2,9 +2,9 @@
 package "moonbitlang/maria/internal/backtrace"
 
 // Values
-fn backtrace(n? : Int) -> FixedArray[String] raise
+pub fn backtrace(n? : Int) -> FixedArray[String] raise
 
-fn initialize() -> Unit
+pub fn initialize() -> Unit
 
 // Errors
 

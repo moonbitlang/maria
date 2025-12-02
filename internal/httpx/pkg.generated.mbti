@@ -6,13 +6,13 @@ import(
 )
 
 // Values
-let cors : Middleware
+pub let cors : Middleware
 
-let methods : Array[Method]
+pub let methods : Array[Method]
 
-let not_found : Handler
+pub let not_found : Handler
 
-fn reason(Int) -> String
+pub fn reason(Int) -> String
 
 // Errors
 
@@ -20,28 +20,28 @@ fn reason(Int) -> String
 pub struct EventStreamWriter {
   w : ResponseWriter
 }
-fn EventStreamWriter::new(ResponseWriter) -> Self
-async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
-async fn EventStreamWriter::write_header(Self, Int) -> Unit
+pub fn EventStreamWriter::new(ResponseWriter) -> Self
+pub async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
+pub async fn EventStreamWriter::write_header(Self, Int) -> Unit
 
 type FileServer
-async fn FileServer::handle(Self, RequestReader, ResponseWriter) -> Unit
-fn FileServer::handler(Self) -> Handler
-fn FileServer::middleware(Self) -> Middleware
-fn FileServer::new(StringView) -> Self
-fn FileServer::path(Self) -> StringView
-async fn FileServer::set_not_found_handler(Self, Handler) -> Unit
+pub async fn FileServer::handle(Self, RequestReader, ResponseWriter) -> Unit
+pub fn FileServer::handler(Self) -> Handler
+pub fn FileServer::middleware(Self) -> Middleware
+pub fn FileServer::new(StringView) -> Self
+pub fn FileServer::path(Self) -> StringView
+pub async fn FileServer::set_not_found_handler(Self, Handler) -> Unit
 
 pub(all) struct Handler(async (RequestReader, ResponseWriter) -> Unit)
 #deprecated
-fn Handler::inner(Self) -> async (RequestReader, ResponseWriter) -> Unit
+pub fn Handler::inner(Self) -> async (RequestReader, ResponseWriter) -> Unit
 
 type Header
-fn Header::add(Self, String, String) -> Unit
-fn Header::new() -> Self
-fn Header::set(Self, String, String) -> Unit
-impl Show for Header
-impl ToJson for Header
+pub fn Header::add(Self, String, String) -> Unit
+pub fn Header::new() -> Self
+pub fn Header::set(Self, String, String) -> Unit
+pub impl Show for Header
+pub impl ToJson for Header
 
 pub(all) enum Method {
   Get
@@ -54,18 +54,18 @@ pub(all) enum Method {
   Trace
   Patch
 }
-impl Compare for Method
-impl Eq for Method
-impl Hash for Method
-impl Show for Method
-impl ToJson for Method
+pub impl Compare for Method
+pub impl Eq for Method
+pub impl Hash for Method
+pub impl Show for Method
+pub impl ToJson for Method
 
 pub(all) struct Middleware((Handler) -> Handler)
-fn Middleware::chain(Self, Self) -> Self
-async fn Middleware::handle(Self, RequestReader, ResponseWriter) -> Unit
-fn Middleware::handler(Self) -> Handler
+pub fn Middleware::chain(Self, Self) -> Self
+pub async fn Middleware::handle(Self, RequestReader, ResponseWriter) -> Unit
+pub fn Middleware::handler(Self) -> Handler
 #deprecated
-fn Middleware::inner(Self) -> (Handler) -> Handler
+pub fn Middleware::inner(Self) -> (Handler) -> Handler
 
 pub struct RequestReader {
   body : &@io.Reader
@@ -75,24 +75,24 @@ pub struct RequestReader {
 }
 
 type ResponseWriter
-async fn ResponseWriter::flush(Self) -> Unit
-fn ResponseWriter::header(Self) -> Header
-async fn ResponseWriter::write_header(Self, Int, reason? : String) -> Unit
-impl @io.Writer for ResponseWriter
+pub async fn ResponseWriter::flush(Self) -> Unit
+pub fn ResponseWriter::header(Self) -> Header
+pub async fn ResponseWriter::write_header(Self, Int, reason? : String) -> Unit
+pub impl @io.Writer for ResponseWriter
 
 type Router
-fn Router::add_handler(Self, Method, StringView, Handler) -> Unit
-async fn Router::handle(Self, RequestReader, ResponseWriter) -> Unit
-fn Router::handler(Self) -> Handler
-fn Router::middleware(Self) -> Middleware
-fn Router::new() -> Self
-fn Router::set_not_found_handler(Self, Handler) -> Unit
+pub fn Router::add_handler(Self, Method, StringView, Handler) -> Unit
+pub async fn Router::handle(Self, RequestReader, ResponseWriter) -> Unit
+pub fn Router::handler(Self) -> Handler
+pub fn Router::middleware(Self) -> Middleware
+pub fn Router::new() -> Self
+pub fn Router::set_not_found_handler(Self, Handler) -> Unit
 
 type Server
-fn Server::close(Self) -> Unit
-fn Server::new(String, Int, dual_stack? : Bool, reuse_addr? : Bool) -> Self raise
-fn Server::port(Self) -> Int
-async fn Server::serve(Self, Handler) -> Unit
+pub fn Server::close(Self) -> Unit
+pub fn Server::new(String, Int, dual_stack? : Bool, reuse_addr? : Bool) -> Self raise
+pub fn Server::port(Self) -> Int
+pub async fn Server::serve(Self, Handler) -> Unit
 
 // Type aliases
 

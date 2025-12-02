@@ -14,23 +14,23 @@ import(
 
 // Types and methods
 type Conversation
-fn Conversation::add_message(Self, @ai.Message, usage? : @ai.Usage) -> Unit
-fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
-fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
-fn Conversation::export_to_markdown(Self) -> String
-fn Conversation::id(Self) -> String
-fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
-fn Conversation::set_system_prompt(Self, String) -> Unit
-fn Conversation::system_prompt(Self) -> String?
-impl ToJson for Conversation
-impl @json.FromJson for Conversation
+pub fn Conversation::add_message(Self, @ai.Message, usage? : @ai.Usage) -> Unit
+pub fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
+pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
+pub fn Conversation::export_to_markdown(Self) -> String
+pub fn Conversation::id(Self) -> String
+pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
+pub fn Conversation::set_system_prompt(Self, String) -> Unit
+pub fn Conversation::system_prompt(Self) -> String?
+pub impl ToJson for Conversation
+pub impl @json.FromJson for Conversation
 
 type Manager
-async fn Manager::list(Self) -> Array[String]
-async fn Manager::load(Self, String) -> Conversation?
-async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
-fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation
-async fn Manager::save(Self, Conversation) -> Unit
+pub async fn Manager::list(Self) -> Array[String]
+pub async fn Manager::load(Self, String) -> Conversation?
+pub async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
+pub fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation
+pub async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases
 

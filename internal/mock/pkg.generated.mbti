@@ -13,9 +13,9 @@ import(
 
 // Values
 #callsite(autofill(loc))
-async fn run(@test.Test, loc~ : SourceLoc, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit
+pub async fn run(@test.Test, loc~ : SourceLoc, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit
 
-async fn[T] with_home(Directory, async () -> T) -> T
+pub async fn[T] with_home(Directory, async () -> T) -> T
 
 // Errors
 
@@ -30,35 +30,35 @@ pub struct Context {
   group : @async.TaskGroup[Unit]
   moon_home : String
 }
-async fn Context::add_directory(Self, String) -> Directory
-async fn Context::add_file(Self, String, content? : String) -> File
-async fn Context::add_files(Self, Array[(String, String)]) -> Unit
-async fn Context::add_symlink(Self, String, to~ : String) -> Unit
-fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
-fn[T : ToJson] Context::json(Self, T) -> Json
-fn Context::model(Self, name? : @model.CommonModels) -> @model.Model raise
+pub async fn Context::add_directory(Self, String) -> Directory
+pub async fn Context::add_file(Self, String, content? : String) -> File
+pub async fn Context::add_files(Self, Array[(String, String)]) -> Unit
+pub async fn Context::add_symlink(Self, String, to~ : String) -> Unit
+pub fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
+pub fn[T : ToJson] Context::json(Self, T) -> Json
+pub fn Context::model(Self, name? : @model.CommonModels) -> @model.Model raise
 #alias(text)
-fn[T : Show] Context::show(Self, T) -> String
+pub fn[T : Show] Context::show(Self, T) -> String
 
 type Directory
-async fn Directory::add_directory(Self, String) -> Self
-async fn Directory::add_file(Self, String, content? : String) -> File
-async fn Directory::add_files(Self, Map[String, String]) -> Unit
-async fn Directory::list(Self) -> Array[Entry]
-fn Directory::path(Self) -> String
+pub async fn Directory::add_directory(Self, String) -> Self
+pub async fn Directory::add_file(Self, String, content? : String) -> File
+pub async fn Directory::add_files(Self, Map[String, String]) -> Unit
+pub async fn Directory::list(Self) -> Array[Entry]
+pub fn Directory::path(Self) -> String
 
 pub enum Entry {
   Directory(Directory)
   File(File)
 }
-fn Entry::name(Self) -> StringView
+pub fn Entry::name(Self) -> StringView
 
 type File
-fn File::path(Self) -> String
-async fn File::read(Self) -> String
-async fn File::write_bytes(Self, Bytes) -> Unit
-async fn File::write_json(Self, Json) -> Unit
-async fn File::write_string(Self, String) -> Unit
+pub fn File::path(Self) -> String
+pub async fn File::read(Self) -> String
+pub async fn File::write_bytes(Self, Bytes) -> Unit
+pub async fn File::write_json(Self, Json) -> Unit
+pub async fn File::write_string(Self, String) -> Unit
 
 type Filter
 

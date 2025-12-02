@@ -6,17 +6,17 @@ import(
 )
 
 // Values
-fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Message
+pub fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Message
 
-fn system_message(content~ : String) -> Message
+pub fn system_message(content~ : String) -> Message
 
-fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall
+pub fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall
 
-fn tool_message(content~ : String, tool_call_id~ : String) -> Message
+pub fn tool_message(content~ : String, tool_call_id~ : String) -> Message
 
-fn usage(input_tokens~ : Int, output_tokens~ : Int, total_tokens? : Int, cache_read_tokens? : Int) -> Usage
+pub fn usage(input_tokens~ : Int, output_tokens~ : Int, total_tokens? : Int, cache_read_tokens? : Int) -> Usage
 
-fn user_message(content~ : String) -> Message
+pub fn user_message(content~ : String) -> Message
 
 // Errors
 
@@ -27,18 +27,18 @@ pub enum Message {
   Assistant(String, tool_calls~ : Array[ToolCall])
   Tool(String, tool_call_id~ : String)
 }
-fn Message::content(Self) -> String
-fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
-fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
-fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
+pub fn Message::content(Self) -> String
+pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
+pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
+pub fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
 
 pub struct ToolCall {
   id : String
   name : String
   arguments : String?
 }
-fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
-fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
+pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
+pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
 
 pub struct Usage {
   input_tokens : Int
@@ -46,8 +46,8 @@ pub struct Usage {
   total_tokens : Int
   cache_read_tokens : Int?
 }
-fn Usage::from_openai(@openai.CompletionUsage) -> Self
-fn Usage::to_openai(Self) -> @openai.CompletionUsage
+pub fn Usage::from_openai(@openai.CompletionUsage) -> Self
+pub fn Usage::to_openai(Self) -> @openai.CompletionUsage
 
 // Type aliases
 

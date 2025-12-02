@@ -2,7 +2,7 @@
 package "moonbitlang/maria/file"
 
 // Values
-fn manager(cwd~ : String) -> Manager
+pub fn manager(cwd~ : String) -> Manager
 
 // Errors
 

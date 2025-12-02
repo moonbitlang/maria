@@ -2,17 +2,17 @@
 package "moonbitlang/maria/internal/readline/csi"
 
 // Values
-const ClearLine : Bytes = \x1b[2K
+pub const ClearLine : Bytes = \x1b[2K
 
-const ClearScreenDown : Bytes = \x1b[0J
+pub const ClearScreenDown : Bytes = \x1b[0J
 
-const ClearToLineBeginning : Bytes = \x1b[1K
+pub const ClearToLineBeginning : Bytes = \x1b[1K
 
-const ClearToLineEnd : Bytes = \x1b[0K
+pub const ClearToLineEnd : Bytes = \x1b[0K
 
-const Escape : Byte = \x1b
+pub const Escape : Byte = \x1b
 
-fn csi(Bytes) -> Bytes
+pub fn csi(Bytes) -> Bytes
 
 // Errors
 

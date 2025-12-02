@@ -8,15 +8,15 @@ import(
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[ListFilesResult]
+pub fn new(@file.Manager) -> @tool.Tool[ListFilesResult]
 
 // Errors
 
 // Types and methods
 type ListFilesResult
-impl Show for ListFilesResult
-impl ToJson for ListFilesResult
-impl @json.FromJson for ListFilesResult
+pub impl Show for ListFilesResult
+pub impl ToJson for ListFilesResult
+pub impl @json.FromJson for ListFilesResult
 
 // Type aliases
 

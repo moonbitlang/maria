@@ -16,10 +16,10 @@ pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
 }
-fn Maria::close(Self) -> Unit
+pub fn Maria::close(Self) -> Unit
 #as_free_fn
-async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, cwd? : String, user_message? : String, web_search? : Bool) -> Self
-async fn Maria::start(Self, prompt? : String) -> Unit
+pub async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, cwd? : String, user_message? : String, web_search? : Bool) -> Self
+pub async fn Maria::start(Self, prompt? : String) -> Unit
 
 // Type aliases
 

@@ -8,7 +8,7 @@ import(
 )
 
 // Values
-fn new(@agent.Agent) -> @tool.Tool[MetaWriteToFileResult]
+pub fn new(@agent.Agent) -> @tool.Tool[MetaWriteToFileResult]
 
 // Errors
 
@@ -19,9 +19,9 @@ pub struct MetaWriteToFileResult {
   diff : String?
   learning_prompt : String?
 }
-impl Show for MetaWriteToFileResult
-impl ToJson for MetaWriteToFileResult
-impl @json.FromJson for MetaWriteToFileResult
+pub impl Show for MetaWriteToFileResult
+pub impl ToJson for MetaWriteToFileResult
+pub impl @json.FromJson for MetaWriteToFileResult
 
 // Type aliases
 
