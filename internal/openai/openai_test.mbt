@@ -1,14 +1,14 @@
 ///|
 test "system_message" {
-  @json.inspect(
-    @openai.system_message(content="You are a helpful assistant."),
-    content={ "role": "system", "content": "You are a helpful assistant." },
-  )
+  @json.inspect(system_message(content="You are a helpful assistant."), content={
+    "role": "system",
+    "content": "You are a helpful assistant.",
+  })
 }
 
 ///|
 test "user_message" {
-  @json.inspect(@openai.user_message(content="Hello", name="Alice"), content={
+  @json.inspect(user_message(content="Hello", name="Alice"), content={
     "role": "user",
     "content": "Hello",
     "name": "Alice",
@@ -17,7 +17,7 @@ test "user_message" {
 
 ///|
 test "assistant_message" {
-  @json.inspect(@openai.assistant_message(content="Hi there!"), content={
+  @json.inspect(assistant_message(content="Hi there!"), content={
     "role": "assistant",
     "tool_calls": [],
     "content": "Hi there!",
@@ -66,7 +66,7 @@ test "ChatCompletionChoice" {
       "completion_tokens_details": null,
     },
   }
-  let completion : @openai.ChatCompletion = @json.from_json(json)
+  let completion : ChatCompletion = @json.from_json(json)
   @json.inspect(completion, content={
     "id": "gen-1761639397-aseLxfjMsPT5jVOhxXdW",
     "choices": [
@@ -133,7 +133,7 @@ test "ChatCompletionChoice" {
       "total_tokens": 27398,
     },
   }
-  let completion : @openai.ChatCompletion = @json.from_json(json)
+  let completion : ChatCompletion = @json.from_json(json)
   @json.inspect(completion, content={
     "id": "gen-1761643890-jGqb3sMZR2Kc7xT50AXU",
     "choices": [
@@ -155,7 +155,7 @@ test "ChatCompletionChoice" {
 
 ///|
 test "tool_call" {
-  let tool_call = @openai.tool_call(
+  let tool_call = tool_call(
     id="call_6abfac48947b4400afbf1d5c",
     name="execute_command",
     arguments="{\"command\": \"moon new json_parser\", \"timeout\": 10000}",

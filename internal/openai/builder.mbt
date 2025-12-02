@@ -20,7 +20,7 @@ fn ChatCompletionMessageToolCallBuilder::new(
 ///|
 fn ChatCompletionMessageToolCallBuilder::add_delta(
   self : ChatCompletionMessageToolCallBuilder,
-  delta : @openai.ChatCompletionChunkChoiceDeltaToolCall,
+  delta : ChatCompletionChunkChoiceDeltaToolCall,
 ) -> Unit {
   if delta.function.arguments is Some(arguments) {
     self.arguments.write_string(arguments)
@@ -30,12 +30,8 @@ fn ChatCompletionMessageToolCallBuilder::add_delta(
 ///|
 fn ChatCompletionMessageToolCallBuilder::to_tool_call(
   self : ChatCompletionMessageToolCallBuilder,
-) -> @openai.ChatCompletionMessageToolCall {
-  @openai.tool_call(
-    id=self.id,
-    name=self.name,
-    arguments=self.arguments.to_string(),
-  )
+) -> ChatCompletionMessageToolCall {
+  tool_call(id=self.id, name=self.name, arguments=self.arguments.to_string())
 }
 
 ///|
@@ -53,7 +49,7 @@ fn ChatCompletionMessageBuilder::new() -> ChatCompletionMessageBuilder {
 ///|
 fn ChatCompletionMessageBuilder::add_delta(
   self : ChatCompletionMessageBuilder,
-  delta : @openai.ChatCompletionChunkChoiceDelta,
+  delta : ChatCompletionChunkChoiceDelta,
 ) -> Unit {
   if delta.content is Some(content) {
     if self.content is Some(builder) {
@@ -97,13 +93,13 @@ fn ChatCompletionMessageBuilder::add_delta(
 ///|
 fn ChatCompletionMessageBuilder::to_message(
   self : ChatCompletionMessageBuilder,
-) -> @openai.ChatCompletionMessage {
-  let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = []
+) -> ChatCompletionMessage {
+  let tool_calls : Array[ChatCompletionMessageToolCall] = []
   for builder in self.tool_calls {
     guard builder is Some(builder) else { continue }
     tool_calls.push(builder.to_tool_call())
   }
-  @openai.ChatCompletionMessage::new(
+  ChatCompletionMessage::new(
     content?=self.content.map(b => b.to_string()),
     refusal?=self.refusal.map(b => b.to_string()),
     tool_calls~,
@@ -112,7 +108,7 @@ fn ChatCompletionMessageBuilder::to_message(
 
 ///|
 priv struct ChatCompletionChoiceBuilder {
-  mut finish_reason : @openai.ChatCompletionChoiceFinishReason?
+  mut finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessageBuilder
 }
@@ -129,7 +125,7 @@ fn ChatCompletionChoiceBuilder::new(index : Int) -> ChatCompletionChoiceBuilder 
 ///|
 fn ChatCompletionChoiceBuilder::add_chunk(
   self : ChatCompletionChoiceBuilder,
-  chunk : @openai.ChatCompletionChunkChoice,
+  chunk : ChatCompletionChunkChoice,
 ) -> Unit {
   if chunk.finish_reason is Some(reason) {
     self.finish_reason = Some(reason)
@@ -140,8 +136,8 @@ fn ChatCompletionChoiceBuilder::add_chunk(
 ///|
 fn ChatCompletionChoiceBuilder::to_choice(
   self : ChatCompletionChoiceBuilder,
-) -> @openai.ChatCompletionChoice {
-  @openai.ChatCompletionChoice::new(
+) -> ChatCompletionChoice {
+  ChatCompletionChoice::new(
     finish_reason?=self.finish_reason,
     index=self.index,
     message=self.message.to_message(),
@@ -154,10 +150,10 @@ priv struct ChatCompletionBuilder {
   choices : Array[ChatCompletionChoiceBuilder?]
   mut created : Int?
   mut model : String?
-  mut usage : @openai.CompletionUsage?
+  mut usage : CompletionUsage?
   mut system_fingerprint : String?
-  mut service_tier : @openai.ChatCompletionServiceTier?
-  mut error : @openai.OpenRouterErrorResponse?
+  mut service_tier : ChatCompletionServiceTier?
+  mut error : OpenRouterErrorResponse?
 }
 
 ///|
@@ -177,7 +173,7 @@ fn ChatCompletionBuilder::new() -> ChatCompletionBuilder {
 ///|
 fn ChatCompletionBuilder::add_chunk(
   self : ChatCompletionBuilder,
-  chunk : @openai.ChatCompletionChunk,
+  chunk : ChatCompletionChunk,
 ) -> Unit {
   if self.id is None {
     self.id = Some(chunk.id)
@@ -219,8 +215,8 @@ fn ChatCompletionBuilder::add_chunk(
 ///|
 fn ChatCompletionBuilder::to_chat_completion(
   self : ChatCompletionBuilder,
-) -> @openai.ChatCompletion {
-  @openai.ChatCompletion::new(
+) -> ChatCompletion {
+  ChatCompletion::new(
     id=self.id.unwrap(),
     choices=self.choices
       .iter()

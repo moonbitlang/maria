@@ -255,7 +255,7 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
     ]
     // Make a request, record cached tokens, and append response to messages.
     async fn make_request() {
-      let response = @openai_api.chat(
+      let response = @openai.chat(
         model~,
         @openai.chat_completion(
           model=model.name,

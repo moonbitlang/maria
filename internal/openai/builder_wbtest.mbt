@@ -5,9 +5,9 @@ test "ChatCompletionMessageToolCallBuilder" {
     name="get_weather",
   )
   builder.add_delta(
-    @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta_tool_call(
       index=0,
-      function=@openai.chunk_choice_delta_tool_call_function(
+      function=chunk_choice_delta_tool_call_function(
         arguments=(
           #|{ "location
         ),
@@ -15,9 +15,9 @@ test "ChatCompletionMessageToolCallBuilder" {
     ),
   )
   builder.add_delta(
-    @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta_tool_call(
       index=0,
-      function=@openai.chunk_choice_delta_tool_call_function(
+      function=chunk_choice_delta_tool_call_function(
         arguments=(
           #|": "San
         ),
@@ -25,9 +25,9 @@ test "ChatCompletionMessageToolCallBuilder" {
     ),
   )
   builder.add_delta(
-    @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta_tool_call(
       index=0,
-      function=@openai.chunk_choice_delta_tool_call_function(
+      function=chunk_choice_delta_tool_call_function(
         arguments=(
           #| Francisco" }
         ),
@@ -48,26 +48,22 @@ test "ChatCompletionMessageToolCallBuilder" {
 ///|
 test "ChatCompletionMessageBuilder" {
   let builder = ChatCompletionMessageBuilder::new()
-  builder.add_delta(@openai.chunk_choice_delta(content="I will call"))
+  builder.add_delta(chunk_choice_delta(content="I will call"))
+  builder.add_delta(chunk_choice_delta(content=" the tool to get the weather."))
   builder.add_delta(
-    @openai.chunk_choice_delta(content=" the tool to get the weather."),
-  )
-  builder.add_delta(
-    @openai.chunk_choice_delta(tool_calls=[
-      @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta(tool_calls=[
+      chunk_choice_delta_tool_call(
         index=0,
         id="tool_call_1",
-        function=@openai.chunk_choice_delta_tool_call_function(
-          name="get_weather",
-        ),
+        function=chunk_choice_delta_tool_call_function(name="get_weather"),
       ),
     ]),
   )
   builder.add_delta(
-    @openai.chunk_choice_delta(tool_calls=[
-      @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta(tool_calls=[
+      chunk_choice_delta_tool_call(
         index=0,
-        function=@openai.chunk_choice_delta_tool_call_function(
+        function=chunk_choice_delta_tool_call_function(
           arguments=(
             #|{ "location
           ),
@@ -76,10 +72,10 @@ test "ChatCompletionMessageBuilder" {
     ]),
   )
   builder.add_delta(
-    @openai.chunk_choice_delta(tool_calls=[
-      @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta(tool_calls=[
+      chunk_choice_delta_tool_call(
         index=0,
-        function=@openai.chunk_choice_delta_tool_call_function(
+        function=chunk_choice_delta_tool_call_function(
           arguments=(
             #|": "San
           ),
@@ -88,10 +84,10 @@ test "ChatCompletionMessageBuilder" {
     ]),
   )
   builder.add_delta(
-    @openai.chunk_choice_delta(tool_calls=[
-      @openai.chunk_choice_delta_tool_call(
+    chunk_choice_delta(tool_calls=[
+      chunk_choice_delta_tool_call(
         index=0,
-        function=@openai.chunk_choice_delta_tool_call_function(
+        function=chunk_choice_delta_tool_call_function(
           arguments=(
             #| Francisco" }
           ),
@@ -120,98 +116,87 @@ test "ChatCompletionMessageBuilder" {
 test "ChatCompletionBuilder" {
   let builder = ChatCompletionBuilder::new()
   builder.add_chunk(
-    @openai.chunk(
+    chunk(
       id="chatcmpl-123",
       created=1677652288,
       model="gpt-4o",
       choices=[
-        @openai.chunk_choice(
+        chunk_choice(
           index=0,
-          delta=@openai.chunk_choice_delta(
+          delta=chunk_choice_delta(
             content="Sure, I can",
-            role=@openai.ChatCompletionRole::Assistant,
+            role=ChatCompletionRole::Assistant,
           ),
         ),
       ],
       system_fingerprint="fingerprint_abc",
-      service_tier=@openai.ChatCompletionServiceTier::Flex,
+      service_tier=ChatCompletionServiceTier::Flex,
     ),
   )
   builder.add_chunk(
-    @openai.chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
-      @openai.chunk_choice(
+    chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
+      chunk_choice(
         index=0,
-        delta=@openai.chunk_choice_delta(
+        delta=chunk_choice_delta(
           content=" help with that.",
-          role=@openai.ChatCompletionRole::Assistant,
+          role=ChatCompletionRole::Assistant,
         ),
       ),
     ]),
   )
   builder.add_chunk(
-    @openai.chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
-      @openai.chunk_choice(
+    chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
+      chunk_choice(
         index=0,
-        delta=@openai.chunk_choice_delta(
-          role=@openai.ChatCompletionRole::Assistant,
-          tool_calls=[
-            @openai.chunk_choice_delta_tool_call(
-              index=0,
-              id="tool_call_1",
-              function=@openai.chunk_choice_delta_tool_call_function(
-                name="get_weather",
+        delta=chunk_choice_delta(role=ChatCompletionRole::Assistant, tool_calls=[
+          chunk_choice_delta_tool_call(
+            index=0,
+            id="tool_call_1",
+            function=chunk_choice_delta_tool_call_function(name="get_weather"),
+          ),
+        ]),
+      ),
+    ]),
+  )
+  builder.add_chunk(
+    chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
+      chunk_choice(
+        index=0,
+        delta=chunk_choice_delta(role=ChatCompletionRole::Assistant, tool_calls=[
+          chunk_choice_delta_tool_call(
+            index=0,
+            function=chunk_choice_delta_tool_call_function(
+              arguments=(
+                #|{ "location": "
               ),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     ]),
   )
   builder.add_chunk(
-    @openai.chunk(id="chatcmpl-123", created=1677652288, model="gpt-4o", choices=[
-      @openai.chunk_choice(
-        index=0,
-        delta=@openai.chunk_choice_delta(
-          role=@openai.ChatCompletionRole::Assistant,
-          tool_calls=[
-            @openai.chunk_choice_delta_tool_call(
-              index=0,
-              function=@openai.chunk_choice_delta_tool_call_function(
-                arguments=(
-                  #|{ "location": "
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ]),
-  )
-  builder.add_chunk(
-    @openai.chunk(
+    chunk(
       id="chatcmpl-123",
       created=1677652288,
       model="gpt-4o",
       choices=[
-        @openai.chunk_choice(
+        chunk_choice(
           index=0,
-          delta=@openai.chunk_choice_delta(
-            role=@openai.ChatCompletionRole::Assistant,
-            tool_calls=[
-              @openai.chunk_choice_delta_tool_call(
-                index=0,
-                function=@openai.chunk_choice_delta_tool_call_function(
-                  arguments=(
-                    #|San Francisco" }
-                  ),
+          delta=chunk_choice_delta(role=ChatCompletionRole::Assistant, tool_calls=[
+            chunk_choice_delta_tool_call(
+              index=0,
+              function=chunk_choice_delta_tool_call_function(
+                arguments=(
+                  #|San Francisco" }
                 ),
               ),
-            ],
-          ),
-          finish_reason=@openai.ChatCompletionChoiceFinishReason::Stop,
+            ),
+          ]),
+          finish_reason=ChatCompletionChoiceFinishReason::Stop,
         ),
       ],
-      usage=@openai.CompletionUsage::new(
+      usage=CompletionUsage::new(
         prompt_tokens=10,
         completion_tokens=20,
         total_tokens=30,

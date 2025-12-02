@@ -13,7 +13,6 @@
     "moonbitlang/maria/internal/rules",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
-    "moonbitlang/maria/internal/openai_api",
     "moonbitlang/maria/internal/context_pruner"
   ],
   "test-import": [

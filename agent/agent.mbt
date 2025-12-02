@@ -313,7 +313,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       }
 
       // Make the API request to get the model's response
-      let response = @openai_api.chat(
+      let response = @openai.chat(
         model=agent.model,
         logger=agent.logger,
         @openai.chat_completion(

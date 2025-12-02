@@ -120,7 +120,7 @@ async fn Extractor::extract_code_snippets_from_chunk(
   prompts.push("</conversation_history>")
   prompts.push(ExtractorTaskPrompt)
   let prompt = prompts.join("\n")
-  @openai_api.json(model=self.model, prompt~)
+  @openai.json(model=self.model, prompt~)
 }
 
 ///|

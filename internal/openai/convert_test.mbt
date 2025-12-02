@@ -43,7 +43,7 @@ test "message" {
 
 ///|
 test "ChatCompletionMessage::to_ai_message" {
-  let openai_message : @openai.ChatCompletionMessage = @json.from_json({
+  let openai_message : ChatCompletionMessage = @json.from_json({
     "role": "assistant",
     "content": "Hello, AI!",
     "tool_calls": [],
@@ -101,7 +101,7 @@ test "tool_call" {
     @ai.ToolCall::from_openai_tool_call(openai_tool_call).arguments,
     content=["{\"query\": \"latest news\"}"],
   )
-  let tc_wo_args = @openai.tool_call(id="tool_call_1", name="fetch_data")
+  let tc_wo_args = tool_call(id="tool_call_1", name="fetch_data")
   @json.inspect(
     @ai.ToolCall::from_openai_tool_call(tc_wo_args).id,
     content="tool_call_1",

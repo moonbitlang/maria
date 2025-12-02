@@ -68,11 +68,11 @@ async test "chat" {
   let model = deepseek_model(api_key)
   let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.model_name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content="Say 'Hello' and nothing else."),
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
@@ -94,15 +94,15 @@ async test "chat_with_usage" {
   let model = deepseek_model(api_key)
   let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.model_name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content="Say 'Hello' and nothing else."),
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
-      usage=@openai.usage(include_=true),
+      usage=usage(include_=true),
     ),
   )
   guard completion.usage is Some(usage) else { fail("Expected usage data") }
@@ -114,7 +114,7 @@ async test "chat_with_usage" {
 ///|
 /// Test tool definition
 test "tool_definition" {
-  let tool_def = @openai.tool(
+  let tool_def = tool(
     name="get_weather",
     description="Get the current weather in a location",
     parameters={
@@ -132,13 +132,13 @@ test "tool_definition" {
 ///|
 /// Test response format helpers
 test "response_format" {
-  let text_format = @openai.ResponseFormat::Text
+  let text_format = ResponseFormat::Text
   let json = text_format.to_json()
   guard json is Object(obj) else { fail("Expected JSON object") }
   guard obj.get("type") is Some(String("text")) else {
     fail("Expected type 'text'")
   }
-  let json_schema_format = @openai.json_schema(name="test_schema", schema={
+  let json_schema_format = json_schema(name="test_schema", schema={
     "type": "object",
     "properties": { "message": { "type": "string" } },
   })
@@ -161,15 +161,13 @@ async test "streaming" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = deepseek_model(api_key)
-    let chat_completion = @openai_api.chat(
+    let chat_completion = chat(
       model~,
-      @openai.chat_completion(
+      chat_completion(
         model=model.model_name,
         messages=[
-          @openai.system_message(content="You are a helpful assistant."),
-          @openai.user_message(
-            content="Stream a response saying 'Hello, World!'",
-          ),
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Stream a response saying 'Hello, World!'"),
         ],
         max_tokens=50,
         temperature=0.7,
@@ -190,18 +188,18 @@ async test "streaming_tool_call" (t : @test.Test) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = claude_haiku_model(api_key)
-    let chat_completion = @openai_api.chat(
+    let chat_completion = chat(
       model~,
-      @openai.chat_completion(
+      chat_completion(
         model=model.model_name,
         messages=[
-          @openai.system_message(content="You are a helpful assistant."),
-          @openai.user_message(
+          system_message(content="You are a helpful assistant."),
+          user_message(
             content="Call the tool 'get_weather' with location 'San Francisco'.",
           ),
         ],
         tools=[
-          @openai.tool(
+          tool(
             name="get_weather",
             description="Get the current weather in a location",
             parameters={
@@ -234,18 +232,18 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
   @mock.run(t, mock => {
     let api_key = mock.getenv("OPENAI_API_KEY")
     let model = claude_sonnet_model(api_key)
-    let chat_completion = @openai_api.chat(
+    let chat_completion = chat(
       model~,
-      @openai.chat_completion(
+      chat_completion(
         model=model.model_name,
         messages=[
-          @openai.system_message(content="You are a helpful assistant."),
-          @openai.user_message(
+          system_message(content="You are a helpful assistant."),
+          user_message(
             content="Call the tool 'get_weather' twice in parallel with location 'San Francisco' and 'Boston' respectively.",
           ),
         ],
         tools=[
-          @openai.tool(
+          tool(
             name="get_weather",
             description="Get the current weather in a location",
             parameters={
@@ -260,7 +258,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
         stream=true,
       ),
     )
-    let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
+    let tool_calls : Array[ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
     let tool_calls = tool_calls.map(tc => {
       guard tc.to_json() is Object(tc_object)
       tc_object.remove("id")
@@ -302,13 +300,13 @@ async test "deepseek" {
     name="deepseek-chat",
     safe_zone_tokens=128_000,
   )
-  let completion = @openai_api.chat(
+  let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.model_name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content="Say 'Hello' and nothing else."),
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
@@ -333,13 +331,13 @@ async test "kimi-k2" {
     name="kimi-k2-turbo-preview",
     safe_zone_tokens=262_144,
   )
-  let completion = @openai_api.chat(
+  let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.model_name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content="Say 'Hello' and nothing else."),
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
@@ -362,13 +360,13 @@ async test "dashscope" {
     name="qwen3-coder-plus",
     safe_zone_tokens=997_952,
   )
-  let completion = @openai_api.chat(
+  let completion = chat(
     model~,
-    @openai.chat_completion(
+    chat_completion(
       model=model.model_name,
       messages=[
-        @openai.system_message(content="You are a helpful assistant."),
-        @openai.user_message(content="Say 'Hello' and nothing else."),
+        system_message(content="You are a helpful assistant."),
+        user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
