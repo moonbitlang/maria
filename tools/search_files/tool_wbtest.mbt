@@ -1,24 +1,18 @@
 ///|
 async test "goto_definition" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "username/example", "version": "0.1.0" }
-        .to_json()
-        .stringify(indent=2),
+    mock.add_files({
+      "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
+      .to_json()
+      .stringify(indent=2),
+      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "main.mbt": (
+        #|///|
+        #|pub fn greet(name : String) -> String {
+        #|  println("Hello, \{name}!")
+        #|}
       ),
-      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
-      (
-        "main.mbt",
-        (
-          #|///|
-          #|pub fn greet(name : String) -> String {
-          #|  println("Hello, \{name}!")
-          #|}
-        ),
-      ),
-    ])
+    })
     inspect(
       mock.show(goto_definition("@username/example greet", mock.cwd.path())),
       content=(
@@ -51,29 +45,23 @@ async test "goto_definition" (t : @test.Test) {
 ///|
 async test "find_references" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "username/example", "version": "0.1.0" }
-        .to_json()
-        .stringify(indent=2),
+    mock.add_files({
+      "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
+      .to_json()
+      .stringify(indent=2),
+      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "main.mbt": (
+        #|///|
+        #|pub fn greet(name : String) -> String {
+        #|  println("Hello, \{name}!")
+        #|}
+        #|
+        #|fn main {
+        #|  greet("World")
+        #|  greet("MoonBit")
+        #|}
       ),
-      ("moon.pkg.json", Json::object({}).stringify(indent=2)),
-      (
-        "main.mbt",
-        (
-          #|///|
-          #|pub fn greet(name : String) -> String {
-          #|  println("Hello, \{name}!")
-          #|}
-          #|
-          #|fn main {
-          #|  greet("World")
-          #|  greet("MoonBit")
-          #|}
-        ),
-      ),
-    ])
+    })
     inspect(
       mock.show(find_references("greet", mock.cwd.path())),
       content=(

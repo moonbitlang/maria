@@ -60,29 +60,23 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
         }
       _ => ()
     })
-    mock.add_files([
-      (
-        "foo.txt",
-        (
-          #|x hgo
-          #|random
-          // line 3
-          #|xs hello 3
-          // line 4
-          #| world 4
-          #|foo.txt 
-        ),
+    mock.add_files({
+      "foo.txt": (
+        #|x hgo
+        #|random
+        // line 3
+        #|xs hello 3
+        // line 4
+        #| world 4
+        #|foo.txt 
       ),
-      (
-        "bar.txt",
-        (
-          #| a g
-          #| bbbg
-          // line 3
-          #| random data
-        ),
+      "bar.txt": (
+        #| a g
+        #| bbbg
+        // line 3
+        #| random data
       ),
-    ])
+    })
     agent.start()
     inspect(multiple_files_read, content="true")
     // Verify file was actually created

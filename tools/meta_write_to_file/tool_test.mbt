@@ -5,15 +5,12 @@ async test "create-file" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let tool = @meta_write_to_file.new(agent)
     agent.add_tool(tool)
@@ -94,15 +91,12 @@ async test "create-file-with-empty-search" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let tool = @meta_write_to_file.new(agent)
     agent.add_tool(tool)
@@ -185,15 +179,12 @@ async test "fail-on-search-non-existent-file" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let tool = @meta_write_to_file.new(agent)
     agent.add_tool(tool)
@@ -262,20 +253,14 @@ async test "no-op-if-non-moonbit" (t : @test.Test) {
 async test "no-op-if-no-syntax-error" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #| { "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #| { "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ "is-main": true }
-        ),
+      "moon.pkg.json": (
+        #|{ "is-main": true }
       ),
-    ])
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -351,20 +336,14 @@ async test "fuzzy-search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
     // no syntax error triggered
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ "is-main": true }
-        ),
+      "moon.pkg.json": (
+        #|{ "is-main": true }
       ),
-    ])
+    })
     let main_mbt_file = mock.add_file(
       "main.mbt",
       content=(
@@ -426,20 +405,14 @@ async test "show-original-moonbit-file-on-search-failure" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
     // no syntax error triggered
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ "is-main": true }
-        ),
+      "moon.pkg.json": (
+        #|{ "is-main": true }
       ),
-    ])
+    })
     let _ = mock.add_file(
       "main.mbt",
       content=(
@@ -504,20 +477,14 @@ async test "show-original-non-moonbit-file-on-search-failure" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
     // no syntax error triggered
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ "is-main": true }
-        ),
+      "moon.pkg.json": (
+        #|{ "is-main": true }
       ),
-    ])
+    })
     let _ = mock.add_file(
       "main.txt",
       content=(

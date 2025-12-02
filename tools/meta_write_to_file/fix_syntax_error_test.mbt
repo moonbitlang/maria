@@ -3,15 +3,12 @@
 async test "fix-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -89,20 +86,14 @@ async test "fix-syntax-error" (t : @test.Test) {
 async test "search-replace" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ "is-main": true }
-        ),
+      "moon.pkg.json": (
+        #|{ "is-main": true }
       ),
-    ])
+    })
     let main_mbt_file = mock.add_file(
       "main.mbt",
       content=(
@@ -189,15 +180,12 @@ async test "search-replace" (t : @test.Test) {
 async test "fix-question-mark-error-propagation" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -250,15 +238,12 @@ async test "fix-question-mark-error-propagation" (t : @test.Test) {
 async test "fix-loop-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -309,15 +294,12 @@ async test "fix-loop-syntax-error" (t : @test.Test) {
 async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -363,15 +345,12 @@ async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
 async test "fix-range-pattern-match-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -423,15 +402,12 @@ async test "fix-range-pattern-match-error" (t : @test.Test) {
 async test "fix-range-pattern-if-is-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())
@@ -486,15 +462,12 @@ async test "fix-range-pattern-if-is-error" (t : @test.Test) {
 async test "fix-multiple-syntax-errors" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let model = mock.model()
-    mock.add_files([
-      (
-        "moon.mod.json",
-        Json::object({ "name": "example", "version": "0.1.0" }).stringify(
-          indent=2,
-        ),
+    mock.add_files({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
       ),
-      ("moon.pkg.json", Json::object({ "is-main": true }).stringify(indent=2)),
-    ])
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
     let main_mbt_file = mock.add_file("main.mbt")
     let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
     let file_manager = @file.manager(cwd=mock.cwd.path())

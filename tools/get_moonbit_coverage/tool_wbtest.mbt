@@ -1,42 +1,30 @@
 ///|
 async test "get_moonbit_coverage" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        (
-          #|{ "name": "example", "version": "0.1.0" }
-        ),
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
       ),
-      (
-        "moon.pkg.json",
-        (
-          #|{ }
-        ),
+      "moon.pkg.json": (
+        #|{ }
       ),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|pub fn fib(n : Int) -> Int {
-          #|  if n <= 1 {
-          #|    n
-          #|  } else {
-          #|    fib(n - 1) + fib(n - 2)
-          #|  }
-          #|}
-        ),
+      "example.mbt": (
+        #|///|
+        #|pub fn fib(n : Int) -> Int {
+        #|  if n <= 1 {
+        #|    n
+        #|  } else {
+        #|    fib(n - 1) + fib(n - 2)
+        #|  }
+        #|}
       ),
-      (
-        "example_test.mbt",
-        (
-          #|///|
-          #|test "fib" {
-          #|  @json.inspect(@example.fib(1), content=1)
-          #|}
-        ),
+      "example_test.mbt": (
+        #|///|
+        #|test "fib" {
+        #|  @json.inspect(@example.fib(1), content=1)
+        #|}
       ),
-    ])
+    })
     let params = params(project_path=mock.cwd.path(), file="example.mbt")
     let tool = new(mock.cwd.path())
     let result = tool.call(params.to_json())

@@ -1,20 +1,16 @@
 ///|
 async test "check_moonbit_project" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+    mock.add_files({
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": (
+        #|///|
+        #|let x : Int = "string"
       ),
-      ("moon.pkg.json", Json::object({}).stringify()),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|let x : Int = "string"
-        ),
-      ),
-    ])
+    })
     let args = input_json(diagnostic_limit=10, project_path=mock.cwd.path())
     let result = new(mock.cwd.path()).call(args)
     @json.inspect(mock.json(result), content=[
@@ -71,21 +67,17 @@ async test "check_moonbit_project" (t : @test.Test) {
 ///|
 async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+    mock.add_files({
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": (
+        #|///|
+        #|let x : Int = "string"
+        #|
       ),
-      ("moon.pkg.json", Json::object({}).stringify()),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|let x : Int = "string"
-          #|
-        ),
-      ),
-    ])
+    })
     let args = input_json(
       diagnostic_limit=10,
       project_path=mock.cwd.path(),
@@ -157,21 +149,17 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
 ///|
 async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files([
-      (
-        "moon.mod.json",
-        { "name": "username/example", "version": "0.1.0" }.to_json().stringify(),
+    mock.add_files({
+      "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": (
+        #|///|
+        #|pub let x : Int = 42
+        #|
       ),
-      ("moon.pkg.json", Json::object({}).stringify()),
-      (
-        "example.mbt",
-        (
-          #|///|
-          #|pub let x : Int = 42
-          #|
-        ),
-      ),
-    ])
+    })
     let args = @check_moonbit_project.input_json(
       diagnostic_limit=10,
       project_path=mock.cwd.path(),
