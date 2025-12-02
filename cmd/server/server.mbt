@@ -115,21 +115,16 @@ async fn Server::serve_http(self : Server) -> Unit {
           w.write_header(200)
           w.write(index_html)
         }
-        (Get, "/v1/status") => {
-          let response : Json = { "status": self.status() }
-          w.header().set("Content-Type", "application/json")
-          w.header().set("Access-Control-Allow-Origin", "*")
-          w.header().set("Access-Control-Allow-Methods", "*")
-          w.header().set("Access-Control-Allow-Headers", "*")
-          w.write_header(200)
-          w.write(response.stringify())
-        }
+        (Get, "/v1/status") => self.get_status(w)
         (Post, "/v1/cancel") => self.cancel_maria(w)
         (Get, "/v1/queued-messages") => self.get_queued_messages(w)
         (Get, "/v1/events") => self.get_events(w)
         (Post, "/v1/message") => self.create_message(r, w)
         (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
         (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
+        (Get, "/v1/conversations") => self.list_conversations(w)
+        (Get, "/v1/conversation") => self.get_conversation(w)
+        (Post, "/v1/conversation") => self.set_conversation(r, w)
         (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
           (try? @fsx.exists_as_file(path)) is Ok(true) => {
           let content_type = match @path.ext(path) {
@@ -390,6 +385,99 @@ async fn Server::create_message(
     idq.get()
   }
   let response : Json = { "id": id, "queued": true }
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
+}
+
+///|
+async fn Server::get_status(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  let response : Json = {
+    "status": self.status(),
+    "conversation": { "id": self.maria.agent.conversation_id() },
+  }
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
+}
+
+///|
+async fn Server::list_conversations(
+  self : Server,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let ids = self.maria.agent.conversation_ids() catch {
+    error =>
+      raise json_error(500, "InternalServerError", {
+        "error": {
+          "code": -1,
+          "message": "Failed to list conversations: \{error}",
+        },
+      })
+  }
+  let cs = []
+  for id in ids {
+    cs.push({ "id": id })
+  }
+  let response : Json = cs.to_json()
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(response.stringify())
+}
+
+///|
+async fn Server::set_conversation(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let body = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Missing 'path' query parameter: \{error}",
+          },
+        })
+    }
+  guard body is { "id": String(id), .. } else {
+    raise json_error(400, "BadRequest", {
+      "error": { "code": -1, "message": "Missing 'id' field in request body" },
+    })
+  }
+  self.maria.agent.load_conversation(id) catch {
+    error =>
+      raise json_error(500, "InternalServerError", {
+        "error": {
+          "code": -1,
+          "message": "Failed to load conversation from '\{id}': \{error}",
+        },
+      })
+  }
+  w.header().set("Content-Type", "application/json")
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(200)
+  w.write(Json::object({}))
+}
+
+///|
+async fn Server::get_conversation(
+  self : Server,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let id = self.maria.agent.conversation_id()
+  let response : Json = { "id": id }
   w.header().set("Content-Type", "application/json")
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")

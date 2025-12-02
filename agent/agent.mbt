@@ -37,7 +37,7 @@ pub(all) struct Agent {
   model : @model.Model
   logger : @pino.Logger
   priv tools : Map[String, Tool]
-  priv history : @conversation.Conversation
+  priv mut history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[QueuedMessage]
   priv event_target : @event.EventTarget
@@ -373,6 +373,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 }
 
 ///|
+priv suberror ConversationNotFound String
+
+///|
 /// Creates a new agent instance with the specified AI model and working directory.
 ///
 /// This function initializes a complete agent with all necessary components:
@@ -408,6 +411,7 @@ pub async fn new(
   user_message? : String,
   cwd~ : StringView,
   web_search? : Bool = false,
+  load_conversation? : String,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -418,7 +422,14 @@ pub async fn new(
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
   event_target.emit(ModelLoaded(name=model.name, model~))
-  let history = session_manager.new_conversation(name="history")
+  let history = if load_conversation is Some(id) {
+    guard session_manager.load(id) is Some(history) else {
+      raise ConversationNotFound(id)
+    }
+    history
+  } else {
+    session_manager.new_conversation(name="history")
+  }
   let agent = Agent::{
     logger,
     uuid,
@@ -554,4 +565,48 @@ pub async fn Agent::set_enabled_tools(
       tool.enabled = false
     }
   }
+}
+
+///|
+/// Retrieves the unique identifier of the agent's current conversation.
+///
+/// Parameters:
+///
+/// * `self` : The agent instance to get the conversation ID from.
+///
+/// Returns a string representing the unique identifier of the current
+/// conversation history.
+pub fn Agent::conversation_id(self : Agent) -> String {
+  self.history.id()
+}
+
+///|
+/// Retrieves all conversation IDs managed by the agent's session manager.
+///
+/// Parameters:
+///
+/// * `self` : The agent instance to retrieve conversation IDs from.
+///
+/// Returns an array of strings, where each string is a unique identifier for a
+/// conversation that has been persisted by the session manager.
+pub async fn Agent::conversation_ids(self : Agent) -> Array[String] {
+  self.session_manager.list()
+}
+
+///|
+/// Loads a conversation with the specified ID and sets it as the agent's
+/// current conversation history.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance whose conversation history will be replaced.
+/// * `id` : The unique identifier of the conversation to load.
+///
+/// Throws an error of type `ConversationNotFound` if no conversation with the
+/// specified ID exists.
+pub async fn Agent::load_conversation(agent : Agent, id : String) -> Unit {
+  guard agent.session_manager.load(id) is Some(history) else {
+    raise ConversationNotFound(id)
+  }
+  agent.history = history
 }

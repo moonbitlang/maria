@@ -166,41 +166,47 @@ fn redact_events(
 }
 
 ///|
+async fn collect_events(s : @http.Client) -> Array[Json] {
+  let events : Array[Json] = []
+  let mut last_event : String? = None
+  while s.read_until("\n") is Some(line) {
+    match line {
+      [.. "event: ", .. event] => {
+        last_event = Some(event.to_string())
+        continue
+      }
+      [.. "data: ", .. data] => {
+        let data = @json.parse(data)
+        if last_event is Some(event) {
+          events.push({ "event": event, "data": data })
+        } else {
+          events.push({ "data": data })
+        }
+        last_event = None
+        if events.last() is Some(event) &&
+          event is { "data": { "msg": "PostConversation", .. }, .. } {
+          break
+        }
+      }
+      _ => continue
+    }
+  }
+  events
+}
+
+///|
 #skip
 async test "GET /v1/events" (t : @test.Test) {
   @mock.run(t, mock => {
     let group = mock.group
     let server = configure_server(mock)
     group.spawn_bg(() => server.start(), no_wait=true)
-    let events : Array[Json] = []
     let collector = group.spawn(() => {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      let mut last_event : String? = None
-      while s.read_until("\n") is Some(line) {
-        match line {
-          [.. "event: ", .. event] => {
-            last_event = Some(event.to_string())
-            continue
-          }
-          [.. "data: ", .. data] => {
-            let data = @json.parse(data)
-            if last_event is Some(event) {
-              events.push({ "event": event, "data": data })
-            } else {
-              events.push({ "data": data })
-            }
-            last_event = None
-            if events.last() is Some(event) &&
-              event is { "data": { "msg": "PostConversation", .. }, .. } {
-              break
-            }
-          }
-          _ => continue
-        }
-      }
+      collect_events(s)
     })
     let (_, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
@@ -220,7 +226,7 @@ async test "GET /v1/events" (t : @test.Test) {
     guard b is { "id": String(msg1_id), .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    collector.wait()
+    let events = collector.wait()
     fn extract_events_for_message(
       events : Array[Json],
       id : String,
@@ -611,5 +617,57 @@ async test "POST /v1/cancel" (t : @test.Test) {
       },
       { "event": "maria", "data": { "msg": "PostConversation" } },
     ])
+  })
+}
+
+///|
+#skip
+async test "GET /v1/conversations" (t : @test.Test) {
+  @mock.run(t, mock => {
+    configure_models(mock)
+    let mut id = None
+    @async.with_task_group(group => {
+      let server = @server.Server::new(
+        model="mock:claude-haiku-4.5",
+        serve=mock.cwd.path(),
+        port=0,
+        cwd=mock.cwd.path(),
+      )
+      group.spawn_bg(() => server.start(), no_wait=true)
+      let collector = mock.group.spawn(() => {
+        let (r, s) = @http.get_stream(
+          "http://localhost:\{server.port()}/v1/events",
+        )
+        @json.inspect(r.code, content=200)
+        collect_events(s)
+      })
+      @http.post(
+        "http://localhost:\{server.port()}/v1/message",
+        Json::object({
+          "message": { "role": "user", "content": "Hello, Maria!" },
+        }),
+      )
+      |> ignore()
+      let (_, b) = @http.get(
+        "http://localhost:\{server.port()}/v1/conversation",
+      )
+      guard b.json() is { "id": String(cid), .. } else {
+        fail("Invalid response body: \{b.json().stringify(indent=2)}")
+      }
+      id = Some(cid)
+      collector.wait() |> ignore()
+    })
+    let server = @server.Server::new(
+      model="mock:claude-haiku-4.5",
+      serve=mock.cwd.path(),
+      port=0,
+      cwd=mock.cwd.path(),
+    )
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/conversations")
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard id is Some(id) else { fail("Conversation ID was not set") }
+    @json.inspect(b, content=[{ "id": String(id) }])
   })
 }

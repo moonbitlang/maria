@@ -15,6 +15,19 @@ moon run cmd/main -- server --port 8090 --serve cmd/server
 Then open `http://localhost:8080` in your web browser to access the HTML
 frontend.
 
+## `GET /v1/status`
+
+Response:
+
+```json
+{
+  "status": "idle", // or "generating"
+  "conversation": {
+    "id": "<conversation-id>"
+  }
+}
+```
+
 ## `POST /v1/message`
 
 Request:
@@ -189,4 +202,51 @@ If failed, returns 500 Internal Server Error:
     }
   },
 }
+```
+
+## `GET /v1/conversations`
+
+Returns the list of conversations.
+
+Response:
+
+```json
+[
+  {
+    "id": "<conversation-id-0>",
+  },
+  {
+    "id": "<conversation-id-1>",
+  }
+]
+```
+
+## `GET /v1/conversation`
+
+Returns the current conversation ID.
+
+Response:
+
+```json
+{
+  "id": "<conversation-id>"
+}
+```
+
+## `POST /v1/conversation`
+
+Sets the current conversation by ID.
+
+Request:
+
+```json
+{
+  "id": "<conversation-id>"
+}
+```
+
+Response:
+
+```json
+{}
 ```
