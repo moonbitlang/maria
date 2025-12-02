@@ -85,7 +85,7 @@ jobs:
       - name: Run tests
         run: |
           moon build --release
-          moon test -v
+          moon test --include-skipped -v
 
   info:
     runs-on: ubuntu-latest
