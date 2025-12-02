@@ -108,102 +108,151 @@ priv struct Register {
 }
 
 ///|
+priv struct CreateTaskRequest {
+  name : String?
+  model : String?
+  message : @openai.ChatCompletionMessageParam?
+  cwd : String?
+}
+
+///|
+impl @json.FromJson for CreateTaskRequest with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> CreateTaskRequest raise @json.JsonDecodeError {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError(
+      (json_path, "Expected JSON object for CreateTaskRequest"),
+    )
+  }
+  let name : String? = match json.get("name") {
+    Some(Null) => None
+    Some(name_json) =>
+      Some(@json.from_json(name_json, path=json_path.add_key("name")))
+    None => None
+  }
+  let model : String? = match json.get("model") {
+    Some(Null) => None
+    Some(model_json) =>
+      Some(@json.from_json(model_json, path=json_path.add_key("model")))
+    None => None
+  }
+  let message : @openai.ChatCompletionMessageParam? = match
+    json.get("message") {
+    Some(Null) => None
+    Some(message_json) =>
+      Some(@json.from_json(message_json, path=json_path.add_key("message")))
+    None => None
+  }
+  let cwd : String? = match json.get("cwd") {
+    Some(Null) => None
+    Some(cwd_json) =>
+      Some(@json.from_json(cwd_json, path=json_path.add_key("cwd")))
+    None => None
+  }
+  CreateTaskRequest::{ name, model, message, cwd }
+}
+
+///|
+test "CreateTaskRequest::from_json" {
+  let json : Json = {
+    "name": "Test Task",
+    "model": "gpt-4",
+    "message": { "role": "user", "content": "Hello, world!" },
+    "cwd": "/tmp/task",
+  }
+  let request : CreateTaskRequest = @json.from_json(json)
+  @json.inspect(request.name, content=["Test Task"])
+  @json.inspect(request.model, content=["gpt-4"])
+  @json.inspect(request.message, content=[
+    { "role": "user", "content": "Hello, world!" },
+  ])
+  @json.inspect(request.cwd, content=["/tmp/task"])
+  let json : Json = {}
+  let request : CreateTaskRequest = @json.from_json(json)
+  @json.inspect(request.name, content=null)
+  @json.inspect(request.model, content=null)
+  @json.inspect(request.message, content=null)
+  @json.inspect(request.cwd, content=null)
+  let json : Json = {
+    "name": null,
+    "model": null,
+    "message": null,
+    "cwd": null,
+  }
+  let request : CreateTaskRequest = @json.from_json(json)
+  @json.inspect(request.name, content=null)
+  @json.inspect(request.model, content=null)
+  @json.inspect(request.message, content=null)
+  @json.inspect(request.cwd, content=null)
+}
+
+///|
 async fn Daemon::create_task(
   self : Daemon,
   group~ : @async.TaskGroup[Unit],
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  guard {
-      let bytes = r.body.read_all().binary()
-      let text = @encoding/utf8.decode(bytes) catch {
-        @encoding/utf8.Malformed(bytes) =>
-          raise json_error(
-            400,
-            "Bad Request",
-            "Invalid UTF-8 in request body: \{bytes}",
-          )
-      }
-      @json.parse(text) catch {
-        error =>
-          raise json_error(
-            400,
-            "Bad Request",
-            "Invalid JSON in request body: \{error}",
-          )
-      }
-    }
-    is {
-      "name"? : name,
-      "model"? : model_name,
-      "cwd"? : cwd,
-      "message"? : message,
-      ..
-    } else {
-    raise json_error(400, "Bad Request", {
-      "error": {
-        "code": -1,
-        "message": "Missing required fields 'prompt' or 'model'",
-      },
-    })
-  }
-  let model_name : String? = model_name.map(model_name => @json.from_json(
-    model_name,
-  )) catch {
-    error =>
-      raise json_error(400, "Bad Request", {
-        "error": { "code": -1, "message": "Invalid 'model' field: \{error}" },
-      })
-  }
-  guard self.models.get_model(name?=model_name) is Some(model) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Model not found: \{model_name}" },
-    })
-  }
-  let name : String? = name.map(name => @json.from_json(name)) catch {
-    error =>
-      raise json_error(400, "Bad Request", {
-        "error": { "code": -1, "message": "Invalid 'name' field: \{error}" },
-      })
-  }
-  let message : @openai.ChatCompletionMessageParam? = message.map(message => @json.from_json(
-    message,
-  )) catch {
-    error =>
-      raise json_error(400, "Bad Request", {
-        "error": { "code": -1, "message": "Invalid 'message' field: \{error}" },
-      })
-  }
-  let cwd = if cwd is Some(cwd) {
-    if cwd is String(cwd) {
-      let exists = @fsx.exists(cwd) catch {
-        error =>
-          raise json_error(500, "Internal Server Error", {
-            "error": {
-              "code": -1,
-              "message": "Failed to check existence of 'cwd' path: \{error}",
-              "metadata": { "cwd": cwd, "error": error.to_json() },
-            },
-          })
-      }
-      if !exists {
-        raise json_error(404, "Not Found", {
+  let request : CreateTaskRequest = {
+    let bytes = r.body.read_all().binary()
+    let text = @encoding/utf8.decode(bytes) catch {
+      @encoding/utf8.Malformed(bytes) =>
+        raise json_error(400, "Bad Request", {
           "error": {
             "code": -1,
-            "message": "Specified 'cwd' path does not exist: \{cwd}",
-            "metadata": { "cwd": cwd },
+            "message": "Invalid UTF-8 in request body: \{bytes}",
+            "data": { "body": bytes },
           },
         })
-      }
-      cwd
-    } else {
-      raise json_error(400, "Bad Request", {
+    }
+    let json = @json.parse(text) catch {
+      error =>
+        raise json_error(400, "Bad Request", {
+          "error": {
+            "code": -1,
+            "message": "Invalid JSON in request body: \{error}",
+            "data": { "body": text },
+          },
+        })
+    }
+    @json.from_json(json) catch {
+      error =>
+        raise json_error(400, "Bad Request", {
+          "error": {
+            "code": -1,
+            "message": "Failed to decode CreateTaskRequest: \{error}",
+            "data": { "body": json, "error": error.to_json() },
+          },
+        })
+    }
+  }
+  guard self.models.get_model(name?=request.model) is Some(model) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Model not found: \{request.model}" },
+    })
+  }
+  let cwd = if request.cwd is Some(cwd) {
+    let exists = @fsx.exists(cwd) catch {
+      error =>
+        raise json_error(500, "Internal Server Error", {
+          "error": {
+            "code": -1,
+            "message": "Failed to check existence of 'cwd' path: \{error}",
+            "metadata": { "cwd": cwd, "error": error.to_json() },
+          },
+        })
+    }
+    if !exists {
+      raise json_error(404, "Not Found", {
         "error": {
           "code": -1,
-          "message": "Invalid 'cwd' field: expected string",
+          "message": "Specified 'cwd' path does not exist: \{cwd}",
+          "metadata": { "cwd": cwd },
         },
       })
     }
+    cwd
   } else {
     @fsx.mkdtemp(@path.join(@os.tmpdir(), "maria-server-task-XXXXXX")) catch {
       error =>
@@ -265,7 +314,14 @@ async fn Daemon::create_task(
     "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
   let created = self.clock.now() / 1_000
-  let task = Task::{ name, id, cwd, port: task_port, status: Idle, created }
+  let task = Task::{
+    name: request.name,
+    id,
+    cwd,
+    port: task_port,
+    status: Idle,
+    created,
+  }
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
@@ -280,7 +336,7 @@ async fn Daemon::create_task(
   // FIXME: The daemon does not ends anyway, so the `no_wait` option is
   // unnecessary.
   group.spawn_bg(() => self.listen_for_status_change(task), no_wait=true)
-  let message = if message is Some(message) {
+  let message = if request.message is Some(message) {
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
       "http://localhost:\{task_port}/v1/message",
