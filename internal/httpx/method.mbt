@@ -58,3 +58,18 @@ fn Method::from_async_http(method_ : @http.RequestMethod) -> Method {
     @http.RequestMethod::Patch => Method::Patch
   }
 }
+
+///|
+pub fn Method::to_http(self : Method) -> @http.RequestMethod {
+  match self {
+    Method::Get => @http.RequestMethod::Get
+    Method::Head => @http.RequestMethod::Head
+    Method::Post => @http.RequestMethod::Post
+    Method::Put => @http.RequestMethod::Put
+    Method::Delete => @http.RequestMethod::Delete
+    Method::Connect => @http.RequestMethod::Connect
+    Method::Options => @http.RequestMethod::Options
+    Method::Trace => @http.RequestMethod::Trace
+    Method::Patch => @http.RequestMethod::Patch
+  }
+}

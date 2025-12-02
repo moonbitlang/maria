@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/httpx"
 
 import(
+  "moonbitlang/async/http"
   "moonbitlang/async/io"
 )
 
@@ -54,6 +55,7 @@ pub(all) enum Method {
   Trace
   Patch
 }
+pub fn Method::to_http(Self) -> @http.RequestMethod
 pub impl Compare for Method
 pub impl Eq for Method
 pub impl Hash for Method

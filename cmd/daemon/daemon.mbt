@@ -507,140 +507,6 @@ async fn Daemon::get_task(
 }
 
 ///|
-async fn Daemon::get_task_events(
-  self : Daemon,
-  id : StringView,
-  r : @httpx.RequestReader,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  guard self.by_id.get(
-      @uuid.parse(id) catch {
-        _ =>
-          raise json_error(400, "Bad Request", {
-            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
-          })
-      },
-    )
-    is Some(task) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Task not found: \{id}" },
-    })
-  }
-  let (r, c) = @http.get_stream(
-    "http://localhost:\{task.port}/v1/events",
-    body=r.body.read_all(),
-  )
-  w.header().set("Content-Type", "text/event-stream")
-  w.header().set("Access-Control-Allow-Origin", "*")
-  w.header().set("Access-Control-Allow-Methods", "*")
-  w.header().set("Access-Control-Allow-Headers", "*")
-  w.header().set("X-Accel-Buffering", "no")
-  w.write_header(r.code, reason=r.reason)
-  w.write_reader(c)
-  w.flush()
-}
-
-///|
-async fn Daemon::list_moonbit_modules(
-  self : Daemon,
-  id : StringView,
-  r : @httpx.RequestReader,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  guard self.by_id.get(
-      @uuid.parse(id) catch {
-        _ =>
-          raise json_error(400, "Bad Request", {
-            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
-          })
-      },
-    )
-    is Some(server) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Task not found: \{id}" },
-    })
-  }
-  println("[INFO] Forwarding moonbit modules request to task \{id}...")
-  let (r, b) = @http.get(
-    "http://localhost:\{server.port}/v1/moonbit/modules",
-    body=r.body.read_all(),
-  )
-  w.header().set("Content-Type", "application/json")
-  w.header().set("Access-Control-Allow-Origin", "*")
-  w.header().set("Access-Control-Allow-Methods", "*")
-  w.header().set("Access-Control-Allow-Headers", "*")
-  w.write_header(r.code, reason=r.reason)
-  w.write(b)
-}
-
-///|
-async fn Daemon::create_task_message(
-  self : Daemon,
-  id : StringView,
-  r : @httpx.RequestReader,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  guard self.by_id.get(
-      @uuid.parse(id) catch {
-        _ =>
-          raise json_error(400, "Bad Request", {
-            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
-          })
-      },
-    )
-    is Some(task) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Task not found: \{id}" },
-    })
-  }
-  let (response, response_body) = @http.post(
-    "http://localhost:\{task.port}/v1/message",
-    r.body.read_all(),
-  )
-  println(
-    "[INFO] (Daemon) Forwarded message to task \{id} @ localhost:\{task.port}",
-  )
-  w.header().set("Content-Type", "application/json")
-  w.header().set("Access-Control-Allow-Origin", "*")
-  w.header().set("Access-Control-Allow-Methods", "*")
-  w.header().set("Access-Control-Allow-Headers", "*")
-  w.write_header(response.code, reason=response.reason)
-  w.write(response_body)
-}
-
-///|
-async fn Daemon::cancel_task(
-  self : Daemon,
-  id : StringView,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  guard self.by_id.get(
-      @uuid.parse(id) catch {
-        _ =>
-          raise json_error(400, "Bad Request", {
-            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
-          })
-      },
-    )
-    is Some(task) else {
-    raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Task not found: \{id}" },
-    })
-  }
-  let (r, b) = @http.post(
-    "http://localhost:\{task.port}/v1/cancel",
-    Json::object({}),
-  )
-  println("[INFO] (Daemon) Sent cancel request to task \{id}")
-  w.header().set("Content-Type", "application/json")
-  w.header().set("Access-Control-Allow-Origin", "*")
-  w.header().set("Access-Control-Allow-Methods", "*")
-  w.header().set("Access-Control-Allow-Headers", "*")
-  w.write_header(r.code, reason=r.reason)
-  w.write(b)
-}
-
-///|
 async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   let path = home |> @path.join(".moonagent") |> @path.join("daemon.json")
   let dir = @path.dirname(path)
@@ -757,15 +623,10 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
           (Get, ["", "v1", "tasks"]) => self.list_tasks(w)
           (Post, ["", "v1", "task"]) => self.create_task(group~, r, w)
           (Get, ["", "v1", "task", id]) => self.get_task(id, w)
-          (Get, ["", "v1", "task", id, "events"]) =>
-            self.get_task_events(id, r, w)
-          (Get, ["", "v1", "task", id, "moonbit", "modules"]) =>
-            self.list_moonbit_modules(id, r, w)
+          (method_, ["", "v1", "task", id, .. paths]) =>
+            self.forward_to_task(method_~, id~, paths~, r, w)
           (Post, ["", "v1", "moonbit", "publish"]) =>
             publish_moonbit_module(r, w)
-          (Post, ["", "v1", "task", id, "message"]) =>
-            self.create_task_message(id, r, w)
-          (Post, ["", "v1", "task", id, "cancel"]) => self.cancel_task(id, w)
           (Get, ["", .. file]) =>
             serve_static_file(w, serve=self.serve, path=file.join("/"))
           _ =>
@@ -790,4 +651,45 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
       }
     })
   })
+}
+
+///|
+async fn Daemon::forward_to_task(
+  self : Daemon,
+  method_~ : @httpx.Method,
+  id~ : StringView,
+  paths~ : ArrayView[StringView],
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  guard self.by_id.get(
+      @uuid.parse(id) catch {
+        _ =>
+          raise json_error(400, "Bad Request", {
+            "error": { "code": -1, "message": "Invalid UUID: \{id}" },
+          })
+      },
+    )
+    is Some(task) else {
+    raise json_error(404, "Not Found", {
+      "error": { "code": -1, "message": "Task not found: \{id}" },
+    })
+  }
+  let path = paths.join("/")
+  let c = @http.Client::new("http://localhost:\{task.port}")
+  c.request(method_.to_http(), "/v1/\{path}")
+  c.write_reader(r.body)
+  let r = c.end_request()
+  if r.headers.get("content-type") is Some(content_type) {
+    w.header().set("Content-Type", content_type)
+    if content_type is "text/event-stream" {
+      w.header().set("X-Accel-Buffering", "no")
+    }
+  }
+  w.header().set("Access-Control-Allow-Origin", "*")
+  w.header().set("Access-Control-Allow-Methods", "*")
+  w.header().set("Access-Control-Allow-Headers", "*")
+  w.write_header(r.code, reason=r.reason)
+  w.write_reader(c)
+  w.flush()
 }
