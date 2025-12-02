@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    resolve: {
+      dedupe: ["react", "react-dom"],
+    },
     build: {
       emptyOutDir: true,
       outDir: "../vsc-ext/webview",
