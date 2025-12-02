@@ -223,8 +223,3 @@ pub fn Conversation::set_system_prompt(
 ) -> Unit {
   self.system_prompt = Some(prompt)
 }
-
-///|
-pub fn Conversation::to_param(self : Conversation) -> Array[@ai.Message] {
-  self.messages.map(m => @ai.Message::from_openai(m.message))
-}
