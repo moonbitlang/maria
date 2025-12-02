@@ -351,7 +351,8 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         }
         last_event = None
         match data {
-          { "msg": "PostConversation", .. } => break
+          { "msg": "PostConversation" | "MariaFailed" | "MariaCancelled", .. } =>
+            break
           { "msg": "MessageUnqueued", "message": { "id": String(id), .. }, .. } =>
             pop_ids.push(id)
           _ => ()
