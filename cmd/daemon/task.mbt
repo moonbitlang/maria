@@ -3,7 +3,7 @@ priv struct Task {
   name : String?
   id : @uuid.Uuid
   cwd : String
-  port : Int
+  port : Int?
   mut status : @server.Status
   created : Int64
   web_search : Bool
@@ -108,11 +108,10 @@ impl ToJson for Task with to_json(self : Task) -> Json {
 
 ///|
 fn Task::to_json_object(self : Task) -> Map[String, Json] {
-  {
+  let object : Map[String, Json] = {
     "name": self.name,
     "id": self.id.to_string(),
     "cwd": self.cwd,
-    "port": self.port,
     "status": self.status,
     "created": Json::number(
       self.created.to_double(),
@@ -120,6 +119,10 @@ fn Task::to_json_object(self : Task) -> Map[String, Json] {
     ),
     "web_search": self.web_search,
   }
+  if self.port is Some(port) {
+    object["port"] = Json::number(port.to_double())
+  }
+  object
 }
 
 ///|
@@ -128,7 +131,7 @@ test "Task::ToJson" {
     name: Some("example"),
     id: @uuid.parse("123e4567-e89b-12d3-a456-426614174000"),
     cwd: "/tmp/example",
-    port: 8080,
+    port: Some(8080),
     status: @server.Idle,
     created: 0,
     web_search: true,
@@ -137,9 +140,9 @@ test "Task::ToJson" {
     "name": ["example"],
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "cwd": "/tmp/example",
-    "port": 8080,
     "status": "idle",
     "created": 0,
     "web_search": true,
+    "port": 8080,
   })
 }

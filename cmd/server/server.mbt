@@ -27,20 +27,30 @@ pub fn Server::port(self : Server) -> Int {
 }
 
 ///|
+pub fn Server::cwd(self : Server) -> String {
+  self.cwd
+}
+
+///|
 pub async fn Server::new(
   model? : String,
   register? : Register,
   serve~ : String,
   port~ : Int,
+  home? : String,
   cwd? : String,
   web_search? : Bool = false,
 ) -> Server {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
   let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
+  guard @model.load(home~, cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
-  let maria = @maria.Maria::new(model~, cwd?, web_search~)
+  let maria = @maria.Maria::new(model~, home~, cwd?, web_search~)
   maria.agent.add_listener(event => {
     let event = event.to_json()
     guard event is Object(event) else { return }
@@ -85,7 +95,11 @@ async fn Server::register(self : Server) -> Unit {
   )
   let (r, b) = @http.post(
     "http://\{register.host}:\{register.port}/v1/task/register",
-    Json::object({ "id": register.id, "port": self.port }),
+    Json::object({
+      "id": register.id,
+      "port": self.port,
+      "new_id": self.maria.agent.id(),
+    }),
   )
   guard r.code is (200..=299) else {
     raise json_error(500, "InternalServerError", {
@@ -117,6 +131,7 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Get, "/v1/status") => {
             let response : Json = {
               "status": self.status(),
+              "id": self.maria.agent.id(),
               "web_search": self.maria.agent.web_search,
             }
             w.header().set("Content-Type", "application/json")
@@ -258,7 +273,15 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
   let pms = self.maria.agent.clear_inputs()
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
-  w.write(Json::object({ "pending_messages": pms.to_json() }))
+  w.write(
+    Json::object({
+      "pending_messages": pms.map(pm => {
+        "id": pm.id.to_json(),
+        "message": pm.message.to_openai().to_json(),
+        "web_search": pm.web_search.to_json(),
+      }.to_json()),
+    }),
+  )
 }
 
 ///|

@@ -5,6 +5,9 @@ pub struct Maria {
 }
 
 ///|
+pub suberror InvalidConversationId String
+
+///|
 #as_free_fn
 pub async fn Maria::new(
   logger? : @pino.Logger = @pino.logger(
@@ -12,10 +15,16 @@ pub async fn Maria::new(
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
   model~ : @model.Model,
+  home? : String,
   cwd? : String,
   user_message? : String,
   web_search? : Bool = false,
+  resume_id? : String,
 ) -> Maria {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
   let cwd = match cwd {
     Some(cwd) => cwd
     None => @os.cwd()
@@ -23,13 +32,25 @@ pub async fn Maria::new(
   let system_prompt = [
     @prompt.prelude, @prompt.moonbit, @todo.prompt, @search_files.prompt,
   ].join("\n")
+  let uuid = @uuid.generator(@rand.chacha8())
+  let conversation = if resume_id is Some(id) {
+    let session_manager = @conversation.Manager::new(home~, uuid~)
+    guard session_manager.load(id) is Some(conversation) else {
+      raise InvalidConversationId(id)
+    }
+    Some(conversation)
+  } else {
+    None
+  }
   let agent = @agent.new(
     model,
     logger~,
+    home~,
     cwd~,
     system_message=system_prompt,
     user_message?,
     web_search~,
+    conversation?,
   )
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)

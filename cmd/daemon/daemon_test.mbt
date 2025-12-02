@@ -27,9 +27,12 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 async fn configure_daemon(mock : @mock.Context) -> Daemon {
   let os_cwd = @os.cwd()
   configure_models(mock)
+  let home = mock.cwd.path()
+  let cwd = mock.cwd.add_directory("project").path()
   @daemon.Daemon::new(
     uuid=mock.uuid,
-    cwd=mock.cwd.path(),
+    home~,
+    cwd~,
     exec_path=@path.join(
       os_cwd, "target/native/release/build/cmd/main/main.exe",
     ),

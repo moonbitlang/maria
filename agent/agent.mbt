@@ -44,7 +44,7 @@ pub(all) struct Agent {
   priv tools : Map[String, Tool]
   priv history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
-  priv pending_queue : @deque.Deque[QueuedMessage]
+  priv pending_queue : @deque.Deque[@conversation.Message]
   event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context_pruner.Pruner
@@ -85,15 +85,19 @@ pub async fn Agent::queue_message(
   message : @ai.Message,
   web_search? : Bool = agent.web_search,
 ) -> @uuid.Uuid {
-  let id = agent.uuid.v4()
-  agent.pending_queue.push_back(QueuedMessage::{ id, message, web_search })
-  agent.emit(MessageQueued(id~, message))
-  id
+  let message = agent.session_manager.new_message(message, web_search~)
+  agent.pending_queue.push_back(message)
+  agent.emit(MessageQueued(id=message.id, message.message))
+  message.id
 }
 
 ///|
 pub fn Agent::queued_messages(self : Agent) -> Array[QueuedMessage] {
-  self.pending_queue.to_array()
+  let pms = []
+  for pm in self.pending_queue {
+    pms.push({ id: pm.id, message: pm.message, web_search: pm.web_search })
+  }
+  pms
 }
 
 ///|
@@ -429,11 +433,13 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         )
 
         // Add all staged messages to permanent conversation history
-        agent.history.add_messages(agent.input_queue)
+        for m in agent.input_queue {
+          agent.history.add_message(agent.session_manager.new_message(m))
+        }
         agent.input_queue = []
 
         // Add the model's response to conversation history
-        agent.history.add_message(ai_message)
+        agent.history.add_message(agent.session_manager.new_message(ai_message))
         // Persist the updated conversation history to disk
         agent.session_manager.save(agent.history)
         // Execute each tool call and queue the results for the next iteration
@@ -483,16 +489,22 @@ pub async fn new(
   ),
   system_message? : String,
   user_message? : String,
+  home? : StringView,
   cwd~ : StringView,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue = @event.ExternalEventQueue::new(),
+  conversation? : @conversation.Conversation,
 ) -> Agent {
+  let home = match home {
+    Some(home) => home.to_string()
+    None => @os.home()
+  }
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())
   }
-  let session_manager = @conversation.Manager::new(uuid~, cwd~)
+  let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
   event_target.add_listener(event => {
@@ -502,7 +514,13 @@ pub async fn new(
     logger.info(msg, data=json)
   })
   event_target.emit(ModelLoaded(name=model.name, model~))
-  let history = session_manager.new_conversation(name="history")
+  let history = if conversation is Some(history) {
+    history
+  } else {
+    let history = session_manager.new_conversation(name="history", cwd~)
+    session_manager.save(history)
+    history
+  }
   let agent = Agent::{
     logger,
     uuid,
@@ -671,7 +689,7 @@ pub fn Agent::external_events(self : Agent) -> @event.ExternalEventQueue {
 }
 
 ///|
-pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
+pub fn Agent::clear_inputs(self : Agent) -> Array[@conversation.Message] {
   self.input_queue.clear()
   let pms = []
   while self.pending_queue.pop_front() is Some(pm) {
@@ -679,4 +697,22 @@ pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
     pms.push(pm)
   }
   pms
+}
+
+///|
+/// Retrieves the unique identifier of the agent's current conversation.
+///
+/// Parameters:
+///
+/// * `self` : The agent instance to get the conversation ID from.
+///
+/// Returns a string representing the unique identifier of the current
+/// conversation history.
+pub fn Agent::id(self : Agent) -> String {
+  self.history.id()
+}
+
+///|
+pub fn Agent::name(self : Agent) -> String? {
+  self.history.name()
 }
