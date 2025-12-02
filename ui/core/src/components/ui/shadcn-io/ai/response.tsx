@@ -193,7 +193,7 @@ const components: Options["components"] = {
     </ul>
   ),
   hr: ({ node, className, ...props }) => (
-    <hr className={cn("my-6 border-border", className)} {...props} />
+    <hr className={cn("border-border my-6", className)} {...props} />
   ),
   strong: ({ node, children, className, ...props }) => (
     <span className={cn("font-semibold", className)} {...props}>
@@ -202,7 +202,7 @@ const components: Options["components"] = {
   ),
   a: ({ node, children, className, ...props }) => (
     <a
-      className={cn("font-medium text-primary underline", className)}
+      className={cn("text-primary font-medium underline", className)}
       rel="noreferrer"
       target="_blank"
       {...props}
@@ -212,7 +212,7 @@ const components: Options["components"] = {
   ),
   h1: ({ node, children, className, ...props }) => (
     <h1
-      className={cn("mt-6 mb-2 font-semibold text-3xl", className)}
+      className={cn("mt-6 mb-2 text-3xl font-semibold", className)}
       {...props}
     >
       {children}
@@ -220,39 +220,39 @@ const components: Options["components"] = {
   ),
   h2: ({ node, children, className, ...props }) => (
     <h2
-      className={cn("mt-6 mb-2 font-semibold text-2xl", className)}
+      className={cn("mt-6 mb-2 text-2xl font-semibold", className)}
       {...props}
     >
       {children}
     </h2>
   ),
   h3: ({ node, children, className, ...props }) => (
-    <h3 className={cn("mt-6 mb-2 font-semibold text-xl", className)} {...props}>
+    <h3 className={cn("mt-6 mb-2 text-xl font-semibold", className)} {...props}>
       {children}
     </h3>
   ),
   h4: ({ node, children, className, ...props }) => (
-    <h4 className={cn("mt-6 mb-2 font-semibold text-lg", className)} {...props}>
+    <h4 className={cn("mt-6 mb-2 text-lg font-semibold", className)} {...props}>
       {children}
     </h4>
   ),
   h5: ({ node, children, className, ...props }) => (
     <h5
-      className={cn("mt-6 mb-2 font-semibold text-base", className)}
+      className={cn("mt-6 mb-2 text-base font-semibold", className)}
       {...props}
     >
       {children}
     </h5>
   ),
   h6: ({ node, children, className, ...props }) => (
-    <h6 className={cn("mt-6 mb-2 font-semibold text-sm", className)} {...props}>
+    <h6 className={cn("mt-6 mb-2 text-sm font-semibold", className)} {...props}>
       {children}
     </h6>
   ),
   table: ({ node, children, className, ...props }) => (
     <div className="my-4 overflow-x-auto">
       <table
-        className={cn("w-full border-collapse border border-border", className)}
+        className={cn("border-border w-full border-collapse border", className)}
         {...props}
       >
         {children}
@@ -265,7 +265,7 @@ const components: Options["components"] = {
     </thead>
   ),
   tbody: ({ node, children, className, ...props }) => (
-    <tbody className={cn("divide-y divide-border", className)} {...props}>
+    <tbody className={cn("divide-border divide-y", className)} {...props}>
       {children}
     </tbody>
   ),
@@ -276,7 +276,7 @@ const components: Options["components"] = {
   ),
   th: ({ node, children, className, ...props }) => (
     <th
-      className={cn("px-4 py-2 text-left font-semibold text-sm", className)}
+      className={cn("px-4 py-2 text-left text-sm font-semibold", className)}
       {...props}
     >
       {children}
@@ -290,7 +290,7 @@ const components: Options["components"] = {
   blockquote: ({ node, children, className, ...props }) => (
     <blockquote
       className={cn(
-        "my-4 border-muted-foreground/30 border-l-4 pl-4 text-muted-foreground italic",
+        "border-muted-foreground/30 text-muted-foreground my-4 border-l-4 pl-4 italic",
         className,
       )}
       {...props}
@@ -308,7 +308,7 @@ const components: Options["components"] = {
     return (
       <code
         className={cn(
-          "rounded bg-muted px-1.5 py-0.5 font-mono text-sm",
+          "bg-muted rounded px-1.5 py-0.5 font-mono text-sm",
           className,
         )}
         {...props}

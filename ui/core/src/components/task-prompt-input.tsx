@@ -32,13 +32,13 @@ export function TaskPromptInput({
   return (
     <PromptInput
       className={cn(
-        `max-w-4xl mx-auto shadow-lg hover:shadow-xl transition-shadow`,
+        `mx-auto max-w-4xl shadow-lg transition-shadow hover:shadow-xl`,
         className,
       )}
       onSubmit={onSubmit}
     >
       <PromptInputTextarea
-        className="text-base md:text-base min-h-[52px]"
+        className="min-h-[52px] text-base md:text-base"
         value={value}
         onFocus={(e) =>
           e.target.scrollIntoView({ behavior: "smooth", block: "center" })

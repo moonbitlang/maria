@@ -306,7 +306,7 @@ export const CodeBlockHeader = ({
 }: CodeBlockHeaderProps) => (
   <div
     className={cn(
-      "flex flex-row items-center border-b bg-secondary p-1",
+      "bg-secondary flex flex-row items-center border-b p-1",
       className,
     )}
     {...props}
@@ -367,7 +367,7 @@ export const CodeBlockFilename = ({
 
   return (
     <div
-      className="flex items-center gap-2 bg-secondary px-4 py-1.5 text-muted-foreground text-xs"
+      className="bg-secondary text-muted-foreground flex items-center gap-2 px-4 py-1.5 text-xs"
       {...props}
     >
       {Icon && <Icon className="h-4 w-4 shrink-0" />}
@@ -392,7 +392,7 @@ export const CodeBlockSelectTrigger = ({
 }: CodeBlockSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      "w-fit border-none text-muted-foreground text-xs shadow-none",
+      "text-muted-foreground w-fit border-none text-xs shadow-none",
       className,
     )}
     {...props}

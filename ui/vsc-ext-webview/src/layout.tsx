@@ -23,7 +23,7 @@ export default function Layout() {
   }, [routerNav]);
   return (
     <VscodeContext.Provider value={vscode}>
-      <div className="flex flex-col min-h-0 h-full overflow-x-hidden">
+      <div className="flex h-full min-h-0 flex-col overflow-x-hidden">
         <Outlet />
       </div>
     </VscodeContext.Provider>

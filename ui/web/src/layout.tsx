@@ -29,12 +29,12 @@ export function Layout() {
   return (
     <SidebarProvider>
       <Sidebar className="overflow-x-hidden" />
-      <SidebarInset className="flex flex-col h-dvh overflow-x-hidden">
+      <SidebarInset className="flex h-dvh flex-col overflow-x-hidden">
         {/* TODO: hide the header on desktop screen, move it to sidebar */}
-        <header className="sticky top-0 z-10 flex items-center border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 md:hidden">
-          <div className="flex items-center gap-3 px-4 py-3 w-full">
+        <header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-10 flex items-center border-b backdrop-blur md:hidden">
+          <div className="flex w-full items-center gap-3 px-4 py-3">
             <SidebarTrigger className="scale-150" />
-            <h1 className="font-semibold text-xl tracking-tight">
+            <h1 className="text-xl font-semibold tracking-tight">
               MoonBit Agent
             </h1>
           </div>
@@ -47,7 +47,7 @@ export function Layout() {
           </div>
           <div className="h-[100px] bg-blue-50"></div>
         </main> */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           <Outlet />
         </div>
       </SidebarInset>

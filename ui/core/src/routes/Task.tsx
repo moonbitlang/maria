@@ -156,22 +156,22 @@ function Input({ taskId }: { taskId: string }) {
   )!;
 
   return (
-    <div className="p-4 flex flex-col">
+    <div className="flex flex-col p-4">
       {inputQueue.length > 0 && (
-        <div className="max-w-4xl w-full mx-auto mb-2 min-h-0 animate-in fade-in slide-in-from-bottom-0 duration-300">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2 px-1">
+        <div className="animate-in fade-in slide-in-from-bottom-0 mx-auto mb-2 min-h-0 w-full max-w-4xl duration-300">
+          <div className="text-muted-foreground mb-2 flex items-center gap-2 px-1 text-sm font-medium">
             <Clock className="h-3.5 w-3.5" />
             <span>
               {inputQueue.length} queued{" "}
               {inputQueue.length === 1 ? "message" : "messages"}
             </span>
           </div>
-          <ScrollArea className="max-h-32 bg-muted/30 overflow-y-auto rounded-lg border border-border/50 shadow-sm">
+          <ScrollArea className="bg-muted/30 border-border/50 max-h-32 overflow-y-auto rounded-lg border shadow-sm">
             {inputQueue.map(({ id, content }, index) => (
               <Fragment key={id}>
-                <div className="group flex items-center gap-3 px-2 py-1 hover:bg-muted/60 transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-foreground/80 leading-relaxed">
+                <div className="group hover:bg-muted/60 flex items-center gap-3 px-2 py-1 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-foreground/80 truncate leading-relaxed">
                       {content}
                     </p>
                   </div>
@@ -216,7 +216,7 @@ export default function Task() {
 
   if (isSuccess) {
     return (
-      <div className="flex-1 min-h-0 flex flex-col justify-end relative">
+      <div className="relative flex min-h-0 flex-1 flex-col justify-end">
         <Todos taskId={taskId} />
         <Events taskId={taskId} />
         <Input taskId={taskId} />

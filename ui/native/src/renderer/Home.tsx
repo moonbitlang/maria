@@ -50,7 +50,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col justify-end m-auto w-full max-w-4xl relative">
+    <div className="relative m-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col justify-end">
       <div className="p-4">
         <TaskPromptInput
           value={input}
