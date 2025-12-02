@@ -116,6 +116,9 @@ task. Attach to the existing task spawned on cwd otherwise.
   working directory. If not supplied, a temporary directory is created for the
   task.
 
+- `web_search` specifies whether to enable web search plugin for the task. If not
+  supplied, defaults to `false`. Note that this option is persistent for the
+  task and affects all subsequent requests to the agent.
 
 Request:
 
@@ -127,7 +130,8 @@ Request:
   "message": {
     "role": "user",
     "content": "Write a JSON parser in MoonBit."
-  }
+  },
+  "web_search": true
 }
 ```
 
@@ -142,7 +146,8 @@ Response:
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
       "port": 8080,
-      "queued_messages": []
+      "queued_messages": [],
+      "web_search": true
     }
   }
   ```
@@ -157,7 +162,8 @@ Response:
       "id": "some-unique-id",
       "cwd": "/path/to/working/directory",
       "port": 8080,
-      "queued_messages": []
+      "queued_messages": [],
+      "web_search": true
     }
   }
   ```
@@ -204,6 +210,14 @@ Streams events related to the specified task instance.
 ### `POST /v1/task/{id}/message`
 
 Sends a message to the specified task instance.
+
+Request:
+
+- `message`: The message to send to the Maria agent. It should be a JSON object
+  with `role` as `"user"` and a non-empty `content` fields.
+- `web_search` (optional): A boolean flag to enable web search for this message.
+  Note that web search specified this way only affect request caused by this
+  message, and does not change `web_search` state of the agent.
 
 ```json
 {

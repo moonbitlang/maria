@@ -3,7 +3,7 @@ pub struct Server {
   priv maria : @maria.Maria
   priv broadcast : @broadcast.Broadcast[Json]
   priv message_queue : @aqueue.Queue[
-    (@openai.ChatCompletionMessageParam, @aqueue.Queue[@uuid.Uuid]),
+    (CreateMessageRequest, @aqueue.Queue[@uuid.Uuid]),
   ]
   priv mut task : @async.Task[Unit]?
   priv register : Register?
@@ -33,13 +33,14 @@ pub async fn Server::new(
   serve~ : String,
   port~ : Int,
   cwd? : String,
+  web_search? : Bool = false,
 ) -> Server {
   let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
   guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
-  let maria = @maria.Maria::new(model~, cwd?)
+  let maria = @maria.Maria::new(model~, cwd?, web_search~)
   maria.agent.add_listener(event => {
     let event = event.to_json()
     guard event is Object(event) else { return }
@@ -116,7 +117,10 @@ async fn Server::serve_http(self : Server) -> Unit {
           w.write(index_html)
         }
         (Get, "/v1/status") => {
-          let response : Json = { "status": self.status() }
+          let response : Json = {
+            "status": self.status(),
+            "web_search": self.maria.agent.web_search,
+          }
           w.header().set("Content-Type", "application/json")
           w.header().set("Access-Control-Allow-Origin", "*")
           w.header().set("Access-Control-Allow-Methods", "*")
@@ -175,13 +179,17 @@ async fn Server::start_maria(self : Server) -> Unit {
   while true {
     @async.with_task_group(group => {
       let (msg, idq) = self.message_queue.get()
-      let msg = @ai.Message::from_openai(msg)
-      let id = self.maria.agent.queue_message(msg)
+      let id = self.maria.agent.queue_message(
+        @ai.Message::from_openai(msg.message),
+        web_search?=msg.web_search,
+      )
       group.spawn_bg(
         () => while true {
           let (msg, idq) = self.message_queue.get()
-          let msg = @ai.Message::from_openai(msg)
-          let id = self.maria.agent.queue_message(msg)
+          let id = self.maria.agent.queue_message(
+            @ai.Message::from_openai(msg.message),
+            web_search?=msg.web_search,
+          )
           idq.put(id)
         },
         no_wait=true,
@@ -341,6 +349,44 @@ async fn Server::get_queued_messages(
 }
 
 ///|
+priv struct CreateMessageRequest {
+  message : @openai.ChatCompletionMessageParam
+  web_search : Bool?
+}
+
+///|
+impl @json.FromJson for CreateMessageRequest with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> CreateMessageRequest raise @json.JsonDecodeError {
+  guard json is { "message": message, .. } else {
+    raise @json.JsonDecodeError(
+      (json_path.add_key("message"), "Missing 'message' field in request body"),
+    )
+  }
+  let message : @openai.ChatCompletionMessageParam = @json.from_json(message)
+  let web_search : Bool? = match json {
+    { "web_search": ws, .. } => Some(@json.from_json(ws))
+    _ => None
+  }
+  { message, web_search }
+}
+
+///|
+test "CreateMessageRequest::from_json" {
+  let json : Json = {
+    "message": { "role": "user", "content": "Hello, world!" },
+    "web_search": true,
+  }
+  let req : CreateMessageRequest = @json.from_json(json)
+  @json.inspect(req.message, content={
+    "role": "user",
+    "content": "Hello, world!",
+  })
+  @json.inspect(req.web_search, content=[true])
+}
+
+///|
 async fn Server::create_message(
   self : Server,
   r : @httpx.RequestReader,
@@ -366,27 +412,19 @@ async fn Server::create_message(
         },
       })
   }
-  guard body_json is { "message": message, .. } else {
-    raise json_error(400, "BadRequest", {
-      "error": {
-        "code": -1,
-        "message": "Missing 'message' field in request body",
-      },
-    })
-  }
-  let message : @openai.ChatCompletionMessageParam = @json.from_json(message) catch {
+  let request : CreateMessageRequest = @json.from_json(body_json) catch {
     @json.JsonDecodeError(_) as error =>
       raise json_error(400, "BadRequest", {
         "error": {
           "code": -1,
           "message": "Invalid 'message' field: \{error}",
-          "metadata": { "message": message },
+          "data": { "error": error, "body": body_json },
         },
       })
   }
   let id = {
     let idq = @aqueue.new(kind=Unbounded)
-    self.message_queue.put((message, idq))
+    self.message_queue.put((request, idq))
     idq.get()
   }
   let response : Json = { "id": id, "queued": true }

@@ -18,6 +18,7 @@ async test "queue_message" (t : @test.Test) {
         {
           "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
           "message": { "role": "user", "content": "First queued message." },
+          "web_search": false,
         },
       ]),
       content=null,

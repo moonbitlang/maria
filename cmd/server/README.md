@@ -19,12 +19,19 @@ frontend.
 
 Request:
 
+- `message`: The message to send to the Maria agent. It should be a JSON object
+  with `role` as `"user"` and a non-empty `content` fields.
+- `web_search` (optional): A boolean flag to enable web search for this message.
+  Note that web search specified this way only affect request caused by this
+  message, and does not change `web_search` state of the agent.
+
 ```json
 {
   "message": {
     "role": "user",
     "content": "Hello, world!"
-  }
+  },
+  "web_search": true
 }
 ```
 

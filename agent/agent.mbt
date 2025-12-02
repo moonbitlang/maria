@@ -7,7 +7,11 @@ pub struct QueuedMessage {
 
 ///|
 pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
-  { "id": self.id.to_string(), "message": self.message.to_openai().to_json() }
+  {
+    "id": self.id.to_string(),
+    "message": self.message.to_openai().to_json(),
+    "web_search": self.web_search,
+  }
 }
 
 ///|
