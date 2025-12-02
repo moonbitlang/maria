@@ -62,7 +62,7 @@ function PromptInput({ taskId }: { taskId: string }) {
 
   if (
     taskStatus === "idle" ||
-    (taskStatus === "generating" && input.trim() === "")
+    (taskStatus === "generating" && input.trim() !== "")
   ) {
     chatStatus = "ready";
   } else {
