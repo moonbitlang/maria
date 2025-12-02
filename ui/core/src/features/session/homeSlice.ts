@@ -3,11 +3,13 @@ import { createAppSlice } from "../../app/createAppSlice";
 type HomeState = {
   input: string;
   cwd?: string;
+  webSearchEnabled: boolean;
 };
 
 const initialState: HomeState = {
   input: "",
   cwd: undefined,
+  webSearchEnabled: false,
 };
 
 export const homeSlice = createAppSlice({
@@ -20,6 +22,9 @@ export const homeSlice = createAppSlice({
     setCwd(state, action: { payload: string | undefined }) {
       state.cwd = action.payload;
     },
+    toggleWebSearchEnabled(state) {
+      state.webSearchEnabled = !state.webSearchEnabled;
+    },
   },
   selectors: {
     selectInput(state): string {
@@ -28,8 +33,12 @@ export const homeSlice = createAppSlice({
     selectCwd(state): string | undefined {
       return state.cwd;
     },
+    selectWebSearchEnabled(state): boolean {
+      return state.webSearchEnabled;
+    },
   },
 });
 
-export const { setInput, setCwd } = homeSlice.actions;
-export const { selectInput, selectCwd } = homeSlice.selectors;
+export const { setInput, setCwd, toggleWebSearchEnabled } = homeSlice.actions;
+export const { selectInput, selectCwd, selectWebSearchEnabled } =
+  homeSlice.selectors;
