@@ -6,7 +6,7 @@ import(
 )
 
 // Values
-fn interface(input~ : @stdio.Input, output? : @stdio.Output) -> Interface raise
+pub fn interface(input~ : @stdio.Input, output? : @stdio.Output) -> Interface raise
 
 // Errors
 pub suberror Aborted {
@@ -20,15 +20,15 @@ pub(all) struct CompletionResult {
 }
 
 type Interface
-fn Interface::add_new_line_on_tty(Self) -> Unit
-fn Interface::close(Self) -> Unit
-async fn Interface::prompt(Self, preserve_cursor? : Bool) -> Unit
-async fn Interface::question(Self, StringView) -> String
-async fn Interface::read_key(Self) -> Key
-async fn Interface::read_line(Self) -> String
-fn Interface::set_line(Self, BytesView) -> Unit
-fn Interface::set_prompt(Self, Bytes) -> Unit
-async fn Interface::start(Self) -> Unit
+pub fn Interface::add_new_line_on_tty(Self) -> Unit
+pub fn Interface::close(Self) -> Unit
+pub async fn Interface::prompt(Self, preserve_cursor? : Bool) -> Unit
+pub async fn Interface::question(Self, StringView) -> String
+pub async fn Interface::read_key(Self) -> Key
+pub async fn Interface::read_line(Self) -> String
+pub fn Interface::set_line(Self, BytesView) -> Unit
+pub fn Interface::set_prompt(Self, Bytes) -> Unit
+pub async fn Interface::start(Self) -> Unit
 
 pub struct Key {
   mut meta : Bool

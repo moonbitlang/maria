@@ -2,13 +2,13 @@
 package "moonbitlang/maria/clock"
 
 // Values
-let epoch : Epoch
+pub let epoch : Epoch
 
 // Errors
 
 // Types and methods
 type Epoch
-impl Clock for Epoch
+pub impl Clock for Epoch
 
 // Type aliases
 

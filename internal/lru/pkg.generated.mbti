@@ -2,17 +2,17 @@
 package "moonbitlang/maria/internal/lru"
 
 // Values
-fn[K : Eq + Hash, V] cache(max_size? : Int) -> Cache[K, V]
+pub fn[K : Eq + Hash, V] cache(max_size? : Int) -> Cache[K, V]
 
 // Errors
 
 // Types and methods
 type Cache[K, V]
-fn[K : Eq + Hash, V] Cache::get(Self[K, V], K) -> V?
-fn[K : Eq + Hash, V] Cache::op_get(Self[K, V], K) -> V
+pub fn[K : Eq + Hash, V] Cache::get(Self[K, V], K) -> V?
+pub fn[K : Eq + Hash, V] Cache::op_get(Self[K, V], K) -> V
 #alias(op_set)
-fn[K : Eq + Hash, V] Cache::set(Self[K, V], K, V) -> Unit
-impl[K : Show, V : ToJson] ToJson for Cache[K, V]
+pub fn[K : Eq + Hash, V] Cache::set(Self[K, V], K, V) -> Unit
+pub impl[K : Show, V : ToJson] ToJson for Cache[K, V]
 
 // Type aliases
 

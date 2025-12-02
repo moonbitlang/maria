@@ -27,14 +27,14 @@ pub(all) enum Event {
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
 }
-impl ToJson for Event
+pub impl ToJson for Event
 
 type EventTarget
-fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
-fn EventTarget::emit(Self, Event) -> Unit
-async fn EventTarget::flush(Self) -> Unit
-fn EventTarget::new() -> Self
-async fn EventTarget::start(Self) -> Unit
+pub fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
+pub fn EventTarget::emit(Self, Event) -> Unit
+pub async fn EventTarget::flush(Self) -> Unit
+pub fn EventTarget::new() -> Self
+pub async fn EventTarget::start(Self) -> Unit
 
 // Type aliases
 

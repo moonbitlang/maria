@@ -2,31 +2,31 @@
 package "moonbitlang/maria/internal/path"
 
 // Values
-fn basename(StringView) -> StringView
+pub fn basename(StringView) -> StringView
 
-fn dirname(StringView) -> StringView
+pub fn dirname(StringView) -> StringView
 
-fn ext(StringView) -> StringView
+pub fn ext(StringView) -> StringView
 
-fn is_absolute(StringView) -> Bool
+pub fn is_absolute(StringView) -> Bool
 
-fn is_relative(StringView) -> Bool
+pub fn is_relative(StringView) -> Bool
 
-fn join(StringView, StringView) -> String
+pub fn join(StringView, StringView) -> String
 
-fn normalize(StringView) -> String
+pub fn normalize(StringView) -> String
 
-fn relative(StringView, StringView) -> String raise
+pub fn relative(StringView, StringView) -> String raise
 
-fn replace_ext(StringView, StringView) -> String
+pub fn replace_ext(StringView, StringView) -> String
 
-fn resolve(StringView) -> String raise
+pub fn resolve(StringView) -> String raise
 
-let sep : Char
+pub let sep : Char
 
-fn split(StringView) -> Iter[StringView]
+pub fn split(StringView) -> Iter[StringView]
 
-fn stem(StringView) -> StringView
+pub fn stem(StringView) -> StringView
 
 // Errors
 

@@ -6,18 +6,18 @@ import(
 )
 
 // Values
-fn getpid() -> Int
+pub fn getpid() -> Int
 
-fn getppid() -> Int
+pub fn getppid() -> Int
 
-fn kill(Int, Int) -> Unit raise @errno.Errno
+pub fn kill(Int, Int) -> Unit raise @errno.Errno
 
-async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
+pub async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
 
 // Errors
 pub suberror Failed CompletedProcess
-impl Show for Failed
-impl ToJson for Failed
+pub impl Show for Failed
+pub impl ToJson for Failed
 
 pub suberror TimedOut {
   TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
@@ -25,8 +25,8 @@ pub suberror TimedOut {
 
 // Types and methods
 type Buffer
-fn Buffer::new() -> Self
-fn Buffer::to_string(Self) -> String
+pub fn Buffer::new() -> Self
+pub fn Buffer::to_string(Self) -> String
 
 pub struct CompletedProcess {
   exec : String
@@ -37,8 +37,8 @@ pub struct CompletedProcess {
   elapsed : Int
   timeout : Int?
 }
-fn CompletedProcess::check(Self) -> Unit raise Failed
-impl ToJson for CompletedProcess
+pub fn CompletedProcess::check(Self) -> Unit raise Failed
+pub impl ToJson for CompletedProcess
 
 pub struct Manager {
   mut id : Int
@@ -46,18 +46,18 @@ pub struct Manager {
   process : Map[Pid, Process]
   // private fields
 }
-fn Manager::get(Self, Pid) -> Process?
-fn Manager::list(Self) -> Array[Process]
-fn Manager::new(cwd~ : String) -> Self
-async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String) -> Process
-async fn Manager::start(Self) -> Unit
-async fn Manager::wait(Self, Pid) -> Int
+pub fn Manager::get(Self, Pid) -> Process?
+pub fn Manager::list(Self) -> Array[Process]
+pub fn Manager::new(cwd~ : String) -> Self
+pub async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String) -> Process
+pub async fn Manager::start(Self) -> Unit
+pub async fn Manager::wait(Self, Pid) -> Int
 
 type Pid
-impl Eq for Pid
-impl Hash for Pid
-impl Show for Pid
-impl ToJson for Pid
+pub impl Eq for Pid
+pub impl Hash for Pid
+pub impl Show for Pid
+pub impl ToJson for Pid
 
 pub struct Process {
   pid : Pid
@@ -65,8 +65,8 @@ pub struct Process {
   stderr : RedirectOutput
   // private fields
 }
-fn Process::status(Self) -> Int?
-async fn Process::wait(Self) -> Int
+pub fn Process::status(Self) -> Int?
+pub async fn Process::wait(Self) -> Int
 
 pub(all) enum RedirectOutput {
   Inherit

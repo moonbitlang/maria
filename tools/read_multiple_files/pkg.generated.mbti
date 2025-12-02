@@ -8,15 +8,15 @@ import(
 )
 
 // Values
-fn new(@file.Manager) -> @tool.Tool[ReadMultipleFilesResult]
+pub fn new(@file.Manager) -> @tool.Tool[ReadMultipleFilesResult]
 
 // Errors
 
 // Types and methods
 type ReadMultipleFilesResult
-impl Show for ReadMultipleFilesResult
-impl ToJson for ReadMultipleFilesResult
-impl @json.FromJson for ReadMultipleFilesResult
+pub impl Show for ReadMultipleFilesResult
+pub impl ToJson for ReadMultipleFilesResult
+pub impl @json.FromJson for ReadMultipleFilesResult
 
 // Type aliases
 

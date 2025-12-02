@@ -6,17 +6,17 @@ import(
 )
 
 // Values
-async fn detach(exec_path? : String, port? : Int, serve? : StringView) -> Int
+pub async fn detach(exec_path? : String, port? : Int, serve? : StringView) -> Int
 
-async fn start(ArrayView[String]) -> Unit
+pub async fn start(ArrayView[String]) -> Unit
 
 // Errors
 
 // Types and methods
 type Daemon
-async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
-fn Daemon::port(Self) -> Int
-async fn Daemon::serve(Self) -> Unit
+pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
+pub fn Daemon::port(Self) -> Int
+pub async fn Daemon::serve(Self) -> Unit
 
 // Type aliases
 

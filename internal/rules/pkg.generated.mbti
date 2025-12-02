@@ -12,9 +12,9 @@ import(
 
 // Types and methods
 type Loader
-fn Loader::apply(Self, Array[@ai.Message]) -> Unit
-async fn Loader::load(Self) -> Unit
-fn Loader::new(String, logger~ : @pino.Logger) -> Self
+pub fn Loader::apply(Self, Array[@ai.Message]) -> Unit
+pub async fn Loader::load(Self) -> Unit
+pub fn Loader::new(String, logger~ : @pino.Logger) -> Self
 
 pub struct Rule {
   description : String?
@@ -23,15 +23,15 @@ pub struct Rule {
   content : String
   source : Source
 }
-impl Show for Rule
-impl ToJson for Rule
+pub impl Show for Rule
+pub impl ToJson for Rule
 
 pub enum Source {
   Global
   Local
 }
-impl Show for Source
-impl ToJson for Source
+pub impl Show for Source
+pub impl ToJson for Source
 
 // Type aliases
 

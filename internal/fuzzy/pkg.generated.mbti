@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/fuzzy"
 
 // Values
-fn find_match(String, String) -> MatchResult?
+pub fn find_match(String, String) -> MatchResult?
 
 // Errors
 
@@ -13,7 +13,7 @@ pub struct MatchResult {
   start_line : Int
   end_line : Int
 }
-impl ToJson for MatchResult
+pub impl ToJson for MatchResult
 
 // Type aliases
 

@@ -2,7 +2,7 @@
 package "moonbitlang/maria/cmd/main/migrator"
 
 // Values
-async fn migrate(ArrayView[String]) -> Unit
+pub async fn migrate(ArrayView[String]) -> Unit
 
 // Errors
 

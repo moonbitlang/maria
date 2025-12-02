@@ -2,27 +2,27 @@
 package "moonbitlang/maria/internal/os"
 
 // Values
-fn args() -> Array[String]
+pub fn args() -> Array[String]
 
-fn chdir(StringView) -> Unit raise
+pub fn chdir(StringView) -> Unit raise
 
-fn cwd() -> String raise
+pub fn cwd() -> String raise
 
-fn executable() -> String raise
+pub fn executable() -> String raise
 
-fn[X] exit(Int) -> X
+pub fn[X] exit(Int) -> X
 
-fn getenv(StringView) -> String? raise
+pub fn getenv(StringView) -> String? raise
 
-fn gethostname() -> String raise
+pub fn gethostname() -> String raise
 
-fn home() -> String raise
+pub fn home() -> String raise
 
-fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
+pub fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
 
-fn tmpdir() -> String raise
+pub fn tmpdir() -> String raise
 
-fn unsetenv(StringView) -> Unit raise
+pub fn unsetenv(StringView) -> Unit raise
 
 // Errors
 

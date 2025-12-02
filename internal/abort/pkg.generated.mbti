@@ -2,7 +2,7 @@
 package "moonbitlang/maria/internal/abort"
 
 // Values
-fn[T] abort(String) -> T
+pub fn[T] abort(String) -> T
 
 // Errors
 

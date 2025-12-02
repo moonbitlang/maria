@@ -3,11 +3,11 @@ package "moonbitlang/maria/internal/tty"
 
 // Values
 #callsite(autofill(loc))
-fn isatty(Int, loc~ : SourceLoc) -> Bool raise
+pub fn isatty(Int, loc~ : SourceLoc) -> Bool raise
 
-fn set_raw_mode(Int) -> Unit raise
+pub fn set_raw_mode(Int) -> Unit raise
 
-fn window_size() -> Size raise
+pub fn window_size() -> Size raise
 
 // Errors
 
@@ -16,7 +16,7 @@ pub struct Size {
   row : Int
   col : Int
 }
-impl ToJson for Size
+pub impl ToJson for Size
 
 // Type aliases
 

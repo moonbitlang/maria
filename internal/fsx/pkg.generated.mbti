@@ -6,39 +6,39 @@ import(
 )
 
 // Values
-async fn exists(StringView) -> Bool
+pub async fn exists(StringView) -> Bool
 
-async fn exists_as_file(StringView) -> Bool
+pub async fn exists_as_file(StringView) -> Bool
 
-fn get_lock_owner(@fs.File) -> Int? raise
+pub fn get_lock_owner(@fs.File) -> Int? raise
 
-async fn kind(StringView) -> FileKind
+pub async fn kind(StringView) -> FileKind
 
-async fn list_directory(StringView) -> Array[DirectoryEntry]
+pub async fn list_directory(StringView) -> Array[DirectoryEntry]
 
-fn lock_file(@fs.File) -> Unit raise
+pub fn lock_file(@fs.File) -> Unit raise
 
-async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
+pub async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
 
-async fn mkdtemp(String) -> String
+pub async fn mkdtemp(String) -> String
 
-async fn read_file(StringView) -> String
+pub async fn read_file(StringView) -> String
 
-fn readlink(String, bufsize? : UInt64) -> String raise
+pub fn readlink(String, bufsize? : UInt64) -> String raise
 
-async fn remove(StringView) -> Unit
+pub async fn remove(StringView) -> Unit
 
-async fn resolve(StringView) -> String
+pub async fn resolve(StringView) -> String
 
-fn stat(StringView) -> Stat raise
+pub fn stat(StringView) -> Stat raise
 
-fn truncate(@fs.File, Int64) -> Unit raise
+pub fn truncate(@fs.File, Int64) -> Unit raise
 
-async fn[T] with_temporary_directory(String, async (String) -> T) -> T
+pub async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
-async fn write_bytes_to_file(StringView, Bytes) -> Unit
+pub async fn write_bytes_to_file(StringView, Bytes) -> Unit
 
-async fn write_to_file(StringView, StringView) -> Unit
+pub async fn write_to_file(StringView, StringView) -> Unit
 
 // Errors
 
@@ -48,11 +48,11 @@ pub struct DirectoryEntry {
   name : String
   kind : FileKind
 }
-impl Compare for DirectoryEntry
-impl Eq for DirectoryEntry
-impl Hash for DirectoryEntry
-impl Show for DirectoryEntry
-impl ToJson for DirectoryEntry
+pub impl Compare for DirectoryEntry
+pub impl Eq for DirectoryEntry
+pub impl Hash for DirectoryEntry
+pub impl Show for DirectoryEntry
+pub impl ToJson for DirectoryEntry
 
 pub enum FileKind {
   Unknown
@@ -64,20 +64,20 @@ pub enum FileKind {
   BlockDevice
   CharDevice
 }
-impl Compare for FileKind
-impl Eq for FileKind
-impl Hash for FileKind
-impl Show for FileKind
-impl ToJson for FileKind
+pub impl Compare for FileKind
+pub impl Eq for FileKind
+pub impl Hash for FileKind
+pub impl Show for FileKind
+pub impl ToJson for FileKind
 
 type FileRead
-fn FileRead::close(Self) -> Unit
-async fn FileRead::create(StringView) -> Self
-async fn FileRead::read_text(Self) -> String
+pub fn FileRead::close(Self) -> Unit
+pub async fn FileRead::create(StringView) -> Self
+pub async fn FileRead::read_text(Self) -> String
 
 type Stat
-fn Stat::atime(Self) -> Int64
-fn Stat::mtime(Self) -> Int64
+pub fn Stat::atime(Self) -> Int64
+pub fn Stat::mtime(Self) -> Int64
 
 // Type aliases
 

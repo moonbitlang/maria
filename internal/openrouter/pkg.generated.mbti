@@ -8,9 +8,9 @@ import(
 )
 
 // Values
-async fn get_models(api_key~ : StringView) -> Array[Model]
+pub async fn get_models(api_key~ : StringView) -> Array[Model]
 
-async fn get_models_count(api_key~ : StringView) -> Int
+pub async fn get_models_count(api_key~ : StringView) -> Int
 
 // Errors
 pub suberror InvalidResponse {
@@ -24,8 +24,8 @@ pub struct Architecture {
   tokenizer : String
   instruct_type : String?
 }
-impl ToJson for Architecture
-impl @json.FromJson for Architecture
+pub impl ToJson for Architecture
+pub impl @json.FromJson for Architecture
 
 pub struct Model {
   id : String
@@ -40,8 +40,8 @@ pub struct Model {
   per_request_limits : Json?
   supported_parameters : Array[String]
 }
-impl ToJson for Model
-impl @json.FromJson for Model
+pub impl ToJson for Model
+pub impl @json.FromJson for Model
 
 pub struct Pricing {
   prompt : String
@@ -53,16 +53,16 @@ pub struct Pricing {
   input_cache_read : String?
   input_cache_write : String?
 }
-impl ToJson for Pricing
-impl @json.FromJson for Pricing
+pub impl ToJson for Pricing
+pub impl @json.FromJson for Pricing
 
 pub struct TopProvider {
   context_length : Int?
   max_completion_tokens : Int?
   is_moderated : Bool
 }
-impl ToJson for TopProvider
-impl @json.FromJson for TopProvider
+pub impl ToJson for TopProvider
+pub impl @json.FromJson for TopProvider
 
 // Type aliases
 
