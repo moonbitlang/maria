@@ -8,7 +8,6 @@ import Home from "./Home";
 import "./index.css";
 import { Layout } from "./layout";
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const container = document.getElementById("root")!;
 
 const root = createRoot(container);
