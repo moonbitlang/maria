@@ -36,6 +36,7 @@ pub impl ToJson for Event
 
 type EventTarget
 pub fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
+pub async fn EventTarget::close(Self) -> Unit
 pub fn EventTarget::emit(Self, Event) -> Unit
 pub async fn EventTarget::flush(Self) -> Unit
 pub fn EventTarget::new() -> Self

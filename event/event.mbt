@@ -143,7 +143,7 @@ pub(all) enum Event {
 
 ///|
 struct EventTarget {
-  queue : @aqueue.Queue[Event]
+  queue : @aqueue.Queue[Event?]
   listeners : Array[async (Event) -> Unit]
 }
 
@@ -154,7 +154,7 @@ pub fn EventTarget::new() -> EventTarget {
 
 ///|
 pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
-  guard self.queue.try_put(event) else {
+  guard self.queue.try_put(Some(event)) else {
     abort("Event queue is full, cannot emit event")
   }
 }
@@ -169,8 +169,7 @@ pub fn EventTarget::add_listener(
 
 ///|
 pub async fn EventTarget::start(self : EventTarget) -> Unit {
-  while true {
-    let event = self.queue.get()
+  while self.queue.get() is Some(event) {
     for listener in self.listeners {
       listener(event)
     }
@@ -179,10 +178,28 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 
 ///|
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
-  while self.queue.try_get() is Some(event) {
+  while self.queue.try_get() is Some(Some(event)) {
     for listener in self.listeners {
       listener(event)
     }
+  }
+}
+
+///|
+pub async fn EventTarget::close(self : EventTarget) -> Unit {
+  let errors = []
+  while self.queue.try_get() is Some(Some(event)) {
+    for listener in self.listeners {
+      listener(event) catch {
+        error => errors.push(error)
+      }
+    }
+  }
+  guard self.queue.try_put(None) else {
+    abort("Event queue is full, cannot close")
+  }
+  if errors is [error, ..] {
+    raise error
   }
 }
 
