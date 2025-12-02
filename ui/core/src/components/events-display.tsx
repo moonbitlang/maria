@@ -287,8 +287,8 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
       case "execute_command": {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
-      case "todo_write": {
-        // No need to render anything for todo_write tool calls
+      case "todo": {
+        // No need to render anything for todo tool calls
         return <></>;
       }
     }
@@ -346,7 +346,6 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 
 export function EventsDisplay(props: EventsDisplayProps) {
   const { events } = props;
-
   return (
     <Conversation className="min-h-0">
       <ConversationContent className="mx-auto max-w-4xl overflow-x-hidden">

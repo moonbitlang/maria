@@ -139,7 +139,7 @@ export const tasksSlice = createAppSlice({
         task.events.push(event);
         task.eventIds[event.id] = true;
 
-        if (event.msg === "PostToolCall" && event.name === "todo_write") {
+        if (event.msg === "PostToolCall" && event.name === "todo") {
           const result = (event as TodoTool).result;
           task.todos = result.todos;
         }
