@@ -99,11 +99,13 @@ fn ChatCompletionMessageBuilder::to_message(
     guard builder is Some(builder) else { continue }
     tool_calls.push(builder.to_tool_call())
   }
-  ChatCompletionMessage::new(
-    content?=self.content.map(b => b.to_string()),
-    refusal?=self.refusal.map(b => b.to_string()),
-    tool_calls~,
-  )
+  ChatCompletionMessage::{
+    content: self.content.map(b => b.to_string()),
+    refusal: self.refusal.map(b => b.to_string()),
+    tool_calls,
+    role: ChatCompletionMessageRole::Assistant,
+    annotations: [],
+  }
 }
 
 ///|

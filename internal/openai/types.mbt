@@ -42,6 +42,7 @@ pub struct ChatCompletionMessage {
   refusal : String?
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
+  annotations : Array[ChatCompletionMessageAnnotation]
 } derive(Show, ToJson)
 
 ///|
@@ -407,3 +408,23 @@ struct JsonSchema {
   schema : Map[String, Json]
   strict : Bool?
 }
+
+///|
+/// A citation when using web search.
+enum ChatCompletionMessageAnnotation {
+  /// A URL citation when using web search.
+  UrlCitation(ChatCompletionMessageAnnotationUrlCitation)
+} derive(Show)
+
+///|
+/// A URL citation when using web search.
+struct ChatCompletionMessageAnnotationUrlCitation {
+  /// The index of the last character of the URL citation in the message.
+  end_index : Int64
+  /// The index of the first character of the URL citation in the message.
+  start_index : Int64
+  /// The title of the web resource.
+  title : String
+  /// The URL of the web resource.
+  url : String
+} derive(Show)

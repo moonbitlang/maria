@@ -148,7 +148,23 @@ pub impl @json.FromJson for ChatCompletionMessage with from_json(
     }
     None => []
   }
-  ChatCompletionMessage::{ content, refusal, role: Assistant, tool_calls }
+  let annotations = match json.get("annotations") {
+    Some(annotations) => {
+      let annotations : Array[ChatCompletionMessageAnnotation] = @json.from_json(
+        annotations,
+        path=json_path.add_key("annotations"),
+      )
+      annotations
+    }
+    None => []
+  }
+  ChatCompletionMessage::{
+    content,
+    refusal,
+    role: Assistant,
+    tool_calls,
+    annotations,
+  }
 }
 
 ///|
@@ -1403,4 +1419,113 @@ pub fn chunk_choice(
   finish_reason? : ChatCompletionChoiceFinishReason,
 ) -> ChatCompletionChunkChoice {
   ChatCompletionChunkChoice::{ index, delta, finish_reason }
+}
+
+///|
+pub impl @json.FromJson for ChatCompletionMessageAnnotation with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> ChatCompletionMessageAnnotation raise @json.JsonDecodeError {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("type") is Some(String(type_)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'type' field"))
+  }
+  match type_ {
+    "url_citation" => {
+      guard json.get("url_citation") is Some(url_citation) else {
+        raise @json.JsonDecodeError((json_path, "Missing 'url_citation' field"))
+      }
+      let url_citation : ChatCompletionMessageAnnotationUrlCitation = @json.from_json(
+        url_citation,
+        path=json_path.add_key("url_citation"),
+      )
+      UrlCitation(url_citation)
+    }
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Unknown annotation type: \{type_}"),
+      )
+  }
+}
+
+///|
+pub impl ToJson for ChatCompletionMessageAnnotation with to_json(
+  self : ChatCompletionMessageAnnotation,
+) -> Json {
+  match self {
+    UrlCitation(url_citation) =>
+      { "type": "url_citation", "url_citation": url_citation }
+  }
+}
+
+///|
+fn int64_from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Int64 raise @json.JsonDecodeError {
+  match json {
+    Number(value, repr=None) => value.to_int64()
+    Number(_, repr=Some(repr)) =>
+      @strconv.parse_int64(repr) catch {
+        error =>
+          raise @json.JsonDecodeError(
+            (json_path, "Invalid integer value: \{error}"),
+          )
+      }
+    _ => raise @json.JsonDecodeError((json_path, "Expected a number"))
+  }
+}
+
+///|
+pub impl @json.FromJson for ChatCompletionMessageAnnotationUrlCitation with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> ChatCompletionMessageAnnotationUrlCitation raise @json.JsonDecodeError {
+  guard json is Object(json) else {
+    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  }
+  guard json.get("url") is Some(String(url)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'url' field"))
+  }
+  guard json.get("title") is Some(String(title)) else {
+    raise @json.JsonDecodeError((json_path, "Missing 'title' field"))
+  }
+  let start_index : Int64 = match json.get("start_index") {
+    Some(start_index) =>
+      int64_from_json(start_index, json_path.add_key("start_index"))
+    None =>
+      raise @json.JsonDecodeError((json_path, "Missing 'start_index' field"))
+  }
+  let end_index : Int64 = match json.get("end_index") {
+    Some(end_index) =>
+      int64_from_json(end_index, json_path.add_key("end_index"))
+    None =>
+      raise @json.JsonDecodeError((json_path, "Missing 'end_index' field"))
+  }
+  ChatCompletionMessageAnnotationUrlCitation::{
+    url,
+    title,
+    start_index,
+    end_index,
+  }
+}
+
+///|
+pub impl ToJson for ChatCompletionMessageAnnotationUrlCitation with to_json(
+  self : ChatCompletionMessageAnnotationUrlCitation,
+) -> Json {
+  {
+    "end_index": Json::number(
+      self.end_index.to_double(),
+      repr=self.end_index.to_string(),
+    ),
+    "start_index": Json::number(
+      self.start_index.to_double(),
+      repr=self.start_index.to_string(),
+    ),
+    "title": Json::string(self.title),
+    "url": Json::string(self.url),
+  }
 }

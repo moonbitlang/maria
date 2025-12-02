@@ -169,3 +169,47 @@ test "tool_call" {
     "type": "function",
   })
 }
+
+///|
+test "ChatCompletionMessageAnnotationUrlCitation" {
+  let json : Json = {
+    "end_index": 34,
+    "start_index": 10,
+    "title": "Example Resource",
+    "url": "https://example.com/resource",
+  }
+  let annotation : @openai.ChatCompletionMessageAnnotationUrlCitation = @json.from_json(
+    json,
+  )
+  @json.inspect(annotation, content={
+    "end_index": 34,
+    "start_index": 10,
+    "title": "Example Resource",
+    "url": "https://example.com/resource",
+  })
+}
+
+///|
+test "ChatCompletionMessageAnnotation" {
+  let json : Json = {
+    "type": "url_citation",
+    "url_citation": {
+      "end_index": 34,
+      "start_index": 10,
+      "title": "Example Resource",
+      "url": "https://example.com/resource",
+    },
+  }
+  let annotation : @openai.ChatCompletionMessageAnnotation = @json.from_json(
+    json,
+  )
+  @json.inspect(annotation, content={
+    "type": "url_citation",
+    "url_citation": {
+      "end_index": 34,
+      "start_index": 10,
+      "title": "Example Resource",
+      "url": "https://example.com/resource",
+    },
+  })
+}
