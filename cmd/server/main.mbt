@@ -181,6 +181,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut register_host = None
   let mut register_port = None
   let mut register_id = None
+  let mut web_search = false
   loop args {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
@@ -218,6 +219,10 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         serve = s
         continue args
       }
+    ["--web-search", .. args] => {
+      web_search = true
+      continue args
+    }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -234,6 +239,6 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  let server = Server::new(model?, register?, serve~, port~)
+  let server = Server::new(model?, register?, serve~, port~, web_search~)
   server.start()
 }

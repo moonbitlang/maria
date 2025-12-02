@@ -20,7 +20,7 @@ pub(all) struct Register {
 pub struct Server {
   // private fields
 }
-pub async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String) -> Self
+pub async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String, web_search? : Bool) -> Self
 pub fn Server::port(Self) -> Int
 pub async fn Server::start(Self) -> Unit
 

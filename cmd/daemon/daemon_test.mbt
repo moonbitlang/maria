@@ -268,6 +268,32 @@ fn redact_events(events : Array[Json]) -> Array[Json] {
 }
 
 ///|
+async fn collect_stream_events(s : @http.Client) -> Array[Json] {
+  let events : Array[Json] = []
+  let mut last_event : String? = None
+  while s.read_until("\n") is Some(line) {
+    if line is [.. "event: ", .. event] {
+      last_event = Some(event.to_string())
+      continue
+    }
+    guard line is [.. "data: ", .. line] else { continue }
+    let data = @json.parse(line)
+    if last_event is Some(event) {
+      events.push({ "event": event, "data": data })
+    } else {
+      events.push({ "data": data })
+    }
+    last_event = None
+    match data {
+      { "msg": "PostConversation" | "MariaFailed" | "MariaCancelled", .. } =>
+        break
+      _ => ()
+    }
+  }
+  events
+}
+
+///|
 #skip
 async test "POST /v1/task/{id}/message" (t : @test.Test) {
   @mock.run(t, mock => {
@@ -562,9 +588,21 @@ async test "GET /v1/events" (t : @test.Test) {
         { "event": "daemon.tasks.synchronized" },
         { "data": { "tasks": [] } },
         { "event": "daemon.task.changed" },
-        { "data": { "task": { "name": null, "status": "generating" } } },
+        {
+          "data": {
+            "task": {
+              "name": null,
+              "status": "generating",
+              "web_search": false,
+            },
+          },
+        },
         { "event": "daemon.task.changed" },
-        { "data": { "task": { "name": null, "status": "idle" } } },
+        {
+          "data": {
+            "task": { "name": null, "status": "idle", "web_search": false },
+          },
+        },
       ],
     )
   })
@@ -575,7 +613,6 @@ async test "GET /v1/events" (t : @test.Test) {
 async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
   @mock.run(t, mock => {
     let daemon = configure_daemon(mock)
-    let events : Array[Json] = []
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
@@ -592,44 +629,80 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
       guard b is { "task": { "id": String(id), .. }, .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      group.spawn_bg(() => {
+      let collector = group.spawn(() => {
         let (_, s) = @http.get_stream(
           "http://localhost:\{daemon.port()}/v1/task/\{id}/events",
         )
-        let mut last_event : String? = None
-        while s.read_until("\n") is Some(line) {
-          if line is [.. "event: ", .. event] {
-            last_event = Some(event.to_string())
-            continue
-          }
-          guard line is [.. "data: ", .. line] else { continue }
-          let data = @json.parse(line)
-          if last_event is Some(event) {
-            events.push({ "event": event, "data": data })
-          } else {
-            events.push({ "data": data })
-          }
-          last_event = None
-          match data {
-            { "msg": "PostConversation" | "MariaFailed" | "MariaCancelled", .. } =>
-              break
-            _ => ()
-          }
-        }
+        collect_stream_events(s)
       })
       let (r, _) = @http.post(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/cancel",
         Json::null(),
       )
       @json.inspect(r.code, content=200)
+      let events = collector.wait()
+      @json.inspect(
+        events
+        .filter(event => event
+          is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. })
+        .length() >
+        0,
+        content=true,
+      )
     })
-    @json.inspect(
-      events
-      .filter(event => event
-        is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. })
-      .length() >
-      0,
-      content=true,
-    )
+  })
+}
+
+///|
+#skip
+async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      let (_, b) = @http.post(
+        "http://localhost:\{daemon.port()}/v1/task",
+        Json::object({
+          "message": {
+            "role": "user",
+            "content": "Can you please search the web for MoonBit to find out which year it is initiated?",
+          },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+          "web_search": true,
+        }),
+      )
+      guard b.json()
+        is { "task": { "id": String(id), "web_search"? : web_search, .. }, .. } else {
+        fail("Unexpected response body: \{b.json().stringify(indent=2)}")
+      }
+      let collector = group.spawn(() => {
+        let (_, s) = @http.get_stream(
+          "http://localhost:\{daemon.port()}/v1/task/\{id}/events",
+        )
+        collect_stream_events(s)
+      })
+      @json.inspect(web_search, content=[true])
+      let events = collector.wait()
+      let content = events
+        .filter_map(e => if e
+          is {
+            "data": {
+              "msg": "RequestCompleted",
+              "message": { "content": String(content), .. },
+              ..
+            },
+            ..
+          } {
+          Some(content)
+        } else {
+          None
+        })
+        .join("\n")
+      @json.inspect(
+        content.contains("2022") || content.contains("2023"),
+        content=true,
+      )
+    })
   })
 }

@@ -70,7 +70,7 @@ async test "POST /v1/message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle" })
+    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
@@ -478,7 +478,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       @json.inspect(r.code, content=200)
-      @json.inspect(b.json(), content={ "status": "idle" })
+      @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
       let (r, b) = @http.post(
         "http://localhost:\{server.port()}/v1/message",
         Json::object({
@@ -611,5 +611,75 @@ async test "POST /v1/cancel" (t : @test.Test) {
       },
       { "event": "maria", "data": { "msg": "PostConversation" } },
     ])
+  })
+}
+
+///|
+#skip
+async test "web_search" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let group = mock.group
+    let server = configure_server(mock)
+    group.spawn_bg(() => server.start(), no_wait=true)
+    let events : Array[Json] = []
+    let collector = group.spawn(() => {
+      let (r, s) = @http.get_stream(
+        "http://localhost:\{server.port()}/v1/events",
+      )
+      @json.inspect(r.code, content=200)
+      let mut last_event : String? = None
+      while s.read_until("\n") is Some(line) {
+        match line {
+          [.. "event: ", .. event] => {
+            last_event = Some(event.to_string())
+            continue
+          }
+          [.. "data: ", .. data] => {
+            let data = @json.parse(data)
+            if last_event is Some(event) {
+              events.push({ "event": event, "data": data })
+            } else {
+              events.push({ "data": data })
+            }
+            last_event = None
+            if events.last() is Some(event) &&
+              event is { "data": { "msg": "PostConversation", .. }, .. } {
+              break
+            }
+          }
+          _ => continue
+        }
+      }
+    })
+    let (_, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({
+        "message": {
+          "role": "user",
+          "content": "Can you please search the web for MoonBit to find out which year it is initiated?",
+        },
+        "web_search": true,
+      }),
+    )
+    let b = b.json()
+    println(b.stringify(indent=2))
+    collector.wait()
+    @json.inspect(
+      events
+      .filter(e => e
+        is {
+          "event": "maria",
+          "data": {
+            "msg": "RequestCompleted",
+            "message": { "content": String(content), .. },
+            ..
+          },
+          ..
+        } &&
+        (content.contains("2022") || content.contains("2023")))
+      .length() >
+      0,
+      content=true,
+    )
   })
 }

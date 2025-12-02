@@ -6,6 +6,7 @@ priv struct Task {
   port : Int
   mut status : @server.Status
   created : Int64
+  web_search : Bool
 }
 
 ///|
@@ -117,6 +118,7 @@ fn Task::to_json_object(self : Task) -> Map[String, Json] {
       self.created.to_double(),
       repr=self.created.to_string(),
     ),
+    "web_search": self.web_search,
   }
 }
 
@@ -129,6 +131,7 @@ test "Task::ToJson" {
     port: 8080,
     status: @server.Idle,
     created: 0,
+    web_search: true,
   }
   @json.inspect(task, content={
     "name": ["example"],
@@ -137,5 +140,6 @@ test "Task::ToJson" {
     "port": 8080,
     "status": "idle",
     "created": 0,
+    "web_search": true,
   })
 }

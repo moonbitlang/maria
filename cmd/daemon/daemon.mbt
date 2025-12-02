@@ -113,6 +113,7 @@ priv struct CreateTaskRequest {
   model : String?
   message : @openai.ChatCompletionMessageParam?
   cwd : String?
+  web_search : Bool?
 }
 
 ///|
@@ -150,7 +151,15 @@ impl @json.FromJson for CreateTaskRequest with from_json(
       Some(@json.from_json(cwd_json, path=json_path.add_key("cwd")))
     None => None
   }
-  CreateTaskRequest::{ name, model, message, cwd }
+  let web_search : Bool? = match json.get("web_search") {
+    Some(Null) => None
+    Some(web_search_json) =>
+      Some(
+        @json.from_json(web_search_json, path=json_path.add_key("web_search")),
+      )
+    None => None
+  }
+  CreateTaskRequest::{ name, model, message, cwd, web_search }
 }
 
 ///|
@@ -185,6 +194,10 @@ test "CreateTaskRequest::from_json" {
   @json.inspect(request.model, content=null)
   @json.inspect(request.message, content=null)
   @json.inspect(request.cwd, content=null)
+  @json.inspect(request.web_search, content=null)
+  let json : Json = { "web_search": true }
+  let request : CreateTaskRequest = @json.from_json(json)
+  @json.inspect(request.web_search, content=[true])
 }
 
 ///|
@@ -281,6 +294,9 @@ async fn Daemon::create_task(
     "--register-port",
     self.port.to_string(),
   ]
+  if request.web_search is Some(true) {
+    args.push("--web-search")
+  }
   let process = self.process.spawn(self.exec_path, args, cwd~) catch {
     error =>
       raise json_error(500, "Internal Server Error", {
@@ -321,6 +337,7 @@ async fn Daemon::create_task(
     port: task_port,
     status: Idle,
     created,
+    web_search: request.web_search is Some(true),
   }
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
@@ -337,10 +354,14 @@ async fn Daemon::create_task(
   // unnecessary.
   group.spawn_bg(() => self.listen_for_status_change(task), no_wait=true)
   let message = if request.message is Some(message) {
+    let msg_req : Map[String, Json] = { "message": message.to_json() }
+    if request.web_search is Some(web_search) {
+      msg_req["web_search"] = web_search.to_json()
+    }
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
       "http://localhost:\{task_port}/v1/message",
-      ({ "message": message } : Json),
+      Json::object(msg_req),
     )
     guard r.code is (200..=299) else {
       raise json_error(500, "Internal Server Error", {
