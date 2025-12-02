@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { TaskPromptInput } from "../components/task-prompt-input.tsx";
-import { useNewTaskMutation } from "../features/api/apiSlice.ts";
 import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
-import { setActiveTaskId } from "../features/session/tasksSlice.ts";
+import { TaskPromptInput } from "../components/task-prompt-input.tsx";
+import { useNewTaskMutation } from "../features/api/apiSlice.ts";
 import { selectInput, setInput } from "../features/session/homeSlice.ts";
+import { setActiveTaskId } from "../features/session/tasksSlice.ts";
 
 type HomeProps = {
   cwd?: string;

@@ -1,7 +1,7 @@
+import { CheckCircle2, ChevronDown, Circle, Clock } from "lucide-react";
 import { Fragment, useState } from "react";
-import { CheckCircle2, Circle, Clock, ChevronDown } from "lucide-react";
-import { cn } from "../lib/utils";
 import type { Todo } from "../lib/types";
+import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import {
   Collapsible,

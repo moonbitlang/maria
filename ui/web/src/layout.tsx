@@ -1,16 +1,16 @@
+import { useAppSelector } from "@maria/core/app/hooks.ts";
+import { AppSidebar } from "@maria/core/components/app-sidebar.tsx";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@maria/core/components/ui/sidebar.tsx";
-import { AppSidebar } from "@maria/core/components/app-sidebar.tsx";
-import { Outlet } from "react-router";
 import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
-import { useAppSelector } from "@maria/core/app/hooks.ts";
 import {
   selectActiveTaskId,
   selectTasks,
 } from "@maria/core/features/session/tasksSlice.ts";
+import { Outlet } from "react-router";
 
 function Sidebar({ className }: { className?: string }) {
   const activeTaskId = useAppSelector(selectActiveTaskId);

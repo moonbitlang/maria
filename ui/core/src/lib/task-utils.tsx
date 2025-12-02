@@ -1,5 +1,5 @@
-import { CheckCircle2, Loader2 } from "lucide-react";
 import type { Status } from "@maria/core/lib/types.ts";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 export function getTaskIcon(status: Status) {
   switch (status) {

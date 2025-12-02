@@ -1,34 +1,14 @@
-import { useAppSelector } from "../app/hooks.ts";
-import { AgentTodos } from "../components/agent-todos.tsx";
-import { TaskPromptInput } from "../components/task-prompt-input.tsx";
-import { EventsDisplay } from "../components/events-display.tsx";
-import { ScrollArea } from "../components/ui/scroll-area.tsx";
-import { Separator } from "../components/ui/separator.tsx";
-import {
-  useTaskEventsQuery,
-  usePostMessageMutation,
-  useTaskQuery,
-  usePostCancelMutation,
-} from "../features/api/apiSlice.ts";
-import {
-  selectTaskInput,
-  setActiveTaskId,
-  setInputForTask,
-  selectConversationStatus,
-  addToInputQueueForTask,
-  selectInputQueue,
-  selectTaskTodos,
-  selectTaskEvents,
-  setStatusForTask,
-  selectTaskCwd,
-  selectWebSearchEnabledForTask,
-  toggleWebSearchForTask,
-} from "../features/session/tasksSlice.ts";
+import type { ChatStatus } from "ai";
 import { Clock, Folder } from "lucide-react";
 import { Fragment, useEffect, type FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
-import type { ChatStatus } from "ai";
+import { useAppSelector } from "../app/hooks.ts";
+import { AgentTodos } from "../components/agent-todos.tsx";
+import { EventsDisplay } from "../components/events-display.tsx";
+import { TaskPromptInput } from "../components/task-prompt-input.tsx";
+import { ScrollArea } from "../components/ui/scroll-area.tsx";
+import { Separator } from "../components/ui/separator.tsx";
 import {
   PromptInputButton,
   PromptInputTools,
@@ -38,8 +18,28 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "../components/ui/tooltip.tsx";
-import { base } from "../lib/utils.ts";
 import { WebSearchToggleTool } from "../components/web-search-toggle-tool.tsx";
+import {
+  usePostCancelMutation,
+  usePostMessageMutation,
+  useTaskEventsQuery,
+  useTaskQuery,
+} from "../features/api/apiSlice.ts";
+import {
+  addToInputQueueForTask,
+  selectConversationStatus,
+  selectInputQueue,
+  selectTaskCwd,
+  selectTaskEvents,
+  selectTaskInput,
+  selectTaskTodos,
+  selectWebSearchEnabledForTask,
+  setActiveTaskId,
+  setInputForTask,
+  setStatusForTask,
+  toggleWebSearchForTask,
+} from "../features/session/tasksSlice.ts";
+import { base } from "../lib/utils.ts";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();

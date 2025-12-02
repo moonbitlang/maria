@@ -1,6 +1,9 @@
-import * as React from "react";
 import { SquareTerminal } from "lucide-react";
+import * as React from "react";
 
+import { Link } from "react-router";
+import type { Task } from "../lib/types";
+import { NavTasks } from "./nav-tasks";
 import {
   Sidebar,
   SidebarContent,
@@ -13,9 +16,6 @@ import {
   SidebarRail,
   useSidebar,
 } from "./ui/sidebar";
-import { NavTasks } from "./nav-tasks";
-import { Link } from "react-router";
-import type { Task } from "../lib/types";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   activeTaskId?: string;

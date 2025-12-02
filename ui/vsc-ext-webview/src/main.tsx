@@ -1,14 +1,14 @@
+import { store } from "@maria/core/app/store.ts";
+import Home from "@maria/core/routes/Home.tsx";
+import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { store } from "@maria/core/app/store.ts";
 import { MemoryRouter, Route, Routes } from "react-router";
-import Layout from "./layout";
-import "./index.css";
-import { rootData } from "./utils";
-import Task from "@maria/core/routes/Task.tsx";
 import AllTasks from "./AllTasks";
-import Home from "@maria/core/routes/Home.tsx";
+import "./index.css";
+import Layout from "./layout";
+import { rootData } from "./utils";
 
 const taskId = rootData("task-id");
 const cwd = rootData("cwd");

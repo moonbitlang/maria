@@ -1,5 +1,12 @@
 import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 
+import { Link } from "react-router";
+import type { Status, Task } from "../lib/types";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -8,13 +15,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Link } from "react-router";
-import type { Status, Task } from "../lib/types";
 
 export function getTaskIcon(status: Status) {
   switch (status) {

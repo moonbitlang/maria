@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import type { ChatStatus } from "ai";
+import { Loader2Icon, SendIcon, SquareIcon, XIcon } from "lucide-react";
+import type {
+  ComponentProps,
+  HTMLAttributes,
+  KeyboardEventHandler,
+} from "react";
+import { Children } from "react";
+import { cn } from "../../../../lib/utils";
 import { Button } from "../../button";
 import {
   Select,
@@ -10,15 +19,6 @@ import {
   SelectValue,
 } from "../../select";
 import { Textarea } from "../../textarea";
-import { cn } from "../../../../lib/utils";
-import type { ChatStatus } from "ai";
-import { Loader2Icon, SendIcon, SquareIcon, XIcon } from "lucide-react";
-import type {
-  ComponentProps,
-  HTMLAttributes,
-  KeyboardEventHandler,
-} from "react";
-import { Children } from "react";
 
 export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
 
@@ -117,7 +117,7 @@ export const PromptInputButton = ({
   ...props
 }: PromptInputButtonProps) => {
   const newSize =
-    size ?? Children.count(props.children) > 1 ? "default" : "icon";
+    (size ?? Children.count(props.children) > 1) ? "default" : "icon";
 
   return (
     <Button

@@ -1,6 +1,6 @@
 import * as comlink from "comlink";
-import * as endpoint from "../../vsc-common/endpoint";
 import * as api from "../../vsc-common/api";
+import * as endpoint from "../../vsc-common/endpoint";
 
 declare global {
   function acquireVsCodeApi(): endpoint.Endpoint;

@@ -1,10 +1,10 @@
-import { consumeEndpoint, provideEndpoint } from "./vscode";
+import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
 import * as comlink from "comlink";
-import * as api from "../../vsc-common/api";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
+import * as api from "../../vsc-common/api";
 import { VscodeContext } from "./use-vscode";
-import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
+import { consumeEndpoint, provideEndpoint } from "./vscode";
 
 export default function Layout() {
   useEventsQuery();

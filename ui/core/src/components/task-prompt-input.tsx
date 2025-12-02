@@ -1,4 +1,5 @@
 import type { ChatStatus } from "ai";
+import { cn } from "../lib/utils";
 import {
   PromptInput,
   PromptInputSubmit,
@@ -6,7 +7,6 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "./ui/shadcn-io/ai/prompt-input";
-import { cn } from "../lib/utils";
 
 interface TaskPromptInputProps {
   value: string;

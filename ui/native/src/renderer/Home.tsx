@@ -1,19 +1,16 @@
-import { useEffect, type FormEvent } from "react";
-import { TaskPromptInput } from "@maria/core/components/task-prompt-input.tsx";
-import { useNewTaskMutation } from "@maria/core/features/api/apiSlice.ts";
-import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@maria/core/app/hooks.ts";
-import { setActiveTaskId } from "@maria/core/features/session/tasksSlice.ts";
+import { TaskPromptInput } from "@maria/core/components/task-prompt-input.tsx";
 import {
   PromptInputButton,
   PromptInputTools,
 } from "@maria/core/components/ui/shadcn-io/ai/prompt-input.js";
-import { Folder, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@maria/core/components/ui/tooltip.js";
+import { WebSearchToggleTool } from "@maria/core/components/web-search-toggle-tool.js";
+import { useNewTaskMutation } from "@maria/core/features/api/apiSlice.ts";
 import {
   selectCwd,
   selectInput,
@@ -22,8 +19,11 @@ import {
   setInput,
   toggleWebSearchEnabled,
 } from "@maria/core/features/session/homeSlice.js";
+import { setActiveTaskId } from "@maria/core/features/session/tasksSlice.ts";
 import { base } from "@maria/core/lib/utils.js";
-import { WebSearchToggleTool } from "@maria/core/components/web-search-toggle-tool.js";
+import { Folder, X } from "lucide-react";
+import { useEffect, type FormEvent } from "react";
+import { useNavigate } from "react-router";
 
 export default function Home() {
   const input = useAppSelector(selectInput);

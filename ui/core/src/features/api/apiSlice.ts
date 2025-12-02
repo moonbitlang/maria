@@ -1,16 +1,17 @@
 import {
+  type DaemonTaskChangeEvent,
+  type DaemonTaskSyncEvent,
+  type TaskEvent,
+  type TaskOverview,
+} from "@maria/core/lib/types.ts";
+import {
   createApi,
   fetchBaseQuery,
   type BaseQueryFn,
   type FetchArgs,
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import {
-  type DaemonTaskChangeEvent,
-  type DaemonTaskSyncEvent,
-  type TaskEvent,
-  type TaskOverview,
-} from "@maria/core/lib/types.ts";
+import type { RootState } from "../../app/store";
 import {
   pushEventForTask,
   removeFromInputQueueForTask,
@@ -18,7 +19,6 @@ import {
   setTasks,
 } from "../session/tasksSlice";
 import { selectUrl } from "../session/urlSlice";
-import type { RootState } from "../../app/store";
 
 const rawBaseQuery = fetchBaseQuery();
 

@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import * as endpoint from "../../vsc-common/endpoint";
-import * as api from "../../vsc-common/api";
 import * as comlink from "comlink";
+import * as vscode from "vscode";
+import * as api from "../../vsc-common/api";
+import * as endpoint from "../../vsc-common/endpoint";
 import * as globalState from "./global-state";
 
 function getNonce() {
@@ -58,8 +58,8 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${
     webview.cspSource
   } unsafe-inline; style-src ${
-      webview.cspSource
-    } 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
+    webview.cspSource
+  } 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -71,8 +71,8 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
   <div id="root" data-task-id="${this._taskId ?? ""}" data-cwd="${
-      this._cwd ?? ""
-    }"></div>
+    this._cwd ?? ""
+  }"></div>
 </body>
 </html>`;
   }

@@ -16,7 +16,7 @@
     "dev": "MARIA_DEV=true electron .",
     "preview": "pnpm build && electron .",
     "package": "node ./script/package.js",
-    "make": "",
+    "check": "tsc -b -noEmit",
     "publish": "",
     "lint": ""
   },

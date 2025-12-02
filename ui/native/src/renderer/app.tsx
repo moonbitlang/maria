@@ -1,12 +1,12 @@
+import { store } from "@maria/core/app/store.ts";
+import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import Home from "./Home";
 import { Provider } from "react-redux";
-import { store } from "@maria/core/app/store.ts";
 import { MemoryRouter, Route, Routes } from "react-router";
+import Home from "./Home";
+import "./index.css";
 import { Layout } from "./layout";
-import Task from "@maria/core/routes/Task.tsx";
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const container = document.getElementById("root")!;

@@ -1,5 +1,9 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
+import { cn } from "../../../../lib/utils";
 import { Button } from "../../button";
 import {
   Collapsible,
@@ -13,10 +17,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../tooltip";
-import { cn } from "../../../../lib/utils";
-import { ChevronDownIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
-import { createContext, useContext, useState } from "react";
 
 export type WebPreviewContextValue = {
   url: string;

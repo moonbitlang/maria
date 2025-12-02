@@ -2,16 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { cn } from "../../../../lib/utils";
+import hardenReactMarkdown from "harden-react-markdown";
+import "katex/dist/katex.min.css";
 import type { ComponentProps, HTMLAttributes } from "react";
 import { isValidElement, memo } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { cn } from "../../../../lib/utils";
 import { CodeBlock, CodeBlockCopyButton } from "./code-block";
-import "katex/dist/katex.min.css";
-import hardenReactMarkdown from "harden-react-markdown";
 
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering

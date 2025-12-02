@@ -1,9 +1,10 @@
-import { Message, MessageContent } from "./ui/shadcn-io/ai/message";
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "./ui/shadcn-io/ai/conversation";
+  CheckCircle2,
+  FileIcon,
+  FolderIcon,
+  Terminal,
+  XCircle,
+} from "lucide-react";
 import {
   type ExecuteCommandTool,
   type ListFilesTool,
@@ -14,6 +15,17 @@ import {
   type RequestCompletedEvent,
   type TaskEvent,
 } from "../lib/types";
+import { Badge } from "./ui/badge";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
+import { CodeBlock } from "./ui/shadcn-io/ai/code-block";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "./ui/shadcn-io/ai/conversation";
+import { Message, MessageContent } from "./ui/shadcn-io/ai/message";
+import { Response } from "./ui/shadcn-io/ai/response";
 import {
   Tool,
   ToolContent,
@@ -21,18 +33,6 @@ import {
   ToolInput,
   ToolOutput,
 } from "./ui/shadcn-io/ai/tool";
-import { Response } from "./ui/shadcn-io/ai/response";
-import { CodeBlock } from "./ui/shadcn-io/ai/code-block";
-import { Badge } from "./ui/badge";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
-import {
-  FileIcon,
-  FolderIcon,
-  CheckCircle2,
-  XCircle,
-  Terminal,
-} from "lucide-react";
 
 interface EventsDisplayProps {
   events: TaskEvent[];

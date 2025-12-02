@@ -1,12 +1,12 @@
+import { store } from "@maria/core/app/store.ts";
+import Home from "@maria/core/routes/Home.tsx";
+import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import Home from "@maria/core/routes/Home.tsx";
 import { Provider } from "react-redux";
-import { store } from "@maria/core/app/store.ts";
 import { BrowserRouter, Route, Routes } from "react-router";
+import "./index.css";
 import { Layout } from "./layout";
-import Task from "@maria/core/routes/Task.tsx";
 
 const container = document.getElementById("root")!;
 

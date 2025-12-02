@@ -1,3 +1,4 @@
+import cp from "child_process";
 import {
   app,
   BrowserWindow,
@@ -5,11 +6,10 @@ import {
   ipcMain,
   OpenDialogReturnValue,
 } from "electron";
-import path from "path";
+import started from "electron-squirrel-startup";
 import fs from "fs";
 import os from "os";
-import cp from "child_process";
-import started from "electron-squirrel-startup";
+import path from "path";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {

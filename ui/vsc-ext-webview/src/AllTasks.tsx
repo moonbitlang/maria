@@ -1,6 +1,4 @@
 import { useAppSelector } from "@maria/core/app/hooks.ts";
-import { selectTasks } from "@maria/core/features/session/tasksSlice.ts";
-import type { TaskOverview } from "@maria/core/lib/types.ts";
 import {
   Card,
   CardDescription,
@@ -8,9 +6,11 @@ import {
   CardTitle,
 } from "@maria/core/components/ui/card.tsx";
 import { ScrollArea } from "@maria/core/components/ui/scroll-area.tsx";
+import { selectTasks } from "@maria/core/features/session/tasksSlice.ts";
+import { getTaskIcon } from "@maria/core/lib/task-utils.tsx";
+import type { TaskOverview } from "@maria/core/lib/types.ts";
 import { Clock, Folder } from "lucide-react";
 import { useNavigate } from "react-router";
-import { getTaskIcon } from "@maria/core/lib/task-utils.tsx";
 
 function formatDate(timestamp: number) {
   const date = new Date(timestamp * 1000);
