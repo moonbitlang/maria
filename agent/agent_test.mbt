@@ -617,3 +617,37 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
     @json.inspect(result, content={ "tools": ["tool1", "tool2"] })
   })
 }
+
+///|
+#skip
+async test "agent/web_search" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path())
+    let mut result = Json::null()
+    agent.add_tool(
+      @tool.new(
+        name="submit_moonbit_initiation_year",
+        description="Submit the year MoonBit was initiated.",
+        schema=@tool.JsonSchema::from_json({
+          "type": "object",
+          "properties": { "year": { "type": "string" } },
+          "required": ["year"],
+        }),
+        ToolFn(args => {
+          result = args
+          @tool.ok("Year submitted successfully")
+        }),
+      ),
+    )
+    agent.queue_message(
+      @ai.user_message(
+        content="Can you please search the web for MoonBit to find out which year it is initiated?",
+      ),
+      web_search=true,
+    )
+    |> ignore()
+    agent.start()
+    @json.inspect(result, content={ "year": "2022" })
+  })
+}

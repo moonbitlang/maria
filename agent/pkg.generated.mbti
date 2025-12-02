@@ -17,18 +17,19 @@ pub async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, 
 // Errors
 
 // Types and methods
-pub struct Agent {
+pub(all) struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
   logger : @pino.Logger
+  mut web_search : Bool
   // private fields
 }
 pub fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
 pub async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 pub async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 pub fn Agent::close(Self) -> Unit
-pub async fn Agent::queue_message(Self, @ai.Message) -> @uuid.Uuid
+pub async fn Agent::queue_message(Self, @ai.Message, web_search? : Bool) -> @uuid.Uuid
 pub fn Agent::queued_messages(Self) -> Array[QueuedMessage]
 pub async fn Agent::set_enabled_tools(Self, @set.Set[String]) -> Unit
 pub async fn Agent::set_system_prompt(Self, String) -> Unit
@@ -37,6 +38,7 @@ pub async fn Agent::start(Self) -> Unit
 pub struct QueuedMessage {
   id : @uuid.Uuid
   message : @ai.Message
+  web_search : Bool
 }
 pub impl ToJson for QueuedMessage
 

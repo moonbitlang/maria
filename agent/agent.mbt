@@ -2,6 +2,7 @@
 pub struct QueuedMessage {
   id : @uuid.Uuid
   message : @ai.Message
+  web_search : Bool
 }
 
 ///|
@@ -30,7 +31,7 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 /// * `token_counter` : Counter for tracking token usage across API calls.
 /// * `context_pruner` : Pruner for managing context size within token budgets.
 /// * `session_manager` : Manager for persisting and loading conversation sessions.
-pub struct Agent {
+pub(all) struct Agent {
   uuid : @uuid.Generator
   cwd : String
   model : @model.Model
@@ -44,7 +45,7 @@ pub struct Agent {
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
-  priv web_search : Bool
+  mut web_search : Bool
 }
 
 ///|
@@ -76,9 +77,10 @@ async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
 pub async fn Agent::queue_message(
   agent : Agent,
   message : @ai.Message,
+  web_search? : Bool = agent.web_search,
 ) -> @uuid.Uuid {
   let id = agent.uuid.v4()
-  agent.pending_queue.push_back(QueuedMessage::{ id, message })
+  agent.pending_queue.push_back(QueuedMessage::{ id, message, web_search })
   agent.emit(MessageQueued(id~, message))
   id
 }
@@ -276,11 +278,13 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     // Signal the start of conversation
     agent.emit(PreConversation)
     while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
+      let mut web_search = agent.web_search
       // Test if the agent.input_queue is empty, if so, pop from pending_queue
       if agent.input_queue.is_empty() {
         if agent.pending_queue.pop_front() is Some(msg) {
           // For sure to happen
           agent.input_queue.push(msg.message)
+          web_search = msg.web_search
           agent.emit(MessageUnqueued(id=msg.id))
           agent.emit(MessageAdded(msg.message))
         }
@@ -309,7 +313,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 
       // Enable web search plugin if configured
       let extra_body : Map[String, Json] = {}
-      if agent.web_search {
+      if web_search {
         // We only support web search plugin for OpenRouter models for now.
         //
         // FIXME: We should encode how to enable web search plugin in model
