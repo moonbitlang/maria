@@ -4,6 +4,13 @@ let currentTaskId = null;
 let tasks = [];
 let models = [];
 
+// Tools state
+let availableTools = {};
+
+// Message queue state
+let queuedMessages = [];
+let queuePanel, queueHeader, queueList, queueCount, queueToggle;
+
 // DOM elements
 const taskListDiv = document.getElementById("taskList");
 const messagesDiv = document.getElementById("messages");
@@ -21,6 +28,58 @@ const modulesBtn = document.getElementById("modulesBtn");
 const modulesModal = document.getElementById("modulesModal");
 const closeModulesBtn = document.getElementById("closeModulesBtn");
 const modulesList = document.getElementById("modulesList");
+
+// Section collapse/expand functions
+function toggleSection(sectionName) {
+  const content = document.getElementById(`${sectionName}Content`);
+  const toggle = document.getElementById(`${sectionName}Toggle`);
+  
+  if (content && toggle) {
+    content.classList.toggle("expanded");
+    toggle.textContent = content.classList.contains("expanded") ? "▲" : "▼";
+  }
+}
+
+// Message queue functions
+function toggleQueuePanel() {
+  queuePanel.classList.toggle("expanded");
+  queueToggle.textContent = queuePanel.classList.contains("expanded")
+    ? "▲"
+    : "▼";
+}
+
+function updateQueueDisplay() {
+  // Guard: Don't update if elements aren't initialized yet
+  if (!queueCount || !queueList || !queuePanel) {
+    return;
+  }
+
+  queueCount.textContent = queuedMessages.length;
+
+  if (queuedMessages.length === 0) {
+    queueList.innerHTML =
+      '<div class="no-queue-items">No queued messages</div>';
+  } else {
+    queueList.innerHTML = queuedMessages
+      .map((item) => {
+        const content = extractMessageContent(item.message);
+        const preview =
+          content.length > 100 ? content.substring(0, 100) + "..." : content;
+        return `
+          <div class="queue-item">
+            <div class="queue-item-id">ID: ${escapeHtml(item.id)}</div>
+            <div class="queue-item-content">${escapeHtml(preview)}</div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Auto-expand if there are queued messages
+  if (queuedMessages.length > 0 && !queuePanel.classList.contains("expanded")) {
+    toggleQueuePanel();
+  }
+}
 
 // Pretty-print utilities based on cmd/jsonl2md formatting logic
 function escapeHtml(text) {
@@ -364,10 +423,18 @@ function selectTask(taskId) {
   currentTaskId = taskId;
   messagesDiv.innerHTML = "";
 
+  // Clear queue when switching tasks
+  queuedMessages = [];
+  updateQueueDisplay();
+
   // Update UI
   renderTaskList();
   noTaskSelected.style.display = "none";
   taskView.classList.add("active");
+
+  // Load tools and system prompt for the new task
+  loadTools();
+  loadSystemPrompt();
 
   // Connect to new task's event stream
   connectToTask(taskId);
@@ -408,12 +475,42 @@ function connectToTask(taskId) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   });
 
+  eventSource.addEventListener(
+    "maria.queued_messages.synchronized",
+    (event) => {
+      const data = JSON.parse(event.data);
+      if (!Array.isArray(data)) {
+        console.error(
+          "Expected array for maria.queued_messages.synchronized event, got:",
+          data
+        );
+        return;
+      }
+      queuedMessages = data;
+      updateQueueDisplay();
+      addMessage(`✓ Queue synchronized: ${queuedMessages.length} message(s)`);
+    }
+  );
+
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);
     if (data.msg === "TokenCounted") {
       // There are too many of these events; ignore them to reduce noise
       return;
     }
+
+    // Handle queue events
+    if (data.msg === "MessageQueued") {
+      queuedMessages.push({
+        id: data.id,
+        message: data.message,
+      });
+      updateQueueDisplay();
+    } else if (data.msg === "MessageUnqueued") {
+      queuedMessages = queuedMessages.filter((item) => item.id !== data.id);
+      updateQueueDisplay();
+    }
+
     const formattedHtml = formatLogEntry(data);
     const logDiv = document.createElement("div");
     logDiv.innerHTML = formattedHtml;
@@ -660,6 +757,190 @@ function hideModulesModal() {
   modulesModal.classList.remove("show");
 }
 
+// Tools Management
+async function loadTools() {
+  if (!currentTaskId) {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML =
+      '<div class="loading">Select a task to load tools...</div>';
+    return;
+  }
+
+  try {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = '<div class="loading">Loading tools...</div>';
+    const response = await fetch(`/v1/task/${currentTaskId}/tools`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load tools: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    availableTools = data;
+    displayTools(data);
+  } catch (error) {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = `<div class="no-modules">Error: ${escapeHtml(
+      error.message
+    )}</div>`;
+    addMessage(`✗ Failed to load tools: ${error.message}`);
+  }
+}
+
+function displayTools(tools) {
+  const toolsListDiv = document.getElementById("toolsList");
+  const toolEntries = Object.entries(tools);
+
+  if (toolEntries.length === 0) {
+    toolsListDiv.innerHTML =
+      '<div class="no-modules">No tools available.</div>';
+    return;
+  }
+
+  toolsListDiv.innerHTML = toolEntries
+    .map(
+      ([toolName, toolInfo]) => `
+    <div class="tool-item">
+      <input
+        type="checkbox"
+        id="tool-${escapeHtml(toolName)}"
+        data-tool-name="${escapeHtml(toolName)}"
+        ${toolInfo.enabled ? "checked" : ""}
+      />
+      <label for="tool-${escapeHtml(toolName)}">${escapeHtml(toolName)}</label>
+    </div>
+  `
+    )
+    .join("");
+}
+
+async function updateEnabledTools() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  const checkboxes = document.querySelectorAll(
+    '.tool-item input[type="checkbox"]'
+  );
+  const enabledTools = Array.from(checkboxes)
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.getAttribute("data-tool-name"));
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/enabled-tools`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(enabledTools),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully updated enabled tools`);
+      await loadTools(); // Reload to show updated state
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to update tools: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error updating tools: ${error.message}`);
+  }
+}
+
+// System Prompt Management
+async function loadSystemPrompt() {
+  if (!currentTaskId) {
+    const systemPromptInput = document.getElementById("systemPromptInput");
+    if (systemPromptInput) {
+      systemPromptInput.value = "";
+      systemPromptInput.placeholder =
+        "Select a task to load system prompt...";
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load system prompt: ${response.statusText}`);
+    }
+
+    const systemPrompt = await response.json();
+    const systemPromptInput = document.getElementById("systemPromptInput");
+    if (systemPromptInput) {
+      systemPromptInput.value = systemPrompt || "";
+      systemPromptInput.placeholder =
+        "Enter system prompt (leave empty for default)...";
+    }
+  } catch (error) {
+    addMessage(`✗ Failed to load system prompt: ${error.message}`);
+  }
+}
+
+async function saveSystemPrompt() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  const systemPromptInput = document.getElementById("systemPromptInput");
+  const systemPrompt = systemPromptInput.value.trim();
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(systemPrompt || null),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully saved system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to save system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error saving system prompt: ${error.message}`);
+  }
+}
+
+async function clearSystemPrompt() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(null),
+    });
+
+    if (response.ok) {
+      const systemPromptInput = document.getElementById("systemPromptInput");
+      if (systemPromptInput) {
+        systemPromptInput.value = "";
+      }
+      addMessage(`✓ Successfully cleared system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to clear system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error clearing system prompt: ${error.message}`);
+  }
+}
+
 // Event listeners
 createTaskBtn.addEventListener("click", showCreateTaskModal);
 
@@ -836,8 +1117,37 @@ messageInput.addEventListener("keypress", (e) => {
   }
 });
 
+// System prompt event listeners
+const saveSystemPromptBtn = document.getElementById("saveSystemPromptBtn");
+if (saveSystemPromptBtn) {
+  saveSystemPromptBtn.addEventListener("click", saveSystemPrompt);
+}
+
+const clearSystemPromptBtn = document.getElementById("clearSystemPromptBtn");
+if (clearSystemPromptBtn) {
+  clearSystemPromptBtn.addEventListener("click", clearSystemPrompt);
+}
+
+// Tools event listener
+const updateToolsBtn = document.getElementById("updateToolsBtn");
+if (updateToolsBtn) {
+  updateToolsBtn.addEventListener("click", updateEnabledTools);
+}
+
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize queue panel elements
+  queuePanel = document.getElementById("queuePanel");
+  queueHeader = document.getElementById("queueHeader");
+  queueList = document.getElementById("queueList");
+  queueCount = document.getElementById("queueCount");
+  queueToggle = document.getElementById("queueToggle");
+
+  // Setup queue panel event listener
+  if (queueHeader) {
+    queueHeader.addEventListener("click", toggleQueuePanel);
+  }
+
   loadModels();
   connectToDaemon();
 });
