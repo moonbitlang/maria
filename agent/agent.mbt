@@ -35,6 +35,7 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 /// * `token_counter` : Counter for tracking token usage across API calls.
 /// * `context_pruner` : Pruner for managing context size within token budgets.
 /// * `session_manager` : Manager for persisting and loading conversation sessions.
+/// * `external_events` : Queue for receiving external events from the environment.
 pub(all) struct Agent {
   uuid : @uuid.Generator
   cwd : String
@@ -50,6 +51,7 @@ pub(all) struct Agent {
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
   mut web_search : Bool
+  priv external_events : @event.ExternalEventQueue
 }
 
 ///|
@@ -255,6 +257,49 @@ async fn Agent::prepare_messages_for_request(
 }
 
 ///|
+/// Polls all registered external event sources and handles them.
+///
+/// This function is called at strategic points in the conversation loop to:
+/// 1. Check for user cancellation requests
+/// 2. Inject immediate user messages
+/// 3. Add diagnostic context from the IDE
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to poll events for.
+///
+/// Returns `true` if the conversation should continue, `false` if cancelled.
+async fn Agent::poll_external_events(agent : Agent) -> Bool {
+  let events = agent.external_events.poll()
+  for event in events {
+    agent.emit(@event.ExternalEventReceived(event))
+    match event {
+      UserCancellation => return false
+      UserMessage(msg) =>
+        agent.input_queue.push(
+          @ai.user_message(
+            content="[Immediate User Message]\n\n" +
+              msg +
+              "\n\nPlease address this message immediately and prioritize it over your current task.",
+          ),
+        )
+      Diagnostics(diagnostics) =>
+        if !diagnostics.is_empty() {
+          let rendered = diagnostics.render(limit=10, context=2, cwd=agent.cwd)
+          agent.input_queue.push(
+            @ai.user_message(
+              content="[IDE Diagnostics Update]\n\nThe following issues were detected in the codebase:\n\n" +
+                rendered +
+                "\n\nPlease review and address these issues if relevant to your current task.",
+            ),
+          )
+        }
+    }
+  }
+  true
+}
+
+///|
 /// Starts the agent's conversation loop and executes tool calls until completion.
 ///
 /// This function implements the main agent execution loop:
@@ -282,6 +327,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     // Signal the start of conversation
     agent.emit(PreConversation)
     while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
+      // Poll for external events at the start of each iteration
+      // This handles user cancellation, immediate messages, and diagnostics
+      guard agent.poll_external_events() else { break }
       let mut web_search = agent.web_search
       // Test if the agent.input_queue is empty, if so, pop from pending_queue
       if agent.input_queue.is_empty() {
@@ -412,6 +460,7 @@ pub async fn new(
   user_message? : String,
   cwd~ : StringView,
   web_search? : Bool = false,
+  external_events? : @event.ExternalEventQueue = @event.ExternalEventQueue::new(),
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -441,6 +490,7 @@ pub async fn new(
     session_manager,
     rules,
     web_search,
+    external_events,
   }
   rules.load()
   agent.set_system_prompt(system_message)
@@ -574,4 +624,21 @@ pub async fn Agent::set_enabled_tools(
 ///|
 pub fn Agent::tools(self : Agent) -> Map[String, Tool] {
   self.tools
+}
+
+///|
+/// Returns the external events queue for this agent.
+///
+/// The environment can use this queue to send events to the agent:
+/// * `UserCancellation` - to cancel the current operation
+/// * `UserMessage` - to send an immediate message that interrupts the flow
+/// * `Diagnostics` - to provide IDE diagnostic information
+///
+/// Example:
+/// ```moonbit no-check
+/// let queue = agent.external_events()
+/// queue.send(UserMessage("Please stop and focus on this instead"))
+/// ```
+pub fn Agent::external_events(self : Agent) -> @event.ExternalEventQueue {
+  self.external_events
 }
