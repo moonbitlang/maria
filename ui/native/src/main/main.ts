@@ -10,6 +10,7 @@ import started from "electron-squirrel-startup";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { getResolvedShellEnv } from "./shellEnv";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -38,20 +39,20 @@ function createWindow() {
   }
 }
 
-function discoverMoonBitPath(): string {
-  let moonHome;
-  if (process.env.MOON_HOME) {
-    moonHome = process.env.MOON_HOME;
-  } else {
-    moonHome = path.join(os.homedir(), ".moon");
+let url = "";
+let unixShellEnvPromise: Promise<void> | undefined = undefined;
+
+async function setupMariaProcess() {
+  if (unixShellEnvPromise) {
+    return await unixShellEnvPromise;
   }
-  return path.join(moonHome, "bin");
+  unixShellEnvPromise = doSetupMariaProcess();
+  return await unixShellEnvPromise;
 }
 
-let url = "";
-function spawnMariaProcess() {
+async function doSetupMariaProcess() {
   try {
-    const newPath = process.env.PATH + path.delimiter + discoverMoonBitPath();
+    const shellEnv = await getResolvedShellEnv();
     const mariaPath = process.env.MARIA_DEV
       ? path.join(
           __dirname,
@@ -59,33 +60,25 @@ function spawnMariaProcess() {
         )
       : path.join(__dirname, "../../app.asar.unpacked/bin/maria");
 
-    const result = cp.spawnSync(
-      mariaPath,
-      ["daemon", "--port", "0", "--detach"],
-      { stdio: "ignore", env: { ...process.env, PATH: newPath } },
-    );
+    const exitCode = await new Promise<number>((resolve, reject) => {
+      const maria = cp.spawn(mariaPath, ["daemon", "--port", "0", "--detach"], {
+        stdio: "ignore",
+        env: shellEnv,
+      });
 
-    if (result.error) {
-      throw new Error(
-        `Failed to spawn Maria daemon process:\n${result.error.message}\n\nPath: ${mariaPath}`,
-      );
-    }
+      maria.on("error", reject);
+      maria.on("exit", (code) => {
+        resolve(code);
+      });
+    });
 
-    if (result.status !== 0) {
-      const stderr = result.stderr?.toString() || "No error output";
-      throw new Error(
-        `Maria daemon exited with code ${result.status}:\n${stderr}`,
-      );
+    if (exitCode !== 0) {
+      if (shellEnv["OPENAI_API_KEY"] === undefined)
+        throw new Error("OPENAI_API_KEY is not set in the shell environment");
+      throw new Error(`Maria daemon exited with code ${exitCode}`);
     }
 
     const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
-
-    if (!fs.existsSync(daemonJsonPath)) {
-      throw new Error(
-        `Daemon configuration file not found:\n${daemonJsonPath}\n\nThe daemon may have failed to start properly.`,
-      );
-    }
-
     const daemonJson: { pid: number; port: number } = JSON.parse(
       fs.readFileSync(daemonJsonPath, "utf-8"),
     );
@@ -98,7 +91,8 @@ function spawnMariaProcess() {
 }
 
 const onReady = () => {
-  spawnMariaProcess();
+  // dont await the promise, we will show a loading screen in the renderer
+  setupMariaProcess();
   createWindow();
 };
 
@@ -135,4 +129,8 @@ ipcMain.handle("select-directory", async (): Promise<OpenDialogReturnValue> => {
 
 ipcMain.handle("get-url", () => {
   return url;
+});
+
+ipcMain.handle("maria-ready", async () => {
+  await setupMariaProcess();
 });
