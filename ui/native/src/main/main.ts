@@ -40,14 +40,14 @@ function createWindow() {
 }
 
 let url = "";
-let unixShellEnvPromise: Promise<void> | undefined = undefined;
+let setupMariaPromise: Promise<void> | undefined = undefined;
 
 async function setupMariaProcess() {
-  if (unixShellEnvPromise) {
-    return await unixShellEnvPromise;
+  if (setupMariaPromise) {
+    return await setupMariaPromise;
   }
-  unixShellEnvPromise = doSetupMariaProcess();
-  return await unixShellEnvPromise;
+  setupMariaPromise = doSetupMariaProcess();
+  return await setupMariaPromise;
 }
 
 async function doSetupMariaProcess() {
@@ -73,8 +73,13 @@ async function doSetupMariaProcess() {
     });
 
     if (exitCode !== 0) {
-      if (shellEnv["OPENAI_API_KEY"] === undefined)
-        throw new Error("OPENAI_API_KEY is not set in the shell environment");
+      if (
+        shellEnv["OPENAI_API_KEY"] === undefined ||
+        shellEnv["OPENROUTER_API_KEY"] === undefined
+      )
+        throw new Error(
+          "OPENAI_API_KEY or OPENROUTER_API_KEY is not set in the shell environment",
+        );
       throw new Error(`Maria daemon exited with code ${exitCode}`);
     }
 
