@@ -32,7 +32,7 @@ pub impl Show for CommonModels
 
 type Loader
 pub async fn Loader::get_model(Self, name? : String) -> Model?
-pub fn Loader::models(Self) -> ArrayView[Model]
+pub async fn Loader::models(Self) -> ArrayView[Model]
 pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Self
 
 pub struct Model {

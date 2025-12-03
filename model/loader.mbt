@@ -34,33 +34,32 @@ pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
     None => @os.cwd()
   }
   let loader = Loader::{ home, cwd, models: [] }
-  // let load_from_path = async fn (path) => {
-  //   let text = @fsx.read_file(path)
-  //   let json = @json.parse(text)
-  //   (@json.from_json(json) : Array[Model])
-  // }
-  // TODO: arrow function does not work yet
+  loader.load()
+  loader
+}
+
+///|
+async fn Loader::load(self : Loader) -> Unit {
   async fn load_from_path(path : StringView) -> Array[Model] {
     let text = @fsx.read_file(path)
     let json = @json.parse(text)
     @json.from_json(json)
   }
 
-  let project = loader.cwd
+  let project = self.cwd
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
   if @fsx.exists(project) {
-    loader.models.append(load_from_path(project))
+    self.models.append(load_from_path(project))
   }
-  let user = loader.home
+  let user = self.home
     |> @path.join(".moonagent")
     |> @path.join("models")
     |> @path.join("models.json")
   if @fsx.exists(user) {
-    loader.models.append(load_from_path(user))
+    self.models.append(load_from_path(user))
   }
-  loader
 }
 
 ///|
@@ -76,6 +75,7 @@ pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
 /// Returns the matching model with overrides applied, or `None` when no
 /// model is available.
 pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
+  self.load()
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -128,7 +128,8 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
 /// * `self` : The loader instance to get models from.
 ///
 /// Returns an `ArrayView[Model]` containing all cached models.
-pub fn Loader::models(self : Loader) -> ArrayView[Model] {
+pub async fn Loader::models(self : Loader) -> ArrayView[Model] {
+  self.load()
   self.models
 }
 
