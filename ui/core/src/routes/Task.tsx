@@ -84,6 +84,7 @@ function PromptInput({ taskId }: { taskId: string }) {
     const { data, error } = await postMessage({
       taskId,
       content,
+      web_search: webSearchEnabled,
     });
     if (data) {
       const { id, queued } = data;
@@ -199,6 +200,27 @@ function Events({ taskId }: { taskId: string }) {
   return <EventsDisplay events={events ?? []} />;
 }
 
+// function LoadingInput() {
+//   return (
+//     <div className="flex flex-col p-4">
+//       <TaskPromptInput
+//         value=""
+//         onChange={() => {}}
+//         onSubmit={(e) => e.preventDefault()}
+//         chatStatus="streaming"
+//         placeholder="Input your task..."
+//         inputTools={
+//           <PromptInputTools>
+//             <PromptInputButton>
+//               <Folder size={16} />
+//             </PromptInputButton>
+//           </PromptInputTools>
+//         }
+//       />
+//     </div>
+//   );
+// }
+
 export default function Task() {
   const params = useParams();
 
@@ -211,7 +233,11 @@ export default function Task() {
   useTaskEventsQuery(taskId, { skip: !isSuccess });
 
   if (isLoading) {
-    return null;
+    return (
+      <div className="relative flex min-h-0 flex-1 flex-col justify-end">
+        {/* <Input taskId={taskId} /> */}
+      </div>
+    );
   }
 
   if (isSuccess) {

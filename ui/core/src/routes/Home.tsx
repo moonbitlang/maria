@@ -23,7 +23,8 @@ export default function Home({ cwd }: HomeProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dispatch(setInput("")); // Clear input field
-    const res = await postNewTask({ message: input, cwd });
+    // TODO: consider adding web search option in home
+    const res = await postNewTask({ message: input, cwd, web_search: false });
     if (res.data) {
       const { id } = res.data.task;
       navigate(`/tasks/${id}`);
