@@ -86,6 +86,10 @@ pub(all) enum CommonModels {
   /// Starting at $3/M input tokens
   /// Starting at $15/M output tokens
   ClaudeSonnet4_5
+  /// https://openrouter.ai/anthropic/claude-opus-4.5
+  /// $5/M input tokens
+  /// $25/M output tokens
+  ClaudeOpus4_5
   /// https://openrouter.ai/openai/gpt-5-codex
   /// $1.25/M input tokens
   /// $10/M output tokens
@@ -114,6 +118,10 @@ pub(all) enum CommonModels {
   /// $0.15/M input tokens
   /// $0.45/M output tokens
   MinimaxM2
+  /// https://openrouter.ai/deepseek/deepseek-v3.2
+  /// $0.27/M input tokens
+  /// $0.40/M output tokens
+  DeepseekV3_2
 }
 
 ///|
@@ -128,6 +136,7 @@ pub impl Show for CommonModels with output(
     GrokCodeFast1 => logger.write_string("x-ai/grok-code-fast-1")
     ClaudeHaiku4_5 => logger.write_string("anthropic/claude-haiku-4.5")
     ClaudeSonnet4_5 => logger.write_string("anthropic/claude-sonnet-4.5")
+    ClaudeOpus4_5 => logger.write_string("anthropic/claude-opus-4.5")
     Gpt5Codex => logger.write_string("openai/gpt-5-codex")
     Gpt5 => logger.write_string("openai/gpt-5")
     Gpt5Mini => logger.write_string("openai/gpt-5-mini")
@@ -135,6 +144,7 @@ pub impl Show for CommonModels with output(
     KimiK2_0905 => logger.write_string("moonshotai/kimi-k2-0905")
     Glm4_6 => logger.write_string("z-ai/glm-4.6")
     MinimaxM2 => logger.write_string("minimax/minimax-m2")
+    DeepseekV3_2 => logger.write_string("deepseek/deepseek-v3.2")
   }
 }
 
@@ -150,6 +160,7 @@ fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int {
       // Although sonnet supports 1 M context, but providers tends to charge
       // at a higher rate for context > 200 K. So we keep the safe zone at 200 K
       200_000
+    ClaudeOpus4_5 => 200_000
     Gpt5Codex => 400_000
     Gpt5 => 400_000
     Gpt5Mini => 400_000
@@ -157,6 +168,7 @@ fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int {
     KimiK2_0905 => 262_144
     Glm4_6 => 202_752
     MinimaxM2 => 204_800
+    DeepseekV3_2 => 200_000
   }
 }
 

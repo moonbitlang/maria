@@ -20,6 +20,7 @@ pub(all) enum CommonModels {
   GrokCodeFast1
   ClaudeHaiku4_5
   ClaudeSonnet4_5
+  ClaudeOpus4_5
   Gpt5Codex
   Gpt5
   Gpt5Mini
@@ -27,6 +28,7 @@ pub(all) enum CommonModels {
   KimiK2_0905
   Glm4_6
   MinimaxM2
+  DeepseekV3_2
 }
 pub impl Show for CommonModels
 
