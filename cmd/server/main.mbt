@@ -30,53 +30,12 @@ async fn html_read_file(path : String) -> String {
 }
 
 ///|
-async fn collect_modules(
-  directory : String,
-  modules : Array[@moon.Module],
-) -> Unit {
-  let moon_mod_json = @path.join(directory, "moon.mod.json")
-  if @fsx.exists(moon_mod_json) {
-    modules.push(@moon.Module::load(directory))
-  } else {
-    let entries = @fsx.list_directory(directory)
-    for entry in entries {
-      if entry.kind is Directory {
-        collect_modules(entry.path, modules)
-      }
-    }
-  }
-}
-
-///|
-async fn Server::list_moonbit_modules(
-  server : Server,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  let modules = []
-  collect_modules(server.cwd, modules)
-  let modules_json : Array[Json] = []
-  for mod in modules {
-    modules_json.push({
-      "path": mod.path,
-      "name": mod.name,
-      "version": mod.version,
-      "description": mod.description,
-    })
-  }
-  let response : Json = { "modules": modules_json }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
-}
-
-///|
 async fn publish_moonbit_module(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
   let request = r.body.read_all().binary()
   let request_text : String = @encoding/utf8.decode(request) catch {
-    // TODO(upstream): impl Show for @encoding/utf8.Malformed
     @encoding/utf8.Malformed(bytes) =>
       raise json_error(400, "BadRequest", {
         "error": {

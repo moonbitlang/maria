@@ -3,7 +3,7 @@ struct Server {
   maria : @maria.Maria
   broadcast : @broadcast.Broadcast[Json]
   message_queue : @aqueue.Queue[
-    (CreateMessageRequest, @aqueue.Queue[@uuid.Uuid]),
+    (Message, @aqueue.Queue[@uuid.Uuid]),
   ]
   mut task : @async.Task[Unit]?
   register : Register?
@@ -314,51 +314,6 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
       }
     }
   })
-}
-
-///|
-async fn Server::get_queued_messages(
-  self : Server,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  let queued_messages : Array[Json] = []
-  for m in self.maria.agent.queued_messages() {
-    queued_messages.push({
-      "id": m.id,
-      "message": m.message.to_openai().to_json(),
-    })
-  }
-  let response : Json = queued_messages.to_json()
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
-}
-
-///|
-async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
-  let tools = self.maria.agent.tools()
-  let tools_json : Map[String, Json] = {}
-  for name, tool in tools {
-    tools_json[name] = { "enabled": tool.enabled() }
-  }
-  let response : Json = Json::object(tools_json)
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
-}
-
-///|
-async fn Server::get_system_prompt(
-  self : Server,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  let res : Json = match self.maria.agent.system_prompt() {
-    Some(sys) => sys.to_json()
-    None => Json::null()
-  }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(res.stringify())
 }
 
 ///|
