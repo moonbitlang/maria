@@ -4,6 +4,7 @@ package "moonbitlang/maria/internal/httpx"
 import(
   "moonbitlang/async/http"
   "moonbitlang/async/io"
+  "moonbitlang/core/json"
 )
 
 // Values
@@ -16,6 +17,9 @@ pub let not_found : Handler
 pub fn reason(Int) -> String
 
 // Errors
+pub suberror JsonError {
+  JsonError(code~ : Int, error~ : Error, message~ : String, data~ : Json)
+}
 
 // Types and methods
 pub struct EventStreamWriter {
@@ -43,6 +47,17 @@ pub fn Header::new() -> Self
 pub fn Header::set(Self, String, String) -> Unit
 pub impl Show for Header
 pub impl ToJson for Header
+
+type JsonRequestReader
+pub fn JsonRequestReader::new(RequestReader) -> Self
+pub async fn[T : @json.FromJson] JsonRequestReader::read(Self) -> T
+pub async fn JsonRequestReader::read_json(Self) -> Json
+
+type JsonResponseWriter
+pub fn JsonResponseWriter::new(ResponseWriter) -> Self
+pub async fn[T : ToJson] JsonResponseWriter::write(Self, T) -> Unit
+pub async fn JsonResponseWriter::write_header(Self, Int) -> Unit
+pub async fn JsonResponseWriter::write_json(Self, Json) -> Unit
 
 pub(all) enum Method {
   Get
