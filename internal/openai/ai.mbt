@@ -26,6 +26,10 @@ pub async fn chat(
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
+    fatal_error=error => match error {
+      HttpError(code=403, ..) => true
+      _ => false
+    },
     () => {
       logger.debug("RequestSent", data={
         "model": { "name": model.model_name, "base_url": model.base_url },
