@@ -301,7 +301,8 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
             | "PostToolCall"
             | "PostConversation"
             | "MariaFailed"
-            | "MariaCancelled",
+            | "MariaCancelled"
+            | "ExternalEventReceived",
             ..
           } as event
         ) else {
