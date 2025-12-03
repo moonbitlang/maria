@@ -94,7 +94,7 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   println("[WARN] Unable to find configured model")
   let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
     Some(api_key)
-  } else if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
+  } else if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
     Some(api_key)
   } else {
     None
