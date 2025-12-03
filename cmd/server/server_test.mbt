@@ -17,6 +17,7 @@ async fn configure_models(mock : @mock.Context) -> Unit {
       "average_speed": 0,
       "safe_zone_tokens": 128000,
       "max_output_tokens": 24288,
+      "api_key": mock.getenv("OPENROUTER_API_KEY"),
       "supports_anthropic_prompt_caching": true,
     },
   ])

@@ -75,24 +75,11 @@ pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
 ///
 /// Returns the matching model with overrides applied, or `None` when no
 /// model is available.
-pub async fn Loader::get_model(
-  self : Loader,
-  name? : String,
-  api_key? : String,
-  base_url? : String,
-) -> Model? {
-  let name : String? = match name {
-    Some(name) => Some(name)
-    None =>
-      if (try? @os.getenv("MODEL_NAME")) is Ok(Some(name)) {
-        Some(name)
-      } else {
-        None
-      }
-  }
+pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
+        println("[INFO] Loaded model '\{name}' from configuration")
         break Some(model)
       }
     } else {
@@ -102,24 +89,35 @@ pub async fn Loader::get_model(
     self.models.get(0)
   }
   if model is Some(model) {
-    let model = if api_key is Some(api_key) {
-      { ..model, api_key, }
-    } else if (try? @os.getenv("OPENAI_API_KEY")) is Ok(Some(api_key)) {
-      { ..model, api_key, }
-    } else if (try? @os.getenv("OPENROUTER_API_KEY")) is Ok(Some(api_key)) {
-      { ..model, api_key, }
-    } else {
-      model
-    }
-    let model = if base_url is Some(base_url) {
-      { ..model, base_url, }
-    } else {
-      model
-    }
-    Some(model)
+    return Some(model)
+  }
+  println("[WARN] Unable to find configured model")
+  let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
+    Some(api_key)
+  } else if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
+    Some(api_key)
   } else {
     None
   }
+  guard api_key is Some(api_key) else {
+    println(
+      "[ERROR] OPENROUTER_API_KEY environment variable not set, unable to load default model",
+    )
+    return None
+  }
+  println(
+    "[INFO] Detected OPENROUTER_API_KEY environment variable, falling back to Anthropic Claude Sonnet 4.5 (OpenRouter)",
+  )
+  let base_url = "https://openrouter.ai/api/v1"
+  let name = "anthropic/claude-sonnet-4.5"
+  let model = Model::new(
+    api_key~,
+    base_url~,
+    name~,
+    safe_zone_tokens=128000,
+    supports_anthropic_prompt_caching=true,
+  )
+  Some(model)
 }
 
 ///|

@@ -17,6 +17,7 @@ async fn configure_models(mock : @mock.Context) -> Unit {
       "average_speed": 0,
       "safe_zone_tokens": 128000,
       "max_output_tokens": 24288,
+      "api_key": mock.getenv("OPENROUTER_API_KEY"),
       "supports_anthropic_prompt_caching": true,
     },
   ])
@@ -518,14 +519,27 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
           "cwd": mock.cwd.path(),
         }),
       )
-      @json.inspect(r.code, content=404)
+      @json.inspect(r.code, content=201)
       let b = b.json()
-      @json.inspect(b, content={
-        "error": {
-          "code": -1,
-          "message": "Model not found: Some(\"nonexistent-model\")",
+      @json.inspect(
+        b
+        is {
+          "task": {
+            "name": _,
+            "id": String(_),
+            "cwd": String(_),
+            "port": Number(_, ..),
+            "status": "idle"
+            | "generating",
+            "created": Number(_, ..),
+            "web_search": false,
+            ..
+          },
+          "message": { "id": String(_), "queued": true, .. },
+          ..
         },
-      })
+        content=true,
+      )
     })
   })
 }

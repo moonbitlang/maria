@@ -96,6 +96,9 @@ pub async fn start(args : ArrayView[String]) -> Unit {
     }
     [] => break
   }
+  guard @model.load(home=@os.home(), cwd=@os.cwd()) is Some(_) else {
+    @os.exit(-1)
+  }
   if to_detach {
     let pid = detach(exec_path?, port~, serve~)
     println("[INFO] (Daemon) Detached Maria daemon with PID \{pid}.")
