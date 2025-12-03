@@ -28,6 +28,8 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      NEW_MOON: 1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,6 +61,7 @@ jobs:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
       DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+      NEW_MOON: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -86,6 +89,10 @@ jobs:
 
   info:
     runs-on: ubuntu-latest
+
+    env:
+      NEW_MOON: 1
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -114,6 +121,10 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
+
+    env:
+      NEW_MOON: 1
+
     steps:
       - uses: actions/checkout@v4
         with:
