@@ -65,9 +65,6 @@ async fn Server::list_moonbit_modules(
   }
   let response : Json = { "modules": modules_json }
   w.header().set("Content-Type", "application/json")
-  w.header().set("Access-Control-Allow-Origin", "*")
-  w.header().set("Access-Control-Allow-Methods", "*")
-  w.header().set("Access-Control-Allow-Headers", "*")
   w.write_header(200)
   w.write(response.stringify())
 }
@@ -139,9 +136,6 @@ async fn publish_moonbit_module(
       },
     }
     w.header().set("Content-Type", "application/json")
-    w.header().set("Access-Control-Allow-Origin", "*")
-    w.header().set("Access-Control-Allow-Methods", "*")
-    w.header().set("Access-Control-Allow-Headers", "*")
     w.write_header(201)
     w.write(response.stringify())
   } else {
@@ -165,9 +159,6 @@ async fn publish_moonbit_module(
       },
     }
     w.header().set("Content-Type", "application/json")
-    w.header().set("Access-Control-Allow-Origin", "*")
-    w.header().set("Access-Control-Allow-Methods", "*")
-    w.header().set("Access-Control-Allow-Headers", "*")
     w.write_header(500)
     w.write(response.stringify())
   }
