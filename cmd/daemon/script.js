@@ -4,6 +4,9 @@ let currentTaskId = null;
 let tasks = [];
 let models = [];
 
+// Tools state
+let availableTools = {};
+
 // Message queue state
 let queuedMessages = [];
 let queuePanel, queueHeader, queueList, queueCount, queueToggle;
@@ -25,6 +28,17 @@ const modulesBtn = document.getElementById("modulesBtn");
 const modulesModal = document.getElementById("modulesModal");
 const closeModulesBtn = document.getElementById("closeModulesBtn");
 const modulesList = document.getElementById("modulesList");
+
+// Section collapse/expand functions
+function toggleSection(sectionName) {
+  const content = document.getElementById(`${sectionName}Content`);
+  const toggle = document.getElementById(`${sectionName}Toggle`);
+  
+  if (content && toggle) {
+    content.classList.toggle("expanded");
+    toggle.textContent = content.classList.contains("expanded") ? "▲" : "▼";
+  }
+}
 
 // Message queue functions
 function toggleQueuePanel() {
@@ -418,6 +432,10 @@ function selectTask(taskId) {
   noTaskSelected.style.display = "none";
   taskView.classList.add("active");
 
+  // Load tools and system prompt for the new task
+  loadTools();
+  loadSystemPrompt();
+
   // Connect to new task's event stream
   connectToTask(taskId);
 }
@@ -739,6 +757,190 @@ function hideModulesModal() {
   modulesModal.classList.remove("show");
 }
 
+// Tools Management
+async function loadTools() {
+  if (!currentTaskId) {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML =
+      '<div class="loading">Select a task to load tools...</div>';
+    return;
+  }
+
+  try {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = '<div class="loading">Loading tools...</div>';
+    const response = await fetch(`/v1/task/${currentTaskId}/tools`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load tools: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    availableTools = data;
+    displayTools(data);
+  } catch (error) {
+    const toolsListDiv = document.getElementById("toolsList");
+    toolsListDiv.innerHTML = `<div class="no-modules">Error: ${escapeHtml(
+      error.message
+    )}</div>`;
+    addMessage(`✗ Failed to load tools: ${error.message}`);
+  }
+}
+
+function displayTools(tools) {
+  const toolsListDiv = document.getElementById("toolsList");
+  const toolEntries = Object.entries(tools);
+
+  if (toolEntries.length === 0) {
+    toolsListDiv.innerHTML =
+      '<div class="no-modules">No tools available.</div>';
+    return;
+  }
+
+  toolsListDiv.innerHTML = toolEntries
+    .map(
+      ([toolName, toolInfo]) => `
+    <div class="tool-item">
+      <input
+        type="checkbox"
+        id="tool-${escapeHtml(toolName)}"
+        data-tool-name="${escapeHtml(toolName)}"
+        ${toolInfo.enabled ? "checked" : ""}
+      />
+      <label for="tool-${escapeHtml(toolName)}">${escapeHtml(toolName)}</label>
+    </div>
+  `
+    )
+    .join("");
+}
+
+async function updateEnabledTools() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  const checkboxes = document.querySelectorAll(
+    '.tool-item input[type="checkbox"]'
+  );
+  const enabledTools = Array.from(checkboxes)
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.getAttribute("data-tool-name"));
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/enabled-tools`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(enabledTools),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully updated enabled tools`);
+      await loadTools(); // Reload to show updated state
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to update tools: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error updating tools: ${error.message}`);
+  }
+}
+
+// System Prompt Management
+async function loadSystemPrompt() {
+  if (!currentTaskId) {
+    const systemPromptInput = document.getElementById("systemPromptInput");
+    if (systemPromptInput) {
+      systemPromptInput.value = "";
+      systemPromptInput.placeholder =
+        "Select a task to load system prompt...";
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to load system prompt: ${response.statusText}`);
+    }
+
+    const systemPrompt = await response.json();
+    const systemPromptInput = document.getElementById("systemPromptInput");
+    if (systemPromptInput) {
+      systemPromptInput.value = systemPrompt || "";
+      systemPromptInput.placeholder =
+        "Enter system prompt (leave empty for default)...";
+    }
+  } catch (error) {
+    addMessage(`✗ Failed to load system prompt: ${error.message}`);
+  }
+}
+
+async function saveSystemPrompt() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  const systemPromptInput = document.getElementById("systemPromptInput");
+  const systemPrompt = systemPromptInput.value.trim();
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(systemPrompt || null),
+    });
+
+    if (response.ok) {
+      addMessage(`✓ Successfully saved system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to save system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error saving system prompt: ${error.message}`);
+  }
+}
+
+async function clearSystemPrompt() {
+  if (!currentTaskId) {
+    showError("Please select a task first");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/v1/task/${currentTaskId}/system-prompt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(null),
+    });
+
+    if (response.ok) {
+      const systemPromptInput = document.getElementById("systemPromptInput");
+      if (systemPromptInput) {
+        systemPromptInput.value = "";
+      }
+      addMessage(`✓ Successfully cleared system prompt`);
+    } else {
+      const data = await response.json();
+      const errorMsg = data.error?.message || response.statusText;
+      addMessage(`✗ Failed to clear system prompt: ${errorMsg}`);
+    }
+  } catch (error) {
+    addMessage(`✗ Error clearing system prompt: ${error.message}`);
+  }
+}
+
 // Event listeners
 createTaskBtn.addEventListener("click", showCreateTaskModal);
 
@@ -914,6 +1116,23 @@ messageInput.addEventListener("keypress", (e) => {
     sendBtn.click();
   }
 });
+
+// System prompt event listeners
+const saveSystemPromptBtn = document.getElementById("saveSystemPromptBtn");
+if (saveSystemPromptBtn) {
+  saveSystemPromptBtn.addEventListener("click", saveSystemPrompt);
+}
+
+const clearSystemPromptBtn = document.getElementById("clearSystemPromptBtn");
+if (clearSystemPromptBtn) {
+  clearSystemPromptBtn.addEventListener("click", clearSystemPrompt);
+}
+
+// Tools event listener
+const updateToolsBtn = document.getElementById("updateToolsBtn");
+if (updateToolsBtn) {
+  updateToolsBtn.addEventListener("click", updateEnabledTools);
+}
 
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
