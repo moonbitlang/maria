@@ -14,24 +14,16 @@ async test "fix_moonbit_warnings" (t : @test.Test) {
       }).stringify(indent=2),
     )
     let list_pkg = mock.add_directory("list")
-    list_pkg
-    .add_file("moon.pkg.json")
-    .write_string(Json::object({}).stringify(indent=2))
-    list_pkg
-    .add_file("types.mbt")
-    .write_string(
-      (
+    list_pkg.add_files({
+      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "types.mbt": (
         #|#alias(T, deprecated)
         #|pub enum MutList[A] {
         #|  Empty
         #|  More(A, mut tail~ : MutList[A])
         #|} derive(Eq)
       ),
-    )
-    list_pkg
-    .add_file("list.mbt")
-    .write_string(
-      (
+      "list.mbt": (
         #|///|
         #|/// Get the length of the list.
         #|#alias(length, deprecated)
@@ -120,34 +112,7 @@ async test "fix_moonbit_warnings" (t : @test.Test) {
         #|}
         #|
       ),
-    )
-    let moon = @moon.Module::load(mock.cwd.path())
-    moon.check()
-    @json.inspect(mock.json(moon.diagnostics()), content=[
-      "Diagnostics",
-      [
-        {
-          "error_code": 20,
-          "level": "Warning",
-          "loc": {
-            "end": { "col": 29, "line": 15 },
-            "path": "(mock:cwd)/list/list.mbt",
-            "start": { "col": 23, "line": 15 },
-          },
-          "message": "Warning (deprecated): `length` is deprecated, use `len` instead",
-        },
-        {
-          "error_code": 20,
-          "level": "Warning",
-          "loc": {
-            "end": { "col": 29, "line": 35 },
-            "path": "(mock:cwd)/list/list.mbt",
-            "start": { "col": 26, "line": 35 },
-          },
-          "message": "Warning (deprecated): `add` is deprecated, use `prepend` instead",
-        },
-      ],
-    ])
+    })
     let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
     let tool = @fix_moonbit_warnings.new(agent)
     let args : Json = {

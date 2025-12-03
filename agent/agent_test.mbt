@@ -629,15 +629,15 @@ async test "agent/web_search" (t : @test.Test) {
       @tool.new(
         name="submit_moonbit_initiation_year",
         description="Submit the year MoonBit was initiated.",
-        schema=@tool.JsonSchema::from_json({
+        schema={
           "type": "object",
           "properties": { "year": { "type": "string" } },
           "required": ["year"],
-        }),
-        ToolFn(args => {
+        },
+        args => {
           result = args
           @tool.ok("Year submitted successfully")
-        }),
+        },
       ),
     )
     agent.queue_message(
