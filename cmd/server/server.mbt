@@ -127,6 +127,12 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Get, "/v1/queued-messages") => self.get_queued_messages(w)
           (Get, "/v1/events") => self.get_events(w)
           (Post, "/v1/message") => self.create_message(r, w)
+          (Post, "/v1/external-event") => self.send_external_event(r, w)
+          (Post, "/v1/external-event/diagnostics") =>
+            self.send_diagnostics_event(r, w)
+          (Post, "/v1/external-event/user-message") =>
+            self.send_user_message_event(r, w)
+          (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
           (Get, "/v1/tools") => self.get_tools(w)
           (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
           (Get, "/v1/system-prompt") => self.get_system_prompt(w)
@@ -295,7 +301,8 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
             | "PostToolCall"
             | "PostConversation"
             | "MariaFailed"
-            | "MariaCancelled",
+            | "MariaCancelled"
+            | "ExternalEventReceived",
             ..
           } as event
         ) else {
@@ -368,4 +375,173 @@ async fn Server::get_system_prompt(
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
   w.write(res.stringify())
+}
+
+///|
+/// Sends a generic external event to the agent.
+///
+/// Request body:
+/// ```json
+/// {
+///   "type": "UserMessage" | "UserCancellation" | "Diagnostics",
+///   "message": "...",  // for UserMessage
+///   "diagnostics": "..."  // JSONL string for Diagnostics
+/// }
+/// ```
+async fn Server::send_external_event(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let body_data = r.body.read_all().binary()
+  let body : String = @encoding/utf8.decode(body_data) catch {
+    @encoding/utf8.Malformed(bytes) =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid UTF-8 in request body: \{bytes}",
+        },
+      })
+  }
+  let json : Json = @json.parse(body) catch {
+    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
+  }
+  guard json is { "type": String(event_type), .. } else {
+    raise json_error(400, "BadRequest", {
+      "error": "Missing 'type' field in request body",
+    })
+  }
+  let queue = self.maria.agent.external_events()
+  match event_type {
+    "UserCancellation" => queue.send(@event.ExternalEvent::UserCancellation)
+    "UserMessage" => {
+      guard json is { "message": String(message), .. } else {
+        raise json_error(400, "BadRequest", {
+          "error": "Missing 'message' field for UserMessage event",
+        })
+      }
+      queue.send(@event.ExternalEvent::UserMessage(message))
+    }
+    "Diagnostics" => {
+      guard json is { "diagnostics": String(diagnostics_jsonl), .. } else {
+        raise json_error(400, "BadRequest", {
+          "error": "Missing 'diagnostics' field for Diagnostics event",
+        })
+      }
+      let diagnostics = @diagnostics.from_jsonl(diagnostics_jsonl)
+      queue.send(@event.ExternalEvent::Diagnostics(diagnostics))
+    }
+    _ =>
+      raise json_error(400, "BadRequest", {
+        "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'UserCancellation', or 'Diagnostics'",
+      })
+  }
+  w.header().set("Content-Type", "application/json")
+  w.write_header(200)
+  w.write(Json::object({ "success": true }))
+}
+
+///|
+/// Sends diagnostics from the IDE to the agent.
+///
+/// Request body:
+/// ```json
+/// {
+///   "diagnostics": "...<JSONL string>..."  // or
+///   "diagnostics": [ { "error_code": ..., "level": ..., "loc": ..., "message": ... }, ... ]
+/// }
+/// ```
+async fn Server::send_diagnostics_event(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let body_data = r.body.read_all().binary()
+  let body : String = @encoding/utf8.decode(body_data) catch {
+    @encoding/utf8.Malformed(bytes) =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid UTF-8 in request body: \{bytes}",
+        },
+      })
+  }
+  let json : Json = @json.parse(body) catch {
+    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
+  }
+  let diagnostics = match json {
+    { "diagnostics": String(jsonl), .. } => @diagnostics.from_jsonl(jsonl)
+    { "diagnostics": Array(_) as arr, .. } =>
+      // Convert JSON array to JSONL and parse
+      @diagnostics.from_jsonl(
+        arr.stringify(), // This works because from_jsonl handles JSON per line
+      )
+    _ =>
+      raise json_error(400, "BadRequest", {
+        "error": "Missing 'diagnostics' field in request body",
+      })
+  }
+  self.maria.agent
+  .external_events()
+  .send(@event.ExternalEvent::Diagnostics(diagnostics))
+  w.header().set("Content-Type", "application/json")
+  w.write_header(200)
+  w.write(
+    Json::object({ "success": true, "count": diagnostics.length().to_json() }),
+  )
+}
+
+///|
+/// Sends an immediate user message to the agent.
+///
+/// Request body:
+/// ```json
+/// {
+///   "message": "Please stop and focus on this instead..."
+/// }
+/// ```
+async fn Server::send_user_message_event(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let body_data = r.body.read_all().binary()
+  let body : String = @encoding/utf8.decode(body_data) catch {
+    @encoding/utf8.Malformed(bytes) =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid UTF-8 in request body: \{bytes}",
+        },
+      })
+  }
+  let json : Json = @json.parse(body) catch {
+    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
+  }
+  guard json is { "message": String(message), .. } else {
+    raise json_error(400, "BadRequest", {
+      "error": "Missing 'message' field in request body",
+    })
+  }
+  self.maria.agent
+  .external_events()
+  .send(@event.ExternalEvent::UserMessage(message))
+  w.header().set("Content-Type", "application/json")
+  w.write_header(200)
+  w.write(Json::object({ "success": true }))
+}
+
+///|
+/// Sends a cancellation event to the agent.
+/// This will cause the agent to stop at the next poll point.
+async fn Server::send_cancellation_event(
+  self : Server,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  self.maria.agent
+  .external_events()
+  .send(@event.ExternalEvent::UserCancellation)
+  w.header().set("Content-Type", "application/json")
+  w.write_header(200)
+  w.write(Json::object({ "success": true }))
 }

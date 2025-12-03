@@ -20,6 +20,21 @@ async fn configure_models(mock : @mock.Context) -> Unit {
       "api_key": mock.getenv("OPENROUTER_API_KEY"),
       "supports_anthropic_prompt_caching": true,
     },
+    {
+      "name": "mock:claude-sonnet-4.5",
+      "description": "Claude Sonnet 4.5 is Anthropic’s most advanced Sonnet model to date, optimized for real-world agents and coding workflows.",
+      "model_name": "anthropic/claude-sonnet-4.5",
+      "model_type": "saas/openai",
+      "base_url": "https://openrouter.ai/api/v1",
+      "is_reasoning": false,
+      "input_price": 21.0,
+      "output_price": 105.0,
+      "average_speed": 0,
+      "safe_zone_tokens": 128000,
+      "max_output_tokens": 24288,
+      "api_key": mock.getenv("OPENROUTER_API_KEY"),
+      "supports_anthropic_prompt_caching": true,
+    },
   ])
 }
 
@@ -27,15 +42,16 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 async fn configure_server(
   mock : @mock.Context,
   register? : @server.Register,
+  serve? : StringView,
+  model? : String = "mock:claude-haiku-4.5",
 ) -> @server.Server {
+  let cwd = @os.cwd()
+  let serve = match serve {
+    Some(serve) => serve.to_string()
+    None => @path.join(cwd, "cmd/server")
+  }
   configure_models(mock)
-  @server.Server::new(
-    model="mock:claude-haiku-4.5",
-    serve=mock.cwd.path(),
-    register?,
-    port=0,
-    cwd=mock.cwd.path(),
-  )
+  @server.Server::new(model~, serve~, register?, port=0, cwd=mock.cwd.path())
 }
 
 ///|
@@ -418,7 +434,7 @@ async test "CORS" (t : @test.Test) {
 async test "GET /" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_file("index.html").write_string("<h1>Home Page</h1>")
-    let server = configure_server(mock)
+    let server = configure_server(mock, serve=mock.cwd.path())
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/")
     @json.inspect(r.code, content=200)
@@ -431,7 +447,7 @@ async test "GET /" (t : @test.Test) {
 async test "GET /script.js" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_file("script.js").write_string("console.log('Hello, world!');")
-    let server = configure_server(mock)
+    let server = configure_server(mock, serve=mock.cwd.path())
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/script.js")
     @json.inspect(r.code, content=200)
@@ -616,43 +632,66 @@ async test "POST /v1/cancel" (t : @test.Test) {
 }
 
 ///|
+async fn collect_events(s : @http.Client) -> Array[Json] {
+  let events : Array[Json] = []
+  let mut last_event : String? = None
+  while s.read_until("\n") is Some(line) {
+    match line {
+      [.. "event: ", .. event] => {
+        last_event = Some(event.to_string())
+        continue
+      }
+      [.. "data: ", .. data] => {
+        let data = @json.parse(data)
+        if last_event is Some(event) {
+          events.push({ "event": event, "data": data })
+        } else {
+          events.push({ "data": data })
+        }
+        last_event = None
+        if events.last() is Some(event) &&
+          event
+          is ({
+            "data": {
+              "msg": "PostConversation"
+              | "MariaFailed"
+              | "MariaCancelled",
+              ..
+            },
+            ..
+          }
+          | {
+            "data": {
+              "msg": "ExternalEventReceived",
+              "event": { "type": "UserCancellation", .. },
+              ..
+            },
+            ..
+          }) {
+          break
+        }
+      }
+      _ => continue
+    }
+  }
+  return events
+}
+
+///|
 #skip
 async test "web_search" (t : @test.Test) {
   @mock.run(t, mock => {
     let group = mock.group
     let server = configure_server(mock)
     group.spawn_bg(() => server.start(), no_wait=true)
-    let events : Array[Json] = []
     let collector = group.spawn(() => {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      let mut last_event : String? = None
-      while s.read_until("\n") is Some(line) {
-        match line {
-          [.. "event: ", .. event] => {
-            last_event = Some(event.to_string())
-            continue
-          }
-          [.. "data: ", .. data] => {
-            let data = @json.parse(data)
-            if last_event is Some(event) {
-              events.push({ "event": event, "data": data })
-            } else {
-              events.push({ "data": data })
-            }
-            last_event = None
-            if events.last() is Some(event) &&
-              event is { "data": { "msg": "PostConversation", .. }, .. } {
-              break
-            }
-          }
-          _ => continue
-        }
-      }
+      collect_events(s)
     })
-    let (_, b) = @http.post(
+    let _ = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({
         "message": {
@@ -662,9 +701,7 @@ async test "web_search" (t : @test.Test) {
         "web_search": true,
       }),
     )
-    let b = b.json()
-    println(b.stringify(indent=2))
-    collector.wait()
+    let events = collector.wait()
     @json.inspect(
       events
       .filter(e => e
@@ -745,5 +782,176 @@ async test "GET /v1/system-prompt" (t : @test.Test) {
     let b = b.json()
     @json.inspect(r.code, content=200)
     @json.inspect(b, content="New system prompt.")
+  })
+}
+
+///|
+#skip
+async test "GET /v1/external-event/user-message" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    let (r, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/external-event/user-message",
+      Json::object({ "message": "Hello, Maria!" }),
+    )
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={ "success": true })
+    let (r, b) = @http.get(
+      "http://localhost:\{server.port()}/v1/queued-messages",
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    @json.inspect(b, content=[])
+  })
+}
+
+///|
+#skip
+async test "GET /v1/external-event/cancel" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock)
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let collector = mock.group.spawn(() => {
+      let (r, s) = @http.get_stream(
+        "http://localhost:\{server.port()}/v1/events",
+      )
+      @json.inspect(r.code, content=200)
+      collect_events(s)
+    })
+    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
+    @json.inspect(r.code, content=200)
+    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    let (r, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({
+        "message": {
+          "role": "user",
+          "content": "Can you please tell me when is it now by spawning the 'date' command?",
+        },
+      }),
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard b is { "id": String(_), "queued": queued, .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    @json.inspect(queued, content=true)
+    let (r, b) = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({
+        "message": {
+          "role": "user",
+          "content": "Can you please tell me what is the current weather in New York?",
+        },
+      }),
+    )
+    @json.inspect(r.code, content=200)
+    let b = b.json()
+    guard b is { "id": String(_), "queued": queued, .. } else {
+      fail("Invalid response body: \{b.stringify(indent=2)}")
+    }
+    @json.inspect(queued, content=true)
+    let (r, _) = @http.post(
+      "http://localhost:\{server.port()}/v1/external-event/cancel",
+      Json::object({}),
+    )
+    @json.inspect(r.code, content=200)
+    let events = collector.wait()
+    @json.inspect(
+      events
+      .filter(e => e
+        is { "event": "maria", "data": { "msg": "MessageUnqueued", .. }, .. })
+      .length(),
+      content=1,
+    )
+    @json.inspect(
+      events
+      .filter(e => e
+        is {
+          "event": "maria",
+          "data": {
+            "msg": "ExternalEventReceived",
+            "event": { "type": "UserCancellation", .. },
+            ..
+          },
+          ..
+        })
+      .length(),
+      content=1,
+    )
+  })
+}
+
+///|
+#skip
+async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let server = configure_server(mock, model="mock:claude-haiku-4.5")
+    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    let collector = mock.group.spawn(() => {
+      let (r, s) = @http.get_stream(
+        "http://localhost:\{server.port()}/v1/events",
+      )
+      @json.inspect(r.code, content=200)
+      collect_events(s)
+    })
+    mock.add_files({
+      "moon.mod.json": (
+        #|{ "name": "example", "version": "0.1.0" }
+      ),
+      "moon.pkg.json": (
+        #|{ }
+      ),
+      "example.mbt": (
+        #|///|
+        #|let x : Int = "string"
+      ),
+      "example2.mbt": (
+        #|fn main() {
+        #|  let y = "hello"
+        #|}
+      ),
+    })
+    let moon = @moon.Module::load(mock.cwd.path())
+    moon.check()
+    let diagnostics = moon.diagnostics()
+    let _ = @http.post(
+      "http://localhost:\{server.port()}/v1/message",
+      Json::object({
+        "message": {
+          "role": "user",
+          "content": "Can you please fix the MoonBit project so that it is free from errors and warnings?",
+        },
+      }),
+    )
+    let _ = @http.post(
+      "http://localhost:\{server.port()}/v1/external-event/diagnostics",
+      Json::object({ "diagnostics": diagnostics.to_json() }),
+    )
+    let _ = @http.post(
+      "http://localhost:\{server.port()}/v1/external-event/cancel",
+      Json::object({}),
+    )
+    let events = collector.wait()
+    @json.inspect(
+      events
+      .filter(e => e
+        is {
+          "event": "maria",
+          "data": {
+            "msg": "ExternalEventReceived",
+            "event": { "type": "Diagnostics", "diagnostics": Array(_), .. },
+            ..
+          },
+          ..
+        })
+      .length() >
+      0,
+      content=true,
+    )
   })
 }

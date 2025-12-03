@@ -12,7 +12,7 @@ import(
 )
 
 // Values
-pub async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView, web_search? : Bool) -> Agent
+pub async fn new(@model.Model, uuid? : @uuid.Generator, logger? : @pino.Logger, system_message? : String, user_message? : String, cwd~ : StringView, web_search? : Bool, external_events? : @event.ExternalEventQueue) -> Agent
 
 // Errors
 
@@ -29,6 +29,7 @@ pub fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
 pub async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 pub async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 pub fn Agent::close(Self) -> Unit
+pub fn Agent::external_events(Self) -> @event.ExternalEventQueue
 pub async fn Agent::queue_message(Self, @ai.Message, web_search? : Bool) -> @uuid.Uuid
 pub fn Agent::queued_messages(Self) -> Array[QueuedMessage]
 pub async fn Agent::set_enabled_tools(Self, @set.Set[String]) -> Unit

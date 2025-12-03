@@ -1,4 +1,51 @@
 ///|
+/// External events that can be sent to the agent from outside sources.
+/// These events are collected via polling and can influence the conversation.
+pub(all) enum ExternalEvent {
+  /// Diagnostics from IDE (errors, warnings from the problems panel)
+  Diagnostics(@diagnostics.Diagnostics)
+  /// User wants to cancel the current operation
+  UserCancellation
+  /// User sends an immediate message (interrupting current flow)
+  UserMessage(String)
+}
+
+///|
+/// A queue for receiving external events from the environment.
+/// The environment pushes events via `send()`, and the agent polls via `poll()`.
+pub(all) struct ExternalEventQueue {
+  queue : @aqueue.Queue[ExternalEvent]
+}
+
+///|
+pub fn ExternalEventQueue::new() -> ExternalEventQueue {
+  ExternalEventQueue::{ queue: @aqueue.Queue::new(kind=Unbounded) }
+}
+
+///|
+/// Environment calls this to send events TO the agent.
+/// This is non-blocking and can be called from any context.
+pub fn ExternalEventQueue::send(
+  self : ExternalEventQueue,
+  event : ExternalEvent,
+) -> Unit {
+  guard self.queue.try_put(event) else { return }
+}
+
+///|
+/// Agent calls this to poll events FROM the queue (non-blocking).
+/// Returns all pending events and clears the queue.
+pub fn ExternalEventQueue::poll(
+  self : ExternalEventQueue,
+) -> Array[ExternalEvent] {
+  let events = []
+  while self.queue.try_get() is Some(event) {
+    events.push(event)
+  }
+  events
+}
+
+///|
 /// Event type that occurs during agent conversation lifecycle.
 ///
 /// A typical conversation lifecycle looks like this:
@@ -10,6 +57,8 @@
 /// // calling agent.start()
 /// PreConversation
 /// while true {
+///   // poll external events
+///   ExternalEventReceived (if any)
 ///   // count tokens before request
 ///   TokenCounted
 ///   // prune context if necessary
@@ -84,6 +133,8 @@ pub(all) enum Event {
   /// the event you might want to listen for. Compared to `MessageAdded` event,
   /// this event contains more information like `usage` and `tool_calls`.
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
+  /// Event triggered when an external event is received and processed.
+  ExternalEventReceived(ExternalEvent)
 }
 
 ///|
@@ -232,5 +283,17 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
       let message = message.to_openai()
       { "msg": "RequestCompleted", "usage": usage, "message": message }
     }
+    ExternalEventReceived(external_event) =>
+      { "msg": "ExternalEventReceived", "event": external_event.to_json() }
+  }
+}
+
+///|
+pub impl ToJson for ExternalEvent with to_json(self : ExternalEvent) -> Json {
+  match self {
+    Diagnostics(diagnostics) =>
+      { "type": "Diagnostics", "diagnostics": diagnostics.to_json() }
+    UserCancellation => { "type": "UserCancellation" }
+    UserMessage(message) => { "type": "UserMessage", "message": message }
   }
 }
