@@ -91,6 +91,18 @@ pub async fn Context::add_directory(self : Context, name : String) -> Directory 
 }
 
 ///|
+/// Recursively adds files and directories from a JSON tree structure to the
+/// mock workspace root.
+///
+/// See `Directory::add_json_tree` for details on the expected JSON structure.
+pub async fn Context::add_json_tree(
+  self : Context,
+  tree : Map[String, Json],
+) -> Unit {
+  self.cwd.add_json_tree(tree)
+}
+
+///|
 struct Filter {
   keywords : Array[(String, String)]
 }
@@ -204,6 +216,48 @@ pub async fn Directory::add_directory(
   let path = @path.join(self.0, name)
   @fs.mkdir(path, permission=0o755)
   Directory(path)
+}
+
+///|
+/// Recursively adds files and directories from a JSON tree structure.
+///
+/// The JSON tree should be an object where:
+/// - String values represent file contents (creates a file with that content)
+/// - Object values represent subdirectories (recursively processed)
+///
+/// Parameters:
+///
+/// * `tree` : A JSON object representing the directory tree to create.
+///
+/// Example:
+///
+/// ```moonbit
+/// directory.add_json_tree({
+///   "file.txt": "content",
+///   "subdir": {
+///     "nested.txt": "nested content"
+///   }
+/// })
+/// ```
+///
+/// Returns `Err` if the JSON structure contains non-string, non-object values.
+pub async fn Directory::add_json_tree(
+  self : Directory,
+  tree : Map[String, Json],
+) -> Unit {
+  for name, value in tree {
+    match value {
+      String(content) => self.add_file(name, content~) |> ignore
+      Object(subtree) => {
+        let subdir = self.add_directory(name)
+        subdir.add_json_tree(subtree)
+      }
+      _ =>
+        fail(
+          "Invalid JSON tree: expected String (file content) or Object (directory), got \{value}",
+        )
+    }
+  }
 }
 
 ///|
