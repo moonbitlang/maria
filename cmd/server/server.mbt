@@ -291,6 +291,7 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
             | "MessageUnqueued"
             | "PreConversation"
             | "RequestCompleted"
+            | "PreToolCall"
             | "PostToolCall"
             | "PostConversation"
             | "MariaFailed"
