@@ -624,7 +624,7 @@ async test "agent/web_search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(model, cwd=mock.cwd.path())
-    let mut result = Json::null()
+    let mut result = None
     agent.add_tool(
       @tool.new(
         name="submit_moonbit_initiation_year",
@@ -635,7 +635,10 @@ async test "agent/web_search" (t : @test.Test) {
           "required": ["year"],
         }),
         ToolFn(args => {
-          result = args
+          guard args is { "year": String(year), .. } else {
+            return @tool.error("Invalid arguments, expected 'year' as string")
+          }
+          result = Some(year)
           @tool.ok("Year submitted successfully")
         }),
       ),
@@ -648,6 +651,6 @@ async test "agent/web_search" (t : @test.Test) {
     )
     |> ignore()
     agent.start()
-    @json.inspect(result, content={ "year": "2022" })
+    @json.inspect(result is Some("2022" | "2023"), content=true)
   })
 }
