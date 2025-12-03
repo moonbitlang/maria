@@ -58,7 +58,7 @@ async function doSetupMariaProcess() {
           __dirname,
           "../../../../target/native/release/build/cmd/main/main.exe",
         )
-      : path.join(__dirname, "../../app.asar.unpacked/bin/maria");
+      : path.join(__dirname, "../bin/maria");
 
     const exitCode = await new Promise<number>((resolve, reject) => {
       const maria = cp.spawn(mariaPath, ["daemon", "--port", "0", "--detach"], {
@@ -95,9 +95,9 @@ async function doSetupMariaProcess() {
   }
 }
 
-const onReady = () => {
-  // dont await the promise, we will show a loading screen in the renderer
-  setupMariaProcess();
+const onReady = async () => {
+  // TODO: dont await the promise, we will show a loading screen in the renderer
+  await setupMariaProcess();
   createWindow();
 };
 
