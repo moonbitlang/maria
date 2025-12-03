@@ -86,12 +86,10 @@ pub(all) enum CommonModels {
   /// Starting at $3/M input tokens
   /// Starting at $15/M output tokens
   ClaudeSonnet4_5
-  
   /// https://openrouter.ai/anthropic/claude-opus-4.5
   /// $5/M input tokens
   /// $25/M output tokens
   ClaudeOpus4_5
-
   /// https://openrouter.ai/openai/gpt-5-codex
   /// $1.25/M input tokens
   /// $10/M output tokens
@@ -120,7 +118,6 @@ pub(all) enum CommonModels {
   /// $0.15/M input tokens
   /// $0.45/M output tokens
   MinimaxM2
-
   /// https://openrouter.ai/deepseek/deepseek-v3.2
   /// $0.27/M input tokens
   /// $0.40/M output tokens
