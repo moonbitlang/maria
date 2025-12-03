@@ -35,9 +35,9 @@ export default function Home({ cwd }: HomeProps) {
       <div className="p-4">
         <TaskPromptInput
           value={input}
+          placeholder="Input your task..."
           onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
-          placeholder="Input your task..."
         />
       </div>
     </div>
