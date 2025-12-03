@@ -19,7 +19,10 @@ import {
   setInput,
   toggleWebSearchEnabled,
 } from "@maria/core/features/session/homeSlice.js";
-import { setActiveTaskId } from "@maria/core/features/session/tasksSlice.ts";
+import {
+  setActiveTaskId,
+  setTask,
+} from "@maria/core/features/session/tasksSlice.ts";
 import { base } from "@maria/core/lib/utils.js";
 import { Folder, X } from "lucide-react";
 import { useEffect, type FormEvent } from "react";
@@ -42,10 +45,17 @@ export default function Home() {
     e.preventDefault();
     dispatch(setInput("")); // Clear input field
     dispatch(setCwd(undefined)); // Clear cwd
-    const { data } = await postNewTask({ message: input, cwd });
+    const { data } = await postNewTask({
+      message: input,
+      cwd,
+      web_search: webSearchEnabled,
+    });
     if (data) {
       const { id } = data.task;
+      dispatch(setTask(data.task));
       navigate(`/tasks/${id}`);
+    } else {
+      // TODO: handle error case
     }
   };
 

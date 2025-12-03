@@ -56,10 +56,10 @@ export const apiSlice = createApi({
 
     newTask: builder.mutation<
       { task: TaskOverview },
-      { message: string; cwd?: string }
+      { message: string; cwd?: string; web_search: boolean }
     >({
       query: (params) => {
-        const { message, cwd } = params;
+        const { message, cwd, web_search } = params;
         return {
           url: "task",
           method: "POST",
@@ -71,6 +71,7 @@ export const apiSlice = createApi({
               content: message,
             },
             cwd,
+            web_search,
           }),
         };
       },
@@ -79,9 +80,9 @@ export const apiSlice = createApi({
 
     postMessage: builder.mutation<
       { id: string; queued: boolean },
-      { taskId: string; content: string }
+      { taskId: string; content: string; web_search: boolean }
     >({
-      query: ({ taskId, content }) => ({
+      query: ({ taskId, content, web_search }) => ({
         url: `task/${taskId}/message`,
         method: "POST",
         body: JSON.stringify({
@@ -89,6 +90,7 @@ export const apiSlice = createApi({
             role: "user",
             content,
           },
+          web_search,
         }),
       }),
     }),

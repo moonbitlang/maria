@@ -7,4 +7,5 @@ import { ElectronAPI } from "../api";
 contextBridge.exposeInMainWorld("electronAPI", {
   selectDirectory: () => ipcRenderer.invoke("select-directory"),
   getUrl: () => ipcRenderer.invoke("get-url"),
+  mariaReady: () => ipcRenderer.invoke("maria-ready"),
 } as ElectronAPI);

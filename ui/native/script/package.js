@@ -40,9 +40,7 @@ async function main() {
 
   fs.rmSync("./out", { recursive: true, force: true });
   await packager({
-    asar: {
-      unpackDir: "bin",
-    },
+    asar: false,
     dir: "./dist",
     platform: "darwin",
     arch: "arm64",

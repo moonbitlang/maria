@@ -14,7 +14,7 @@
     "watch": "run-p watch:*",
     "build": "run-p build:*",
     "dev": "MARIA_DEV=true electron .",
-    "preview": "pnpm build && electron .",
+    "preview": "pnpm build && cd ./dist && electron .",
     "package": "node ./script/package.js",
     "check": "tsc -b -noEmit",
     "publish": "",

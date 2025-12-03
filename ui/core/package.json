@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "check": "tsc -b",
+    "check": "tsc -b && eslint .",
     "lint": "eslint ."
   },
   "exports": {
@@ -36,6 +36,7 @@
     "harden-react-markdown": "^1.1.5",
     "katex": "^0.16.25",
     "lucide-react": "^0.553.0",
+    "monaco-editor-core": "^0.55.1",
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.9.5",
