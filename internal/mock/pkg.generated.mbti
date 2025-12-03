@@ -33,6 +33,7 @@ pub struct Context {
 pub async fn Context::add_directory(Self, String) -> Directory
 pub async fn Context::add_file(Self, String, content? : String) -> File
 pub async fn Context::add_files(Self, Map[String, String]) -> Unit
+pub async fn Context::add_json_tree(Self, Map[String, Json]) -> Unit
 pub async fn Context::add_symlink(Self, String, to~ : String) -> Unit
 pub fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
 pub fn[T : ToJson] Context::json(Self, T) -> Json
@@ -44,6 +45,7 @@ type Directory
 pub async fn Directory::add_directory(Self, String) -> Self
 pub async fn Directory::add_file(Self, String, content? : String) -> File
 pub async fn Directory::add_files(Self, Map[String, String]) -> Unit
+pub async fn Directory::add_json_tree(Self, Map[String, Json]) -> Unit
 pub async fn Directory::list(Self) -> Array[Entry]
 pub fn Directory::path(Self) -> String
 
