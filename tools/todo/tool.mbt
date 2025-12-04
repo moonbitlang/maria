@@ -15,7 +15,7 @@ pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) ->
 ///|
 /// TodoReadResult
 priv struct TodoReadResult {
-  todos : Array[Item]
+  todos : ArrayView[Item]
 } derive(ToJson, FromJson)
 
 ///|
@@ -73,9 +73,9 @@ pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
 ///|
 /// TodoWriteResult
 priv struct TodoWriteResult {
-  todos : Array[Item]
+  todos : ArrayView[Item]
   message : String
-  updated_todos : Array[Item]
+  updated_todos : ArrayView[Item]
   is_new_creation : Bool
 } derive(ToJson, FromJson)
 
@@ -90,7 +90,7 @@ impl Show for TodoWriteResult with output(
   let is_new_creation = self.is_new_creation
   let output = []
   output.push("✅ Operation completed: \{action_performed}\n")
-  fn output_todos(todos : Array[Item]) {
+  fn output_todos(todos : ArrayView[Item]) {
     for todo in todos {
       output.push(
         "  \{todo.priority.icon()} \{todo.status.icon()} [\{todo.id}] \{todo.content}",

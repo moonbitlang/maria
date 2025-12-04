@@ -137,6 +137,8 @@ pub(all) enum Event {
   ExternalEventReceived(ExternalEvent)
   /// Cancelled
   Cancelled
+  /// Event triggered when the todo list is updated.
+  TodoUpdated(Json)
 }
 
 ///|
@@ -288,6 +290,7 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
     ExternalEventReceived(external_event) =>
       { "msg": "ExternalEventReceived", "event": external_event.to_json() }
     Cancelled => { "msg": "MariaCancelled" }
+    TodoUpdated(todo) => { "msg": "TodoUpdated", "todo": todo.to_json() }
   }
 }
 

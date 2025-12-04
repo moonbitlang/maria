@@ -22,6 +22,7 @@ pub(all) struct Agent {
   cwd : String
   model : @model.Model
   logger : @pino.Logger
+  event_target : @event.EventTarget
   mut web_search : Bool
   // private fields
 }

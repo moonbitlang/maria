@@ -2,6 +2,7 @@
 struct Todo {
   config : Config
   mut items : Items
+  event_target : @event.EventTarget?
 }
 
 ///|
@@ -16,21 +17,21 @@ priv struct Items {
   todos : Array[Item]
   created_at : String
   mut updated_at : String
-} derive(ToJson, FromJson)
+} derive(ToJson, FromJson, Eq)
 
 ///|
 priv enum Priority {
   High
   Medium
   Low
-} derive(ToJson, FromJson, Show)
+} derive(ToJson, FromJson, Show, Eq)
 
 ///|
 priv enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson, FromJson, Show)
+} derive(ToJson, FromJson, Show, Eq)
 
 ///|
 priv struct Item {
@@ -41,4 +42,4 @@ priv struct Item {
   priority : Priority
   status : Status
   updated_at : String
-} derive(ToJson, FromJson)
+} derive(ToJson, FromJson, Eq)
