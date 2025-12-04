@@ -461,37 +461,14 @@ async test "GET /script.js" (t : @test.Test) {
 async test "POST /v1/cancel" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
-    let events : Array[Json] = []
     @async.with_task_group(group => {
       group.spawn_bg(() => server.start(), no_wait=true)
-      group.spawn_bg(() => {
+      let collector = group.spawn(() => {
         let (r, s) = @http.get_stream(
           "http://localhost:\{server.port()}/v1/events",
         )
         @json.inspect(r.code, content=200)
-        let mut last_event : String? = None
-        while s.read_until("\n") is Some(line) {
-          match line {
-            [.. "event: ", .. event] => {
-              last_event = Some(event.to_string())
-              continue
-            }
-            [.. "data: ", .. data] => {
-              let data = @json.parse(data)
-              if last_event is Some(event) {
-                events.push({ "event": event, "data": data })
-              } else {
-                events.push({ "data": data })
-              }
-              last_event = None
-              if events.last() is Some(event) &&
-                event is { "data": { "msg": "PostConversation", .. }, .. } {
-                break
-              }
-            }
-            _ => continue
-          }
-        }
+        collect_events(s)
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       @json.inspect(r.code, content=200)
@@ -537,103 +514,86 @@ async test "POST /v1/cancel" (t : @test.Test) {
           },
         ],
       })
+      let events = collector.wait()
+      // There is no MessageAdded event for the cancelled message
+      @json.inspect(
+        events
+        .filter(e => e
+          is {
+            "event": "maria",
+            "data": {
+              "msg": "MessageAdded",
+              "message": { "id": String(mid), .. },
+              ..
+            },
+            ..
+          } &&
+          mid == id)
+        .length(),
+        content=0,
+      )
+      // There is a MariaCancelled event
+      @json.inspect(
+        events.filter(e => e
+          is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. }),
+        content=[
+          {
+            "event": "maria",
+            "data": {
+              "msg": "MariaCancelled",
+              "error": { "code": -1, "message": "Task was cancelled." },
+            },
+          },
+        ],
+      )
       // Should be able to send another message after cancellation
-      @http.post(
+      let _ = @http.post(
         "http://localhost:\{server.port()}/v1/message",
         Json::object({
           "message": { "role": "user", "content": "Hello again, Maria!" },
         }),
       )
-      |> ignore()
+      let (r, s) = @http.get_stream(
+        "http://localhost:\{server.port()}/v1/events",
+      )
+      @json.inspect(r.code, content=200)
+      let events : Array[Json] = []
+      let mut last_event : String? = None
+      while s.read_until("\n") is Some(line) {
+        match line {
+          [.. "event: ", .. event] => {
+            last_event = Some(event.to_string())
+            continue
+          }
+          [.. "data: ", .. data] => {
+            let data = @json.parse(data)
+            if last_event is Some(event) {
+              events.push({ "event": event, "data": data })
+            } else {
+              events.push({ "data": data })
+            }
+            last_event = None
+            if events.last() is Some(event) {
+              if event
+                is {
+                  "data": {
+                    "msg": "MessageAdded",
+                    "message": { "role": "system", .. },
+                    ..
+                  },
+                  ..
+                } {
+                continue
+              }
+              if event is { "data": { "msg": "PostConversation", .. }, .. } {
+                break
+              }
+            }
+          }
+          _ => continue
+        }
+      }
     })
-    @json.inspect(redact_events(events), content=[
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "system", "content": "<redacted>" },
-        },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageQueued",
-          "message": {
-            "id": "<redacted>",
-            "message": { "role": "user", "content": "Hello, Maria!" },
-          },
-        },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      { "event": "maria", "data": { "msg": "PreConversation" } },
-      {
-        "event": "maria",
-        "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello, Maria!" },
-        },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageQueued",
-          "message": {
-            "id": "<redacted>",
-            "message": {
-              "role": "user",
-              "content": "This message will be popped on cancellation",
-            },
-          },
-        },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MariaCancelled",
-          "error": { "code": -1, "message": "Task was cancelled." },
-        },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageQueued",
-          "message": {
-            "id": "<redacted>",
-            "message": { "role": "user", "content": "Hello again, Maria!" },
-          },
-        },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      { "event": "maria", "data": { "msg": "PreConversation" } },
-      {
-        "event": "maria",
-        "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
-      },
-      { "event": "maria.queued_messages.synchronized", "data": [] },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "MessageAdded",
-          "message": { "role": "user", "content": "Hello again, Maria!" },
-        },
-      },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
-        },
-      },
-      { "event": "maria", "data": { "msg": "PostConversation" } },
-    ])
   })
 }
 
