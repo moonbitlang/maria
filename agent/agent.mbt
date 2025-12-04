@@ -281,9 +281,13 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
       UserMessage(msg) =>
         agent.input_queue.push(
           @ai.user_message(
-            content="[Immediate User Message]\n\n" +
-              msg +
-              "\n\nPlease address this message immediately and prioritize it over your current task.",
+            content=(
+              $|[Immediate User Message]
+              $|
+              $|\{msg}
+              $|
+              $|Please address this message immediately and prioritize it over your current task.
+            ),
           ),
         )
       Diagnostics(diagnostics) =>
@@ -291,9 +295,15 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
           let rendered = diagnostics.render(limit=10, context=2, cwd=agent.cwd)
           agent.input_queue.push(
             @ai.user_message(
-              content="[IDE Diagnostics Update]\n\nThe following issues were detected in the codebase:\n\n" +
-                rendered +
-                "\n\nPlease review and address these issues if relevant to your current task.",
+              content=(
+                $|[IDE Diagnostics Update]
+                $|
+                $|The following issues were detected in the codebase:
+                $|
+                $|\{rendered}
+                $|
+                $|Please review and address these issues if relevant to your current task.
+              ),
             ),
           )
         }
