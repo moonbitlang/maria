@@ -1,16 +1,16 @@
 ///|
-pub struct Server {
-  priv maria : @maria.Maria
-  priv broadcast : @broadcast.Broadcast[Json]
-  priv message_queue : @aqueue.Queue[
+struct Server {
+  maria : @maria.Maria
+  broadcast : @broadcast.Broadcast[Json]
+  message_queue : @aqueue.Queue[
     (CreateMessageRequest, @aqueue.Queue[@uuid.Uuid]),
   ]
-  priv mut task : @async.Task[Unit]?
-  priv register : Register?
-  priv serve : String
-  priv port : Int
-  priv http_server : @httpx.Server
-  priv cwd : String
+  mut task : @async.Task[Unit]?
+  register : Register?
+  serve : String
+  port : Int
+  http_server : @httpx.Server
+  cwd : String
 }
 
 ///|
