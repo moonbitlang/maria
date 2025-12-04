@@ -30,6 +30,7 @@ pub(all) enum Event {
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   ExternalEventReceived(ExternalEvent)
   Cancelled
+  TodoUpdated(Json)
 }
 pub impl ToJson for Event
 

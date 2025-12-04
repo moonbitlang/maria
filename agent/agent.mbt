@@ -45,7 +45,7 @@ pub(all) struct Agent {
   priv history : @conversation.Conversation
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[QueuedMessage]
-  priv event_target : @event.EventTarget
+  event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager

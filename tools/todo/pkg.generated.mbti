@@ -4,12 +4,13 @@ package "moonbitlang/maria/tools/todo"
 import(
   "moonbitlang/core/json"
   "moonbitlang/maria/clock"
+  "moonbitlang/maria/event"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/tool"
 )
 
 // Values
-pub fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo
+pub fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView, event_target? : @event.EventTarget) -> Todo
 
 pub fn new_tool(Todo) -> @tool.Tool[TodoResult]
 
