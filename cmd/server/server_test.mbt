@@ -504,15 +504,39 @@ async test "POST /v1/cancel" (t : @test.Test) {
       )
       @json.inspect(r.code, content=200)
       let b = b.json()
-      guard b is { "id": String(_), "queued": queued, .. } else {
+      guard b is { "id": String(_), "queued": true, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
-      @json.inspect(queued, content=true)
-      let (r, _) = @http.post(
+      let (_, b) = @http.post(
+        "http://localhost:\{server.port()}/v1/message",
+        Json::object({
+          "message": {
+            "role": "user",
+            "content": "This message will be popped on cancellation",
+          },
+        }),
+      )
+      let b = b.json()
+      guard b is { "id": String(id), "queued": true, .. } else {
+        fail("Invalid response body: \{b.stringify(indent=2)}")
+      }
+      let (r, b) = @http.post(
         "http://localhost:\{server.port()}/v1/cancel",
         Json::object({}),
       )
       @json.inspect(r.code, content=200)
+      @json.inspect(b.json(), content={
+        "pending_messages": [
+          {
+            "id": String(id),
+            "message": {
+              "role": "user",
+              "content": "This message will be popped on cancellation",
+            },
+            "web_search": false,
+          },
+        ],
+      })
       // Should be able to send another message after cancellation
       @http.post(
         "http://localhost:\{server.port()}/v1/message",
@@ -555,6 +579,20 @@ async test "POST /v1/cancel" (t : @test.Test) {
           "message": { "role": "user", "content": "Hello, Maria!" },
         },
       },
+      {
+        "event": "maria",
+        "data": {
+          "msg": "MessageQueued",
+          "message": {
+            "id": "<redacted>",
+            "message": {
+              "role": "user",
+              "content": "This message will be popped on cancellation",
+            },
+          },
+        },
+      },
+      { "event": "maria.queued_messages.synchronized", "data": [] },
       {
         "event": "maria",
         "data": {

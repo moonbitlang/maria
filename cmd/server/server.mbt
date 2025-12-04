@@ -255,10 +255,10 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
     )
   }
   task.cancel()
-  self.maria.agent.clear_input_queue()
+  let pms = self.maria.agent.clear_inputs()
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
-  w.write(Json::object({}))
+  w.write(Json::object({ "pending_messages": pms.to_json() }))
 }
 
 ///|

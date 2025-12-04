@@ -28,7 +28,7 @@ pub(all) struct Agent {
 pub fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
 pub async fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output]) -> Unit
 pub async fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
-pub fn Agent::clear_input_queue(Self) -> Unit
+pub fn Agent::clear_inputs(Self) -> Array[QueuedMessage]
 pub fn Agent::close(Self) -> Unit
 pub fn Agent::external_events(Self) -> @event.ExternalEventQueue
 pub async fn Agent::queue_message(Self, @ai.Message, web_search? : Bool) -> @uuid.Uuid
