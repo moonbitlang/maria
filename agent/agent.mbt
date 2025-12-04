@@ -653,6 +653,11 @@ pub fn Agent::external_events(self : Agent) -> @event.ExternalEventQueue {
 }
 
 ///|
-pub fn Agent::clear_input_queue(self : Agent) -> Unit {
+pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
   self.input_queue.clear()
+  let pms = []
+  while self.pending_queue.pop_front() is Some(pm) {
+    pms.push(pm)
+  }
+  pms
 }
