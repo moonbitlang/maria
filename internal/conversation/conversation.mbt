@@ -12,45 +12,21 @@ pub fn Conversation::display(
     for i, message in self.messages {
       let message = message.message
       match message {
-        Assistant(assistant) => {
+        Assistant(content, ..) => {
           lines.push("\{i}. [assistant]")
-          let parts = assistant.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        User(user) => {
+        User(content) => {
           lines.push("\{i}. [user]")
-          let parts = user.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        System(system) => {
+        System(content) => {
           lines.push("\{i}. [system]")
-          let parts = system.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
-        Tool(tool) => {
+        Tool(content, ..) => {
           lines.push("\{i}. [tool]")
-          let parts = tool.content
-          for part in parts {
-            match part {
-              Text(text) =>
-                text.text.split("\n").each(line => lines.push("  \{line}"))
-            }
-          }
+          content.split("\n").each(line => lines.push("  \{line}"))
         }
       }
     }
@@ -174,8 +150,6 @@ pub fn Conversation::add_message(
   usage? : @ai.Usage,
 ) -> Unit {
   let now = self.clock.now()
-  let usage = usage.map(fn(u) { u.to_openai() })
-  let message = message.to_openai()
   let message = Message::{ timestamp: now, usage, message }
   self.messages.push(message)
   self.updated_at = now
@@ -206,7 +180,7 @@ pub fn Conversation::messages(
     msgs.push(@ai.system_message(content=system_prompt))
   }
   for m in self.messages {
-    msgs.push(@ai.Message::from_openai(m.message))
+    msgs.push(m.message)
   }
   msgs
 }

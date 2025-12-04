@@ -4,26 +4,12 @@ test "Message to_json" {
     {
       timestamp: 1625079600,
       usage: None,
-      message: User(
-        @openai.ChatCompletionUserMessageParam::new(content=[
-          @openai.ChatCompletionContentPartParam::new(text="Hello, world!"),
-        ]),
-      ),
+      message: @ai.user_message(content="Hello, world!"),
     },
     {
       timestamp: 1625079600,
-      usage: Some(
-        @openai.CompletionUsage::new(
-          prompt_tokens=10,
-          total_tokens=20,
-          completion_tokens=10,
-        ),
-      ),
-      message: User(
-        @openai.ChatCompletionUserMessageParam::new(content=[
-          @openai.ChatCompletionContentPartParam::new(text="Hello, world!"),
-        ]),
-      ),
+      usage: Some(@ai.usage(input_tokens=10, total_tokens=20, output_tokens=10)),
+      message: @ai.user_message(content="Hello, world!"),
     },
   ]
   @json.inspect(messages, content=[
@@ -69,12 +55,13 @@ impl @json.FromJson for Message with from_json(
         (json_path.add_key("timestamp"), "Missing field"),
       )
   }
-  let usage = match json.get("usage") {
+  let usage : @openai.CompletionUsage? = match json.get("usage") {
     Some(Null) => None
     Some(usage) => Some(@json.from_json(usage, path=json_path.add_key("usage")))
     None => None
   }
-  let message = match json.get("message") {
+  let usage = usage.map(@ai.Usage::from_openai)
+  let message : @openai.ChatCompletionMessageParam = match json.get("message") {
     Some(message) => @json.from_json(message, path=json_path.add_key("message"))
     None => {
       let content : String = match json.get("content") {
@@ -94,7 +81,7 @@ impl @json.FromJson for Message with from_json(
       @json.from_json(content)
     }
   }
-  Message::{ timestamp, usage, message }
+  Message::{ timestamp, usage, message: @ai.Message::from_openai(message) }
 }
 
 ///|
@@ -105,8 +92,8 @@ impl ToJson for Message with to_json(self : Message) -> Json {
     repr=self.timestamp.to_string(),
   )
   if self.usage is Some(usage) {
-    object["usage"] = usage.to_json()
+    object["usage"] = usage.to_openai().to_json()
   }
-  object["message"] = self.message.to_json()
+  object["message"] = self.message.to_openai().to_json()
   Json::object(object)
 }
