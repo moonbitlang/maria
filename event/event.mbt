@@ -135,6 +135,8 @@ pub(all) enum Event {
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   /// Event triggered when an external event is received and processed.
   ExternalEventReceived(ExternalEvent)
+  /// Cancelled
+  Cancelled
 }
 
 ///|
@@ -285,6 +287,7 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
     }
     ExternalEventReceived(external_event) =>
       { "msg": "ExternalEventReceived", "event": external_event.to_json() }
+    Cancelled => { "msg": "MariaCancelled" }
   }
 }
 

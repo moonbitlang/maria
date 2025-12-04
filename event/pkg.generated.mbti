@@ -29,6 +29,7 @@ pub(all) enum Event {
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   ExternalEventReceived(ExternalEvent)
+  Cancelled
 }
 pub impl ToJson for Event
 
