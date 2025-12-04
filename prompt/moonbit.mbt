@@ -44,10 +44,12 @@ pub let moonbit : String =
   #|```
   #|
   #|**Reading `.mbti` files for API discovery**:
+  #|
   #|- **Start with `builtin/pkg.generated.mbti`** - contains core types (String, Int, Array, etc.) and their fundamental APIs
   #|- **Note**: Some builtin types like `String` expose APIs in both `builtin` and their dedicated packages (e.g., `String`)
   #|- **Local dependencies**: Find `.mbti` files in the `.mooncakes` directory by searching for `pkg.generated.mbti`
   #|- **Your own packages**: After running `moon info`, check the generated `.mbti` in each package directory to verify public API changes
+  #|
   #|# MoonBit Language Fundamentals
   #|
   #|## Core Facts
@@ -218,6 +220,7 @@ pub let moonbit : String =
   #|let a1 : Int = 'b' // this also works, a5 will be the unicode value
   #|let a2 : Char = 'b'
   #|```
+  #|
   #|## Bytes
   #|
   #|Bytes is immutable; Indexing (`b[i]`) returns a `Byte`.
@@ -228,6 +231,7 @@ pub let moonbit : String =
   #|let b2 : Bytes = [0xff, 0x00, 0x01] // Array literal overloading
   #|assert_eq(b0[0], b'a') // indexing returns Byte
   #|```
+  #|
   #|## Array
   #|
   #|MoonBit Array is resizable array, FixedArray is fixed size array.
@@ -249,13 +253,13 @@ pub let moonbit : String =
   #|```mbt test
   #|let s = "hello world"
   #|
-  #|let b0 : UInt16 = s.code_unit_at(0) 
+  #|let b0 : UInt16 = s.code_unit_at(0)
   #|assert_true(b0 is ('\n' | 'h' | 'b' | 'a'..='z'))
   #|// In check mode (expression with explicit type), ('\n' : Int) is valid.
   #|// Here the compiler knows `s[i]` is Int
   #|
   #|// Using get_char for Option handling
-  #|let b1 : Char? = s.get_char(0) 
+  #|let b1 : Char? = s.get_char(0)
   #|assert_true(b1 is Some('a'..='z'))
   #|
   #|// ⚠️ Important: Variables won't work with direct indexing
@@ -1199,11 +1203,11 @@ pub let moonbit : String =
   #|
   #|## MoonBit Package `README` Generation Guide
   #|
-  #|- Output `README.mbt.md` in the package directory. 
+  #|- Output `README.mbt.md` in the package directory.
   #|  `*.mbt.md` file treats `mbt test` and `mbt check` specially, `mbt test` block will be wrapped using `test { ... }` and run by `moon check` and `moon test`.
-  #|  `mbt check` block will be included directly as code and also run by `moon check` and `moon test`. 
+  #|  `mbt check` block will be included directly as code and also run by `moon check` and `moon test`.
   #|  If you are only referencing types from the package, you should use `mbt` which will only be syntax highlighted.
-  #|  Symlink `README.mbt.md` to `README.md` to adapt to systems that expect `README.md`. 
+  #|  Symlink `README.mbt.md` to `README.md` to adapt to systems that expect `README.md`.
   #|- Aim to cover ≥90% of the public API with concise sections and examples.
   #|- Organize by feature: construction, consumption, transformation, and key usage tips.
   #|
@@ -1230,14 +1234,15 @@ pub let moonbit : String =
   #|### Query Syntax
   #|
   #|`moon doc` uses a specialized query syntax designed for symbol lookup:
-  #|- **Empty query**: `moon doc `
+  #|
+  #|- **Empty query**: `moon doc`
   #|
   #|  - In a module: shows all available packages in current module
   #|  - In a package: shows all symbols in current package
   #|  - Outside package: shows all available packages
   #|
   #|- **Function/value lookup**: `moon doc "[@pkg.]sym"`
-  #|  
+  #|
   #|- **Type lookup**: `moon doc  "[@pkg.]Sym"`
   #|
   #|- **Method/field lookup**: `moon doc  "[@pkg.]T::sym"`
@@ -1255,6 +1260,7 @@ pub let moonbit : String =
   #|4. **Type inspection**: Use `moon doc "TypeName"` to see type definition and methods
   #|5. **Package exploration**: Use `moon doc ""` at module root to see all available packages, including dependencies and stdlib
   #|6. **Globbing**: Use `*` wildcard for partial matches, e.g. `moon doc "String::*rev*"` to find all String methods with "rev" in their name
+  #|
   #|### Examples
   #|
   #|````bash
@@ -1285,7 +1291,7 @@ pub let moonbit : String =
   #|   1.
   #|# ... more details omitted ...
   #|
-  #|$ moon doc "String::*rev*"  
+  #|$ moon doc "String::*rev*"
   #|package "moonbitlang/core/string"
   #|
   #|pub fn String::rev(String) -> String
@@ -1297,5 +1303,6 @@ pub let moonbit : String =
   #|   substring. If the substring is not found, it returns None.
   #|
   #|# ... more details omitted ...
+  #|````
   #|
   #|**Best practice**: When implementing a feature, start with `moon doc` queries to discover available APIs before writing code. This is faster and more accurate than searching through files.

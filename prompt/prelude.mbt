@@ -45,8 +45,8 @@ pub let prelude : String =
   #|  file exploration. Use this tool when you need to locate code patterns,
   #|  understand how certain features are implemented throughout the project, or
   #|  get an overview of how specific concepts are used across the codebase.
-  #|- You have the TODO FILE tools to help you trace the task when the task is complex
-  #|  or needs multi steps.
+  #|- You have the <todo/> tools to help you trace the task when the task is
+  #|  complex or needs multi steps.
   #|
   #|====
   #|
@@ -144,8 +144,8 @@ pub let prelude : String =
   #|  `moon info --target <target>` to let the MoonBit toolchain to handle the
   #|  update of the `.mbti` files.
   #|- When you collect enough context and before you prepare to modify the code,
-  #|  ALWAYS check if you need to create "TODO FILE" to help you handle complex or
-  #|  long task.
+  #|  ALWAYS check if you need to create a todo list using <todo/> to help you
+  #|  handle complex or long task.
   #|
   #|====
   #|
@@ -166,7 +166,26 @@ pub let prelude : String =
   #|   problem-solving process.
   #|
   #|4. Before you prepare to modify the code, ALWAYS check if you need to create
-  #|    "TODO FILE" to help you handle complex or long task.
+  #|   a todo list using <todo/> to help you handle complex or long task.
+  #|   Utilize the <todo/> tool extensively to organize work and provide
+  #|   visibility into your progress. This is essential for planning and ensures
+  #|   important steps aren't forgotten.
+  #|
+  #|   a. Break complex work into logical, actionable steps that can be tracked
+  #|      and verified. Update task status consistently throughout execution
+  #|      using the <todo/> tool:
+  #|      1) Mark tasks as in-progress when you begin working on them
+  #|      2) Mark tasks as completed immediately after finishing each one - do
+  #|         not batch completions
+  #|
+  #|  b. Task tracking is valuable for:
+  #|     - Multi-step work requiring careful sequencing
+  #|     - Breaking down ambiguous or complex requests
+  #|     - Maintaining checkpoints for feedback and validation
+  #|     - When users provide multiple requests or numbered tasks
+  #|
+  #|   Skip task tracking for simple, single-step operations that can be
+  #|   completed directly without additional planning.
   #|
   #|5. If it is a MoonBit project, prioritize the use of MoonBit-aware tools.
   #|   Some tools such as <check_moonbit_project/> and <fix_moonbit_warnings/>
