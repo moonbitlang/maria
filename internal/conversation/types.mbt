@@ -15,6 +15,6 @@ priv struct Message {
   /// The Unix timestamp (in seconds) of when the message was created.
   timestamp : Int64
   /// Usage statistics for the completion request.
-  message : @openai.ChatCompletionMessageParam
-  usage : @openai.CompletionUsage?
+  usage : @ai.Usage?
+  message : @ai.Message
 }

@@ -58,20 +58,43 @@ test "Conversation::display" {
     "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
     "system_prompt": "This is a system prompt.",
     "messages": [
-      { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
+      {
+        "timestamp": 1,
+        "message": { "role": "system", "content": "This is a system prompt." },
+      },
+      {
+        "timestamp": 2,
+        "message": { "role": "user", "content": "What time is it now" },
+      },
       {
         "timestamp": 3,
-        "message": { "role": "assistant", "content": "Hi", "tool_calls": [] },
+        "message": {
+          "role": "assistant",
+          "content": "Hi",
+          "tool_calls": [
+            {
+              "id": "tc0",
+              "function": {
+                "name": "execute_command",
+                "arguments": Json::object({ "command": "date" }).stringify(),
+              },
+            },
+          ],
+        },
       },
       {
         "timestamp": 4,
-        "message": { "role": "user", "content": "How are you?" },
+        "message": {
+          "role": "tool",
+          "tool_call_id": "tc0",
+          "content": "2024-01-01T12:00:00Z",
+        },
       },
       {
         "timestamp": 5,
         "message": {
           "role": "assistant",
-          "content": "Good, thanks!",
+          "content": "Current time is 2024-01-01T12:00:00Z",
           "tool_calls": [],
         },
       },
@@ -84,7 +107,7 @@ test "Conversation::display" {
     conversation.display().join("\n"),
     content=(
       #|Name: Test Conversation
-      #|Messages: 4
+      #|Messages: 5
       #|Created: 1970-01-01T00:00:00Z
       #|Updated: 1970-01-01T00:00:00Z
     ),
@@ -93,14 +116,16 @@ test "Conversation::display" {
     conversation.display(show_messages=true).join("\n"),
     content=(
       #|Name: Test Conversation
-      #|0. [user]
-      #|  Hello
-      #|1. [assistant]
+      #|0. [system]
+      #|  This is a system prompt.
+      #|1. [user]
+      #|  What time is it now
+      #|2. [assistant]
       #|  Hi
-      #|2. [user]
-      #|  How are you?
-      #|3. [assistant]
-      #|  Good, thanks!
+      #|3. [tool]
+      #|  2024-01-01T12:00:00Z
+      #|4. [assistant]
+      #|  Current time is 2024-01-01T12:00:00Z
       #|Created: 1970-01-01T00:00:00Z
       #|Updated: 1970-01-01T00:00:00Z
     ),

@@ -20,7 +20,7 @@ pub fn Conversation::export_to_markdown(self : Conversation) -> String {
   for i in 0..<self.messages.length() {
     let message = self.messages[i]
     // Role as level 2 heading
-    let role_title = get_role_title(message.message)
+    let role_title = get_role_title(message.message.to_openai())
     lines.push("## \{role_title}")
     lines.push("")
 
@@ -29,7 +29,7 @@ pub fn Conversation::export_to_markdown(self : Conversation) -> String {
     lines.push("")
 
     // Add message content
-    format_message_content(message.message, lines)
+    format_message_content(message.message.to_openai(), lines)
 
     // Add metadata if available
     lines.push("")
