@@ -642,3 +642,8 @@ pub fn Agent::tools(self : Agent) -> Map[String, Tool] {
 pub fn Agent::external_events(self : Agent) -> @event.ExternalEventQueue {
   self.external_events
 }
+
+///|
+pub fn Agent::clear_input_queue(self : Agent) -> Unit {
+  self.input_queue.clear()
+}
