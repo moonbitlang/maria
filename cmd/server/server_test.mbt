@@ -541,29 +541,13 @@ async test "POST /v1/cancel" (t : @test.Test) {
           },
         },
       },
-      {
-        "event": "maria.queued_messages.synchronized",
-        "data": [
-          {
-            "id": "<redacted>",
-            "message": { "role": "user", "content": "Hello again, Maria!" },
-          },
-        ],
-      },
+      { "event": "maria.queued_messages.synchronized", "data": [] },
       { "event": "maria", "data": { "msg": "PreConversation" } },
       {
         "event": "maria",
         "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },
       },
-      {
-        "event": "maria.queued_messages.synchronized",
-        "data": [
-          {
-            "id": "<redacted>",
-            "message": { "role": "user", "content": "Hello again, Maria!" },
-          },
-        ],
-      },
+      { "event": "maria.queued_messages.synchronized", "data": [] },
       {
         "event": "maria",
         "data": {
@@ -588,24 +572,8 @@ async test "POST /v1/cancel" (t : @test.Test) {
           },
         },
       },
-      {
-        "event": "maria.queued_messages.synchronized",
-        "data": [
-          {
-            "id": "<redacted>",
-            "message": { "role": "user", "content": "Hello again, Maria!" },
-          },
-        ],
-      },
+      { "event": "maria.queued_messages.synchronized", "data": [] },
       { "event": "maria", "data": { "msg": "PreConversation" } },
-      {
-        "event": "maria",
-        "data": {
-          "msg": "RequestCompleted",
-          "usage": "<redacted>",
-          "message": "<redacted>",
-        },
-      },
       {
         "event": "maria",
         "data": { "msg": "MessageUnqueued", "message": { "id": "<redacted>" } },

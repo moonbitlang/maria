@@ -255,6 +255,7 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
     )
   }
   task.cancel()
+  self.maria.agent.clear_input_queue()
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
   w.write(Json::object({}))
