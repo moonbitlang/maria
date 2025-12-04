@@ -274,7 +274,10 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
   for event in events {
     agent.emit(@event.ExternalEventReceived(event))
     match event {
-      UserCancellation => return false
+      UserCancellation => {
+        agent.cancel()
+        return false
+      }
       UserMessage(msg) =>
         agent.input_queue.push(
           @ai.user_message(
@@ -297,6 +300,12 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
     }
   }
   true
+}
+
+///|
+async fn Agent::cancel(agent : Agent) -> Unit {
+  agent.input_queue.clear()
+  agent.emit(@event.Cancelled)
 }
 
 ///|
