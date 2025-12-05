@@ -8,5 +8,8 @@
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/diagnostics"
   ],
-  "test-import": ["moonbitlang/async"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

@@ -1,5 +1,5 @@
 ///|
-async test "executable" {
+test "executable" {
   let executable = @os.executable()
   // Suppress unused package warnings.
   ignore(@moon.home())

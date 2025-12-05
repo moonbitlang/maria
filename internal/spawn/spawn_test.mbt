@@ -26,45 +26,51 @@ async test "Manager::wait" (t : @test.Test) {
 }
 
 ///|
-async test "spawn/env" {
-  let process = @spawn.spawn("sh", ["-c", "echo $TEST_ENV_VAR"], env={
-    "TEST_ENV_VAR": "hello_world",
+async test "spawn/env" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let process = @spawn.spawn("sh", ["-c", "echo $TEST_ENV_VAR"], env={
+      "TEST_ENV_VAR": "hello_world",
+    })
+    @json.inspect(process.status, content=0)
+    @json.inspect(process.stdout.to_string(), content="hello_world\n")
   })
-  @json.inspect(process.status, content=0)
-  @json.inspect(process.stdout.to_string(), content="hello_world\n")
 }
 
 ///|
-async test "redirect-stdin" {
-  let process = @spawn.spawn("cat", [], stdin="Hello, World!\n")
-  @json.inspect(process.status, content=0)
-  inspect(
-    process.stdout,
-    content=(
-      #|Hello, World!
-      #|
-    ),
-  )
+async test "redirect-stdin" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let process = @spawn.spawn("cat", [], stdin="Hello, World!\n")
+    @json.inspect(process.status, content=0)
+    inspect(
+      process.stdout,
+      content=(
+        #|Hello, World!
+        #|
+      ),
+    )
+  })
 }
 
 ///|
-async test "spawn/failed" {
-  let process = @spawn.spawn("sh", ["-c", "exit 42"])
-  @json.inspect(
-    (try? process.check())
-    .to_json()
-    .transform(@json.Replacer::exclude(["elapsed"])),
-    content={
-      "Err": [
-        "Failed",
-        {
-          "exec": "sh",
-          "args": ["-c", "exit 42"],
-          "status": 42,
-          "stdout": "",
-          "stderr": "",
-        },
-      ],
-    },
-  )
+async test "spawn/failed" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let process = @spawn.spawn("sh", ["-c", "exit 42"])
+    @json.inspect(
+      (try? process.check())
+      .to_json()
+      .transform(@json.Replacer::exclude(["elapsed"])),
+      content={
+        "Err": [
+          "Failed",
+          {
+            "exec": "sh",
+            "args": ["-c", "exit 42"],
+            "status": 42,
+            "stdout": "",
+            "stderr": "",
+          },
+        ],
+      },
+    )
+  })
 }

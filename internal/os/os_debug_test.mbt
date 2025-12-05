@@ -1,5 +1,5 @@
 ///|
-async test "executable" {
+test "executable" {
   let executable = @os.executable()
   let tcc_path = @moon.home()
     |> @path.join("bin")

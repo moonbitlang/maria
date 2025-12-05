@@ -23,35 +23,37 @@ async test "commit" (t : @test.Test) {
 }
 
 ///|
-async test "generate_git_diff" {
-  let original =
-    #|line 1
-    #|line 2
-    #|line 3
-  let modified =
-    #|line 1
-    #|line 2 modified
-    #|line 3
-    #|line 4 added
-  let diff = @git.generate_git_diff(original~, modified~)
-  inspect(
-    diff
-    .split("\n")
-    .drop_while(line => !line.contains("@@"))
-    .collect()
-    .join("\n"),
-    content=(
-      #|@@ -1,3 +1,4 @@
-      #| line 1
-      #|-line 2
-      #|-line 3
-      #|\ No newline at end of file
-      #|+line 2 modified
-      #|+line 3
-      #|+line 4 added
-      #|\ No newline at end of file
-    ),
-  )
+async test "generate_git_diff" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let original =
+      #|line 1
+      #|line 2
+      #|line 3
+    let modified =
+      #|line 1
+      #|line 2 modified
+      #|line 3
+      #|line 4 added
+    let diff = @git.generate_git_diff(original~, modified~)
+    inspect(
+      diff
+      .split("\n")
+      .drop_while(line => !line.contains("@@"))
+      .collect()
+      .join("\n"),
+      content=(
+        #|@@ -1,3 +1,4 @@
+        #| line 1
+        #|-line 2
+        #|-line 3
+        #|\ No newline at end of file
+        #|+line 2 modified
+        #|+line 3
+        #|+line 4 added
+        #|\ No newline at end of file
+      ),
+    )
+  })
 }
 
 ///|

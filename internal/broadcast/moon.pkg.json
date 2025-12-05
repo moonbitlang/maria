@@ -1,4 +1,7 @@
 {
   "import": ["moonbitlang/async/aqueue"],
-  "test-import": ["moonbitlang/async"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }
