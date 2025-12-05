@@ -12,19 +12,67 @@ pub(all) enum ExternalEvent {
 
 ///|
 /// A queue for receiving external events from the environment.
+///
+/// The `ExternalEventQueue` provides a thread-safe, non-blocking mechanism for
+/// external sources (IDE, user input, environment) to communicate with the agent.
 /// The environment pushes events via `send()`, and the agent polls via `poll()`.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// let queue = ExternalEventQueue::new()
+///
+/// // From external source (e.g., IDE integration)
+/// queue.send(Diagnostics(diagnostics))
+///
+/// // From agent (polling during conversation)
+/// let events = queue.poll() // Returns all pending events
+/// ```
 pub(all) struct ExternalEventQueue {
   queue : @aqueue.Queue[ExternalEvent]
 }
 
 ///|
+/// Creates a new `ExternalEventQueue` with an unbounded async queue.
+///
+/// The queue is unbounded to prevent blocking when external sources send events,
+/// ensuring that event producers never need to wait.
+///
+/// # Returns
+///
+/// A new `ExternalEventQueue` instance ready to receive events.
 pub fn ExternalEventQueue::new() -> ExternalEventQueue {
   ExternalEventQueue::{ queue: @aqueue.Queue::new(kind=Unbounded) }
 }
 
 ///|
-/// Environment calls this to send events TO the agent.
-/// This is non-blocking and can be called from any context.
+/// Sends an external event to the agent.
+///
+/// This method is designed to be called from external contexts (environment,
+/// IDE integration, user input handlers) to communicate with the agent.
+///
+/// # Parameters
+///
+/// - `event`: The `ExternalEvent` to send to the agent.
+///
+/// # Behavior
+///
+/// - **Non-blocking**: Returns immediately without waiting.
+/// - **Thread-safe**: Can be safely called from any context.
+/// - **Fire-and-forget**: Silently ignores failures (queue full scenario).
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// // Send IDE diagnostics
+/// queue.send(Diagnostics(diagnostics))
+///
+/// // Request cancellation
+/// queue.send(UserCancellation)
+///
+/// // Send user message
+/// queue.send(UserMessage("Stop and explain"))
+/// ```
 pub fn ExternalEventQueue::send(
   self : ExternalEventQueue,
   event : ExternalEvent,
@@ -33,8 +81,36 @@ pub fn ExternalEventQueue::send(
 }
 
 ///|
-/// Agent calls this to poll events FROM the queue (non-blocking).
-/// Returns all pending events and clears the queue.
+/// Polls and retrieves all pending external events from the queue.
+///
+/// This method is called by the agent to check for and process any external
+/// events that have been sent since the last poll. It drains the queue,
+/// returning all accumulated events.
+///
+/// # Returns
+///
+/// An `Array[ExternalEvent]` containing all pending events. Returns an empty
+/// array if no events are pending.
+///
+/// # Behavior
+///
+/// - **Non-blocking**: Returns immediately with available events.
+/// - **Draining**: Removes all events from the queue.
+/// - **Order-preserving**: Events are returned in FIFO order.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// // During conversation loop
+/// let external_events = queue.poll()
+/// for event in external_events {
+///   match event {
+///     UserCancellation => return // Stop conversation
+///     Diagnostics(d) => process_diagnostics(d)
+///     UserMessage(msg) => handle_message(msg)
+///   }
+/// }
+/// ```
 pub fn ExternalEventQueue::poll(
   self : ExternalEventQueue,
 ) -> Array[ExternalEvent] {
@@ -142,17 +218,81 @@ pub(all) enum Event {
 }
 
 ///|
+/// The central event dispatcher for agent lifecycle events.
+///
+/// `EventTarget` implements an observer pattern where multiple listeners can
+/// subscribe to receive events. Events are queued and processed asynchronously,
+/// ensuring that event emission is always non-blocking.
+///
+/// # Architecture
+///
+/// ```text
+/// emit() ──▶ [Queue] ──▶ start() ──▶ [Listener 1]
+///                               ──▶ [Listener 2]
+///                               ──▶ [Listener N]
+/// ```
+///
+/// # Threading Model
+///
+/// - `emit()` is synchronous and non-blocking (enqueues event)
+/// - `start()` runs an async event loop that dispatches to listeners
+/// - Listeners are invoked sequentially for each event
 struct EventTarget {
+  // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
+  // This would make the termination signal explicit in the type system rather
+  // than using `None` as a sentinel value.
   queue : @aqueue.Queue[Event?]
   listeners : Array[async (Event) -> Unit]
 }
 
 ///|
+/// Creates a new `EventTarget` with an empty listener list.
+///
+/// The event target uses an unbounded queue to ensure `emit()` never blocks.
+/// Remember to call `start()` in a background task to begin processing events.
+///
+/// # Returns
+///
+/// A new `EventTarget` instance ready to receive listeners and events.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// let emitter = EventTarget::new()
+/// emitter.add_listener(async fn(event) { println(event) })
+/// // Start in background
+/// spawn(() => emitter.start())
+/// ```
 pub fn EventTarget::new() -> EventTarget {
   EventTarget::{ queue: @aqueue.Queue::new(kind=Unbounded), listeners: [] }
 }
 
 ///|
+/// Emits an event to be processed by all registered listeners.
+///
+/// This method enqueues the event for asynchronous processing. The event will
+/// be dispatched to all listeners when `start()` processes it from the queue.
+///
+/// # Parameters
+///
+/// - `event`: The `Event` to emit.
+///
+/// # Behavior
+///
+/// - **Non-blocking**: Returns immediately after enqueuing.
+/// - **Order-preserving**: Events are processed in FIFO order.
+///
+/// # Panics
+///
+/// Aborts if the queue is full (should not happen with unbounded queue).
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// emitter.emit(PreConversation)
+/// emitter.emit(TokenCounted(1500))
+/// emitter.emit(PostConversation)
+/// ```
 pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
   guard self.queue.try_put(Some(event)) else {
     abort("Event queue is full, cannot emit event")
@@ -160,6 +300,34 @@ pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
 }
 
 ///|
+/// Registers an async listener function to receive events.
+///
+/// Listeners are called sequentially for each event in the order they were
+/// registered. Each listener receives every event emitted after registration.
+///
+/// # Parameters
+///
+/// - `f`: An async function that takes an `Event` and returns `Unit`.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// emitter.add_listener(async fn(event) {
+///   match event {
+///     PostToolCall(call, result~, rendered~) => {
+///       // Log tool call results
+///       println("Tool \(call.name) completed")
+///     }
+///     RequestCompleted(usage~, message~) => {
+///       // Track token usage
+///       if usage is Some(u) {
+///         total_tokens += u.total_tokens
+///       }
+///     }
+///     _ => ()
+///   }
+/// })
+/// ```
 pub fn EventTarget::add_listener(
   self : EventTarget,
   f : async (Event) -> Unit,
@@ -168,6 +336,28 @@ pub fn EventTarget::add_listener(
 }
 
 ///|
+/// Starts the event processing loop.
+///
+/// This async function runs continuously, waiting for events from the queue
+/// and dispatching them to all registered listeners. It blocks until a `None`
+/// sentinel is received (via `close()`).
+///
+/// # Behavior
+///
+/// - **Blocking**: Waits for events when queue is empty.
+/// - **Sequential dispatch**: Listeners are called one at a time per event.
+/// - **Terminates**: Exits when `close()` sends the termination signal.
+///
+/// # Usage
+///
+/// Should typically be spawned as a background task:
+///
+/// ```moonbit no-check
+/// @async.with_task_group(fn(group) {
+///   group.spawn_bg(fn() { emitter.start() }, no_wait=true)
+///   // ... rest of the application
+/// })
+/// ```
 pub async fn EventTarget::start(self : EventTarget) -> Unit {
   while self.queue.get() is Some(event) {
     for listener in self.listeners {
@@ -177,6 +367,25 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 }
 
 ///|
+/// Immediately processes all pending events in the queue.
+///
+/// Unlike `start()`, this method does not wait for new events. It processes
+/// all currently queued events and returns, making it useful for ensuring
+/// all events are handled before a checkpoint.
+///
+/// # Behavior
+///
+/// - **Non-blocking on empty**: Returns immediately if queue is empty.
+/// - **Draining**: Processes all pending events.
+/// - **Does not terminate**: Does not affect the `start()` loop.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// // Ensure all events are processed before saving state
+/// emitter.flush()
+/// save_checkpoint()
+/// ```
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
   while self.queue.try_get() is Some(Some(event)) {
     for listener in self.listeners {
@@ -186,6 +395,29 @@ pub async fn EventTarget::flush(self : EventTarget) -> Unit {
 }
 
 ///|
+/// Gracefully closes the event target.
+///
+/// This method:
+/// 1. Flushes all remaining events (handling errors gracefully)
+/// 2. Sends a termination signal (`None`) to stop the `start()` loop
+///
+/// # Error Handling
+///
+/// If any listener throws an error during the final flush, the error is
+/// collected and re-raised after all events are processed. Only the first
+/// error is propagated.
+///
+/// # Panics
+///
+/// Aborts if unable to enqueue the termination signal.
+///
+/// # Example
+///
+/// ```moonbit no-check
+/// // Graceful shutdown
+/// emitter.close()
+/// // start() will now return
+/// ```
 pub async fn EventTarget::close(self : EventTarget) -> Unit {
   let errors = []
   while self.queue.try_get() is Some(Some(event)) {
