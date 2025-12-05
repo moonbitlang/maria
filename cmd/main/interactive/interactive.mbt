@@ -8,6 +8,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut prompt : String? = None
   let mut model : String? = None
   let mut web_search : Bool = false
+  let mut resume_id : String? = None
   loop args {
     ["--prompt" | "-p", value, .. rest] => {
       prompt = Some(value)
@@ -21,6 +22,10 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       web_search = true
       continue rest
     }
+    ["--resume", id, .. rest] => {
+      resume_id = Some(id)
+      continue rest
+    }
     [unknown, ..] => raise @argument.InvalidArgument(unknown)
     [] => break
   }
@@ -29,7 +34,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     return
   }
   @async.with_task_group(group => {
-    let maria = @maria.Maria::new(model~, web_search~)
+    let maria = @maria.Maria::new(model~, web_search~, resume_id?)
     maria.agent.add_listener(event => match event {
       RequestCompleted(message~, ..) => {
         let content = message.content()

@@ -2,7 +2,7 @@
 struct Manager {
   uuid : @uuid.Generator
   clock : &@clock.Clock
-  cwd : StringView
+  home : StringView
   cache : @lru.Cache[String, Conversation]
 }
 
@@ -10,16 +10,16 @@ struct Manager {
 pub async fn Manager::new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
-  cwd~ : StringView,
+  home~ : StringView,
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = cwd
+  let conversations = home
     |> @path.join(".moonagent")
     |> @path.join("conversations")
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
-  Manager::{ uuid, clock, cwd, cache }
+  Manager::{ uuid, clock, home, cache }
 }
 
 ///|
@@ -28,7 +28,7 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = self.cwd
+  let path = self.home
     |> @path.join(".moonagent")
     |> @path.join("conversations")
     |> @path.join("\{id}.json")
@@ -42,7 +42,7 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = self.cwd
+  let path = self.home
     |> @path.join(".moonagent")
     |> @path.join("conversations")
     |> @path.join("\{conversation.id}.json")
@@ -54,7 +54,9 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[String] {
-  let path = self.cwd |> @path.join(".moonagent") |> @path.join("conversations")
+  let path = self.home
+    |> @path.join(".moonagent")
+    |> @path.join("conversations")
   let entries = @fsx.list_directory(path)
   let ids = []
   // CR: if we are going to implement list comprehension
@@ -75,11 +77,11 @@ pub async fn Manager::list(self : Manager) -> Array[String] {
 ///|
 pub fn Manager::new_conversation(
   self : Manager,
-  name~ : String,
+  name? : String,
   description? : String,
+  cwd? : StringView,
 ) -> Conversation {
   {
-    clock: self.clock,
     name,
     description,
     id: self.uuid.v4().to_string(),
@@ -87,5 +89,17 @@ pub fn Manager::new_conversation(
     messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
+    cwd,
   }
+}
+
+///|
+pub fn Manager::new_message(
+  self : Manager,
+  message : @ai.Message,
+  usage? : @ai.Usage,
+  web_search? : Bool = false,
+) -> Message {
+  let now = self.clock.now()
+  Message::{ id: self.uuid.v4(), timestamp: now, usage, message, web_search }
 }

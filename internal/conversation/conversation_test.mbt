@@ -4,11 +4,16 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(mock.rand),
       clock=mock.clock,
+      home=mock.cwd.path(),
+    )
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
     conversation.set_system_prompt(Some("This is a system prompt."))
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_message(
+      manager.new_message(@ai.user_message(content="Hello")),
+    )
     @json.inspect(conversation, content={
       "name": "Test Conversation",
       "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",

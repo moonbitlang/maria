@@ -1,12 +1,13 @@
 ///|
 struct Daemon {
   clock : &@clock.Clock
+  conversations : @conversation.Manager
   models : @model.Loader
   uuid : @uuid.Generator
   process : @spawn.Manager
   by_cwd : Map[String, Task]
   by_id : Map[@uuid.Uuid, Task]
-  rqs : Map[String, @aqueue.Queue[Int]]
+  rqs : Map[String, @aqueue.Queue[Register]]
   exec_path : String
   httpx : @httpx.Server
   port : Int
@@ -105,6 +106,7 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
 priv struct Register {
   id : String
   port : Int
+  new_id : @uuid.Uuid
 }
 
 ///|
@@ -312,7 +314,7 @@ async fn Daemon::create_task(
   )
   let rq = @aqueue.Queue::new(kind=Unbounded)
   self.rqs[id.to_string()] = rq
-  let task_port = @async.with_timeout(300_000, () => rq.get()) catch {
+  let reg : Register = @async.with_timeout(300_000, () => rq.get()) catch {
     @async.TimeoutError => {
       println(
         "[ERROR] (Daemon) Timed out waiting for task to register after 5 minutes",
@@ -327,14 +329,14 @@ async fn Daemon::create_task(
     error => raise error
   }
   println(
-    "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
+    "[INFO] (Daemon) Received registration from task '\{reg.new_id}' ('\{reg.id}') on port \{reg.port}",
   )
   let created = self.clock.now() / 1_000
   let task = Task::{
     name: request.name,
-    id,
+    id: reg.new_id,
     cwd,
-    port: task_port,
+    port: Some(reg.port),
     status: Idle,
     created,
     web_search: request.web_search is Some(true),
@@ -360,7 +362,7 @@ async fn Daemon::create_task(
     }
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
     let (r, b) = @http.post(
-      "http://localhost:\{task_port}/v1/message",
+      "http://localhost:\{reg.port}/v1/message",
       Json::object(msg_req),
     )
     guard r.code is (200..=299) else {
@@ -435,11 +437,11 @@ async fn Daemon::register_task(
         "Invalid JSON in request body: \{error}",
       )
   }
-  guard request_json is { "id": id, "port": port, .. } else {
+  guard request_json is { "id": id, "port": port, "new_id": new_id, .. } else {
     raise json_error(400, "Bad Request", {
       "error": {
         "code": -1,
-        "message": "Missing required fields 'id' or 'port'",
+        "message": "Missing required fields 'id', 'port', or 'new_id' in request",
       },
     })
   }
@@ -455,9 +457,17 @@ async fn Daemon::register_task(
         "error": { "code": -1, "message": "Invalid 'port' field: \{error}" },
       })
   }
-  let register : Register = { id, port }
-  println("[INFO] Registered task '\{register.id}' on port \{register.port}")
-  self.rqs[id].put(register.port)
+  let new_id : @uuid.Uuid = @json.from_json(new_id) catch {
+    error =>
+      raise json_error(400, "Bad Request", {
+        "error": { "code": -1, "message": "Invalid 'new_id' field: \{error}" },
+      })
+  }
+  let register : Register = { id, port, new_id }
+  println(
+    "[INFO] Registered task '\{register.id}' on port \{register.port}, using the new ID '\{register.new_id}'",
+  )
+  self.rqs[id].put(register)
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")
   w.header().set("Access-Control-Allow-Headers", "*")
@@ -465,7 +475,35 @@ async fn Daemon::register_task(
 }
 
 ///|
+async fn Daemon::load_conversations(self : Daemon) -> Unit {
+  let ids = self.conversations.list()
+  for id in ids {
+    guard self.conversations.load(id) is Some(conversation) else { continue }
+    let cwd = conversation.cwd().to_string()
+    if self.by_cwd.get(cwd) is Some(_) {
+      continue
+    }
+    let id = @uuid.parse(conversation.id())
+    if self.by_id.get(id) is Some(_) {
+      continue
+    }
+    let task = Task::{
+      name: conversation.name(),
+      id,
+      cwd,
+      port: None,
+      status: Idle,
+      created: conversation.created_at(),
+      web_search: false,
+    }
+    self.by_id[id] = task
+    self.by_cwd[cwd] = task
+  }
+}
+
+///|
 async fn Daemon::list_tasks(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
+  self.load_conversations()
   let tasks = self.by_cwd.values().collect()
   let response : Json = { "tasks": tasks }
   w.header().set("Content-Type", "application/json")
@@ -573,8 +611,10 @@ pub async fn Daemon::new(
     Some(cwd) => cwd.to_string()
     None => @os.cwd()
   }
-  Some(Daemon::{
+  let conversations = @conversation.Manager::new(uuid~, home~)
+  let daemon = Daemon::{
     clock: @clock.epoch,
+    conversations,
     models: @model.Loader::new(home=@os.home(), cwd~),
     uuid,
     process: @spawn.Manager::new(cwd~),
@@ -586,7 +626,9 @@ pub async fn Daemon::new(
     port,
     events: @broadcast.Broadcast::new(),
     serve,
-  })
+  }
+  daemon.load_conversations()
+  Some(daemon)
 }
 
 ///|

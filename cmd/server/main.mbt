@@ -1,7 +1,7 @@
 ///|
 priv suberror HttpError {
   HttpError(code~ : Int, reason~ : String, body~ : String)
-}
+} derive(Show, ToJson)
 
 ///|
 fn json_error(code : Int, reason : String, body : Json) -> HttpError {

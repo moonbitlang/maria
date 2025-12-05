@@ -4,24 +4,31 @@ async test "export_to_markdown" (t : @test.Test) {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(mock.rand),
       clock=mock.clock,
+      home=mock.cwd.path(),
+    )
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello, how are you?"))
     conversation.add_message(
-      @ai.assistant_message(content="I'm fine, thank you!"),
+      manager.new_message(@ai.user_message(content="Hello, how are you?")),
     )
     conversation.add_message(
-      @ai.user_message(content="What's the weather today?"),
+      manager.new_message(@ai.assistant_message(content="I'm fine, thank you!")),
     )
     conversation.add_message(
-      @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
-        @ai.tool_call(
-          id="tc_0",
-          name="get_weather",
-          arguments="{\"location\":\"San Francisco\"}",
-        ),
-      ]),
+      manager.new_message(@ai.user_message(content="What's the weather today?")),
+    )
+    conversation.add_message(
+      manager.new_message(
+        @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
+          @ai.tool_call(
+            id="tc_0",
+            name="get_weather",
+            arguments="{\"location\":\"San Francisco\"}",
+          ),
+        ]),
+      ),
     )
     inspect(
       conversation.export_to_markdown(),

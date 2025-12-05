@@ -4,7 +4,9 @@ pub fn Conversation::display(
   show_messages? : Bool = false,
 ) -> Array[String] {
   let lines = []
-  lines.push("Name: \{self.name}")
+  if self.name is Some(name) {
+    lines.push("Name: \{name}")
+  }
   if self.description is Some(description) {
     lines.push("Description: \{description}")
   }
@@ -52,7 +54,10 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
     Json::number(value.to_double(), repr=value.to_string())
   }
 
-  let object : Map[String, Json] = { "name": self.name, "id": self.id }
+  let object : Map[String, Json] = { "id": self.id }
+  if self.name is Some(name) {
+    object["name"] = name.to_json()
+  }
   if self.system_prompt is Some(system_prompt) {
     object["system_prompt"] = system_prompt.to_json()
   }
@@ -74,12 +79,12 @@ pub impl @json.FromJson for Conversation with from_json(
     raise @json.JsonDecodeError((json_path, "Expected object for Conversation"))
   }
   let name = match json.get("name") {
-    Some(name) => {
+    Some(Null) => None
+    Some([name]) | Some(name) => {
       let name : String = @json.from_json(name, path=json_path.add_key("name"))
-      name
+      Some(name)
     }
-    None =>
-      raise @json.JsonDecodeError((json_path.add_key("name"), "Missing field"))
+    None => None
   }
   let description = match json.get("description") {
     Some(Null) => None
@@ -90,7 +95,9 @@ pub impl @json.FromJson for Conversation with from_json(
   let id = match json.get("id") {
     Some(id) => @json.from_json(id, path=json_path.add_key("id"))
     None =>
-      raise @json.JsonDecodeError((json_path.add_key("id"), "Missing field"))
+      raise @json.JsonDecodeError(
+        (json_path.add_key("id"), "Missing field 'id'"),
+      )
   }
   let system_prompt : String? = match json.get("system_prompt") {
     Some(Null) => None
@@ -110,7 +117,7 @@ pub impl @json.FromJson for Conversation with from_json(
     }
     None =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("messages"), "Missing field"),
+        (json_path.add_key("messages"), "Missing field 'messages'"),
       )
   }
   let created_at = match json.get("created_at") {
@@ -119,7 +126,7 @@ pub impl @json.FromJson for Conversation with from_json(
       @json.from_json(created_at, path=json_path.add_key("created_at"))
     None =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("created_at"), "Missing field"),
+        (json_path.add_key("created_at"), "Missing field 'created_at'"),
       )
   }
   let updated_at = match json.get("updated_at") {
@@ -128,11 +135,14 @@ pub impl @json.FromJson for Conversation with from_json(
       @json.from_json(updated_at, path=json_path.add_key("updated_at"))
     None =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("updated_at"), "Missing field"),
+        (json_path.add_key("updated_at"), "Missing field 'updated_at'"),
       )
   }
+  let cwd = match json.get("cwd") {
+    Some(cwd) => Some(@json.from_json(cwd, path=json_path.add_key("cwd")))
+    None => None
+  }
   Conversation::{
-    clock: @clock.epoch,
     name,
     description,
     id,
@@ -140,25 +150,23 @@ pub impl @json.FromJson for Conversation with from_json(
     messages,
     created_at,
     updated_at,
+    cwd,
   }
 }
 
 ///|
 pub fn Conversation::add_message(
   self : Conversation,
-  message : @ai.Message,
-  usage? : @ai.Usage,
+  message : Message,
 ) -> Unit {
-  let now = self.clock.now()
-  let message = Message::{ timestamp: now, usage, message }
   self.messages.push(message)
-  self.updated_at = now
+  self.updated_at = message.timestamp
 }
 
 ///|
 pub fn Conversation::add_messages(
   self : Conversation,
-  messages : Array[@ai.Message],
+  messages : ArrayView[Message],
 ) -> Unit {
   for message in messages {
     self.add_message(message)
@@ -196,4 +204,24 @@ pub fn Conversation::set_system_prompt(
   prompt : String?,
 ) -> Unit {
   self.system_prompt = prompt
+}
+
+///|
+pub fn Conversation::cwd(self : Conversation) -> StringView? {
+  self.cwd
+}
+
+///|
+pub fn Conversation::name(self : Conversation) -> String? {
+  self.name
+}
+
+///|
+pub fn Conversation::description(self : Conversation) -> String? {
+  self.description
+}
+
+///|
+pub fn Conversation::created_at(self : Conversation) -> Int64 {
+  self.created_at
 }

@@ -15,6 +15,18 @@ moon run cmd/main -- server --port 8090 --serve cmd/server
 Then open `http://localhost:8080` in your web browser to access the HTML
 frontend.
 
+## `GET /v1/status`
+
+Response:
+
+```json
+{
+  "status": "idle", // or "generating"
+  "id": "<agent-id>",
+  "web_search": true // or false
+}
+```
+
 ## `POST /v1/message`
 
 Request:

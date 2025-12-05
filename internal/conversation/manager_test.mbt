@@ -3,7 +3,7 @@ async test "Manager" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(mock.rand),
-      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
     )
     @json.inspect(manager.list(), content=[])
     let dot_moonagent = @path.join(mock.cwd.path(), ".moonagent")
@@ -16,8 +16,12 @@ async test "Manager" (t : @test.Test) {
     ])
     let conversations = @path.join(dot_moonagent, "conversations")
     @json.inspect(mock.json(@fsx.list_directory(conversations)), content=[])
-    let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello"))
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
+      cwd=mock.cwd.path(),
+    )
+    let message = manager.new_message(@ai.user_message(content="Hello"))
+    conversation.add_message(message)
     manager.save(conversation)
     @json.inspect(manager.list(), content=[
       "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -30,11 +34,15 @@ async test "Manager::load" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @conversation.Manager::new(
       uuid=mock.uuid,
-      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
       clock=mock.clock,
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello"))
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
+      cwd=mock.cwd.path(),
+    )
+    let message = manager.new_message(@ai.user_message(content="Hello"))
+    conversation.add_message(message)
     @json.inspect(
       conversation.id(),
       content="ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",

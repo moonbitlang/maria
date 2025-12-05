@@ -51,7 +51,16 @@ async fn configure_server(
     None => @path.join(cwd, "cmd/server")
   }
   configure_models(mock)
-  @server.Server::new(model~, serve~, register?, port=0, cwd=mock.cwd.path())
+  let home = mock.cwd
+  let cwd = mock.cwd.add_directory("cwd")
+  @server.Server::new(
+    model~,
+    serve~,
+    register?,
+    port=0,
+    home=home.path(),
+    cwd=cwd.path(),
+  )
 }
 
 ///|
@@ -72,10 +81,11 @@ async test "register" (t : @test.Test) {
     let r = conn.read_request()
     guard r.path is "/v1/task/register" else { return }
     let rb = conn.read_all()
-    @json.inspect(rb.json(), content={
-      "id": "test-server",
-      "port": server.port(),
-    })
+    guard rb.json()
+      is { "id": "test-server", "port": rb_port, "new_id": String(_), .. } else {
+      fail("Invalid register request body: \{rb.json().stringify(indent=2)}")
+    }
+    assert_eq(rb_port.as_number().map(d => d.to_int()), Some(server.port()))
   })
 }
 
@@ -87,7 +97,10 @@ async test "POST /v1/message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    guard b.json()
+      is { "status": "idle", "web_search": false, "id": String(_), .. } else {
+      fail("Invalid response body: \{b.json().stringify(indent=2)}")
+    }
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
@@ -189,35 +202,12 @@ async test "GET /v1/events" (t : @test.Test) {
     let group = mock.group
     let server = configure_server(mock)
     group.spawn_bg(() => server.start(), no_wait=true)
-    let events : Array[Json] = []
     let collector = group.spawn(() => {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      let mut last_event : String? = None
-      while s.read_until("\n") is Some(line) {
-        match line {
-          [.. "event: ", .. event] => {
-            last_event = Some(event.to_string())
-            continue
-          }
-          [.. "data: ", .. data] => {
-            let data = @json.parse(data)
-            if last_event is Some(event) {
-              events.push({ "event": event, "data": data })
-            } else {
-              events.push({ "data": data })
-            }
-            last_event = None
-            if events.last() is Some(event) &&
-              event is { "data": { "msg": "PostConversation", .. }, .. } {
-              break
-            }
-          }
-          _ => continue
-        }
-      }
+      collect_events(s)
     })
     let (_, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
@@ -237,7 +227,7 @@ async test "GET /v1/events" (t : @test.Test) {
     guard b is { "id": String(msg1_id), .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    collector.wait()
+    let events = collector.wait()
     fn extract_events_for_message(
       events : Array[Json],
       id : String,
@@ -344,8 +334,8 @@ async test "GET /v1/events" (t : @test.Test) {
 ///|
 async test "GET /v1/moonbit/modules" (t : @test.Test) {
   @mock.run(t, mock => {
-    @moon.new(user="username", name="example", mock.cwd.path())
     let server = configure_server(mock)
+    @moon.new(user="username", name="example", server.cwd())
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get(
       "http://localhost:\{server.port()}/v1/moonbit/modules",
@@ -357,7 +347,7 @@ async test "GET /v1/moonbit/modules" (t : @test.Test) {
     }
     @json.inspect(mock.json(modules), content=[
       {
-        "path": "(mock:cwd)",
+        "path": "(mock:cwd)/cwd",
         "name": "username/example",
         "version": "0.1.0",
         "description": "",
@@ -472,7 +462,10 @@ async test "POST /v1/cancel" (t : @test.Test) {
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       @json.inspect(r.code, content=200)
-      @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+      guard b.json()
+        is { "status": "idle", "web_search": false, "id": String(_), .. } else {
+        fail("Invalid response body: \{b.json().stringify(indent=2)}")
+      }
       let (r, b) = @http.post(
         "http://localhost:\{server.port()}/v1/message",
         Json::object({
@@ -759,7 +752,10 @@ async test "GET /v1/external-event/user-message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    guard b.json()
+      is { "status": "idle", "web_search": false, "id": String(_), .. } else {
+      fail("Invalid response body: \{b.json().stringify(indent=2)}")
+    }
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/external-event/user-message",
       Json::object({ "message": "Hello, Maria!" }),
@@ -790,7 +786,10 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     })
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    guard b.json()
+      is { "status": "idle", "web_search": false, "id": String(_), .. } else {
+      fail("Invalid response body: \{b.json().stringify(indent=2)}")
+    }
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({
