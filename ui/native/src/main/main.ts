@@ -95,6 +95,16 @@ async function doSetupMariaProcess() {
   }
 }
 
+function killMariaDaemon() {
+  try {
+    const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
+    const daemonJson: { pid: number; port: number } = JSON.parse(
+      fs.readFileSync(daemonJsonPath, "utf-8"),
+    );
+    process.kill(daemonJson.pid);
+  } catch {}
+}
+
 const onReady = async () => {
   // TODO: dont await the promise, we will show a loading screen in the renderer
   await setupMariaProcess();
@@ -138,4 +148,10 @@ ipcMain.handle("get-url", () => {
 
 ipcMain.handle("maria-ready", async () => {
   await setupMariaProcess();
+});
+
+ipcMain.handle("reload-app", () => {
+  app.relaunch();
+  killMariaDaemon();
+  app.exit();
 });

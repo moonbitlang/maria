@@ -20,10 +20,11 @@ import {
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   activeTaskId?: string;
   tasks: Task[];
+  footer?: React.ReactNode;
 };
 
 export function AppSidebar(props: AppSidebarProps) {
-  const { activeTaskId, tasks, ...sidebarProps } = props;
+  const { activeTaskId, tasks, footer, ...sidebarProps } = props;
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
@@ -54,7 +55,7 @@ export function AppSidebar(props: AppSidebarProps) {
         </SidebarGroup>
         <NavTasks activeTaskId={activeTaskId} tasks={tasks} />
       </SidebarContent>
-      <SidebarFooter></SidebarFooter>
+      <SidebarFooter>{footer}</SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

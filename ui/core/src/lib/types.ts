@@ -33,7 +33,17 @@ export type TaskEvent = TaskEventBase &
     | MessageAddedEvent
     | PostConversationEvent
     | MessageUnqueuedEvent
+    | TodoUpdatedEvent
   );
+
+type TodoUpdatedEvent = {
+  msg: "TodoUpdated";
+  todo: {
+    todos: Todo[];
+    created_at: string;
+    updated_at: string;
+  };
+};
 
 type MessageUnqueuedEvent = {
   msg: "MessageUnqueued";
@@ -113,16 +123,6 @@ export type Todo = {
   updated_at: string;
 };
 
-export type TodoTool = {
-  name: "todo";
-  result: {
-    message: string;
-    todos: Todo[];
-    updated_todos: Todo[];
-    is_new_creation: boolean;
-  };
-};
-
 type UnknownTool = {
   name: string;
 };
@@ -147,7 +147,6 @@ export type PostToolCallEvent = PostToolCallBase &
     | ListFilesTool
     | ReadFileTool
     | MetaWriteToFileTool
-    | TodoTool
     | UnknownTool
   );
 
