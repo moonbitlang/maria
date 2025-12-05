@@ -48,18 +48,26 @@ async function main() {
     overwrite: true,
     quiet: false,
     osxSign: true,
+    osxNotarize: {
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_ID_PASSWORD,
+      teamId: process.env.TEAM_ID,
+    },
   });
   sh("zip -r -X -y ../maria.zip Maria.app", {
     cwd: "./out/Maria-darwin-arm64",
   });
   sh(
-    `rclone copyto -P ./out/maria.zip minio:maria-electron/${today}/darwin-arm64/maria.zip`,
+    `rsync -azvhP --rsync-path='mkdir -p /home/ci0/Services/static-server/public/maria-electron/latest/darwin-arm64 && rsync' ./out/maria.zip ci0@192.168.86.2:/home/ci0/Services/static-server/public/maria-electron/latest/darwin-arm64/maria.zip`,
+  );
+  sh(
+    `rsync -azvhP --rsync-path='mkdir -p /home/ci0/Services/static-server/public/maria-electron/${today}/darwin-arm64 && rsync' ./out/maria.zip ci0@192.168.86.2:/home/ci0/Services/static-server/public/maria-electron/${today}/darwin-arm64/maria.zip`,
   );
 
   console.log("Build and upload completed.");
 
   console.log(
-    `Download url: http://192.168.209.231:9000/maria-electron/${today}/darwin-arm64/maria.zip`,
+    `Download url: http://192.168.86.2:10009/maria-electron/${today}/darwin-arm64/maria.zip`,
   );
 }
 
