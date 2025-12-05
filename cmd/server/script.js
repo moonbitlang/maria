@@ -13,6 +13,9 @@ let isTaskRunning = false;
 // Tools state
 let availableTools = {};
 
+// Todo list state
+let currentTodos = { todos: [], created_at: null, updated_at: null };
+
 // Update UI based on task status
 function updateTaskStatus(running) {
   isTaskRunning = running;
@@ -283,6 +286,109 @@ async function updateEnabledTools() {
 const updateToolsBtn = document.getElementById("updateToolsBtn");
 if (updateToolsBtn) {
   updateToolsBtn.addEventListener("click", updateEnabledTools);
+}
+
+// Todo List Management
+function getStatusIcon(status) {
+  switch (status) {
+    case "Pending":
+      return "⏳";
+    case "InProgress":
+      return "🔄";
+    case "Completed":
+      return "✅";
+    default:
+      return "❓";
+  }
+}
+
+function getPriorityIcon(priority) {
+  switch (priority) {
+    case "High":
+      return "🔴";
+    case "Medium":
+      return "🟡";
+    case "Low":
+      return "🟢";
+    default:
+      return "⚪";
+  }
+}
+
+function getStatusClass(status) {
+  switch (status) {
+    case "Pending":
+      return "pending";
+    case "InProgress":
+      return "in-progress";
+    case "Completed":
+      return "completed";
+    default:
+      return "";
+  }
+}
+
+function renderTodoList(todoData) {
+  const todoListDiv = document.getElementById("todoList");
+  if (!todoListDiv) return;
+
+  const todos = todoData.todos || [];
+
+  if (todos.length === 0) {
+    todoListDiv.innerHTML = '<div class="no-todos">No todos yet</div>';
+    return;
+  }
+
+  // Count todos by status
+  const statusCounts = {
+    Pending: 0,
+    InProgress: 0,
+    Completed: 0,
+  };
+
+  todos.forEach((todo) => {
+    if (statusCounts.hasOwnProperty(todo.status)) {
+      statusCounts[todo.status]++;
+    }
+  });
+
+  // Build summary text
+  const summaryParts = [`Total: ${todos.length}`];
+  if (statusCounts.Completed > 0)
+    summaryParts.push(`✅ Completed: ${statusCounts.Completed}`);
+  if (statusCounts.InProgress > 0)
+    summaryParts.push(`🔄 In Progress: ${statusCounts.InProgress}`);
+  if (statusCounts.Pending > 0)
+    summaryParts.push(`⏳ Pending: ${statusCounts.Pending}`);
+
+  const summaryText = summaryParts.join(" | ");
+
+  // Render todos
+  const todoItems = todos
+    .map(
+      (todo, index) => `
+    <div class="todo-item ${getStatusClass(todo.status)}">
+      <div class="todo-header">
+        <span class="todo-status-icon">${getStatusIcon(todo.status)}</span>
+        <span class="todo-priority-icon">${getPriorityIcon(todo.priority)}</span>
+        <span class="todo-id">[${escapeHtml(todo.id)}]</span>
+        <span class="todo-content">${escapeHtml(todo.content)}</span>
+      </div>
+      ${todo.notes ? `<div class="todo-notes">📝 ${escapeHtml(todo.notes)}</div>` : ""}
+    </div>
+  `
+    )
+    .join("");
+
+  todoListDiv.innerHTML = `
+    ${todoItems}
+    <div class="todo-summary">📊 ${summaryText}</div>
+  `;
+}
+
+function updateTodoList(todoData) {
+  currentTodos = todoData;
+  renderTodoList(todoData);
 }
 
 // System Prompt Management
@@ -624,6 +730,11 @@ function connect() {
       updateTaskStatus(true);
     } else if (data.msg === "PostConversation" || data.msg === "MariaFailed") {
       updateTaskStatus(false);
+    }
+
+    // Handle TodoUpdated event
+    if (data.msg === "TodoUpdated" && data.todo) {
+      updateTodoList(data.todo);
     }
 
     // Handle queue events
