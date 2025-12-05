@@ -10,32 +10,24 @@ priv struct Spawn {
 }
 
 ///|
-pub struct Manager {
-  mut id : Int
+struct Manager {
   cwd : String
   process : Map[Pid, Process]
-  priv spawn : @aqueue.Queue[Spawn]
+  spawn : @aqueue.Queue[Spawn?]
 }
 
 ///|
 pub fn Manager::new(cwd~ : String) -> Manager {
-  Manager::{
-    id: 0,
-    cwd,
-    process: {},
-    spawn: @aqueue.Queue::new(kind=Unbounded),
-  }
-}
-
-///|
-fn Manager::new_pid(self : Manager) -> Pid {
-  let id = self.id
-  self.id += 1
-  id
+  Manager::{ cwd, process: {}, spawn: @aqueue.Queue::new(kind=Unbounded) }
 }
 
 ///|
 struct Pid(Int) derive(Hash, Eq)
+
+///|
+pub fn Pid::to_int(self : Pid) -> Int {
+  self.0
+}
 
 ///|
 pub impl ToJson for Pid with to_json(self : Pid) -> Json {
@@ -48,17 +40,25 @@ pub impl Show for Pid with output(self : Pid, logger : &Logger) -> Unit {
 }
 
 ///|
+priv enum ProcessStatus {
+  Running(@async.Task[Int])
+  Exited(Int)
+}
+
+///|
 pub struct Process {
   pid : Pid
-  priv status : Ref[Int?]
-  priv task : @async.Task[Int]
+  priv mut status : ProcessStatus
   stdout : RedirectOutput
   stderr : RedirectOutput
 }
 
 ///|
 pub fn Process::status(self : Process) -> Int? {
-  self.status.val
+  match self.status {
+    Running(_) => None
+    Exited(code) => Some(code)
+  }
 }
 
 ///|
@@ -102,31 +102,53 @@ pub async fn Manager::spawn(
   env? : Map[String, String],
 ) -> Process {
   let process = @aqueue.Queue::new(kind=Unbounded)
-  self.spawn.put(Spawn::{
-    command,
-    arguments,
-    stderr,
-    stdout,
-    cwd: cwd.map(_.to_string()),
-    process,
-    env,
-  })
+  self.spawn.put(
+    Some(Spawn::{
+      command,
+      arguments,
+      stderr,
+      stdout,
+      cwd: cwd.map(_.to_string()),
+      process,
+      env,
+    }),
+  )
   process.get().unwrap_or_error()
 }
 
 ///|
 pub async fn Manager::wait(self : Manager, pid : Pid) -> Int {
-  self.process[pid].task.wait()
+  self.process[pid].wait()
 }
 
 ///|
 pub async fn Process::wait(self : Process) -> Int {
-  self.task.wait()
+  match self.status {
+    Exited(code) => return code
+    Running(task) => {
+      let status = task.wait()
+      self.status = Exited(status)
+      status
+    }
+  }
 }
 
 ///|
 pub async fn Manager::start(self : Manager) -> Unit {
   @async.with_task_group(group => {
+    group.add_defer(() => {
+      for _, p in self.process {
+        guard p.status is Running(task) else { continue }
+        kill(p.pid.0, @signal.sigkill) catch {
+          error => {
+            println("[WARN] Failed to kill process \{p.pid.0}: \{error}")
+            continue
+          }
+        }
+        ignore(task.wait())
+      }
+      self.process.clear()
+    })
     async fn redirect_output(
       redirect : RedirectOutput,
     ) -> &@process.ProcessOutput? {
@@ -160,29 +182,22 @@ pub async fn Manager::start(self : Manager) -> Unit {
       }
     }
 
-    while true {
-      let spawn = self.spawn.get()
+    while self.spawn.get() is Some(spawn) {
       try {
-        let pid = self.new_pid()
-        let refer_status = Ref::new(None)
         let stderr = redirect_output(spawn.stderr)
         let stdout = redirect_output(spawn.stdout)
-        let task = group.spawn(() => {
-          let status = @process.run(
-            spawn.command,
-            spawn.arguments,
-            stderr?,
-            stdout?,
-            cwd?=spawn.cwd,
-            extra_env?=spawn.env,
-          )
-          refer_status.val = Some(status)
-          status
-        })
+        let pid = @process.spawn_orphan(
+          spawn.command,
+          spawn.arguments,
+          stderr?,
+          stdout?,
+          cwd=spawn.cwd.unwrap_or(self.cwd),
+          extra_env?=spawn.env,
+        )
+        let task = group.spawn(() => @process.wait_pid(pid))
         let process = Process::{
           pid,
-          status: refer_status,
-          task,
+          status: Running(task),
           stdout: spawn.stdout,
           stderr: spawn.stderr,
         }
@@ -196,13 +211,22 @@ pub async fn Manager::start(self : Manager) -> Unit {
     }
   }) catch {
     error => {
+      println("[ERROR] Spawn manager encountered an error: \{error}")
       self.process.clear()
-      while self.spawn.try_get() is Some(spawn) {
-        spawn.process.put(Err(error))
+      while self.spawn.try_get() is Some(Some(spawn)) {
+        spawn.process.try_put(Err(error)) |> ignore()
       }
+      println(
+        "[INFO] Spawn manager has been closed, re-raising error \{error}.",
+      )
       raise error
     }
   }
+}
+
+///|
+pub fn Manager::close(self : Manager) -> Unit {
+  guard self.spawn.try_put(None)
 }
 
 ///|

@@ -9,8 +9,7 @@ async test "Manager::spawn" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @spawn.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
-    let process = manager.spawn("sleep", ["2"])
-    @json.inspect(process.pid, content=0)
+    manager.spawn("sleep", ["2"]) |> ignore()
   })
 }
 
