@@ -1,15 +1,22 @@
 import { useAppSelector } from "@maria/core/app/hooks.ts";
 import { AppSidebar } from "@maria/core/components/app-sidebar.tsx";
+import { Button } from "@maria/core/components/ui/button.js";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@maria/core/components/ui/sidebar.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@maria/core/components/ui/tooltip.js";
 import { useEventsQuery } from "@maria/core/features/api/apiSlice.ts";
 import {
   selectActiveTaskId,
   selectTasks,
 } from "@maria/core/features/session/tasksSlice.ts";
+import { RotateCw } from "lucide-react";
 import { Outlet } from "react-router";
 
 function Sidebar({ className }: { className?: string }) {
@@ -20,6 +27,26 @@ function Sidebar({ className }: { className?: string }) {
       className={className}
       activeTaskId={activeTaskId}
       tasks={tasks}
+      footer={
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={async () => {
+                await window.electronAPI.reloadApp();
+              }}
+              variant="ghost"
+              className="cursor-pointer"
+              size="icon"
+              title="Reload"
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Restart Maria</p>
+          </TooltipContent>
+        </Tooltip>
+      }
     />
   );
 }

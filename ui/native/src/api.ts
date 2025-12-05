@@ -3,4 +3,5 @@ export interface ElectronAPI {
   selectDirectory: () => Promise<OpenDialogReturnValue>;
   getUrl: () => Promise<string>;
   mariaReady: () => Promise<void>;
+  reloadApp: () => Promise<void>;
 }

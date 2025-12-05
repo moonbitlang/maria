@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   selectDirectory: () => ipcRenderer.invoke("select-directory"),
   getUrl: () => ipcRenderer.invoke("get-url"),
   mariaReady: () => ipcRenderer.invoke("maria-ready"),
+  reloadApp: () => ipcRenderer.invoke("reload-app"),
 } as ElectronAPI);
