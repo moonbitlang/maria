@@ -406,77 +406,84 @@ pub async fn run(
 ) -> Unit {
   semaphore.acquire()
   defer semaphore.release()
-  let os_cwd = @os.cwd()
-  let exec = os_args[0]
-  let exec = @path.relative(os_cwd, exec)
-  let exec_parts = @path.split(exec).collect()
-  guard exec_parts
-    is ["target", "native", "debug" | "release", "test", .. parts, _] else {
-    abort(
-      "Unexpected executable path, @mock should only be used in test: \{exec}",
-    )
-  }
-  let pkg_path = parts.join(@path.sep.to_string())
-  // `@fsx.with_temporary_directory` internally joins the `@os.tmpdir()` path
-  @fsx.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
-    let tmp_pkg_path = @path.join(tmpdir, pkg_path)
-    async fn run() -> Unit {
-      @async.with_timeout(timeout, () => @async.with_task_group(group => {
-        let mangled = {
-          let builder = StringBuilder::new()
-          for c in t.name() {
-            if c.is_ascii_alphabetic() || c.is_ascii_digit() {
-              builder.write_char(c)
-            } else {
-              builder.write_string("%\{c.to_int()}")
+  @stdio.stderr.write("[TEST] (..) \{t.name()}\n")
+  try {
+    let os_cwd = @os.cwd()
+    let exec = os_args[0]
+    let exec = @path.relative(os_cwd, exec)
+    let exec_parts = @path.split(exec).collect()
+    guard exec_parts
+      is ["target", "native", "debug" | "release", "test", .. parts, _] else {
+      abort(
+        "Unexpected executable path, @mock should only be used in test: \{exec}",
+      )
+    }
+    let pkg_path = parts.join(@path.sep.to_string())
+    // `@fsx.with_temporary_directory` internally joins the `@os.tmpdir()` path
+    @fsx.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
+      let tmp_pkg_path = @path.join(tmpdir, pkg_path)
+      async fn run() -> Unit {
+        @async.with_timeout(timeout, () => @async.with_task_group(group => {
+          let mangled = {
+            let builder = StringBuilder::new()
+            for c in t.name() {
+              if c.is_ascii_alphabetic() || c.is_ascii_digit() {
+                builder.write_char(c)
+              } else {
+                builder.write_string("%\{c.to_int()}")
+              }
             }
+            builder.to_string()
           }
-          builder.to_string()
-        }
-        let cwd = directory(@path.join(tmp_pkg_path, mangled))
-        let log_dir = os_cwd |> @path.join("__trajectories__")
-        @fs.mkdir(log_dir, permission=0o755) catch {
-          _ => ()
-        }
-        let logged = log_dir |> @path.join("\{mangled}.jsonl")
-        let logger = @pino.logger(mangled, @pino.Transport::file(logged))
-        let clock = Clock::{ timestamp: 0 }
-        let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
-        let uuid = @uuid.generator(rand)
-        let file = loc.to_string().split(":").peek().unwrap().to_string()
-        // setup filter
-        let home = @os.home()
-        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.join(
-          home, ".moon",
-        ))
-        let filter = Filter::new()
-        filter
-        ..add("file", file)
-        ..add("cwd", cwd.path())
-        ..add("env:MOON_HOME", moon_home)
-        ..add("env:HOME", directory(@os.home()).path())
-        if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
-          filter.add("env:OPENAI_API_KEY", api_key)
-        }
-        let ctx = Context::{
-          cwd,
-          logger,
-          clock,
-          rand,
-          uuid,
-          filter,
-          group,
-          moon_home,
-        }
-        group.add_defer(() => ctx.close())
-        action(ctx)
-      }))
-    }
+          let cwd = directory(@path.join(tmp_pkg_path, mangled))
+          let log_dir = os_cwd |> @path.join("__trajectories__")
+          @fs.mkdir(log_dir, permission=0o755) catch {
+            _ => ()
+          }
+          let logged = log_dir |> @path.join("\{mangled}.jsonl")
+          let logger = @pino.logger(mangled, @pino.Transport::file(logged))
+          let clock = Clock::{ timestamp: 0 }
+          let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
+          let uuid = @uuid.generator(rand)
+          let file = loc.to_string().split(":").peek().unwrap().to_string()
+          // setup filter
+          let home = @os.home()
+          let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.join(
+            home, ".moon",
+          ))
+          let filter = Filter::new()
+          filter
+          ..add("file", file)
+          ..add("cwd", cwd.path())
+          ..add("env:MOON_HOME", moon_home)
+          ..add("env:HOME", directory(@os.home()).path())
+          if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
+            filter.add("env:OPENAI_API_KEY", api_key)
+          }
+          let ctx = Context::{
+            cwd,
+            logger,
+            clock,
+            rand,
+            uuid,
+            filter,
+            group,
+            moon_home,
+          }
+          group.add_defer(() => ctx.close())
+          action(ctx)
+        }))
+      }
 
-    if retry is Some(retry) {
-      @async.retry(Immediate, max_retry=retry, run)
-    } else {
-      run()
-    }
-  })
+      if retry is Some(retry) {
+        @async.retry(Immediate, max_retry=retry, run)
+      } else {
+        run()
+      }
+    })
+  } catch {
+    error => @stdio.stderr.write("[TEST] (!!) \{t.name()}: \{error}\n")
+  } noraise {
+    _ => @stdio.stderr.write("[TEST] (ok) \{t.name()}\n")
+  }
 }
