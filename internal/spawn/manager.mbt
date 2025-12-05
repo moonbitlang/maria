@@ -168,7 +168,12 @@ pub async fn Manager::start(self : Manager) -> Unit {
           extra_env?=spawn.env,
         )
         let task = group.spawn(() => {
-          let status = @process.wait_pid(pid)
+          let status = @process.wait_pid(pid) catch {
+            error => {
+              println("[ERROR] Failed to wait for process \{pid}: \{error}")
+              raise error
+            }
+          }
           refer_status.val = Some(status)
           status
         })
@@ -189,10 +194,13 @@ pub async fn Manager::start(self : Manager) -> Unit {
     }
   }) catch {
     error => {
+      println("[ERROR] Spawn manager encountered an error: \{error}")
       self.process.clear()
       while self.spawn.try_get() is Some(Some(spawn)) {
-        spawn.process.put(Err(error))
+        spawn.process.try_put(Err(error))
+        |> ignore()
       }
+      println("[INFO] Spawn manager has been closed, re-raising error \{error}.")
       raise error
     }
   }

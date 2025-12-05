@@ -42,37 +42,71 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
 ///|
 #skip
 async test "GET /v1/tasks" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let daemon = configure_daemon(mock)
-    @async.with_task_group(group => {
-      group.spawn_bg(() => daemon.serve(), no_wait=true)
-      @async.pause()
-      let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
-      @json.inspect(r.code, content=200)
-      @json.inspect(r.headers, content={
-        "content-type": "application/json",
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
-      })
-      @json.inspect(b.json(), content={ "tasks": [] })
-      let _ = @http.post(
-        "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
-          "message": { "role": "user", "content": "Hello!" },
-          "model": "mock:claude-haiku-4.5",
-          "cwd": mock.cwd.path(),
-        }),
-      )
-      let (_, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
-      let b = b.json()
-      guard b is { "tasks": Array(tasks), .. } else {
-        fail("Unexpected response body: \{b.stringify(indent=2)}")
+  try
+    @mock.run(t, mock => {
+      let daemon = configure_daemon(mock)
+      try
+        @async.with_task_group(group => {
+          group.spawn_bg(
+            () => daemon.serve() catch {
+              error => {
+                println("[ERROR] Daemon failed to serve: \{error}")
+                raise error
+              }
+            },
+            no_wait=true,
+          )
+          try {
+            @async.pause()
+            let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
+            @json.inspect(r.code, content=200)
+            @json.inspect(r.headers, content={
+              "content-type": "application/json",
+              "access-control-allow-origin": "*",
+              "access-control-allow-methods": "*",
+              "access-control-allow-headers": "*",
+              "transfer-encoding": "chunked",
+            })
+            @json.inspect(b.json(), content={ "tasks": [] })
+            let _ = @http.post(
+              "http://localhost:\{daemon.port()}/v1/task",
+              Json::object({
+                "message": { "role": "user", "content": "Hello!" },
+                "model": "mock:claude-haiku-4.5",
+                "cwd": mock.cwd.path(),
+              }),
+            )
+            let (_, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
+            let b = b.json()
+            guard b is { "tasks": Array(tasks), .. } else {
+              fail("Unexpected response body: \{b.stringify(indent=2)}")
+            }
+            @json.inspect(tasks.length(), content=1)
+          } catch {
+            error => {
+              println("[ERROR] Test encountered an error: \{error}")
+              raise error
+            }
+          }
+        })
+      catch {
+        error => {
+          println("[ERROR] Task group encountered an error: \{error}")
+          raise error
+        }
+      } noraise {
+        _ => println("[INFO] Test completed successfully.")
       }
-      @json.inspect(tasks.length(), content=1)
     })
-  })
+  catch {
+    error => {
+      println("[ERROR] Mock context encountered an error: \{error}")
+      raise error
+    }
+  } noraise {
+    _ => println("[INFO] Mock context completed successfully.")
+  }
+  abort("[INFO] Test 'GET /v1/tasks' finished.")
 }
 
 ///|

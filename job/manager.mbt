@@ -132,7 +132,12 @@ pub async fn Manager::wait(self : Manager, id : Id) -> Int {
 
 ///|
 pub async fn Manager::start(self : Manager) -> Unit {
-  self.process.start()
+  self.process.start() catch {
+    error => {
+      println("[ERROR] Spawn manager encountered an error: \{error}")
+      raise error
+    }
+  }
 }
 
 ///|

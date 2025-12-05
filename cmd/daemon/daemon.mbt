@@ -592,7 +592,12 @@ pub async fn Daemon::new(
 ///|
 pub async fn Daemon::serve(self : Daemon) -> Unit {
   @async.with_task_group(group => {
-    group.spawn_bg(() => self.process.start())
+    group.spawn_bg(() => self.process.start() catch {
+      error => {
+        println("[ERROR] Spawn manager failed: \{error}")
+        raise error
+      }
+    })
     self.httpx.serve((r, w) => {
       println("[INFO] (Daemon) Received request: \{r.method_} \{r.path}")
       let paths = r.path.split("/").collect()
@@ -650,7 +655,12 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
         error => raise error
       }
     })
-  })
+  }) catch {
+    error => {
+      println("[ERROR] Daemon encountered an error: \{error}")
+      raise error
+    }
+  }
 }
 
 ///|

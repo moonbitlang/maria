@@ -1,4 +1,9 @@
 ///|
+async fn println(msg : String) -> Unit {
+  @stdio.stderr.write("\{msg}\n")
+}
+
+///|
 struct Server {
   maria : @maria.Maria
   broadcast : @broadcast.Broadcast[Json]
