@@ -72,12 +72,12 @@ async fn Server::create_message(
         },
       })
   }
-  let id = {
+  let (id, queued) = {
     let idq = @aqueue.new(kind=Unbounded)
     self.message_queue.put((request, idq))
     idq.get()
   }
-  let response : Json = { "id": id, "queued": true }
+  let response : Json = { "id": id, "queued": queued }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
   w.write(response.stringify())

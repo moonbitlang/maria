@@ -3,7 +3,7 @@ struct Server {
   maria : @maria.Maria
   broadcast : @broadcast.Broadcast[Json]
   message_queue : @aqueue.Queue[
-    (CreateMessageRequest, @aqueue.Queue[@uuid.Uuid]),
+    (CreateMessageRequest, @aqueue.Queue[(@uuid.Uuid, Bool)]),
   ]
   mut task : @async.Task[Unit]?
   register : Register?
@@ -181,11 +181,11 @@ async fn Server::start_maria(self : Server) -> Unit {
             @ai.Message::from_openai(msg.message),
             web_search?=msg.web_search,
           )
-          idq.put(id)
+          idq.put((id, true))
         },
         no_wait=true,
       )
-      idq.put(id)
+      idq.put((id, false))
       let task = group.spawn(
         () => {
           println("[INFO] (Server) Starting Maria task...")
