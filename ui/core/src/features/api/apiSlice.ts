@@ -159,9 +159,9 @@ export const apiSlice = createApi({
               case "RequestCompleted":
               case "PreToolCall":
               case "PostToolCall":
+              case "TodoUpdated":
               case "MessageAdded": {
                 dispatch(pushEventForTask({ taskId: id, event: data }));
-
                 return;
               }
               case "MessageUnqueued": {
