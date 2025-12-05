@@ -4,4 +4,5 @@ export interface ElectronAPI {
   getUrl: () => Promise<string>;
   mariaReady: () => Promise<void>;
   reloadApp: () => Promise<void>;
+  openPathInFileExplorer: (path: string) => Promise<void>;
 }

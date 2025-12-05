@@ -5,6 +5,7 @@ import {
   dialog,
   ipcMain,
   OpenDialogReturnValue,
+  shell,
 } from "electron";
 import started from "electron-squirrel-startup";
 import fs from "fs";
@@ -17,9 +18,13 @@ if (started) {
   app.quit();
 }
 
-let mainWindow: BrowserWindow | null;
+let mainWindow: BrowserWindow | undefined;
 
 function createWindow() {
+  if (mainWindow !== undefined) {
+    mainWindow.focus();
+    return;
+  }
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
@@ -27,6 +32,10 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
+  });
+
+  mainWindow.on("close", () => {
+    mainWindow = undefined;
   });
 
   // and load the index.html of the app.
@@ -155,3 +164,11 @@ ipcMain.handle("reload-app", () => {
   killMariaDaemon();
   app.exit();
 });
+
+ipcMain.handle(
+  "open-path-in-file-explorer",
+  async (_event, filePath: string) => {
+    if (!mainWindow) return;
+    await shell.openPath(filePath);
+  },
+);
