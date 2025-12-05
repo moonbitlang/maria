@@ -21,36 +21,27 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 /// including conversation history, available tools, model configuration, and event
 /// handling. It manages the conversation loop, token counting, context pruning,
 /// and tool execution.
-///
-/// Fields:
-///
-/// * `uuid` : UUID generator for creating unique identifiers.
-/// * `cwd` : Current working directory used as the base path for tool operations.
-/// * `model` : The AI model configuration and endpoint for generating responses.
-/// * `logger` : Logger instance for recording agent activities and events.
-/// * `tools` : Map of available tools indexed by their names.
-/// * `history` : Conversation history containing all messages exchanged.
-/// * `queue` : Pending messages to be sent in the next API call.
-/// * `event_target` : Event dispatcher for handling agent lifecycle events.
-/// * `token_counter` : Counter for tracking token usage across API calls.
-/// * `context_pruner` : Pruner for managing context size within token budgets.
-/// * `session_manager` : Manager for persisting and loading conversation sessions.
-/// * `external_events` : Queue for receiving external events from the environment.
 pub(all) struct Agent {
+  /// UUID generator for creating unique identifiers.
   uuid : @uuid.Generator
+  /// Current working directory used as the base path for tool operations.
   cwd : String
   model : @model.Model
   logger : @pino.Logger
   priv tools : Map[String, Tool]
+  /// Conversation history containing all messages exchanged.
   priv history : @conversation.Conversation
+  /// Pending messages to be sent in the next API call.
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[QueuedMessage]
   event_target : @event.EventTarget
   priv token_counter : @token_counter.Counter
+  /// Pruner for managing context size within token budgets.
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
   mut web_search : Bool
+  /// Queue for receiving external events from the environment.
   priv external_events : @event.ExternalEventQueue
 }
 
@@ -72,7 +63,8 @@ priv suberror EmptyChoices
 ///
 /// * `agent` : The agent instance to add the message to.
 /// * `message` : The chat completion message to queue for sending.
-async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
+// TODO: upstream: warning if no async ever happens in async fn
+fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
   agent.input_queue.push(message)
   agent.emit(MessageAdded(message))
 }
@@ -80,7 +72,7 @@ async fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
 ///|
 /// Queues a message to be sent to the AI model in the next round of
 /// conversation.
-pub async fn Agent::queue_message(
+pub fn Agent::queue_message(
   agent : Agent,
   message : @ai.Message,
   web_search? : Bool = agent.web_search,
