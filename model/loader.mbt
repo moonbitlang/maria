@@ -40,6 +40,7 @@ pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
 
 ///|
 async fn Loader::load(self : Loader) -> Unit {
+  self.models.clear()
   async fn load_from_path(path : StringView) -> Array[Model] {
     let text = @fsx.read_file(path)
     let json = @json.parse(text)
