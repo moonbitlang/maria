@@ -404,6 +404,7 @@ pub async fn run(
   retry? : Int,
   action : async (Context) -> Unit,
 ) -> Unit {
+  let t0 = @async.now()
   semaphore.acquire()
   defer semaphore.release()
   @stdio.stderr.write("[TEST] (..) \{t.name()}\n")
@@ -424,6 +425,14 @@ pub async fn run(
       let tmp_pkg_path = @path.join(tmpdir, pkg_path)
       async fn run() -> Unit {
         @async.with_timeout(timeout, () => @async.with_task_group(group => {
+          group.spawn_bg(
+            () => for {
+              @async.sleep(1_000)
+              let elapsed = (@async.now() - t0).to_double() / 1000
+              @stdio.stderr.write("[TEST] (..) \{t.name()} (\{elapsed}s)\n")
+            },
+            no_wait=true,
+          )
           let mangled = {
             let builder = StringBuilder::new()
             for c in t.name() {
