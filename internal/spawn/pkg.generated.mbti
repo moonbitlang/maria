@@ -49,7 +49,7 @@ pub struct Manager {
 pub fn Manager::get(Self, Pid) -> Process?
 pub fn Manager::list(Self) -> Array[Process]
 pub fn Manager::new(cwd~ : String) -> Self
-pub async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String) -> Process
+pub async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String, env? : Map[String, String]) -> Process
 pub async fn Manager::start(Self) -> Unit
 pub async fn Manager::wait(Self, Pid) -> Int
 
