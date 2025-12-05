@@ -6,6 +6,7 @@ priv struct Spawn {
   stdout : RedirectOutput
   cwd : String?
   process : @aqueue.Queue[Result[Process, Error]]
+  env : Map[String, String]?
 }
 
 ///|
@@ -98,6 +99,7 @@ pub async fn Manager::spawn(
   stderr? : RedirectOutput = Inherit,
   stdout? : RedirectOutput = Inherit,
   cwd? : String,
+  env? : Map[String, String],
 ) -> Process {
   let process = @aqueue.Queue::new(kind=Unbounded)
   self.spawn.put(Spawn::{
@@ -107,6 +109,7 @@ pub async fn Manager::spawn(
     stdout,
     cwd: cwd.map(_.to_string()),
     process,
+    env,
   })
   process.get().unwrap_or_error()
 }
@@ -171,6 +174,7 @@ pub async fn Manager::start(self : Manager) -> Unit {
             stderr?,
             stdout?,
             cwd?=spawn.cwd,
+            extra_env?=spawn.env,
           )
           refer_status.val = Some(status)
           status
