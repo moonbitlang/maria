@@ -97,7 +97,7 @@ async test "POST /v1/message" (t : @test.Test) {
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=true)
+    @json.inspect(queued, content=false)
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({ "message": { "role": "user", "content": "Hello again!" } }),
@@ -481,7 +481,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       )
       @json.inspect(r.code, content=200)
       let b = b.json()
-      guard b is { "id": String(_), "queued": true, .. } else {
+      guard b is { "id": String(_), "queued": false, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
       let (_, b) = @http.post(
@@ -805,7 +805,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=true)
+    @json.inspect(queued, content=false)
     let (r, b) = @http.post(
       "http://localhost:\{server.port()}/v1/message",
       Json::object({

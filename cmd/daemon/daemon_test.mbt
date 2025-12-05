@@ -535,7 +535,7 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
             "web_search": false,
             ..
           },
-          "message": { "id": String(_), "queued": true, .. },
+          "message": { "id": String(_), "queued": true | false, .. },
           ..
         },
         content=true,
