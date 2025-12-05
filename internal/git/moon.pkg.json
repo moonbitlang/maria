@@ -3,7 +3,8 @@
     "moonbitlang/maria/internal/path",
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

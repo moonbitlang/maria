@@ -35,19 +35,21 @@ test "gethostname" {
 }
 
 ///|
-async test "exit" {
-  let args = @os.args()
-  match args {
-    [exec, args] => {
-      if exec.has_suffix(".c") {
-        return
+async test "exit" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let args = @os.args()
+    match args {
+      [exec, args] => {
+        if exec.has_suffix(".c") {
+          return
+        }
+        @json.inspect(@spawn.spawn(exec, [args, "42"]).status, content=42)
       }
-      @json.inspect(@spawn.spawn(exec, [args, "42"]).status, content=42)
+      [_, _, exit_code] => {
+        @os.exit(@strconv.parse_int(exit_code))
+        fail("unreachable")
+      }
+      _ => fail("Invalid arguments")
     }
-    [_, _, exit_code] => {
-      @os.exit(@strconv.parse_int(exit_code))
-      fail("unreachable")
-    }
-    _ => fail("Invalid arguments")
-  }
+  })
 }

@@ -33,82 +33,90 @@ fn claude_sonnet_model(api_key : String) -> @model.Model {
 
 ///|
 /// Test basic text completion
-async test "text" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-    fail("OPENAI_API_KEY not set")
-  }
-  let model = deepseek_model(api_key)
-  let response = text(model~, prompt="Say 'Hello, World!' and nothing else.")
-  inspect(response.contains("Hello"), content="true")
+async test "text" (t : @test.Test) {
+  @mock.run(t, _ => {
+    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+      fail("OPENAI_API_KEY not set")
+    }
+    let model = deepseek_model(api_key)
+    let response = text(model~, prompt="Say 'Hello, World!' and nothing else.")
+    inspect(response.contains("Hello"), content="true")
+  })
 }
 
 ///|
 /// Test JSON response parsing
-async test "json" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-    fail("OPENAI_API_KEY not set")
-  }
-  let model = deepseek_model(api_key)
-  let response = json(
-    model~,
-    prompt="Return a JSON object with a 'message' field containing 'Hello, World!'. Wrap it in ```json```.",
-  )
-  guard response is { "message": String(message), .. } &&
-    message.contains("Hello") else {
-    fail("Expected JSON object")
-  }
+async test "json" (t : @test.Test) {
+  @mock.run(t, _ => {
+    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+      fail("OPENAI_API_KEY not set")
+    }
+    let model = deepseek_model(api_key)
+    let response = json(
+      model~,
+      prompt="Return a JSON object with a 'message' field containing 'Hello, World!'. Wrap it in ```json```.",
+    )
+    guard response is { "message": String(message), .. } &&
+      message.contains("Hello") else {
+      fail("Expected JSON object")
+    }
+  })
 }
 
 ///|
 /// Test basic chat completion
-async test "chat" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-    fail("OPENAI_API_KEY not set")
-  }
-  let model = deepseek_model(api_key)
-  let completion = chat(
-    model~,
-    chat_completion(
-      model=model.model_name,
-      messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content="Say 'Hello' and nothing else."),
-      ],
-      max_tokens=50,
-      temperature=0.7,
-    ),
-  )
-  guard completion.choices
-    is [{ message: { content: Some(content), .. }, .. }, ..] &&
-    content.contains("Hello") else {
-    fail("Expected choices with message content")
-  }
+async test "chat" (t : @test.Test) {
+  @mock.run(t, _ => {
+    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+      fail("OPENAI_API_KEY not set")
+    }
+    let model = deepseek_model(api_key)
+    let completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Say 'Hello' and nothing else."),
+        ],
+        max_tokens=50,
+        temperature=0.7,
+      ),
+    )
+    guard completion.choices
+      is [{ message: { content: Some(content), .. }, .. }, ..] &&
+      content.contains("Hello") else {
+      fail("Expected choices with message content")
+    }
+  })
 }
 
 ///|
 /// Test chat completion with usage tracking
-async test "chat_with_usage" {
-  guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
-    fail("OPENAI_API_KEY not set")
-  }
-  let model = deepseek_model(api_key)
-  let completion = chat(
-    model~,
-    chat_completion(
-      model=model.model_name,
-      messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content="Say 'Hello' and nothing else."),
-      ],
-      max_tokens=50,
-      temperature=0.7,
-      usage=usage(include_=true),
-    ),
-  )
-  guard completion.usage is Some(usage) else { fail("Expected usage data") }
-  assert_true(usage.total_tokens > 0)
-  assert_true(usage.prompt_tokens > 0)
-  assert_true(usage.completion_tokens > 0)
+async test "chat_with_usage" (t : @test.Test) {
+  @mock.run(t, _ => {
+    guard @os.getenv("OPENAI_API_KEY") is Some(api_key) else {
+      fail("OPENAI_API_KEY not set")
+    }
+    let model = deepseek_model(api_key)
+    let completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Say 'Hello' and nothing else."),
+        ],
+        max_tokens=50,
+        temperature=0.7,
+        usage=usage(include_=true),
+      ),
+    )
+    guard completion.usage is Some(usage) else { fail("Expected usage data") }
+    assert_true(usage.total_tokens > 0)
+    assert_true(usage.prompt_tokens > 0)
+    assert_true(usage.completion_tokens > 0)
+  })
 }
 
 ///|

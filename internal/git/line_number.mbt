@@ -269,142 +269,146 @@ test "add_line_number_to_diff_no_hunks" {
 }
 
 ///|
-async test "add_line_number_to_diff_slash" {
-  let original =
-    #|line 1
-    #|line 2
-    #|line 3
-    #|line 4
-    #|line 5
-  let modified =
-    #|line 1
-    #|line 2 modified
-    #|line 3
-    #|line 4
-    #|line 5 modified
-    #|line 6 added
-  inspect(
-    generate_git_diff(original~, modified~, line_number=false),
-    content=(
-      #|diff --git original modified
-      #|index a751413..30797a1 100644
-      #|--- original
-      #|+++ modified
-      #|@@ -1,5 +1,6 @@
-      #| line 1
-      #|-line 2
-      #|+line 2 modified
-      #| line 3
-      #| line 4
-      #|-line 5
-      #|\ No newline at end of file
-      #|+line 5 modified
-      #|+line 6 added
-      #|\ No newline at end of file
-    ),
-  )
-  inspect(
-    generate_git_diff(original~, modified~, line_number=true),
-    content=(
-      #|diff --git original modified
-      #|index a751413..30797a1 100644
-      #|--- original
-      #|+++ modified
-      #|@@ -1,5 +1,6 @@
-      #|  1 1 │line 1
-      #|- 2   │line 2
-      #|+   2 │line 2 modified
-      #|  3 3 │line 3
-      #|  4 4 │line 4
-      #|- 5   │line 5
-      #|-     \ No newline at end of file
-      #|+   5 │line 5 modified
-      #|+   6 │line 6 added
-      #|+     \ No newline at end of file
-    ),
-  )
+async test "add_line_number_to_diff_slash" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let original =
+      #|line 1
+      #|line 2
+      #|line 3
+      #|line 4
+      #|line 5
+    let modified =
+      #|line 1
+      #|line 2 modified
+      #|line 3
+      #|line 4
+      #|line 5 modified
+      #|line 6 added
+    inspect(
+      generate_git_diff(original~, modified~, line_number=false),
+      content=(
+        #|diff --git original modified
+        #|index a751413..30797a1 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,5 +1,6 @@
+        #| line 1
+        #|-line 2
+        #|+line 2 modified
+        #| line 3
+        #| line 4
+        #|-line 5
+        #|\ No newline at end of file
+        #|+line 5 modified
+        #|+line 6 added
+        #|\ No newline at end of file
+      ),
+    )
+    inspect(
+      generate_git_diff(original~, modified~, line_number=true),
+      content=(
+        #|diff --git original modified
+        #|index a751413..30797a1 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,5 +1,6 @@
+        #|  1 1 │line 1
+        #|- 2   │line 2
+        #|+   2 │line 2 modified
+        #|  3 3 │line 3
+        #|  4 4 │line 4
+        #|- 5   │line 5
+        #|-     \ No newline at end of file
+        #|+   5 │line 5 modified
+        #|+   6 │line 6 added
+        #|+     \ No newline at end of file
+      ),
+    )
+  })
 }
 
 ///|
-async test "add_line_number_to_diff_multiple_hunks" {
-  let original =
-    #|line 1
-    #|line 2
-    #|line 3
-    #|line 4
-    #|line 5
-    #|line 6
-    #|line 7
-    #|line 8
-    #|line 9
-    #|line 10
-    #|line 11
-    #|line 12
-    #|line 13
-    #|line 14
-    #|line 15
-  let modified =
-    #|line 1
-    #|line 2 modified
-    #|line 3
-    #|line 4
-    #|line 5
-    #|line 6
-    #|line 7
-    #|line 8
-    #|line 9
-    #|line 10
-    #|line 11
-    #|line 12
-    #|line 13
-    #|line 14 modified
-    #|line 15
-  inspect(
-    generate_git_diff(original~, modified~, line_number=false),
-    content=(
-      #|diff --git original modified
-      #|index af9f7cc..89f4457 100644
-      #|--- original
-      #|+++ modified
-      #|@@ -1,5 +1,5 @@
-      #| line 1
-      #|-line 2
-      #|+line 2 modified
-      #| line 3
-      #| line 4
-      #| line 5
-      #|@@ -11,5 +11,5 @@ line 10
-      #| line 11
-      #| line 12
-      #| line 13
-      #|-line 14
-      #|+line 14 modified
-      #| line 15
-      #|\ No newline at end of file
-    ),
-  )
-  inspect(
-    generate_git_diff(original~, modified~, line_number=true),
-    content=(
-      #|diff --git original modified
-      #|index af9f7cc..89f4457 100644
-      #|--- original
-      #|+++ modified
-      #|@@ -1,5 +1,5 @@
-      #|  1 1 │line 1
-      #|- 2   │line 2
-      #|+   2 │line 2 modified
-      #|  3 3 │line 3
-      #|  4 4 │line 4
-      #|  5 5 │line 5
-      #|@@ -11,5 +11,5 @@ line 10
-      #|  11 11 │line 11
-      #|  12 12 │line 12
-      #|  13 13 │line 13
-      #|- 14    │line 14
-      #|+    14 │line 14 modified
-      #|  15 15 │line 15
-      #|        \ No newline at end of file
-    ),
-  )
+async test "add_line_number_to_diff_multiple_hunks" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let original =
+      #|line 1
+      #|line 2
+      #|line 3
+      #|line 4
+      #|line 5
+      #|line 6
+      #|line 7
+      #|line 8
+      #|line 9
+      #|line 10
+      #|line 11
+      #|line 12
+      #|line 13
+      #|line 14
+      #|line 15
+    let modified =
+      #|line 1
+      #|line 2 modified
+      #|line 3
+      #|line 4
+      #|line 5
+      #|line 6
+      #|line 7
+      #|line 8
+      #|line 9
+      #|line 10
+      #|line 11
+      #|line 12
+      #|line 13
+      #|line 14 modified
+      #|line 15
+    inspect(
+      generate_git_diff(original~, modified~, line_number=false),
+      content=(
+        #|diff --git original modified
+        #|index af9f7cc..89f4457 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,5 +1,5 @@
+        #| line 1
+        #|-line 2
+        #|+line 2 modified
+        #| line 3
+        #| line 4
+        #| line 5
+        #|@@ -11,5 +11,5 @@ line 10
+        #| line 11
+        #| line 12
+        #| line 13
+        #|-line 14
+        #|+line 14 modified
+        #| line 15
+        #|\ No newline at end of file
+      ),
+    )
+    inspect(
+      generate_git_diff(original~, modified~, line_number=true),
+      content=(
+        #|diff --git original modified
+        #|index af9f7cc..89f4457 100644
+        #|--- original
+        #|+++ modified
+        #|@@ -1,5 +1,5 @@
+        #|  1 1 │line 1
+        #|- 2   │line 2
+        #|+   2 │line 2 modified
+        #|  3 3 │line 3
+        #|  4 4 │line 4
+        #|  5 5 │line 5
+        #|@@ -11,5 +11,5 @@ line 10
+        #|  11 11 │line 11
+        #|  12 12 │line 12
+        #|  13 13 │line 13
+        #|- 14    │line 14
+        #|+    14 │line 14 modified
+        #|  15 15 │line 15
+        #|        \ No newline at end of file
+      ),
+    )
+  })
 }
