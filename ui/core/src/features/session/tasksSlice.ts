@@ -3,7 +3,6 @@ import type {
   TaskEvent,
   TaskOverview,
   Todo,
-  TodoTool,
 } from "@maria/core/lib/types.ts";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 import { createAppSlice } from "../../app/createAppSlice";
@@ -137,9 +136,8 @@ export const tasksSlice = createAppSlice({
           return;
         }
 
-        if (event.msg === "PostToolCall" && event.name === "todo") {
-          const result = (event as TodoTool).result;
-          task.todos = result.todos;
+        if (event.msg === "TodoUpdated") {
+          task.todos = event.todo.todos;
         }
 
         if (event.msg === "PostToolCall") {

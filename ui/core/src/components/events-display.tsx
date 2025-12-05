@@ -288,10 +288,6 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
       case "execute_command": {
         return <ExecuteCommand event={event as ExecuteCommandTool} />;
       }
-      case "todo": {
-        // No need to render anything for todo tool calls
-        return <></>;
-      }
     }
     return (
       <Tool>
