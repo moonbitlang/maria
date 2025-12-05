@@ -18,13 +18,9 @@ if (started) {
   app.quit();
 }
 
-let mainWindow: BrowserWindow | undefined;
+let mainWindow: BrowserWindow | null;
 
 function createWindow() {
-  if (mainWindow !== undefined) {
-    mainWindow.focus();
-    return;
-  }
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
@@ -32,10 +28,6 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
     },
-  });
-
-  mainWindow.on("close", () => {
-    mainWindow = undefined;
   });
 
   // and load the index.html of the app.
