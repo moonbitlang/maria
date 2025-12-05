@@ -386,6 +386,89 @@
         border-radius: 5px;
         border: 1px solid #ccc;
       }
+
+      /* Todo List Section */
+      #todoSection {
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .todo-list {
+        margin-top: 10px;
+      }
+
+      .todo-item {
+        padding: 12px;
+        margin: 8px 0;
+        background: #f9f9f9;
+        border-radius: 4px;
+        border-left: 4px solid #ccc;
+      }
+
+      .todo-item.pending {
+        border-left-color: #ffc107;
+      }
+
+      .todo-item.in-progress {
+        border-left-color: #2196f3;
+      }
+
+      .todo-item.completed {
+        border-left-color: #4caf50;
+        opacity: 0.7;
+      }
+
+      .todo-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      .todo-status-icon {
+        font-size: 1.1em;
+      }
+
+      .todo-priority-icon {
+        font-size: 1.1em;
+      }
+
+      .todo-id {
+        color: #999;
+        font-size: 0.85em;
+        font-family: monospace;
+      }
+
+      .todo-content {
+        color: #333;
+        flex: 1;
+      }
+
+      .todo-notes {
+        margin-top: 6px;
+        padding-left: 24px;
+        color: #666;
+        font-size: 0.9em;
+        font-style: italic;
+      }
+
+      .todo-summary {
+        padding: 10px;
+        margin-top: 10px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .no-todos {
+        padding: 20px;
+        text-align: center;
+        color: #999;
+      }
     </style>
   </head>
   <body>
@@ -411,6 +494,13 @@
       ></textarea>
       <button id="saveSystemPromptBtn" style="padding: 8px 20px; margin-top: 5px">Save System Prompt</button>
       <button id="clearSystemPromptBtn" style="padding: 8px 20px; margin-top: 5px; background: #f44336; color: white; border: none">Clear System Prompt</button>
+    </div>
+
+    <h2>Todo List:</h2>
+    <div id="todoSection">
+      <div id="todoList" class="todo-list">
+        <div class="no-todos">No todos yet</div>
+      </div>
     </div>
 
     <h2>Available Tools:</h2>

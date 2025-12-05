@@ -290,30 +290,13 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
     }
     for {
       let event = chan.get()
-      guard event
-        is Object(
-          {
-            "msg": "MessageAdded"
-            | "MessageQueued"
-            | "MessageUnqueued"
-            | "PreConversation"
-            | "RequestCompleted"
-            | "PreToolCall"
-            | "PostToolCall"
-            | "PostConversation"
-            | "MariaFailed"
-            | "MariaCancelled"
-            | "ExternalEventReceived",
-            ..
-          } as event
-        ) else {
+      if event is { "msg": "TokenCounted" | "ContextPruned", .. } {
         continue
       }
       // Skip over tool events (subagent events)
       if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
         continue
       }
-      let event = Json::object(event)
       w.write("event: maria\n")
       w.write("data: \{event.stringify()}\n\n")
       w.flush()
