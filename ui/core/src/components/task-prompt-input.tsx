@@ -16,6 +16,7 @@ interface TaskPromptInputProps {
   className?: string;
   inputTools?: React.ReactNode;
   chatStatus?: ChatStatus;
+  ref?: React.Ref<HTMLTextAreaElement>;
 }
 
 export function TaskPromptInput({
@@ -26,6 +27,7 @@ export function TaskPromptInput({
   className = "",
   inputTools,
   chatStatus = "ready",
+  ref,
 }: TaskPromptInputProps) {
   const tools = inputTools ? inputTools : <PromptInputTools></PromptInputTools>;
   const disabled = chatStatus === "ready" && value.trim() === "";
@@ -38,6 +40,7 @@ export function TaskPromptInput({
       onSubmit={onSubmit}
     >
       <PromptInputTextarea
+        ref={ref}
         className="min-h-[52px] text-base md:text-base"
         value={value}
         onFocus={(e) =>

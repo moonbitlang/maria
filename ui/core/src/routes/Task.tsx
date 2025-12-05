@@ -1,6 +1,6 @@
 import type { ChatStatus } from "ai";
 import { Clock, Folder } from "lucide-react";
-import { Fragment, useEffect, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, type FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import { useAppSelector } from "../app/hooks.ts";
@@ -54,11 +54,16 @@ function PromptInput({ taskId }: { taskId: string }) {
   const webSearchEnabled = useAppSelector((state) =>
     selectWebSearchEnabledForTask(state, taskId),
   )!;
+  const ref = useRef<HTMLTextAreaElement>(null);
   const [postMessage] = usePostMessageMutation();
   const [postCancel] = usePostCancelMutation();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
   const cwd = useAppSelector((state) => selectTaskCwd(state, taskId))!;
   const baseCwd = base(cwd);
+
+  useEffect(() => {
+    ref.current?.focus();
+  });
 
   const taskStatus = useAppSelector((state) =>
     selectConversationStatus(state, taskId),
@@ -117,6 +122,7 @@ function PromptInput({ taskId }: { taskId: string }) {
 
   return (
     <TaskPromptInput
+      ref={ref}
       value={input}
       onChange={setInput}
       onSubmit={handleSubmit}

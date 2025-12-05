@@ -25,7 +25,7 @@ import {
 } from "@maria/core/features/session/tasksSlice.ts";
 import { base } from "@maria/core/lib/utils.js";
 import { Folder, X } from "lucide-react";
-import { useEffect, type FormEvent } from "react";
+import { useEffect, useRef, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 
 export default function Home() {
@@ -34,8 +34,13 @@ export default function Home() {
   const webSearchEnabled = useAppSelector(selectWebSearchEnabled);
   const baseCwd = cwd ? base(cwd) : undefined;
   const navigate = useNavigate();
+  const ref = useRef<HTMLTextAreaElement>(null);
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    ref.current?.focus();
+  });
 
   useEffect(() => {
     dispatch(setActiveTaskId(undefined));
@@ -63,6 +68,7 @@ export default function Home() {
     <div className="relative m-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col justify-end">
       <div className="p-4">
         <TaskPromptInput
+          ref={ref}
           value={input}
           onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
