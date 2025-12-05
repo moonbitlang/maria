@@ -136,13 +136,23 @@ function PromptInput({ taskId }: { taskId: string }) {
         <PromptInputTools>
           <Tooltip>
             <TooltipTrigger asChild>
-              <PromptInputButton>
+              <PromptInputButton
+                className="cursor-pointer"
+                onClick={async () => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  await (window as any).electronAPI?.openPathInFileExplorer(
+                    cwd,
+                  );
+                }}
+              >
                 <Folder size={16} />
                 {baseCwd && <span>{baseCwd}</span>}
               </PromptInputButton>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{cwd}</p>
+              <p>
+                Open <code>{cwd}</code>
+              </p>
             </TooltipContent>
           </Tooltip>
           <WebSearchToggleTool

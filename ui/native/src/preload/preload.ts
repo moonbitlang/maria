@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getUrl: () => ipcRenderer.invoke("get-url"),
   mariaReady: () => ipcRenderer.invoke("maria-ready"),
   reloadApp: () => ipcRenderer.invoke("reload-app"),
+  openPathInFileExplorer: (path: string) =>
+    ipcRenderer.invoke("open-path-in-file-explorer", path),
 } as ElectronAPI);

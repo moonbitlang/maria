@@ -5,6 +5,7 @@ import {
   dialog,
   ipcMain,
   OpenDialogReturnValue,
+  shell,
 } from "electron";
 import started from "electron-squirrel-startup";
 import fs from "fs";
@@ -155,3 +156,11 @@ ipcMain.handle("reload-app", () => {
   killMariaDaemon();
   app.exit();
 });
+
+ipcMain.handle(
+  "open-path-in-file-explorer",
+  async (_event, filePath: string) => {
+    if (!mainWindow) return;
+    await shell.openPath(filePath);
+  },
+);
