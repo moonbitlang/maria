@@ -100,6 +100,7 @@ async fn Server::register(self : Server) -> Unit {
 
 ///|
 async fn Server::serve_http(self : Server) -> Unit {
+  let file_server = @httpx.FileServer::new(self.serve)
   self.http_server.serve(
     @httpx.cors((r, w) => {
       println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
@@ -139,23 +140,7 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Post, "/v1/system-prompt") => self.set_system_prompt(r, w)
           (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
           (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
-          (Get, ['/', .. file]) if "\{self.serve}/\{file}" is path &&
-            (try? @fsx.exists_as_file(path)) is Ok(true) => {
-            let content_type = match @path.ext(path) {
-              ".js" => "application/javascript"
-              ".css" => "text/css"
-              ".html" => "text/html"
-              ".png" => "image/png"
-              ".jpg" | ".jpeg" => "image/jpeg"
-              ".gif" => "image/gif"
-              _ => "application/octet-stream"
-            }
-            println("[DEBUG] (Server) Serving static file: \{path}")
-            let content = html_read_file(path)
-            w.header().set("Content-Type", content_type)
-            w.write_header(200)
-            w.write(content)
-          }
+          (Get, _) => file_server.handle(r, w)
           _ => {
             w.header().set("Content-Type", "application/json")
             w.write_header(404)
