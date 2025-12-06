@@ -83,6 +83,21 @@ To add these secrets:
 
 **Note:** Without these secrets, some CI tests will fail. If you don't have access to these APIs, mention it in your pull request and the maintainers can help run the tests.
 
+### Running Expensive Tests
+
+Some tests are expensive (long-running, resource-heavy, or require special secrets) and don't run automatically on every PR. To trigger these tests on demand, comment the following on your pull request:
+
+```
+/run-expensive-tests
+```
+
+This will:
+- Trigger a GitHub Actions workflow that checks out your PR's merge commit
+- Run the full expensive test suite including all skipped tests
+- Report the results back to your PR
+
+**Note:** For PRs from forks, secrets will not be available due to GitHub security restrictions, but compute-only tests will still run.
+
 ### Git Configuration
 
 Some tests require git to be configured:
