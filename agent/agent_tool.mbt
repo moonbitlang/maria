@@ -158,3 +158,14 @@ pub fn[Output : ToJson + Show] Agent::add_tool(
 ) -> Unit {
   agent.add_agent_tool(tool.to_agent_tool())
 }
+
+///|
+///  Build the tools array for this API call
+/// Convert each registered tool into OpenAI's tool parameter format
+fn Agent::tools_desc(self : Agent) -> Array[@tool.ToolDesc] {
+  let descs = []
+  for _, tool in self.tools {
+    descs.push(tool.desc())
+  }
+  descs
+}
