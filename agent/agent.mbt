@@ -143,68 +143,6 @@ async fn Agent::prepare_messages_for_request(
 }
 
 ///|
-/// Polls all registered external event sources and handles them.
-///
-/// This function is called at strategic points in the conversation loop to:
-/// 1. Check for user cancellation requests
-/// 2. Inject immediate user messages
-/// 3. Add diagnostic context from the IDE
-///
-/// Parameters:
-///
-/// * `agent` : The agent instance to poll events for.
-///
-/// Returns `true` if the conversation should continue, `false` if cancelled.
-async fn Agent::poll_external_events(agent : Agent) -> Bool {
-  let events = agent.external_events.poll()
-  for event in events {
-    agent.emit(@event.ExternalEventReceived(event))
-    match event {
-      UserCancellation => {
-        agent.cancel()
-        return false
-      }
-      UserMessage(msg) =>
-        agent.input_queue.push(
-          @ai.user_message(
-            content=(
-              $|[Immediate User Message]
-              $|
-              $|\{msg}
-              $|
-              $|Please address this message immediately and prioritize it over your current task.
-            ),
-          ),
-        )
-      Diagnostics(diagnostics) =>
-        if !diagnostics.is_empty() {
-          let rendered = diagnostics.render(limit=10, context=2, cwd=agent.cwd)
-          agent.input_queue.push(
-            @ai.user_message(
-              content=(
-                $|[IDE Diagnostics Update]
-                $|
-                $|The following issues were detected in the codebase:
-                $|
-                $|\{rendered}
-                $|
-                $|Please review and address these issues if relevant to your current task.
-              ),
-            ),
-          )
-        }
-    }
-  }
-  true
-}
-
-///|
-async fn Agent::cancel(agent : Agent) -> Unit {
-  agent.input_queue.clear()
-  agent.emit(@event.Cancelled)
-}
-
-///|
 /// Starts the agent's conversation loop and executes tool calls until completion.
 ///
 /// This function implements the main agent execution loop:
@@ -236,7 +174,50 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
         // Poll for external events at the start of each iteration
         // This handles user cancellation, immediate messages, and diagnostics
-        guard agent.poll_external_events() else { break }
+        let events = agent.external_events.poll()
+        for event in events {
+          agent.emit(@event.ExternalEventReceived(event))
+          match event {
+            UserCancellation => {
+              agent.input_queue.clear()
+              agent.emit(@event.Cancelled)
+              break
+            }
+            UserMessage(msg) =>
+              agent.input_queue.push(
+                @ai.user_message(
+                  content=(
+                    $|[Immediate User Message]
+                    $|
+                    $|\{msg}
+                    $|
+                    $|Please address this message immediately and prioritize it over your current task.
+                  ),
+                ),
+              )
+            Diagnostics(diagnostics) =>
+              if !diagnostics.is_empty() {
+                let rendered = diagnostics.render(
+                  limit=10,
+                  context=2,
+                  cwd=agent.cwd,
+                )
+                agent.input_queue.push(
+                  @ai.user_message(
+                    content=(
+                      $|[IDE Diagnostics Update]
+                      $|
+                      $|The following issues were detected in the codebase:
+                      $|
+                      $|\{rendered}
+                      $|
+                      $|Please review and address these issues if relevant to your current task.
+                    ),
+                  ),
+                )
+              }
+          }
+        }
         let mut web_search = agent.web_search
         // Test if the agent.input_queue is empty, if so, pop from pending_queue
         if agent.input_queue.is_empty() {
@@ -248,24 +229,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
             agent.emit(MessageAdded(msg.message))
           }
         }
-
-        // Build the tools array for this API call
-        // Convert each registered tool into OpenAI's tool parameter format
-        let tools = []
-        for _, tool in agent.tools {
-          if tool.enabled {
-            let desc = tool.desc()
-            tools.push(desc)
-          }
-        }
+        let tools = agent.tools_desc()
         // Retrieve and clear the message queue
         // staged contains messages that need to be sent in this call
         // Build the complete message array for the API call
         // Start with conversation history, then append any queued messages
-        let messages = [
-          ..agent.history.messages(include_system=true),
-          ..agent.input_queue,
-        ]
+        let messages = [..agent.history.messages(), ..agent.input_queue]
 
         // Count tokens, prune if needed, and apply caching
         let cache_messages = agent.prepare_messages_for_request(
@@ -309,7 +278,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         // Emit event with API usage statistics and the returned message
         agent.emit(
           RequestCompleted(
-            usage=usage.map(fn(u) { @ai.Usage::from_openai(u) }),
+            usage=usage.map(u => @ai.Usage::from_openai(u)),
             message=ai_message,
           ),
         )
