@@ -1,16 +1,12 @@
 ///|
 pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
-  fn int64_to_json(value : Int64) -> Json {
-    Json::number(value.to_double(), repr=value.to_string())
-  }
-
   let object : Map[String, Json] = { "name": self.name, "id": self.id }
   if self.system_prompt is Some(system_prompt) {
     object["system_prompt"] = system_prompt.to_json()
   }
   object["messages"] = self.messages.to_json()
-  object["created_at"] = int64_to_json(self.created_at).to_json()
-  object["updated_at"] = int64_to_json(self.updated_at).to_json()
+  object["created_at"] = self.created_at.to_json()
+  object["updated_at"] = self.updated_at.to_json()
   if self.description is Some(description) {
     object["description"] = description.to_json()
   }
@@ -66,7 +62,6 @@ pub impl @json.FromJson for Conversation with from_json(
       )
   }
   let created_at = match json.get("created_at") {
-    Some(Number(created_at, repr=None)) => created_at.to_int64()
     Some(created_at) =>
       @json.from_json(created_at, path=json_path.add_key("created_at"))
     None =>
@@ -75,7 +70,6 @@ pub impl @json.FromJson for Conversation with from_json(
       )
   }
   let updated_at = match json.get("updated_at") {
-    Some(Number(created_at, repr=None)) => created_at.to_int64()
     Some(updated_at) =>
       @json.from_json(updated_at, path=json_path.add_key("updated_at"))
     None =>
