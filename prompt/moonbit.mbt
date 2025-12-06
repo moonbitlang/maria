@@ -10,14 +10,52 @@ pub let moonbit : String =
   #|the metadata of the project. The project may contain multiple packages, each
   #|with its own `moon.pkg.json` file.
   #|
-  #|Here is some typical project layouts you may encounter:
+  #|Here are some typical project layouts you may encounter:
   #|
   #|- **Module**: When you see a `moon.mod.json` file in the project directory, you
   #|  are already in a MoonBit project.
+  #|  A MoonBit *module* is like a Go module.
+  #|  It is a collection of packages, usually corresponding to a repository or project.
+  #|  Module boundaries matter for dependency management and import paths.
+  #|  A module contains many packages in subdirectories.
+  #|
   #|- **Package**: When you see a `moon.pkg.json` file, but not a `moon.mod.json`
   #|  file, it means you are in a MoonBit package. All subcommands of `moon` will
   #|  still be executed in the directory of the module (where `moon.mod.json` is
   #|  located), not the current package.
+  #|  A MoonBit *package* is the actual compilation unit (like a Go package).
+  #|  All source files in the same package are concatenated into one unit.
+  #|  The `package` name in the source defines the package, not the file name.
+  #|  Imports refer to module + package paths, NEVER to file names.
+  #|
+  #|- **Files**:
+  #|  A `.mbt` file is just a chunk of source inside a package.
+  #|  File names do NOT create modules or namespaces.
+  #|  You may freely split/merge/move declarations between files in the same package.
+  #|  Any declaration in a package can reference any other declaration in that package, regardless of file.
+  #|
+  #|## Coding/layout rules you MUST follow:
+  #|
+  #|1. Prefer many small, cohesive files over one large file.
+  #|   - Group related types and functions into focused files (e.g. http_client.mbt, router.mbt).
+  #|   - If a file is getting large or unfocused, create a new file and move related declarations into it.
+  #|
+  #|2. You MAY freely move declarations between files inside the same package.
+  #|   - Moving a function/struct/trait between files does not change semantics, as long as its name and pub-ness stay the same.
+  #|   - It is safe to refactor by splitting or merging files inside a package.
+  #|
+  #|3. File names are purely organizational.
+  #|   - Do NOT assume file names define modules, and do NOT use file names in type paths.
+  #|   - Choose file names to describe a feature or responsibility, not to mirror type names rigidly.
+  #|
+  #|4. When adding new code:
+  #|   - Prefer adding it to an existing file that matches the feature.
+  #|   - If no good file exists, create a new file under the same package with a descriptive name.
+  #|   - Avoid creating giant “misc” or “util” files.
+  #|
+  #|5. Tests:
+  #|   - Place tests in dedicated test files (e.g. *_test.mbt) within the appropriate package.
+  #|   - It is fine—and encouraged—to have multiple small test files.
   #|
   #|## `.mbti` Files - Package Interface Documentation
   #|
@@ -43,13 +81,15 @@ pub let moonbit : String =
   #|.....
   #|```
   #|
-  #|**Reading `.mbti` files for API discovery**:
+  #|**When to use each approach**:
+  #|- Use `moon doc` for interactive API discovery (preferred, see "API Discovery with `moon doc`" section below)
+  #|- Read `.mbti` files directly when you need the complete API surface at once or when working offline
   #|
+  #|**Reading `.mbti` files for API discovery**:
   #|- **Start with `builtin/pkg.generated.mbti`** - contains core types (String, Int, Array, etc.) and their fundamental APIs
   #|- **Note**: Some builtin types like `String` expose APIs in both `builtin` and their dedicated packages (e.g., `String`)
   #|- **Local dependencies**: Find `.mbti` files in the `.mooncakes` directory by searching for `pkg.generated.mbti`
   #|- **Your own packages**: After running `moon info`, check the generated `.mbti` in each package directory to verify public API changes
-  #|
   #|# MoonBit Language Fundamentals
   #|
   #|## Core Facts
@@ -220,7 +260,6 @@ pub let moonbit : String =
   #|let a1 : Int = 'b' // this also works, a5 will be the unicode value
   #|let a2 : Char = 'b'
   #|```
-  #|
   #|## Bytes
   #|
   #|Bytes is immutable; Indexing (`b[i]`) returns a `Byte`.
@@ -231,7 +270,6 @@ pub let moonbit : String =
   #|let b2 : Bytes = [0xff, 0x00, 0x01] // Array literal overloading
   #|assert_eq(b0[0], b'a') // indexing returns Byte
   #|```
-  #|
   #|## Array
   #|
   #|MoonBit Array is resizable array, FixedArray is fixed size array.
@@ -252,7 +290,6 @@ pub let moonbit : String =
   #|
   #|```mbt test
   #|let s = "hello world"
-  #|
   #|let b0 : UInt16 = s.code_unit_at(0)
   #|assert_true(b0 is ('\n' | 'h' | 'b' | 'a'..='z'))
   #|// In check mode (expression with explicit type), ('\n' : Int) is valid.
@@ -982,9 +1019,10 @@ pub let moonbit : String =
   #|Example:
   #|
   #|```mbt
-  #|// In main.mbt after importing "username/hello/liba" in `moon.pkg.json`
+  #|///|
+  #|/// In main.mbt after importing "username/hello/liba" in `moon.pkg.json`
   #|fn main {
-  #|  println(@liba.hello())  // Calls hello() from liba package
+  #|  println(@liba.hello()) // Calls hello() from liba package
   #|}
   #|```
   #|
@@ -1135,13 +1173,13 @@ pub let moonbit : String =
   #|///
   #|/// # Example
   #|/// ```mbt test
-  #|/// inspect(sum_array([1,2,3,4,5,6]), content="21")
+  #|/// inspect(sum_array([1, 2, 3, 4, 5, 6]), content="21")
   #|/// ```
   #|///
   #|/// # Panics
   #|/// Panics if the `xs` is empty.
   #|pub fn sum_array(xs : Array[Int]) -> Int {
-  #|  xs.fold(init=0, (a,b)=> a +b)
+  #|  xs.fold(init=0, (a, b) => a + b)
   #|}
   #|```
   #|
@@ -1203,11 +1241,11 @@ pub let moonbit : String =
   #|
   #|## MoonBit Package `README` Generation Guide
   #|
-  #|- Output `README.mbt.md` in the package directory.
+  #|- Output `README.mbt.md` in the package directory. 
   #|  `*.mbt.md` file treats `mbt test` and `mbt check` specially, `mbt test` block will be wrapped using `test { ... }` and run by `moon check` and `moon test`.
-  #|  `mbt check` block will be included directly as code and also run by `moon check` and `moon test`.
+  #|  `mbt check` block will be included directly as code and also run by `moon check` and `moon test`. 
   #|  If you are only referencing types from the package, you should use `mbt` which will only be syntax highlighted.
-  #|  Symlink `README.mbt.md` to `README.md` to adapt to systems that expect `README.md`.
+  #|  Symlink `README.mbt.md` to `README.md` to adapt to systems that expect `README.md`. 
   #|- Aim to cover ≥90% of the public API with concise sections and examples.
   #|- Organize by feature: construction, consumption, transformation, and key usage tips.
   #|
@@ -1234,18 +1272,17 @@ pub let moonbit : String =
   #|### Query Syntax
   #|
   #|`moon doc` uses a specialized query syntax designed for symbol lookup:
-  #|
-  #|- **Empty query**: `moon doc`
+  #|- **Empty query**: `moon doc `
   #|
   #|  - In a module: shows all available packages in current module
   #|  - In a package: shows all symbols in current package
   #|  - Outside package: shows all available packages
   #|
   #|- **Function/value lookup**: `moon doc "[@pkg.]sym"`
+  #|  
+  #|- **Type lookup**: `moon doc "[@pkg.]Sym"`
   #|
-  #|- **Type lookup**: `moon doc  "[@pkg.]Sym"`
-  #|
-  #|- **Method/field lookup**: `moon doc  "[@pkg.]T::sym"`
+  #|- **Method/field lookup**: `moon doc "[@pkg.]T::sym"`
   #|
   #|- **Package exploration**: `moon doc "@pkg"`
   #|  - Show package `pkg` and list all its exported symbols
@@ -1260,12 +1297,11 @@ pub let moonbit : String =
   #|4. **Type inspection**: Use `moon doc "TypeName"` to see type definition and methods
   #|5. **Package exploration**: Use `moon doc ""` at module root to see all available packages, including dependencies and stdlib
   #|6. **Globbing**: Use `*` wildcard for partial matches, e.g. `moon doc "String::*rev*"` to find all String methods with "rev" in their name
-  #|
   #|### Examples
   #|
   #|````bash
   #|# search for String methods in standard library:
-  #|$ moon doc  "String"
+  #|$ moon doc "String"
   #|
   #|type String
   #|
@@ -1274,7 +1310,7 @@ pub let moonbit : String =
   #|  # ... more methods omitted ...
   #|
   #|# list all symbols in a standard library package:
-  #|$ moon doc  "@buffer"
+  #|$ moon doc "@buffer"
   #|moonbitlang/core/buffer
   #|
   #|fn from_array(ArrayView[Byte]) -> Buffer
@@ -1282,7 +1318,7 @@ pub let moonbit : String =
   #|# ... more functions omitted ...
   #|
   #|# list the specific function in a package:
-  #|$ moon doc  "@buffer.new"
+  #|$ moon doc "@buffer.new"
   #|package "moonbitlang/core/buffer"
   #|
   #|pub fn new(size_hint? : Int) -> Buffer
@@ -1291,7 +1327,7 @@ pub let moonbit : String =
   #|   1.
   #|# ... more details omitted ...
   #|
-  #|$ moon doc "String::*rev*"
+  #|$ moon doc "String::*rev*"  
   #|package "moonbitlang/core/string"
   #|
   #|pub fn String::rev(String) -> String
@@ -1303,6 +1339,5 @@ pub let moonbit : String =
   #|   substring. If the substring is not found, it returns None.
   #|
   #|# ... more details omitted ...
-  #|````
   #|
   #|**Best practice**: When implementing a feature, start with `moon doc` queries to discover available APIs before writing code. This is faster and more accurate than searching through files.
