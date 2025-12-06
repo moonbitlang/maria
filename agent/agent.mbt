@@ -248,24 +248,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
             agent.emit(MessageAdded(msg.message))
           }
         }
-
-        // Build the tools array for this API call
-        // Convert each registered tool into OpenAI's tool parameter format
-        let tools = []
-        for _, tool in agent.tools {
-          if tool.enabled {
-            let desc = tool.desc()
-            tools.push(desc)
-          }
-        }
+        let tools = agent.tools_desc()
         // Retrieve and clear the message queue
         // staged contains messages that need to be sent in this call
         // Build the complete message array for the API call
         // Start with conversation history, then append any queued messages
-        let messages = [
-          ..agent.history.messages(include_system=true),
-          ..agent.input_queue,
-        ]
+        let messages = [..agent.history.messages(), ..agent.input_queue]
 
         // Count tokens, prune if needed, and apply caching
         let cache_messages = agent.prepare_messages_for_request(
@@ -309,7 +297,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         // Emit event with API usage statistics and the returned message
         agent.emit(
           RequestCompleted(
-            usage=usage.map(fn(u) { @ai.Usage::from_openai(u) }),
+            usage=usage.map(u => @ai.Usage::from_openai(u)),
             message=ai_message,
           ),
         )

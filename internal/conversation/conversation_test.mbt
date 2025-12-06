@@ -35,13 +35,10 @@ test "Conversation::FromJson" {
     "updated_at": "2",
   }
   let conversation : @conversation.Conversation = @json.from_json(json)
-  @json.inspect(
-    conversation.messages(include_system=true).map(fn(m) { m.to_openai() }),
-    content=[
-      { "role": "system", "content": "This is a system prompt." },
-      { "role": "user", "content": "Hello" },
-    ],
-  )
+  @json.inspect(conversation.messages().map(fn(m) { m.to_openai() }), content=[
+    { "role": "system", "content": "This is a system prompt." },
+    { "role": "user", "content": "Hello" },
+  ])
   @json.inspect(
     conversation.messages(include_system=false).map(fn(m) { m.to_openai() }),
     content=[{ "role": "user", "content": "Hello" }],
