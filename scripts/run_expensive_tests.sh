@@ -1,4 +1,7 @@
 #!/bin/bash
+# shellcheck disable=SC2028
+set -e
+
 # Copyright 2025 International Digital Economy Academy
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +18,6 @@
 
 # Run expensive tests that are too slow or resource-intensive for regular CI.
 # This script is triggered by commenting `/run-expensive-tests` on a PR.
-
-set -e
 
 echo "=== Running Expensive Tests ==="
 echo "Starting at: $(date)"

@@ -20,10 +20,13 @@ on:
 
 jobs:
   expensive-tests:
-    # Must be a PR comment AND contain the trigger command
+    # Must be a PR comment AND contain the trigger command AND be from a team member
     if: >
       github.event.issue.pull_request &&
-      startsWith(github.event.comment.body, '/run-expensive-tests')
+      startsWith(github.event.comment.body, '/run-expensive-tests') &&
+      (github.event.comment.author_association == 'OWNER' ||
+       github.event.comment.author_association == 'MEMBER' ||
+       github.event.comment.author_association == 'COLLABORATOR')
     runs-on: ubuntu-latest
 
     env:

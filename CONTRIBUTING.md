@@ -85,7 +85,7 @@ To add these secrets:
 
 ### Running Expensive Tests
 
-Some tests are expensive (long-running, resource-heavy, or require special secrets) and don't run automatically on every PR. To trigger these tests on demand, comment the following on your pull request:
+Some tests are expensive (long-running, resource-heavy, or require special secrets) and don't run automatically on every PR. Team members (repository owners, members, and collaborators) can trigger these tests on demand by commenting the following on a pull request:
 
 ```
 /run-expensive-tests
