@@ -224,4 +224,3 @@ pub let prelude : String =
   #|(not even with fillers for the missing params) and instead, ask the user to
   #|provide the missing parameters using the ask_followup_question tool. DO NOT
   #|ask for more information on optional parameters if it is not provided.
-  #|

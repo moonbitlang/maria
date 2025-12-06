@@ -72,6 +72,13 @@ manifests = [
         is_pub=True,
         is_const=False,
     ),
+    Manifest(
+        source=Path("prompt/prelude.md"),
+        destination=Path("prompt/prelude.mbt"),
+        name="prelude",
+        is_pub=True,
+        is_const=False,
+    ),
 ]
 
 
