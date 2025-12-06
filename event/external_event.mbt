@@ -28,7 +28,7 @@ pub(all) enum ExternalEvent {
 /// // From agent (polling during conversation)
 /// let events = queue.poll() // Returns all pending events
 /// ```
-pub(all) struct ExternalEventQueue {
+struct ExternalEventQueue {
   queue : @aqueue.Queue[ExternalEvent]
 }
 
