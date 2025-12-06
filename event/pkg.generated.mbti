@@ -2,7 +2,6 @@
 package "moonbitlang/maria/event"
 
 import(
-  "moonbitlang/async/aqueue"
   "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/internal/uuid"
@@ -49,9 +48,7 @@ pub(all) enum ExternalEvent {
 }
 pub impl ToJson for ExternalEvent
 
-pub(all) struct ExternalEventQueue {
-  queue : @aqueue.Queue[ExternalEvent]
-}
+type ExternalEventQueue
 pub fn ExternalEventQueue::new() -> Self
 pub fn ExternalEventQueue::poll(Self) -> Array[ExternalEvent]
 pub fn ExternalEventQueue::send(Self, ExternalEvent) -> Unit

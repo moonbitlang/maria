@@ -167,6 +167,9 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 /// emitter.flush()
 /// save_checkpoint()
 /// ```
+/// CR: `listener` is suspendable, should we collcect all events
+/// and then call listeners outside of the loop to avoid racing?
+/// assuming listerns can take a long time
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
   while self.queue.try_get() is Some(Some(event)) {
     for listener in self.listeners {
