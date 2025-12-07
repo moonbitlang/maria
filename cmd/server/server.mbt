@@ -362,19 +362,10 @@ async fn Server::send_external_event(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = r.body.read_all().binary()
-  let body : String = @encoding/utf8.decode(body_data) catch {
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid UTF-8 in request body: \{bytes}",
-        },
-      })
-  }
-  let json : Json = @json.parse(body) catch {
-    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
-  }
+  let json : Json = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", { "error": error.to_string() })
+    }
   guard json is { "type": String(event_type), .. } else {
     raise json_error(400, "BadRequest", {
       "error": "Missing 'type' field in request body",
@@ -425,19 +416,10 @@ async fn Server::send_diagnostics_event(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = r.body.read_all().binary()
-  let body : String = @encoding/utf8.decode(body_data) catch {
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid UTF-8 in request body: \{bytes}",
-        },
-      })
-  }
-  let json : Json = @json.parse(body) catch {
-    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
-  }
+  let json : Json = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", { "error": error.to_string() })
+    }
   let diagnostics = match json {
     { "diagnostics": String(jsonl), .. } => @diagnostics.from_jsonl(jsonl)
     { "diagnostics": Array(_) as arr, .. } =>
@@ -474,19 +456,10 @@ async fn Server::send_user_message_event(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = r.body.read_all().binary()
-  let body : String = @encoding/utf8.decode(body_data) catch {
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid UTF-8 in request body: \{bytes}",
-        },
-      })
-  }
-  let json : Json = @json.parse(body) catch {
-    error => raise json_error(400, "BadRequest", { "error": error.to_string() })
-  }
+  let json : Json = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", { "error": error.to_string() })
+    }
   guard json is { "message": String(message), .. } else {
     raise json_error(400, "BadRequest", {
       "error": "Missing 'message' field in request body",

@@ -74,26 +74,15 @@ async fn publish_moonbit_module(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request = r.body.read_all().binary()
-  let request_text : String = @encoding/utf8.decode(request) catch {
-    // TODO(upstream): impl Show for @encoding/utf8.Malformed
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid UTF-8 in request body: \{bytes}",
-        },
-      })
-  }
-  let request_json = @json.parse(request_text) catch {
-    error =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid JSON in request body: \{error}",
-        },
-      })
-  }
+  let request_json = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid JSON in request body: \{error}",
+          },
+        })
+    }
   guard request_json is { "module": { "path": String(path), .. }, .. } else {
     raise json_error(400, "BadRequest", {
       "error": {
