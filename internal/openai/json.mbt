@@ -42,10 +42,12 @@ impl @json.FromJson for ChatCompletionMessageToolCallFunction with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageToolCallFunction {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
+  guard json is { "name": String(name), "arguments"? : arguments, .. } else {
+    raise @json.JsonDecodeError(
+      (json_path, "Expected an object with 'name' field"),
+    )
   }
-  let arguments = match json.get("arguments") {
+  let arguments = match arguments {
     Some(String(arguments)) => Some(arguments)
     Some(Null) => None
     Some(_) =>
@@ -53,9 +55,6 @@ impl @json.FromJson for ChatCompletionMessageToolCallFunction with from_json(
         (json_path, "Expected 'arguments' to be a string"),
       )
     None => None
-  }
-  guard json.get("name") is Some(String(name)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'name' field"))
   }
   ChatCompletionMessageToolCallFunction::{ arguments, name }
 }
@@ -72,14 +71,12 @@ impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageToolCall {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  guard json.get("id") is Some(String(id)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'id' field"))
-  }
-  guard json.get("function") is Some(function) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'function' field"))
+  guard json is { "id": String(id), "function": function, .. } else {
+    raise @json.JsonDecodeError(
+      (
+        json_path, "Expected an object with 'id' and 'function' fields, the `id` must be a string",
+      ),
+    )
   }
   let function : ChatCompletionMessageToolCallFunction = @json.from_json(
     function,
@@ -729,17 +726,26 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageParam {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected an object"))
-  }
-  guard json.get("role") is Some(String(role)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'role' field"))
+  guard json
+    is {
+      "role": "user"
+      | "assistant"
+      | "system"
+      | "tool" as role,
+      "content": content,
+      "name"? : name,
+      "tool_calls"? : tool_calls,
+      "tool_call_id"? : tool_call_id,
+      ..
+    } else {
+    raise @json.JsonDecodeError(
+      (
+        json_path, "Expected an object with a 'role' field which is one of 'user', 'assistant', 'system', or 'tool' and a 'content' field",
+      ),
+    )
   }
   match role {
     "user" => {
-      guard json.get("content") is Some(content) else {
-        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
-      }
       let content : Array[ChatCompletionContentPartParam] = match content {
         String(text) => [text_content_part(text)]
         Array(_) as parts =>
@@ -749,7 +755,7 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
             (json_path, "Expected 'content' to be a string or array"),
           )
       }
-      let name = match json.get("name") {
+      let name = match name {
         None | Some(Null) => None
         Some(String(name)) => Some(name)
         Some(_) =>
@@ -760,9 +766,6 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
       ChatCompletionMessageParam::User({ content, name })
     }
     "assistant" => {
-      guard json.get("content") is Some(content) else {
-        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
-      }
       let content : Array[ChatCompletionContentPartParam] = match content {
         String(text) => [text_content_part(text)]
         Array(_) as parts =>
@@ -772,7 +775,7 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
             (json_path, "Expected 'content' to be a string or array"),
           )
       }
-      let name = match json.get("name") {
+      let name = match name {
         None | Some(Null) => None
         Some(String(name)) => Some(name)
         Some(_) =>
@@ -780,7 +783,7 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
             (json_path, "Expected 'name' to be a string"),
           )
       }
-      guard json.get("tool_calls") is Some(tool_calls) else {
+      guard tool_calls is Some(tool_calls) else {
         raise @json.JsonDecodeError((json_path, "Missing 'tool_calls' field"))
       }
       let tool_calls : Array[ChatCompletionMessageToolCallParam] = @json.from_json(
@@ -790,9 +793,6 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
       ChatCompletionMessageParam::Assistant({ content, name, tool_calls })
     }
     "system" => {
-      guard json.get("content") is Some(content) else {
-        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
-      }
       let content : Array[ChatCompletionContentPartParam] = match content {
         String(text) => [text_content_part(text)]
         Array(_) as parts =>
@@ -802,7 +802,7 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
             (json_path, "Expected 'content' to be a string or array"),
           )
       }
-      let name = match json.get("name") {
+      let name = match name {
         None | Some(Null) => None
         Some(String(name)) => Some(name)
         Some(_) =>
@@ -813,9 +813,6 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
       ChatCompletionMessageParam::System({ content, name })
     }
     "tool" => {
-      guard json.get("content") is Some(content) else {
-        raise @json.JsonDecodeError((json_path, "Missing 'content' field"))
-      }
       let content : Array[ChatCompletionContentPartParam] = match content {
         String(text) => [text_content_part(text)]
         Array(_) as parts =>
@@ -825,12 +822,12 @@ pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
             (json_path, "Expected 'content' to be a string or array"),
           )
       }
-      guard json.get("tool_call_id") is Some(String(tool_call_id)) else {
+      guard tool_call_id is Some(String(tool_call_id)) else {
         raise @json.JsonDecodeError((json_path, "Missing 'tool_call_id' field"))
       }
       ChatCompletionMessageParam::Tool({ content, tool_call_id })
     }
-    _ => raise @json.JsonDecodeError((json_path, "Unknown role: \{role}"))
+    _ => abort("unreachable")
   }
 }
 
