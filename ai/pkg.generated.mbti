@@ -31,6 +31,7 @@ pub fn Message::content(Self) -> String
 pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
 pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
 pub fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
+pub impl ToJson for Message
 
 pub struct ToolCall {
   id : String
@@ -39,6 +40,7 @@ pub struct ToolCall {
 }
 pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
 pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
+pub impl ToJson for ToolCall
 
 pub struct Usage {
   input_tokens : Int

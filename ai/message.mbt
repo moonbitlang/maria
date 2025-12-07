@@ -4,7 +4,7 @@ pub enum Message {
   System(String)
   Assistant(String, tool_calls~ : Array[ToolCall])
   Tool(String, tool_call_id~ : String)
-}
+} derive(ToJson)
 
 ///|
 pub fn user_message(content~ : String) -> Message {
@@ -44,7 +44,7 @@ pub struct ToolCall {
   id : String
   name : String
   arguments : String?
-}
+} derive(ToJson)
 
 ///|
 pub fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall {
