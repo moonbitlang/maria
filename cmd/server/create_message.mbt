@@ -42,26 +42,15 @@ async fn Server::create_message(
   r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_data = r.body.read_all().binary()
-  let body_text : String = @encoding/utf8.decode(body_data) catch {
-    // TODO(upstream): impl Show for @encoding/utf8.Malformed
-    @encoding/utf8.Malformed(bytes) =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid UTF-8 in request body: \{bytes}",
-        },
-      })
-  }
-  let body_json = @json.parse(body_text) catch {
-    error =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid JSON in request body: \{error}",
-        },
-      })
-  }
+  let body_json = r.body.read_all().json() catch {
+      error =>
+        raise json_error(400, "BadRequest", {
+          "error": {
+            "code": -1,
+            "message": "Invalid JSON in request body: \{error}",
+          },
+        })
+    }
   let request : CreateMessageRequest = @json.from_json(body_json) catch {
     @json.JsonDecodeError(_) as error =>
       raise json_error(400, "BadRequest", {
