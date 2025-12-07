@@ -1,6 +1,6 @@
 ///|
 priv struct CreateMessageRequest {
-  message : @openai.ChatCompletionMessageParam
+  message : @ai.Message
   web_search : Bool?
 }
 
@@ -19,7 +19,7 @@ impl @json.FromJson for CreateMessageRequest with from_json(
     { "web_search": ws, .. } => Some(@json.from_json(ws))
     _ => None
   }
-  { message, web_search }
+  { message: @ai.Message::from_openai(message), web_search }
 }
 
 ///|
@@ -29,10 +29,7 @@ test "CreateMessageRequest::from_json" {
     "web_search": true,
   }
   let req : CreateMessageRequest = @json.from_json(json)
-  @json.inspect(req.message, content={
-    "role": "user",
-    "content": "Hello, world!",
-  })
+  @json.inspect(req.message, content=["User", "Hello, world!"])
   @json.inspect(req.web_search, content=[true])
 }
 

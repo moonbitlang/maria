@@ -195,14 +195,14 @@ async fn Server::start_maria(self : Server) -> Unit {
     @async.with_task_group(group => {
       let (msg, idq) = self.message_queue.get()
       let id = self.maria.agent.queue_message(
-        @ai.Message::from_openai(msg.message),
+        msg.message,
         web_search?=msg.web_search,
       )
       group.spawn_bg(
         () => while true {
           let (msg, idq) = self.message_queue.get()
           let id = self.maria.agent.queue_message(
-            @ai.Message::from_openai(msg.message),
+            msg.message,
             web_search?=msg.web_search,
           )
           idq.put((id, true))
