@@ -1,5 +1,5 @@
 ///|
-let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
+let schema : @tool.JsonSchema = {
   "type": "object",
   "properties": {
     "content": {
@@ -17,7 +17,7 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
     },
   },
   "required": ["path", "content"],
-})
+}
 
 ///|
 priv struct Params {
@@ -65,10 +65,22 @@ pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
 ///|
 pub fn new(cwd : String) -> @tool.Tool[Result] {
   @tool.new(
-    description="Write content to a file at the specified path. If the file doesn't exist, it will be created. If the file exists, the content will be appended. This tool will automatically create any directories needed to write the file.",
+    description=(
+      $|Write content to a file at the specified path. 
+      $|If the file doesn't exist, it will be created. 
+      $|If the file exists, the content will be appended. 
+      $|This tool will automatically create any directories needed to write the file.
+      $|
+      $|When writing a MoonBit source file:
+      $|- Remember: all files in a package are concatenated.
+      $|- Do NOT create “god files”; prefer multiple small files.
+      $|- You MAY create new files instead of expanding existing ones.
+      $|- You MAY move declarations between files within a package.
+      $|
+    ),
     name="write_to_file",
     schema~,
-    async fn(args) -> @tool.ToolResult[Result] noraise {
+    args => {
       let { path, separator, content } : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}")
       }
