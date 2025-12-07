@@ -71,18 +71,9 @@ async fn Server::list_moonbit_modules(
 
 ///|
 async fn publish_moonbit_module(
-  r : @httpx.RequestReader,
+  request_json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request_json = r.body.read_all().json() catch {
-      error =>
-        raise json_error(400, "BadRequest", {
-          "error": {
-            "code": -1,
-            "message": "Invalid JSON in request body: \{error}",
-          },
-        })
-    }
   guard request_json is { "module": { "path": String(path), .. }, .. } else {
     raise json_error(400, "BadRequest", {
       "error": {

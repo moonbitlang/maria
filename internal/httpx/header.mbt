@@ -22,6 +22,11 @@ pub fn Header::set(self : Header, key : String, value : String) -> Unit {
 }
 
 ///|
+pub fn Header::config(self : Header, config : Map[String, String]) -> Unit {
+  self.0.merge_in_place(config)
+}
+
+///|
 pub fn Header::add(self : Header, key : String, value : String) -> Unit {
   match self.0.get(key) {
     Some(existing) => self.0[key] = "\{existing}, \{value}"

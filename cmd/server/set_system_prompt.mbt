@@ -16,29 +16,18 @@ impl @json.FromJson for PostSystemPromptRequest with from_json(
 ///|
 async fn Server::set_system_prompt(
   self : Server,
-  r : @httpx.RequestReader,
+  json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let req : PostSystemPromptRequest = {
-    let json = r.body.read_all().json() catch {
-        error =>
-          raise json_error(400, "BadRequest", {
-            "error": {
-              "code": -1,
-              "message": "Invalid JSON in request body: \{error}",
-            },
-          })
-      }
-    @json.from_json(json) catch {
-      @json.JsonDecodeError(_) as error =>
-        raise json_error(400, "BadRequest", {
-          "error": {
-            "code": -1,
-            "message": "Invalid request body: \{error}",
-            "data": { "error": error, "body": json },
-          },
-        })
-    }
+  let req : PostSystemPromptRequest = @json.from_json(json) catch {
+    @json.JsonDecodeError(_) as error =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid request body: \{error}",
+          "data": { "error": error, "body": json },
+        },
+      })
   }
   self.maria.agent.set_system_prompt(req.0)
   let res : Json = {}
