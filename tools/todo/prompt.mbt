@@ -29,20 +29,18 @@ pub let prompt : String =
   #|
   #|### Writing/Managing Tasks
   #|
-  #|Use write actions (create, add_task, update, mark_progress, mark_completed) proactively in these scenarios, but ONLY AFTER thorough project exploration:
+  #|Use write actions (create, add_task, update, mark_progress, mark_completed) proactively in these scenarios:
   #|
-  #|- **FIRST EXPLORE THE PROJECT**: Always start with project exploration using
-  #|  search_files, execute_command, and AC module searches
   #|- **Complex multi-step tasks**: When a task requires 3 or more distinct steps or
-  #|  actions
+  #|  actions - create the todo list FIRST, then explore as needed for each step
   #|- **Non-trivial and complex tasks**: Tasks that require careful planning or
   #|  multiple operations
   #|- **User explicitly requests todo list**: When the user directly asks you to use
   #|  the todo list
   #|- **User provides multiple tasks**: When users provide a list of things to be
-  #|  done (numbered or comma-separated)
+  #|  done (numbered or comma-separated) - capture these immediately
   #|- **After receiving new instructions**: Immediately capture user requirements as
-  #|  todos, but explore the codebase first
+  #|  high-level todos, then refine as you explore
   #|- **When you start working on a task**: Mark it as in_progress BEFORE beginning
   #|  work (ideally only one task should be in_progress at a time)
   #|- **After completing a task**: Mark it as completed and add any new follow-up
@@ -100,14 +98,16 @@ pub let prompt : String =
   #|
   #|By using this TODO tool effectively, you can maintain better organization, provide clear progress visibility, and demonstrate a systematic approach to complex coding tasks.
   #|
-  #|IMPORTANT: BEFORE USING TODO TOOL FOR TASK MANAGEMENT, ALWAYS CONDUCT THOROUGH PROJECT EXPLORATION FIRST!
+  #|## Best Practice Workflow
   #|
-  #|Begin every task by systematically exploring the project:
+  #|For complex tasks, follow this recommended workflow:
   #|
-  #|1. Use search_files to understand the project structure and locate relevant files
-  #|2. Use execute_command with grep patterns to find specific code patterns and implementations
-  #|3. Search for existing AC modules that might provide functionality you can reuse
+  #|1. **Create high-level todos immediately** when you identify a complex task
+  #|2. **Explore the project** as needed to refine your understanding of each task
+  #|3. **Update todos** with more specific subtasks as you learn more about the codebase
+  #|4. **Mark tasks in-progress** as you begin working on them
+  #|5. **Mark completed** promptly after finishing each task
   #|
-  #|Only after gathering sufficient information about the project structure, existing patterns, and available modules should you proceed to planning tasks with TODO tools.
+  #|This approach allows you to organize work upfront while remaining flexible to adjust plans as you discover more about the project.
   #|
   #|The TODO tool helps you manage and track task progress during complex coding sessions. It provides structured task management capabilities that enhance productivity and demonstrate thoroughness to users.

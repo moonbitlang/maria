@@ -166,11 +166,16 @@ pub let prelude : String =
   #|   necessary. Each goal should correspond to a distinct step in your
   #|   problem-solving process.
   #|
-  #|4. Before you prepare to modify the code, ALWAYS check if you need to create
-  #|   a todo list using <todo/> to help you handle complex or long task.
-  #|   Utilize the <todo/> tool extensively to organize work and provide
-  #|   visibility into your progress. This is essential for planning and ensures
-  #|   important steps aren't forgotten.
+  #|4. For complex or multi-step tasks, you MUST create a todo list using <todo/>
+  #|   before beginning implementation. This helps you organize work and provide
+  #|   visibility into your progress. Task tracking is essential for planning and
+  #|   ensures important steps aren't forgotten.
+  #|   
+  #|   A task is considered complex if it involves:
+  #|   - 3 or more distinct implementation steps
+  #|   - Multiple files or components to modify
+  #|   - User provides multiple numbered or listed requirements
+  #|   - Coordination between different parts of the codebase
   #|
   #|   a. Break complex work into logical, actionable steps that can be tracked
   #|      and verified. Update task status consistently throughout execution
