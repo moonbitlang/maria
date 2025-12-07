@@ -165,7 +165,9 @@ pub fn[Output : ToJson + Show] Agent::add_tool(
 fn Agent::tools_desc(self : Agent) -> Array[@tool.ToolDesc] {
   let descs = []
   for _, tool in self.tools {
-    descs.push(tool.desc())
+    if tool.enabled {
+      descs.push(tool.desc())
+    }
   }
   descs
 }
