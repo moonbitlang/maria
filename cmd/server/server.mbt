@@ -127,20 +127,44 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Post, "/v1/cancel") => self.cancel_maria(w)
           (Get, "/v1/queued-messages") => self.get_queued_messages(w)
           (Get, "/v1/events") => self.get_events(w)
-          (Post, "/v1/message") => self.create_message(r, w)
-          (Post, "/v1/external-event") => self.send_external_event(r, w)
-          (Post, "/v1/external-event/diagnostics") =>
-            self.send_diagnostics_event(r, w)
-          (Post, "/v1/external-event/user-message") =>
-            self.send_user_message_event(r, w)
           (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
           (Get, "/v1/tools") => self.get_tools(w)
-          (Post, "/v1/enabled-tools") => self.set_enabled_tools(r, w)
           (Get, "/v1/system-prompt") => self.get_system_prompt(w)
-          (Post, "/v1/system-prompt") => self.set_system_prompt(r, w)
           (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
-          (Post, "/v1/moonbit/publish") => publish_moonbit_module(r, w)
           (Get, _) => file_server.handle(r, w)
+          (
+            Post,
+            "/v1/message"
+            | "/v1/external-event"
+            | "/v1/external-event/diagnostics"
+            | "/v1/external-event/user-message"
+            | "/v1/enabled-tools"
+            | "/v1/system-prompt"
+            | "/v1/moonbit/publish",
+          ) => {
+            // Parse JSON once for all POST endpoints that need it
+            let json = r.body.read_all().json() catch {
+                error =>
+                  raise json_error(400, "BadRequest", {
+                    "error": {
+                      "code": -1,
+                      "message": "Invalid JSON in request body: \{error}",
+                    },
+                  })
+              }
+            match r.path {
+              "/v1/message" => self.create_message(json, w)
+              "/v1/external-event" => self.send_external_event(json, w)
+              "/v1/external-event/diagnostics" =>
+                self.send_diagnostics_event(json, w)
+              "/v1/external-event/user-message" =>
+                self.send_user_message_event(json, w)
+              "/v1/enabled-tools" => self.set_enabled_tools(json, w)
+              "/v1/system-prompt" => self.set_system_prompt(json, w)
+              "/v1/moonbit/publish" => publish_moonbit_module(json, w)
+              _ => fail("unreachable")
+            }
+          }
           _ => {
             w.header().set("Content-Type", "application/json")
             w.write_header(404)
@@ -359,13 +383,9 @@ async fn Server::get_system_prompt(
 /// ```
 async fn Server::send_external_event(
   self : Server,
-  r : @httpx.RequestReader,
+  json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let json : Json = r.body.read_all().json() catch {
-      error =>
-        raise json_error(400, "BadRequest", { "error": error.to_string() })
-    }
   guard json is { "type": String(event_type), .. } else {
     raise json_error(400, "BadRequest", {
       "error": "Missing 'type' field in request body",
@@ -413,13 +433,9 @@ async fn Server::send_external_event(
 /// ```
 async fn Server::send_diagnostics_event(
   self : Server,
-  r : @httpx.RequestReader,
+  json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let json : Json = r.body.read_all().json() catch {
-      error =>
-        raise json_error(400, "BadRequest", { "error": error.to_string() })
-    }
   let diagnostics = match json {
     { "diagnostics": String(jsonl), .. } => @diagnostics.from_jsonl(jsonl)
     { "diagnostics": Array(_) as arr, .. } =>
@@ -453,13 +469,9 @@ async fn Server::send_diagnostics_event(
 /// ```
 async fn Server::send_user_message_event(
   self : Server,
-  r : @httpx.RequestReader,
+  json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let json : Json = r.body.read_all().json() catch {
-      error =>
-        raise json_error(400, "BadRequest", { "error": error.to_string() })
-    }
   guard json is { "message": String(message), .. } else {
     raise json_error(400, "BadRequest", {
       "error": "Missing 'message' field in request body",

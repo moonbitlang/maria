@@ -45,6 +45,7 @@ pub fn Handler::inner(Self) -> async (RequestReader, ResponseWriter) -> Unit
 
 type Header
 pub fn Header::add(Self, String, String) -> Unit
+pub fn Header::config(Self, Map[String, String]) -> Unit
 pub fn Header::new() -> Self
 pub fn Header::set(Self, String, String) -> Unit
 pub impl Show for Header

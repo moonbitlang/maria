@@ -39,18 +39,9 @@ test "CreateMessageRequest::from_json" {
 ///|
 async fn Server::create_message(
   self : Server,
-  r : @httpx.RequestReader,
+  body_json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let body_json = r.body.read_all().json() catch {
-      error =>
-        raise json_error(400, "BadRequest", {
-          "error": {
-            "code": -1,
-            "message": "Invalid JSON in request body: \{error}",
-          },
-        })
-    }
   let request : CreateMessageRequest = @json.from_json(body_json) catch {
     @json.JsonDecodeError(_) as error =>
       raise json_error(400, "BadRequest", {

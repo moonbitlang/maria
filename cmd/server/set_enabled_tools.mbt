@@ -13,29 +13,18 @@ impl @json.FromJson for PostEnabledToolsRequest with from_json(
 ///|
 async fn Server::set_enabled_tools(
   self : Server,
-  r : @httpx.RequestReader,
+  json : Json,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request : PostEnabledToolsRequest = {
-    let json = r.body.read_all().json() catch {
-        error =>
-          raise json_error(400, "BadRequest", {
-            "error": {
-              "code": -1,
-              "message": "Invalid JSON in request body: \{error}",
-            },
-          })
-      }
-    @json.from_json(json) catch {
-      @json.JsonDecodeError(_) as error =>
-        raise json_error(400, "BadRequest", {
-          "error": {
-            "code": -1,
-            "message": "Invalid request body: \{error}",
-            "data": { "error": error, "body": json },
-          },
-        })
-    }
+  let request : PostEnabledToolsRequest = @json.from_json(json) catch {
+    @json.JsonDecodeError(_) as error =>
+      raise json_error(400, "BadRequest", {
+        "error": {
+          "code": -1,
+          "message": "Invalid request body: \{error}",
+          "data": { "error": error, "body": json },
+        },
+      })
   }
   let tools = Set::new()
   for tool_name in request.0 {
