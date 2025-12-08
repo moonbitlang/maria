@@ -1,4 +1,4 @@
 {
   "import": ["moonbitlang/x/codec/base64", "moonbitlang/regexp"],
-  "warn-list": "-2"
+  "warn-list": "-2-33"
 }

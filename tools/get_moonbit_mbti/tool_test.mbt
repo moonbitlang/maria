@@ -20,8 +20,8 @@ async test "get_moonbit_mbti" (t : @test.Test) {
         #|// Types and methods
         #|type Set[K]
         #|#alias(insert, deprecated)
-        #|fn[K : Hash + Eq] Set::add(Self[K], K) -> Unit
-        #|fn[K : Hash + Eq] Set::add_and_check(Self[K], K) -> Bool
+        #|pub fn[K : Hash + Eq] Set::add(Self[K], K) -> Unit
+        #|pub fn[K : Hash + Eq] Set::add_and_check(Self[K], K) -> Bool
       ),
     )
   })
