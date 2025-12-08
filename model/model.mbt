@@ -8,17 +8,17 @@ pub struct Model {
   base_url : String
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
-} derive(ToJson)
+} derive(ToJson, Eq, Show)
 
 ///|
 pub(all) enum Provider {
   OpenAI
-}
+} derive(Eq, Show)
 
 ///|
 pub(all) enum Type {
   SaaS(Provider)
-}
+} derive(Eq, Show)
 
 ///|
 /// Create a new model configuration describing how to reach a provider

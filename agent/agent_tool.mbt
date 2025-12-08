@@ -106,7 +106,7 @@ async fn Agent::execute_tool(
   }
   let (result, rendered) = match tool.call(arguments) {
     Ok((json, text)) => (Ok(json), text)
-    Error(error, text) => (Err(error), text)
+    Error(error, text) => (Err(error.to_json()), text)
   }
   agent.emit(PostToolCall(tool_call, result~, rendered~))
   @ai.tool_message(content=rendered, tool_call_id=tool_call.id)

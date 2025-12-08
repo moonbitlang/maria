@@ -19,6 +19,8 @@ pub(all) struct JsonSchema(Json)
 pub fn JsonSchema::from_json(Json) -> Self
 #deprecated
 pub fn JsonSchema::inner(Self) -> Json
+pub impl Eq for JsonSchema
+pub impl Show for JsonSchema
 pub impl ToJson for JsonSchema
 
 pub struct Tool[Output] {
@@ -37,6 +39,8 @@ pub struct ToolDesc {
   schema : JsonSchema
 }
 pub fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
+pub impl Eq for ToolDesc
+pub impl Show for ToolDesc
 pub impl ToJson for ToolDesc
 
 pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)

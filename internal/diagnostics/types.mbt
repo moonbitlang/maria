@@ -3,7 +3,7 @@
 pub(all) enum Level {
   Error
   Warning
-} derive(Show, ToJson)
+} derive(Show, ToJson, Eq)
 
 ///|
 pub impl @json.FromJson for Level with from_json(
@@ -22,14 +22,14 @@ pub impl @json.FromJson for Level with from_json(
 pub(all) struct Pos {
   col : Int
   line : Int
-} derive(Show, ToJson, FromJson)
+} derive(Show, ToJson, FromJson, Eq)
 
 ///|
 pub(all) struct Loc {
   end : Pos
   path : String
   start : Pos
-} derive(Show, ToJson, FromJson)
+} derive(Show, ToJson, FromJson, Eq)
 
 ///|
 // FromJson is used when parsing `moon check --output json`
@@ -38,4 +38,4 @@ pub(all) struct Diagnostic {
   level : Level
   loc : Loc
   message : String
-} derive(Show, ToJson, FromJson)
+} derive(Show, ToJson, FromJson, Eq)
