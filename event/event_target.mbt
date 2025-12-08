@@ -22,8 +22,8 @@ struct EventTarget {
   // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
   // This would make the termination signal explicit in the type system rather
   // than using `None` as a sentinel value.
-  queue : @aqueue.Queue[Event?]
-  listeners : Array[async (Event) -> Unit]
+  queue : @aqueue.Queue[OutgoingEvent?]
+  listeners : Array[async (OutgoingEvent) -> Unit]
 }
 
 ///|
@@ -74,7 +74,7 @@ pub fn EventTarget::new() -> EventTarget {
 /// emitter.emit(TokenCounted(1500))
 /// emitter.emit(PostConversation)
 /// ```
-pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
+pub fn EventTarget::emit(self : EventTarget, event : OutgoingEvent) -> Unit {
   guard self.queue.try_put(Some(event)) else {
     abort("Event queue is full, cannot emit event")
   }
@@ -111,7 +111,7 @@ pub fn EventTarget::emit(self : EventTarget, event : Event) -> Unit {
 /// ```
 pub fn EventTarget::add_listener(
   self : EventTarget,
-  f : async (Event) -> Unit,
+  f : async (OutgoingEvent) -> Unit,
 ) -> Unit {
   self.listeners.push(f)
 }

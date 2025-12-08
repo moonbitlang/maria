@@ -15,6 +15,31 @@ import(
 
 // Types and methods
 pub(all) enum Event {
+  Incoming(ExternalEvent)
+  Outgoing(OutgoingEvent)
+}
+
+type EventTarget
+pub fn EventTarget::add_listener(Self, async (OutgoingEvent) -> Unit) -> Unit
+pub async fn EventTarget::close(Self) -> Unit
+pub fn EventTarget::emit(Self, OutgoingEvent) -> Unit
+pub async fn EventTarget::flush(Self) -> Unit
+pub fn EventTarget::new() -> Self
+pub async fn EventTarget::start(Self) -> Unit
+
+pub(all) enum ExternalEvent {
+  Diagnostics(@diagnostics.Diagnostics)
+  UserCancellation
+  UserMessage(String)
+}
+pub impl ToJson for ExternalEvent
+
+type ExternalEventQueue
+pub fn ExternalEventQueue::new() -> Self
+pub fn ExternalEventQueue::poll(Self) -> Array[ExternalEvent]
+pub fn ExternalEventQueue::send(Self, ExternalEvent) -> Unit
+
+pub(all) enum OutgoingEvent {
   ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
@@ -31,27 +56,7 @@ pub(all) enum Event {
   Cancelled
   TodoUpdated(Json)
 }
-pub impl ToJson for Event
-
-type EventTarget
-pub fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
-pub async fn EventTarget::close(Self) -> Unit
-pub fn EventTarget::emit(Self, Event) -> Unit
-pub async fn EventTarget::flush(Self) -> Unit
-pub fn EventTarget::new() -> Self
-pub async fn EventTarget::start(Self) -> Unit
-
-pub(all) enum ExternalEvent {
-  Diagnostics(@diagnostics.Diagnostics)
-  UserCancellation
-  UserMessage(String)
-}
-pub impl ToJson for ExternalEvent
-
-type ExternalEventQueue
-pub fn ExternalEventQueue::new() -> Self
-pub fn ExternalEventQueue::poll(Self) -> Array[ExternalEvent]
-pub fn ExternalEventQueue::send(Self, ExternalEvent) -> Unit
+pub impl ToJson for OutgoingEvent
 
 // Type aliases
 
