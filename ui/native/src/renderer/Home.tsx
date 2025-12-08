@@ -1,5 +1,8 @@
 import { useAppDispatch, useAppSelector } from "@maria/core/app/hooks.ts";
-import { TaskPromptInput } from "@maria/core/components/task-prompt-input.tsx";
+import {
+  TaskPromptInput,
+  type TaskPromptInputHandle,
+} from "@maria/core/components/task-prompt-input.tsx";
 import {
   PromptInputButton,
   PromptInputTools,
@@ -25,7 +28,7 @@ import {
 } from "@maria/core/features/session/tasksSlice.ts";
 import { base } from "@maria/core/lib/utils.js";
 import { Folder, X } from "lucide-react";
-import { useEffect, useRef, type FormEvent } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 
 export default function Home() {
@@ -34,20 +37,21 @@ export default function Home() {
   const webSearchEnabled = useAppSelector(selectWebSearchEnabled);
   const baseCwd = cwd ? base(cwd) : undefined;
   const navigate = useNavigate();
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const ref = useRef<TaskPromptInputHandle>(null);
   const [postNewTask] = useNewTaskMutation();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    ref.current?.focus();
+    if (ref.current) {
+      ref.current.focus();
+    }
   });
 
   useEffect(() => {
     dispatch(setActiveTaskId(undefined));
   }, [dispatch]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     dispatch(setInput("")); // Clear input field
     dispatch(setCwd(undefined)); // Clear cwd
     const { data } = await postNewTask({
@@ -69,7 +73,6 @@ export default function Home() {
       <div className="p-4">
         <TaskPromptInput
           ref={ref}
-          value={input}
           onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
           placeholder="Input your task..."

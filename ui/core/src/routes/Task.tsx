@@ -1,12 +1,15 @@
 import type { ChatStatus } from "ai";
 import { Clock, Folder } from "lucide-react";
-import { Fragment, useEffect, useRef, type FormEvent } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 import { useAppSelector } from "../app/hooks.ts";
 import { AgentTodos } from "../components/agent-todos.tsx";
 import { EventsDisplay } from "../components/events-display.tsx";
-import { TaskPromptInput } from "../components/task-prompt-input.tsx";
+import {
+  TaskPromptInput,
+  type TaskPromptInputHandle,
+} from "../components/task-prompt-input.tsx";
 import { ScrollArea } from "../components/ui/scroll-area.tsx";
 import { Separator } from "../components/ui/separator.tsx";
 import {
@@ -54,7 +57,7 @@ function PromptInput({ taskId }: { taskId: string }) {
   const webSearchEnabled = useAppSelector((state) =>
     selectWebSearchEnabledForTask(state, taskId),
   )!;
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const ref = useRef<TaskPromptInputHandle>(null);
   const [postMessage] = usePostMessageMutation();
   const [postCancel] = usePostCancelMutation();
   const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
@@ -99,11 +102,11 @@ function PromptInput({ taskId }: { taskId: string }) {
     } else if (error) {
       console.error(error);
     }
+    ref.current?.clear();
     setInput("");
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit() {
     if (taskStatus === "idle") {
       await addMessage();
     } else if (taskStatus === "generating" && input.trim() !== "") {
@@ -123,7 +126,6 @@ function PromptInput({ taskId }: { taskId: string }) {
   return (
     <TaskPromptInput
       ref={ref}
-      value={input}
       onChange={setInput}
       onSubmit={handleSubmit}
       chatStatus={chatStatus}
@@ -216,27 +218,6 @@ function Events({ taskId }: { taskId: string }) {
   return <EventsDisplay events={events ?? []} />;
 }
 
-// function LoadingInput() {
-//   return (
-//     <div className="flex flex-col p-4">
-//       <TaskPromptInput
-//         value=""
-//         onChange={() => {}}
-//         onSubmit={(e) => e.preventDefault()}
-//         chatStatus="streaming"
-//         placeholder="Input your task..."
-//         inputTools={
-//           <PromptInputTools>
-//             <PromptInputButton>
-//               <Folder size={16} />
-//             </PromptInputButton>
-//           </PromptInputTools>
-//         }
-//       />
-//     </div>
-//   );
-// }
-
 export default function Task() {
   const params = useParams();
 
@@ -251,7 +232,7 @@ export default function Task() {
   if (isLoading) {
     return (
       <div className="relative flex min-h-0 flex-1 flex-col justify-end">
-        {/* <Input taskId={taskId} /> */}
+        <Input taskId={taskId} />
       </div>
     );
   }
