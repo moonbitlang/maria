@@ -127,7 +127,17 @@ async fn execute_read_file_tool(
 ///|
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
   @tool.new(
-    description="Read the contents of a file at the specified path. Use this when you need to examine the contents of an existing file, for example to analyze code, review text files, or extract information from configuration files. For very large files (>30k tokens), the tool will automatically extract relevant sections based on the provided query to manage token usage efficiently. Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).",
+    description=(
+      #|Read the contents of a file at the specified path. 
+      #|Use this when you need to examine the contents of an existing file,
+      #| for example to analyze code, review text files, or extract information from configuration files. 
+      #|For very large files (>30k tokens), the tool will automatically extract relevant sections based on 
+      #|the provided query to manage token usage efficiently. 
+      #|Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).
+      #|
+      #|When reading a MoonBit file:
+      #|- The file is only part of the package; look at other files before concluding structure.
+    ),
     name="read_file",
     schema~,
     @tool.ToolFn(async fn(
