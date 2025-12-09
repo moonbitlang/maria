@@ -189,3 +189,9 @@ export type DaemonTaskSyncEvent = {
 export type DaemonTaskChangeEvent = {
   task: TaskOverview;
 };
+
+type platform = "web" | "electron" | "vsc-webview";
+
+export type RAL = {
+  platform: platform;
+};
