@@ -16,6 +16,7 @@ import(
 type Conversation
 pub fn Conversation::add_message(Self, @ai.Message, usage? : @ai.Usage) -> Unit
 pub fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
+pub fn Conversation::cwd(Self) -> StringView
 pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
 pub fn Conversation::export_to_markdown(Self) -> String
 pub fn Conversation::id(Self) -> String

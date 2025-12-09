@@ -10,6 +10,7 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   if self.description is Some(description) {
     object["description"] = description.to_json()
   }
+  object["cwd"] = self.cwd.to_json()
   object.to_json()
 }
 
@@ -77,6 +78,11 @@ pub impl @json.FromJson for Conversation with from_json(
         (json_path.add_key("updated_at"), "Missing field"),
       )
   }
+  let cwd = match json.get("cwd") {
+    Some(cwd) => @json.from_json(cwd, path=json_path.add_key("cwd"))
+    None =>
+      raise @json.JsonDecodeError((json_path.add_key("cwd"), "Missing field"))
+  }
   Conversation::{
     clock: @clock.epoch,
     name,
@@ -86,6 +92,7 @@ pub impl @json.FromJson for Conversation with from_json(
     messages,
     created_at,
     updated_at,
+    cwd,
   }
 }
 
