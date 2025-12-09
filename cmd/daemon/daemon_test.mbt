@@ -643,7 +643,7 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
       })
       let (r, _) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/cancel",
-        Json::null(),
+        null,
       )
       @json.inspect(r.code, content=200)
       let events = collector.wait()

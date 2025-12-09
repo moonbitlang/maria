@@ -733,7 +733,7 @@ async test "GET /v1/system-prompt" (t : @test.Test) {
     @json.inspect(b is String(text) && text.length() > 0, content=true)
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/system-prompt",
-      Json::string("New system prompt."),
+      "New system prompt.",
     )
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={})

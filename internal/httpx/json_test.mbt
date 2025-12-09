@@ -27,13 +27,10 @@ async test "JsonRequestReader" (t : @test.Test) {
         () => server.serve(@httpx.cors(router.handler())),
         no_wait=true,
       )
-      let (r, b) = @http.post(
-        "http://localhost:\{server.port()}/task",
-        Json::object({
-          "name": "Example Task",
-          "description": "This is an example task.",
-        }),
-      )
+      let (r, b) = post_json("http://localhost:\{server.port()}/task", {
+        "name": "Example Task",
+        "description": "This is an example task.",
+      })
       @json.inspect(r.code, content=200)
       @json.inspect(b.json(), content=[
         "Ok",
@@ -63,10 +60,9 @@ async test "JsonRequestReader" (t : @test.Test) {
           "data": ["InvalidChar", { "line": 1, "column": 2 }, "i"],
         },
       })
-      let (r, b) = @http.post(
-        "http://localhost:\{server.port()}/task",
-        Json::object({ "name": "Incomplete Task" }),
-      )
+      let (r, b) = post_json("http://localhost:\{server.port()}/task", {
+        "name": "Incomplete Task",
+      })
       @json.inspect(r.code, content=400)
       @json.inspect(b.json(), content={
         "error": {
