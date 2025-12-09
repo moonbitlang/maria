@@ -5,6 +5,7 @@ import(
   "moonbitlang/core/set"
   "moonbitlang/maria/ai"
   "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/broadcast"
   "moonbitlang/maria/internal/conversation"
   "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
@@ -25,7 +26,7 @@ pub(all) struct Agent {
   cwd : String
   model : @model.Model
   logger : @pino.Logger
-  event_target : @event.EventTarget
+  event_target : @broadcast.Broadcast[@event.Event]
   mut web_search : Bool
   // private fields
 }

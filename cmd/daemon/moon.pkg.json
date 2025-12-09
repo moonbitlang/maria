@@ -23,7 +23,10 @@
     "moonbitlang/async/process",
     "moonbitlang/maria/event",
     "moonbitlang/maria/internal/buildinfo",
-    "moonbitlang/maria/internal/signal"
+    "moonbitlang/maria/internal/signal",
+    "moonbitlang/maria/internal/conversation",
+    "moonbitlang/async/semaphore",
+    "moonbitlang/maria/ai"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

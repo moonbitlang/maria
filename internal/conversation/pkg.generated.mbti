@@ -5,6 +5,8 @@ import(
   "moonbitlang/core/json"
   "moonbitlang/maria/ai"
   "moonbitlang/maria/clock"
+  "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/pino"
   "moonbitlang/maria/internal/uuid"
 )
 
@@ -14,23 +16,27 @@ import(
 
 // Types and methods
 type Conversation
-pub fn Conversation::add_message(Self, @ai.Message, usage? : @ai.Usage) -> Unit
-pub fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
-pub fn Conversation::cwd(Self) -> StringView
+pub fn Conversation::add_event(Self, @event.Event) -> Unit
+pub fn Conversation::add_events(Self, ArrayView[@event.Event]) -> Unit
+pub fn Conversation::created(Self) -> @clock.Timestamp
+pub fn Conversation::cwd(Self) -> String
 pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
+pub fn Conversation::events(Self) -> ArrayView[@event.Event]
 pub fn Conversation::export_to_markdown(Self) -> String
 pub fn Conversation::id(Self) -> @uuid.Uuid
 pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
+pub fn Conversation::name(Self) -> String
 pub fn Conversation::set_system_prompt(Self, String?) -> Unit
 pub fn Conversation::system_prompt(Self) -> String?
+pub fn Conversation::updated(Self) -> @clock.Timestamp
 pub impl ToJson for Conversation
 pub impl @json.FromJson for Conversation
 
 type Manager
 pub async fn Manager::list(Self) -> Array[@uuid.Uuid]
 pub async fn Manager::load(Self, @uuid.Uuid) -> Conversation?
-pub async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, home~ : StringView) -> Self
-pub fn Manager::new_conversation(Self, name~ : String, description? : String, cwd~ : StringView) -> Conversation
+pub async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, home~ : StringView, logger? : @pino.Logger) -> Self
+pub fn Manager::new_conversation(Self, name~ : String, description? : String, cwd~ : String) -> Conversation
 pub async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases

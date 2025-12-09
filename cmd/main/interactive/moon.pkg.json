@@ -9,6 +9,6 @@
     "moonbitlang/maria/event",
     "moonbitlang/maria/model",
     "moonbitlang/maria/ai",
-    "moonbitlang/async/io"
+    "moonbitlang/maria/internal/uuid"
   ]
 }

@@ -45,7 +45,7 @@ async fn Daemon::register_task(
       )
   }
   println("[INFO] Registered task '\{register.id}' on port \{register.port}")
-  self.rqs[register.id].put(register.port)
+  self.rqs[register.id].put(register)
   w.write_header(200)
   let res : @server.RegisterResponse = @server.RegisterResponse::{  }
   w.write(res.to_json())

@@ -2,6 +2,9 @@
 pub struct RegisterRequest {
   id : String
   port : Int
+  new_id : @uuid.Uuid
+  cwd : String
+  web_search : Bool
 } derive(ToJson, FromJson)
 
 ///|
@@ -13,12 +16,15 @@ pub(all) struct RegisterResponse {} derive(ToJson, FromJson)
 async fn RegisterInfo::register(
   register : RegisterInfo,
   port~ : Int,
+  new_id~ : @uuid.Uuid,
+  web_search~ : Bool,
+  cwd~ : String,
 ) -> RegisterResponse {
   println("[INFO] (Server \{register.id}) Listening on port \{port}")
   println(
     "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
   )
-  let req : RegisterRequest = { id: register.id, port }
+  let req : RegisterRequest = { id: register.id, port, new_id, cwd, web_search }
   let (r, b) = @httpx.post_json(
     "http://\{register.host}:\{register.port}/v1/task/register",
     req.to_json(),

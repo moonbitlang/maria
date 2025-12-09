@@ -2,7 +2,7 @@
 async test "export_to_markdown" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @conversation.Manager::new(
-      uuid=@uuid.generator(mock.rand),
+      uuid=mock.uuid,
       clock=mock.clock,
       home=mock.cwd.path(),
     )
@@ -10,15 +10,15 @@ async test "export_to_markdown" (t : @test.Test) {
       name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    conversation.add_message(@ai.user_message(content="Hello, how are you?"))
-    conversation.add_message(
-      @ai.assistant_message(content="I'm fine, thank you!"),
+    let event_target = @event.EventTarget::new(uuid=mock.uuid)
+    event_target.add_listener(event => conversation.add_event(event))
+    event_target.emit(UserMessage("Hello, how are you?"))
+    event_target.emit(
+      AssistantMessage(usage=None, "I'm fine, thank you!", tool_calls=[]),
     )
-    conversation.add_message(
-      @ai.user_message(content="What's the weather today?"),
-    )
-    conversation.add_message(
-      @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
+    event_target.emit(UserMessage("What's the weather today?"))
+    event_target.emit(
+      AssistantMessage(usage=None, "I'll use the weather tool to check.", tool_calls=[
         @ai.tool_call(
           id="tc_0",
           name="get_weather",
@@ -26,6 +26,7 @@ async test "export_to_markdown" (t : @test.Test) {
         ),
       ]),
     )
+    event_target.flush()
     inspect(
       conversation.export_to_markdown(),
       content=(
