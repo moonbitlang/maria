@@ -1,7 +1,7 @@
 import * as ral from "@maria/core/lib/ral.ts";
-import type { RAL } from "@maria/core/lib/types.js";
+import type { VSCWebviewRAL } from "@maria/core/lib/types.js";
 
-const _ril: RAL = {
+const _ril: VSCWebviewRAL = {
   platform: "vsc-webview",
 };
 

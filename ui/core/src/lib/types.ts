@@ -190,8 +190,16 @@ export type DaemonTaskChangeEvent = {
   task: TaskOverview;
 };
 
-type platform = "web" | "electron" | "vsc-webview";
-
-export type RAL = {
-  platform: platform;
+export type WebRAL = {
+  platform: "web";
 };
+
+export type VSCWebviewRAL = {
+  platform: "vsc-webview";
+};
+
+export type ElectronRAL = {
+  platform: "electron";
+};
+
+export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
