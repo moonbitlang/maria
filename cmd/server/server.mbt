@@ -303,18 +303,15 @@ pub async fn Server::start(self : Server) -> Unit {
 
 ///|
 async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  let queued_messages : Array[Json] = self.maria.agent
+    .queued_messages()
+    .map(m => { "id": m.id, "message": m.message.to_openai() })
   w.header().set("Content-Type", "text/event-stream")
-  w.write_header(200)
-  w.write("event: maria.queued_messages.synchronized\n")
-  let queued_messages : Array[Json] = []
-  for m in self.maria.agent.queued_messages() {
-    queued_messages.push({
-      "id": m.id,
-      "message": m.message.to_openai().to_json(),
-    })
-  }
-  w.write("data: \{queued_messages.to_json().stringify()}\n\n")
-  w.flush()
+  w
+  ..write_header(200)
+  ..write("event: maria.queued_messages.synchronized\n")
+  ..write("data: \{queued_messages.to_json().stringify()}\n\n")
+  ..flush()
   self.broadcast.listen((hist, chan) => {
     for e in hist {
       chan.put(e)
@@ -328,20 +325,18 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
       if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
         continue
       }
-      w.write("event: maria\n")
-      w.write("data: \{event.stringify()}\n\n")
-      w.flush()
+      w
+      ..write("event: maria\n")
+      ..write("data: \{event.stringify()}\n\n")
+      ..flush()
       if event is { "msg": "MessageQueued" | "MessageUnqueued", .. } {
-        w.write("event: maria.queued_messages.synchronized\n")
-        let queued_messages : Array[Json] = []
-        for m in self.maria.agent.queued_messages() {
-          queued_messages.push({
-            "id": m.id,
-            "message": m.message.to_openai().to_json(),
-          })
-        }
-        w.write("data: \{queued_messages.to_json().stringify()}\n\n")
-        w.flush()
+        let queued_messages : Array[Json] = self.maria.agent
+          .queued_messages()
+          .map(m => { "id": m.id, "message": m.message.to_openai() })
+        w
+        ..write("event: maria.queued_messages.synchronized\n")
+        ..write("data: \{queued_messages.to_json().stringify()}\n\n")
+        ..flush()
       }
     }
   })
@@ -352,17 +347,12 @@ async fn Server::get_queued_messages(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let queued_messages : Array[Json] = []
-  for m in self.maria.agent.queued_messages() {
-    queued_messages.push({
-      "id": m.id,
-      "message": m.message.to_openai().to_json(),
-    })
-  }
-  let response : Json = queued_messages.to_json()
+  let queued_messages : Array[Json] = self.maria.agent
+    .queued_messages()
+    .map(m => { "id": m.id, "message": m.message.to_openai() })
   w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
+  w..write_header(200)
+  w..write(queued_messages.to_json().stringify())
 }
 
 ///|
