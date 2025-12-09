@@ -9,3 +9,14 @@ pub let cors : Middleware = (k : Handler) => (r, w) => {
     k(r, w)
   }
 }
+
+///|
+// Real world usage example
+// find all usage of `@http.post` in the codebase
+// and replace it with `@httpx.post_json`
+pub async fn post_json(
+  uri : String,
+  body : Json,
+) -> (@http.Response, &@io.Data) {
+  @http.post(uri, body)
+}

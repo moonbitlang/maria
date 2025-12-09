@@ -353,7 +353,7 @@ async fn Daemon::create_task(
       msg_req["web_search"] = web_search.to_json()
     }
     println("[INFO] (Daemon) Write initial messages to task '\{id}'...")
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{task_port}/v1/message",
       Json::object(msg_req),
     )

@@ -57,14 +57,11 @@ async test "GET /v1/tasks" (t : @test.Test) {
         "transfer-encoding": "chunked",
       })
       @json.inspect(b.json(), content={ "tasks": [] })
-      let _ = @http.post(
-        "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
-          "message": { "role": "user", "content": "Hello!" },
-          "model": "mock:claude-haiku-4.5",
-          "cwd": mock.cwd.path(),
-        }),
-      )
+      let _ = @httpx.post_json("http://localhost:\{daemon.port()}/v1/task", {
+        "message": { "role": "user", "content": "Hello!" },
+        "model": "mock:claude-haiku-4.5",
+        "cwd": mock.cwd.path(),
+      })
       let (_, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
       let b = b.json()
       guard b is { "tasks": Array(tasks), .. } else {
@@ -83,23 +80,21 @@ async test "GET /v1/task/{id}" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (_, b) = @http.post(
+      let (_, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       let b = b.json()
       guard b is { "task": { "id": String(id), .. }, .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      let _ = @http.post(
+      let _ = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/message",
-        Json::object({
-          "message": { "role": "user", "content": "How are you?" },
-        }),
+        { "message": { "role": "user", "content": "How are you?" } },
       )
       let (_, b) = @http.get("http://localhost:\{daemon.port()}/v1/task/\{id}")
       let b = b.json()
@@ -161,13 +156,13 @@ async test "POST /v1/task" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -302,13 +297,13 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -320,11 +315,9 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      let (_, b) = @http.post(
+      let (_, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/message",
-        Json::object({
-          "message": { "role": "user", "content": "How are you?" },
-        }),
+        { "message": { "role": "user", "content": "How are you?" } },
       )
       let b = b.json()
       guard b is { "id": String(msg1_id), "queued": queued, .. } else {
@@ -482,13 +475,13 @@ async test "POST /v1/task with invalid cwd" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": "/non/existent/path",
-        }),
+        },
       )
       @json.inspect(r.code, content=404)
       let b = b.json()
@@ -511,13 +504,13 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "nonexistent-model",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -576,22 +569,20 @@ async test "GET /v1/events" (t : @test.Test) {
           }
         }
       })
-      let (_, b) = @http.post(
+      let (_, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       guard b.json() is { "task": { "id": String(id), .. }, .. } else {
         fail("Unexpected response body: \{b.json().stringify(indent=2)}")
       }
-      @http.post(
+      @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/message",
-        Json::object({
-          "message": { "role": "user", "content": "How are you?" },
-        }),
+        { "message": { "role": "user", "content": "How are you?" } },
       )
       |> ignore()
     })
@@ -631,13 +622,13 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": { "role": "user", "content": "Hello!" },
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
-        }),
+        },
       )
       @json.inspect(r.code, content=201)
       let b = b.json()
@@ -650,7 +641,7 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
         )
         collect_stream_events(s)
       })
-      let (r, _) = @http.post(
+      let (r, _) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/cancel",
         Json::null(),
       )
@@ -675,9 +666,9 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
     let daemon = configure_daemon(mock)
     @async.with_task_group(group => {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
-      let (_, b) = @http.post(
+      let (_, b) = @httpx.post_json(
         "http://localhost:\{daemon.port()}/v1/task",
-        Json::object({
+        {
           "message": {
             "role": "user",
             "content": "Can you please search the web for MoonBit to find out which year it is initiated?",
@@ -685,7 +676,7 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
           "model": "mock:claude-haiku-4.5",
           "cwd": mock.cwd.path(),
           "web_search": true,
-        }),
+        },
       )
       guard b.json()
         is { "task": { "id": String(id), "web_search"? : web_search, .. }, .. } else {

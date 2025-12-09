@@ -199,7 +199,7 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
 }
 
 ///|
-async fn Agent::cancel(agent : Agent) -> Unit {
+fn Agent::cancel(agent : Agent) -> Unit {
   agent.input_queue.clear()
   agent.emit(@event.Cancelled)
 }
