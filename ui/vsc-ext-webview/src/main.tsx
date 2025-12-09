@@ -5,10 +5,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router";
-import AllTasks from "./AllTasks";
 import "./index.css";
 import Layout from "./layout";
+import { install } from "./ril";
 import { rootData } from "./utils";
+
+install();
 
 const taskId = rootData("task-id");
 const cwd = rootData("cwd");
@@ -33,7 +35,6 @@ root.render(
           <Route element={<Layout />}>
             <Route index element={<Home cwd={cwd} />}></Route>
             <Route path="/tasks/:taskId" element={<Task />}></Route>
-            <Route path="/all-tasks" element={<AllTasks />}></Route>
           </Route>
         </Routes>
       </MemoryRouter>

@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import Home from "./Home";
 import "./index.css";
 import { Layout } from "./layout";
+import { install } from "./ril";
 
 const mariaReadyPromise = (async () => {
   await window.electronAPI.mariaReady();
@@ -88,6 +89,7 @@ function LoadingFallback() {
   );
 }
 
+install();
 const container = document.getElementById("root")!;
 
 const root = createRoot(container);
