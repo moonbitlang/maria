@@ -102,12 +102,6 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
 }
 
 ///|
-priv struct Register {
-  id : String
-  port : Int
-}
-
-///|
 priv struct CreateTaskRequest {
   name : String?
   model : String?
@@ -435,33 +429,22 @@ async fn Daemon::register_task(
         "Invalid JSON in request body: \{error}",
       )
   }
-  guard request_json is { "id": id, "port": port, .. } else {
-    raise json_error(400, "Bad Request", {
-      "error": {
-        "code": -1,
-        "message": "Missing required fields 'id' or 'port'",
-      },
-    })
-  }
-  let id : String = @json.from_json(id) catch {
+  let register : @server.RegisterRequest = @json.from_json(request_json) catch {
     error =>
-      raise json_error(400, "Bad Request", {
-        "error": { "code": -1, "message": "Invalid 'id' field: \{error}" },
-      })
+      raise json_error(
+        400,
+        "Bad Request",
+        "Failed to decode RegisterRequest: \{error}",
+      )
   }
-  let port : Int = @json.from_json(port) catch {
-    error =>
-      raise json_error(400, "Bad Request", {
-        "error": { "code": -1, "message": "Invalid 'port' field: \{error}" },
-      })
-  }
-  let register : Register = { id, port }
   println("[INFO] Registered task '\{register.id}' on port \{register.port}")
-  self.rqs[id].put(register.port)
+  self.rqs[register.id].put(register.port)
   w.header().set("Access-Control-Allow-Origin", "*")
   w.header().set("Access-Control-Allow-Methods", "*")
   w.header().set("Access-Control-Allow-Headers", "*")
   w.write_header(200)
+  let res : @server.RegisterResponse = @server.RegisterResponse::{  }
+  w.write(res.to_json())
 }
 
 ///|

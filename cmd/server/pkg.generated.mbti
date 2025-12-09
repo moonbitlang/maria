@@ -17,6 +17,18 @@ pub(all) struct Register {
   id : String
 }
 
+pub struct RegisterRequest {
+  id : String
+  port : Int
+}
+pub impl ToJson for RegisterRequest
+pub impl @json.FromJson for RegisterRequest
+
+pub(all) struct RegisterResponse {
+}
+pub impl ToJson for RegisterResponse
+pub impl @json.FromJson for RegisterResponse
+
 type Server
 pub async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String, web_search? : Bool) -> Self
 pub fn Server::port(Self) -> Int

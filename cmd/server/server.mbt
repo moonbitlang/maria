@@ -67,25 +67,27 @@ pub async fn Server::new(
 }
 
 ///|
-async fn Server::register(self : Server) -> Unit {
-  guard self.register is Some(register) else {
-    println(
-      "[WARN] (Server) No register information provided; skipping registration.",
-    )
-    let pid = @spawn.getpid()
-    println("[INFO] (Server \{pid}) Listening on port \{self.port}")
-    println(
-      "[INFO] (Server \{pid}) Visit http://localhost:\{self.port}/ to access the server.",
-    )
-    return
-  }
+pub struct RegisterRequest {
+  id : String
+  port : Int
+} derive(ToJson, @json.FromJson)
+
+///|
+pub(all) struct RegisterResponse {} derive(ToJson, @json.FromJson)
+
+///|
+async fn Server::register(
+  self : Server,
+  register : Register,
+) -> RegisterResponse {
   println("[INFO] (Server \{register.id}) Listening on port \{self.port}")
   println(
     "[INFO] (Server \{register.id}) Visit http://localhost:\{self.port}/ to access the server.",
   )
+  let req : RegisterRequest = { id: register.id, port: self.port }
   let (r, b) = @http.post(
     "http://\{register.host}:\{register.port}/v1/task/register",
-    Json::object({ "id": register.id, "port": self.port }),
+    req.to_json(),
   )
   guard r.code is (200..=299) else {
     raise json_error(500, "InternalServerError", {
@@ -95,6 +97,16 @@ async fn Server::register(self : Server) -> Unit {
         "metadata": { "body": b.text() },
       },
     })
+  }
+  @json.from_json(b.json()) catch {
+    error =>
+      raise json_error(500, "InternalServerError", {
+        "error": {
+          "code": -1,
+          "message": "Failed to parse registration response: \{error}",
+          "metadata": { "body": b.text() },
+        },
+      })
   }
 }
 
@@ -274,7 +286,18 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
 pub async fn Server::start(self : Server) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.start_maria(), allow_failure=true)
-    self.register()
+    if self.register is Some(register) {
+      self.register(register) |> ignore()
+    } else {
+      println(
+        "[WARN] (Server) No register information provided; skipping registration.",
+      )
+      let pid = @spawn.getpid()
+      println("[INFO] (Server \{pid}) Listening on port \{self.port}")
+      println(
+        "[INFO] (Server \{pid}) Visit http://localhost:\{self.port}/ to access the server.",
+      )
+    }
     self.serve_http()
   })
 }
