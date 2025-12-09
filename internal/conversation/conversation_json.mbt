@@ -4,7 +4,7 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   if self.system_prompt is Some(system_prompt) {
     object["system_prompt"] = system_prompt.to_json()
   }
-  object["messages"] = self.messages.to_json()
+  object["events"] = self.events.to_json()
   object["created_at"] = self.created_at.to_json()
   object["updated_at"] = self.updated_at.to_json()
   if self.description is Some(description) {
@@ -49,17 +49,17 @@ pub impl @json.FromJson for Conversation with from_json(
       )
     None => None
   }
-  let messages = match json.get("messages") {
+  let events = match json.get("events") {
     Some(json) => {
-      let messages : Array[Message] = @json.from_json(
+      let events : Array[@event.Event] = @json.from_json(
         json,
-        path=json_path.add_key("messages"),
+        path=json_path.add_key("events"),
       )
-      messages
+      events
     }
     None =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("messages"), "Missing field"),
+        (json_path.add_key("events"), "Missing field"),
       )
   }
   let created_at = match json.get("created_at") {
@@ -89,7 +89,7 @@ pub impl @json.FromJson for Conversation with from_json(
     description,
     id,
     system_prompt,
-    messages,
+    events,
     created_at,
     updated_at,
     cwd,
@@ -106,9 +106,9 @@ pub fn Conversation::display(
   if self.description is Some(description) {
     lines.push("Description: \{description}")
   }
+  let messages = self.messages(include_system=true)
   if show_messages {
-    for i, message in self.messages {
-      let message = message.message
+    for i, message in messages {
       match message {
         Assistant(content, ..) => {
           lines.push("\{i}. [assistant]")
@@ -129,7 +129,7 @@ pub fn Conversation::display(
       }
     }
   } else {
-    lines.push("Messages: \{self.messages.length()}")
+    lines.push("Messages: \{messages.length()}")
   }
   fn show_time(ts : Int64) -> String {
     try @time.unix(ts / 1000) catch {

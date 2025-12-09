@@ -1,23 +1,23 @@
 ///|
-pub fn Conversation::add_message(
+pub fn Conversation::add_event(
   self : Conversation,
-  message : @ai.Message,
-  usage? : @ai.Usage,
+  event : @event.Event,
 ) -> Unit {
   let now = self.clock.now()
-  let message = Message::{ timestamp: now, usage, message }
-  self.messages.push(message)
+  self.events.push(event)
   self.updated_at = now
 }
 
 ///|
-pub fn Conversation::add_messages(
+pub fn Conversation::add_events(
   self : Conversation,
-  messages : Array[@ai.Message],
+  events : ArrayView[@event.Event],
 ) -> Unit {
-  for message in messages {
-    self.add_message(message)
+  let now = self.clock.now()
+  for event in events {
+    self.events.push(event)
   }
+  self.updated_at = now
 }
 
 ///|
@@ -34,8 +34,12 @@ pub fn Conversation::messages(
   if include_system && self.system_prompt is Some(system_prompt) {
     msgs.push(@ai.system_message(content=system_prompt))
   }
-  for m in self.messages {
-    msgs.push(m.message)
+  for e in self.events {
+    match e {
+      Outgoing(MessageAdded(message)) => msgs.push(message)
+      Outgoing(RequestCompleted(message~, ..)) => msgs.push(message)
+      _ => ()
+    }
   }
   msgs
 }

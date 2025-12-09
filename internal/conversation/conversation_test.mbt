@@ -8,13 +8,21 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
     )
     let conversation = manager.new_conversation(name="Test Conversation")
     conversation.set_system_prompt(Some("This is a system prompt."))
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_event(
+      Outgoing(MessageAdded(@ai.user_message(content="Hello"))),
+    )
     @json.inspect(mock.json(conversation), content={
       "name": "Test Conversation",
       "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
       "system_prompt": "This is a system prompt.",
-      "messages": [
-        { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
+      "events": [
+        {
+          "kind": "Outgoing",
+          "outgoing_event": {
+            "msg": "MessageAdded",
+            "message": { "role": "user", "content": "Hello" },
+          },
+        },
       ],
       "created_at": "0",
       "updated_at": "2",
@@ -29,8 +37,14 @@ test "Conversation::FromJson" {
     "name": "Test Conversation",
     "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
     "system_prompt": "This is a system prompt.",
-    "messages": [
-      { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
+    "events": [
+      {
+        "kind": "Outgoing",
+        "outgoing_event": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "Hello" },
+        },
+      },
     ],
     "created_at": "0",
     "updated_at": "2",
@@ -56,45 +70,54 @@ test "Conversation::display" {
     "name": "Test Conversation",
     "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
     "system_prompt": "This is a system prompt.",
-    "messages": [
+    "events": [
       {
-        "timestamp": 1,
-        "message": { "role": "system", "content": "This is a system prompt." },
+        "kind": "Outgoing",
+        "outgoing_event": {
+          "msg": "MessageAdded",
+          "message": { "role": "user", "content": "What time is it now" },
+        },
       },
       {
-        "timestamp": 2,
-        "message": { "role": "user", "content": "What time is it now" },
-      },
-      {
-        "timestamp": 3,
-        "message": {
-          "role": "assistant",
-          "content": "Hi",
-          "tool_calls": [
-            {
-              "id": "tc0",
-              "function": {
-                "name": "execute_command",
-                "arguments": Json::object({ "command": "date" }).stringify(),
+        "kind": "Outgoing",
+        "outgoing_event": {
+          "msg": "RequestCompleted",
+          "usage": null,
+          "message": {
+            "role": "assistant",
+            "content": "Hi",
+            "tool_calls": [
+              {
+                "id": "tc0",
+                "function": {
+                  "name": "execute_command",
+                  "arguments": Json::object({ "command": "date" }).stringify(),
+                },
               },
-            },
-          ],
+            ],
+          },
         },
       },
       {
-        "timestamp": 4,
-        "message": {
-          "role": "tool",
-          "tool_call_id": "tc0",
-          "content": "2024-01-01T12:00:00Z",
+        "kind": "Outgoing",
+        "outgoing_event": {
+          "msg": "MessageAdded",
+          "message": {
+            "role": "tool",
+            "tool_call_id": "tc0",
+            "content": "2024-01-01T12:00:00Z",
+          },
         },
       },
       {
-        "timestamp": 5,
-        "message": {
-          "role": "assistant",
-          "content": "Current time is 2024-01-01T12:00:00Z",
-          "tool_calls": [],
+        "kind": "Outgoing",
+        "outgoing_event": {
+          "msg": "MessageAdded",
+          "message": {
+            "role": "assistant",
+            "content": "Current time is 2024-01-01T12:00:00Z",
+            "tool_calls": [],
+          },
         },
       },
     ],

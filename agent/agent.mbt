@@ -253,7 +253,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         // staged contains messages that need to be sent in this call
         // Build the complete message array for the API call
         // Start with conversation history, then append any queued messages
-        let messages = [..agent.history.messages(), ..agent.input_queue]
+        let messages = agent.history.messages(include_system=true)
 
         // Count tokens, prune if needed, and apply caching
         let cache_messages = agent.prepare_messages_for_request(
@@ -303,11 +303,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         )
 
         // Add all staged messages to permanent conversation history
-        agent.history.add_messages(agent.input_queue)
         agent.input_queue = []
-
-        // Add the model's response to conversation history
-        agent.history.add_message(ai_message)
         // Persist the updated conversation history to disk
         agent.session_manager.save(agent.history)
         // Execute each tool call and queue the results for the next iteration
