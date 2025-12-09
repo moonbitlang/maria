@@ -6,7 +6,6 @@ struct Server {
     (CreateMessageRequest, @aqueue.Queue[(@uuid.Uuid, Bool)]),
   ]
   mut task : @async.Task[Unit]?
-  register : Register?
   serve : String
   port : Int
   http_server : @httpx.Server
@@ -29,7 +28,7 @@ pub fn Server::port(self : Server) -> Int {
 ///|
 pub async fn Server::new(
   model? : String,
-  register? : Register,
+  register? : RegisterInfo,
   serve~ : String,
   port~ : Int,
   cwd? : String,
@@ -49,21 +48,33 @@ pub async fn Server::new(
   })
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
+  if register is Some(register) {
+    register.register(port~) |> ignore()
+  } else {
+    println(
+      "[WARN] (Server) No register information provided; skipping registration.",
+    )
+    let pid = @spawn.getpid()
+    println("[INFO] (Server \{pid}) Listening on port \{port}")
+    println(
+      "[INFO] (Server \{pid}) Visit http://localhost:\{port}/ to access the server.",
+    )
+  }
   let cwd = match cwd {
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  Server::{
+  let server = Server::{
     maria,
     broadcast,
     message_queue: @aqueue.new(kind=Unbounded),
     task: None,
-    register,
     serve,
     port,
     http_server,
     cwd,
   }
+  server
 }
 
 ///|
@@ -76,15 +87,15 @@ pub struct RegisterRequest {
 pub(all) struct RegisterResponse {} derive(ToJson, @json.FromJson)
 
 ///|
-async fn Server::register(
-  self : Server,
-  register : Register,
+async fn RegisterInfo::register(
+  register : RegisterInfo,
+  port~ : Int,
 ) -> RegisterResponse {
-  println("[INFO] (Server \{register.id}) Listening on port \{self.port}")
+  println("[INFO] (Server \{register.id}) Listening on port \{port}")
   println(
-    "[INFO] (Server \{register.id}) Visit http://localhost:\{self.port}/ to access the server.",
+    "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
   )
-  let req : RegisterRequest = { id: register.id, port: self.port }
+  let req : RegisterRequest = { id: register.id, port }
   let (r, b) = @http.post(
     "http://\{register.host}:\{register.port}/v1/task/register",
     req.to_json(),
@@ -286,18 +297,6 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
 pub async fn Server::start(self : Server) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.start_maria(), allow_failure=true)
-    if self.register is Some(register) {
-      self.register(register) |> ignore()
-    } else {
-      println(
-        "[WARN] (Server) No register information provided; skipping registration.",
-      )
-      let pid = @spawn.getpid()
-      println("[INFO] (Server \{pid}) Listening on port \{self.port}")
-      println(
-        "[INFO] (Server \{pid}) Visit http://localhost:\{self.port}/ to access the server.",
-      )
-    }
     self.serve_http()
   })
 }

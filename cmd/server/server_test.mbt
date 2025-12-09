@@ -41,7 +41,7 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 ///|
 async fn configure_server(
   mock : @mock.Context,
-  register? : @server.Register,
+  register? : @server.RegisterInfo,
   serve? : StringView,
   model? : String = "mock:claude-haiku-4.5",
 ) -> @server.Server {
@@ -58,20 +58,26 @@ async fn configure_server(
 #skip
 async test "register" (t : @test.Test) {
   @mock.run(t, mock => {
-    let addr = @socket.Addr::parse("[::]:0")
+    let addr = @socket.Addr::parse("0.0.0.0:0")
     let daemon = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
     defer daemon.close()
-    let server = configure_server(mock, register=@server.Register::{
+    let server_task = mock.group.spawn(() => configure_server(mock, register=@server.RegisterInfo::{
       host: "localhost",
       port: daemon.addr().port(),
       id: "test-server",
-    })
-    mock.group.spawn_bg(() => server.start(), no_wait=true)
+    }))
     let (conn, _) = daemon.accept()
     let conn = @http.ServerConnection::new(conn)
     let r = conn.read_request()
     guard r.path is "/v1/task/register" else { return }
     let rb = conn.read_all()
+    let res : @server.RegisterResponse = @server.RegisterResponse::{  }
+    conn.send_response(200, "OK", extra_headers={
+      "Content-Type": "application/json",
+    })
+    conn.write(res.to_json())
+    conn.end_response()
+    let server = server_task.wait()
     @json.inspect(rb.json(), content={
       "id": "test-server",
       "port": server.port(),
@@ -834,7 +840,6 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       .length(),
       content=1,
     )
-    println(events.to_json().stringify(indent=2))
     @json.inspect(
       events
       .filter(e => e
