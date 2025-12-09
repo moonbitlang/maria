@@ -5,6 +5,7 @@ import {
   Terminal,
   XCircle,
 } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
 import {
   type ExecuteCommandTool,
   type ListFilesTool,
@@ -16,6 +17,7 @@ import {
   type RequestCompletedEvent,
   type TaskEvent,
 } from "../lib/types";
+import { jsonParseSafe } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
@@ -347,6 +349,7 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 }
 
 function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
+  const input = jsonParseSafe(event.tool_call.function.arguments);
   return (
     <Tool>
       <ToolHeader
@@ -354,10 +357,43 @@ function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
         state="input-available"
       />
       <ToolContent>
-        <ToolInput input={JSON.parse(event.tool_call.function.arguments)} />
+        <ToolInput input={input} />
       </ToolContent>
     </Tool>
   );
+}
+
+function EventErrorFallback({
+  error,
+  event,
+}: {
+  error: Error;
+  event: TaskEvent;
+}) {
+  return (
+    <div className="border-destructive/50 bg-destructive/10 mb-4 w-full rounded-md border p-3 text-sm">
+      <p className="text-destructive font-semibold">
+        Error rendering event {event.msg}
+      </p>
+      <p className="text-muted-foreground mt-1 text-xs">{error.message}</p>
+    </div>
+  );
+}
+
+function ShowEvent({ event }: { event: TaskEvent }) {
+  switch (event.msg) {
+    case "PreToolCall":
+      return <ShowPreToolCall event={event} />;
+    case "MessageAdded":
+      return <ShowMessageAdded event={event} />;
+    case "PostToolCall":
+      return <ShowPostToolCall event={event} />;
+    case "RequestCompleted":
+      return <ShowRequestCompleted event={event} />;
+    default: {
+      return null;
+    }
+  }
 }
 
 export function EventsDisplay(props: EventsDisplayProps) {
@@ -366,19 +402,19 @@ export function EventsDisplay(props: EventsDisplayProps) {
     <Conversation className="min-h-0">
       <ConversationContent className="mx-auto max-w-4xl overflow-x-hidden">
         {events.map((event, i) => {
-          switch (event.msg) {
-            case "PreToolCall":
-              return <ShowPreToolCall key={i} event={event} />;
-            case "MessageAdded":
-              return <ShowMessageAdded key={i} event={event} />;
-            case "PostToolCall":
-              return <ShowPostToolCall key={i} event={event} />;
-            case "RequestCompleted":
-              return <ShowRequestCompleted key={i} event={event} />;
-            default: {
-              return null;
-            }
-          }
+          return (
+            <ErrorBoundary
+              key={i}
+              fallbackRender={({ error }) => (
+                <EventErrorFallback error={error} event={event} />
+              )}
+              onError={(error, errorInfo) => {
+                console.error(`Error rendering ${event}`, error, errorInfo);
+              }}
+            >
+              <ShowEvent event={event} />
+            </ErrorBoundary>
+          );
         })}
       </ConversationContent>
       <ConversationScrollButton />
