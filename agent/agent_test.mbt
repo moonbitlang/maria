@@ -651,3 +651,60 @@ async test "agent/web_search" (t : @test.Test) {
     @json.inspect(result is { "year": "2022" | "2023", .. }, content=true)
   })
 }
+
+///|
+async test "agent/resume" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let cwd = mock.cwd
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let id = {
+      let agent = @agent.new(
+        model,
+        cwd=cwd.path(),
+        user_message="Hello, please call me Mr. Rabbit.",
+      )
+      defer agent.close()
+      let id = agent.id()
+      agent.start()
+      id
+    }
+    let session_manager = @conversation.Manager::new(
+      uuid=mock.uuid,
+      clock=mock.clock,
+      cwd=cwd.path(),
+    )
+    let conversation = session_manager.load(id)
+    guard conversation is Some(conversation) else {
+      fail("Conversation not found")
+    }
+    let mut result = None
+    let agent = @agent.load(
+      model,
+      conversation,
+      user_message="What is my name? Please use the <submit_user_name/> tool to submit my name.",
+    )
+    agent.add_tool(
+      @tool.new(
+        name="submit_user_name",
+        description="Submit the user's name.",
+        schema=@tool.JsonSchema::from_json({
+          "type": "object",
+          "properties": { "name": { "type": "string" } },
+          "required": ["name"],
+        }),
+        ToolFn(args => {
+          guard args is { "name": String(name), .. } else {
+            return @tool.error("Invalid arguments")
+          }
+          result = Some(name)
+          @tool.ok("Name submitted successfully")
+        }),
+      ),
+    )
+    agent.start()
+    @json.inspect(
+      result is Some(content) && content.contains("Rabbit"),
+      content=true,
+    )
+  })
+}
