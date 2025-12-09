@@ -1,4 +1,4 @@
-import { store } from "@maria/core/app/store.ts";
+import { makeStore } from "@maria/core/app/store.js";
 import { Skeleton } from "@maria/core/components/ui/skeleton.tsx";
 import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode, Suspense, use, useEffect, useState } from "react";
@@ -9,13 +9,16 @@ import Home from "./Home";
 import "./index.css";
 import { Layout } from "./layout";
 
-const mariaReadyPromise = window.electronAPI.mariaReady();
+const mariaReadyPromise = (async () => {
+  await window.electronAPI.mariaReady();
+  return await window.electronAPI.getUrl();
+})();
 
 function App() {
-  use(mariaReadyPromise);
+  const url = use(mariaReadyPromise);
 
   return (
-    <Provider store={store}>
+    <Provider store={makeStore({ url: { url } })}>
       <MemoryRouter initialEntries={["/"]}>
         <Routes>
           <Route element={<Layout />}>
