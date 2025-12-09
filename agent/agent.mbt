@@ -407,6 +407,63 @@ pub async fn new(
 }
 
 ///|
+pub async fn load(
+  model : @model.Model,
+  conversation : @conversation.Conversation,
+  uuid? : @uuid.Generator,
+  logger? : @pino.Logger = @pino.logger(
+    "agent",
+    try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
+  ),
+  user_message? : String,
+  web_search? : Bool = false,
+  external_events? : @event.ExternalEventQueue = @event.ExternalEventQueue::new(),
+) -> Agent {
+  // FIXME:(upstream) function with error not allowed in optional expression
+  let uuid = match uuid {
+    Some(uuid) => uuid
+    None => @uuid.generator(@rand.chacha8())
+  }
+  let cwd = conversation.cwd()
+  let session_manager = @conversation.Manager::new(uuid~, cwd~)
+  let rules = @rules.Loader::new(cwd.to_string(), logger~)
+  let event_target = @event.EventTarget::new()
+  event_target.add_listener(event => {
+    let json = event.to_json()
+    guard json is Object({ "msg": String(msg), .. } as json) else {  }
+    json.remove("msg")
+    logger.info(msg, data=json)
+  })
+  event_target.emit(ModelLoaded(name=model.name, model~))
+  let agent = Agent::{
+    logger,
+    uuid,
+    history: conversation,
+    cwd: cwd.to_string(),
+    model,
+    tools: {},
+    input_queue: [],
+    pending_queue: @deque.Deque::new(),
+    event_target,
+    token_counter: @token_counter.Counter::new(logger~),
+    context_pruner: @context_pruner.Pruner::new(
+      safe_zone_tokens=model.safe_zone_tokens,
+      logger~,
+    ),
+    session_manager,
+    rules,
+    web_search,
+    external_events,
+  }
+  rules.load()
+  match user_message {
+    Some(message) => agent.add_message(@ai.user_message(content=message))
+    None => ()
+  }
+  agent
+}
+
+///|
 pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
   self.input_queue.clear()
   let pms = []
@@ -415,4 +472,9 @@ pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
     pms.push(pm)
   }
   pms
+}
+
+///|
+pub fn Agent::id(agent : Agent) -> String {
+  agent.history.id()
 }
