@@ -1,3 +1,5 @@
+import type { OpenDialogReturnValue } from "electron";
+
 export type QueuedMessage = {
   id: string;
   content: string;
@@ -200,6 +202,7 @@ export type VSCWebviewRAL = {
 
 export type ElectronRAL = {
   platform: "electron";
+  selectDirectory(): Promise<OpenDialogReturnValue>;
 };
 
 export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
