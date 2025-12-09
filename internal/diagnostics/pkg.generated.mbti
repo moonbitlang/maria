@@ -17,6 +17,7 @@ pub(all) struct Diagnostic {
   loc : Loc
   message : String
 }
+pub impl Eq for Diagnostic
 pub impl Show for Diagnostic
 pub impl ToJson for Diagnostic
 pub impl @json.FromJson for Diagnostic
@@ -33,13 +34,16 @@ pub fn Diagnostics::length(Self) -> Int
 pub fn Diagnostics::new() -> Self
 pub fn Diagnostics::push(Self, Diagnostic) -> Unit
 pub async fn Diagnostics::render(Self, limit~ : Int, context? : Int, overlay? : Map[String, String], cwd? : String) -> String noraise
+pub impl Eq for Diagnostics
 pub impl Show for Diagnostics
 pub impl ToJson for Diagnostics
+pub impl @json.FromJson for Diagnostics
 
 pub(all) enum Level {
   Error
   Warning
 }
+pub impl Eq for Level
 pub impl Show for Level
 pub impl ToJson for Level
 pub impl @json.FromJson for Level
@@ -49,6 +53,7 @@ pub(all) struct Loc {
   path : String
   start : Pos
 }
+pub impl Eq for Loc
 pub impl Show for Loc
 pub impl ToJson for Loc
 pub impl @json.FromJson for Loc
@@ -57,6 +62,7 @@ pub(all) struct Pos {
   col : Int
   line : Int
 }
+pub impl Eq for Pos
 pub impl Show for Pos
 pub impl ToJson for Pos
 pub impl @json.FromJson for Pos

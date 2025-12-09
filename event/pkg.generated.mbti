@@ -2,6 +2,7 @@
 package "moonbitlang/maria/event"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/internal/uuid"
@@ -18,6 +19,10 @@ pub(all) enum Event {
   Incoming(ExternalEvent)
   Outgoing(OutgoingEvent)
 }
+pub impl Eq for Event
+pub impl Show for Event
+pub impl ToJson for Event
+pub impl @json.FromJson for Event
 
 type EventTarget
 pub fn EventTarget::add_listener(Self, async (OutgoingEvent) -> Unit) -> Unit
@@ -32,7 +37,10 @@ pub(all) enum ExternalEvent {
   UserCancellation
   UserMessage(String)
 }
+pub impl Eq for ExternalEvent
+pub impl Show for ExternalEvent
 pub impl ToJson for ExternalEvent
+pub impl @json.FromJson for ExternalEvent
 
 type ExternalEventQueue
 pub fn ExternalEventQueue::new() -> Self
@@ -48,7 +56,7 @@ pub(all) enum OutgoingEvent {
   MessageQueued(id~ : @uuid.Uuid, @ai.Message)
   ToolAdded(@tool.ToolDesc)
   PreToolCall(@ai.ToolCall)
-  PostToolCall(@ai.ToolCall, result~ : Result[Json, Error], rendered~ : String)
+  PostToolCall(@ai.ToolCall, result~ : Result[Json, Json], rendered~ : String)
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
@@ -56,7 +64,10 @@ pub(all) enum OutgoingEvent {
   Cancelled
   TodoUpdated(Json)
 }
+pub impl Eq for OutgoingEvent
+pub impl Show for OutgoingEvent
 pub impl ToJson for OutgoingEvent
+pub impl @json.FromJson for OutgoingEvent
 
 // Type aliases
 

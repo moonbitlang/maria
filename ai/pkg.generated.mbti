@@ -31,6 +31,8 @@ pub fn Message::content(Self) -> String
 pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
 pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
 pub fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
+pub impl Eq for Message
+pub impl Show for Message
 pub impl ToJson for Message
 
 pub struct ToolCall {
@@ -40,6 +42,8 @@ pub struct ToolCall {
 }
 pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
 pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
+pub impl Eq for ToolCall
+pub impl Show for ToolCall
 pub impl ToJson for ToolCall
 
 pub struct Usage {
@@ -50,6 +54,8 @@ pub struct Usage {
 }
 pub fn Usage::from_openai(@openai.CompletionUsage) -> Self
 pub fn Usage::to_openai(Self) -> @openai.CompletionUsage
+pub impl Eq for Usage
+pub impl Show for Usage
 
 // Type aliases
 

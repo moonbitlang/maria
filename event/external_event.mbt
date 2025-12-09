@@ -8,7 +8,7 @@ pub(all) enum ExternalEvent {
   UserCancellation
   /// User sends an immediate message (interrupting current flow)
   UserMessage(String)
-}
+} derive(Eq, Show)
 
 ///|
 /// A queue for receiving external events from the environment.
@@ -122,11 +122,55 @@ pub fn ExternalEventQueue::poll(
 }
 
 ///|
-pub impl ToJson for ExternalEvent with to_json(self : ExternalEvent) -> Json {
+fn ExternalEvent::to_json_object(self : ExternalEvent) -> Map[String, Json] {
   match self {
     Diagnostics(diagnostics) =>
       { "type": "Diagnostics", "diagnostics": diagnostics.to_json() }
     UserCancellation => { "type": "UserCancellation" }
     UserMessage(message) => { "type": "UserMessage", "message": message }
+  }
+}
+
+///|
+pub impl ToJson for ExternalEvent with to_json(self : ExternalEvent) -> Json {
+  Json::object(self.to_json_object())
+}
+
+///|
+pub impl @json.FromJson for ExternalEvent with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> ExternalEvent raise @json.JsonDecodeError {
+  guard json is Object({ "type": String(type_), .. } as json_object) else {
+    raise @json.JsonDecodeError(
+      (json_path, "Missing 'type' field in ExternalEvent"),
+    )
+  }
+  match type_ {
+    "Diagnostics" => {
+      guard json_object.get("diagnostics") is Some(diagnostics_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "Diagnostics event missing 'diagnostics' field"),
+        )
+      }
+      let diagnostics : @diagnostics.Diagnostics = @json.FromJson::from_json(
+        diagnostics_json,
+        json_path.add_key("diagnostics"),
+      )
+      Diagnostics(diagnostics)
+    }
+    "UserCancellation" => UserCancellation
+    "UserMessage" => {
+      guard json_object.get("message") is Some(String(message)) else {
+        raise @json.JsonDecodeError(
+          (json_path, "Missing 'message' field in UserMessage event"),
+        )
+      }
+      UserMessage(message)
+    }
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path, "Unknown 'type' value in ExternalEvent: \{type_}"),
+      )
   }
 }

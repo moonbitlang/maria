@@ -834,6 +834,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       .length(),
       content=1,
     )
+    println(events.to_json().stringify(indent=2))
     @json.inspect(
       events
       .filter(e => e

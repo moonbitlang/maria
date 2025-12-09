@@ -1,5 +1,10 @@
 ///|
-pub struct Diagnostics(Array[Diagnostic]) derive(ToJson, Show)
+pub struct Diagnostics(Array[Diagnostic]) derive (
+  ToJson,
+  @json.FromJson,
+  Show,
+  Eq,
+)
 
 ///|
 pub fn Diagnostics::new() -> Self {

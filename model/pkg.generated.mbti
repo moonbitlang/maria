@@ -49,16 +49,22 @@ pub struct Model {
 }
 #as_free_fn
 pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
+pub impl Eq for Model
+pub impl Show for Model
 pub impl ToJson for Model
 pub impl @json.FromJson for Model
 
 pub(all) enum Provider {
   OpenAI
 }
+pub impl Eq for Provider
+pub impl Show for Provider
 
 pub(all) enum Type {
   SaaS(Provider)
 }
+pub impl Eq for Type
+pub impl Show for Type
 pub impl ToJson for Type
 pub impl @json.FromJson for Type
 

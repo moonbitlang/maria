@@ -199,6 +199,7 @@ pub struct ChatCompletionMessageToolCall {
 }
 pub impl Show for ChatCompletionMessageToolCall
 pub impl ToJson for ChatCompletionMessageToolCall
+pub impl @json.FromJson for ChatCompletionMessageToolCall
 
 pub struct ChatCompletionMessageToolCallFunction {
   arguments : String?
