@@ -1,8 +1,9 @@
 import * as ral from "@maria/core/lib/ral.ts";
-import type { RAL } from "@maria/core/lib/types.js";
+import type { ElectronRAL } from "@maria/core/lib/types.js";
 
-const _ril: RAL = {
+const _ril: ElectronRAL = {
   platform: "electron",
+  selectDirectory: window.electronAPI.selectDirectory,
 };
 
 export function install(): void {

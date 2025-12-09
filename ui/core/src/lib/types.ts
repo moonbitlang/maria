@@ -1,3 +1,5 @@
+import type { OpenDialogReturnValue } from "electron";
+
 export type QueuedMessage = {
   id: string;
   content: string;
@@ -190,8 +192,17 @@ export type DaemonTaskChangeEvent = {
   task: TaskOverview;
 };
 
-type platform = "web" | "electron" | "vsc-webview";
-
-export type RAL = {
-  platform: platform;
+export type WebRAL = {
+  platform: "web";
 };
+
+export type VSCWebviewRAL = {
+  platform: "vsc-webview";
+};
+
+export type ElectronRAL = {
+  platform: "electron";
+  selectDirectory(): Promise<OpenDialogReturnValue>;
+};
+
+export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;

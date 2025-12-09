@@ -1,13 +1,14 @@
 import { makeStore } from "@maria/core/app/store.js";
 import { Skeleton } from "@maria/core/components/ui/skeleton.tsx";
+import Home from "@maria/core/routes/Home.tsx";
 import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode, Suspense, use, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router";
-import Home from "./Home";
 import "./index.css";
 import { Layout } from "./layout";
+import { install } from "./ril";
 
 const mariaReadyPromise = (async () => {
   await window.electronAPI.mariaReady();
@@ -88,6 +89,7 @@ function LoadingFallback() {
   );
 }
 
+install();
 const container = document.getElementById("root")!;
 
 const root = createRoot(container);

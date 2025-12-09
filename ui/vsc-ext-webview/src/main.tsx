@@ -1,14 +1,17 @@
-import { store } from "@maria/core/app/store.ts";
+import { makeStore } from "@maria/core/app/store.ts";
+import { initialState } from "@maria/core/features/session/homeSlice.js";
 import Home from "@maria/core/routes/Home.tsx";
 import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router";
-import AllTasks from "./AllTasks";
 import "./index.css";
 import Layout from "./layout";
+import { install } from "./ril";
 import { rootData } from "./utils";
+
+install();
 
 const taskId = rootData("task-id");
 const cwd = rootData("cwd");
@@ -27,13 +30,12 @@ const root = createRoot(container);
 
 root.render(
   <StrictMode>
-    <Provider store={store}>
+    <Provider store={makeStore({ home: { ...initialState, cwd } })}>
       <MemoryRouter initialEntries={initialEntries} initialIndex={0}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Home cwd={cwd} />}></Route>
+            <Route index element={<Home />}></Route>
             <Route path="/tasks/:taskId" element={<Task />}></Route>
-            <Route path="/all-tasks" element={<AllTasks />}></Route>
           </Route>
         </Routes>
       </MemoryRouter>

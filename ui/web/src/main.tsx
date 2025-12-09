@@ -7,7 +7,9 @@ import { Provider } from "react-redux";
 import { BrowserRouter, Route, Routes } from "react-router";
 import "./index.css";
 import { Layout } from "./layout";
+import { install } from "./ril";
 
+install();
 const container = document.getElementById("root")!;
 
 const root = createRoot(container);
