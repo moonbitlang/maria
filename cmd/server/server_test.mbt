@@ -50,7 +50,14 @@ async fn configure_server(
     None => @pathx.join(cwd, "cmd/server")
   }
   configure_models(mock)
-  @server.Server::new(model~, serve~, register?, port=0, cwd=mock.cwd.path())
+  @server.Server::new(
+    model~,
+    serve~,
+    register?,
+    port=0,
+    home=mock.cwd.path(),
+    cwd=mock.cwd.path(),
+  )
 }
 
 ///|
@@ -77,10 +84,15 @@ async test "register" (t : @test.Test) {
     conn.write(res.to_json())
     conn.end_response()
     let server = server_task.wait()
-    @json.inspect(rb.json(), content={
-      "id": "test-server",
-      "port": server.port(),
-    })
+    @json.inspect(
+      mock.json(rb.json()).transform(@json.Replacer::exclude(["new_id"])),
+      content={
+        "id": "test-server",
+        "port": server.port(),
+        "cwd": "(mock:cwd)",
+        "web_search": false,
+      },
+    )
   })
 }
 

@@ -38,6 +38,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
         "created_at": 0,
         "updated_at": 3,
         "cwd": "(mock:cwd)/cwd",
+        "web_search": false,
       },
     )
     @json.inspect(conversation.system_prompt(), content=[

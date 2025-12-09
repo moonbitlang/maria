@@ -16,14 +16,19 @@ async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
   let w = @httpx.EventStreamWriter::new(w)
   w.write_header(200)
   let tasks : Array[Task] = []
-  for task in self.by_cwd.values().collect() {
-    task.sync_status() catch {
-      error =>
-        println(
-          "[WARN] (Daemon) Failed to sync status from task \{task.id}: \{error}",
-        )
+  for task in self.by_id.values().collect() {
+    match task {
+      Running(task) => {
+        task.sync() catch {
+          error =>
+            println(
+              "[WARN] (Daemon) Failed to sync status from task \{task.id}: \{error}",
+            )
+        }
+        tasks.push(Running(task))
+      }
+      Stopped(task) => tasks.push(Stopped(task))
     }
-    tasks.push(task)
   }
   w.write_event(
     event="daemon.tasks.synchronized",

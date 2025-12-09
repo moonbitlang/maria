@@ -30,6 +30,7 @@ pub struct Event {
   event : String?
   data : String
 }
+pub fn Event::new(event? : String, data~ : String) -> Self
 pub impl Show for Event
 pub impl ToJson for Event
 
@@ -40,6 +41,7 @@ pub async fn EventStreamReader::read_event(Self) -> Event?
 
 type EventStreamWriter
 pub fn EventStreamWriter::new(ResponseWriter) -> Self
+pub async fn[T : ToEvent] EventStreamWriter::write(Self, T, flush? : Bool) -> Unit
 pub async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
 pub async fn EventStreamWriter::write_header(Self, Int) -> Unit
 
@@ -134,5 +136,9 @@ pub async fn Server::serve(Self, Handler) -> Unit
 // Traits
 pub(open) trait FromEvent {
   from_event(Event) -> Self raise
+}
+
+pub(open) trait ToEvent {
+  to_event(Self) -> Event
 }
 

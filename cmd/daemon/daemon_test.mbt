@@ -66,6 +66,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
   configure_models(mock)
   @daemon.Daemon::new(
     uuid=mock.uuid,
+    home=mock.cwd.path(),
     cwd=mock.cwd.path(),
     exec_path=@pathx.join(
       os_cwd, "target/native/release/build/cmd/main/main.exe",
@@ -442,23 +443,17 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
       @json.inspect(r.code, content=201)
       let b = b.json()
       @json.inspect(
-        b
-        is {
+        b.transform(
+          @json.Replacer::exclude(["id", "cwd", "port", "created", "updated"]),
+        ),
+        content={
           "task": {
-            "name": _,
-            "id": String(_),
-            "cwd": String(_),
-            "port": Number(_, ..),
-            "status": "idle"
-            | "generating",
-            "created": Number(_, ..),
+            "status": "idle",
             "web_search": false,
-            ..
+            "queued_messages": [],
           },
-          "message": { "id": String(_), "queued": true | false, .. },
-          ..
+          "message": { "queued": false },
         },
-        content=true,
       )
     })
   })
@@ -497,14 +492,14 @@ async test "GET /v1/events" (t : @test.Test) {
       @json.inspect(
         mock
         .json(events)
-        .transform(@json.Replacer::exclude(["port", "created"])),
+        .transform(
+          @json.Replacer::exclude(["id", "port", "created", "updated"]),
+        ),
         content=[
           ["TasksSynchronized", []],
           [
             "TaskChanged",
             {
-              "name": null,
-              "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
               "cwd": "(mock:cwd)",
               "status": "generating",
               "web_search": false,
@@ -514,8 +509,6 @@ async test "GET /v1/events" (t : @test.Test) {
           [
             "TaskChanged",
             {
-              "name": null,
-              "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
               "cwd": "(mock:cwd)",
               "status": "idle",
               "web_search": false,

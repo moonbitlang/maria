@@ -1,29 +1,29 @@
 ///|
-/// Synchronizes all remote status from the task's HTTP server.
+/// Synchronizes the running task's status and queued messages by fetching the
+/// latest data from its HTTP endpoint.
 ///
 /// Parameters:
 ///
-/// * `task` : The task to synchronize data for.
+/// * `task` : The running task instance to synchronize.
 ///
-/// Throws an error if the HTTP requests fail or if the response parsing
-/// encounters issues.
-async fn Task::sync(task : Task) -> Unit {
+/// Throws an error if the HTTP requests fail or if the response bodies cannot
+/// be parsed as JSON.
+async fn Running::sync(task : Running) -> Unit {
   task.sync_status()
   task.sync_queued_messages()
 }
 
 ///|
-/// Synchronizes the status information from a task's HTTP server and updates
-/// the local task status accordingly.
+/// Synchronizes the status of a running task by fetching its current status
+/// from the task's HTTP endpoint and updating the local status field.
 ///
 /// Parameters:
 ///
-/// * `task` : The task whose status should be synchronized from its HTTP
-///   server.
+/// * `task` : The running task whose status should be synchronized.
 ///
-/// Throws an error if the HTTP request fails or if the JSON response cannot be
-/// parsed properly.
-async fn Task::sync_status(task : Task) -> Unit {
+/// Throws an error if the HTTP request fails or if the response body cannot be
+/// parsed as JSON.
+async fn Running::sync_status(task : Running) -> Unit {
   let (r, b) = @http.get("http://localhost:\{task.port}/v1/status") catch {
     error => {
       println(
@@ -61,18 +61,18 @@ async fn Task::sync_status(task : Task) -> Unit {
 }
 
 ///|
-/// Synchronizes queued messages from a task's HTTP server and updates the local
-/// task's queued message list.
+/// Synchronizes the running task's queued messages by fetching them from the
+/// task's HTTP endpoint and updating the local queued messages array.
 ///
 /// Parameters:
 ///
-/// * `task` : The task whose queued messages should be synchronized from its
-///   HTTP server.
+/// * `task` : The running task instance whose queued messages should be
+///   synchronized.
 ///
-/// Throws an error of type `json_error` if the HTTP request fails, if the
-/// response status code is not in the 200-299 range, if the JSON response
-/// cannot be parsed properly, or if the response format is invalid.
-async fn Task::sync_queued_messages(task : Task) -> Unit {
+/// Throws an error if the HTTP request fails, if the response status is not in
+/// the 200-299 range, if the response body cannot be parsed as JSON, or if the
+/// response format is invalid.
+async fn Running::sync_queued_messages(task : Running) -> Unit {
   task.queued_messages.clear()
   let (r, b) = @http.get("http://localhost:\{task.port}/v1/queued-messages") catch {
     error =>

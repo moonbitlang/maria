@@ -1,7 +1,7 @@
 ///|
 priv suberror HttpError {
   HttpError(code~ : Int, reason~ : String, body~ : String)
-}
+} derive(Show, ToJson)
 
 ///|
 fn json_error(code : Int, reason : String, body : Json) -> HttpError {
@@ -157,7 +157,16 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut register_port = None
   let mut register_id = None
   let mut web_search = false
+  let mut resume_id = None
+  let mut name = None
   loop args {
+    ["--name", n, .. args] =>
+      if n.has_prefix("-") {
+        fail("Expected name after \{args[0]}")
+      } else {
+        name = Some(n)
+        continue args
+      }
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
         fail("Expected model name after \{args[0]}")
@@ -198,6 +207,10 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       web_search = true
       continue args
     }
+    ["--resume", rid, .. args] => {
+      resume_id = Some(@uuid.parse(rid))
+      continue args
+    }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -214,5 +227,5 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  Server::new(model?, register?, serve~, port~, web_search~).start()
+  Server::new(name?, model?, register?, serve~, port~, resume_id?, web_search~).start()
 }

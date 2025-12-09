@@ -10,7 +10,8 @@
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/event",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/rand"
   ],
   "test-import": ["moonbitlang/maria/internal/mock"]
 }

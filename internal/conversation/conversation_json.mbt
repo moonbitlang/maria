@@ -8,7 +8,17 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
     object["description"] = description.to_json()
   }
   object["cwd"] = self.cwd.to_json()
+  object["web_search"] = self.web_search.to_json()
   object.to_json()
+}
+
+///|
+/// Create UUID from timestamp
+fn uuid_from_timestamp(ts : @clock.Timestamp) -> @uuid.Uuid {
+  let buf = @buffer.new()
+  buf.write_bytes(Bytes::make(8, 0))
+  buf.write_int64_le(ts.ms())
+  @uuid.of_bytes(buf.to_bytes())
 }
 
 ///|
@@ -58,8 +68,15 @@ pub impl @json.FromJson for Conversation with from_json(
       )
       let events = []
       let pending_tool_calls : Map[String, @ai.ToolCall] = Map::new()
+      let uuid = Some(@uuid.generator(@rand.chacha8())) catch { _ => None }
       for message in messages {
-        let id = @uuid.nil
+        let id = if uuid is Some(uuid) {
+          uuid.v4()
+        } else {
+          // We derive a UUID from the message timestamp for compatibility
+          // with older conversation files that do not have explicit IDs.
+          uuid_from_timestamp(message.timestamp)
+        }
         match message.message {
           Assistant(content, tool_calls~) => {
             for tc in tool_calls {
@@ -141,6 +158,13 @@ pub impl @json.FromJson for Conversation with from_json(
     None =>
       raise @json.JsonDecodeError((json_path.add_key("cwd"), "Missing field"))
   }
+  // web_search defaults to false for backwards compatibility with older
+  // conversation files that don't have this field.
+  let web_search = match json.get("web_search") {
+    Some(web_search) =>
+      @json.from_json(web_search, path=json_path.add_key("web_search"))
+    None => false
+  }
   Conversation::{
     clock: @clock.epoch,
     name,
@@ -150,6 +174,7 @@ pub impl @json.FromJson for Conversation with from_json(
     updated_at,
     cwd,
     events,
+    web_search,
   }
 }
 

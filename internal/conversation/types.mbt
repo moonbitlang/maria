@@ -8,6 +8,13 @@ struct Conversation {
   created_at : @clock.Timestamp
   mut updated_at : @clock.Timestamp
   cwd : String
+  web_search : Bool
+}
+
+///|
+/// Returns whether web search functionality is enabled for this conversation.
+pub fn Conversation::web_search(self : Conversation) -> Bool {
+  self.web_search
 }
 
 ///|

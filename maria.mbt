@@ -41,6 +41,7 @@ fn setup_agent(agent : @agent.Agent, cwd~ : String) -> Unit {
 /// Returns a configured Maria instance ready to assist with coding tasks.
 #as_free_fn
 pub async fn Maria::new(
+  name? : String,
   logger? : @pino.Logger = @pino.logger(
     "maria",
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
@@ -59,6 +60,7 @@ pub async fn Maria::new(
     @prompt.prelude, @prompt.moonbit, @todo.prompt, @search_files.prompt,
   ].join("\n")
   let agent = @agent.new(
+    name?,
     model,
     logger~,
     home?=home.map(home => home),
@@ -118,7 +120,7 @@ pub async fn Maria::resume_(
   home? : String,
   id : @uuid.Uuid,
   user_message? : String,
-  web_search? : Bool = false,
+  web_search? : Bool,
 ) -> Maria {
   let home = match home {
     Some(home) => home
@@ -129,6 +131,8 @@ pub async fn Maria::resume_(
   guard session_manager.load(id) is Some(conversation) else {
     fail("Conversation with id '\{id}' not found.")
   }
+  // Use the conversation's web_search setting if not explicitly overridden.
+  let web_search = web_search.unwrap_or(conversation.web_search())
   let agent = @agent.load(
     model,
     conversation,

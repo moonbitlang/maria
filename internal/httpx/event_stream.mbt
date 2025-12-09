@@ -62,6 +62,26 @@ pub async fn EventStreamWriter::write_event(
 }
 
 ///|
+/// Writes an SSE event to the stream by converting the given object to an event
+/// format.
+///
+/// Parameters:
+///
+/// * `self` : The event stream writer to write to.
+/// * `event` : The object to convert and write as an SSE event. Must implement
+///   the `ToEvent` trait.
+/// * `flush` : Whether to flush the response after writing the event. Defaults
+///   to `true`.
+pub async fn[T : ToEvent] EventStreamWriter::write(
+  self : EventStreamWriter,
+  event : T,
+  flush? : Bool = true,
+) -> Unit {
+  let sse_event = event.to_event()
+  self.write_event(event?=sse_event.event, data=sse_event.data, flush~)
+}
+
+///|
 /// Server-Sent Events (SSE) response reader.
 ///
 /// `EventStreamReader` parses Server-Sent Events from an underlying reader,
@@ -94,6 +114,19 @@ pub struct Event {
 } derive(ToJson)
 
 ///|
+/// Creates a new SSE event with the specified event type and data payload.
+///
+/// Parameters:
+///
+/// * `event` : Optional event type identifier that categorizes the event.
+/// * `data` : The data payload content of the event.
+///
+/// Returns a new `Event` instance with the provided event type and data.
+pub fn Event::new(event? : String, data~ : String) -> Event {
+  Event::{ event, data }
+}
+
+///|
 pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
   if self.event is Some(event) {
     w.write_string("event: \{event}\n")
@@ -108,6 +141,22 @@ pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
 /// into domain-specific types.
 pub(open) trait FromEvent {
   from_event(Event) -> Self raise
+}
+
+///|
+/// A trait for types that can be converted to Server-Sent Event format.
+///
+/// This trait allows custom types to define how they should be represented as
+/// SSE events when written to an `EventStreamWriter`. Types implementing this
+/// trait can specify both the event type and data payload that will be sent
+/// over the event stream.
+///
+/// Methods:
+///
+/// * `to_event(self: Self) -> Event`: Converts the instance to an SSE `Event`
+///   with appropriate event type and data payload.
+pub(open) trait ToEvent {
+  to_event(self : Self) -> Event
 }
 
 ///|
