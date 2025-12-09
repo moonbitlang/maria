@@ -1,7 +1,9 @@
 import type * as comlink from "comlink";
+import type * as vscode from "vscode";
 import type * as api from "../../vsc-common/api";
 
 type GlobalState = {
+  context?: vscode.ExtensionContext;
   webviewApi?: comlink.Remote<api.WebviewApi>;
 };
 

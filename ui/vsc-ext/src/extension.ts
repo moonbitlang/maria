@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
 import { allTasksView, taskView } from "./commands";
 import { DaemonService } from "./daemon-service";
+import { set } from "./global-state";
 import { MoonBitAgentViewProvider } from "./view";
 export async function activate(context: vscode.ExtensionContext) {
-  const daemonService = DaemonService.instance();
+  set("context", context);
+  const daemonService = await DaemonService.instance();
   const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 
   if (cwd === undefined) {
