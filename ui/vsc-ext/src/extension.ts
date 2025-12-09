@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { allTasksView, taskView } from "./commands";
+import { taskView } from "./commands";
 import { DaemonService } from "./daemon-service";
 import { set } from "./global-state";
 import { MoonBitAgentViewProvider } from "./view";
@@ -24,7 +24,6 @@ export async function activate(context: vscode.ExtensionContext) {
       viewProvider,
       { webviewOptions: { retainContextWhenHidden: true } },
     ),
-    vscode.commands.registerCommand("moonbit-agent.allTasksView", allTasksView),
     vscode.commands.registerCommand("moonbit-agent.taskView", taskView),
   );
 }
