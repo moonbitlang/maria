@@ -1,4 +1,5 @@
-import { store } from "@maria/core/app/store.ts";
+import { makeStore } from "@maria/core/app/store.ts";
+import { initialState } from "@maria/core/features/session/homeSlice.js";
 import Home from "@maria/core/routes/Home.tsx";
 import Task from "@maria/core/routes/Task.tsx";
 import { StrictMode } from "react";
@@ -29,11 +30,11 @@ const root = createRoot(container);
 
 root.render(
   <StrictMode>
-    <Provider store={store}>
+    <Provider store={makeStore({ home: { ...initialState, cwd } })}>
       <MemoryRouter initialEntries={initialEntries} initialIndex={0}>
         <Routes>
           <Route element={<Layout />}>
-            <Route index element={<Home cwd={cwd} />}></Route>
+            <Route index element={<Home />}></Route>
             <Route path="/tasks/:taskId" element={<Task />}></Route>
           </Route>
         </Routes>

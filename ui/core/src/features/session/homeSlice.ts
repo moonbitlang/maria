@@ -6,7 +6,7 @@ type HomeState = {
   webSearchEnabled: boolean;
 };
 
-const initialState: HomeState = {
+export const initialState: HomeState = {
   input: "",
   cwd: undefined,
   webSearchEnabled: false,
