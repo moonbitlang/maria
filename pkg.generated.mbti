@@ -4,6 +4,7 @@ package "moonbitlang/maria"
 import(
   "moonbitlang/maria/agent"
   "moonbitlang/maria/internal/pino"
+  "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/model"
 )
 
@@ -18,7 +19,9 @@ pub struct Maria {
 }
 pub fn Maria::close(Self) -> Unit
 #as_free_fn
-pub async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, cwd? : String, user_message? : String, web_search? : Bool) -> Self
+pub async fn Maria::new(logger? : @pino.Logger, model~ : @model.Model, home? : String, cwd? : String, user_message? : String, web_search? : Bool) -> Self
+#as_free_fn
+pub async fn Maria::resume_(logger? : @pino.Logger, model~ : @model.Model, home? : String, @uuid.Uuid, user_message? : String, web_search? : Bool) -> Self
 pub async fn Maria::start(Self, prompt? : String) -> Unit
 
 // Type aliases

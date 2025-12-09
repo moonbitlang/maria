@@ -41,8 +41,10 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             (Get, ["", "v1", "tasks"]) => self.list_tasks(w)
             (Post, ["", "v1", "task"]) => self.create_task(group~, r, w)
             (Get, ["", "v1", "task", id]) => self.get_task(id, w)
+            (Get, ["", "v1", "task", id, "events"]) =>
+              self.get_task_events(id~, w)
             (method_, ["", "v1", "task", id, .. paths]) =>
-              self.forward_to_task(method_~, id~, paths~, r, w)
+              self.forward_to_task(method_~, group~, id~, paths~, r, w)
             (Post, ["", "v1", "shutdown"]) => {
               w.header().set("Content-Type", "application/json")
               w.write_header(200)

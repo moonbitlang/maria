@@ -9,6 +9,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut model : String? = None
   let mut web_search : Bool = false
   let mut log_file : String? = None
+  let mut resume_id : @uuid.Uuid? = None
   loop args {
     ["--prompt" | "-p", value, .. rest] => {
       prompt = Some(value)
@@ -26,6 +27,16 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       log_file = Some(value)
       continue rest
     }
+    ["--resume" | "-r", value, .. rest] => {
+      let value = @uuid.parse(value) catch {
+        _ =>
+          raise @argument.InvalidArgument(
+            "Invalid resume ID: '\{value}' is not a valid UUID.",
+          )
+      }
+      resume_id = Some(value)
+      continue rest
+    }
     [unknown, ..] => raise @argument.InvalidArgument(unknown)
     [] => break
   }
@@ -39,7 +50,11 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     return
   }
   @async.with_task_group(group => {
-    let maria = @maria.Maria::new(model~, web_search~, logger?)
+    let maria = if resume_id is Some(id) {
+      @maria.Maria::resume_(model~, id, web_search~, logger?)
+    } else {
+      @maria.Maria::new(model~, web_search~, logger?)
+    }
     maria.agent.add_listener(event => match event.desc {
       AssistantMessage(content, ..) =>
         if !content.is_blank() {

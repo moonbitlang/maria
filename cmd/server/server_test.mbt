@@ -77,10 +77,15 @@ async test "register" (t : @test.Test) {
     conn.write(res.to_json())
     conn.end_response()
     let server = server_task.wait()
-    @json.inspect(rb.json(), content={
-      "id": "test-server",
-      "port": server.port(),
-    })
+    @json.inspect(
+      mock.json(rb.json()).transform(@json.Replacer::exclude(["new_id"])),
+      content={
+        "id": "test-server",
+        "port": server.port(),
+        "cwd": "(mock:cwd)",
+        "web_search": false,
+      },
+    )
   })
 }
 

@@ -32,7 +32,9 @@ async fn Daemon::get_task(
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  task.sync()
+  if task is Running(task) {
+    task.sync()
+  }
   let response : Json = { "task": task }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
