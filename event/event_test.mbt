@@ -1,5 +1,5 @@
 ///|
-fn redact_events(events : Array[@event.Event]) -> Array[Json] {
+fn redact_events(events : Array[@event.OutgoingEvent]) -> Array[Json] {
   events.map(event => event
     .to_json()
     .transform(

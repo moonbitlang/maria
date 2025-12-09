@@ -28,6 +28,12 @@
 /// PostConversation
 /// ```
 pub(all) enum Event {
+  Incoming(ExternalEvent)
+  Outgoing(OutgoingEvent)
+}
+
+///|
+pub(all) enum OutgoingEvent {
   /// Event triggered when a model is loaded.
   ModelLoaded(name~ : String, model~ : @model.Model)
   /// Event triggered before a conversation starts.
@@ -95,7 +101,7 @@ pub(all) enum Event {
 }
 
 ///|
-pub impl ToJson for Event with to_json(self : Event) -> Json {
+pub impl ToJson for OutgoingEvent with to_json(self : OutgoingEvent) -> Json {
   match self {
     ModelLoaded(name~, model~) =>
       {
