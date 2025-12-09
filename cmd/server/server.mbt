@@ -96,7 +96,7 @@ async fn RegisterInfo::register(
     "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
   )
   let req : RegisterRequest = { id: register.id, port }
-  let (r, b) = @http.post(
+  let (r, b) = @httpx.post_json(
     "http://\{register.host}:\{register.port}/v1/task/register",
     req.to_json(),
   )

@@ -94,9 +94,9 @@ async test "POST /v1/message" (t : @test.Test) {
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
+      { "message": { "role": "user", "content": "Hello, Maria!" } },
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -104,9 +104,9 @@ async test "POST /v1/message" (t : @test.Test) {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
     @json.inspect(queued, content=false)
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({ "message": { "role": "user", "content": "Hello again!" } }),
+      { "message": { "role": "user", "content": "Hello again!" } },
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -225,19 +225,17 @@ async test "GET /v1/events" (t : @test.Test) {
         }
       }
     })
-    let (_, b) = @http.post(
+    let (_, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({ "message": { "role": "user", "content": "Hello, Maria!" } }),
+      { "message": { "role": "user", "content": "Hello, Maria!" } },
     )
     let b = b.json()
     guard b is { "id": String(msg0_id), .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    let (_, b) = @http.post(
+    let (_, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({
-        "message": { "role": "user", "content": "Hello again, Maria!" },
-      }),
+      { "message": { "role": "user", "content": "Hello again, Maria!" } },
     )
     let b = b.json()
     guard b is { "id": String(msg1_id), .. } else {
@@ -377,9 +375,9 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/moonbit/publish",
-      Json::object({ "module": { "path": mock.cwd.path() } }),
+      { "module": { "path": mock.cwd.path() } },
     )
     @json.inspect(r.code, content=404)
     @json.inspect(
@@ -392,9 +390,9 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
       },
     )
     @moon.new(user="username", name="example", mock.cwd.path())
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/moonbit/publish",
-      Json::object({ "module": { "path": mock.cwd.path() } }),
+      { "module": { "path": mock.cwd.path() } },
     )
     @json.inspect(r.code, content=500)
     @json.inspect(
@@ -479,33 +477,31 @@ async test "POST /v1/cancel" (t : @test.Test) {
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       @json.inspect(r.code, content=200)
       @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/message",
-        Json::object({
-          "message": { "role": "user", "content": "Hello, Maria!" },
-        }),
+        { "message": { "role": "user", "content": "Hello, Maria!" } },
       )
       @json.inspect(r.code, content=200)
       let b = b.json()
       guard b is { "id": String(_), "queued": false, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
-      let (_, b) = @http.post(
+      let (_, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/message",
-        Json::object({
+        {
           "message": {
             "role": "user",
             "content": "This message will be popped on cancellation",
           },
-        }),
+        },
       )
       let b = b.json()
       guard b is { "id": String(id), "queued": true, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
-      let (r, b) = @http.post(
+      let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/cancel",
-        Json::object({}),
+        {},
       )
       @json.inspect(r.code, content=200)
       @json.inspect(b.json(), content={
@@ -553,12 +549,9 @@ async test "POST /v1/cancel" (t : @test.Test) {
         ],
       )
       // Should be able to send another message after cancellation
-      let _ = @http.post(
-        "http://localhost:\{server.port()}/v1/message",
-        Json::object({
-          "message": { "role": "user", "content": "Hello again, Maria!" },
-        }),
-      )
+      let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
+        "message": { "role": "user", "content": "Hello again, Maria!" },
+      })
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
@@ -663,16 +656,13 @@ async test "web_search" (t : @test.Test) {
       @json.inspect(r.code, content=200)
       collect_events(s)
     })
-    let _ = @http.post(
-      "http://localhost:\{server.port()}/v1/message",
-      Json::object({
-        "message": {
-          "role": "user",
-          "content": "Can you please search the web for MoonBit to find out which year it is initiated?",
-        },
-        "web_search": true,
-      }),
-    )
+    let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
+      "message": {
+        "role": "user",
+        "content": "Can you please search the web for MoonBit to find out which year it is initiated?",
+      },
+      "web_search": true,
+    })
     let events = collector.wait()
     @json.inspect(
       events
@@ -711,11 +701,9 @@ async test "GET /v1/tools" (t : @test.Test) {
       "search_files": { "enabled": true },
       "meta_write_to_file": { "enabled": true },
     })
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/enabled-tools",
-      Json::array([
-        "list_files", "read_file", "todo", "search_files", "meta_write_to_file",
-      ]),
+      ["list_files", "read_file", "todo", "search_files", "meta_write_to_file"],
     )
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={})
@@ -743,9 +731,9 @@ async test "GET /v1/system-prompt" (t : @test.Test) {
     @json.inspect(r.code, content=200)
     let b = b.json()
     @json.inspect(b is String(text) && text.length() > 0, content=true)
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/system-prompt",
-      Json::string("New system prompt."),
+      "New system prompt.",
     )
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={})
@@ -766,9 +754,9 @@ async test "GET /v1/external-event/user-message" (t : @test.Test) {
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/user-message",
-      Json::object({ "message": "Hello, Maria!" }),
+      { "message": "Hello, Maria!" },
     )
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={ "success": true })
@@ -797,14 +785,14 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
     @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({
+      {
         "message": {
           "role": "user",
           "content": "Can you please tell me when is it now by spawning the 'date' command?",
         },
-      }),
+      },
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -812,14 +800,14 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
     @json.inspect(queued, content=false)
-    let (r, b) = @http.post(
+    let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
-      Json::object({
+      {
         "message": {
           "role": "user",
           "content": "Can you please tell me what is the current weather in New York?",
         },
-      }),
+      },
     )
     @json.inspect(r.code, content=200)
     let b = b.json()
@@ -827,9 +815,9 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
     @json.inspect(queued, content=true)
-    let (r, _) = @http.post(
+    let (r, _) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/cancel",
-      Json::object({}),
+      {},
     )
     @json.inspect(r.code, content=200)
     let events = collector.wait()
@@ -891,22 +879,19 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
-    let _ = @http.post(
-      "http://localhost:\{server.port()}/v1/message",
-      Json::object({
-        "message": {
-          "role": "user",
-          "content": "Can you please fix the MoonBit project so that it is free from errors and warnings?",
-        },
-      }),
-    )
-    let _ = @http.post(
+    let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
+      "message": {
+        "role": "user",
+        "content": "Can you please fix the MoonBit project so that it is free from errors and warnings?",
+      },
+    })
+    let _ = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/diagnostics",
-      Json::object({ "diagnostics": diagnostics.to_json() }),
+      { "diagnostics": diagnostics.to_json() },
     )
-    let _ = @http.post(
+    let _ = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/cancel",
-      Json::object({}),
+      {},
     )
     let events = collector.wait()
     @json.inspect(

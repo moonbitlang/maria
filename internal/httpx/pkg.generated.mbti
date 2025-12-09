@@ -14,6 +14,8 @@ pub let methods : Array[Method]
 
 pub let not_found : Handler
 
+pub async fn post_json(String, Json) -> (@http.Response, &@io.Data)
+
 pub fn reason(Int) -> String
 
 // Errors
