@@ -87,5 +87,6 @@ pub fn Manager::new_conversation(
     messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
+    cwd: self.cwd,
   }
 }

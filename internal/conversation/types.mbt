@@ -8,6 +8,12 @@ struct Conversation {
   messages : Array[Message]
   created_at : Int64
   mut updated_at : Int64
+  cwd : StringView
+}
+
+///|
+pub fn Conversation::cwd(self : Conversation) -> StringView {
+  self.cwd
 }
 
 ///|

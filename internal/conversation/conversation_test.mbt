@@ -9,7 +9,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
     let conversation = manager.new_conversation(name="Test Conversation")
     conversation.set_system_prompt(Some("This is a system prompt."))
     conversation.add_message(@ai.user_message(content="Hello"))
-    @json.inspect(conversation, content={
+    @json.inspect(mock.json(conversation), content={
       "name": "Test Conversation",
       "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
       "system_prompt": "This is a system prompt.",
@@ -18,6 +18,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
       ],
       "created_at": "0",
       "updated_at": "2",
+      "cwd": "(mock:cwd)",
     })
   })
 }
@@ -33,6 +34,7 @@ test "Conversation::FromJson" {
     ],
     "created_at": "0",
     "updated_at": "2",
+    "cwd": "/home/user/project",
   }
   let conversation : @conversation.Conversation = @json.from_json(json)
   @json.inspect(conversation.messages().map(fn(m) { m.to_openai() }), content=[
@@ -98,6 +100,7 @@ test "Conversation::display" {
     ],
     "created_at": "0",
     "updated_at": "5",
+    "cwd": "/home/user/project",
   }
   let conversation : @conversation.Conversation = @json.from_json(json)
   inspect(
