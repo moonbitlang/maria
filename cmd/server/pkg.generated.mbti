@@ -11,7 +11,7 @@ pub async fn start(ArrayView[String]) -> Unit
 // Errors
 
 // Types and methods
-pub(all) struct Register {
+pub(all) struct RegisterInfo {
   host : String
   port : Int
   id : String
@@ -30,7 +30,7 @@ pub impl ToJson for RegisterResponse
 pub impl @json.FromJson for RegisterResponse
 
 type Server
-pub async fn Server::new(model? : String, register? : Register, serve~ : String, port~ : Int, cwd? : String, web_search? : Bool) -> Self
+pub async fn Server::new(model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, cwd? : String, web_search? : Bool) -> Self
 pub fn Server::port(Self) -> Int
 pub async fn Server::start(Self) -> Unit
 

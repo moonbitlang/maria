@@ -264,7 +264,6 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
         ),
         extra_body={ "provider": { "only": ["anthropic"] } },
       )
-      println(response.to_json().stringify(indent=2))
       if response.usage is Some(usage) &&
         usage.prompt_tokens_details is Some(details) &&
         details.cached_tokens is Some(count) {
