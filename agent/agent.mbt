@@ -193,6 +193,19 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
             ),
           )
         }
+      SetSystemPrompt(prompt) => {
+        agent.history.set_system_prompt(Some(prompt))
+        agent.emit(MessageAdded(@ai.system_message(content=prompt)))
+      }
+      ClearSystemPrompt => agent.history.set_system_prompt(None)
+      SetEnabledTools(tool_names) =>
+        for name, tool in agent.tools {
+          if tool_names.contains(name) {
+            tool.enabled = true
+          } else {
+            tool.enabled = false
+          }
+        }
     }
   }
   true

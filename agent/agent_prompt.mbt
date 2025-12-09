@@ -7,9 +7,9 @@
 /// * `agent` : The agent instance whose system prompt will be set.
 /// * `prompt` : The system prompt text to be set for the agent's conversation.
 pub fn Agent::set_system_prompt(agent : Agent, prompt : String?) -> Unit {
-  agent.history.set_system_prompt(prompt)
-  if prompt is Some(prompt) {
-    agent.emit(MessageAdded(@ai.system_message(content=prompt)))
+  match prompt {
+    Some(prompt) => agent.external_events.send(SetSystemPrompt(prompt))
+    None => agent.external_events.send(ClearSystemPrompt)
   }
 }
 

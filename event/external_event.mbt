@@ -8,6 +8,12 @@ pub(all) enum ExternalEvent {
   UserCancellation
   /// User sends an immediate message (interrupting current flow)
   UserMessage(String)
+  /// Sets the system prompt for the conversation
+  SetSystemPrompt(String)
+  /// Clears the system prompt for the conversation
+  ClearSystemPrompt
+  /// Sets the enabled tools for the agent
+  SetEnabledTools(Set[String])
 }
 
 ///|
@@ -128,5 +134,9 @@ pub impl ToJson for ExternalEvent with to_json(self : ExternalEvent) -> Json {
       { "type": "Diagnostics", "diagnostics": diagnostics.to_json() }
     UserCancellation => { "type": "UserCancellation" }
     UserMessage(message) => { "type": "UserMessage", "message": message }
+    SetSystemPrompt(prompt) => { "type": "SetSystemPrompt", "prompt": prompt }
+    ClearSystemPrompt => { "type": "ClearSystemPrompt" }
+    SetEnabledTools(tool_names) =>
+      { "type": "SetEnabledTools", "tool_names": tool_names.to_json() }
   }
 }
