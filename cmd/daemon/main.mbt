@@ -5,6 +5,9 @@ priv struct DaemonInfo {
 } derive(ToJson)
 
 ///|
+/// Spawns (and optionally detaches) a Maria daemon process and waits until the
+/// child writes `~/.moonagent/daemon.json`. Returns the PID recorded in that
+/// file, which can belong to the new child or an already running daemon.
 pub async fn detach(
   exec_path? : String,
   port? : Int,
@@ -68,6 +71,9 @@ pub async fn detach(
 }
 
 ///|
+/// CLI entry point used by `moon run cmd/main -- daemon`. Parses flags,
+/// optionally detaches into a background process, and otherwise starts the
+/// HTTP server in the foreground.
 pub async fn start(args : ArrayView[String]) -> Unit {
   let mut port = 8090
   let mut serve = @os.cwd()

@@ -1,4 +1,7 @@
 ///|
+/// Long-lived supervisor that exposes Maria's REST API and fans out requests
+/// to per-workspace tasks. `Daemon` owns the HTTP server, process manager, and
+/// bookkeeping maps for active tasks.
 struct Daemon {
   clock : &@clock.Clock
   models : @model.Loader
@@ -15,6 +18,9 @@ struct Daemon {
 }
 
 ///|
+/// Returns the actual TCP port the daemon bound to after the HTTP server is
+/// created. This is useful when callers asked for `--port 0` (ephemeral port)
+/// and need to propagate the assigned value.
 pub fn Daemon::port(self : Daemon) -> Int {
   self.port
 }
@@ -487,6 +493,9 @@ async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
 }
 
 ///|
+/// Constructs a daemon instance, validates the executable path, optionally
+/// acquires the `~/.moonagent/daemon.json` lock, and binds the HTTP server.
+/// Returns `None` when another daemon already holds the lock.
 pub async fn Daemon::new(
   uuid? : @uuid.Generator,
   exec_path~ : String,
@@ -555,13 +564,15 @@ pub async fn Daemon::new(
 }
 
 ///|
+/// Runs the daemon event loop: starts the task manager, serves HTTP requests
+/// (behind the shared CORS middleware), and blocks until cancelled.
 pub async fn Daemon::serve(self : Daemon) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.process.start())
     self.httpx.serve(
       @httpx.cors((r, w) => {
-        println("[INFO] (Daemon) Received request: \{r.method_} \{r.path}")
         let paths = r.path.split("/").collect()
+        println("[INFO] (Daemon) Received request: \{r.method_} \{r.path}")
         println("[INFO] (Daemon) Handling request paths: \{paths}")
         try {
           match (r.method_, paths) {
