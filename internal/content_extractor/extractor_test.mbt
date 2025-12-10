@@ -1,5 +1,9 @@
 ///|
+/// Integration-style fixture that exercises the extractor against the MoonBit
+/// prompt. Skipped in CI because it relies on live LLM responses.
+/// disabled due to that this package is not really used.
 #skip
+#cfg(false)
 async test "@context.Extractor" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)

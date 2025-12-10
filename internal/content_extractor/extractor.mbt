@@ -1,4 +1,6 @@
 ///|
+/// Sliding-window helper that calls an LLM to highlight the most relevant
+/// spans of a file given the ongoing conversation history.
 struct Extractor {
   model : @model.Model
   window_size : Int
@@ -8,6 +10,9 @@ struct Extractor {
 }
 
 ///|
+/// Builds an extractor with configurable safety limits and logging. The
+/// `window_size` / `overlap` knobs dictate how aggressively large files are
+/// chunked before calling into the model.
 pub fn Extractor::new(
   model~ : @model.Model,
   safe_zone_tokens~ : Int,
@@ -25,6 +30,8 @@ pub fn Extractor::new(
 }
 
 ///|
+/// Produces overlapping chunks so each model call sees enough surrounding
+/// context when the file exceeds the safe token budget.
 fn split_content_with_sliding_window(
   content : String,
   window_size~ : Int,
@@ -46,6 +53,7 @@ fn split_content_with_sliding_window(
 }
 
 ///|
+/// Reminder injected when a chunk represents only part of the source file.
 const PartialNotice : String =
   #|<partial_content_process_note>
   #|The current processing is partial content from a file (lines marked in content),
@@ -53,10 +61,16 @@ const PartialNotice : String =
   #|</partial_content_process_note>
 
 ///|
+
+///|
+/// High-level instruction that keeps the model focused on snippet extraction.
 const ExtractorRolePrompt : String =
   #|You are a code analysis assistant. Extract relevant code snippets based on the provided code file and conversation history.
 
 ///|
+
+///|
+/// Detailed task brief that enforces JSON output and line-number discipline.
 const ExtractorTaskPrompt : String =
   #|Task:
   #|1. Analyze the last user question and its context.
@@ -81,6 +95,8 @@ const ExtractorTaskPrompt : String =
   #|```
 
 ///|
+/// Sends a single chunk plus conversation history to the LLM and expects a
+/// JSON array of `start_line` / `end_line` pairs in return.
 async fn Extractor::extract_code_snippets_from_chunk(
   self : Extractor,
   content : String,
@@ -124,12 +140,15 @@ async fn Extractor::extract_code_snippets_from_chunk(
 }
 
 ///|
+/// Internal representation of a snippet range emitted by the model.
 priv struct Range {
   start_line : Int
   end_line : Int
 }
 
 ///|
+/// Decode `{ "start_line": .., "end_line": .. }` objects produced by the
+/// model, surfacing useful path info in error messages when parsing fails.
 impl @json.FromJson for Range with from_json(
   json : Json,
   json_path : @json.JsonPath,
@@ -151,6 +170,7 @@ impl @json.FromJson for Range with from_json(
 }
 
 ///|
+/// Coalesces overlapping segments so we do not print redundant line ranges.
 fn merge_overlapping_snippets(snippets : Array[Range]) -> Array[Range] {
   if snippets.is_empty() {
     return snippets
@@ -175,6 +195,7 @@ fn merge_overlapping_snippets(snippets : Array[Range]) -> Array[Range] {
 }
 
 ///|
+/// Renders the chosen line ranges back into a human-readable snippet block.
 fn build_snippet_content(content : String, snippets : Array[Range]) -> String {
   let lines = content.split("\n").collect()
   let builder = StringBuilder::new()
@@ -194,6 +215,8 @@ fn build_snippet_content(content : String, snippets : Array[Range]) -> String {
 }
 
 ///|
+/// Main entry point: checks token budget, optionally chunking the file, then
+/// merges all model responses into a single annotated snippet string.
 pub async fn Extractor::extract_code_snippets(
   self : Extractor,
   content : String,
