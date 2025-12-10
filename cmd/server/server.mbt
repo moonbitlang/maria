@@ -6,7 +6,7 @@ struct Server {
   /// Long-lived Maria runtime plus agent state machine.
   maria : @maria.Maria
   /// SSE fan-out used to push events to every connected client.
-  broadcast : @broadcast.Broadcast[(@uuid.Uuid, @event.OutgoingEvent)]
+  broadcast : @broadcast.Broadcast[@event.Event]
   /// Incoming message queue; each entry carries a reply channel to report
   /// whether it started immediately or was queued.
   message_queue : @aqueue.Queue[
@@ -56,9 +56,7 @@ pub async fn Server::new(
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
   let maria = @maria.Maria::new(model~, cwd?, web_search~)
-  maria.agent.add_listener((event : @event.OutgoingEvent) => broadcast.put(
-    (uuid.v4(), event),
-  ))
+  maria.agent.add_listener((event : @event.Event) => broadcast.put(event))
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   if register is Some(register) {
@@ -201,27 +199,21 @@ async fn Server::start_maria(self : Server) -> Unit {
             error => {
               println("[ERROR] (Server) Maria task failed: \{error}")
               if !@async.is_being_cancelled() {
-                self.broadcast.put(
-                  (
-                    self.uuid.v4(),
-                    Custom("MariaFailed", {
-                      "error": {
-                        "code": -1,
-                        "message": error.to_string(),
-                        "metadata": error,
-                      },
-                    }),
-                  ),
-                )
+                self.broadcast.put(@event.Event::{
+                  id: self.uuid.v4(),
+                  desc: Custom("MariaFailed", {
+                    "error": {
+                      "code": (-1).to_json(),
+                      "message": error.to_string().to_json(),
+                      "metadata": error.to_json(),
+                    },
+                  }),
+                })
               } else {
-                self.broadcast.put(
-                  (
-                    self.uuid.v4(),
-                    Custom("MariaCancelled", {
-                      "error": { "code": -1, "message": "Task was cancelled." },
-                    }),
-                  ),
-                )
+                self.broadcast.put(@event.Event::{
+                  id: self.uuid.v4(),
+                  desc: Cancelled,
+                })
               }
               raise error
             }
@@ -293,19 +285,15 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
       chan.put(e)
     }
     for {
-      let (id, event) = chan.get()
-      if event is (TokenCounted(_) | ContextPruned(_)) {
+      let event = chan.get()
+      if event.desc is (TokenCounted(_) | ContextPruned(_)) {
         continue
-      }
-      let event_json = event.to_json()
-      if event_json is Object(event_object) {
-        event_object["id"] = id.to_string().to_json()
       }
       w
       ..write("event: maria\n")
-      ..write("data: \{event_json.stringify()}\n\n")
+      ..write("data: \{event.to_json().stringify()}\n\n")
       ..flush()
-      if event is (MessageQueued(_) | MessageUnqueued(_)) {
+      if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
         let queued_messages : Array[Json] = self.maria.agent
           .queued_messages()
           .map(m => { "id": m.id, "message": m.message.to_openai() })
@@ -377,14 +365,14 @@ async fn Server::send_external_event(
   }
   let queue = self.maria.agent.external_events()
   match event_type {
-    "UserCancellation" => queue.send(@event.ExternalEvent::UserCancellation)
+    "UserCancellation" => queue.send(UserCancellation)
     "UserMessage" => {
       guard json is { "message": String(message), .. } else {
         raise json_error(400, "BadRequest", {
           "error": "Missing 'message' field for UserMessage event",
         })
       }
-      queue.send(@event.ExternalEvent::UserMessage(message))
+      queue.send(UserMessage(message))
     }
     "Diagnostics" => {
       guard json is { "diagnostics": String(diagnostics_jsonl), .. } else {
@@ -393,7 +381,7 @@ async fn Server::send_external_event(
         })
       }
       let diagnostics = @diagnostics.from_jsonl(diagnostics_jsonl)
-      queue.send(@event.ExternalEvent::Diagnostics(diagnostics))
+      queue.send(Diagnostics(diagnostics))
     }
     _ =>
       raise json_error(400, "BadRequest", {
@@ -430,9 +418,7 @@ async fn Server::send_diagnostics_event(
         "error": "Missing 'diagnostics' field in request body",
       })
   }
-  self.maria.agent
-  .external_events()
-  .send(@event.ExternalEvent::Diagnostics(diagnostics))
+  self.maria.agent.external_events().send(Diagnostics(diagnostics))
   w.send_json(code=200, {
     "success": true,
     "count": diagnostics.length().to_json(),
@@ -458,9 +444,7 @@ async fn Server::send_user_message_event(
       "error": "Missing 'message' field in request body",
     })
   }
-  self.maria.agent
-  .external_events()
-  .send(@event.ExternalEvent::UserMessage(message))
+  self.maria.agent.external_events().send(UserMessage(message))
   w.send_json(code=200, { "success": true })
 }
 
@@ -471,8 +455,6 @@ async fn Server::send_cancellation_event(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  self.maria.agent
-  .external_events()
-  .send(@event.ExternalEvent::UserCancellation)
+  self.maria.agent.external_events().send(UserCancellation)
   w.send_json(code=200, { "success": true })
 }

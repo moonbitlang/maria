@@ -17,7 +17,7 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       return
     }
     let maria = @maria.Maria::new(model~, user_message=prompt)
-    maria.agent.add_listener(event => match event {
+    maria.agent.add_listener(event => match event.desc {
       ToolAdded(desc) => {
         let response : Json = {
           "method": "maria.agent.tool_added",

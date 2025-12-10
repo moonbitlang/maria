@@ -158,8 +158,8 @@ async fn Agent::prepare_messages_for_request(
 async fn Agent::poll_external_events(agent : Agent) -> Bool {
   let events = agent.external_events.poll()
   for event in events {
-    agent.emit(@event.ExternalEventReceived(event))
-    match event {
+    agent.emit(event.desc, id=event.id)
+    match event.desc {
       UserCancellation => {
         agent.cancel()
         return false
@@ -193,6 +193,7 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
             ),
           )
         }
+      _ => ()
     }
   }
   true
@@ -359,7 +360,7 @@ pub async fn new(
   user_message? : String,
   cwd~ : StringView,
   web_search? : Bool = false,
-  external_events? : @event.ExternalEventQueue = @event.ExternalEventQueue::new(),
+  external_events? : @event.ExternalEventQueue,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -377,6 +378,10 @@ pub async fn new(
   })
   event_target.emit(ModelLoaded(name=model.name, model~))
   let history = session_manager.new_conversation(name="history")
+  let external_events = match external_events {
+    Some(queue) => queue
+    None => @event.ExternalEventQueue::new()
+  }
   let agent = Agent::{
     logger,
     uuid,
@@ -417,7 +422,7 @@ pub async fn load(
   ),
   user_message? : String,
   web_search? : Bool = false,
-  external_events? : @event.ExternalEventQueue = @event.ExternalEventQueue::new(),
+  external_events? : @event.ExternalEventQueue,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -435,6 +440,10 @@ pub async fn load(
     logger.info(msg, data=json)
   })
   event_target.emit(ModelLoaded(name=model.name, model~))
+  let external_events = match external_events {
+    Some(queue) => queue
+    None => @event.ExternalEventQueue::new()
+  }
   let agent = Agent::{
     logger,
     uuid,

@@ -20,7 +20,8 @@
     "moonbitlang/maria/internal/httpx",
     "moonbitlang/maria/internal/errno",
     "moonbitlang/async/fs",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/maria/event"
   ],
   "test-import": ["moonbitlang/maria/internal/mock"]
 }

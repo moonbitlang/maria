@@ -15,38 +15,20 @@ import(
 // Errors
 
 // Types and methods
-pub(all) enum Event {
-  Incoming(ExternalEvent)
-  Outgoing(OutgoingEvent)
+pub(all) struct Event {
+  id : @uuid.Uuid
+  desc : EventDesc
 }
+pub fn Event::is_cancellation(Self) -> Bool
+pub fn Event::is_incoming(Self) -> Bool
+pub fn Event::is_starting(Self) -> Bool
+pub fn Event::is_stopping(Self) -> Bool
 pub impl Eq for Event
 pub impl Show for Event
 pub impl ToJson for Event
 pub impl @json.FromJson for Event
 
-type EventTarget
-pub fn EventTarget::add_listener(Self, async (OutgoingEvent) -> Unit) -> Unit
-pub fn EventTarget::emit(Self, OutgoingEvent) -> Unit
-pub async fn EventTarget::flush(Self) -> Unit
-pub fn EventTarget::new() -> Self
-pub async fn EventTarget::start(Self) -> Unit
-
-pub(all) enum ExternalEvent {
-  Diagnostics(@diagnostics.Diagnostics)
-  UserCancellation
-  UserMessage(String)
-}
-pub impl Eq for ExternalEvent
-pub impl Show for ExternalEvent
-pub impl ToJson for ExternalEvent
-pub impl @json.FromJson for ExternalEvent
-
-type ExternalEventQueue
-pub fn ExternalEventQueue::new() -> Self
-pub fn ExternalEventQueue::poll(Self) -> Array[ExternalEvent]
-pub fn ExternalEventQueue::send(Self, ExternalEvent) -> Unit
-
-pub(all) enum OutgoingEvent {
+pub(all) enum EventDesc {
   ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
@@ -59,15 +41,29 @@ pub(all) enum OutgoingEvent {
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
-  ExternalEventReceived(ExternalEvent)
+  Diagnostics(@diagnostics.Diagnostics)
+  UserCancellation
+  UserMessage(String)
   Cancelled
   TodoUpdated(Json)
   Custom(String, Map[String, Json])
 }
-pub impl Eq for OutgoingEvent
-pub impl Show for OutgoingEvent
-pub impl ToJson for OutgoingEvent
-pub impl @json.FromJson for OutgoingEvent
+pub impl Eq for EventDesc
+pub impl Show for EventDesc
+pub impl ToJson for EventDesc
+pub impl @json.FromJson for EventDesc
+
+type EventTarget
+pub fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
+pub fn EventTarget::emit(Self, EventDesc, id? : @uuid.Uuid) -> Unit
+pub async fn EventTarget::flush(Self) -> Unit
+pub fn EventTarget::new(uuid? : @uuid.Generator) -> Self raise
+pub async fn EventTarget::start(Self) -> Unit
+
+type ExternalEventQueue
+pub fn ExternalEventQueue::new() -> Self raise
+pub fn ExternalEventQueue::poll(Self) -> Array[Event]
+pub fn ExternalEventQueue::send(Self, EventDesc) -> Unit
 
 // Type aliases
 

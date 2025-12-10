@@ -52,7 +52,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
       @read_multiple_files.new(file_manager).to_agent_tool(),
       @replace_in_file.new(file_manager).to_agent_tool(),
     ])
-    ..add_listener(event => match event {
+    ..add_listener(event => match event.desc {
       PreToolCall(tool_call) =>
         match tool_call.name {
           "read_multiple_files" => multiple_files_read = true

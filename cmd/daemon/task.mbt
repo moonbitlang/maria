@@ -11,6 +11,11 @@ struct Task {
 }
 
 ///|
+pub fn Task::is_idle(self : Task) -> Bool {
+  self.status is @server.Idle
+}
+
+///|
 fn Task::new(
   name? : String,
   id~ : @uuid.Uuid,

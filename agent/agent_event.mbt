@@ -20,8 +20,12 @@
 ///
 /// * `agent` : The agent instance emitting the event.
 /// * `event` : The event to emit and log.
-fn Agent::emit(agent : Agent, event : @event.OutgoingEvent) -> Unit {
-  agent.event_target.emit(event)
+fn Agent::emit(
+  agent : Agent,
+  event : @event.EventDesc,
+  id? : @uuid.Uuid,
+) -> Unit {
+  agent.event_target.emit(event, id?)
 }
 
 ///|
@@ -35,7 +39,7 @@ fn Agent::emit(agent : Agent, event : @event.OutgoingEvent) -> Unit {
 ///   event data.
 pub fn Agent::add_listener(
   agent : Agent,
-  f : async (@event.OutgoingEvent) -> Unit,
+  f : async (@event.Event) -> Unit,
 ) -> Unit {
   agent.event_target.add_listener(f)
 }
