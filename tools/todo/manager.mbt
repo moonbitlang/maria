@@ -60,19 +60,15 @@ pub fn new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
-  event_target? : @event.EventTarget,
 ) -> Todo {
-  let todo = {
+  Todo::{
     config: { uuid, clock, cwd: cwd.to_string() },
     items: {
       todos: [],
       created_at: clock.now_str(),
       updated_at: clock.now_str(),
     },
-    event_target,
   }
-  todo.emit()
-  todo
 }
 
 ///|
@@ -93,14 +89,6 @@ async fn Todo::load(self : Todo) -> Unit {
   let items : Items = @json.from_json(@json.parse(@fsx.read_file(path)))
   if items != self.items {
     self.items = items
-    self.emit()
-  }
-}
-
-///|
-fn Todo::emit(self : Todo) -> Unit {
-  if self.event_target is Some(event_target) {
-    event_target.emit(@event.TodoUpdated(self.items.to_json()))
   }
 }
 
@@ -176,7 +164,6 @@ fn Todo::add_task(
     id=self.config.uuid(),
   )
   self.items.todos.push(item)
-  self.emit()
   self.items.updated_at = self.now()
   item
 }
@@ -184,7 +171,6 @@ fn Todo::add_task(
 ///|
 fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
   self.items.todos[index] = item
-  self.emit()
   self.items.updated_at = self.config.now()
 }
 
@@ -304,5 +290,4 @@ fn Todo::parse(
   notes? : String,
 ) -> Unit {
   self.items = Items::parse(content, priority~, notes?, config=self.config)
-  self.emit()
 }

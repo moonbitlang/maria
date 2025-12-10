@@ -548,38 +548,12 @@ async test "todo_read/updated_task_content" (t : @test.Test) {
   })
 }
 
-///|
-async fn[R] with_event_target(
-  t : @test.Test,
-  f : async (@mock.Context, @event.EventTarget, Array[Json]) -> R,
-) -> R {
-  let mut return_value = None
-  @mock.run(t, mock => {
-    let event_target = @event.EventTarget::new()
-    let events : Array[Json] = []
-    event_target.add_listener(event => events.push(event.to_json()))
-    mock.group.spawn_bg(() => event_target.start(), no_wait=true)
-    @async.with_task_group(_ => return_value = Some(
-      f(mock, event_target, events),
-    ))
-  })
-  guard return_value is Some(value) else {
-    abort("with_event_target: return_value is None")
-  }
-  value
-}
-
 ///| Tests for todo_write
 
 ///|
 async test "todo_write/create/plain" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -649,50 +623,13 @@ async test "todo_write/create/plain" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Test todo item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Another test item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/create/<task>" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -851,90 +788,13 @@ async test "todo_write/create/<task>" (t : @test.Test) {
         #|📊 Current summary: Total 7 items | Pending 7 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Examine reference repository structure at .moonagent/repos/ini",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Examine current MoonBit project structure",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Analyze source files in ini repository",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Plan migration strategy preserving original structure",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Translate C/C++ files to MoonBit file-by-file",
-              "created_at": "Tick:7",
-              "id": "1258fdc0",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:7",
-            },
-            {
-              "content": "Create appropriate MoonBit module structure",
-              "created_at": "Tick:8",
-              "id": "aaa2f959",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:8",
-            },
-            {
-              "content": "Test migrated functionality",
-              "created_at": "Tick:9",
-              "id": "8f0ff2dc",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:9",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/update" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -983,75 +843,13 @@ async test "todo_write/update" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 1 | In Progress 1 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Updated first item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "InProgress",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:5",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/mark_completed" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -1106,75 +904,13 @@ async test "todo_write/mark_completed" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 1 | In Progress 0 | Completed 1
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Completed",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:5",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/mark_progress" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -1230,75 +966,13 @@ async test "todo_write/mark_progress" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 1 | In Progress 1 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "InProgress",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Second item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:5",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/add_task" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -1372,68 +1046,13 @@ async test "todo_write/add_task" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Initial task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Initial task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Additional task to be added",
-              "created_at": "Tick:5",
-              "id": "1ea1417c",
-              "notes": "This is a very important task",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:4",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/multiple_priority_levels" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
       "content": (
@@ -1490,124 +1109,13 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
         #|📊 Current summary: Total 3 items | Pending 3 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "High priority task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Medium priority task",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Low priority task",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "High priority task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Medium priority task",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:7",
-            },
-            {
-              "content": "Low priority task",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:6",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "High priority task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Medium priority task",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:7",
-            },
-            {
-              "content": "Low priority task",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "Low",
-              "status": "Pending",
-              "updated_at": "Tick:10",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:9",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create tasks
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -1663,218 +1171,6 @@ async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
         #|📊 Current summary: Total 4 items | Pending 2 | In Progress 0 | Completed 2
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Design API endpoints",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Implement backend logic",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Write tests",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Deploy to production",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Design API endpoints",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "InProgress",
-              "updated_at": "Tick:8",
-            },
-            {
-              "content": "Implement backend logic",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Write tests",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Deploy to production",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:7",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Design API endpoints",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Completed",
-              "updated_at": "Tick:11",
-            },
-            {
-              "content": "Implement backend logic",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Write tests",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Deploy to production",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:10",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Design API endpoints",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Completed",
-              "updated_at": "Tick:11",
-            },
-            {
-              "content": "Implement backend logic",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "InProgress",
-              "updated_at": "Tick:14",
-            },
-            {
-              "content": "Write tests",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Deploy to production",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:13",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Design API endpoints",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Completed",
-              "updated_at": "Tick:11",
-            },
-            {
-              "content": "Implement backend logic",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Completed",
-              "updated_at": "Tick:17",
-            },
-            {
-              "content": "Write tests",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Deploy to production",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:16",
-        },
-      },
-    ])
   })
 }
 
@@ -1997,13 +1293,8 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
 
 ///|
 async test "todo_write/update_with_notes" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -2067,60 +1358,13 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
         #|📊 Current summary: Total 1 items | Pending 0 | In Progress 1 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Implement feature X",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Implement feature X",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "notes": "Need to consider edge cases and backward compatibility",
-              "priority": "Medium",
-              "status": "InProgress",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:4",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/update_content_only" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial task
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -2181,59 +1425,13 @@ async test "todo_write/update_content_only" (t : @test.Test) {
         #|📊 Current summary: Total 1 items | Pending 1 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Original task description",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "Updated task description with more details",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:4",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
-    let todo_list = new(
-      clock=mock.clock,
-      uuid=mock.uuid,
-      cwd=mock.cwd.path(),
-      event_target~,
-    )
+  @mock.run(t, mock => {
+    let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create initial list
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -2266,61 +1464,12 @@ async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
         #|📊 Current summary: Total 2 items | Pending 1 | In Progress 1 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[
-      {
-        "msg": "TodoUpdated",
-        "todo": { "todos": [], "created_at": "Tick:0", "updated_at": "Tick:1" },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:2",
-        },
-      },
-      {
-        "msg": "TodoUpdated",
-        "todo": {
-          "todos": [
-            {
-              "content": "First task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Urgent task to start immediately",
-              "created_at": "Tick:5",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "InProgress",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "created_at": "Tick:2",
-          "updated_at": "Tick:4",
-        },
-      },
-    ])
   })
 }
 
 ///|
 async test "todo_write/create_with_low_priority" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
+  @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({
       "action": "create",
@@ -2347,14 +1496,12 @@ async test "todo_write/create_with_low_priority" (t : @test.Test) {
         #|📊 Current summary: Total 3 items | Pending 3 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[])
   })
 }
 
 ///|
 async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
-  with_event_target(t, (mock, event_target, events) => {
+  @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     // Create task
     let result = @todo.new_tool(todo_list).call({
@@ -2393,7 +1540,5 @@ async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
         #|📊 Current summary: Total 1 items | Pending 1 | In Progress 0 | Completed 0
       ),
     )
-    event_target.flush()
-    @json.inspect(events, content=[])
   })
 }

@@ -33,11 +33,7 @@ pub async fn Maria::new(
   )
   let job_manager = @job.Manager::new(cwd=agent.cwd)
   let file_manager = @file.manager(cwd~)
-  let todo_list = @todo.new(
-    uuid=agent.uuid,
-    cwd=agent.cwd,
-    event_target=agent.event_target,
-  )
+  let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
   agent.add_tools([
     @execute_command.new(job_manager).to_agent_tool(),
     @list_files.new(file_manager).to_agent_tool(),
