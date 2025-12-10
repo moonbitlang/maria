@@ -39,8 +39,5 @@ async fn Server::set_enabled_tools(
     tools.add(tool_name)
   }
   self.maria.agent.set_enabled_tools(tools)
-  let response : Json = {}
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
+  w.send_json(code=200, {})
 }
