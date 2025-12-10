@@ -1,5 +1,5 @@
 import { setupMariaProcess } from "@maria/core/lib/node.js";
-import { TaskOverview } from "../../vsc-common/types";
+import { TaskOverview } from "@maria/core/lib/types.js";
 import { get } from "./global-state";
 
 export class DaemonService {
@@ -50,5 +50,9 @@ export class DaemonService {
 
   get port() {
     return this._port;
+  }
+
+  get api() {
+    return this._api;
   }
 }

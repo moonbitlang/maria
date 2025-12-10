@@ -1,26 +1,23 @@
-import * as comlink from "comlink";
-import * as api from "../../vsc-common/api";
+import type { VscodeApi } from "@maria/core/lib/types.js";
+import type * as comlink from "comlink";
 import * as endpoint from "../../vsc-common/endpoint";
 
 declare global {
   function acquireVsCodeApi(): endpoint.Endpoint;
+  interface Window {
+    vscodeApi: comlink.Remote<VscodeApi>;
+  }
 }
 
 class VscodeApiWrapper {
-  vscode: endpoint.Endpoint | undefined;
+  vscode: endpoint.Endpoint;
 
   constructor() {
-    if (typeof acquireVsCodeApi === "function") {
-      this.vscode = acquireVsCodeApi();
-    }
+    this.vscode = acquireVsCodeApi();
   }
 
   postMessage(message: unknown) {
-    if (this.vscode) {
-      this.vscode.postMessage(message);
-    } else {
-      console.log(message);
-    }
+    this.vscode.postMessage(message);
   }
 }
 
@@ -37,5 +34,3 @@ export const consumeEndpoint: endpoint.Endpoint = endpoint.newEndpoint(
   vscodeApi.postMessage.bind(vscodeApi),
   "vscode-provider",
 );
-
-export const vscode = comlink.wrap<api.VscodeApi>(consumeEndpoint);

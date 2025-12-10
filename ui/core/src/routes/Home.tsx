@@ -40,7 +40,7 @@ function WDSelector({ cwd }: { cwd: string | undefined }) {
         <PromptInputButton
           className="cursor-pointer"
           onClick={async () => {
-            const result = await ral.selectDirectory();
+            const result = await ral.electronAPI.selectDirectory();
             if (result.canceled === false && result.filePaths.length > 0) {
               dispatch(setCwd(result.filePaths[0]));
             }

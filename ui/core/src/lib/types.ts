@@ -1,3 +1,4 @@
+import type * as comlink from "comlink";
 import type { OpenDialogReturnValue } from "electron";
 
 export type QueuedMessage = {
@@ -196,13 +197,30 @@ export type WebRAL = {
   platform: "web";
 };
 
+export type VscodeApi = {
+  hello(): string;
+};
+
+export type WebviewApi = {
+  navigate(path: string): void;
+};
+
 export type VSCWebviewRAL = {
   platform: "vsc-webview";
+  vscodeApi: comlink.Remote<VscodeApi>;
+};
+
+export type ElectronAPI = {
+  selectDirectory: () => Promise<OpenDialogReturnValue>;
+  getUrl: () => Promise<string>;
+  mariaReady: () => Promise<void>;
+  reloadApp: () => Promise<void>;
+  openPathInFileExplorer: (path: string) => Promise<void>;
 };
 
 export type ElectronRAL = {
   platform: "electron";
-  selectDirectory(): Promise<OpenDialogReturnValue>;
+  electronAPI: ElectronAPI;
 };
 
 export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
