@@ -1,4 +1,8 @@
 ///|
+/// Native helper for reading the target of a symbolic link.
+///
+/// This wraps the platform `readlink` function and is not exposed
+/// directly; see `readlink` for the public API.
 #borrow(path, buf)
 extern "c" fn fs_readlink(
   path : Bytes,
@@ -7,6 +11,11 @@ extern "c" fn fs_readlink(
 ) -> Int64 = "moonbit_maria_fs_readlink"
 
 ///|
+/// Read the target path of the symbolic link at `path`.
+///
+/// The `bufsize` parameter controls the initial buffer size used when
+/// calling the underlying `readlink`; it is automatically grown when
+/// needed. On error this raises an `@errno.Errno`.
 pub fn readlink(path : String, bufsize? : UInt64 = 1024) -> String raise {
   guard bufsize > 0 else {
     abort("bufsize must be greater than 0, got \{bufsize}")
