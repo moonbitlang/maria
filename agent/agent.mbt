@@ -312,7 +312,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         agent.session_manager.save(agent.history)
         // Execute each tool call and queue the results for the next iteration
         for call in message.tool_calls {
-          agent.add_message(
+          agent.input_queue.push(
             agent.execute_tool(@ai.ToolCall::from_openai_tool_call(call)),
           )
         }
