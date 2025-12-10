@@ -21,7 +21,7 @@ async test "timeout" (t : @test.Test) {
 ///|
 async test "cat" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file("file.txt", content="hello world")
+    mock.add_json_tree({ "file.txt": "hello world" })
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     guard result is Ok(output) else {
@@ -45,7 +45,7 @@ async test "output-overflow" (t : @test.Test) {
     for i = 0; i < 100; i = i + 1 {
       lines.push("hello")
     }
-    let _ = mock.add_file("file.txt", content=lines.join("\n"))
+    mock.add_json_tree({ "file.txt": lines.join("\n") })
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({
       "command": "cat file.txt",
@@ -76,7 +76,10 @@ async test "output-overflow" (t : @test.Test) {
 ///|
 async test "cd" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file("file.txt", content="hello world")
+    mock.add_json_tree({
+      "file.txt": "hello world",
+      "subdir": { "file.txt": "hello from subdir" },
+    })
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({ "command": "cat file.txt", "timeout": 5000 })
     guard result is Ok(output) else {
@@ -92,9 +95,6 @@ async test "cd" (t : @test.Test) {
         "max_output_lines": 100,
       },
     ])
-    let _ = mock
-      .add_directory("subdir")
-      .add_file("file.txt", content="hello from subdir")
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
     let result = tool.call({
       "command": "cd subdir && cat file.txt",

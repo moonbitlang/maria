@@ -16,7 +16,7 @@ async test "replace_in_file/create" (t : @test.Test) {
 async test "replace_in_file/replace" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    let _ = mock.add_file("file.txt", content="Old content")
+    mock.add_json_tree({ "file.txt": "Old content" })
     @json.inspect(@read_file.new(manager).call({ "path": "file.txt" }), content=[
       "Ok",
       {
@@ -50,7 +50,7 @@ async test "replace_in_file/replace" (t : @test.Test) {
 async test "replace_in_file/search-is-required" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    let _ = mock.add_file("file.txt", content="Old content")
+    mock.add_json_tree({ "file.txt": "Old content" })
     let args : Json = { "path": "file.txt", "replace": "New content" }
     let result = @replace_in_file.new(manager).call(args)
     @json.inspect(result, content=[
@@ -73,7 +73,7 @@ async test "replace_in_file/search-is-required" (t : @test.Test) {
 async test "replace_in_file/fail-to-match" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    let _ = mock.add_file("file.txt", content="Old content")
+    mock.add_json_tree({ "file.txt": "Old content" })
     let args : Json = {
       "path": "file.txt",
       "search": "Non-matching content",
@@ -103,15 +103,14 @@ async test "replace_in_file/fail-to-match" (t : @test.Test) {
 async test "replace_in_file/search-replace" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    let _ = mock.add_file(
-      "file.txt",
-      content=(
+    mock.add_json_tree({
+      "file.txt": (
         #|line 1
         #|line 2
         #|line 3
         #|line 4
       ),
-    )
+    })
     let args : Json = {
       "path": "file.txt",
       "search": "line 2",

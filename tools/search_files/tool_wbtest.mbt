@@ -1,7 +1,7 @@
 ///|
 async test "goto_definition" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),
@@ -45,7 +45,7 @@ async test "goto_definition" (t : @test.Test) {
 ///|
 async test "find_references" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),

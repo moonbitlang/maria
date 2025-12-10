@@ -60,7 +60,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
         }
       _ => ()
     })
-    mock.add_files({
+    mock.add_json_tree({
       "foo.txt": (
         #|x hgo
         #|random

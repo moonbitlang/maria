@@ -5,7 +5,7 @@ async test "create-file" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
       ),
@@ -91,7 +91,7 @@ async test "create-file-with-empty-search" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
       ),
@@ -179,7 +179,7 @@ async test "fail-on-search-non-existent-file" (t : @test.Test) {
     let model = mock.model()
     // this tool requires agent to fix syntax errors, but the direct call just works
     // so the agent is not running
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
       ),
@@ -253,7 +253,7 @@ async test "no-op-if-non-moonbit" (t : @test.Test) {
 async test "no-op-if-no-syntax-error" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model()
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #| { "name": "example", "version": "0.1.0" }
       ),

@@ -2,7 +2,7 @@
 async test "list_files" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    mock.add_files({
+    mock.add_json_tree({
       "moon.pkg.json": "{}",
       "tool.mbt": "// tool",
       "tool_test.mbt": "// test",
@@ -30,7 +30,7 @@ async test "list_files" (t : @test.Test) {
 async test "list_files_invalid_symlink" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    mock.add_files({ "file1.txt": "content1" })
+    mock.add_json_tree({ "file1.txt": "content1" })
     mock.add_symlink("invalid_link.txt", to="non_existent_file.txt")
     let tool = @list_files.new(manager)
     let result = tool.call({ "path": "." })
