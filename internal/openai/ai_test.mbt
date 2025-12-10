@@ -298,6 +298,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
 }
 
 ///|
+#skip
 async test "deepseek" {
   guard @os.getenv("DEEPSEEK_API_KEY") is Some(api_key) else {
     fail("DEEPSEEK_API_KEY not set")
@@ -358,6 +359,7 @@ async test "kimi-k2" {
 }
 
 ///|
+#skip
 async test "dashscope" {
   guard @os.getenv("DASHSCOPE_API_KEY") is Some(api_key) else {
     fail("DASHSCOPE_API_KEY not set")

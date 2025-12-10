@@ -1,4 +1,6 @@
 ///|
+/// This test relies on `moon build` to have built the `test-lock` binary.
+#skip
 async test "lock_file" (t : @test.Test) {
   let cwd = @os.cwd()
   @mock.run(t, mock => {
@@ -16,6 +18,8 @@ async test "lock_file" (t : @test.Test) {
 }
 
 ///|
+/// This test relies on `moon build` to have built the `test-lock` binary.
+#skip
 async test "get_lock_owner" (t : @test.Test) {
   let cwd = @os.cwd()
   @mock.run(t, mock => {

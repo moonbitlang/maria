@@ -1,10 +1,6 @@
 ///|
 async fn configure_models(mock : @mock.Context) -> Unit {
-  mock.cwd
-  .add_directory(".moonagent")
-  .add_directory("models")
-  .add_file("models.json")
-  .write_json([
+  let json : Json = [
     {
       "name": "mock:claude-haiku-4.5",
       "description": "Claude Haiku 4.5 is Anthropic’s fastest and most efficient model, delivering near-frontier intelligence at a fraction of the cost and latency of larger Claude models. Matching Claude Sonnet 4’s performance across reasoning, coding, and computer-use tasks, Haiku 4.5 brings frontier-level capability to real-time and high-volume applications. It introduces extended thinking to the Haiku line; enabling controllable reasoning depth, summarized or interleaved thought output, and tool-assisted workflows with full support for coding, bash, web search, and computer-use tools. Scoring >73% on SWE-bench Verified, Haiku 4.5 ranks among the world’s best coding models while maintaining exceptional responsiveness for sub-agents, parallelized execution, and scaled deployment.",
@@ -35,7 +31,10 @@ async fn configure_models(mock : @mock.Context) -> Unit {
       "api_key": mock.getenv("OPENROUTER_API_KEY"),
       "supports_anthropic_prompt_caching": true,
     },
-  ])
+  ]
+  mock.cwd.add_json_tree({
+    ".moonagent": { "models": { "models.json": json.stringify() } },
+  })
 }
 
 ///|
