@@ -1,4 +1,6 @@
+import { setupMariaProcess } from "@maria/core/lib/node.js";
 import { TaskOverview } from "../../vsc-common/types";
+import { get } from "./global-state";
 
 export class DaemonService {
   _port: number;
@@ -6,14 +8,17 @@ export class DaemonService {
 
   private static _instance: DaemonService;
 
-  static instance(port: number = 8090) {
+  static async instance() {
     if (!this._instance) {
-      this._instance = new DaemonService(port);
+      const context = get("context")!;
+      const mariaPath = context.asAbsolutePath("bin/maria");
+      const daemonJson = await setupMariaProcess(mariaPath);
+      this._instance = new DaemonService(daemonJson.port);
     }
     return this._instance;
   }
 
-  private constructor(port: number = 8090) {
+  private constructor(port: number) {
     this._port = port;
     this._api = `http://localhost:${this._port}/v1`;
   }
