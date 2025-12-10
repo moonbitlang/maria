@@ -14,7 +14,8 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/context_pruner",
-    "moonbitlang/maria/internal/diagnostics"
+    "moonbitlang/maria/internal/diagnostics",
+    "moonbitlang/maria/tools/todo"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

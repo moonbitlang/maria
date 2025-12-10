@@ -42,14 +42,9 @@ pub(all) enum OutgoingEvent {
   PostConversation
   /// Event triggered when a new message is added to the conversation.
   ///
-  /// **Note**: This event will be triggered for system/user/tool messages.
+  /// **Note**: This event will be triggered for system/user messages.
   /// This means it's very likely that you should do some filtering based on the
-  /// message role. For example, If you are listening for both MessageAdded and
-  /// PostToolCall events, you would probably receive duplicate contents, one in
-  /// `MessageAdded` and another in `PostToolCall`, and you may want to ignore
-  /// the `MessageAdded` event for tool messages.
-  ///
-  /// FIXME: emit this event for assistant messages as well.
+  /// message role.
   MessageAdded(@ai.Message)
   /// Event triggered when a message is unqueued from the pending queue.
   MessageUnqueued(id~ : @uuid.Uuid)

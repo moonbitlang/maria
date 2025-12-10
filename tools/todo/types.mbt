@@ -2,7 +2,6 @@
 struct Todo {
   config : Config
   mut items : Items
-  event_target : @event.EventTarget?
 }
 
 ///|
@@ -13,7 +12,9 @@ priv struct Config {
 }
 
 ///|
-priv struct Items {
+/// TODO(upstream): false positive on missing_priv
+#warnings("-missing_priv")
+struct Items {
   todos : Array[Item]
   created_at : String
   mut updated_at : String
