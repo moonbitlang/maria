@@ -9,6 +9,7 @@ export default defineConfig(() => {
       dedupe: ["react", "react-dom"],
     },
     build: {
+      minify: false,
       emptyOutDir: true,
       outDir: "../vsc-ext/webview",
       rollupOptions: {

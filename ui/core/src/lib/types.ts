@@ -198,7 +198,7 @@ export type WebRAL = {
 };
 
 export type VscodeApi = {
-  hello(): string;
+  getUrl(): string;
 };
 
 export type WebviewApi = {

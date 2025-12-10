@@ -106,12 +106,8 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   ): Thenable<void> | void {
     this._view = webviewView;
 
-    // TODO: start daemon and setup port mapping here
     this._view.webview.options = {
       enableScripts: true,
-      portMapping: [
-        { extensionHostPort: this._daemonService.port, webviewPort: 8090 },
-      ],
     };
 
     this._view.webview.html = this._getHtmlForWebview(this._view.webview);
@@ -143,8 +139,8 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
     );
 
     const vscodeApi: VscodeApi = {
-      hello(): string {
-        return "Hello from VSCode Extension!";
+      getUrl: () => {
+        return this._daemonService.api;
       },
     };
     const webviewApi = comlink.wrap<WebviewApi>(consumeEndpoint);
