@@ -16,7 +16,7 @@ async test "commit" (t : @test.Test) {
   if @os.getenv("CI") is None {
     @mock.run(t, mock => {
       @git.init_(mock.cwd.path())
-      let _ = mock.add_file("file.txt", content="Hello, Moonbit!")
+      mock.add_json_tree({ "file.txt": "Hello, Moonbit!" })
       @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     })
   }

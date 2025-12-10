@@ -3,45 +3,44 @@ async test "Loader::load" (t : @test.Test) {
   @mock.run(t, mock => {
     let home = mock.cwd
     @mock.with_home(home, () => {
-      let home_rules = home.add_directory(".moonagent").add_directory("rules")
-      let _ = home_rules.add_file(
-        "a.md",
-        content=(
-          #|---
-          #|description: This is rule A
-          #|globs:
-          #|alwaysApply: true
-          #|---
-          #|Content of rule A
-        ),
-      )
-      let _ = home_rules.add_file(
-        "b.md",
-        content=(
-          #|---
-          #|description: This is rule B
-          #|globs: ["*.txt", "*.md"]
-          #|alwaysApply: false
-          #|---
-          #|Content of rule B
-        ),
-      )
-      let project = home.add_directory("project")
-      let project_rules = project
-        .add_directory(".moonagent")
-        .add_directory("rules")
-      let _ = project_rules.add_file(
-        "c.md",
-        content=(
-          #|---
-          #|description: This is rule C
-          #|globs: ["*.txt"]
-          #|alwaysApply: false
-          #|---
-          #|Content of rule C
-        ),
-      )
-      let rules = Loader::new(project.path(), logger=mock.logger)
+      home.add_json_tree({
+        ".moonagent": {
+          "rules": {
+            "a.md": (
+              #|---
+              #|description: This is rule A
+              #|globs:
+              #|alwaysApply: true
+              #|---
+              #|Content of rule A
+            ),
+            "b.md": (
+              #|---
+              #|description: This is rule B
+              #|globs: ["*.txt", "*.md"]
+              #|alwaysApply: false
+              #|---
+              #|Content of rule B
+            ),
+          },
+        },
+        "project": {
+          ".moonagent": {
+            "rules": {
+              "c.md": (
+                #|---
+                #|description: This is rule C
+                #|globs: ["*.txt"]
+                #|alwaysApply: false
+                #|---
+                #|Content of rule C
+              ),
+            },
+          },
+        },
+      })
+      let project_path = @path.join(home.path(), "project")
+      let rules = Loader::new(project_path, logger=mock.logger)
       rules.load()
       inspect(
         rules.format(),
