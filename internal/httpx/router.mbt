@@ -1,4 +1,5 @@
 ///|
+/// Internal routing entry storing the handler and captured parameter names.
 priv struct Route {
   handle : Handler
   names : Array[StringView]
@@ -106,6 +107,10 @@ fn Layer::route(
 }
 
 ///|
+/// HTTP request router with method- and path-based dispatch.
+///
+/// `Router` matches incoming requests against registered path patterns and
+/// methods, populating `RequestReader.vars` with any captured parameters.
 struct Router {
   layer : Layer
   allow : MethodSet
@@ -114,6 +119,10 @@ struct Router {
 }
 
 ///|
+/// Creates a new, empty router with a default 404 handler.
+///
+/// The router installs a middleware that handles `OPTIONS *` requests and
+/// populates `Allow` headers based on the registered routes.
 pub fn Router::new() -> Router {
   let layer = Layer::new()
   let allow = MethodSet::new()
@@ -157,6 +166,13 @@ pub fn Router::new() -> Router {
 }
 
 ///|
+/// Registers a new handler for the given HTTP method and path pattern.
+///
+/// Parameters:
+///
+/// * `method_` : HTTP method to match.
+/// * `path` : Route path starting with `/`, optionally containing
+///   `{name}` segments which are exposed via `RequestReader.vars`.
 pub fn Router::add_handler(
   self : Router,
   method_ : Method,
@@ -173,6 +189,9 @@ pub fn Router::add_handler(
 }
 
 ///|
+/// Sets a custom handler to be used when no route matches.
+///
+/// The handler is wrapped by the router's middleware chain.
 pub fn Router::set_not_found_handler(self : Router, handler : Handler) -> Unit {
   self.handler = (self.middleware)(handler)
 }

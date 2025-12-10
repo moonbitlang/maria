@@ -1,4 +1,8 @@
 ///|
+/// HTTP response writer used by `httpx` handlers.
+///
+/// `ResponseWriter` buffers response headers until the first write, then
+/// streams the body to the underlying `@http.ServerConnection`.
 struct ResponseWriter {
   mut sent : Bool
   header : Header
@@ -11,11 +15,20 @@ fn ResponseWriter::new(conn : @http.ServerConnection) -> ResponseWriter {
 }
 
 ///|
+/// Returns the mutable header map for this response.
+///
+/// Headers can be configured before the status line is written.
 pub fn ResponseWriter::header(self : ResponseWriter) -> Header {
   self.header
 }
 
 ///|
+/// Sends the HTTP status line and all configured headers.
+///
+/// Parameters:
+///
+/// * `code` : HTTP status code to send.
+/// * `reason` : Optional reason phrase, defaults to `httpx::reason(code)`.
 pub async fn ResponseWriter::write_header(
   self : ResponseWriter,
   code : Int,
@@ -55,6 +68,7 @@ pub impl @io.Writer for ResponseWriter with write_reader(
 }
 
 ///|
+/// Flushes any buffered response data to the client.
 pub async fn ResponseWriter::flush(self : ResponseWriter) -> Unit {
   self.conn.flush()
 }

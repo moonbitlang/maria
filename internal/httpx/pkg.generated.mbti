@@ -53,7 +53,9 @@ pub fn Header::set(Self, String, String) -> Unit
 pub impl Show for Header
 pub impl ToJson for Header
 
-type JsonRequestReader
+pub struct JsonRequestReader(RequestReader)
+#deprecated
+pub fn JsonRequestReader::inner(Self) -> RequestReader
 pub fn JsonRequestReader::new(RequestReader) -> Self
 pub async fn[T : @json.FromJson] JsonRequestReader::read(Self) -> T
 pub async fn JsonRequestReader::read_json(Self) -> Json

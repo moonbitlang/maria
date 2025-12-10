@@ -1,15 +1,30 @@
 ///|
+/// Thin wrapper around `@http.Server` providing a simpler API.
+///
+/// `Server` binds to the given host/port and exposes helpers for querying
+/// the bound port and running a `httpx` handler loop.
 struct Server {
   server : @http.Server
   port : Int
 }
 
 ///|
+/// Closes the underlying HTTP server and stops accepting new connections.
 pub fn Server::close(self : Server) -> Unit {
   self.server.close()
 }
 
 ///|
+/// Creates a new HTTP server bound to `host:port`.
+///
+/// Parameters:
+///
+/// * `host` : Hostname or IP address to bind.
+/// * `port` : Preferred TCP port (0 lets the OS choose a free port).
+/// * `dual_stack` : Enable IPv4/IPv6 dual-stack when supported.
+/// * `reuse_addr` : Enable address reuse on the socket.
+///
+/// The actual bound port can be retrieved via `Server::port`.
 pub fn Server::new(
   host : String,
   port : Int,
@@ -26,6 +41,7 @@ pub fn Server::new(
 }
 
 ///|
+/// Returns the TCP port the server is currently listening on.
 pub fn Server::port(self : Server) -> Int {
   self.port
 }

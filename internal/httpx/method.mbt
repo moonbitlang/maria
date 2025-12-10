@@ -1,4 +1,5 @@
 ///|
+/// HTTP request methods supported by the `httpx` router.
 pub(all) enum Method {
   Get
   Head
@@ -32,6 +33,7 @@ pub impl Show for Method with output(self : Method, out : &Logger) -> Unit {
 }
 
 ///|
+/// Array containing all supported HTTP methods.
 pub let methods : Array[Method] = [
   Method::Get,
   Method::Head,
@@ -60,6 +62,7 @@ fn Method::from_async_http(method_ : @http.RequestMethod) -> Method {
 }
 
 ///|
+/// Converts a `Method` into the corresponding `@http.RequestMethod` value.
 pub fn Method::to_http(self : Method) -> @http.RequestMethod {
   match self {
     Method::Get => @http.RequestMethod::Get
