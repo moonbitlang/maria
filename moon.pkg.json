@@ -14,6 +14,7 @@
     "moonbitlang/maria/job",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/tools/meta_write_to_file",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/tools/fix_moonbit_warnings"
   ]
 }
