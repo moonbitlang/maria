@@ -1,7 +1,7 @@
 ///|
 async test "moon_run" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.pkg.json": Json::object({ "is_main": true }).stringify(indent=2),
       "moon.mod.json": Json::object({
         "name": "username/example",

@@ -1,7 +1,7 @@
 ///|
 async test "check" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
