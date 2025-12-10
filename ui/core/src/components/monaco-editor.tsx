@@ -70,6 +70,9 @@ function Editor(props: EditorProps) {
       bracketPairColorization: {
         enabled: false,
       },
+      guides: {
+        indentation: false,
+      },
       suggest: {
         showIcons: true,
         showSnippets: false,
