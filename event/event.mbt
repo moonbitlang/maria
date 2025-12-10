@@ -98,6 +98,7 @@ pub(all) enum OutgoingEvent {
   Cancelled
   /// Event triggered when the todo list is updated.
   TodoUpdated(Json)
+  Custom(String, Map[String, Json])
 } derive(Eq, Show)
 
 ///|
@@ -205,6 +206,10 @@ pub impl ToJson for OutgoingEvent with to_json(self : OutgoingEvent) -> Json {
       { "msg": "ExternalEventReceived", "event": external_event.to_json() }
     Cancelled => { "msg": "MariaCancelled" }
     TodoUpdated(todo) => { "msg": "TodoUpdated", "todo": todo.to_json() }
+    Custom(name, payload) => {
+      payload["msg"] = name.to_json()
+      Json::object(payload)
+    }
   }
 }
 

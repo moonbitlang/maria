@@ -536,13 +536,14 @@ async test "POST /v1/cancel" (t : @test.Test) {
       // There is a MariaCancelled event
       @json.inspect(
         events.filter(e => e
-          is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. }),
+          is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. })
+        |> redact_events(),
         content=[
           {
             "event": "maria",
             "data": {
-              "msg": "MariaCancelled",
               "error": { "code": -1, "message": "Task was cancelled." },
+              "msg": "MariaCancelled",
             },
           },
         ],

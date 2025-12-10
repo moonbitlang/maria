@@ -63,6 +63,7 @@ pub(all) enum OutgoingEvent {
   ExternalEventReceived(ExternalEvent)
   Cancelled
   TodoUpdated(Json)
+  Custom(String, Map[String, Json])
 }
 pub impl Eq for OutgoingEvent
 pub impl Show for OutgoingEvent
