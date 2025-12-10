@@ -1,9 +1,15 @@
 ///|
+/// Server-Sent Events (SSE) response writer.
+///
+/// `EventStreamWriter` configures the underlying `ResponseWriter` for
+/// `text/event-stream` responses and provides helpers for sending events in
+/// SSE format.
 pub struct EventStreamWriter {
   w : ResponseWriter
 }
 
 ///|
+/// Wraps a `ResponseWriter` and configures headers for SSE.
 pub fn EventStreamWriter::new(w : ResponseWriter) -> EventStreamWriter {
   w.header().set("Content-Type", "text/event-stream")
   w.header().set("Cache-Control", "no-cache")
@@ -14,6 +20,7 @@ pub fn EventStreamWriter::new(w : ResponseWriter) -> EventStreamWriter {
 }
 
 ///|
+/// Writes the HTTP status line and headers for the event stream response.
 pub async fn EventStreamWriter::write_header(
   self : EventStreamWriter,
   status : Int,
@@ -22,6 +29,14 @@ pub async fn EventStreamWriter::write_header(
 }
 
 ///|
+/// Writes a single SSE event to the response stream.
+///
+/// Parameters:
+///
+/// * `id` : Optional event ID.
+/// * `event` : Optional event type.
+/// * `data` : Optional data payload written as-is.
+/// * `flush` : When true (default), flushes the response after the event.
 pub async fn EventStreamWriter::write_event(
   self : EventStreamWriter,
   id? : String,
