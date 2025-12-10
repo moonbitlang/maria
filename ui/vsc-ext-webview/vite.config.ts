@@ -2,6 +2,8 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+const dev = !!process.env.DEV;
+
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
@@ -10,7 +12,7 @@ export default defineConfig(() => {
     },
     base: "./",
     build: {
-      minify: false,
+      minify: !dev,
       emptyOutDir: true,
       assetsDir: "",
       outDir: "../vsc-ext/webview",
