@@ -594,6 +594,14 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             (Get, ["", "v1", "task", id]) => self.get_task(id, w)
             (method_, ["", "v1", "task", id, .. paths]) =>
               self.forward_to_task(method_~, id~, paths~, r, w)
+            (Post, ["", "v1", "shutdown"]) => {
+              w.header().set("Content-Type", "application/json")
+              w.write_header(200)
+              let response : Json = {}
+              w.write(response.stringify())
+              w.flush()
+              group.return_immediately(())
+            }
             (Post, ["", "v1", "moonbit", "publish"]) =>
               publish_moonbit_module(r, w)
             (Get, ["", .. file]) =>
