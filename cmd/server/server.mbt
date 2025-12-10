@@ -303,7 +303,7 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
       }
       w
       ..write("event: maria\n")
-      ..write("data: \{event.to_json().stringify()}\n\n")
+      ..write("data: \{event_json.stringify()}\n\n")
       ..flush()
       if event is (MessageQueued(_) | MessageUnqueued(_)) {
         let queued_messages : Array[Json] = self.maria.agent
