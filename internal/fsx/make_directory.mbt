@@ -1,4 +1,10 @@
 ///|
+/// Create a directory at `path`, optionally creating parents.
+///
+/// - When `recursive` is `true`, missing parent directories are created
+///   as needed.
+/// - When `exists_ok` is `true`, an existing directory is not treated as
+///   an error.
 pub async fn make_directory(
   path : StringView,
   recursive? : Bool = false,

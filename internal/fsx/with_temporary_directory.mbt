@@ -1,8 +1,13 @@
 ///|
+/// Native helper for creating a unique temporary directory.
+///
+/// This is a thin wrapper around the platform `mkdtemp` implementation
+/// and is not exposed directly to callers.
 #borrow(template)
 extern "c" fn fs_mkdtemp(template : FixedArray[Byte]) -> Int = "moonbit_maria_fs_mkdtemp"
 
 ///|
+/// Create a temporary directory based on the provided byte template.
 fn mkdtemp_bytes(bytes : Bytes) -> Bytes raise @errno.Errno {
   let buffer = bytes.to_fixedarray()
   let errno = fs_mkdtemp(buffer)
@@ -15,6 +20,10 @@ fn mkdtemp_bytes(bytes : Bytes) -> Bytes raise @errno.Errno {
 }
 
 ///|
+/// Create a temporary directory using the given `template` pattern.
+///
+/// The template is typically expected to end with `XXXXXX`, which will
+/// be replaced with random characters by the underlying implementation.
 pub async fn mkdtemp(template : String) -> String {
   let template = @encoding/utf8.encode(template)
   let template = mkdtemp_bytes(template)
@@ -22,6 +31,10 @@ pub async fn mkdtemp(template : String) -> String {
 }
 
 ///|
+/// Execute `f` with a freshly-created temporary directory.
+///
+/// The directory is created under the system temporary directory and is
+/// removed after `f` completes, both on success and on error.
 pub async fn[T] with_temporary_directory(
   template : String,
   f : async (String) -> T,
