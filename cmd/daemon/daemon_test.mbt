@@ -49,13 +49,17 @@ async test "GET /v1/tasks" (t : @test.Test) {
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
       @json.inspect(r.code, content=200)
-      @json.inspect(r.headers, content={
-        "content-type": "application/json",
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
-      })
+      guard r.headers
+        is {
+          "content-type": "application/json",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "*",
+          "access-control-allow-headers": "*",
+          "transfer-encoding": "chunked",
+          ..
+        } else {
+        fail("Unexpected response headers: \{r.headers}")
+      }
       @json.inspect(b.json(), content={ "tasks": [] })
       let _ = @httpx.post_json("http://localhost:\{daemon.port()}/v1/task", {
         "message": { "role": "user", "content": "Hello!" },
@@ -129,13 +133,17 @@ async test "GET /v1/models" (t : @test.Test) {
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/models")
       @json.inspect(r.code, content=200)
-      @json.inspect(r.headers, content={
-        "content-type": "application/json",
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
-      })
+      guard r.headers
+        is {
+          "content-type": "application/json",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "*",
+          "access-control-allow-headers": "*",
+          "transfer-encoding": "chunked",
+          ..
+        } else {
+        fail("Unexpected response headers: \{r.headers}")
+      }
       let b = b.json()
       guard b is { "models": Array(models), .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
