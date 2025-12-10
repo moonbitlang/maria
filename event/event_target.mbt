@@ -22,7 +22,7 @@ struct EventTarget {
   // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
   // This would make the termination signal explicit in the type system rather
   // than using `None` as a sentinel value.
-  queue : @aqueue.Queue[OutgoingEvent?]
+  queue : @aqueue.Queue[OutgoingEvent]
   listeners : Array[async (OutgoingEvent) -> Unit]
 }
 
@@ -75,7 +75,7 @@ pub fn EventTarget::new() -> EventTarget {
 /// emitter.emit(PostConversation)
 /// ```
 pub fn EventTarget::emit(self : EventTarget, event : OutgoingEvent) -> Unit {
-  guard self.queue.try_put(Some(event)) else {
+  guard self.queue.try_put(event) else {
     abort("Event queue is full, cannot emit event")
   }
 }
@@ -140,9 +140,16 @@ pub fn EventTarget::add_listener(
 /// })
 /// ```
 pub async fn EventTarget::start(self : EventTarget) -> Unit {
-  while self.queue.get() is Some(event) {
+  while true {
+    let event = self.queue.get()
+    let errors = []
     for listener in self.listeners {
-      listener(event)
+      listener(event) catch {
+        error => errors.push(error)
+      }
+    }
+    if errors is [error, ..] {
+      raise error
     }
   }
 }
@@ -171,50 +178,9 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 /// and then call listeners outside of the loop to avoid racing?
 /// assuming listerns can take a long time
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
-  while self.queue.try_get() is Some(Some(event)) {
+  while self.queue.try_get() is Some(event) {
     for listener in self.listeners {
       listener(event)
     }
-  }
-}
-
-///|
-/// Gracefully closes the event target.
-///
-/// This method:
-/// 1. Flushes all remaining events (handling errors gracefully)
-/// 2. Sends a termination signal (`None`) to stop the `start()` loop
-///
-/// # Error Handling
-///
-/// If any listener throws an error during the final flush, the error is
-/// collected and re-raised after all events are processed. Only the first
-/// error is propagated.
-///
-/// # Panics
-///
-/// Aborts if unable to enqueue the termination signal.
-///
-/// # Example
-///
-/// ```moonbit no-check
-/// // Graceful shutdown
-/// emitter.close()
-/// // start() will now return
-/// ```
-pub async fn EventTarget::close(self : EventTarget) -> Unit {
-  let errors = []
-  while self.queue.try_get() is Some(Some(event)) {
-    for listener in self.listeners {
-      listener(event) catch {
-        error => errors.push(error)
-      }
-    }
-  }
-  guard self.queue.try_put(None) else {
-    abort("Event queue is full, cannot close")
-  }
-  if errors is [error, ..] {
-    raise error
   }
 }
