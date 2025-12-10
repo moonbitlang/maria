@@ -4,10 +4,6 @@
     "moonbitlang/maria/internal/token_counter",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/model"
-  ],
-  "test-import": [
-    "moonbitlang/maria/prompt",
-    "moonbitlang/maria/internal/mock",
-    "moonbitlang/async"
   ]
+
 }
