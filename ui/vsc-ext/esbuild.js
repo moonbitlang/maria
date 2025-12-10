@@ -1,4 +1,7 @@
 const esbuild = require("esbuild");
+const path = require("path");
+const cp = require("child_process");
+const fs = require("fs");
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
@@ -25,7 +28,21 @@ const esbuildProblemMatcherPlugin = {
   },
 };
 
+function sh(command, options = {}) {
+  cp.execSync(command, { stdio: "inherit", ...options });
+}
+
+function buildMaria() {
+  sh("moon build", { cwd: path.join(__dirname, "..") });
+  fs.mkdirSync("./bin", { recursive: true });
+  fs.copyFileSync(
+    "../../target/native/release/build/cmd/main/main.exe",
+    "./bin/maria",
+  );
+}
+
 async function main() {
+  buildMaria();
   const ctx = await esbuild.context({
     entryPoints: ["src/extension.ts"],
     bundle: true,
