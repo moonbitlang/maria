@@ -1,254 +1,79 @@
-# HTTP Server
+# Maria HTTP Server
 
-This is a simple HTTP server that exposes an endpoint for sending messages to
-the Maria agent and another endpoint for receiving server-sent events (SSE) from
-the agent. It comes with a simple HTML frontend for testing the API.
+`cmd/server` hosts the lightweight HTTP server that sits in front of the Maria
+agent. It exposes REST and SSE endpoints for queueing messages, observing agent
+progress, tweaking runtime features (tools, prompts, web search), and managing
+local MoonBit modules. A tiny HTML/JS playground (`index.html`, `script.js`)
+ships alongside the server for smoke‑testing the API.
 
-## Run
-
-From the root directory of the repository, run:
+## Running locally
 
 ```bash
 moon run cmd/main -- server --port 8090 --serve cmd/server
 ```
 
-Then open `http://localhost:8080` in your web browser to access the HTML
-frontend.
+Once the server starts, visit `http://localhost:8090/` for the playground UI or
+call the endpoints directly via `curl`/`http`. Use `--serve` to point at any
+directory containing an `index.html` bundle, and set `--web-search` or
+registering flags (`--register-*`) when wiring into a daemon.
 
-## `POST /v1/message`
+## Endpoint tour
 
-Request:
+### Health and task control
 
-- `message`: The message to send to the Maria agent. It should be a JSON object
-  with `role` as `"user"` and a non-empty `content` fields.
-- `web_search` (optional): A boolean flag to enable web search for this message.
-  Note that web search specified this way only affect request caused by this
-  message, and does not change `web_search` state of the agent.
+- `GET /v1/status` → `{ "status": "idle" | "generating", "web_search": <bool> }`.
+- `POST /v1/cancel` → Cancels the active run and returns
+  `{ "pending_messages": [...] }`. Responds with 404 when nothing is running.
 
-```json
-{
-  "message": {
-    "role": "user",
-    "content": "Hello, world!"
-  },
-  "web_search": true
-}
-```
+### Messaging lifecycle
 
-Response:
+- `POST /v1/message` → Queues an `@ai.Message`. Payload accepts an OpenAI style
+  `message` plus optional `web_search`. Response mirrors
+  `{ "id": "...", "queued": <bool> }` to indicate whether the request started
+  immediately or sits in the backlog.
+- `GET /v1/queued-messages` → Returns the serialized queue
+  `[ { "id": ..., "message": { ... } }, ... ]`.
+- `GET /v1/events` → Server-Sent Events stream. Every connection receives a
+  `maria.queued_messages.synchronized` snapshot followed by `event: maria`
+  payloads for agent milestones (queued, unqueued, completion, etc.). Tool and
+  verbose token events are filtered so frontends only receive user-relevant
+  updates.
 
-```json
-{
-  "id": "<message-id>",
-  "queued": true // or false
-}
-```
+### External nudges
 
-## `GET /v1/queued-messages`
+- `POST /v1/external-event` → Sends a generic external event. Body must include
+  `type` (`UserMessage`, `UserCancellation`, `Diagnostics`) plus any extra data
+  required by the chosen type.
+- `POST /v1/external-event/diagnostics` → Convenience endpoint that accepts
+  either a JSONL string or an array of diagnostics objects and forwards it as a
+  diagnostics event.
+- `POST /v1/external-event/user-message` → Shorthand for injecting a user
+  message without enqueuing work.
+- `POST /v1/external-event/cancel` → Emits a cancellation external event, which
+  causes the agent to stop at the next poll checkpoint.
 
-Response:
+### Tools and system prompt
 
-```json
-[
-  "<queued-message-0>",
-  "<queued-message-1>",
-  ...
-]
-```
+- `GET /v1/tools` → Lists all registered tools with their `enabled` flag.
+- `POST /v1/enabled-tools` → Accepts an array of tool names; anything omitted is
+  disabled. Duplicates raise a 400 error.
+- `GET /v1/system-prompt` → Returns the current system prompt or `null` when
+  unset.
+- `POST /v1/system-prompt` → Accepts a JSON string or `null` to update the
+  agent’s system prompt.
 
-Where `<queued-message-i>` is a JSON object:
+### MoonBit helpers
 
-```json
-{
-  "id": "<message-id>",
-  "message": {
-    "role": "user",
-    "content": "Hello, world!"
-  }
-}
-```
+- `GET /v1/moonbit/modules` → Recursively walks the working directory for
+  `moon.mod.json` files and returns metadata (`path`, `name`, `version`,
+  `description`).
+- `POST /v1/moonbit/publish` → Spawns `moon publish` within the provided module
+  directory. On success it responds with module metadata plus process output.
+  Failures distinguish between “module missing” (404) and process errors (500)
+  and include stderr/stdout for debugging.
 
-## `POST /v1/cancel`
+## Static assets
 
-Cancels the current message processing task.
-
-If there is no ongoing task, returns 404 Not Found:
-
-```json
-{
-  "error": {
-    "code": -1,
-    "message": "No ongoing task to cancel."
-  }
-}
-```
-
-## `GET /v1/events`
-
-```plaintext
-event: maria
-data: <event>
-
-event: maria.queued_messages.synchronized
-data: [<queued-message-0>, <queued-message-1>, ...]
-```
-
-`<queued_messages-i>` is a JSON object:
-
-```json
-{
-  "id": "<message-id>",
-  "message": {
-    "role": "user",
-    "content": "Hello, world!"
-  }
-}
-```
-
-`<event>` is a JSON object representing various events emitted by the Maria
-agent, such as `MessageAdded`, `MessageQueued`, `MessageUnqueued`, `PreConversation`,
-`RequestCompleted`, `TokenCounted`, and `ContextPruned`. For example:
-
-```jsonl
-{"level":30,"pid":79372,"msg":"TokenCounted","hostname":"localhost","time":1762763278519,"tag":"server","token_count":16984}
-{"level":30,"pid":79372,"msg":"ContextPruned","hostname":"localhost","time":1762763278519,"tag":"server","origin_token_count":16984,"pruned_token_count":16984}
-```
-
-For concrete JSON object formats, refer to the code of `maria`.
-
-## `GET /v1/moonbit/modules`
-
-Returns the list of MoonBit modules in the server's working directory.
-
-Response:
-
-```json
-{
-  "modules": [
-    {
-      "path": "/path/to/moonbit/module",
-      "name": "example-module",
-      "version": "1.0.0",
-      "description": "An example module."
-    }
-  ]
-}
-```
-
-## `POST /v1/moonbit/publish`
-
-Runs `moon publish` in the server's working directory.
-
-```json
-{
-  "module": {
-    "path": "/path/to/moonbit/module"
-  }
-}
-```
-
-If it fails to find such a module, returns 404 Not Found:
-
-```json
-{
-  "error": {
-    "code": -1,
-    "message": "No MoonBit module found in path."
-  }
-}
-```
-
-If successful, returns 201 Created:
-
-```json
-{
-  "module": {
-    "name": "example-module",
-    "version": "1.0.0",
-    "description": "An example module.",
-  },
-  "process": {
-    "status": 0,
-    "stdout": "Published successfully.",
-    "stderr": ""
-  }
-}
-```
-
-If failed, returns 500 Internal Server Error:
-
-```json
-{
-  "error": {
-    "code": -1,
-    "message": "Failed to publish the module.",
-    "metadata": {
-      "module": {
-        "name": "example-module",
-        "version": "1.0.0",
-        "description": "An example module.",
-      },
-      "process": {
-        "status": 1,
-        "stdout": "",
-        "stderr": "Error: Failed to publish."
-      }
-    }
-  },
-}
-```
-
-## `GET /v1/tools`
-
-Returns the list of tools available in the server's working directory.
-
-```json
-{
-  "read_files": {
-    "enabled": true,
-  },
-  "write_to_file": {
-    "enabled": true,
-  },
-  "execute_command": {
-    "enabled": true,
-  }
-}
-```
-
-## `POST /v1/enabled-tools`
-
-Sets the list of available tools. Tools not included in the list will be disabled.
-
-Request:
-
-```json
-[
-  "read_files",
-  "write_to_file",
-]
-```
-
-## `GET /v1/system-prompt`
-
-Gets the current system prompt.
-
-Response:
-
-```json
-"You are a helpful assistant."
-```
-
-`null` is returned if no system prompt is set.
-
-## `POST /v1/system-prompt`
-
-Sets the system prompt.
-
-Request:
-
-```json
-"You are an expert assistant specialized in software development."
-```
-
-Send `null` to clear the system prompt.
+`index.html` and `script.js` provide a minimal SSE console plus form inputs for
+sending messages. They are served from the directory passed via `--serve` and
+fall back to static file serving for any other `GET` paths.
