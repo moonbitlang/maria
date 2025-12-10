@@ -1,4 +1,6 @@
 ///|
+/// Payload accepted by `POST /v1/system-prompt`. The body can be either a
+/// string or `null`, the latter clearing any custom prompt.
 priv struct PostSystemPromptRequest(String?)
 
 ///|
@@ -14,6 +16,8 @@ impl @json.FromJson for PostSystemPromptRequest with from_json(
 }
 
 ///|
+/// Updates Maria's system prompt in-place. Passing `null` clears the prompt so
+/// subsequent conversations fall back to the built-in default text.
 async fn Server::set_system_prompt(
   self : Server,
   json : Json,

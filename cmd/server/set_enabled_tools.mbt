@@ -1,4 +1,5 @@
 ///|
+/// Thin wrapper over the JSON array used by `POST /v1/enabled-tools`.
 priv struct PostEnabledToolsRequest(Array[String])
 
 ///|
@@ -11,6 +12,8 @@ impl @json.FromJson for PostEnabledToolsRequest with from_json(
 }
 
 ///|
+/// Replaces the enabled-tool set with the exact list provided by the client.
+/// Duplicated tool names are rejected so the API can surface user mistakes.
 async fn Server::set_enabled_tools(
   self : Server,
   json : Json,

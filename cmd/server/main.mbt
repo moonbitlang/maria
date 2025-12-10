@@ -14,6 +14,7 @@ fn text_error(code : Int, reason : String, body : String) -> HttpError {
 }
 
 ///|
+/// Connection details used to register the local server with a daemon.
 pub(all) struct RegisterInfo {
   host : String
   port : Int
@@ -21,6 +22,8 @@ pub(all) struct RegisterInfo {
 }
 
 ///|
+/// Loads the static HTML shell used by the playground UI and surfaces a
+/// user-friendly 404 page when the asset is missing.
 async fn html_read_file(path : String) -> String {
   @fsx.read_file(path) catch {
     @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>
@@ -30,6 +33,8 @@ async fn html_read_file(path : String) -> String {
 }
 
 ///|
+/// Recursively walks the provided directory tree and records every folder that
+/// contains a `moon.mod.json` so it can be turned into a `@moon.Module`.
 async fn collect_modules(
   directory : String,
   modules : Array[@moon.Module],
@@ -48,6 +53,8 @@ async fn collect_modules(
 }
 
 ///|
+/// Responds with metadata for each MoonBit module visible from the server's
+/// working directory.
 async fn Server::list_moonbit_modules(
   server : Server,
   w : @httpx.ResponseWriter,
@@ -67,6 +74,8 @@ async fn Server::list_moonbit_modules(
 }
 
 ///|
+/// Spawns `moon publish` for the requested module directory and returns either
+/// the published module metadata or a structured error payload.
 async fn publish_moonbit_module(
   request_json : Json,
   w : @httpx.ResponseWriter,
@@ -138,6 +147,8 @@ async fn publish_moonbit_module(
 }
 
 ///|
+/// CLI entry point. Parses flags, loads the requested model, and boots the
+/// HTTP server with optional daemon registration.
 pub async fn start(args : ArrayView[String]) -> Unit {
   let mut model = None
   let mut port = 0
@@ -203,6 +214,5 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  let server = Server::new(model?, register?, serve~, port~, web_search~)
-  server.start()
+  Server::new(model?, register?, serve~, port~, web_search~).start()
 }

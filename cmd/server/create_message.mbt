@@ -1,4 +1,6 @@
 ///|
+/// Request body accepted by `POST /v1/message`. Holds the OpenAI-style message
+/// plus an optional one-off web search toggle.
 priv struct CreateMessageRequest {
   message : @ai.Message
   web_search : Bool?
@@ -34,6 +36,9 @@ test "CreateMessageRequest::from_json" {
 }
 
 ///|
+/// Queues a user message for processing and reports whether it started
+/// immediately. The first message in an empty queue begins execution right
+/// away; subsequent ones are enqueued until the agent becomes idle again.
 async fn Server::create_message(
   self : Server,
   body_json : Json,

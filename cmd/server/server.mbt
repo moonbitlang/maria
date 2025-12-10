@@ -1,14 +1,26 @@
 ///|
+/// Runtime container that binds the Maria agent, HTTP server, and broadcast
+/// machinery needed to expose the API surface described in `README.md`.
 struct Server {
+  /// Long-lived Maria runtime plus agent state machine.
   maria : @maria.Maria
+  /// SSE fan-out used to push events to every connected client.
   broadcast : @broadcast.Broadcast[Json]
+  /// Incoming message queue; each entry carries a reply channel to report
+  /// whether it started immediately or was queued.
   message_queue : @aqueue.Queue[
     (CreateMessageRequest, @aqueue.Queue[(@uuid.Uuid, Bool)]),
   ]
+  /// Handle to the currently running Maria task (when any) so we can cancel or
+  /// report busy/idle status.
   mut task : @async.Task[Unit]?
+  /// Directory served as static assets (usually `cmd/server`).
   serve : String
+  /// TCP port bound by the underlying HTTP server.
   port : Int
+  /// Underlying HTTP listener that dispatches all endpoints.
   http_server : @httpx.Server
+  /// Working directory used for model loading and MoonBit module discovery.
   cwd : String
 }
 
@@ -26,6 +38,9 @@ pub fn Server::port(self : Server) -> Int {
 }
 
 ///|
+/// Boots Maria, wires the SSE broadcast pipeline, optionally registers with a
+/// daemon, and binds an `@httpx.Server`. The returned handle is ready to
+/// `start()`.
 pub async fn Server::new(
   model? : String,
   register? : RegisterInfo,
@@ -40,11 +55,11 @@ pub async fn Server::new(
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
   let maria = @maria.Maria::new(model~, cwd?, web_search~)
-  maria.agent.add_listener(event => {
+  maria.agent.add_listener((event : @event.OutgoingEvent) => {
     let event = event.to_json()
-    guard event is Object(event) else { return }
-    event["id"] = uuid.v4().to_string().to_json()
-    broadcast.put(Json::object(event))
+    guard event is Object(map) else { return }
+    map["id"] = uuid.v4().to_string().to_json()
+    broadcast.put(event)
   })
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
@@ -64,7 +79,7 @@ pub async fn Server::new(
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  let server = Server::{
+  Server::{
     maria,
     broadcast,
     message_queue: @aqueue.new(kind=Unbounded),
@@ -74,7 +89,6 @@ pub async fn Server::new(
     http_server,
     cwd,
   }
-  server
 }
 
 ///|
@@ -87,6 +101,8 @@ pub struct RegisterRequest {
 pub(all) struct RegisterResponse {} derive(ToJson, @json.FromJson)
 
 ///|
+/// Notifies the daemon about the server's listening port via
+/// `/v1/task/register`.
 async fn RegisterInfo::register(
   register : RegisterInfo,
   port~ : Int,
@@ -122,6 +138,8 @@ async fn RegisterInfo::register(
 }
 
 ///|
+/// Central HTTP router that handles static files, REST endpoints, and SSE
+/// streams behind the necessary CORS wrapper.
 async fn Server::serve_http(self : Server) -> Unit {
   let file_server = @httpx.FileServer::new(self.serve)
   self.http_server.serve(
@@ -201,6 +219,8 @@ async fn Server::serve_http(self : Server) -> Unit {
 }
 
 ///|
+/// Background worker that drains the inbound queue, kicks off the Maria agent,
+/// and mirrors failures into the broadcast stream.
 async fn Server::start_maria(self : Server) -> Unit {
   while true {
     @async.with_task_group(group => {
@@ -275,6 +295,8 @@ async fn @httpx.ResponseWriter::send_json(
 }
 
 ///|
+/// Cancels the running agent (if any) and returns the pending queue back to
+/// the client so UIs can decide what to do next.
 async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit {
   guard self.task is Some(task) else {
     w.send_json(code=404, {
@@ -287,6 +309,8 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
 }
 
 ///|
+/// Runs the HTTP server alongside the background Maria worker until the
+/// process is cancelled.
 pub async fn Server::start(self : Server) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => self.start_maria(), allow_failure=true)
@@ -295,6 +319,8 @@ pub async fn Server::start(self : Server) -> Unit {
 }
 
 ///|
+/// Streams Maria lifecycle events plus queue synchronization messages over
+/// Server-Sent Events.
 async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let queued_messages : Array[Json] = self.maria.agent
     .queued_messages()
@@ -336,6 +362,7 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
 }
 
 ///|
+/// Returns the queued messages as JSON without keeping the connection open.
 async fn Server::get_queued_messages(
   self : Server,
   w : @httpx.ResponseWriter,
@@ -347,6 +374,7 @@ async fn Server::get_queued_messages(
 }
 
 ///|
+/// Lists the registered tools and whether each one is currently enabled.
 async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let tools = self.maria.agent.tools()
   let tools_json : Map[String, Json] = {}
@@ -357,6 +385,7 @@ async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
 }
 
 ///|
+/// Returns the current system prompt (or `null` when none is configured).
 async fn Server::get_system_prompt(
   self : Server,
   w : @httpx.ResponseWriter,
