@@ -1,44 +1,61 @@
 ///|
+/// Opaque raw pointer type used for C interop.
+///
+/// `Pointer[T]` represents an unmanaged memory address that is assumed to
+/// point to a value (or array of values) of type `T`. All operations on
+/// pointers are inherently unsafe and should be used with care.
 #external
 #alias(Ptr)
 pub type Pointer[_]
 
 ///|
+/// Unsafely reinterprets a pointer as pointing to a different element type.
+///
+/// This does not change the underlying address; only the static type
+/// information is updated. The caller must ensure that the cast is valid.
 pub fn[T, U] Pointer::cast(self : Pointer[T]) -> Pointer[U] = "%identity"
 
 ///|
+/// Low-level binding used to check whether a pointer is null.
 extern "c" fn Pointer::_is_null(ptr : Pointer[Unit]) -> Bool = "moonbit_maria_c_is_null"
 
 ///|
+/// Returns `true` when the pointer is equal to the null pointer.
 pub fn[T] Pointer::is_null(self : Pointer[T]) -> Bool {
   self.cast()._is_null()
 }
 
 ///|
+/// Returns the canonical null pointer value.
 extern "c" fn Pointer::_null() -> Pointer[Unit] = "moonbit_maria_c_null"
 
 ///|
+/// Creates a null pointer of type `Pointer[T]`.
 pub fn[T] Pointer::null() -> Pointer[T] {
   Pointer::_null().cast()
 }
 
 ///|
+/// Compares two raw pointers for address equality.
 pub extern "c" fn Pointer::op_equal(
   self : Pointer[Unit],
   other : Pointer[Unit],
 ) -> Bool = "moonbit_maria_c_pointer_equal"
 
 ///|
+/// Implements structural equality for pointers via `op_equal`.
 pub impl[T] Eq for Pointer[T] with equal(self : Pointer[T], other : Pointer[T]) -> Bool {
   self.cast().op_equal(other.cast())
 }
 
 ///|
+/// Indexing helper that loads the `index`-th element via `Load`.
 pub fn[T : Load] Pointer::op_get(self : Pointer[T], index : Int) -> T {
   T::load(self, index)
 }
 
 ///|
+/// Indexing helper that stores into the `index`-th element via `Store`.
 pub fn[T : Store] Pointer::op_set(
   self : Pointer[T],
   index : Int,
@@ -48,11 +65,13 @@ pub fn[T : Store] Pointer::op_set(
 }
 
 ///|
+/// Loads a value of type `T` from this pointer at `offset`.
 pub fn[T : Load] Pointer::load(self : Pointer[T], offset? : Int = 0) -> T {
   T::load(self, offset)
 }
 
 ///|
+/// Stores a value of type `T` into this pointer at `offset`.
 pub fn[T : Store] Pointer::store(
   self : Pointer[T],
   offset? : Int = 0,
@@ -62,11 +81,16 @@ pub fn[T : Store] Pointer::store(
 }
 
 ///|
+/// Trait for types that can be loaded from raw memory.
+///
+/// Implementations of `Load` define how to read a value of the given type
+/// from a `Pointer[Self]` at a specific element offset.
 pub(open) trait Load {
   load(Pointer[Self], Int) -> Self
 }
 
 ///|
+/// Raw C bindings used by `Load` implementations for primitive types.
 extern "c" fn moonbit_c_load_byte(
   pointer : Pointer[Byte],
   offset : Int,
@@ -163,6 +187,7 @@ pub impl Load for Double with load(pointer : Pointer[Double], offset : Int) -> D
 }
 
 ///|
+/// Raw C bindings used by `Store` implementations for primitive types.
 extern "c" fn moonbit_c_store_byte(
   pointer : Pointer[Byte],
   offset : Int,
@@ -226,6 +251,10 @@ extern "c" fn moonbit_c_store_double(
 ) -> Unit = "moonbit_maria_c_store_double"
 
 ///|
+/// Trait for types that can be stored into raw memory.
+///
+/// Implementations of `Store` define how to write a value of the given type
+/// into a `Pointer[Self]` at a specific element offset.
 trait Store {
   store(Pointer[Self], Int, Self) -> Unit
 }
