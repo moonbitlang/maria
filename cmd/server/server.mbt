@@ -2,10 +2,11 @@
 /// Runtime container that binds the Maria agent, HTTP server, and broadcast
 /// machinery needed to expose the API surface described in `README.md`.
 struct Server {
+  uuid : @uuid.Generator
   /// Long-lived Maria runtime plus agent state machine.
   maria : @maria.Maria
   /// SSE fan-out used to push events to every connected client.
-  broadcast : @broadcast.Broadcast[Json]
+  broadcast : @broadcast.Broadcast[(@uuid.Uuid, @event.OutgoingEvent)]
   /// Incoming message queue; each entry carries a reply channel to report
   /// whether it started immediately or was queued.
   message_queue : @aqueue.Queue[
@@ -49,18 +50,15 @@ pub async fn Server::new(
   cwd? : String,
   web_search? : Bool = false,
 ) -> Server {
-  let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
+  let broadcast = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
   guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
   let maria = @maria.Maria::new(model~, cwd?, web_search~)
-  maria.agent.add_listener((event : @event.OutgoingEvent) => {
-    let event = event.to_json()
-    guard event is Object(map) else { return }
-    map["id"] = uuid.v4().to_string().to_json()
-    broadcast.put(event)
-  })
+  maria.agent.add_listener((event : @event.OutgoingEvent) => broadcast.put(
+    (uuid.v4(), event),
+  ))
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   if register is Some(register) {
@@ -80,6 +78,7 @@ pub async fn Server::new(
     None => @os.cwd()
   }
   Server::{
+    uuid,
     maria,
     broadcast,
     message_queue: @aqueue.new(kind=Unbounded),
@@ -88,52 +87,6 @@ pub async fn Server::new(
     port,
     http_server,
     cwd,
-  }
-}
-
-///|
-pub struct RegisterRequest {
-  id : String
-  port : Int
-} derive(ToJson, @json.FromJson)
-
-///|
-pub(all) struct RegisterResponse {} derive(ToJson, @json.FromJson)
-
-///|
-/// Notifies the daemon about the server's listening port via
-/// `/v1/task/register`.
-async fn RegisterInfo::register(
-  register : RegisterInfo,
-  port~ : Int,
-) -> RegisterResponse {
-  println("[INFO] (Server \{register.id}) Listening on port \{port}")
-  println(
-    "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
-  )
-  let req : RegisterRequest = { id: register.id, port }
-  let (r, b) = @httpx.post_json(
-    "http://\{register.host}:\{register.port}/v1/task/register",
-    req.to_json(),
-  )
-  guard r.code is (200..=299) else {
-    raise json_error(500, "InternalServerError", {
-      "error": {
-        "code": r.code,
-        "message": r.reason,
-        "metadata": { "body": b.text() },
-      },
-    })
-  }
-  @json.from_json(b.json()) catch {
-    error =>
-      raise json_error(500, "InternalServerError", {
-        "error": {
-          "code": -1,
-          "message": "Failed to parse registration response: \{error}",
-          "metadata": { "body": b.text() },
-        },
-      })
   }
 }
 
@@ -249,21 +202,25 @@ async fn Server::start_maria(self : Server) -> Unit {
               println("[ERROR] (Server) Maria task failed: \{error}")
               if !@async.is_being_cancelled() {
                 self.broadcast.put(
-                  Json::object({
-                    "msg": "MariaFailed",
-                    "error": {
-                      "code": -1,
-                      "message": error.to_string(),
-                      "metadata": error,
-                    },
-                  }),
+                  (
+                    self.uuid.v4(),
+                    Custom("MariaFailed", {
+                      "error": {
+                        "code": -1,
+                        "message": error.to_string(),
+                        "metadata": error,
+                      },
+                    }),
+                  ),
                 )
               } else {
                 self.broadcast.put(
-                  Json::object({
-                    "msg": "MariaCancelled",
-                    "error": { "code": -1, "message": "Task was cancelled." },
-                  }),
+                  (
+                    self.uuid.v4(),
+                    Custom("MariaCancelled", {
+                      "error": { "code": -1, "message": "Task was cancelled." },
+                    }),
+                  ),
                 )
               }
               raise error
@@ -336,19 +293,19 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
       chan.put(e)
     }
     for {
-      let event = chan.get()
-      if event is { "msg": "TokenCounted" | "ContextPruned", .. } {
+      let (id, event) = chan.get()
+      if event is (TokenCounted(_) | ContextPruned(_)) {
         continue
       }
-      // Skip over tool events (subagent events)
-      if event is { "tool": { "name": String(_), "id": _, .. }, .. } {
-        continue
+      let event_json = event.to_json()
+      if event_json is Object(event_object) {
+        event_object["id"] = id.to_string().to_json()
       }
       w
       ..write("event: maria\n")
-      ..write("data: \{event.stringify()}\n\n")
+      ..write("data: \{event_json.stringify()}\n\n")
       ..flush()
-      if event is { "msg": "MessageQueued" | "MessageUnqueued", .. } {
+      if event is (MessageQueued(_) | MessageUnqueued(_)) {
         let queued_messages : Array[Json] = self.maria.agent
           .queued_messages()
           .map(m => { "id": m.id, "message": m.message.to_openai() })
