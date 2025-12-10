@@ -142,7 +142,9 @@ async test "interface" (t : @test.Test) {
 async test "diagnostics" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
-      "moon.mod.json": { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
       "moon.pkg.json": Json::object({}).stringify(),
       "example.mbt": "let x : Int = \"string\"",
     })
@@ -181,7 +183,9 @@ async test "diagnostics" (t : @test.Test) {
 async test "interface/core" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
-      "moon.mod.json": { "name": "example", "version": "0.1.0" }.to_json().stringify(),
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
       "moon.pkg.json": Json::object({}).stringify(),
       "example.mbt": "let x : Int = \"string\"",
     })
@@ -213,9 +217,13 @@ async test "interface/core" (t : @test.Test) {
 async test "packages" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
-      "moon.mod.json": { "name": "example", "version": "0.1.0", "source": "src" }
-        .to_json()
-        .stringify(),
+      "moon.mod.json": {
+        "name": "example",
+        "version": "0.1.0",
+        "source": "src",
+      }
+      .to_json()
+      .stringify(),
       "src": {
         "moon.pkg.json": Json::object({}).stringify(),
         "lib": {

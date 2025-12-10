@@ -15,8 +15,8 @@ async test "project" (t : @test.Test) {
       },
       "deps": {
         "moon.mod.json": { "name": "example-deps", "version": "0.1.0" }
-          .to_json()
-          .stringify(),
+        .to_json()
+        .stringify(),
         "moon.pkg.json": Json::object({}).stringify(),
       },
     })
