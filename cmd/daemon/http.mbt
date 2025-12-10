@@ -42,9 +42,6 @@ async fn serve_static_file(
     println("[INFO] (Daemon) Serving static file: \{path}")
     let content = html_read_file(path)
     w.header().set("Content-Type", content_type)
-    w.header().set("Access-Control-Allow-Origin", "*")
-    w.header().set("Access-Control-Allow-Methods", "*")
-    w.header().set("Access-Control-Allow-Headers", "*")
     w.write_header(200)
     w.write(content)
   } else {
