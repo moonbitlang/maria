@@ -5,7 +5,7 @@ struct Server {
   /// Long-lived Maria runtime plus agent state machine.
   maria : @maria.Maria
   /// SSE fan-out used to push events to every connected client.
-  broadcast : @broadcast.Broadcast[Json]
+  broadcast : @broadcast.Broadcast[(@uuid.Uuid,@event.OutgoingEvent)]
   /// Incoming message queue; each entry carries a reply channel to report
   /// whether it started immediately or was queued.
   message_queue : @aqueue.Queue[
@@ -49,17 +49,17 @@ pub async fn Server::new(
   cwd? : String,
   web_search? : Bool = false,
 ) -> Server {
-  let broadcast : @broadcast.Broadcast[Json] = @broadcast.Broadcast::new()
+  let broadcast  = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
   guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
   let maria = @maria.Maria::new(model~, cwd?, web_search~)
   maria.agent.add_listener((event : @event.OutgoingEvent) => {
-    let event = event.to_json()
-    guard event is Object(map) else { return }
-    map["id"] = uuid.v4().to_string().to_json()
-    broadcast.put(event)
+    // let event = event.to_json()
+    // guard event is Object(map) else { return }
+    // map["id"] = uuid.v4().to_string().to_json()
+    broadcast.put((uuid.v4(), event))
   })
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
