@@ -1,7 +1,7 @@
 ///|
 async test "Coverage::report" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
@@ -63,7 +63,7 @@ async test "Coverage::report" (t : @test.Test) {
 ///|
 async test "Coverage::analyze" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
@@ -123,7 +123,7 @@ async test "Coverage::analyze" (t : @test.Test) {
 ///|
 async test "Coverage::clean" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),

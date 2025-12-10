@@ -195,9 +195,11 @@ async test "line_range" (t : @test.Test) {
 async test "directory" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    mock.add_files({ "file1.txt": "content1", "file2.txt": "content2" })
-    let subdir = mock.add_directory("subdir")
-    let _ = subdir.add_file("file3.txt", content="content3")
+    mock.add_json_tree({
+      "file1.txt": "content1",
+      "file2.txt": "content2",
+      "subdir": { "file3.txt": "content3" },
+    })
     let args : Json = { "files": [{ "path": "." }] }
     let tool = @read_multiple_files.new(manager)
     let result = tool.call(args)
@@ -356,9 +358,11 @@ async test "invalid-range" (t : @test.Test) {
 async test "read multiple mixed files" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
-    mock.add_files({ "file1.txt": "content1", "file2.txt": "content2" })
-    let subdir = mock.add_directory("subdir")
-    let _ = subdir.add_file("file3.txt", content="content3")
+    mock.add_json_tree({
+      "file1.txt": "content1",
+      "file2.txt": "content2",
+      "subdir": { "file3.txt": "content3" },
+    })
     let args : Json = {
       "files": [
         { "path": "file1.txt" },

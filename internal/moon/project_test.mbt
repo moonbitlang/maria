@@ -1,33 +1,25 @@
 ///|
 async test "project" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file(
-      "moon.mod.json",
-      content=Json::object({
+    mock.add_json_tree({
+      "moon.mod.json": Json::object({
         "name": "example",
         "deps": { "moonbitlang/async": "0.10.0" },
         "version": "0.1.0",
       }).stringify(),
-    )
-    let _ = mock.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = mock.add_file("example.mbt", content="///|\nlet x : Int = 42")
-    let internal = mock.add_directory("internal")
-    let _ = internal.add_file(
-      "moon.pkg.json",
-      content=Json::object({}).stringify(),
-    )
-    let _ = internal.add_file(
-      "internal.mbt",
-      content="///|\nlet value : Int = 37",
-    )
-    let deps = mock.add_directory("deps")
-    let _ = deps.add_file(
-      "moon.mod.json",
-      content={ "name": "example-deps", "version": "0.1.0" }
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": "///|\nlet x : Int = 42",
+      "internal": {
+        "moon.pkg.json": Json::object({}).stringify(),
+        "internal.mbt": "///|\nlet value : Int = 37",
+      },
+      "deps": {
+        "moon.mod.json": { "name": "example-deps", "version": "0.1.0" }
         .to_json()
         .stringify(),
-    )
-    let _ = deps.add_file("moon.pkg.json", content=Json::object({}).stringify())
+        "moon.pkg.json": Json::object({}).stringify(),
+      },
+    })
     let project = @moon.Module::load(mock.cwd.path())
     @json.inspect(project.name, content="example")
     let internal_package = project.find_package("example/internal")

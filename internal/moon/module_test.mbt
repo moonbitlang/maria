@@ -1,7 +1,7 @@
 ///|
 async test "files" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
@@ -85,7 +85,7 @@ async test "files" (t : @test.Test) {
 ///|
 async test "interface" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
@@ -141,12 +141,13 @@ async test "interface" (t : @test.Test) {
 ///|
 async test "diagnostics" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = mock.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = mock.add_file("example.mbt", content="let x : Int = \"string\"")
+    mock.add_json_tree({
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": "let x : Int = \"string\"",
+    })
     let moon = Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
@@ -181,12 +182,13 @@ async test "diagnostics" (t : @test.Test) {
 ///|
 async test "interface/core" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0" }.to_json().stringify(),
-    )
-    let _ = mock.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let _ = mock.add_file("example.mbt", content="let x : Int = \"string\"")
+    mock.add_json_tree({
+      "moon.mod.json": { "name": "example", "version": "0.1.0" }
+      .to_json()
+      .stringify(),
+      "moon.pkg.json": Json::object({}).stringify(),
+      "example.mbt": "let x : Int = \"string\"",
+    })
     let moon = Module::load(mock.cwd.path())
     let pkg = moon
       .find_package("moonbitlang/core/set")
@@ -214,32 +216,27 @@ async test "interface/core" (t : @test.Test) {
 ///|
 async test "packages" (t : @test.Test) {
   @mock.run(t, mock => {
-    let _ = mock.add_file(
-      "moon.mod.json",
-      content={ "name": "example", "version": "0.1.0", "source": "src" }
-        .to_json()
-        .stringify(),
-    )
-    let src = mock.add_directory("src")
-    let _ = src.add_file("moon.pkg.json", content=Json::object({}).stringify())
-    let src_lib = src.add_directory("lib")
-    let _ = src_lib.add_file(
-      "moon.pkg.json",
-      content=Json::object({}).stringify(),
-    )
-    let src_lib_util = src_lib.add_directory("util")
-    let _ = src_lib_util.add_file(
-      "moon.pkg.json",
-      content=Json::object({}).stringify(),
-    )
-    let util = mock.add_directory("util")
-    let _ = util.add_file("helpers.mbt", content="let x : Int = 42")
-    let src_app = src.add_directory("app")
-    let _ = src_app.add_file(
-      "moon.pkg.json",
-      content=Json::object({}).stringify(),
-    )
-    let _ = src_app.add_file("main.mbt", content="let y : String = \"hello\"")
+    mock.add_json_tree({
+      "moon.mod.json": {
+        "name": "example",
+        "version": "0.1.0",
+        "source": "src",
+      }
+      .to_json()
+      .stringify(),
+      "src": {
+        "moon.pkg.json": Json::object({}).stringify(),
+        "lib": {
+          "moon.pkg.json": Json::object({}).stringify(),
+          "util": { "moon.pkg.json": Json::object({}).stringify() },
+        },
+        "app": {
+          "moon.pkg.json": Json::object({}).stringify(),
+          "main.mbt": "let y : String = \"hello\"",
+        },
+      },
+      "util": { "helpers.mbt": "let x : Int = 42" },
+    })
     let moon = @moon.Module::load(mock.cwd.path())
     let pkg_names = moon.packages().map(pkg => pkg.name()).collect()
     pkg_names.sort()

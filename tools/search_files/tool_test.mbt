@@ -41,7 +41,7 @@ async test "search_files" (t : @test.Test) {
 ///|
 async test "search_files-moon-definition" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),
@@ -79,7 +79,7 @@ async test "search_files-moon-definition" (t : @test.Test) {
 ///|
 async test "search_files-moon-references" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),
@@ -122,7 +122,7 @@ async test "search_files-moon-references" (t : @test.Test) {
 ///|
 async test "search_files/agentic" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "notes.txt": (
         #|These are some notes about the project.
         #|We need to implement a feature to search files.
@@ -191,7 +191,7 @@ async test "search_files/with tilde expansion" (t : @test.Test) {
 async test "search_files/gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
-    mock.add_files({
+    mock.add_json_tree({
       ".gitignore": (
         #|ignored.txt
       ),
@@ -224,7 +224,7 @@ async test "search_files/gitignore" (t : @test.Test) {
 ///|
 async test "search_files/gitignore-without-git" (t : @test.Test) {
   @mock.run(t, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       ".gitignore": (
         #|ignored.txt
       ),
@@ -262,7 +262,7 @@ async test "search_files/gitignore-without-git" (t : @test.Test) {
 async test "search_files/does-not-respect-gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
-    mock.add_files({
+    mock.add_json_tree({
       ".gitignore": (
         #|ignored.txt
       ),

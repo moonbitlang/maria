@@ -1,7 +1,7 @@
 ///|
 async test "get_moonbit_coverage" (t : @test.Test) {
   @mock.run(t, timeout=300_000, mock => {
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),

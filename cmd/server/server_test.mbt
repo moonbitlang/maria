@@ -858,7 +858,7 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
       @json.inspect(r.code, content=200)
       collect_events(s)
     })
-    mock.add_files({
+    mock.add_json_tree({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
       ),
