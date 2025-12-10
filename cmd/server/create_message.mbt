@@ -54,8 +54,5 @@ async fn Server::create_message(
     self.message_queue.put((request, idq))
     idq.get()
   }
-  let response : Json = { "id": id, "queued": queued }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
+  w.send_json(code=200, { "id": id, "queued": queued })
 }

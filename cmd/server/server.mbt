@@ -138,15 +138,11 @@ async fn Server::serve_http(self : Server) -> Unit {
             w.write_header(200)
             w.write(index_html)
           }
-          (Get, "/v1/status") => {
-            let response : Json = {
+          (Get, "/v1/status") =>
+            w.send_json(code=200, {
               "status": self.status(),
               "web_search": self.maria.agent.web_search,
-            }
-            w.header().set("Content-Type", "application/json")
-            w.write_header(200)
-            w.write(response.stringify())
-          }
+            })
           (Post, "/v1/cancel") => self.cancel_maria(w)
           (Get, "/v1/queued-messages") => self.get_queued_messages(w)
           (Get, "/v1/events") => self.get_events(w)
@@ -188,18 +184,10 @@ async fn Server::serve_http(self : Server) -> Unit {
               _ => fail("unreachable")
             }
           }
-          _ => {
-            w.header().set("Content-Type", "application/json")
-            w.write_header(404)
-            w.write(
-              Json::object({
-                "error": {
-                  "code": -1,
-                  "message": "Unknown endpoint: \{r.path}",
-                },
-              }),
-            )
-          }
+          _ =>
+            w.send_json(code=404, {
+              "error": { "code": -1, "message": "Unknown endpoint: \{r.path}" },
+            })
         }
       } catch {
         HttpError(code~, reason~, body~) => {
@@ -276,21 +264,26 @@ async fn Server::start_maria(self : Server) -> Unit {
 }
 
 ///|
+async fn @httpx.ResponseWriter::send_json(
+  self : Self,
+  code~ : Int,
+  json : Json,
+) -> Unit {
+  self.header().set("Content-Type", "application/json")
+  self.write_header(code)
+  self.write(json.stringify())
+}
+
+///|
 async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit {
   guard self.task is Some(task) else {
-    w.header().set("Content-Type", "application/json")
-    w.write_header(404)
-    w.write(
-      Json::object({
-        "error": { "code": -1, "message": "No running task to cancel." },
-      }),
-    )
+    w.send_json(code=404, {
+      "error": { "code": -1, "message": "No running task to cancel." },
+    })
   }
   task.cancel()
   let pms = self.maria.agent.clear_inputs()
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(Json::object({ "pending_messages": pms.to_json() }))
+  w.send_json(code=200, { "pending_messages": pms.to_json() })
 }
 
 ///|
@@ -350,9 +343,7 @@ async fn Server::get_queued_messages(
   let queued_messages : Array[Json] = self.maria.agent
     .queued_messages()
     .map(m => { "id": m.id, "message": m.message.to_openai() })
-  w.header().set("Content-Type", "application/json")
-  w..write_header(200)
-  w..write(queued_messages.to_json().stringify())
+  w.send_json(code=200, queued_messages.to_json())
 }
 
 ///|
@@ -362,10 +353,7 @@ async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
   for name, tool in tools {
     tools_json[name] = { "enabled": tool.enabled() }
   }
-  let response : Json = Json::object(tools_json)
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
+  w.send_json(code=200, Json::object(tools_json))
 }
 
 ///|
@@ -377,9 +365,7 @@ async fn Server::get_system_prompt(
     Some(sys) => sys.to_json()
     None => Json::null()
   }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(res.stringify())
+  w.send_json(code=200, res)
 }
 
 ///|
@@ -428,9 +414,7 @@ async fn Server::send_external_event(
         "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'UserCancellation', or 'Diagnostics'",
       })
   }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(Json::object({ "success": true }))
+  w.send_json(code=200, { "success": true })
 }
 
 ///|
@@ -463,11 +447,10 @@ async fn Server::send_diagnostics_event(
   self.maria.agent
   .external_events()
   .send(@event.ExternalEvent::Diagnostics(diagnostics))
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(
-    Json::object({ "success": true, "count": diagnostics.length().to_json() }),
-  )
+  w.send_json(code=200, {
+    "success": true,
+    "count": diagnostics.length().to_json(),
+  })
 }
 
 ///|
@@ -492,9 +475,7 @@ async fn Server::send_user_message_event(
   self.maria.agent
   .external_events()
   .send(@event.ExternalEvent::UserMessage(message))
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(Json::object({ "success": true }))
+  w.send_json(code=200, { "success": true })
 }
 
 ///|
@@ -507,7 +488,5 @@ async fn Server::send_cancellation_event(
   self.maria.agent
   .external_events()
   .send(@event.ExternalEvent::UserCancellation)
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(Json::object({ "success": true }))
+  w.send_json(code=200, { "success": true })
 }

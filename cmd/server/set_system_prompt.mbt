@@ -30,8 +30,5 @@ async fn Server::set_system_prompt(
       })
   }
   self.maria.agent.set_system_prompt(req.0)
-  let res : Json = {}
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(res.stringify())
+  w.send_json(code=200, {})
 }

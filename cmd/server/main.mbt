@@ -63,10 +63,7 @@ async fn Server::list_moonbit_modules(
       "description": mod.description,
     })
   }
-  let response : Json = { "modules": modules_json }
-  w.header().set("Content-Type", "application/json")
-  w.write_header(200)
-  w.write(response.stringify())
+  w.send_json(code=200, { "modules": modules_json })
 }
 
 ///|
@@ -115,9 +112,7 @@ async fn publish_moonbit_module(
         "stderr": process.stderr,
       },
     }
-    w.header().set("Content-Type", "application/json")
-    w.write_header(201)
-    w.write(response.stringify())
+    w.send_json(code=201, response)
   } else {
     let response : Json = {
       "error": {
@@ -138,9 +133,7 @@ async fn publish_moonbit_module(
         },
       },
     }
-    w.header().set("Content-Type", "application/json")
-    w.write_header(500)
-    w.write(response.stringify())
+    w.send_json(code=500, response)
   }
 }
 
