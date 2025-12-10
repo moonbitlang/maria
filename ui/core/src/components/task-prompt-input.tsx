@@ -112,7 +112,7 @@ export function TaskPromptInput({
       {
         keybinding: monaco.KeyCode.Enter,
         command: "chat/send",
-        when: "editorTextFocus",
+        when: "editorTextFocus && !suggestWidgetVisible",
       },
     ]);
     return d;

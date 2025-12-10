@@ -79,7 +79,7 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
   -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src http:; font-src ${
     webview.cspSource
-  } unsafe-inline; style-src ${
+  } data: unsafe-inline; style-src ${
     webview.cspSource
   } 'unsafe-inline'; script-src 'nonce-${nonce}'; worker-src blob:;">
 

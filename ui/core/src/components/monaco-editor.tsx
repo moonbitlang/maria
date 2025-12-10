@@ -29,6 +29,7 @@ function Editor(props: EditorProps) {
   }
   useLayoutEffect(() => {
     const container = getContainer();
+    container.classList.add("hideSuggestTextIcons");
     const model = monaco.editor.createModel("", "chat");
 
     const editor = monaco.editor.create(container, {
@@ -51,6 +52,7 @@ function Editor(props: EditorProps) {
         horizontal: "hidden",
         alwaysConsumeMouseWheel: false,
       },
+      stickyScroll: { enabled: false },
       overviewRulerLanes: 0,
       glyphMargin: false,
       folding: false,
@@ -73,10 +75,11 @@ function Editor(props: EditorProps) {
         showSnippets: false,
         showWords: true,
         showStatusBar: false,
-        insertMode: "replace",
+        insertMode: "insert",
       },
       defaultColorDecorators: "never",
       quickSuggestions: false,
+      fixedOverflowWidgets: true,
     });
 
     const d = editorDidMount(editor, monaco);
