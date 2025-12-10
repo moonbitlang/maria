@@ -3,7 +3,7 @@ import type { ElectronRAL } from "@maria/core/lib/types.js";
 
 const _ril: ElectronRAL = {
   platform: "electron",
-  selectDirectory: window.electronAPI.selectDirectory,
+  electronAPI: window.electronAPI,
 };
 
 export function install(): void {

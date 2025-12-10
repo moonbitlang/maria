@@ -1,20 +1,18 @@
 import * as vscode from "vscode";
-import { allTasksView, taskView } from "./commands";
-import { DaemonService } from "./daemon-service";
+import { taskView } from "./commands";
+import { set } from "./global-state";
 import { MoonBitAgentViewProvider } from "./view";
 export async function activate(context: vscode.ExtensionContext) {
-  const daemonService = DaemonService.instance();
+  set("context", context);
   const cwd = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 
   if (cwd === undefined) {
     throw new Error(
-      "No workspace folder found. Please open a folder in VSCode to use MoonBit Agent.",
+      "No workspace folder found. Please open a folder in VSCode to use Maria.",
     );
   }
 
-  const taskId = await daemonService.getTaskIdOfDir(cwd);
-
-  const viewProvider = new MoonBitAgentViewProvider(context, cwd, taskId);
+  const viewProvider = await MoonBitAgentViewProvider.instance(cwd);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -22,7 +20,6 @@ export async function activate(context: vscode.ExtensionContext) {
       viewProvider,
       { webviewOptions: { retainContextWhenHidden: true } },
     ),
-    vscode.commands.registerCommand("moonbit-agent.allTasksView", allTasksView),
     vscode.commands.registerCommand("moonbit-agent.taskView", taskView),
   );
 }

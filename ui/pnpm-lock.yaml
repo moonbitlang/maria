@@ -256,6 +256,9 @@ importers:
 
   vsc-ext:
     dependencies:
+      '@maria/core':
+        specifier: workspace:^
+        version: link:../core
       comlink:
         specifier: ^4.4.2
         version: 4.4.2

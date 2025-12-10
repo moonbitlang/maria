@@ -8,8 +8,34 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Simple logger utility
+const logger = {
+  log: (level, message, ...args) => {
+    const timestamp = new Date().toISOString();
+    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
+    console.log(prefix, message, ...args);
+  },
+  info: (message, ...args) => logger.log("info", message, ...args),
+  warn: (message, ...args) => logger.log("warn", message, ...args),
+  error: (message, ...args) => logger.log("error", message, ...args),
+  debug: (message, ...args) => logger.log("debug", message, ...args),
+};
+
 const app = express();
 const PORT = process.env.PORT || 8090;
+
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  // Log when response finishes
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    logger.info(`${req.method} ${req.url} ${res.statusCode} - ${duration}ms`);
+  });
+
+  next();
+});
 
 // Enable CORS for development
 app.use((req, res, next) => {
@@ -88,7 +114,7 @@ for (const t of tasks) {
   });
 
   app.post(`/v1/task/${t.id}/cancel`, (req, res) => {
-    console.log(`Task ${t.id} cancelled`);
+    logger.info(`Task ${t.id} cancelled`);
     res.writeHead(200, "OK");
     res.end();
   });
@@ -143,12 +169,12 @@ for (const t of tasks) {
             // Small delay to simulate streaming (optional, can be removed for faster streaming)
             await new Promise((resolve) => setTimeout(resolve, 500));
           } catch (parseError) {
-            console.error("Invalid JSON line:", parseError.message);
+            logger.error("Invalid JSON line:", parseError.message);
           }
         }
       }
 
-      console.log(`Sent ${lineCount} events`);
+      logger.info(`Sent ${lineCount} events`);
 
       // Send completion event
       res.write(
@@ -157,7 +183,7 @@ for (const t of tasks) {
           "}\n\n",
       );
     } catch (error) {
-      console.error("Error reading log file:", error);
+      logger.error("Error reading log file:", error);
       res.write(
         'event: maria\ndata: {"type":"error","message":"' +
           error.message +
@@ -167,7 +193,7 @@ for (const t of tasks) {
 
     // Handle client disconnect
     req.on("close", () => {
-      console.log("Client disconnected");
+      logger.info("Client disconnected");
     });
   });
 }
@@ -179,5 +205,5 @@ app.get("/health", (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Dev API server running on http://localhost:${PORT}`);
+  logger.info(`Dev API server running on http://localhost:${PORT}`);
 });

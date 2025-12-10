@@ -1,8 +1,10 @@
+import { WebviewApi } from "@maria/core/lib/types.js";
 import type * as comlink from "comlink";
-import type * as api from "../../vsc-common/api";
+import type * as vscode from "vscode";
 
 type GlobalState = {
-  webviewApi?: comlink.Remote<api.WebviewApi>;
+  context?: vscode.ExtensionContext;
+  webviewApi?: comlink.Remote<WebviewApi>;
 };
 
 const state: GlobalState = {};

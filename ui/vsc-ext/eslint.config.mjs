@@ -13,6 +13,10 @@ export default [
       parser: typescriptEslint.parser,
       ecmaVersion: 2022,
       sourceType: "module",
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
 
     rules: {

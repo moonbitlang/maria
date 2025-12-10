@@ -42,6 +42,7 @@ import {
   setStatusForTask,
   toggleWebSearchForTask,
 } from "../features/session/tasksSlice.ts";
+import { RAL } from "../lib/ral.ts";
 import { base } from "../lib/utils.ts";
 
 function useSetActiveTaskId(taskId: string) {
@@ -54,23 +55,21 @@ function useSetActiveTaskId(taskId: string) {
 
 function PromptInput({ taskId }: { taskId: string }) {
   const dispatch = useDispatch();
-  const webSearchEnabled = useAppSelector((state) =>
-    selectWebSearchEnabledForTask(state, taskId),
-  )!;
+  const webSearchEnabled =
+    useAppSelector((state) => selectWebSearchEnabledForTask(state, taskId)) ??
+    false;
   const ref = useRef<TaskPromptInputHandle>(null);
   const [postMessage] = usePostMessageMutation();
   const [postCancel] = usePostCancelMutation();
-  const input = useAppSelector((state) => selectTaskInput(state, taskId))!;
-  const cwd = useAppSelector((state) => selectTaskCwd(state, taskId))!;
-  const baseCwd = base(cwd);
+  const input = useAppSelector((state) => selectTaskInput(state, taskId)) ?? "";
 
   useEffect(() => {
     ref.current?.focus();
   });
 
-  const taskStatus = useAppSelector((state) =>
-    selectConversationStatus(state, taskId),
-  )!;
+  const taskStatus =
+    useAppSelector((state) => selectConversationStatus(state, taskId)) ??
+    "idle";
 
   let chatStatus: ChatStatus;
 
@@ -136,27 +135,7 @@ function PromptInput({ taskId }: { taskId: string }) {
       }
       inputTools={
         <PromptInputTools>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PromptInputButton
-                className="cursor-pointer"
-                onClick={async () => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await (window as any).electronAPI?.openPathInFileExplorer(
-                    cwd,
-                  );
-                }}
-              >
-                <Folder size={16} />
-                {baseCwd && <span>{baseCwd}</span>}
-              </PromptInputButton>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                Open <code>{cwd}</code>
-              </p>
-            </TooltipContent>
-          </Tooltip>
+          <OpenCwd taskId={taskId} />
           <WebSearchToggleTool
             webSearchEnabled={webSearchEnabled}
             onClick={() => {
@@ -169,10 +148,43 @@ function PromptInput({ taskId }: { taskId: string }) {
   );
 }
 
+function OpenCwd({ taskId }: { taskId: string }) {
+  const cwd = useAppSelector((state) => selectTaskCwd(state, taskId)) ?? "";
+  const baseCwd = base(cwd);
+  const ral = RAL();
+  const content =
+    ral.platform === "electron" ? (
+      <p>
+        Open <code>{cwd}</code>
+      </p>
+    ) : (
+      <p>
+        <code>{cwd}</code>
+      </p>
+    );
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <PromptInputButton
+          className="cursor-pointer"
+          onClick={async () => {
+            if (ral.platform === "electron") {
+              await ral.electronAPI.openPathInFileExplorer(cwd);
+            }
+          }}
+        >
+          <Folder size={16} />
+          {baseCwd && <span>{baseCwd}</span>}
+        </PromptInputButton>
+      </TooltipTrigger>
+      <TooltipContent>{content}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function Input({ taskId }: { taskId: string }) {
-  const inputQueue = useAppSelector((state) =>
-    selectInputQueue(state, taskId),
-  )!;
+  const inputQueue =
+    useAppSelector((state) => selectInputQueue(state, taskId)) ?? [];
 
   return (
     <div className="flex flex-col p-4">
