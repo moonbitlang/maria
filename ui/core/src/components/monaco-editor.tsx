@@ -15,6 +15,10 @@ export type EditorDidMount = (
   m: typeof monaco,
 ) => monaco.IDisposable;
 
+function getTheme(): "vs" | "custom-dark" {
+  return document.body.classList.contains("dark") ? "custom-dark" : "vs";
+}
+
 type EditorProps = {
   editorDidMount: EditorDidMount;
 };
@@ -37,7 +41,7 @@ function Editor(props: EditorProps) {
       model,
       fontFamily: "inherit",
       fontSize: 16,
-      theme: "vs",
+      theme: getTheme(),
       autoDetectHighContrast: false,
       minimap: { enabled: false },
       wordWrap: "on",
@@ -98,11 +102,30 @@ function Editor(props: EditorProps) {
     editor.onDidContentSizeChange(updateHeight);
     updateHeight();
 
+    // Watch for theme changes on :root element
+    const themeObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "class" &&
+          mutation.target instanceof HTMLBodyElement
+        ) {
+          monaco.editor.setTheme(getTheme());
+        }
+      }
+    });
+
+    themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     return () => {
       model.dispose();
       editor.dispose();
       d.dispose();
       slashCommandDecoration.dispose();
+      themeObserver.disconnect();
     };
   }, [editorDidMount]);
   return <div ref={containerRef}></div>;

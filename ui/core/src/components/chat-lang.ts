@@ -1,5 +1,15 @@
 import * as monaco from "monaco-editor-core";
 
+// Define custom theme with matching background color
+monaco.editor.defineTheme("custom-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#0a0a0a",
+  },
+});
+
 // Add CSS for slash command decorations
 const styleId = "chat-slash-command-style";
 if (!document.getElementById(styleId)) {
