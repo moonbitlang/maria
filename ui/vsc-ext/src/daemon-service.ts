@@ -1,4 +1,4 @@
-import { setupMariaProcess } from "@maria/core/lib/node.js";
+import { setupMariaProcess } from "@maria/core/lib/node/maria-setup.js";
 import { TaskOverview } from "@maria/core/lib/types.js";
 import { get } from "./global-state";
 

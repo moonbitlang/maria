@@ -1,12 +1,5 @@
 import cp from "child_process";
-import fs from "fs";
-import os from "os";
-import path from "path";
-
-type DaemonJson = {
-  pid: number;
-  port: number;
-};
+import { getDaemonJson, type DaemonJson } from "./daemon-json";
 
 let setupMariaPromise: Promise<DaemonJson> | undefined = undefined;
 
@@ -18,7 +11,7 @@ export async function setupMariaProcess(mariaPath: string) {
   return await setupMariaPromise;
 }
 
-async function doSetupMariaProcess(mariaPath: string) {
+async function doSetupMariaProcess(mariaPath: string): Promise<DaemonJson> {
   const exitCode = await new Promise<number | null>((resolve, reject) => {
     const maria = cp.spawn(mariaPath, ["daemon", "--port", "0", "--detach"], {
       stdio: "ignore",
@@ -42,9 +35,7 @@ async function doSetupMariaProcess(mariaPath: string) {
     throw new Error(`Maria daemon exited with code ${exitCode}`);
   }
 
-  const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
-  const daemonJson: DaemonJson = JSON.parse(
-    fs.readFileSync(daemonJsonPath, "utf-8"),
-  );
-  return daemonJson;
+  // daemon.json is guaranteed to exist after the daemon starts
+  const daemonJson = await getDaemonJson();
+  return daemonJson!;
 }
