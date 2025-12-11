@@ -65,7 +65,7 @@ function ShowMessageAdded({ event }: { event: MessageAddedEvent }) {
       return (
         <Message from="user">
           <MessageContent>
-            <Response className="dark" parseIncompleteMarkdown={false}>
+            <Response parseIncompleteMarkdown={false}>
               {contents.join("").trim()}
             </Response>
           </MessageContent>
@@ -354,18 +354,23 @@ function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
     // they are handled by specific todo events
     return <></>;
   }
-  const input = jsonParseSafe(event.tool_call.function.arguments);
-  return (
-    <Tool>
-      <ToolHeader
-        type={event.tool_call.function.name}
-        state="input-available"
-      />
-      <ToolContent>
-        <ToolInput input={input} />
-      </ToolContent>
-    </Tool>
-  );
+  const [input, error] = jsonParseSafe(event.tool_call.function.arguments);
+  if (error) {
+    // dont render for invalid JSON input
+    return null;
+  } else {
+    return (
+      <Tool>
+        <ToolHeader
+          type={event.tool_call.function.name}
+          state="input-available"
+        />
+        <ToolContent>
+          <ToolInput input={input} />
+        </ToolContent>
+      </Tool>
+    );
+  }
 }
 
 function EventErrorFallback({
