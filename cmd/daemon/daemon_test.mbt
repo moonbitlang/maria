@@ -608,13 +608,19 @@ async test "GET /v1/events" (t : @test.Test) {
               "name": null,
               "status": "generating",
               "web_search": false,
+              "queued_messages": [],
             },
           },
         },
         { "event": "daemon.task.changed" },
         {
           "data": {
-            "task": { "name": null, "status": "idle", "web_search": false },
+            "task": {
+              "name": null,
+              "status": "idle",
+              "web_search": false,
+              "queued_messages": [],
+            },
           },
         },
       ],

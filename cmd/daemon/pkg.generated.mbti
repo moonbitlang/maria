@@ -2,6 +2,7 @@
 package "moonbitlang/maria/cmd/daemon"
 
 import(
+  "moonbitlang/core/json"
   "moonbitlang/maria/internal/uuid"
 )
 
@@ -17,6 +18,10 @@ type Daemon
 pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
 pub fn Daemon::port(Self) -> Int
 pub async fn Daemon::serve(Self) -> Unit
+
+type Task
+pub impl ToJson for Task
+pub impl @json.FromJson for Task
 
 // Type aliases
 
