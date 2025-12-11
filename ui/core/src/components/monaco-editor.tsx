@@ -2,6 +2,7 @@ import * as monaco from "monaco-editor-core";
 import editorWorker from "monaco-editor-core/esm/vs/editor/editor.worker.start?worker&inline";
 import { memo, useLayoutEffect, useRef } from "react";
 import "./chat-lang";
+import { setupSlashCommandDecoration } from "./chat-lang";
 
 self.MonacoEnvironment = {
   getWorker() {
@@ -86,7 +87,7 @@ function Editor(props: EditorProps) {
     });
 
     const d = editorDidMount(editor, monaco);
-    // const slashCommandDecoration = setupSlashCommandDecoration(editor);
+    const slashCommandDecoration = setupSlashCommandDecoration(editor);
 
     const updateHeight = () => {
       const height = Math.min(124, editor.getContentHeight());
@@ -101,7 +102,7 @@ function Editor(props: EditorProps) {
       model.dispose();
       editor.dispose();
       d.dispose();
-      // slashCommandDecoration.dispose();
+      slashCommandDecoration.dispose();
     };
   }, [editorDidMount]);
   return <div ref={containerRef}></div>;

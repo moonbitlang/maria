@@ -94,6 +94,7 @@ export function setupSlashCommandDecoration(
     const text = model.getValue();
     const token = parseSlashCommand(text);
     if (token === undefined) {
+      decorations.clear();
       return;
     }
 
@@ -122,12 +123,9 @@ export function setupSlashCommandDecoration(
         change.range.startColumn,
       ),
     );
-    const changeEnd = model.getOffsetAt(
-      new monaco.Position(change.range.endLineNumber, change.range.endColumn),
-    );
     if (change.text === "") {
       // Deletion
-      if (token.start <= changeStart && token.end >= changeEnd) {
+      if (token.start <= changeStart && token.end >= changeStart) {
         const tokenStartPos = model.getPositionAt(token.start);
         const tokenEndPos = model.getPositionAt(token.end);
         const tokenRange = new monaco.Range(
