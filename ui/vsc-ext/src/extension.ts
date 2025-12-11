@@ -1,3 +1,4 @@
+import { shutdown } from "@maria/core/lib/node/maria-util.js";
 import * as vscode from "vscode";
 import { taskView } from "./commands";
 import { set } from "./global-state";
@@ -11,6 +12,20 @@ export async function activate(context: vscode.ExtensionContext) {
       "No workspace folder found. Please open a folder in VSCode to use Maria.",
     );
   }
+
+  const currentVersion: string = context.extension.packageJSON.version;
+  const previousVersion = context.globalState.get<string>("extensionVersion");
+
+  if (!previousVersion || previousVersion !== currentVersion) {
+    const [_, error] = await shutdown();
+    if (error) {
+      vscode.window.showErrorMessage(
+        "Failed to shutdown existing Maria daemon on update: " + error.message,
+      );
+    }
+  }
+
+  await context.globalState.update("extensionVersion", currentVersion);
 
   const viewProvider = await MoonBitAgentViewProvider.instance(cwd);
 

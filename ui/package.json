@@ -14,6 +14,9 @@
     "check:vsc-ext-webview": "cd vsc-ext-webview && pnpm check",
     "check:native": "cd native && pnpm check",
     "check": "run-p check:*",
+    "release:native": "cd native && pnpm package",
+    "release:vsc-ext": "cd vsc-ext && pnpm release",
+    "release": "run-s release:native release:vsc-ext",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   }

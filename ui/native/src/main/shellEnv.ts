@@ -91,7 +91,7 @@ async function doResolveUnixShellEnv(): Promise<typeof process.env> {
     ELECTRON_NO_ATTACH_CONSOLE: "1",
   };
 
-  const systemShellUnix = os.userInfo().shell;
+  const systemShellUnix = os.userInfo().shell ?? "/bin/bash";
 
   return new Promise<typeof process.env>((resolve, reject) => {
     // handle popular non-POSIX shells
