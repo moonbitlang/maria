@@ -1,5 +1,5 @@
-import { setupMariaProcess } from "@maria/core/src/lib/node/maria-setup";
-import { getApi, shutdown } from "@maria/core/src/lib/node/maria-util";
+import { setupMariaProcess } from "@maria/core/lib/node/maria-setup.js";
+import { getApi, shutdown } from "@maria/core/lib/node/maria-util.js";
 import {
   app,
   BrowserWindow,

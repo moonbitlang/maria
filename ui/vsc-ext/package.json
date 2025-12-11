@@ -67,7 +67,7 @@
     "build:self": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
     "build": "npm-run-all -p build:*",
     "package": "vsce package --no-dependencies",
-    "vsce-publish": "vsce publish --no-dependencies",
+    "release": "vsce publish --no-dependencies",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
