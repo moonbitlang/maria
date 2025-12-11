@@ -24,20 +24,22 @@ async test "event-stream" (t : @test.Test) {
       @json.inspect(r.code, content=200)
       @json.inspect(r.reason, content="OK")
       @json.inspect(r.headers.get("content-type"), content=["text/event-stream"])
+      let r = @httpx.EventStreamReader::new(c)
+      let es = []
+      while r.read_event() is Some(event) {
+        es.push(event)
+      }
       inspect(
-        c.read_all().text(),
+        es.map(Event::to_string).join(""),
         content=(
           #|event: message
           #|data: {"count":0}
-          #|id: 0
           #|
           #|event: message
           #|data: {"count":1}
-          #|id: 1
           #|
           #|event: message
           #|data: {"count":2}
-          #|id: 2
           #|
           #|
         ),

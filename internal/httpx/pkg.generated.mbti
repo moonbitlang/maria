@@ -26,9 +26,19 @@ pub fn JsonError::new(Int, Error, message? : String, data? : Json) -> Self
 pub async fn JsonError::write(Self, ResponseWriter) -> Unit
 
 // Types and methods
-pub struct EventStreamWriter {
-  w : ResponseWriter
+pub struct Event {
+  event : String?
+  data : String
 }
+pub impl Show for Event
+pub impl ToJson for Event
+
+type EventStreamReader
+pub fn EventStreamReader::new(&@io.Reader) -> Self
+pub async fn[T : FromEvent] EventStreamReader::read(Self) -> T?
+pub async fn EventStreamReader::read_event(Self) -> Event?
+
+type EventStreamWriter
 pub fn EventStreamWriter::new(ResponseWriter) -> Self
 pub async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
 pub async fn EventStreamWriter::write_header(Self, Int) -> Unit
@@ -121,4 +131,7 @@ pub async fn Server::serve(Self, Handler) -> Unit
 // Type aliases
 
 // Traits
+pub(open) trait FromEvent {
+  from_event(Event) -> Self raise
+}
 

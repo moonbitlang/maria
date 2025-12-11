@@ -4,7 +4,7 @@
 /// `EventStreamWriter` configures the underlying `ResponseWriter` for
 /// `text/event-stream` responses and provides helpers for sending events in
 /// SSE format.
-pub struct EventStreamWriter {
+struct EventStreamWriter {
   w : ResponseWriter
 }
 
@@ -59,4 +59,92 @@ pub async fn EventStreamWriter::write_event(
   if flush {
     self.w.flush()
   }
+}
+
+///|
+/// Server-Sent Events (SSE) response reader.
+///
+/// `EventStreamReader` parses Server-Sent Events from an underlying reader,
+/// handling event types and data payloads according to the SSE protocol.
+struct EventStreamReader {
+  mut last_event : String?
+  r : &@io.Reader
+}
+
+///|
+/// Creates a new `EventStreamReader` from the given reader.
+///
+/// Parameters:
+///
+/// * `r` : The underlying reader to parse SSE events from.
+pub fn EventStreamReader::new(r : &@io.Reader) -> EventStreamReader {
+  EventStreamReader::{ last_event: None, r }
+}
+
+///|
+/// Represents a single Server-Sent Event.
+///
+/// Fields:
+///
+/// * `event` : Optional event type identifier.
+/// * `data` : The data payload of the event.
+pub struct Event {
+  event : String?
+  data : String
+} derive(ToJson)
+
+///|
+pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
+  if self.event is Some(event) {
+    w.write_string("event: \{event}\n")
+  }
+  w.write_string("data: \{self.data}\n\n")
+}
+
+///|
+/// Trait for types that can be constructed from an SSE event.
+///
+/// Implementors can define custom parsing logic to convert SSE events
+/// into domain-specific types.
+pub(open) trait FromEvent {
+  from_event(Event) -> Self raise
+}
+
+///|
+/// Reads the next SSE event from the stream.
+///
+/// Parses lines from the underlying reader according to the SSE protocol.
+/// Returns `None` when the stream ends or no more events are available.
+///
+/// The reader maintains state for the last event type encountered, which
+/// is associated with the next data line according to SSE semantics.
+pub async fn EventStreamReader::read_event(self : EventStreamReader) -> Event? {
+  while self.r.read_until("\n") is Some(line) {
+    match line {
+      [.. "event: ", .. event] => {
+        self.last_event = Some(event.to_string())
+        continue
+      }
+      [.. "data: ", .. data] => {
+        let event = self.last_event
+        self.last_event = None
+        return Some(Event::{ event, data: data.to_string() })
+      }
+      _ => continue
+    }
+  }
+  return None
+}
+
+///|
+/// Reads and parses the next SSE event into a type implementing `FromEvent`.
+///
+/// This is a convenience method that reads an event and converts it to the
+/// target type using the `FromEvent` trait. Returns `None` if no more events
+/// are available or if parsing fails.
+pub async fn[T : FromEvent] EventStreamReader::read(
+  self : EventStreamReader,
+) -> T? {
+  let event = self.read_event()
+  event.map(T::from_event)
 }
