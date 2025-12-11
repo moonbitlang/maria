@@ -349,6 +349,11 @@ function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
 }
 
 function ShowPreToolCall({ event }: { event: PreToolCallEvent }) {
+  if (event.tool_call.function.name === "todo") {
+    // dont render anything for todo tool
+    // they are handled by specific todo events
+    return <></>;
+  }
   const input = jsonParseSafe(event.tool_call.function.arguments);
   return (
     <Tool>
