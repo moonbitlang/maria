@@ -355,3 +355,7 @@ If failed, returns 500 Internal Server Error:
   },
 }
 ```
+
+### `POST /v1/shutdown`
+
+Shuts down the daemon server gracefully.
