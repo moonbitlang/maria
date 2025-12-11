@@ -327,15 +327,14 @@ async fn Daemon::create_task(
     "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
   let created = self.clock.now() / 1_000
-  let task = Task::{
-    name: request.name,
-    id,
-    cwd,
-    port: task_port,
-    status: Idle,
-    created,
-    web_search: request.web_search is Some(true),
-  }
+  let task = Task::new(
+    name?=request.name,
+    id~,
+    cwd~,
+    port=task_port,
+    created~,
+    web_search=request.web_search is Some(true),
+  )
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {
     let exit_code = process.wait()
@@ -469,9 +468,8 @@ async fn Daemon::get_task(
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
   }
-  let task_json = task.to_json_object()
-  task_json["queued_messages"] = task.queued_messages().to_json()
-  let response : Json = { "task": task_json }
+  task.sync()
+  let response : Json = { "task": task }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
   w.write(response.stringify())
