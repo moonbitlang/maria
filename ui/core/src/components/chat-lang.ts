@@ -1,5 +1,15 @@
 import * as monaco from "monaco-editor-core";
 
+// Define custom theme with matching background color
+monaco.editor.defineTheme("custom-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [],
+  colors: {
+    "editor.background": "#0a0a0a",
+  },
+});
+
 // Add CSS for slash command decorations
 const styleId = "chat-slash-command-style";
 if (!document.getElementById(styleId)) {
@@ -11,6 +21,10 @@ if (!document.getElementById(styleId)) {
           background-color: #adceff7a !important;
           border-radius: 3px;
           padding: 0 2px;
+        }
+        .dark .chat-slash-command {
+          color: #85b6ff !important;
+          background-color: #26477866 !important;
         }
       `;
   document.head.appendChild(style);
@@ -94,6 +108,7 @@ export function setupSlashCommandDecoration(
     const text = model.getValue();
     const token = parseSlashCommand(text);
     if (token === undefined) {
+      decorations.clear();
       return;
     }
 
@@ -122,12 +137,9 @@ export function setupSlashCommandDecoration(
         change.range.startColumn,
       ),
     );
-    const changeEnd = model.getOffsetAt(
-      new monaco.Position(change.range.endLineNumber, change.range.endColumn),
-    );
     if (change.text === "") {
       // Deletion
-      if (token.start <= changeStart && token.end >= changeEnd) {
+      if (token.start <= changeStart && token.end >= changeStart) {
         const tokenStartPos = model.getPositionAt(token.start);
         const tokenEndPos = model.getPositionAt(token.end);
         const tokenRange = new monaco.Range(

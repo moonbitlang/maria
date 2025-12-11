@@ -17,6 +17,37 @@ install();
 const taskId = rootData("task-id");
 const cwd = rootData("cwd");
 
+function updateBodyDarkClass() {
+  debugger;
+  const themeKind = document.body.dataset.vscodeThemeKind;
+  const isDark =
+    themeKind === "vscode-dark" || themeKind === "vscode-high-contrast";
+  if (isDark) {
+    document.body.classList.add("dark");
+  } else {
+    document.body.classList.remove("dark");
+  }
+}
+
+updateBodyDarkClass();
+
+const bodyObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (
+      mutation.type === "attributes" &&
+      mutation.attributeName === "data-vscode-theme-kind" &&
+      mutation.target instanceof HTMLBodyElement
+    ) {
+      updateBodyDarkClass();
+    }
+  }
+});
+
+bodyObserver.observe(document.body, {
+  attributes: true,
+  attributeFilter: ["data-vscode-theme-kind"],
+});
+
 const initialEntries = taskId === undefined ? ["/"] : [`/tasks/${taskId}`];
 
 document.getElementById("_defaultStyles")?.remove();

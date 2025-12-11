@@ -2,6 +2,7 @@ import * as monaco from "monaco-editor-core";
 import editorWorker from "monaco-editor-core/esm/vs/editor/editor.worker.start?worker&inline";
 import { memo, useLayoutEffect, useRef } from "react";
 import "./chat-lang";
+import { setupSlashCommandDecoration } from "./chat-lang";
 
 self.MonacoEnvironment = {
   getWorker() {
@@ -13,6 +14,10 @@ export type EditorDidMount = (
   editor: monaco.editor.IStandaloneCodeEditor,
   m: typeof monaco,
 ) => monaco.IDisposable;
+
+function getTheme(): "vs" | "custom-dark" {
+  return document.body.classList.contains("dark") ? "custom-dark" : "vs";
+}
 
 type EditorProps = {
   editorDidMount: EditorDidMount;
@@ -36,7 +41,7 @@ function Editor(props: EditorProps) {
       model,
       fontFamily: "inherit",
       fontSize: 16,
-      theme: "vs",
+      theme: getTheme(),
       autoDetectHighContrast: false,
       minimap: { enabled: false },
       wordWrap: "on",
@@ -86,7 +91,7 @@ function Editor(props: EditorProps) {
     });
 
     const d = editorDidMount(editor, monaco);
-    // const slashCommandDecoration = setupSlashCommandDecoration(editor);
+    const slashCommandDecoration = setupSlashCommandDecoration(editor);
 
     const updateHeight = () => {
       const height = Math.min(124, editor.getContentHeight());
@@ -97,11 +102,30 @@ function Editor(props: EditorProps) {
     editor.onDidContentSizeChange(updateHeight);
     updateHeight();
 
+    // Watch for theme changes on :root element
+    const themeObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "class" &&
+          mutation.target instanceof HTMLBodyElement
+        ) {
+          monaco.editor.setTheme(getTheme());
+        }
+      }
+    });
+
+    themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     return () => {
       model.dispose();
       editor.dispose();
       d.dispose();
-      // slashCommandDecoration.dispose();
+      slashCommandDecoration.dispose();
+      themeObserver.disconnect();
     };
   }, [editorDidMount]);
   return <div ref={containerRef}></div>;
