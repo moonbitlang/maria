@@ -86,21 +86,14 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
     guard event.event is Some("maria") else { continue }
     let json = @json.parse(event.data)
     let event : @event.Event = @json.from_json(json)
-    match event.desc {
-      PostConversation
-      | Custom("MariaFailed", _)
-      | UserCancellation
-      | Cancelled => {
-        println("[INFO] (Daemon) Task \{task.id} is now idle.")
-        task.status = Idle
-        self.events.put(StatusChange(task.id))
-      }
-      PreConversation => {
-        println("[INFO] (Daemon) Task \{task.id} is now busy.")
-        task.status = Busy
-        self.events.put(StatusChange(task.id))
-      }
-      _ => ()
+    if event.is_stopping() || event.is_cancellation() {
+      println("[INFO] (Daemon) Task \{task.id} is now idle.")
+      task.status = Idle
+      self.events.put(StatusChange(task.id))
+    } else if event.is_starting() {
+      println("[INFO] (Daemon) Task \{task.id} is now busy.")
+      task.status = Busy
+      self.events.put(StatusChange(task.id))
     }
   }
 }

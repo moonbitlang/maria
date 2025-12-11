@@ -1,0 +1,9 @@
+{
+  "import": [
+    "moonbitlang/maria/event",
+    "moonbitlang/async/http",
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/httpx"
+  ]
+}

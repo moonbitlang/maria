@@ -22,5 +22,9 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/diagnostics"
   ],
-  "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async/socket"]
+  "test-import": [
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/async/socket",
+    "moonbitlang/maria/cmd/internal/test_utils"
+  ]
 }
