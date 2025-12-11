@@ -22,6 +22,10 @@ if (!document.getElementById(styleId)) {
           border-radius: 3px;
           padding: 0 2px;
         }
+        .dark .chat-slash-command {
+          color: #85b6ff !important;
+          background-color: #26477866 !important;
+        }
       `;
   document.head.appendChild(style);
 }
