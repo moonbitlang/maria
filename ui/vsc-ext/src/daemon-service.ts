@@ -1,9 +1,9 @@
 import { setupMariaProcess } from "@maria/core/lib/node/maria-setup.js";
+import { getApi } from "@maria/core/lib/node/maria-util.js";
 import { TaskOverview } from "@maria/core/lib/types.js";
 import { get } from "./global-state";
 
 export class DaemonService {
-  _port: number;
   _api: string;
 
   private static _instance: DaemonService;
@@ -12,15 +12,23 @@ export class DaemonService {
     if (!this._instance) {
       const context = get("context")!;
       const mariaPath = context.asAbsolutePath("bin/maria");
-      const daemonJson = await setupMariaProcess(mariaPath);
-      this._instance = new DaemonService(daemonJson.port);
+      const [_, error] = await setupMariaProcess(mariaPath);
+      if (error) {
+        // TODO: Handle error properly
+        throw new Error("Failed to setup Maria process: " + error.message);
+      }
+      const [api, apiError] = await getApi();
+      if (apiError) {
+        // TODO: Handle error properly
+        throw new Error("Failed to get Maria API: " + apiError.message);
+      }
+      this._instance = new DaemonService(api);
     }
     return this._instance;
   }
 
-  private constructor(port: number) {
-    this._port = port;
-    this._api = `http://localhost:${this._port}/v1`;
+  private constructor(api: string) {
+    this._api = api;
   }
 
   private async _getTasks(): Promise<TaskOverview[]> {
@@ -46,10 +54,6 @@ export class DaemonService {
       }
     }
     return taskId;
-  }
-
-  get port() {
-    return this._port;
   }
 
   get api() {

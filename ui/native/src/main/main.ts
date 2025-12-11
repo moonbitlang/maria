@@ -1,5 +1,5 @@
-import { shutdown } from "@maria/core/src/lib/node/maria-util";
-import cp from "child_process";
+import { setupMariaProcess } from "@maria/core/src/lib/node/maria-setup";
+import { getApi, shutdown } from "@maria/core/src/lib/node/maria-util";
 import {
   app,
   BrowserWindow,
@@ -9,8 +9,6 @@ import {
   shell,
 } from "electron";
 import started from "electron-squirrel-startup";
-import fs from "fs";
-import os from "os";
 import path from "path";
 import { getResolvedShellEnv } from "./shellEnv";
 
@@ -41,75 +39,29 @@ function createWindow() {
   }
 }
 
-let url = "";
-let setupMariaPromise: Promise<void> | undefined = undefined;
-
-async function setupMariaProcess() {
-  if (setupMariaPromise) {
-    return await setupMariaPromise;
-  }
-  setupMariaPromise = doSetupMariaProcess();
-  return await setupMariaPromise;
-}
-
-async function doSetupMariaProcess() {
-  try {
-    const shellEnv = await getResolvedShellEnv();
-    const mariaPath = process.env.MARIA_DEV
-      ? path.join(
-          __dirname,
-          "../../../../target/native/release/build/cmd/main/main.exe",
-        )
-      : path.join(__dirname, "../bin/maria");
-
-    const exitCode = await new Promise<number>((resolve, reject) => {
-      const maria = cp.spawn(mariaPath, ["daemon", "--port", "0", "--detach"], {
-        stdio: "ignore",
-        env: shellEnv,
-      });
-
-      maria.on("error", reject);
-      maria.on("exit", (code) => {
-        resolve(code);
-      });
-    });
-
-    if (exitCode !== 0) {
-      if (
-        shellEnv["OPENAI_API_KEY"] === undefined ||
-        shellEnv["OPENROUTER_API_KEY"] === undefined
+async function setupMaria() {
+  const shellEnv = await getResolvedShellEnv();
+  const mariaPath = process.env.MARIA_DEV
+    ? path.join(
+        __dirname,
+        "../../../../target/native/release/build/cmd/main/main.exe",
       )
-        throw new Error(
-          "OPENAI_API_KEY or OPENROUTER_API_KEY is not set in the shell environment",
-        );
-      throw new Error(`Maria daemon exited with code ${exitCode}`);
-    }
-
-    const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
-    const daemonJson: { pid: number; port: number } = JSON.parse(
-      fs.readFileSync(daemonJsonPath, "utf-8"),
-    );
-    url = `http://localhost:${daemonJson.port}/v1`;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    dialog.showErrorBox("Maria Startup Error", errorMessage);
-    app.quit();
-  }
+    : path.join(__dirname, "../bin/maria");
+  return await setupMariaProcess(mariaPath, shellEnv);
 }
 
 async function shutdownMariaDaemon() {
-  try {
-    const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
-    const daemonJson: { pid: number; port: number } = JSON.parse(
-      fs.readFileSync(daemonJsonPath, "utf-8"),
-    );
-    await shutdown(daemonJson.port);
-  } catch {}
+  await shutdown();
 }
 
 const onReady = async () => {
   // TODO: dont await the promise, we will show a loading screen in the renderer
-  await setupMariaProcess();
+  const [_, error] = await setupMaria();
+  if (error) {
+    dialog.showErrorBox("Error", error.message);
+    app.exit(1);
+    return;
+  }
   createWindow();
 };
 
@@ -144,12 +96,18 @@ ipcMain.handle("select-directory", async (): Promise<OpenDialogReturnValue> => {
   });
 });
 
-ipcMain.handle("get-url", () => {
+ipcMain.handle("get-url", async () => {
+  const [url, error] = await getApi();
+  if (error) {
+    dialog.showErrorBox("Error", error.message);
+    app.exit(1);
+    return;
+  }
   return url;
 });
 
 ipcMain.handle("maria-ready", async () => {
-  await setupMariaProcess();
+  await setupMaria();
 });
 
 ipcMain.handle("reload-app", async () => {

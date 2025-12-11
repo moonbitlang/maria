@@ -1,4 +1,3 @@
-import { getDaemonJson } from "@maria/core/lib/node/daemon-json.js";
 import { shutdown } from "@maria/core/lib/node/maria-util.js";
 import * as vscode from "vscode";
 import { taskView } from "./commands";
@@ -18,10 +17,11 @@ export async function activate(context: vscode.ExtensionContext) {
   const previousVersion = context.globalState.get<string>("extensionVersion");
 
   if (!previousVersion || previousVersion !== currentVersion) {
-    // shut down daemon on version change
-    const daemonJson = await getDaemonJson();
-    if (daemonJson) {
-      await shutdown(daemonJson.port);
+    const [_, error] = await shutdown();
+    if (error) {
+      vscode.window.showErrorMessage(
+        "Failed to shutdown existing Maria daemon on update: " + error.message,
+      );
     }
   }
 
