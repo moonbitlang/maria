@@ -1,3 +1,4 @@
+import { shutdown } from "@maria/core/src/lib/node/maria-util";
 import cp from "child_process";
 import {
   app,
@@ -96,13 +97,13 @@ async function doSetupMariaProcess() {
   }
 }
 
-function killMariaDaemon() {
+async function shutdownMariaDaemon() {
   try {
     const daemonJsonPath = path.join(os.homedir(), ".moonagent", "daemon.json");
     const daemonJson: { pid: number; port: number } = JSON.parse(
       fs.readFileSync(daemonJsonPath, "utf-8"),
     );
-    process.kill(daemonJson.pid);
+    await shutdown(daemonJson.port);
   } catch {}
 }
 
@@ -151,9 +152,9 @@ ipcMain.handle("maria-ready", async () => {
   await setupMariaProcess();
 });
 
-ipcMain.handle("reload-app", () => {
+ipcMain.handle("reload-app", async () => {
   app.relaunch();
-  killMariaDaemon();
+  await shutdownMariaDaemon();
   app.exit();
 });
 
