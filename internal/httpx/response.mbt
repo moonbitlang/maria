@@ -72,3 +72,16 @@ pub impl @io.Writer for ResponseWriter with write_reader(
 pub async fn ResponseWriter::flush(self : ResponseWriter) -> Unit {
   self.conn.flush()
 }
+
+///|
+/// Closes the HTTP response.
+///
+/// Parameters:
+///
+/// * `self` : The response writer to close.
+///
+/// Note this does not necessarily close the underlying connection, depending
+/// on the HTTP version and connection headers.
+pub async fn ResponseWriter::close(self : ResponseWriter) -> Unit {
+  self.conn.end_response()
+}
