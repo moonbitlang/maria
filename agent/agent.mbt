@@ -228,9 +228,9 @@ fn Agent::cancel(agent : Agent) -> Unit {
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
     // Start the event target in background to handle async event processing
-    group.spawn_bg(() => agent.event_target.start())
+    group.spawn_bg(() => agent.event_target.start(), no_wait=true)
     @async.with_task_group(group => {
-      group.add_defer(() => agent.event_target.close())
+      group.add_defer(() => agent.event_target.flush())
       // Signal the start of conversation
       agent.emit(PreConversation)
       while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {

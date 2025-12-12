@@ -1,4 +1,20 @@
 ///|
+async test "EventTarget::flush" {
+  let event_target = @event.EventTarget::new()
+  let events : Array[@event.OutgoingEvent] = []
+  event_target.add_listener(event => events.push(event))
+  @async.with_task_group(group => {
+    let task = group.spawn(() => event_target.start(), allow_failure=true)
+    task.cancel()
+    let task = group.spawn(() => event_target.start(), allow_failure=true)
+    event_target.emit(TokenCounted(10))
+    event_target.flush()
+    task.cancel()
+  })
+  @json.inspect(events, content=[{ "msg": "TokenCounted", "token_count": 10 }])
+}
+
+///|
 fn redact_events(events : Array[@event.OutgoingEvent]) -> Array[Json] {
   events.map(event => event
     .to_json()

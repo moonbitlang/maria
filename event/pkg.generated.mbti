@@ -26,7 +26,6 @@ pub impl @json.FromJson for Event
 
 type EventTarget
 pub fn EventTarget::add_listener(Self, async (OutgoingEvent) -> Unit) -> Unit
-pub async fn EventTarget::close(Self) -> Unit
 pub fn EventTarget::emit(Self, OutgoingEvent) -> Unit
 pub async fn EventTarget::flush(Self) -> Unit
 pub fn EventTarget::new() -> Self
