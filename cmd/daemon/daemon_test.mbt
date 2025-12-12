@@ -309,10 +309,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
               "id": "00000000-0000-0000-0000-000000000000",
               "desc": {
                 "msg": "MessageQueued",
-                "message": {
-                  "id": "00000000-0000-0000-0000-000000000000",
-                  "message": { "role": "user", "content": "Hello!" },
-                },
+                "message": { "id": "00000000-0000-0000-0000-000000000000" },
               },
             },
           ],
@@ -330,10 +327,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
             "Maria",
             {
               "id": "00000000-0000-0000-0000-000000000000",
-              "desc": {
-                "msg": "MessageAdded",
-                "message": { "role": "user", "content": "<redacted>" },
-              },
+              "desc": { "msg": "UserMessage", "content": "<redacted>" },
             },
           ],
         ],
@@ -353,10 +347,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
               "id": "00000000-0000-0000-0000-000000000000",
               "desc": {
                 "msg": "MessageQueued",
-                "message": {
-                  "id": "00000000-0000-0000-0000-000000000000",
-                  "message": { "role": "user", "content": "How are you?" },
-                },
+                "message": { "id": "00000000-0000-0000-0000-000000000000" },
               },
             },
           ],
@@ -374,10 +365,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
             "Maria",
             {
               "id": "00000000-0000-0000-0000-000000000000",
-              "desc": {
-                "msg": "MessageAdded",
-                "message": { "role": "user", "content": "<redacted>" },
-              },
+              "desc": { "msg": "UserMessage", "content": "<redacted>" },
             },
           ],
         ],
