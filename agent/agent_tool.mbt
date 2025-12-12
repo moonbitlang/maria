@@ -109,23 +109,8 @@ async fn Agent::execute_tool(
     Ok((json, text)) => (Ok(json), text)
     Error(error, text) => (Err(error.to_json()), text)
   }
-  match (tool_call.name, result) {
-    ("todo", Ok(json)) => {
-      let todos : @todo.Items = @json.from_json(json) catch {
-        error => {
-          let rendered = "Error parsing tool result: \{error}, result: \{json}"
-          agent.emit(PostToolCall(tool_call, result~, rendered~))
-          return @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
-        }
-      }
-      agent.emit(TodoUpdated(todos.to_json()))
-      return @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
-    }
-    _ => {
-      agent.emit(PostToolCall(tool_call, result~, rendered~))
-      @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
-    }
-  }
+  agent.emit(PostToolCall(tool_call, result~, rendered~))
+  @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
 }
 
 ///|

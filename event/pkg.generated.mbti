@@ -45,7 +45,6 @@ pub(all) enum EventDesc {
   UserCancellation
   UserMessage(String)
   Cancelled
-  TodoUpdated(Json)
   Custom(String, Map[String, Json])
 }
 pub impl Eq for EventDesc
