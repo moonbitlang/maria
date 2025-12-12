@@ -630,24 +630,6 @@ test "Event::Roundtrip/Cancelled" {
 }
 
 ///|
-test "Event::Roundtrip/TodoUpdated" {
-  let todo_json : Json = { "task": "Do something", "status": "pending" }
-  let event : @event.EventDesc = TodoUpdated(todo_json)
-  let json = event.to_json()
-  let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    TodoUpdated(todo) =>
-      inspect(
-        todo,
-        content=(
-          #|Object({"task": String("Do something"), "status": String("pending")})
-        ),
-      )
-    _ => fail("Expected TodoUpdated")
-  }
-}
-
-///|
 test "Event::Roundtrip/ModelLoaded" {
   let model = @model.Model::new(
     api_key="test_api_key",
@@ -857,7 +839,6 @@ test "Event::Roundtrip" {
       ),
     ),
     Cancelled,
-    TodoUpdated({ "task": "Do something", "status": "pending" }),
     UserCancellation,
     UserMessage("Stop the current task"),
     Diagnostics(@diagnostics.Diagnostics::new()),

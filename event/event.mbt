@@ -95,8 +95,6 @@ pub(all) enum EventDesc {
   UserMessage(String)
   /// Cancelled
   Cancelled
-  /// Event triggered when the todo list is updated.
-  TodoUpdated(Json)
   Custom(String, Map[String, Json])
 } derive(Eq, Show)
 
@@ -206,7 +204,6 @@ fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
     UserCancellation => { "msg": "UserCancellation" }
     UserMessage(message) => { "msg": "UserMessage", "message": message }
     Cancelled => { "msg": "MariaCancelled" }
-    TodoUpdated(todo) => { "msg": "TodoUpdated", "todo": todo.to_json() }
     Custom(name, payload) => payload.merge({ "msg": name })
   }
 }
@@ -476,18 +473,6 @@ pub impl @json.FromJson for EventDesc with from_json(
       UserMessage(message)
     }
     "MariaCancelled" => Cancelled
-    "TodoUpdated" => {
-      guard json_object.get("todo") is Some(todo_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "TodoUpdated event missing 'todo' field"),
-        )
-      }
-      let todo : Json = @json.FromJson::from_json(
-        todo_json,
-        json_path.add_key("todo"),
-      )
-      TodoUpdated(todo)
-    }
     _ =>
       raise @json.JsonDecodeError(
         (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
