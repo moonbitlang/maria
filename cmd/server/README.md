@@ -42,7 +42,7 @@ registering flags (`--register-*`) when wiring into a daemon.
 ### External nudges
 
 - `POST /v1/external-event` → Sends a generic external event. Body must include
-  `type` (`UserMessage`, `UserCancellation`, `Diagnostics`) plus any extra data
+  `type` (`UserMessage`, `Cancelled`, `Diagnostics`) plus any extra data
   required by the chosen type.
 - `POST /v1/external-event/diagnostics` → Convenience endpoint that accepts
   either a JSONL string or an array of diagnostics objects and forwards it as a

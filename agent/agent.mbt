@@ -144,7 +144,7 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
   for event in events {
     agent.emit(event.desc, id=event.id)
     match event.desc {
-      UserCancellation => {
+      Cancelled => {
         agent.cancel()
         return false
       }

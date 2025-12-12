@@ -212,7 +212,7 @@ async fn Server::start_maria(self : Server) -> Unit {
               } else {
                 self.broadcast.put(@event.Event::{
                   id: self.uuid.v4(),
-                  desc: Cancelled,
+                  desc: @event.Cancelled,
                 })
               }
               raise error
@@ -348,7 +348,7 @@ async fn Server::get_system_prompt(
 /// Request body:
 /// ```json
 /// {
-///   "type": "UserMessage" | "UserCancellation" | "Diagnostics",
+///   "type": "UserMessage" | "Cancelled" | "Diagnostics",
 ///   "message": "...",  // for UserMessage
 ///   "diagnostics": "..."  // JSONL string for Diagnostics
 /// }
@@ -365,7 +365,7 @@ async fn Server::send_external_event(
   }
   let queue = self.maria.agent.external_events()
   match event_type {
-    "UserCancellation" => queue.send(UserCancellation)
+    "Cancelled" => queue.send(@event.Cancelled)
     "UserMessage" => {
       guard json is { "message": String(message), .. } else {
         raise json_error(400, "BadRequest", {
@@ -385,7 +385,7 @@ async fn Server::send_external_event(
     }
     _ =>
       raise json_error(400, "BadRequest", {
-        "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'UserCancellation', or 'Diagnostics'",
+        "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'Cancelled', or 'Diagnostics'",
       })
   }
   w.send_json(code=200, { "success": true })
@@ -449,12 +449,12 @@ async fn Server::send_user_message_event(
 }
 
 ///|
-/// Sends a cancellation event to the agent.
+/// Sends a Cancelled event to the agent.
 /// This will cause the agent to stop at the next poll point.
 async fn Server::send_cancellation_event(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  self.maria.agent.external_events().send(UserCancellation)
+  self.maria.agent.external_events().send(Cancelled)
   w.send_json(code=200, { "success": true })
 }
