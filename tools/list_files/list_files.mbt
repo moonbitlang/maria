@@ -53,12 +53,12 @@ async fn execute_list_files(
   manager : @file.Manager,
   path : String,
 ) -> ListFilesResult {
-  let resolved_path = if @path.is_absolute(path) {
+  let resolved_path = if @pathx.is_absolute(path) {
     path.view()
   } else {
-    @path.join(manager.cwd, path)
+    @pathx.join(manager.cwd, path)
   }
-  let resolved_path = @path.resolve(resolved_path)
+  let resolved_path = @pathx.resolve(resolved_path)
   let entries = @fsx.list_directory(resolved_path)
   let mut file_count = 0
   let mut directory_count = 0

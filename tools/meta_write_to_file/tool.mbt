@@ -223,7 +223,7 @@ async fn execute_replace_in_file(
 
 ///|
 async fn mkdir_then_write(path : String, content : String) -> Unit {
-  @fsx.make_directory(@path.dirname(path), recursive=true, exists_ok=true)
+  @fsx.make_directory(@pathx.dirname(path), recursive=true, exists_ok=true)
   @fsx.write_to_file(path, content)
 }
 
@@ -241,10 +241,10 @@ async fn execute_meta_write_to_file(
       )
   }
   let cwd = agent.cwd
-  let resolved_path = if @path.is_absolute(params.path) {
+  let resolved_path = if @pathx.is_absolute(params.path) {
     params.path
   } else {
-    @path.join(cwd, params.path)
+    @pathx.join(cwd, params.path)
   }
   try {
     // If it's a MoonBit file, format it and fix syntax if needed
@@ -327,7 +327,7 @@ async fn execute_meta_write_to_file(
         context=1,
         limit=DiagnosticLimit,
         overlay=Map::from_array([
-          (@path.basename(params.path).to_string(), formatted_content),
+          (@pathx.basename(params.path).to_string(), formatted_content),
         ]),
       )
       let fixing_ctx = FixingContext::{

@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/tool",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/async",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/model",

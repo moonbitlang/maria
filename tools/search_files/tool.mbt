@@ -57,7 +57,7 @@ async fn collect_files_recursive(
         does_respect_gitignore.val = false
       }
     }
-    let full_path = @path.join(directory, entry.name)
+    let full_path = @pathx.join(directory, entry.name)
     match entry.kind {
       Directory => {
         // Recursively collect from subdirectories
@@ -113,7 +113,7 @@ async fn search_in_file(
   }
   let lines = content.split("\n").collect() // Convert to Array
   let results = []
-  let relative_path = @path.relative(base_dir, file_path) catch {
+  let relative_path = @pathx.relative(base_dir, file_path) catch {
     _ => file_path // fallback to absolute path if relative fails
   }
   for i = 0; i < lines.length(); i = i + 1 {
@@ -324,10 +324,10 @@ async fn search_files_impl(
     )
   }
   // Resolve search path
-  let absolute_search_path = if @path.is_absolute(search_path) {
+  let absolute_search_path = if @pathx.is_absolute(search_path) {
     search_path
   } else {
-    @path.join(cwd, search_path)
+    @pathx.join(cwd, search_path)
   }
   try {
     // Handle MoonBit symbol searches

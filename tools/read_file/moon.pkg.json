@@ -3,7 +3,7 @@
     "moonbitlang/maria/file",
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/maria/internal/path"
+    "moonbitlang/maria/internal/pathx"
   ],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }

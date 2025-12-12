@@ -3,7 +3,7 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/yamd"
   ],

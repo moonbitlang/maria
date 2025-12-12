@@ -36,7 +36,7 @@ pub impl ToJson for Package with to_json(self : Package) -> Json {
 
 ///|
 async fn Package::new(path~ : String, name~ : String) -> Package {
-  let moon_pkg_path = @path.join(path, "moon.pkg.json")
+  let moon_pkg_path = @pathx.join(path, "moon.pkg.json")
   let import_ = []
   let test_import = []
   let wbtest_import = []
@@ -151,14 +151,14 @@ pub async fn Package::check(
 
 ///|
 pub async fn Package::interface(self : Package) -> String? {
-  let mbti_path = @path.join(self.path, "pkg.generated.mbti")
+  let mbti_path = @pathx.join(self.path, "pkg.generated.mbti")
   if @fsx.exists(mbti_path) {
     Some(@fsx.read_file(mbti_path))
   } else {
     let entries = @fsx.list_directory(self.path)
     for entry in entries {
       if entry.kind is Regular && entry.name.has_suffix(".mbti") {
-        return Some(@fsx.read_file(@path.join(self.path, entry.name)))
+        return Some(@fsx.read_file(@pathx.join(self.path, entry.name)))
       }
     } else {
       None

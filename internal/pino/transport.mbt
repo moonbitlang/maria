@@ -63,7 +63,7 @@ async fn mkdir(path : String) -> Unit {
       break
     }
     dirs.push(dir)
-    continue @path.dirname(dir)
+    continue @pathx.dirname(dir)
   }
   for i in 0..<dirs.length() {
     let dir = dirs[dirs.length() - 1 - i]
@@ -82,7 +82,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       let file = match file {
         Some(file) => file
         None => {
-          let dir : String = [..@path.dirname(path)]
+          let dir : String = [..@pathx.dirname(path)]
           if !@fs.exists(dir) {
             mkdir(dir)
           }

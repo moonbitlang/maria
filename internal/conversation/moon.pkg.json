@@ -2,7 +2,7 @@
   "import": [
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/lru",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/x/time",
     "moonbitlang/maria/clock",

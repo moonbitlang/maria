@@ -28,9 +28,9 @@ async fn serve_static_file(
   serve~ : String,
   path~ : String,
 ) -> Unit {
-  if @path.join(serve, path) is path &&
+  if @pathx.join(serve, path) is path &&
     (try? @fsx.exists_as_file(path)) is Ok(true) {
-    let content_type = match @path.ext(path) {
+    let content_type = match @pathx.ext(path) {
       ".js" => "application/javascript"
       ".css" => "text/css"
       ".html" => "text/html"

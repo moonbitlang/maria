@@ -101,10 +101,10 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
             error~,
           )
       }
-      let resolved_project_path = if @path.is_absolute(args.project_path) {
+      let resolved_project_path = if @pathx.is_absolute(args.project_path) {
         args.project_path
       } else {
-        @path.join(cwd, args.project_path)
+        @pathx.join(cwd, args.project_path)
       }
       let diagnostic_limit = args.diagnostic_limit.unwrap_or(10)
       let moon = @moon.Module::load(resolved_project_path) catch {
@@ -117,10 +117,10 @@ pub fn new(cwd : String) -> @tool.Tool[CheckMoonbitProjectResult] {
       let overlay = {}
       let diagnostics = if args.patch_code is Some(code) &&
         args.patch_file_name is Some(file_path) {
-        let resolved_file_path = if @path.is_absolute(file_path) {
+        let resolved_file_path = if @pathx.is_absolute(file_path) {
           file_path
         } else {
-          @path.join(resolved_project_path, file_path)
+          @pathx.join(resolved_project_path, file_path)
         }
         overlay[resolved_file_path] = code
         moon.check_patch_insert(resolved_file_path, code) catch {

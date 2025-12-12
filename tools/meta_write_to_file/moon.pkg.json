@@ -3,7 +3,7 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/agent",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/async",
     "moonbitlang/maria/internal/git",

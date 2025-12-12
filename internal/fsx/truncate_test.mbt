@@ -1,7 +1,7 @@
 ///|
 async test "truncate" (t : @test.Test) {
   @mock.run(t, mock => {
-    let file_path = @path.join(mock.cwd.path(), "test.txt")
+    let file_path = @pathx.join(mock.cwd.path(), "test.txt")
     {
       let file = @fs.open(file_path, mode=WriteOnly, create=0o644)
       defer file.close()

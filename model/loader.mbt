@@ -48,16 +48,16 @@ async fn Loader::load(self : Loader) -> Unit {
   }
 
   let project = self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("models")
-    |> @path.join("models.json")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("models")
+    |> @pathx.join("models.json")
   if @fsx.exists(project) {
     self.models.append(load_from_path(project))
   }
   let user = self.home
-    |> @path.join(".moonagent")
-    |> @path.join("models")
-    |> @path.join("models.json")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("models")
+    |> @pathx.join("models.json")
   if @fsx.exists(user) {
     self.models.append(load_from_path(user))
   }

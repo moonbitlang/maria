@@ -18,7 +18,7 @@ pub async fn make_directory(
     }
     dirs.push(dir)
     if recursive {
-      continue @path.dirname(dir)
+      continue @pathx.dirname(dir)
     } else {
       break
     }

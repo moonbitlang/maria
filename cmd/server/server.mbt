@@ -103,7 +103,7 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Options, _) => w.write_header(204)
           (Get, "/") => {
             let index_html = html_read_file(
-              @path.join(self.serve, "index.html"),
+              @pathx.join(self.serve, "index.html"),
             )
             w.header().set("Content-Type", "text/html")
             w.write_header(200)

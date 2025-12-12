@@ -1,4 +1,4 @@
-# internal/path 
+# internal/pathx 
 
 ## Design Principles
 

@@ -12,7 +12,7 @@ async test "render_diagnostics" {
     diagnostics.render(
       context=3,
       limit=DiagnosticLimit,
-      overlay=Map::from_array([(@path.basename(path).to_string(), content)]),
+      overlay=Map::from_array([(@pathx.basename(path).to_string(), content)]),
     ),
     content=(
       #|error[3002]: json_parser.mbt:2:24: Parse error, unexpected token `,`, you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.
@@ -38,7 +38,7 @@ async test "render_diagnostics" {
     diagnostics.render(
       context=3,
       limit=DiagnosticLimit,
-      overlay=Map::from_array([(@path.basename(path).to_string(), content)]),
+      overlay=Map::from_array([(@pathx.basename(path).to_string(), content)]),
     ),
     content=(
       #|error[3002]: json_parser.mbt:6:24-27: Parse error, unexpected token id (lowercase start), you may expect `,` or `)`.
@@ -77,7 +77,7 @@ async test "render_diagnostics" {
     diagnostics.render(
       context=3,
       limit=DiagnosticLimit,
-      overlay=Map::from_array([(@path.basename(path).to_string(), content)]),
+      overlay=Map::from_array([(@pathx.basename(path).to_string(), content)]),
     ),
     content=(
       #|error[3800]: main.mbt:2:6-7: Expecting a newline or `;` here, but encountered `,`.

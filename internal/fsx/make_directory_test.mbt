@@ -1,8 +1,8 @@
 ///|
 async test "make_directory" (t : @test.Test) {
   @mock.run(t, mock => {
-    let dir_a = @path.join(mock.cwd.path(), "a")
-    let dir_b = @path.join(dir_a, "b")
+    let dir_a = @pathx.join(mock.cwd.path(), "a")
+    let dir_b = @pathx.join(dir_a, "b")
     @fsx.make_directory(dir_b, recursive=true)
     @json.inspect(mock.json(@fsx.list_directory(mock.cwd.path())), content=[
       { "path": "(mock:cwd)/a", "name": "a", "kind": "Directory" },

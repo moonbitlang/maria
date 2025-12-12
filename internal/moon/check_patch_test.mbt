@@ -151,7 +151,7 @@ async test "check_patch_test" (t : @test.Test) {
     @json.inspect(
       mock.json(
         moon.check_patch_insert(
-          @path.join(mock.cwd.path(), "a_test.mbt"),
+          @pathx.join(mock.cwd.path(), "a_test.mbt"),
           (
             #|test "patched-test" {
             #|  @json.inspect(@example.x, 42)

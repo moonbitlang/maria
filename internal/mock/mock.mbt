@@ -77,7 +77,7 @@ pub async fn Context::add_symlink(
   link : String,
   to~ : String,
 ) -> Unit {
-  let link_path = @path.join(self.cwd.path(), link)
+  let link_path = @pathx.join(self.cwd.path(), link)
   let status = @process.run("ln", ["-s", to, link_path])
   guard status is 0 else {
     fail("Failed to create symlink '\{link_path}' -> '\{to}'")
@@ -192,7 +192,7 @@ pub async fn Directory::add_file(
   name : String,
   content? : String = "",
 ) -> File {
-  let path = @path.join(self.0, name)
+  let path = @pathx.join(self.0, name)
   @fs.write_file(path, content, truncate=true, create=0o644)
   File(path)
 }
@@ -213,7 +213,7 @@ pub async fn Directory::add_directory(
   self : Directory,
   name : String,
 ) -> Directory {
-  let path = @path.join(self.0, name)
+  let path = @pathx.join(self.0, name)
   @fs.mkdir(path, permission=0o755)
   Directory(path)
 }
@@ -309,7 +309,7 @@ fn Entry::path(self : Entry) -> String {
 ///|
 /// Returns the final path component for this directory or file entry.
 pub fn Entry::name(self : Entry) -> StringView {
-  @path.basename(self.path())
+  @pathx.basename(self.path())
 }
 
 ///|
@@ -319,7 +319,7 @@ pub async fn Directory::list(self : Directory) -> Array[Entry] {
   let dir : @fs.Directory = @fs.opendir(self.0)
   defer dir.close()
   for name in dir.read_all() {
-    let path = @path.join(self.0, name)
+    let path = @pathx.join(self.0, name)
     let entry : Entry = match @fs.kind(path, follow_symlink=false) {
       @fs.FileKind::Directory => Directory(path)
       _ => File(path)
@@ -408,18 +408,18 @@ pub async fn run(
   defer semaphore.release()
   let os_cwd = @os.cwd()
   let exec = os_args[0]
-  let exec = @path.relative(os_cwd, exec)
-  let exec_parts = @path.split(exec).collect()
+  let exec = @pathx.relative(os_cwd, exec)
+  let exec_parts = @pathx.split(exec).collect()
   guard exec_parts
     is ["target", "native", "debug" | "release", "test", .. parts, _] else {
     abort(
       "Unexpected executable path, @mock should only be used in test: \{exec}",
     )
   }
-  let pkg_path = parts.join(@path.sep.to_string())
+  let pkg_path = parts.join(@pathx.sep.to_string())
   // `@fsx.with_temporary_directory` internally joins the `@os.tmpdir()` path
   @fsx.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
-    let tmp_pkg_path = @path.join(tmpdir, pkg_path)
+    let tmp_pkg_path = @pathx.join(tmpdir, pkg_path)
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
         let mangled = {
@@ -433,12 +433,12 @@ pub async fn run(
           }
           builder.to_string()
         }
-        let cwd = directory(@path.join(tmp_pkg_path, mangled))
-        let log_dir = os_cwd |> @path.join("__trajectories__")
+        let cwd = directory(@pathx.join(tmp_pkg_path, mangled))
+        let log_dir = os_cwd |> @pathx.join("__trajectories__")
         @fs.mkdir(log_dir, permission=0o755) catch {
           _ => ()
         }
-        let logged = log_dir |> @path.join("\{mangled}.jsonl")
+        let logged = log_dir |> @pathx.join("\{mangled}.jsonl")
         let logger = @pino.logger(mangled, @pino.Transport::file(logged))
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
@@ -446,7 +446,7 @@ pub async fn run(
         let file = loc.to_string().split(":").peek().unwrap().to_string()
         // setup filter
         let home = @os.home()
-        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @path.join(
+        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @pathx.join(
           home, ".moon",
         ))
         let filter = Filter::new()

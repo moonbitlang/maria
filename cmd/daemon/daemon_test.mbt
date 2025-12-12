@@ -30,11 +30,11 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
   @daemon.Daemon::new(
     uuid=mock.uuid,
     cwd=mock.cwd.path(),
-    exec_path=@path.join(
+    exec_path=@pathx.join(
       os_cwd, "target/native/release/build/cmd/main/main.exe",
     ),
     port=0,
-    serve=@path.join(os_cwd, "cmd/daemon"),
+    serve=@pathx.join(os_cwd, "cmd/daemon"),
     lock=false,
   ).unwrap()
 }

@@ -88,7 +88,7 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
 
     // Note we don't really change the file
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "example.mbt")),
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "example.mbt")),
       content=(
         #|///|
         #|let x : Int = "string"

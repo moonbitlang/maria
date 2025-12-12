@@ -14,8 +14,8 @@ pub async fn Manager::new(
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
   let conversations = cwd
-    |> @path.join(".moonagent")
-    |> @path.join("conversations")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("conversations")
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
@@ -29,9 +29,9 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
     return Some(id)
   }
   let path = self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("conversations")
-    |> @path.join("\{id}.json")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("conversations")
+    |> @pathx.join("\{id}.json")
   if !@fsx.exists(path) {
     return None
   }
@@ -43,10 +43,10 @@ pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
   let path = self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("conversations")
-    |> @path.join("\{conversation.id}.json")
-  let dir = @path.dirname(path)
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("conversations")
+    |> @pathx.join("\{conversation.id}.json")
+  let dir = @pathx.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let json = conversation.to_json()
   @fsx.write_to_file(path, json.stringify(indent=2))
@@ -54,7 +54,9 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[String] {
-  let path = self.cwd |> @path.join(".moonagent") |> @path.join("conversations")
+  let path = self.cwd
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("conversations")
   let entries = @fsx.list_directory(path)
   let ids = []
   // CR: if we are going to implement list comprehension

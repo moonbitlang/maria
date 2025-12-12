@@ -24,7 +24,7 @@ async fn Loader::load_rules_from_directory(
     is @fsx.FileKind::Regular &&
     e.name.has_suffix(".md"))
   for rule_path in dir {
-    let name = @path.stem(rule_path.name).to_string()
+    let name = @pathx.stem(rule_path.name).to_string()
     self.rules[name] = Rule::parse(@fsx.read_file(rule_path.path), source~)
   }
 }
@@ -32,10 +32,10 @@ async fn Loader::load_rules_from_directory(
 ///|
 pub async fn Loader::load(self : Loader) -> Unit {
   let global_path = @os.home()
-    |> @path.join(".moonagent")
-    |> @path.join("rules")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("rules")
   self.load_rules_from_directory(global_path, source=Global)
-  let local_path = self.cwd |> @path.join(".moonagent") |> @path.join("rules")
+  let local_path = self.cwd |> @pathx.join(".moonagent") |> @pathx.join("rules")
   self.load_rules_from_directory(local_path, source=Local)
 }
 

@@ -47,7 +47,7 @@ async fn configure_server(
   let cwd = @os.cwd()
   let serve = match serve {
     Some(serve) => serve.to_string()
-    None => @path.join(cwd, "cmd/server")
+    None => @pathx.join(cwd, "cmd/server")
   }
   configure_models(mock)
   @server.Server::new(model~, serve~, register?, port=0, cwd=mock.cwd.path())
