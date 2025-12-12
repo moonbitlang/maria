@@ -16,8 +16,8 @@ async fn generate(
     return
   }
   let prompt = @fsx.read_file(prompt_file)
-  let log_file = @path.join(log_dir, "log.jsonl")
-  let gen_dir = @path.join(log_dir, "cwd")
+  let log_file = @pathx.join(log_dir, "log.jsonl")
+  let gen_dir = @pathx.join(log_dir, "cwd")
   if @fsx.exists(log_file) {
     fail("Log file \{log_file} already exists")
   }
@@ -126,11 +126,11 @@ async fn main {
     return
   }
   @async.with_task_group(group => for prompt_file in prompt_files {
-    let name = @path.stem(@path.basename(prompt_file))
+    let name = @pathx.stem(@pathx.basename(prompt_file))
     for model in models {
       let log_dir = log_dir
-        |> @path.join("\{timestamp}-\{@path.basename(model)}-\{name}")
-      let log_dir = @path.join(cwd, log_dir)
+        |> @pathx.join("\{timestamp}-\{@pathx.basename(model)}-\{name}")
+      let log_dir = @pathx.join(cwd, log_dir)
       @fsx.make_directory(log_dir, recursive=true, exists_ok=true)
       group.spawn_bg(
         () => generate(prompt_file~, log_dir~, model~, cwd~),

@@ -74,9 +74,9 @@ pub fn new(
 ///|
 fn Config::todo_file_path(self : Config) -> String {
   return self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("todos")
-    |> @path.join("current_session.json")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("todos")
+    |> @pathx.join("current_session.json")
 }
 
 ///|
@@ -96,7 +96,7 @@ async fn Todo::load(self : Todo) -> Unit {
 async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
   @fsx.make_directory(
-    @path.dirname(todo_file_path),
+    @pathx.dirname(todo_file_path),
     recursive=true,
     exists_ok=true,
   )

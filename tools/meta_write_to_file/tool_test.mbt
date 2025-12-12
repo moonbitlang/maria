@@ -48,7 +48,7 @@ async test "create-file" (t : @test.Test) {
       ),
     )
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "main.mbt")),
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "main.mbt")),
       content=(
         #|///|
         #|fn main {
@@ -74,7 +74,7 @@ async test "create-file" (t : @test.Test) {
       ),
     )
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "README.md")),
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "README.md")),
       content=(
         #|# Hello, MoonBit!
         #|
@@ -135,7 +135,7 @@ async test "create-file-with-empty-search" (t : @test.Test) {
       ),
     )
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "main.mbt")),
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "main.mbt")),
       content=(
         #|///|
         #|fn main {
@@ -162,7 +162,7 @@ async test "create-file-with-empty-search" (t : @test.Test) {
       ),
     )
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "README.md")),
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "README.md")),
       content=(
         #|# Hello, MoonBit!
         #|

@@ -2,8 +2,8 @@
 test "executable" {
   let executable = @os.executable()
   let tcc_path = @moon.home()
-    |> @path.join("bin")
-    |> @path.join("internal")
-    |> @path.join("tcc")
+    |> @pathx.join("bin")
+    |> @pathx.join("internal")
+    |> @pathx.join("tcc")
   @json.inspect(executable == tcc_path, content=true)
 }

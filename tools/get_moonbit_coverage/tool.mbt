@@ -36,10 +36,10 @@ async fn execute_get_moonbit_coverage(
   file : String?,
   project_path : String,
 ) -> CoverageResult {
-  let resolved_project_path = if @path.is_absolute(project_path) {
+  let resolved_project_path = if @pathx.is_absolute(project_path) {
     project_path
   } else {
-    @path.join(cwd, project_path)
+    @pathx.join(cwd, project_path)
   }
   let moon = @moon.Module::load(resolved_project_path)
   match file {

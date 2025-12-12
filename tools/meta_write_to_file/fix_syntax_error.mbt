@@ -24,7 +24,7 @@ fn submit_fixed_file_new(ctx : FixingContext) -> @tool.Tool[String] {
             context=2,
             limit=DiagnosticLimit,
             overlay=Map::from_array([
-              (@path.basename(ctx.path).to_string(), content),
+              (@pathx.basename(ctx.path).to_string(), content),
             ]),
           )
           @tool.error(

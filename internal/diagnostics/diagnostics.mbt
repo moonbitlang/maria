@@ -236,8 +236,8 @@ async fn render_diagnostic_entry(
     Some(lines) => lines
     None => {
       let resolved_path = if cwd is Some(cwd) &&
-        !@path.is_absolute(trimmed_path) {
-        @path.join(cwd, trimmed_path)
+        !@pathx.is_absolute(trimmed_path) {
+        @pathx.join(cwd, trimmed_path)
       } else {
         trimmed_path
       }

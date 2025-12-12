@@ -7,10 +7,10 @@ async fn run(
   let cwd : StringView = match cwd {
     None => @os.cwd()
     Some(cwd) =>
-      if @path.is_absolute(cwd) {
+      if @pathx.is_absolute(cwd) {
         cwd
       } else {
-        @path.join(@os.cwd(), cwd)
+        @pathx.join(@os.cwd(), cwd)
       }
   }
   let args : Array[StringView] = ["run", package_or_file]

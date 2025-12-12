@@ -35,7 +35,7 @@ async fn main {
   let output_path = if output_path is Some(output_path) {
     output_path
   } else {
-    @path.replace_ext(input_path, ".md")
+    @pathx.replace_ext(input_path, ".md")
   }
   let formatter = Formatter::new(output_path, recover_diagnostics~)
   let jsonl_text = @fsx.read_file(input_path)
@@ -51,7 +51,7 @@ async fn main {
     }
     formatter.format_log_entry(json)
   }
-  @fsx.make_directory(@path.dirname(output_path))
+  @fsx.make_directory(@pathx.dirname(output_path))
   @fsx.write_to_file(output_path, formatter.to_string())
   for tool_formatter in formatter.tools.values().collect() {
     @fsx.write_to_file(tool_formatter.path, tool_formatter.to_string())

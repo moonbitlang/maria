@@ -6,7 +6,7 @@ async test "Manager" (t : @test.Test) {
       cwd=mock.cwd.path(),
     )
     @json.inspect(manager.list(), content=[])
-    let dot_moonagent = @path.join(mock.cwd.path(), ".moonagent")
+    let dot_moonagent = @pathx.join(mock.cwd.path(), ".moonagent")
     @json.inspect(mock.json(@fsx.list_directory(dot_moonagent)), content=[
       {
         "path": "(mock:cwd)/.moonagent/conversations",
@@ -14,7 +14,7 @@ async test "Manager" (t : @test.Test) {
         "kind": "Directory",
       },
     ])
-    let conversations = @path.join(dot_moonagent, "conversations")
+    let conversations = @pathx.join(dot_moonagent, "conversations")
     @json.inspect(mock.json(@fsx.list_directory(conversations)), content=[])
     let conversation = manager.new_conversation(name="Test Conversation")
     conversation.add_message(@ai.user_message(content="Hello"))

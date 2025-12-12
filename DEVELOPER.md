@@ -22,7 +22,7 @@ providing useful features. If some error case is rare, we would mark it with a
 
 Another case is path operations. Windows paths and Unix paths have many edge
 cases, and it's hard to define well-defined behavior, so when we add APIs in
-`internal/path`, you should follow the following API design conventions:
+`internal/pathx`, you should follow the following API design conventions:
 
 - `test "foo"` for common cases
 

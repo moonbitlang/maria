@@ -63,12 +63,12 @@ async fn execute_read_file_tool(
   }
   try {
     // Resolve file path
-    let resolved_path = if @path.is_absolute(path) {
+    let resolved_path = if @pathx.is_absolute(path) {
       path.view()
     } else {
-      @path.join(manager.cwd, path)
+      @pathx.join(manager.cwd, path)
     }
-    let resolved_path = @path.resolve(resolved_path)
+    let resolved_path = @pathx.resolve(resolved_path)
 
     // Check if file exists
     if !@fsx.exists(resolved_path) {

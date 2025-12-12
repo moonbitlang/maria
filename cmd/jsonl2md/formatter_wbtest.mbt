@@ -1402,7 +1402,7 @@ async test "subagent" (t : @test.Test) {
         },
       },
     ]
-    let formatter = Formatter::new(@path.join(mock.cwd.path(), "dir/log.md"))
+    let formatter = Formatter::new(@pathx.join(mock.cwd.path(), "dir/log.md"))
     for entry in log_entries {
       formatter.format_log_entry(entry)
     }

@@ -159,7 +159,7 @@ async test "search_files/agentic" (t : @test.Test) {
     ])
     agent.start()
     inspect(
-      @fsx.read_file(@path.join(mock.cwd.path(), "results.txt")).contains(
+      @fsx.read_file(@pathx.join(mock.cwd.path(), "results.txt")).contains(
         "notes.txt",
       ),
       content="true",

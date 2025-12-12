@@ -264,7 +264,7 @@ async fn Daemon::create_task(
     }
     cwd
   } else {
-    @fsx.mkdtemp(@path.join(@os.tmpdir(), "maria-server-task-XXXXXX")) catch {
+    @fsx.mkdtemp(@pathx.join(@os.tmpdir(), "maria-server-task-XXXXXX")) catch {
       error =>
         raise json_error(500, "Internal Server Error", {
           "error": {
@@ -477,8 +477,8 @@ async fn Daemon::get_task(
 
 ///|
 async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
-  let path = home |> @path.join(".moonagent") |> @path.join("daemon.json")
-  let dir = @path.dirname(path)
+  let path = home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json")
+  let dir = @pathx.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let file = @fs.open(path, mode=WriteOnly, create=0o644)
   @fsx.lock_file(file) catch {
@@ -578,7 +578,7 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             // GET /
             (Get, ["", ""]) => {
               let index_html = html_read_file(
-                @path.join(self.serve, "index.html"),
+                @pathx.join(self.serve, "index.html"),
               )
               w.header().set("Content-Type", "text/html")
               w.write_header(200)

@@ -229,10 +229,10 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
         return @tool.error("Missing 'description' or 'project_path' argument")
       }
       let cwd = agent.cwd
-      let project_path : String = if @path.is_absolute(project_path) {
+      let project_path : String = if @pathx.is_absolute(project_path) {
         project_path
       } else {
-        @path.join(cwd, project_path)
+        @pathx.join(cwd, project_path)
       }
       let moon = @moon.Module::load(project_path) catch {
         error => return @tool.error("Failed to load module: \{error}", error~)

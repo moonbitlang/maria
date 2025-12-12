@@ -114,10 +114,10 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       }
       let working_directory = if args
         is { "working_directory": String(working_directory), .. } {
-        if @path.is_absolute(working_directory) {
+        if @pathx.is_absolute(working_directory) {
           working_directory
         } else {
-          @path.join(ctx.cwd, working_directory)
+          @pathx.join(ctx.cwd, working_directory)
         }
       } else {
         ctx.cwd

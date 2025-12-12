@@ -36,18 +36,18 @@ async fn @file.Manager::execute_replace_in_file(
   }
   try {
     // Resolve file path relative to current working directory
-    let resolved_path = if @path.is_absolute(path) {
+    let resolved_path = if @pathx.is_absolute(path) {
       path
     } else {
-      @path.join(self.cwd, path)
+      @pathx.join(self.cwd, path)
     }
-    let resolved_path = @path.resolve(resolved_path)
+    let resolved_path = @pathx.resolve(resolved_path)
 
     // Check if file exists
     guard @fsx.exists(resolved_path) else {
       // Create directory if it doesn't exist
       @fsx.make_directory(
-        @path.dirname(resolved_path),
+        @pathx.dirname(resolved_path),
         recursive=true,
         exists_ok=true,
       )

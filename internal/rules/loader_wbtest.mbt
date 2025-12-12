@@ -39,7 +39,7 @@ async test "Loader::load" (t : @test.Test) {
           },
         },
       })
-      let project_path = @path.join(home.path(), "project")
+      let project_path = @pathx.join(home.path(), "project")
       let rules = Loader::new(project_path, logger=mock.logger)
       rules.load()
       inspect(

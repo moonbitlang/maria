@@ -30,7 +30,7 @@ pub async fn detach(
   @async.with_timeout(60_000, () => for {
     try {
       let info_file = @fs.open(
-        home |> @path.join(".moonagent") |> @path.join("daemon.json"),
+        home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json"),
         mode=ReadOnly,
       )
       defer info_file.close()
@@ -85,7 +85,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       continue args
     }
     ["-s" | "--serve", s, .. args] => {
-      serve = if @path.is_absolute(s) { s } else { @path.join(@os.cwd(), s) }
+      serve = if @pathx.is_absolute(s) { s } else { @pathx.join(@os.cwd(), s) }
       continue args
     }
     ["-d" | "--detach", .. args] => {
@@ -93,10 +93,10 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       continue args
     }
     [e, .. args] => {
-      exec_path = if @path.is_absolute(e) {
+      exec_path = if @pathx.is_absolute(e) {
         Some(e)
       } else {
-        Some(@path.join(@os.cwd(), e))
+        Some(@pathx.join(@os.cwd(), e))
       }
       continue args
     }

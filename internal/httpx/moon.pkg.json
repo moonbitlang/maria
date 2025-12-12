@@ -5,7 +5,7 @@
     "moonbitlang/async/socket",
     "moonbitlang/maria/internal/httpx/status",
     "moonbitlang/maria/internal/httpx/reason",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx"
   ],
   "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]

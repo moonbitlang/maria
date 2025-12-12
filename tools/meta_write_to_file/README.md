@@ -323,7 +323,7 @@ See `tool_test.mbt` for detailed test cases.
 - `@moon`: For module loading and checking
 - `@spawn`: For running moon fmt
 - `@fs`: For file operations
-- `@path`: For path manipulation
+- `@pathx`: For path manipulation
 - `@openai`: For message construction
 
 ## Limitations

@@ -1,7 +1,7 @@
 {
   "import": [
     "moonbitlang/async/fs",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/spawn",

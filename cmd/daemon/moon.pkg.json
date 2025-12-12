@@ -9,7 +9,7 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/async/os_error",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/openai",

@@ -40,8 +40,8 @@ pub fn FileServer::new(path : StringView) -> FileServer {
       return
     }
     let path = match r.path {
-      "/" => @path.join(self_path, "index.html")
-      ['/', .. path] => @path.join(self_path, path)
+      "/" => @pathx.join(self_path, "index.html")
+      ['/', .. path] => @pathx.join(self_path, path)
       _ => {
         w.write_header(@status.BadRequest)
         return
@@ -65,7 +65,7 @@ pub fn FileServer::new(path : StringView) -> FileServer {
         return
       }
     }
-    let content_type = match @path.ext(path) {
+    let content_type = match @pathx.ext(path) {
       ".js" => "application/javascript"
       ".css" => "text/css"
       ".html" => "text/html"

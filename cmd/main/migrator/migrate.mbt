@@ -61,11 +61,11 @@ async fn Migrator::migrate(
   }
   let src_name = get_repo_name(self.repo)
   let dst_name = normalize_repo_name(src_name)
-  let dst_path = @path.join(cwd, dst_name)
+  let dst_path = @pathx.join(cwd, dst_name)
   let src_path = dst_path
-    |> @path.join(".moonagent")
-    |> @path.join("repos")
-    |> @path.join(src_name)
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("repos")
+    |> @pathx.join(src_name)
   for loop_index in 1..=self.max_while_loop {
     if !@fsx.exists(dst_path) {
       @moon.new(name=dst_name, dst_name)

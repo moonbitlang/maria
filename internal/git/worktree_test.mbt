@@ -12,8 +12,8 @@ async test "add_worktree" (t : @test.Test) {
     ))
     @json.inspect(
       mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
+      |> @pathx.join("worktree")
+      |> @pathx.join("file.txt")
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
@@ -34,15 +34,15 @@ async test "add_worktree/new-branch" (t : @test.Test) {
     ))
     @json.inspect(
       mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
+      |> @pathx.join("worktree")
+      |> @pathx.join("file.txt")
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
     let process = @spawn.spawn(
       "git",
       ["branch", "--show-current"],
-      cwd=mock.cwd.path() |> @path.join("worktree"),
+      cwd=mock.cwd.path() |> @pathx.join("worktree"),
     )
     inspect(
       process.stdout,
@@ -83,8 +83,8 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
     ))
     @json.inspect(
       mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
+      |> @pathx.join("worktree")
+      |> @pathx.join("file.txt")
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
@@ -99,8 +99,8 @@ async test "with_worktree" (t : @test.Test) {
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     @git.with_worktree("worktree", cwd=mock.cwd.path(), () => @json.inspect(
       mock.cwd.path()
-      |> @path.join("worktree")
-      |> @path.join("file.txt")
+      |> @pathx.join("worktree")
+      |> @pathx.join("file.txt")
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     ))

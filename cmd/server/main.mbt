@@ -39,7 +39,7 @@ async fn collect_modules(
   directory : String,
   modules : Array[@moon.Module],
 ) -> Unit {
-  let moon_mod_json = @path.join(directory, "moon.mod.json")
+  let moon_mod_json = @pathx.join(directory, "moon.mod.json")
   if @fsx.exists(moon_mod_json) {
     modules.push(@moon.Module::load(directory))
   } else {

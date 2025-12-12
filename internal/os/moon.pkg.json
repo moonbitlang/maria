@@ -11,7 +11,7 @@
   "test-import": [
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/async",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/mock"
   ]

@@ -1,6 +1,6 @@
 {
   "import": [
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/os"
   ],

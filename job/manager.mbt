@@ -92,13 +92,13 @@ pub async fn Manager::spawn(
   }
   let id = self.new_id()
   let jobs_dir = self.cwd
-    |> @path.join(".moonagent")
-    |> @path.join("jobs")
-    |> @path.join("\{id.0}")
+    |> @pathx.join(".moonagent")
+    |> @pathx.join("jobs")
+    |> @pathx.join("\{id.0}")
   @fsx.make_directory(jobs_dir, recursive=true, exists_ok=true)
-  let stdout_path = jobs_dir |> @path.join("stdout")
+  let stdout_path = jobs_dir |> @pathx.join("stdout")
   @fsx.FileRead::create(stdout_path).close()
-  let stderr_path = jobs_dir |> @path.join("stderr")
+  let stderr_path = jobs_dir |> @pathx.join("stderr")
   @fsx.FileRead::create(stderr_path).close()
   let process = self.process.spawn(
     "sh",

@@ -10,7 +10,7 @@
     "moonbitlang/maria/agent",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/maria/internal/path",
+    "moonbitlang/maria/internal/pathx",
     "moonbitlang/async/os_error",
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/internal/spawn",
