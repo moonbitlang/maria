@@ -42,6 +42,7 @@ pub async fn Maria::new(
     @search_files.new(agent.cwd).to_agent_tool(),
     @meta_write_to_file.new(agent).to_agent_tool(),
   ])
+  agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
   { logger, agent }
 }
 

@@ -5,8 +5,8 @@ struct Tool {
 }
 
 ///|
-fn Tool::new(tool : @tool.AgentTool) -> Tool {
-  Tool::{ enabled: true, tool }
+fn Tool::new(tool : @tool.AgentTool, enabled? : Bool = true) -> Tool {
+  Tool::{ enabled, tool }
 }
 
 ///|
@@ -154,9 +154,13 @@ pub fn Agent::add_tools(agent : Agent, tools : Array[@tool.AgentTool]) -> Unit {
 ///
 /// * `agent` : The agent instance to add the tool to.
 /// * `tool` : The agent tool to register.
-fn Agent::add_agent_tool(agent : Agent, tool : @tool.AgentTool) -> Unit {
+fn Agent::add_agent_tool(
+  agent : Agent,
+  tool : @tool.AgentTool,
+  enabled? : Bool = true,
+) -> Unit {
   let desc = tool.desc()
-  agent.tools[desc.name] = Tool::new(tool)
+  agent.tools[desc.name] = Tool::new(tool, enabled~)
   agent.emit(ToolAdded(desc))
 }
 
@@ -171,8 +175,9 @@ fn Agent::add_agent_tool(agent : Agent, tool : @tool.AgentTool) -> Unit {
 pub fn[Output : ToJson + Show] Agent::add_tool(
   agent : Agent,
   tool : @tool.Tool[Output],
+  enabled? : Bool = true,
 ) -> Unit {
-  agent.add_agent_tool(tool.to_agent_tool())
+  agent.add_agent_tool(tool.to_agent_tool(), enabled~)
 }
 
 ///|
