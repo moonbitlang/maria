@@ -65,25 +65,9 @@ pub fn redact_events(events : Array[ServerEvent]) -> Array[ServerEvent] {
     }
     Maria(event) => {
       let desc : @event.EventDesc = match event.desc {
-        MessageAdded(msg) => {
-          let msg = match msg {
-            Tool(_, tool_call_id~) =>
-              @ai.tool_message(content="<redacted>", tool_call_id~)
-            Assistant(_, tool_calls~) =>
-              @ai.assistant_message(
-                content="<redacted>",
-                tool_calls=tool_calls.map(tc => @ai.tool_call(
-                  id=tc.id,
-                  name=tc.name,
-                  arguments="<redacted>",
-                )),
-              )
-            System(_) => @ai.system_message(content="<redacted>")
-            User(_) => @ai.user_message(content="<redacted>")
-          }
-          MessageAdded(msg)
-        }
-        MessageQueued(msg, ..) => MessageQueued(id=@uuid.nil, msg)
+        UserMessage(_) => UserMessage("<redacted>")
+        SystemPromptSet(_) => SystemPromptSet("<redacted>")
+        MessageQueued(..) => MessageQueued(id=@uuid.nil)
         MessageUnqueued(..) => MessageUnqueued(id=@uuid.nil)
         RequestCompleted(message=Assistant(_, tool_calls~), ..) =>
           RequestCompleted(
@@ -113,8 +97,11 @@ pub fn extract_events_for_message(
   content~ : String,
 ) -> Array[ServerEvent] {
   events.filter(e => {
-    if e is Maria({ desc: MessageAdded(msg) | MessageQueued(msg, ..), .. }) &&
-      msg.content() == content {
+    if e is Maria({ desc: UserMessage(msg), .. }) && msg == content {
+      return true
+    }
+    if e is Maria({ desc: MessageQueued(id=msg_id), .. }) &&
+      msg_id.to_string() == id {
       return true
     }
     if e is Maria({ desc: MessageUnqueued(id=msg_id), .. }) &&

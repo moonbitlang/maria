@@ -12,7 +12,7 @@
 /// * `PostToolCall` - Logs tool result or error with rendered text
 /// * `PreConversation` - Logs conversation start
 /// * `PostConversation` - Logs conversation end
-/// * `MessageAdded` - Logs the added message
+/// * `UserMessage` - Logs the added message
 /// * `ToolAdded` - Logs tool descriptor (name, description, schema)
 /// * `RequestCompleted` - Logs API usage and response message
 ///

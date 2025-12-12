@@ -25,11 +25,10 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         }
         @stdio.stdout.writeln(response.stringify())
       }
-      MessageAdded(message) => {
-        let message = message.to_openai()
+      UserMessage(content) => {
         let response : Json = {
-          "method": "maria.agent.message_added",
-          "params": { "message": message },
+          "method": "maria.agent.message",
+          "params": { "message": { "role": "user", "content": content } },
         }
         @stdio.stdout.writeln(response.stringify())
       }

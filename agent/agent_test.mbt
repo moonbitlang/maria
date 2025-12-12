@@ -32,7 +32,7 @@ async test "agent/simple_conversation" (t : @test.Test) {
     agent.add_listener(event => match event.desc {
       PreConversation => conversation_started = true
       PostConversation => conversation_ended = true
-      MessageAdded(_) => message_count = message_count + 1
+      UserMessage(_) => message_count = message_count + 1
       _ => ()
     })
 
@@ -178,7 +178,7 @@ async test "agent/event_system" (t : @test.Test) {
     agent.add_listener(event => match event.desc {
       PreConversation => pre_conversation = true
       PostConversation => post_conversation = true
-      MessageAdded(_) => message_added = true
+      UserMessage(_) => message_added = true
       TokenCounted(_) => token_counted = true
       RequestCompleted(usage~, message~) => {
         request_completed = true
@@ -397,7 +397,7 @@ async test "agent/conversation_history" (t : @test.Test) {
     )
     let mut message_count = 0
     agent.add_listener(event => match event.desc {
-      MessageAdded(_) => message_count = message_count + 1
+      UserMessage(_) => message_count = message_count + 1
       _ => ()
     })
     agent.start()

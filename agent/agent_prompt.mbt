@@ -9,7 +9,7 @@
 pub fn Agent::set_system_prompt(agent : Agent, prompt : String?) -> Unit {
   agent.history.set_system_prompt(prompt)
   if prompt is Some(prompt) {
-    agent.emit(MessageAdded(@ai.system_message(content=prompt)))
+    agent.emit(SystemPromptSet(prompt))
   }
 }
 

@@ -32,9 +32,9 @@ pub(all) enum EventDesc {
   ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
-  MessageAdded(@ai.Message)
+  SystemPromptSet(String)
   MessageUnqueued(id~ : @uuid.Uuid)
-  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
+  MessageQueued(id~ : @uuid.Uuid)
   ToolAdded(@tool.ToolDesc)
   PreToolCall(@ai.ToolCall)
   PostToolCall(@ai.ToolCall, result~ : Result[Json, Json], rendered~ : String)

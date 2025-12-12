@@ -170,10 +170,7 @@ async test "GET /v1/events" (t : @test.Test) {
             "id": "00000000-0000-0000-0000-000000000000",
             "desc": {
               "msg": "MessageQueued",
-              "message": {
-                "id": "00000000-0000-0000-0000-000000000000",
-                "message": { "role": "user", "content": "Hello, Maria!" },
-              },
+              "message": { "id": "00000000-0000-0000-0000-000000000000" },
             },
           },
         ],
@@ -191,10 +188,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
-            "desc": {
-              "msg": "MessageAdded",
-              "message": { "role": "user", "content": "<redacted>" },
-            },
+            "desc": { "msg": "UserMessage", "content": "<redacted>" },
           },
         ],
       ],
@@ -214,10 +208,7 @@ async test "GET /v1/events" (t : @test.Test) {
             "id": "00000000-0000-0000-0000-000000000000",
             "desc": {
               "msg": "MessageQueued",
-              "message": {
-                "id": "00000000-0000-0000-0000-000000000000",
-                "message": { "role": "user", "content": "Hello again, Maria!" },
-              },
+              "message": { "id": "00000000-0000-0000-0000-000000000000" },
             },
           },
         ],
@@ -235,10 +226,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
-            "desc": {
-              "msg": "MessageAdded",
-              "message": { "role": "user", "content": "<redacted>" },
-            },
+            "desc": { "msg": "UserMessage", "content": "<redacted>" },
           },
         ],
       ],
@@ -422,8 +410,8 @@ async test "POST /v1/cancel" (t : @test.Test) {
       @json.inspect(
         events
         .filter(e => e is Maria(event) &&
-          event.desc is MessageAdded(msg) &&
-          msg.content() == "This message will be popped on cancellation")
+          event.desc is UserMessage(msg) &&
+          msg == "This message will be popped on cancellation")
         .length(),
         content=0,
       )
