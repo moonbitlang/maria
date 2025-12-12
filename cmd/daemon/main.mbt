@@ -1,8 +1,56 @@
 ///|
 priv struct DaemonInfo {
+  version : @buildinfo.Version
   pid : Int
   port : Int
-} derive(ToJson)
+}
+
+///|
+impl ToJson for DaemonInfo with to_json(self) {
+  { "version": self.version.to_string(), "pid": self.pid, "port": self.port }
+}
+
+///|
+impl @json.FromJson for DaemonInfo with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> DaemonInfo raise {
+  guard json is Json::Object(object) else {
+    raise @json.JsonDecodeError((json_path, "Expected object for DaemonInfo"))
+  }
+  let version : String = match object.get("version") {
+    Some(Null) | None => "0.0.0"
+    Some(String(v)) => v
+    Some(_) =>
+      raise @json.JsonDecodeError(
+        (json_path.add_key("version"), "Expected string for 'version' field"),
+      )
+  }
+  let version : @buildinfo.Version = @buildinfo.Version::parse(version) catch {
+    error =>
+      raise @json.JsonDecodeError(
+        (
+          json_path.add_key("version"),
+          "Invalid version string in 'version' field: " + error.to_string(),
+        ),
+      )
+  }
+  let pid = match object.get("pid") {
+    Some(v) => @json.from_json(v, path=json_path.add_key("pid"))
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "Missing field 'pid' in DaemonInfo"),
+      )
+  }
+  let port = match object.get("port") {
+    Some(v) => @json.from_json(v, path=json_path.add_key("port"))
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "Missing field 'port' in DaemonInfo"),
+      )
+  }
+  DaemonInfo::{ version, pid, port }
+}
 
 ///|
 /// Spawns (and optionally detaches) a Maria daemon process and waits until the
@@ -46,6 +94,7 @@ pub async fn detach(
               break info_pid
             }
           }
+          // There is no pid field; wait and retry.
         } else {
           break owner
         }
