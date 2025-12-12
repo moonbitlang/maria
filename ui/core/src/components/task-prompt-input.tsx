@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
+import type { ChatDynamicVariable } from "../lib/types";
 import { cn } from "../lib/utils";
+import { executeCommand, registerCommand } from "./commands";
 import MonacoEditor, { type EditorDidMount } from "./monaco-editor";
 import {
   PromptInput,
@@ -24,6 +26,14 @@ export interface TaskPromptInputHandle {
 interface TaskPromptInputProps {
   onChange: (value: string) => void;
   onSubmit: () => void;
+  onAddDynamicVariable: (variable: ChatDynamicVariable) => void;
+  onUpdateDynamicVariableRanges: (
+    newRanges: {
+      start: number;
+      end: number;
+    }[],
+  ) => void;
+  dynamicVariables: ChatDynamicVariable[];
   placeholder: string;
   className?: string;
   inputTools?: React.ReactNode;
@@ -45,6 +55,9 @@ function clear(editor: monaco.editor.IStandaloneCodeEditor) {
 export function TaskPromptInput({
   onChange,
   onSubmit,
+  onAddDynamicVariable,
+  onUpdateDynamicVariableRanges,
+  dynamicVariables,
   className = "",
   inputTools,
   placeholder,
@@ -84,6 +97,41 @@ export function TaskPromptInput({
       d.dispose();
     };
   }, [chatStatus, onSubmit]);
+
+  useEffect(() => {
+    const d = monaco.editor.registerCommand(
+      "chat/add-dynamic-variable",
+      (_, arg) => {
+        onAddDynamicVariable(arg);
+      },
+    );
+    return () => {
+      d.dispose();
+    };
+  }, [onAddDynamicVariable]);
+
+  useEffect(() => {
+    const d = registerCommand(
+      "chat/get-dynamic-variables",
+      () => dynamicVariables,
+    );
+    return () => {
+      d.dispose();
+    };
+  }, [dynamicVariables]);
+
+  useEffect(() => {
+    executeCommand("chat/did-change-dynamic-variables");
+  }, [dynamicVariables]);
+
+  useEffect(() => {
+    const d = registerCommand("chat/update-dynamic-variable-ranges", (arg) => {
+      onUpdateDynamicVariableRanges(arg.ranges);
+    });
+    return () => {
+      d.dispose();
+    };
+  }, [onUpdateDynamicVariableRanges]);
 
   useEffect(() => {
     if (!editorRef.current) return;

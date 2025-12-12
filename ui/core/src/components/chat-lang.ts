@@ -1,4 +1,7 @@
 import * as monaco from "monaco-editor-core";
+import { RAL } from "../lib/ral";
+import type { ChatDynamicVariable } from "../lib/types";
+import { executeCommand, registerCommand } from "./commands";
 
 // Define custom theme with matching background color
 monaco.editor.defineTheme("custom-dark", {
@@ -10,24 +13,37 @@ monaco.editor.defineTheme("custom-dark", {
   },
 });
 
-// Add CSS for slash command decorations
-const styleId = "chat-token-style";
+const styleId = "chat-dynamic-variable-style";
 if (!document.getElementById(styleId)) {
   const style = document.createElement("style");
   style.id = styleId;
   style.textContent = `
-        .chat-token {
+        .chat-dynamic-variable {
           color: #26569e !important;
           background-color: #adceff7a !important;
           border-radius: 3px;
           padding: 0 2px;
         }
-        .dark .chat-token {
+        .dark .chat-dynamic-variable {
           color: #85b6ff !important;
           background-color: #26477866 !important;
         }
       `;
   document.head.appendChild(style);
+}
+
+function createAddDynamicVariableCommand(
+  variable: ChatDynamicVariable,
+): monaco.languages.Command {
+  return {
+    id: "chat/add-dynamic-variable",
+    title: "Chat: Add Dynamic Variable",
+    arguments: [variable],
+  };
+}
+
+function getDynamicVariables(): ChatDynamicVariable[] {
+  return executeCommand("chat/get-dynamic-variables");
 }
 
 function isEmptyBeforePosition(
@@ -43,172 +59,84 @@ function isEmptyBeforePosition(
   return !!model.getValueInRange(startToCompletionWordStart).match(/^\s*$/);
 }
 
-// Decoration types for slash commands
-const chatTokenDecorationType = "chat-token";
+const chatDynamicVariableClass = "chat-dynamic-variable";
 
-type TokenBase = {
-  start: number;
-  end: number;
-};
+let decorations: monaco.editor.IEditorDecorationsCollection | undefined;
+let editorInstance: monaco.editor.IStandaloneCodeEditor | undefined;
 
-type SlashCommandToken = TokenBase & {
-  command: string;
-};
+registerCommand("chat/did-change-dynamic-variables", () => {
+  const dynamicVariables = getDynamicVariables();
+  if (!decorations) return;
+  const model = editorInstance?.getModel();
+  if (!model) return;
+  decorations.set(
+    dynamicVariables.map((variable) => {
+      const range = monaco.Range.fromPositions(
+        model.getPositionAt(variable.start),
+        model.getPositionAt(variable.end),
+      );
+      return {
+        options: {
+          inlineClassName: chatDynamicVariableClass,
+          stickiness:
+            monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        },
+        range,
+      };
+    }),
+  );
+});
 
-type UserMentionToken = TokenBase & {
-  kind: "sym" | "file";
-  identifier: string;
-};
-
-type Token = SlashCommandToken | UserMentionToken;
-
-// Parse slash commands from the text, there can only be one slash command
-function parseTokens(text: string): Token[] {
-  const tokens: Token[] = [];
-  let state: "initial" | "text" | "in-slash" | "in-hash" = "initial";
-  let start = 0;
-
-  const addSlashToken = (end: number) => {
-    tokens.push({
-      start,
-      end,
-      command: text.slice(start + 1, end),
-    });
-  };
-
-  const addHashToken = (end: number) => {
-    const content = text.slice(start + 1, end);
-    const [kind, identifier] = content.split(":", 2);
-    if (kind === "sym" || kind === "file") {
-      tokens.push({
-        start,
-        end,
-        kind: kind as "sym" | "file",
-        identifier: identifier || "",
-      });
-    }
-  };
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    switch (state) {
-      case "initial": {
-        if (char === "/") {
-          state = "in-slash";
-          start = i;
-        } else if (char === "#") {
-          state = "in-hash";
-          start = i;
-        } else if (char.match(/\s/)) {
-          // stay in initial state
-        } else {
-          // non-whitespace character, transition to normal text
-          state = "text";
-        }
-        break;
-      }
-      case "text": {
-        if (char === "#") {
-          state = "in-hash";
-          start = i;
-        }
-        break;
-      }
-      case "in-slash": {
-        if (char.match(/\s/)) {
-          addSlashToken(i);
-          state = "text";
-        }
-        break;
-      }
-      case "in-hash": {
-        if (char.match(/\s/)) {
-          addHashToken(i);
-          state = "text";
-        }
-        break;
-      }
-    }
-  }
-
-  // Handle tokens that extend to end of string
-  if (state === "in-slash") {
-    addSlashToken(text.length);
-  } else if (state === "in-hash") {
-    addHashToken(text.length);
-  }
-
-  return tokens;
-}
-
-export function setupSlashCommandDecoration(
+export function setupDynamicVariableDecoration(
   editor: monaco.editor.IStandaloneCodeEditor,
 ): monaco.IDisposable {
-  const decorations = editor.createDecorationsCollection();
+  editorInstance = editor;
+  decorations = editor.createDecorationsCollection();
 
-  return editor.onDidChangeModelContent((e) => {
+  const dd = decorations.onDidChange(() => {
+    const ranges = decorations?.getRanges();
+    if (!ranges || ranges.length === 0) return;
     const model = editor.getModel();
-    if (!model) {
-      return;
-    }
-    const text = model.getValue();
-    const tokens = parseTokens(text);
-    if (tokens.length === 0) {
-      decorations.clear();
-      return;
-    }
-
-    decorations.set(
-      tokens.map((token) => {
-        const startPos = model.getPositionAt(token.start);
-        const endPos = model.getPositionAt(token.end);
-        const range = new monaco.Range(
-          startPos.lineNumber,
-          startPos.column,
-          endPos.lineNumber,
-          endPos.column,
-        );
-        return {
-          range,
-          options: {
-            inlineClassName: chatTokenDecorationType,
-          },
-        };
-      }),
-    );
-
-    const change = e.changes[0];
-    if (!change) return;
-    const changeStart = model.getOffsetAt(
-      new monaco.Position(
-        change.range.startLineNumber,
-        change.range.startColumn,
-      ),
-    );
-    if (change.text === "") {
-      // Deletion
-      for (const token of tokens) {
-        if (token.start <= changeStart && token.end >= changeStart) {
-          const tokenStartPos = model.getPositionAt(token.start);
-          const tokenEndPos = model.getPositionAt(token.end);
-          const tokenRange = new monaco.Range(
-            tokenStartPos.lineNumber,
-            tokenStartPos.column,
-            tokenEndPos.lineNumber,
-            tokenEndPos.column,
-          );
-          editor.executeEdits("chat-token-deleter", [
-            {
-              range: tokenRange,
-              text: "",
-              forceMoveMarkers: true,
-            },
-          ]);
-          break;
-        }
+    if (!model) return;
+    // Update the dynamic variable positions based on the current decorations
+    const dynamicVariables = getDynamicVariables();
+    if (ranges.length !== dynamicVariables.length) return;
+    let rangesChanged = false;
+    for (let i = 0; i < ranges.length; i++) {
+      const range = ranges[i];
+      const variable = dynamicVariables[i];
+      if (!variable) break;
+      const startOffset = model.getOffsetAt(range.getStartPosition());
+      if (startOffset !== variable.start) {
+        rangesChanged = true;
+        break;
+      }
+      const endOffset = model.getOffsetAt(range.getEndPosition());
+      if (endOffset !== variable.end) {
+        rangesChanged = true;
+        break;
       }
     }
+
+    if (rangesChanged) {
+      executeCommand("chat/update-dynamic-variable-ranges", {
+        ranges: ranges.map((range) => {
+          return {
+            start: model.getOffsetAt(range.getStartPosition()),
+            end: model.getOffsetAt(range.getEndPosition()),
+          };
+        }),
+      });
+    }
   });
+
+  return {
+    dispose() {
+      dd.dispose();
+      decorations = undefined;
+      editorInstance = undefined;
+    },
+  };
 }
 
 const slashCommands = ["fix-all-warnings"];
@@ -224,6 +152,8 @@ monaco.languages.registerCompletionItemProvider(
       position: monaco.Position,
       context: monaco.languages.CompletionContext,
     ): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
+      const ral = RAL();
+      const startOffset = model.getOffsetAt(position) - 1;
       const wordInfo = model.getWordUntilPosition(position);
       const range = new monaco.Range(
         position.lineNumber,
@@ -245,23 +175,30 @@ monaco.languages.registerCompletionItemProvider(
           })),
         };
       } else if (context.triggerCharacter === "#") {
-        // Future: mention user completion
-        return {
-          suggestions: [
-            {
-              label: "fib",
-              insertText: "sym:fib",
-              kind: monaco.languages.CompletionItemKind.Function,
-              range,
-            },
-            {
-              label: "lib.mbt",
-              insertText: "file:lib.mbt",
-              kind: monaco.languages.CompletionItemKind.File,
-              range,
-            },
-          ],
-        };
+        if (ral.platform) {
+          return {
+            suggestions: [
+              {
+                label: "fib",
+                insertText: "sym:fib",
+                command: createAddDynamicVariableCommand({
+                  start: startOffset,
+                  end: startOffset + "sym:fib".length + 1,
+                }),
+                kind: monaco.languages.CompletionItemKind.Function,
+                range,
+              },
+              {
+                label: "lib.mbt",
+                insertText: "file:lib.mbt",
+                kind: monaco.languages.CompletionItemKind.File,
+                range,
+              },
+            ],
+          };
+        } else {
+          return null;
+        }
       }
     },
   },

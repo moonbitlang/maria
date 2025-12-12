@@ -215,3 +215,8 @@ export type ElectronRAL = {
 export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
 
 export type ResultTuple<T> = [T, undefined] | [undefined, Error];
+
+export type ChatDynamicVariable = {
+  start: number;
+  end: number;
+};

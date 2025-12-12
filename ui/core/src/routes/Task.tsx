@@ -127,6 +127,9 @@ function PromptInput({ taskId }: { taskId: string }) {
       ref={ref}
       onChange={setInput}
       onSubmit={handleSubmit}
+      onAddDynamicVariable={() => {}}
+      dynamicVariables={[]}
+      onUpdateDynamicVariableRanges={() => {}}
       chatStatus={chatStatus}
       placeholder={
         taskStatus === "generating"

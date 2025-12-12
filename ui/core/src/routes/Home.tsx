@@ -18,12 +18,15 @@ import {
 import { WebSearchToggleTool } from "../components/web-search-toggle-tool.js";
 import { useNewTaskMutation } from "../features/api/apiSlice.ts";
 import {
+  addDynamicVariables,
   selectCwd,
+  selectDynamicVariables,
   selectInput,
   selectWebSearchEnabled,
   setCwd,
   setInput,
   toggleWebSearchEnabled,
+  updateDynamicVariableRanges,
 } from "../features/session/homeSlice.js";
 import { setActiveTaskId, setTask } from "../features/session/tasksSlice.ts";
 import { RAL } from "../lib/ral";
@@ -72,6 +75,7 @@ export default function Home() {
   const input = useAppSelector(selectInput);
   const webSearchEnabled = useAppSelector(selectWebSearchEnabled);
   const cwd = useAppSelector(selectCwd);
+  const dynamicVariables = useAppSelector(selectDynamicVariables);
   const navigate = useNavigate();
   const ref = useRef<TaskPromptInputHandle>(null);
   const ral = RAL();
@@ -115,6 +119,13 @@ export default function Home() {
           ref={ref}
           onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
+          onAddDynamicVariable={(variable) => {
+            dispatch(addDynamicVariables(variable));
+          }}
+          onUpdateDynamicVariableRanges={(newRanges) => {
+            dispatch(updateDynamicVariableRanges(newRanges));
+          }}
+          dynamicVariables={dynamicVariables}
           placeholder="Input your task..."
           inputTools={
             <PromptInputTools>

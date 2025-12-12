@@ -45,7 +45,10 @@ function ShowUserMessage({ event }: { event: UserMessageEvent }) {
   return (
     <Message from="user">
       <MessageContent>
-        <Response parseIncompleteMarkdown={false}>
+        <Response
+          parseIncompleteMarkdown={false}
+          allowedLinkPrefixes={["http://", "https://", "file://", "/"]}
+        >
           {event.content.trim()}
         </Response>
       </MessageContent>
@@ -318,7 +321,9 @@ function ShowAssistantMessage({ event }: { event: AssistantMessageEvent }) {
   return (
     <Message from="assistant">
       <MessageContent>
-        <Response parseIncompleteMarkdown={false}>{content}</Response>
+        <Response parseIncompleteMarkdown={false}>
+          {event.message.content.trim()}
+        </Response>
       </MessageContent>
     </Message>
   );
