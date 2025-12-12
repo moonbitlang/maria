@@ -1,0 +1,10 @@
+{
+  "is_main": false,
+  "pre-build": [
+    {
+      "input": [],
+      "output": "version_string.mbt",
+      "command": "python3 scripts/buildinfo.py"
+    }
+  ]
+}

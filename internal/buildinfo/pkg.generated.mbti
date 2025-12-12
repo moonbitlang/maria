@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/buildinfo"
+
+// Values
+pub let version : Version
+
+// Errors
+
+// Types and methods
+pub struct Build {
+  number : Int
+  commit : String
+}
+pub impl ToJson for Build
+
+pub struct Version {
+  major : Int
+  minor : Int
+  patch : Int
+  build : Build?
+}
+pub fn Version::parse(String) -> Self raise
+pub impl Compare for Version
+pub impl Eq for Version
+pub impl Show for Version
+pub impl ToJson for Version
+
+// Type aliases
+
+// Traits
+
