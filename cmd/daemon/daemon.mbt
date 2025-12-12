@@ -598,6 +598,8 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
               let response : Json = {}
               w.write(response.stringify())
               w.flush()
+              // We need to close the writer before shutting down to ensure the
+              w.close()
               group.return_immediately(())
             }
             (Post, ["", "v1", "moonbit", "publish"]) =>

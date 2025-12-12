@@ -109,6 +109,7 @@ pub struct RequestReader {
 }
 
 type ResponseWriter
+pub async fn ResponseWriter::close(Self) -> Unit
 pub async fn ResponseWriter::flush(Self) -> Unit
 pub fn ResponseWriter::header(Self) -> Header
 pub async fn ResponseWriter::write_header(Self, Int, reason? : String) -> Unit
