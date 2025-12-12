@@ -232,7 +232,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
 }
 
 ///|
-async test "Event::ToJson/MessageAdded" (t : @test.Test) {
+async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
@@ -240,19 +240,14 @@ async test "Event::ToJson/MessageAdded" (t : @test.Test) {
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
-      emitter.emit(
-        MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
-      )
+      emitter.emit(SystemPromptSet("Hello, this is a system prompt."))
     })
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "desc": {
-          "msg": "MessageAdded",
-          "message": {
-            "role": "user",
-            "content": "Hello, this is a user message.",
-          },
+          "msg": "SystemPromptSet",
+          "prompt": "Hello, this is a system prompt.",
         },
       },
     ])
@@ -512,29 +507,25 @@ test "Event::Roundtrip/PostToolCall/Err" {
 }
 
 ///|
-test "Event::Roundtrip/MessageAdded" {
-  let message = @ai.user_message(content="Hello, world!")
-  let event : @event.EventDesc = MessageAdded(message)
+test "Event::Roundtrip/SystemPromptSet" {
+  let event : @event.EventDesc = SystemPromptSet("You are a helpful assistant.")
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    MessageAdded(msg) => inspect(msg.content(), content="Hello, world!")
-    _ => fail("Expected MessageAdded")
+    SystemPromptSet(msg) => inspect(msg, content="You are a helpful assistant.")
+    _ => fail("Expected SystemPromptSet")
   }
 }
 
 ///|
 test "Event::Roundtrip/MessageQueued" {
   let id = @uuid.nil
-  let message = @ai.system_message(content="System prompt")
-  let event : @event.EventDesc = MessageQueued(id~, message)
+  let event : @event.EventDesc = MessageQueued(id~)
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    MessageQueued(id=roundtrip_id, msg) => {
+    MessageQueued(id=roundtrip_id) =>
       inspect(roundtrip_id == id, content="true")
-      inspect(msg.content(), content="System prompt")
-    }
     _ => fail("Expected MessageQueued")
   }
 }
@@ -812,7 +803,7 @@ test "Event::Roundtrip" {
       result=Ok("Tool call result"),
       rendered="Tool call rendered output",
     ),
-    MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
+    SystemPromptSet("Hello, this is a system prompt."),
     ToolAdded(
       @tool.tool_desc(
         name="sample_tool",

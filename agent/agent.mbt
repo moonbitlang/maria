@@ -54,22 +54,6 @@ pub(all) struct Agent {
 priv suberror EmptyChoices
 
 ///|
-/// Adds a message to the agent's message queue for the next API call.
-///
-/// The message is queued and will be sent to the API in the next `call()` operation.
-/// After adding the message, a `MessageAdded` event is emitted.
-///
-/// Parameters:
-///
-/// * `agent` : The agent instance to add the message to.
-/// * `message` : The chat completion message to queue for sending.
-// TODO: upstream: warning if no async ever happens in async fn
-fn Agent::add_message(agent : Agent, message : @ai.Message) -> Unit {
-  agent.input_queue.push(message)
-  agent.emit(MessageAdded(message))
-}
-
-///|
 /// Queues a message to be sent to the AI model in the next round of
 /// conversation.
 pub fn Agent::queue_message(
@@ -79,7 +63,7 @@ pub fn Agent::queue_message(
 ) -> @uuid.Uuid {
   let id = agent.uuid.v4()
   agent.pending_queue.push_back(QueuedMessage::{ id, message, web_search })
-  agent.emit(MessageQueued(id~, message))
+  agent.emit(MessageQueued(id~))
   id
 }
 
@@ -234,7 +218,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       group.add_defer(() => agent.event_target.flush())
       // Signal the start of conversation
       agent.emit(PreConversation)
-      while !(agent.input_queue.is_empty() && agent.pending_queue.is_empty()) {
+      // We need to first poll external events before starting the loop,
+      // otherwise the loop will exit immediately.
+      while true {
         // Poll for external events at the start of each iteration
         // This handles user cancellation, immediate messages, and diagnostics
         guard agent.poll_external_events() else { break }
@@ -246,8 +232,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
             agent.input_queue.push(msg.message)
             web_search = msg.web_search
             agent.emit(MessageUnqueued(id=msg.id))
-            agent.emit(MessageAdded(msg.message))
+            agent.emit(UserMessage(msg.message.content()))
           }
+        }
+        if agent.input_queue.is_empty() {
+          // No messages to send, end the conversation
+          break
         }
         let tools = agent.tools_desc()
         // Retrieve and clear the message queue
@@ -405,7 +395,7 @@ pub async fn new(
   rules.load()
   agent.set_system_prompt(system_message)
   match user_message {
-    Some(message) => agent.add_message(@ai.user_message(content=message))
+    Some(message) => agent.external_events.send(UserMessage(message))
     None => ()
   }
   agent
@@ -466,7 +456,7 @@ pub async fn load(
   }
   rules.load()
   match user_message {
-    Some(message) => agent.add_message(@ai.user_message(content=message))
+    Some(message) => agent.external_events.send(UserMessage(message))
     None => ()
   }
   agent

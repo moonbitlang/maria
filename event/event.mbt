@@ -5,8 +5,8 @@
 ///
 /// ```moonbit no-check
 /// // add system and user messages
-/// MessageAdded (system)
-/// MessageAdded (user)
+/// UserMessage (system)
+/// UserMessage (user)
 /// // calling agent.start()
 /// PreConversation
 /// while true {
@@ -21,7 +21,7 @@
 ///   // executing tool call
 ///   PreToolCall
 ///   PostToolCall
-///   MessageAdded (tool)
+///   UserMessage (tool)
 ///   // continue to iterate if there are more messages
 /// }
 /// // conversation ended
@@ -40,16 +40,14 @@ pub(all) enum EventDesc {
   PreConversation
   /// Event triggered after a conversation ends.
   PostConversation
-  /// Event triggered when a new message is added to the conversation.
-  ///
-  /// **Note**: This event will be triggered for system/user messages.
-  /// This means it's very likely that you should do some filtering based on the
-  /// message role.
-  MessageAdded(@ai.Message)
+  /// Event triggered when the system prompt is being set.
+  SystemPromptSet(String)
   /// Event triggered when a message is unqueued from the pending queue.
   MessageUnqueued(id~ : @uuid.Uuid)
   /// Event triggered when a message is queued to be sent to the model.
-  MessageQueued(id~ : @uuid.Uuid, @ai.Message)
+  /// The message ID can be obtained via the return value of `queue_message`
+  /// function.
+  MessageQueued(id~ : @uuid.Uuid)
   /// Event triggered when a tool is added to the agent. This message will only
   /// be triggered once per agent instance.
   ToolAdded(@tool.ToolDesc)
@@ -58,9 +56,7 @@ pub(all) enum EventDesc {
   /// Event triggered after a tool call is completed.
   ///
   /// If you are interested in the result of the tool call, then this is the
-  /// event you might want to listen for. Note you should not listen for
-  /// MessageAdded for tool messages as the structural representation of tool
-  /// call result will be lost.
+  /// event you might want to listen for.
   ///
   /// The `result` field can be used to determine whether the tool call was
   /// successful or not. `rendered` field is the string representation of the
@@ -84,8 +80,7 @@ pub(all) enum EventDesc {
   /// Event triggered when a chat completion request is completed.
   ///
   /// If you are interested in details in the assistant response, then this is
-  /// the event you might want to listen for. Compared to `MessageAdded` event,
-  /// this event contains more information like `usage` and `tool_calls`.
+  /// the event you might want to listen for.
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   /// Diagnostics from IDE (errors, warnings from the problems panel)
   Diagnostics(@diagnostics.Diagnostics)
@@ -176,13 +171,8 @@ fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
     }
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
-    MessageAdded(message) =>
-      { "msg": "MessageAdded", "message": message.to_openai() }
-    MessageQueued(id~, message) =>
-      {
-        "msg": "MessageQueued",
-        "message": { "id": id, "message": message.to_openai() },
-      }
+    SystemPromptSet(prompt) => { "msg": "SystemPromptSet", "prompt": prompt }
+    MessageQueued(id~) => { "msg": "MessageQueued", "message": { "id": id } }
     MessageUnqueued(id~) =>
       { "msg": "MessageUnqueued", "message": { "id": id } }
     ToolAdded(tool_desc) =>
@@ -202,7 +192,7 @@ fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
     Diagnostics(diagnostics) =>
       { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
     UserCancellation => { "msg": "UserCancellation" }
-    UserMessage(message) => { "msg": "UserMessage", "message": message }
+    UserMessage(content) => { "msg": "UserMessage", "content": content }
     Cancelled => { "msg": "MariaCancelled" }
     Custom(name, payload) => payload.merge({ "msg": name })
   }
@@ -330,17 +320,17 @@ pub impl @json.FromJson for EventDesc with from_json(
     }
     "PreConversation" => PreConversation
     "PostConversation" => PostConversation
-    "MessageAdded" => {
-      guard json_object.get("message") is Some(message_json) else {
+    "SystemPromptSet" => {
+      guard json_object.get("prompt") is Some(prompt_json) else {
         raise @json.JsonDecodeError(
-          (json_path, "MessageAdded event missing 'message' field"),
+          (json_path, "SystemPromptSet event missing 'prompt' field"),
         )
       }
-      let message : @openai.ChatCompletionMessageParam = @json.FromJson::from_json(
-        message_json,
-        json_path.add_key("message"),
+      let prompt : String = @json.FromJson::from_json(
+        prompt_json,
+        json_path.add_key("prompt"),
       )
-      MessageAdded(@ai.Message::from_openai(message))
+      SystemPromptSet(prompt)
     }
     "MessageQueued" => {
       guard json_object.get("message") is Some(message_wrapper_json) else {
@@ -348,8 +338,7 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "MessageQueued event missing 'message' field"),
         )
       }
-      guard message_wrapper_json
-        is Object({ "id": id_json, "message": msg_json, .. }) else {
+      guard message_wrapper_json is Object({ "id": id_json, .. }) else {
         raise @json.JsonDecodeError(
           (json_path, "Invalid 'message' field in MessageQueued event"),
         )
@@ -358,11 +347,7 @@ pub impl @json.FromJson for EventDesc with from_json(
         id_json,
         json_path.add_key("message").add_key("id"),
       )
-      let message : @openai.ChatCompletionMessageParam = @json.FromJson::from_json(
-        msg_json,
-        json_path.add_key("message").add_key("message"),
-      )
-      MessageQueued(id~, @ai.Message::from_openai(message))
+      MessageQueued(id~)
     }
     "MessageUnqueued" => {
       guard json_object.get("message") is Some(message_wrapper_json) else {
@@ -461,16 +446,16 @@ pub impl @json.FromJson for EventDesc with from_json(
     }
     "UserCancellation" => UserCancellation
     "UserMessage" => {
-      guard json_object.get("message") is Some(message_json) else {
+      guard json_object.get("content") is Some(content_json) else {
         raise @json.JsonDecodeError(
-          (json_path, "Missing 'message' field in UserMessage event"),
+          (json_path, "Missing 'content' field in UserMessage event"),
         )
       }
-      let message : String = @json.FromJson::from_json(
-        message_json,
-        json_path.add_key("message"),
+      let content : String = @json.FromJson::from_json(
+        content_json,
+        json_path.add_key("content"),
       )
-      UserMessage(message)
+      UserMessage(content)
     }
     "MariaCancelled" => Cancelled
     _ =>
@@ -506,7 +491,10 @@ pub impl @json.FromJson for Event with from_json(
       }
     _ =>
       raise @json.JsonDecodeError(
-        (json_path, "Invalid Event object: expected fields 'id' and 'desc'"),
+        (
+          json_path,
+          "Invalid Event object: expected fields 'id' and 'desc': \{json.stringify(indent=2)}",
+        ),
       )
   }
 }
