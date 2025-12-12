@@ -20,6 +20,7 @@ pub fn Daemon::port(Self) -> Int
 pub async fn Daemon::serve(Self) -> Unit
 
 type Task
+pub fn Task::is_idle(Self) -> Bool
 pub impl ToJson for Task
 pub impl @json.FromJson for Task
 

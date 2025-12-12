@@ -19,11 +19,12 @@
 /// - `start()` runs an async event loop that dispatches to listeners
 /// - Listeners are invoked sequentially for each event
 struct EventTarget {
+  uuid : @uuid.Generator
   // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
   // This would make the termination signal explicit in the type system rather
   // than using `None` as a sentinel value.
-  queue : @aqueue.Queue[OutgoingEvent]
-  listeners : Array[async (OutgoingEvent) -> Unit]
+  queue : @aqueue.Queue[Event]
+  listeners : Array[async (Event) -> Unit]
 }
 
 ///|
@@ -44,8 +45,16 @@ struct EventTarget {
 /// // Start in background
 /// spawn(() => emitter.start())
 /// ```
-pub fn EventTarget::new() -> EventTarget {
-  EventTarget::{ queue: @aqueue.Queue::new(kind=Unbounded), listeners: [] }
+pub fn EventTarget::new(uuid? : @uuid.Generator) -> EventTarget raise {
+  let uuid = match uuid {
+    None => @uuid.generator(@rand.chacha8())
+    Some(uuid) => uuid
+  }
+  EventTarget::{
+    uuid,
+    queue: @aqueue.Queue::new(kind=Unbounded),
+    listeners: [],
+  }
 }
 
 ///|
@@ -74,8 +83,12 @@ pub fn EventTarget::new() -> EventTarget {
 /// emitter.emit(TokenCounted(1500))
 /// emitter.emit(PostConversation)
 /// ```
-pub fn EventTarget::emit(self : EventTarget, event : OutgoingEvent) -> Unit {
-  guard self.queue.try_put(event) else {
+pub fn EventTarget::emit(
+  self : EventTarget,
+  desc : EventDesc,
+  id? : @uuid.Uuid = self.uuid.v4(),
+) -> Unit {
+  guard self.queue.try_put({ id, desc }) else {
     abort("Event queue is full, cannot emit event")
   }
 }
@@ -111,7 +124,7 @@ pub fn EventTarget::emit(self : EventTarget, event : OutgoingEvent) -> Unit {
 /// ```
 pub fn EventTarget::add_listener(
   self : EventTarget,
-  f : async (OutgoingEvent) -> Unit,
+  f : async (Event) -> Unit,
 ) -> Unit {
   self.listeners.push(f)
 }

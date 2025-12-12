@@ -1,16 +1,4 @@
 ///|
-/// External events that can be sent to the agent from outside sources.
-/// These events are collected via polling and can influence the conversation.
-pub(all) enum ExternalEvent {
-  /// Diagnostics from IDE (errors, warnings from the problems panel)
-  Diagnostics(@diagnostics.Diagnostics)
-  /// User wants to cancel the current operation
-  UserCancellation
-  /// User sends an immediate message (interrupting current flow)
-  UserMessage(String)
-} derive(Eq, Show)
-
-///|
 /// A queue for receiving external events from the environment.
 ///
 /// The `ExternalEventQueue` provides a thread-safe, non-blocking mechanism for
@@ -29,7 +17,8 @@ pub(all) enum ExternalEvent {
 /// let events = queue.poll() // Returns all pending events
 /// ```
 struct ExternalEventQueue {
-  queue : @aqueue.Queue[ExternalEvent]
+  uuid : @uuid.Generator
+  queue : @aqueue.Queue[Event]
 }
 
 ///|
@@ -41,8 +30,11 @@ struct ExternalEventQueue {
 /// # Returns
 ///
 /// A new `ExternalEventQueue` instance ready to receive events.
-pub fn ExternalEventQueue::new() -> ExternalEventQueue {
-  ExternalEventQueue::{ queue: @aqueue.Queue::new(kind=Unbounded) }
+pub fn ExternalEventQueue::new() -> ExternalEventQueue raise {
+  ExternalEventQueue::{
+    uuid: @uuid.generator(@rand.chacha8()),
+    queue: @aqueue.Queue::new(kind=Unbounded),
+  }
 }
 
 ///|
@@ -75,9 +67,9 @@ pub fn ExternalEventQueue::new() -> ExternalEventQueue {
 /// ```
 pub fn ExternalEventQueue::send(
   self : ExternalEventQueue,
-  event : ExternalEvent,
+  desc : EventDesc,
 ) -> Unit {
-  guard self.queue.try_put(event) else { return }
+  guard self.queue.try_put({ id: self.uuid.v4(), desc }) else { return }
 }
 
 ///|
@@ -97,6 +89,8 @@ pub fn ExternalEventQueue::send(
 /// - **Non-blocking**: Returns immediately with available events.
 /// - **Draining**: Removes all events from the queue.
 /// - **Order-preserving**: Events are returned in FIFO order.
+/// - **Incoming-only**: Only returns events intended for the consumption of the
+///   agent.
 ///
 /// # Example
 ///
@@ -111,66 +105,10 @@ pub fn ExternalEventQueue::send(
 ///   }
 /// }
 /// ```
-pub fn ExternalEventQueue::poll(
-  self : ExternalEventQueue,
-) -> Array[ExternalEvent] {
+pub fn ExternalEventQueue::poll(self : ExternalEventQueue) -> Array[Event] {
   let events = []
-  while self.queue.try_get() is Some(event) {
+  while self.queue.try_get() is Some(event) && event.is_incoming() {
     events.push(event)
   }
   events
-}
-
-///|
-fn ExternalEvent::to_json_object(self : ExternalEvent) -> Map[String, Json] {
-  match self {
-    Diagnostics(diagnostics) =>
-      { "type": "Diagnostics", "diagnostics": diagnostics.to_json() }
-    UserCancellation => { "type": "UserCancellation" }
-    UserMessage(message) => { "type": "UserMessage", "message": message }
-  }
-}
-
-///|
-pub impl ToJson for ExternalEvent with to_json(self : ExternalEvent) -> Json {
-  Json::object(self.to_json_object())
-}
-
-///|
-pub impl @json.FromJson for ExternalEvent with from_json(
-  json : Json,
-  json_path : @json.JsonPath,
-) -> ExternalEvent raise @json.JsonDecodeError {
-  guard json is Object({ "type": String(type_), .. } as json_object) else {
-    raise @json.JsonDecodeError(
-      (json_path, "Missing 'type' field in ExternalEvent"),
-    )
-  }
-  match type_ {
-    "Diagnostics" => {
-      guard json_object.get("diagnostics") is Some(diagnostics_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Diagnostics event missing 'diagnostics' field"),
-        )
-      }
-      let diagnostics : @diagnostics.Diagnostics = @json.FromJson::from_json(
-        diagnostics_json,
-        json_path.add_key("diagnostics"),
-      )
-      Diagnostics(diagnostics)
-    }
-    "UserCancellation" => UserCancellation
-    "UserMessage" => {
-      guard json_object.get("message") is Some(String(message)) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Missing 'message' field in UserMessage event"),
-        )
-      }
-      UserMessage(message)
-    }
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path, "Unknown 'type' value in ExternalEvent: \{type_}"),
-      )
-  }
 }

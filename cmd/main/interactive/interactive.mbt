@@ -30,7 +30,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   }
   @async.with_task_group(group => {
     let maria = @maria.Maria::new(model~, web_search~)
-    maria.agent.add_listener(event => match event {
+    maria.agent.add_listener(event => match event.desc {
       RequestCompleted(message~, ..) => {
         let content = message.content()
         if !content.is_blank() {
@@ -48,10 +48,13 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
               _ => println("% \{tool_call.name}\n  \{arguments}")
             }
         }
-      PostToolCall(_, rendered~, ..) =>
-        for text in rendered.split("\n").collect().iterator() {
+      PostToolCall(_, rendered~, ..) => {
+        let lines = rendered.split("\n").collect()
+        for i = 0; i < lines.length(); i = i + 1 {
+          let text = lines[i]
           println("> \{text}")
         }
+      }
       _ => ()
     })
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)

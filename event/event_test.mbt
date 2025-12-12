@@ -1,91 +1,105 @@
 ///|
-async test "EventTarget::flush" {
-  let event_target = @event.EventTarget::new()
-  let events : Array[@event.OutgoingEvent] = []
-  event_target.add_listener(event => events.push(event))
-  @async.with_task_group(group => {
-    let task = group.spawn(() => event_target.start(), allow_failure=true)
-    task.cancel()
-    let task = group.spawn(() => event_target.start(), allow_failure=true)
-    event_target.emit(TokenCounted(10))
-    event_target.flush()
-    task.cancel()
+async test "EventTarget::flush" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let event_target = @event.EventTarget::new(uuid=mock.uuid)
+    let events : Array[@event.Event] = []
+    event_target.add_listener(event => events.push(event))
+    @async.with_task_group(group => {
+      let task = group.spawn(() => event_target.start(), allow_failure=true)
+      task.cancel()
+      let task = group.spawn(() => event_target.start(), allow_failure=true)
+      event_target.emit(TokenCounted(10))
+      event_target.flush()
+      task.cancel()
+    })
+    @json.inspect(events, content=[
+      {
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": { "msg": "TokenCounted", "token_count": 10 },
+      },
+    ])
   })
-  @json.inspect(events, content=[{ "msg": "TokenCounted", "token_count": 10 }])
-}
-
-///|
-fn redact_events(events : Array[@event.OutgoingEvent]) -> Array[Json] {
-  events.map(event => event
-    .to_json()
-    .transform(
-      @json.Replacer::exclude(["level", "pid", "hostname", "time", "tag"]),
-    ))
 }
 
 ///|
 async test "Event::ToJson/PreConversation" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
       emitter.emit(PreConversation)
     })
-    @json.inspect(redact_events(events), content=[{ "msg": "PreConversation" }])
+    @json.inspect(events, content=[
+      {
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": { "msg": "PreConversation" },
+      },
+    ])
   })
 }
 
 ///|
 async test "Event::ToJson/PostConversation" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
       emitter.emit(PostConversation)
     })
-    @json.inspect(redact_events(events), content=[{ "msg": "PostConversation" }])
+    @json.inspect(events, content=[
+      {
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": { "msg": "PostConversation" },
+      },
+    ])
   })
 }
 
 ///|
 async test "Event::ToJson/TokenCounted" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
       emitter.emit(TokenCounted(42))
     })
-    @json.inspect(redact_events(events), content=[
-      { "msg": "TokenCounted", "token_count": 42 },
+    @json.inspect(events, content=[
+      {
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": { "msg": "TokenCounted", "token_count": 42 },
+      },
     ])
   })
 }
 
 ///|
 async test "Event::ToJson/ContextPruned" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
       emitter.emit(ContextPruned(origin_token_count=100, pruned_token_count=20))
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "ContextPruned",
-        "origin_token_count": 100,
-        "pruned_token_count": 20,
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "ContextPruned",
+          "origin_token_count": 100,
+          "pruned_token_count": 20,
+        },
       },
     ])
   })
@@ -93,10 +107,10 @@ async test "Event::ToJson/ContextPruned" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/PreToolCall" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -110,19 +124,22 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "PreToolCall",
-        "tool_call": {
-          "id": "tool_call_1",
-          "function": {
-            "name": "example_tool",
-            "arguments": "{\"param1\": \"value1\", \"param2\": 123}",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "PreToolCall",
+          "tool_call": {
+            "id": "tool_call_1",
+            "function": {
+              "name": "example_tool",
+              "arguments": "{\"param1\": \"value1\", \"param2\": 123}",
+            },
+            "type": "function",
           },
-          "type": "function",
+          "name": "example_tool",
+          "args": { "param1": "value1", "param2": 123 },
         },
-        "name": "example_tool",
-        "args": { "param1": "value1", "param2": 123 },
       },
     ])
   })
@@ -130,10 +147,10 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -149,20 +166,23 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "PostToolCall",
-        "tool_call": {
-          "id": "tool_call_1",
-          "function": {
-            "name": "example_tool",
-            "arguments": "{\"param1\": \"value1\", \"param2\": 123}",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "PostToolCall",
+          "tool_call": {
+            "id": "tool_call_1",
+            "function": {
+              "name": "example_tool",
+              "arguments": "{\"param1\": \"value1\", \"param2\": 123}",
+            },
+            "type": "function",
           },
-          "type": "function",
+          "name": "example_tool",
+          "result": "Tool call result",
+          "text": "Tool call rendered output",
         },
-        "name": "example_tool",
-        "result": "Tool call result",
-        "text": "Tool call rendered output",
       },
     ])
   })
@@ -170,10 +190,10 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -189,20 +209,23 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "PostToolCall",
-        "tool_call": {
-          "id": "tool_call_2",
-          "function": {
-            "name": "failing_tool",
-            "arguments": "{\"paramA\": \"valueA\"}",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "PostToolCall",
+          "tool_call": {
+            "id": "tool_call_2",
+            "function": {
+              "name": "failing_tool",
+              "arguments": "{\"paramA\": \"valueA\"}",
+            },
+            "type": "function",
           },
-          "type": "function",
+          "name": "failing_tool",
+          "error": ["Failure", "Tool call error"],
+          "text": "Tool call error output",
         },
-        "name": "failing_tool",
-        "error": ["Failure", "Tool call error"],
-        "text": "Tool call error output",
       },
     ])
   })
@@ -210,10 +233,10 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/MessageAdded" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -221,12 +244,15 @@ async test "Event::ToJson/MessageAdded" (t : @test.Test) {
         MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
       )
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "MessageAdded",
-        "message": {
-          "role": "user",
-          "content": "Hello, this is a user message.",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "MessageAdded",
+          "message": {
+            "role": "user",
+            "content": "Hello, this is a user message.",
+          },
         },
       },
     ])
@@ -235,10 +261,10 @@ async test "Event::ToJson/MessageAdded" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/ToolAdded" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -250,13 +276,16 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
       )
       emitter.emit(ToolAdded(tool.desc))
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "ToolAdded",
-        "tool": {
-          "name": "sample_tool",
-          "description": "A sample tool for demonstration.",
-          "schema": "{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "ToolAdded",
+          "tool": {
+            "name": "sample_tool",
+            "description": "A sample tool for demonstration.",
+            "schema": "{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
+          },
         },
       },
     ])
@@ -265,10 +294,10 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
 
 ///|
 async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       emitter.add_listener(event => events.push(event))
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
@@ -283,16 +312,23 @@ async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
       )
       emitter.emit(RequestCompleted(usage=Some(usage), message~))
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "RequestCompleted",
-        "usage": [
-          { "completion_tokens": 50, "prompt_tokens": 150, "total_tokens": 200 },
-        ],
-        "message": {
-          "role": "assistant",
-          "tool_calls": [],
-          "content": "This is the final message from the model.",
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "RequestCompleted",
+          "usage": [
+            {
+              "completion_tokens": 50,
+              "prompt_tokens": 150,
+              "total_tokens": 200,
+            },
+          ],
+          "message": {
+            "role": "assistant",
+            "tool_calls": [],
+            "content": "This is the final message from the model.",
+          },
         },
       },
     ])
@@ -301,10 +337,10 @@ async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
 
 ///|
 async test "Event::ModelLoaded" (t : @test.Test) {
-  @mock.run(t, _ => {
+  @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new()
+      let emitter = @event.EventTarget::new(uuid=mock.uuid)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -320,18 +356,21 @@ async test "Event::ModelLoaded" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(redact_events(events), content=[
+    @json.inspect(events, content=[
       {
-        "msg": "ModelLoaded",
-        "name": "test_model",
-        "model": {
+        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "desc": {
+          "msg": "ModelLoaded",
           "name": "test_model",
-          "model_name": "test_model",
-          "model_type": "saas/openai",
-          "api_key": "****",
-          "base_url": "https://api.example.com",
-          "safe_zone_tokens": 100000,
-          "supports_anthropic_prompt_caching": false,
+          "model": {
+            "name": "test_model",
+            "model_name": "test_model",
+            "model_type": "saas/openai",
+            "api_key": "****",
+            "base_url": "https://api.example.com",
+            "safe_zone_tokens": 100000,
+            "supports_anthropic_prompt_caching": false,
+          },
         },
       },
     ])
@@ -340,9 +379,9 @@ async test "Event::ModelLoaded" (t : @test.Test) {
 
 ///|
 test "Event::Roundtrip/PreConversation" {
-  let event : @event.OutgoingEvent = PreConversation
+  let event : @event.EventDesc = PreConversation
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     PreConversation => ()
     _ => fail("Expected PreConversation")
@@ -351,9 +390,9 @@ test "Event::Roundtrip/PreConversation" {
 
 ///|
 test "Event::Roundtrip/PostConversation" {
-  let event : @event.OutgoingEvent = PostConversation
+  let event : @event.EventDesc = PostConversation
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     PostConversation => ()
     _ => fail("Expected PostConversation")
@@ -362,9 +401,9 @@ test "Event::Roundtrip/PostConversation" {
 
 ///|
 test "Event::Roundtrip/TokenCounted" {
-  let event : @event.OutgoingEvent = TokenCounted(42)
+  let event : @event.EventDesc = TokenCounted(42)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     TokenCounted(count) => inspect(count, content="42")
     _ => fail("Expected TokenCounted")
@@ -373,12 +412,12 @@ test "Event::Roundtrip/TokenCounted" {
 
 ///|
 test "Event::Roundtrip/ContextPruned" {
-  let event : @event.OutgoingEvent = ContextPruned(
+  let event : @event.EventDesc = ContextPruned(
     origin_token_count=100,
     pruned_token_count=20,
   )
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     ContextPruned(origin_token_count~, pruned_token_count~) => {
       inspect(origin_token_count, content="100")
@@ -395,9 +434,9 @@ test "Event::Roundtrip/PreToolCall" {
     name="example_tool",
     arguments="{\"param1\": \"value1\", \"param2\": 123}",
   )
-  let event : @event.OutgoingEvent = PreToolCall(tool_call)
+  let event : @event.EventDesc = PreToolCall(tool_call)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     PreToolCall(tc) => {
       inspect(tc.id, content="tool_call_1")
@@ -420,13 +459,13 @@ test "Event::Roundtrip/PostToolCall/Ok" {
     name="example_tool",
     arguments="{\"param1\": \"value1\"}",
   )
-  let event : @event.OutgoingEvent = PostToolCall(
+  let event : @event.EventDesc = PostToolCall(
     tool_call,
     result=Ok({ "output": "success" }),
     rendered="Tool output: success",
   )
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     PostToolCall(tc, result~, rendered~) => {
       inspect(tc.id, content="tool_call_1")
@@ -450,13 +489,13 @@ test "Event::Roundtrip/PostToolCall/Err" {
     name="failing_tool",
     arguments="{}",
   )
-  let event : @event.OutgoingEvent = PostToolCall(
+  let event : @event.EventDesc = PostToolCall(
     tool_call,
     result=Err({ "error": "Something went wrong" }),
     rendered="Error occurred",
   )
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     PostToolCall(tc, result~, rendered~) => {
       inspect(tc.id, content="tool_call_2")
@@ -475,9 +514,9 @@ test "Event::Roundtrip/PostToolCall/Err" {
 ///|
 test "Event::Roundtrip/MessageAdded" {
   let message = @ai.user_message(content="Hello, world!")
-  let event : @event.OutgoingEvent = MessageAdded(message)
+  let event : @event.EventDesc = MessageAdded(message)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     MessageAdded(msg) => inspect(msg.content(), content="Hello, world!")
     _ => fail("Expected MessageAdded")
@@ -488,9 +527,9 @@ test "Event::Roundtrip/MessageAdded" {
 test "Event::Roundtrip/MessageQueued" {
   let id = @uuid.nil
   let message = @ai.system_message(content="System prompt")
-  let event : @event.OutgoingEvent = MessageQueued(id~, message)
+  let event : @event.EventDesc = MessageQueued(id~, message)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     MessageQueued(id=roundtrip_id, msg) => {
       inspect(roundtrip_id == id, content="true")
@@ -503,9 +542,9 @@ test "Event::Roundtrip/MessageQueued" {
 ///|
 test "Event::Roundtrip/MessageUnqueued" {
   let id = @uuid.nil
-  let event : @event.OutgoingEvent = MessageUnqueued(id~)
+  let event : @event.EventDesc = MessageUnqueued(id~)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     MessageUnqueued(id=roundtrip_id) =>
       inspect(roundtrip_id == id, content="true")
@@ -520,9 +559,9 @@ test "Event::Roundtrip/ToolAdded" {
     description="A sample tool",
     schema=@tool.JsonSchema::from_json({ "type": "object" }),
   )
-  let event : @event.OutgoingEvent = ToolAdded(tool_desc)
+  let event : @event.EventDesc = ToolAdded(tool_desc)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     ToolAdded(desc) => {
       inspect(desc.name, content="sample_tool")
@@ -542,12 +581,9 @@ test "Event::Roundtrip/ToolAdded" {
 test "Event::Roundtrip/RequestCompleted/WithUsage" {
   let usage = @ai.usage(input_tokens=100, output_tokens=50, total_tokens=150)
   let message = @ai.assistant_message(content="Response from model", tool_calls=[])
-  let event : @event.OutgoingEvent = RequestCompleted(
-    usage=Some(usage),
-    message~,
-  )
+  let event : @event.EventDesc = RequestCompleted(usage=Some(usage), message~)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     RequestCompleted(usage=roundtrip_usage, message=msg) => {
       match roundtrip_usage {
@@ -567,9 +603,9 @@ test "Event::Roundtrip/RequestCompleted/WithUsage" {
 ///|
 test "Event::Roundtrip/RequestCompleted/NoUsage" {
   let message = @ai.assistant_message(content="Response", tool_calls=[])
-  let event : @event.OutgoingEvent = RequestCompleted(usage=None, message~)
+  let event : @event.EventDesc = RequestCompleted(usage=None, message~)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     RequestCompleted(usage=roundtrip_usage, message=msg) => {
       match roundtrip_usage {
@@ -584,9 +620,9 @@ test "Event::Roundtrip/RequestCompleted/NoUsage" {
 
 ///|
 test "Event::Roundtrip/Cancelled" {
-  let event : @event.OutgoingEvent = Cancelled
+  let event : @event.EventDesc = Cancelled
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     Cancelled => ()
     _ => fail("Expected Cancelled")
@@ -596,9 +632,9 @@ test "Event::Roundtrip/Cancelled" {
 ///|
 test "Event::Roundtrip/TodoUpdated" {
   let todo_json : Json = { "task": "Do something", "status": "pending" }
-  let event : @event.OutgoingEvent = TodoUpdated(todo_json)
+  let event : @event.EventDesc = TodoUpdated(todo_json)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     TodoUpdated(todo) =>
       inspect(
@@ -619,9 +655,9 @@ test "Event::Roundtrip/ModelLoaded" {
     name="test_model",
     safe_zone_tokens=100000,
   )
-  let event : @event.OutgoingEvent = ModelLoaded(name="my_model", model~)
+  let event : @event.EventDesc = ModelLoaded(name="my_model", model~)
   let json = event.to_json()
-  let roundtripped : @event.OutgoingEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     ModelLoaded(name~, model=roundtrip_model) => {
       inspect(name, content="my_model")
@@ -635,9 +671,9 @@ test "Event::Roundtrip/ModelLoaded" {
 
 ///|
 test "ExternalEvent::Roundtrip/UserCancellation" {
-  let event : @event.ExternalEvent = UserCancellation
+  let event : @event.EventDesc = UserCancellation
   let json = event.to_json()
-  let roundtripped : @event.ExternalEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     UserCancellation => ()
     _ => fail("Expected UserCancellation")
@@ -646,9 +682,9 @@ test "ExternalEvent::Roundtrip/UserCancellation" {
 
 ///|
 test "ExternalEvent::Roundtrip/UserMessage" {
-  let event : @event.ExternalEvent = UserMessage("Stop the current task")
+  let event : @event.EventDesc = UserMessage("Stop the current task")
   let json = event.to_json()
-  let roundtripped : @event.ExternalEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     UserMessage(msg) => inspect(msg, content="Stop the current task")
     _ => fail("Expected UserMessage")
@@ -669,9 +705,9 @@ test "ExternalEvent::Roundtrip/Diagnostics" {
   }
   let diagnostics = @diagnostics.Diagnostics::new()
   diagnostics.push(diagnostic)
-  let event : @event.ExternalEvent = Diagnostics(diagnostics)
+  let event : @event.EventDesc = Diagnostics(diagnostics)
   let json = event.to_json()
-  let roundtripped : @event.ExternalEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     Diagnostics(diags) => {
       inspect(diags.length(), content="1")
@@ -712,9 +748,9 @@ test "ExternalEvent::Roundtrip/Diagnostics/Multiple" {
   let diagnostics = @diagnostics.Diagnostics::new()
   diagnostics.push(diagnostic1)
   diagnostics.push(diagnostic2)
-  let event : @event.ExternalEvent = Diagnostics(diagnostics)
+  let event : @event.EventDesc = Diagnostics(diagnostics)
   @json.inspect(event, content={
-    "type": "Diagnostics",
+    "msg": "Diagnostics",
     "diagnostics": [
       "Diagnostics",
       [
@@ -742,7 +778,7 @@ test "ExternalEvent::Roundtrip/Diagnostics/Multiple" {
     ],
   })
   let json = event.to_json()
-  let roundtripped : @event.ExternalEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     Diagnostics(diags) => {
       inspect(diags.length(), content="2")
@@ -758,9 +794,9 @@ test "ExternalEvent::Roundtrip/Diagnostics/Multiple" {
 ///|
 test "ExternalEvent::Roundtrip/Diagnostics/Empty" {
   let diagnostics = @diagnostics.Diagnostics::new()
-  let event : @event.ExternalEvent = Diagnostics(diagnostics)
+  let event : @event.EventDesc = Diagnostics(diagnostics)
   let json = event.to_json()
-  let roundtripped : @event.ExternalEvent = @json.from_json(json)
+  let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     Diagnostics(diags) => {
       inspect(diags.length(), content="0")
@@ -772,120 +808,105 @@ test "ExternalEvent::Roundtrip/Diagnostics/Empty" {
 
 ///|
 test "Event::Roundtrip" {
-  let events : Array[Event] = [
-    Outgoing(PreConversation),
-    Outgoing(PostConversation),
-    Outgoing(TokenCounted(42)),
-    Outgoing(ContextPruned(origin_token_count=100, pruned_token_count=20)),
-    Outgoing(
-      PreToolCall(
-        @ai.tool_call(
-          id="tool_call_1",
-          name="example_tool",
-          arguments="{\"param1\": \"value1\", \"param2\": 123}",
-        ),
+  let uuid = @uuid.generator(@rand.chacha8())
+  let events : Array[EventDesc] = [
+    PreConversation,
+    PostConversation,
+    TokenCounted(42),
+    ContextPruned(origin_token_count=100, pruned_token_count=20),
+    PreToolCall(
+      @ai.tool_call(
+        id="tool_call_1",
+        name="example_tool",
+        arguments="{\"param1\": \"value1\", \"param2\": 123}",
       ),
     ),
-    Outgoing(
-      PostToolCall(
-        @ai.tool_call(
-          id="tool_call_1",
-          name="example_tool",
-          arguments="{\"param1\": \"value1\", \"param2\": 123}",
-        ),
-        result=Ok("Tool call result"),
-        rendered="Tool call rendered output",
+    PostToolCall(
+      @ai.tool_call(
+        id="tool_call_1",
+        name="example_tool",
+        arguments="{\"param1\": \"value1\", \"param2\": 123}",
+      ),
+      result=Ok("Tool call result"),
+      rendered="Tool call rendered output",
+    ),
+    MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
+    ToolAdded(
+      @tool.tool_desc(
+        name="sample_tool",
+        description="A sample tool for demonstration.",
+        schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
       ),
     ),
-    Outgoing(
-      MessageAdded(@ai.user_message(content="Hello, this is a user message.")),
-    ),
-    Outgoing(
-      ToolAdded(
-        @tool.tool_desc(
-          name="sample_tool",
-          description="A sample tool for demonstration.",
-          schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
-        ),
+    RequestCompleted(
+      usage=Some(
+        @ai.usage(input_tokens=150, output_tokens=50, total_tokens=200),
+      ),
+      message=@ai.assistant_message(
+        content="This is the final message from the model.",
+        tool_calls=[],
       ),
     ),
-    Outgoing(
-      RequestCompleted(
-        usage=Some(
-          @ai.usage(input_tokens=150, output_tokens=50, total_tokens=200),
-        ),
-        message=@ai.assistant_message(
-          content="This is the final message from the model.",
-          tool_calls=[],
-        ),
-      ),
-    ),
-    Outgoing(
-      ModelLoaded(
+    ModelLoaded(
+      name="test_model",
+      model=@model.Model::new(
+        api_key="****",
+        base_url="https://api.example.com",
         name="test_model",
-        model=@model.Model::new(
-          api_key="****",
-          base_url="https://api.example.com",
-          name="test_model",
-          safe_zone_tokens=100000,
-        ),
+        safe_zone_tokens=100000,
       ),
     ),
-    Outgoing(Cancelled),
-    Outgoing(TodoUpdated({ "task": "Do something", "status": "pending" })),
-    Incoming(UserCancellation),
-    Incoming(UserMessage("Stop the current task")),
-    Incoming(Diagnostics(@diagnostics.Diagnostics::new())),
-    Incoming(
-      Diagnostics(
-        {
-          let ds = @diagnostics.Diagnostics::new()
-          ds.push(@diagnostics.Diagnostic::{
-            error_code: 1001,
-            level: @diagnostics.Level::Error,
-            loc: @diagnostics.Loc::{
-              path: "/path/to/file.mbt",
-              start: { line: 10, col: 5 },
-              end: { line: 10, col: 15 },
-            },
-            message: "Type mismatch error",
-          })
-          ds
-        },
-      ),
+    Cancelled,
+    TodoUpdated({ "task": "Do something", "status": "pending" }),
+    UserCancellation,
+    UserMessage("Stop the current task"),
+    Diagnostics(@diagnostics.Diagnostics::new()),
+    Diagnostics(
+      {
+        let ds = @diagnostics.Diagnostics::new()
+        ds.push(@diagnostics.Diagnostic::{
+          error_code: 1001,
+          level: @diagnostics.Level::Error,
+          loc: @diagnostics.Loc::{
+            path: "/path/to/file.mbt",
+            start: { line: 10, col: 5 },
+            end: { line: 10, col: 15 },
+          },
+          message: "Type mismatch error",
+        })
+        ds
+      },
     ),
-    Incoming(
-      Diagnostics(
-        {
-          let ds = @diagnostics.Diagnostics::new()
-          ds.push(@diagnostics.Diagnostic::{
-            error_code: 1001,
-            level: Error,
-            loc: {
-              path: "/path/to/file1.mbt",
-              start: { line: 10, col: 5 },
-              end: { line: 10, col: 15 },
-            },
-            message: "First error",
-          })
-          ds.push({
-            error_code: 2002,
-            level: Warning,
-            loc: {
-              path: "/path/to/file2.mbt",
-              start: { line: 20, col: 3 },
-              end: { line: 20, col: 8 },
-            },
-            message: "Unused variable",
-          })
-          ds
-        },
-      ),
+    Diagnostics(
+      {
+        let ds = @diagnostics.Diagnostics::new()
+        ds.push(@diagnostics.Diagnostic::{
+          error_code: 1001,
+          level: Error,
+          loc: {
+            path: "/path/to/file1.mbt",
+            start: { line: 10, col: 5 },
+            end: { line: 10, col: 15 },
+          },
+          message: "First error",
+        })
+        ds.push({
+          error_code: 2002,
+          level: Warning,
+          loc: {
+            path: "/path/to/file2.mbt",
+            start: { line: 20, col: 3 },
+            end: { line: 20, col: 8 },
+          },
+          message: "Unused variable",
+        })
+        ds
+      },
     ),
   ]
   for event in events {
-    let json = event.to_json()
-    let roundtripped : @event.Event = @json.from_json(json)
+    let event = @event.Event::{ id: uuid.v4(), desc: event }
+    let roundtripped : @event.Event = @json.from_json(event.to_json())
     assert_eq(roundtripped, event)
   }
 }

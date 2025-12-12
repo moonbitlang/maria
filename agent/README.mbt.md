@@ -112,7 +112,7 @@ listeners to track different aspects of agent behavior:
 ///|
 async test "track-conversation" {
   let agent = @agent.new(model, cwd=@os.cwd())
-  agent.add_listener(event => match event {
+  agent.add_listener(event => match event.desc {
     PreConversation => println("Conversation starting...")
     PostConversation => println("Conversation complete!")
     _ => ()
@@ -123,7 +123,7 @@ async test "track-conversation" {
 async test "track-tool-calls" {
   let agent = @agent.new(model, cwd=@os.cwd())
   let tool_calls = Ref::new([])
-  agent.add_listener(event => match event {
+  agent.add_listener(event => match event.desc {
     PreToolCall(tool_call) => {
       println("Calling tool: \{tool_call.name}")
       tool_calls.val.push(tool_call.name)
@@ -140,7 +140,7 @@ async test "track-tool-calls" {
 ///|
 async test "track-token-pruning" {
   let agent = @agent.new(model, cwd=@os.cwd())
-  agent.add_listener(event => match event {
+  agent.add_listener(event => match event.desc {
     TokenCounted(count) => println("Tokens before pruning: \{count}")
     ContextPruned(origin_token_count~, pruned_token_count~) => {
       let saved = origin_token_count - pruned_token_count

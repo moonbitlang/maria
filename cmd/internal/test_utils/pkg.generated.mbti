@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/cmd/internal/test_utils"
+
+import(
+  "moonbitlang/async/http"
+  "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/httpx"
+)
+
+// Values
+pub async fn[T : @httpx.FromEvent] collect_events(@http.Client, stop_at~ : (T) -> Bool) -> Array[T]
+
+pub fn extract_events_for_message(Array[ServerEvent], id~ : String, content~ : String) -> Array[ServerEvent]
+
+pub fn redact_events(Array[ServerEvent]) -> Array[ServerEvent]
+
+// Errors
+
+// Types and methods
+pub(all) enum ServerEvent {
+  MariaQueuedMessagesSynchronized(Array[Json])
+  Maria(@event.Event)
+}
+pub async fn ServerEvent::collect_events(@http.Client, stop_at_cancel? : Bool) -> Array[Self]
+pub impl ToJson for ServerEvent
+pub impl @httpx.FromEvent for ServerEvent
+
+// Type aliases
+
+// Traits
+

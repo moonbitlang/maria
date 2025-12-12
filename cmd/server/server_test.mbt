@@ -125,104 +125,18 @@ async test "POST /v1/message" (t : @test.Test) {
 }
 
 ///|
-fn redact_events(
-  events : Array[Json],
-  remove_events? : Array[String] = [],
-) -> Array[Json] {
-  events
-  .filter(event => {
-    guard event is Object({ "event": String(ev), .. }) else { return true }
-    !remove_events.contains(ev)
-  })
-  .map(event => {
-    if event
-      is Object(
-        { "event": "maria.queued_messages.synchronized", "data": Array(ms), .. } as event
-      ) {
-      for m in ms {
-        if m is Object({ "id": String(_), .. } as message) {
-          message["id"] = "<redacted>"
-        }
-      }
-      event["data"] = Json::array(ms)
-      return Json::object(event)
-    }
-    guard event is Object({ "data": Object(data), .. } as event) else {
-      return event
-    }
-    data.remove("id")
-    data.remove("tag")
-    data.remove("time")
-    data.remove("pid")
-    data.remove("hostname")
-    data.remove("level")
-    let data : Map[String, Json] = match data {
-      {
-        "msg": "MessageAdded",
-        "message": Object(
-          { "role": "assistant" | "system", "content": String(_), .. } as message
-        ),
-        ..
-      } => {
-        message["content"] = "<redacted>"
-        { "msg": "MessageAdded", "message": message }
-      }
-      {
-        "msg": String("MessageUnqueued" | "MessageQueued" as msg),
-        "message": Object({ "id": String(_), .. } as message),
-        ..
-      } => {
-        message["id"] = "<redacted>"
-        { "msg": msg, "message": message }
-      }
-      { "msg": "RequestCompleted", .. } => {
-        data["usage"] = "<redacted>"
-        data["message"] = "<redacted>"
-        data
-      }
-      data => data
-    }
-    event["data"] = Json::object(data)
-    Json::object(event)
-  })
-}
-
-///|
 #skip
 async test "GET /v1/events" (t : @test.Test) {
   @mock.run(t, mock => {
     let group = mock.group
     let server = configure_server(mock)
     group.spawn_bg(() => server.start(), no_wait=true)
-    let events : Array[Json] = []
     let collector = group.spawn(() => {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      let mut last_event : String? = None
-      while s.read_until("\n") is Some(line) {
-        match line {
-          [.. "event: ", .. event] => {
-            last_event = Some(event.to_string())
-            continue
-          }
-          [.. "data: ", .. data] => {
-            let data = @json.parse(data)
-            if last_event is Some(event) {
-              events.push({ "event": event, "data": data })
-            } else {
-              events.push({ "data": data })
-            }
-            last_event = None
-            if events.last() is Some(event) &&
-              event is { "data": { "msg": "PostConversation", .. }, .. } {
-              break
-            }
-          }
-          _ => continue
-        }
-      }
+      @test_utils.ServerEvent::collect_events(s)
     })
     let (_, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
@@ -240,105 +154,93 @@ async test "GET /v1/events" (t : @test.Test) {
     guard b is { "id": String(msg1_id), .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    collector.wait()
-    fn extract_events_for_message(
-      events : Array[Json],
-      id : String,
-      content : String,
-    ) -> Array[Json] {
-      events.filter(e => (
-          e
-          is {
-            "event": "maria",
-            "data": {
-              "msg": "MessageAdded",
-              "message": { "content": String(s), .. },
-              ..
-            }
-            | {
-              "msg": "MessageQueued",
-              "message": { "message": { "content": String(s), .. }, .. },
-              ..
-            },
-            ..
-          } &&
-          s == content
-        ) ||
-        (
-          e
-          is {
-            "event": "maria",
-            "data": {
-              "msg": "MessageUnqueued",
-              "message": { "id": String(mid), .. },
-              ..
-            },
-            ..
-          } &&
-          mid == id
-        ))
-    }
-
+    let events = collector.wait()
     @json.inspect(
-      redact_events(
-        extract_events_for_message(events, msg0_id, "Hello, Maria!"),
+      @test_utils.redact_events(
+        @test_utils.extract_events_for_message(
+          events,
+          id=msg0_id,
+          content="Hello, Maria!",
+        ),
       ),
       content=[
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageQueued",
-            "message": {
-              "id": "<redacted>",
-              "message": { "role": "user", "content": "Hello, Maria!" },
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageQueued",
+              "message": {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "message": { "role": "user", "content": "Hello, Maria!" },
+              },
             },
           },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageUnqueued",
-            "message": { "id": "<redacted>" },
+        ],
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageUnqueued",
+              "message": { "id": "00000000-0000-0000-0000-000000000000" },
+            },
           },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "user", "content": "Hello, Maria!" },
+        ],
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageAdded",
+              "message": { "role": "user", "content": "<redacted>" },
+            },
           },
-        },
+        ],
       ],
     )
     @json.inspect(
-      redact_events(
-        extract_events_for_message(events, msg1_id, "Hello again, Maria!"),
+      @test_utils.redact_events(
+        @test_utils.extract_events_for_message(
+          events,
+          id=msg1_id,
+          content="Hello again, Maria!",
+        ),
       ),
       content=[
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageQueued",
-            "message": {
-              "id": "<redacted>",
-              "message": { "role": "user", "content": "Hello again, Maria!" },
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageQueued",
+              "message": {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "message": { "role": "user", "content": "Hello again, Maria!" },
+              },
             },
           },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageUnqueued",
-            "message": { "id": "<redacted>" },
+        ],
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageUnqueued",
+              "message": { "id": "00000000-0000-0000-0000-000000000000" },
+            },
           },
-        },
-        {
-          "event": "maria",
-          "data": {
-            "msg": "MessageAdded",
-            "message": { "role": "user", "content": "Hello again, Maria!" },
+        ],
+        [
+          "Maria",
+          {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "desc": {
+              "msg": "MessageAdded",
+              "message": { "role": "user", "content": "<redacted>" },
+            },
           },
-        },
+        ],
       ],
     )
   })
@@ -471,7 +373,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
           "http://localhost:\{server.port()}/v1/events",
         )
         @json.inspect(r.code, content=200)
-        collect_events(s)
+        @test_utils.ServerEvent::collect_events(s)
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       @json.inspect(r.code, content=200)
@@ -519,33 +421,24 @@ async test "POST /v1/cancel" (t : @test.Test) {
       // There is no MessageAdded event for the cancelled message
       @json.inspect(
         events
-        .filter(e => e
-          is {
-            "event": "maria",
-            "data": {
-              "msg": "MessageAdded",
-              "message": { "id": String(mid), .. },
-              ..
-            },
-            ..
-          } &&
-          mid == id)
+        .filter(e => e is Maria(event) &&
+          event.desc is MessageAdded(msg) &&
+          msg.content() == "This message will be popped on cancellation")
         .length(),
         content=0,
       )
       // There is a MariaCancelled event
       @json.inspect(
-        events.filter(e => e
-          is { "event": "maria", "data": { "msg": "MariaCancelled", .. }, .. })
-        |> redact_events(),
+        events.filter(e => e is Maria(event) && event.desc is Cancelled)
+        |> @test_utils.redact_events(),
         content=[
-          {
-            "event": "maria",
-            "data": {
-              "error": { "code": -1, "message": "Task was cancelled." },
-              "msg": "MariaCancelled",
+          [
+            "Maria",
+            {
+              "id": "00000000-0000-0000-0000-000000000000",
+              "desc": { "msg": "MariaCancelled" },
             },
-          },
+          ],
         ],
       )
       // Should be able to send another message after cancellation
@@ -556,90 +449,11 @@ async test "POST /v1/cancel" (t : @test.Test) {
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      let events : Array[Json] = []
-      let mut last_event : String? = None
-      while s.read_until("\n") is Some(line) {
-        match line {
-          [.. "event: ", .. event] => {
-            last_event = Some(event.to_string())
-            continue
-          }
-          [.. "data: ", .. data] => {
-            let data = @json.parse(data)
-            if last_event is Some(event) {
-              events.push({ "event": event, "data": data })
-            } else {
-              events.push({ "data": data })
-            }
-            last_event = None
-            if events.last() is Some(event) {
-              if event
-                is {
-                  "data": {
-                    "msg": "MessageAdded",
-                    "message": { "role": "system", .. },
-                    ..
-                  },
-                  ..
-                } {
-                continue
-              }
-              if event is { "data": { "msg": "PostConversation", .. }, .. } {
-                break
-              }
-            }
-          }
-          _ => continue
-        }
-      }
+      // We want skip over the first cancellation event.
+      @test_utils.ServerEvent::collect_events(s, stop_at_cancel=false)
+      |> ignore()
     })
   })
-}
-
-///|
-async fn collect_events(s : @http.Client) -> Array[Json] {
-  let events : Array[Json] = []
-  let mut last_event : String? = None
-  while s.read_until("\n") is Some(line) {
-    match line {
-      [.. "event: ", .. event] => {
-        last_event = Some(event.to_string())
-        continue
-      }
-      [.. "data: ", .. data] => {
-        let data = @json.parse(data)
-        if last_event is Some(event) {
-          events.push({ "event": event, "data": data })
-        } else {
-          events.push({ "data": data })
-        }
-        last_event = None
-        if events.last() is Some(event) &&
-          event
-          is ({
-            "data": {
-              "msg": "PostConversation"
-              | "MariaFailed"
-              | "MariaCancelled",
-              ..
-            },
-            ..
-          }
-          | {
-            "data": {
-              "msg": "ExternalEventReceived",
-              "event": { "type": "UserCancellation", .. },
-              ..
-            },
-            ..
-          }) {
-          break
-        }
-      }
-      _ => continue
-    }
-  }
-  return events
 }
 
 ///|
@@ -654,7 +468,7 @@ async test "web_search" (t : @test.Test) {
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      collect_events(s)
+      @test_utils.ServerEvent::collect_events(s)
     })
     let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
       "message": {
@@ -666,16 +480,8 @@ async test "web_search" (t : @test.Test) {
     let events = collector.wait()
     @json.inspect(
       events
-      .filter(e => e
-        is {
-          "event": "maria",
-          "data": {
-            "msg": "RequestCompleted",
-            "message": { "content": String(content), .. },
-            ..
-          },
-          ..
-        } &&
+      .filter(e => e is @test_utils.Maria(event) &&
+        event.desc is RequestCompleted(message=Assistant(content, ..), ..) &&
         (content.contains("2022") || content.contains("2023")))
       .length() >
       0,
@@ -782,7 +588,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      collect_events(s)
+      @test_utils.ServerEvent::collect_events(s)
     })
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     @json.inspect(r.code, content=200)
@@ -823,25 +629,16 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     )
     @json.inspect(r.code, content=200)
     let events = collector.wait()
+    println(events.to_json().stringify(indent=2))
     @json.inspect(
       events
-      .filter(e => e
-        is { "event": "maria", "data": { "msg": "MessageUnqueued", .. }, .. })
+      .filter(e => e is Maria(event) && event.desc is MessageUnqueued(_))
       .length(),
       content=1,
     )
     @json.inspect(
       events
-      .filter(e => e
-        is {
-          "event": "maria",
-          "data": {
-            "msg": "ExternalEventReceived",
-            "event": { "type": "UserCancellation", .. },
-            ..
-          },
-          ..
-        })
+      .filter(e => e is Maria(event) && event.desc is UserCancellation)
       .length(),
       content=1,
     )
@@ -859,7 +656,7 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
         "http://localhost:\{server.port()}/v1/events",
       )
       @json.inspect(r.code, content=200)
-      collect_events(s)
+      @test_utils.ServerEvent::collect_events(s)
     })
     mock.add_json_tree({
       "moon.mod.json": (
@@ -898,16 +695,7 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
     let events = collector.wait()
     @json.inspect(
       events
-      .filter(e => e
-        is {
-          "event": "maria",
-          "data": {
-            "msg": "ExternalEventReceived",
-            "event": { "type": "Diagnostics", "diagnostics": Array(_), .. },
-            ..
-          },
-          ..
-        })
+      .filter(e => e is Maria(event) && event.desc is Diagnostics(_))
       .length() >
       0,
       content=true,

@@ -27,13 +27,13 @@
 /// // conversation ended
 /// PostConversation
 /// ```
-pub(all) enum Event {
-  Incoming(ExternalEvent)
-  Outgoing(OutgoingEvent)
+pub(all) struct Event {
+  id : @uuid.Uuid
+  desc : EventDesc
 } derive(Eq, Show)
 
 ///|
-pub(all) enum OutgoingEvent {
+pub(all) enum EventDesc {
   /// Event triggered when a model is loaded.
   ModelLoaded(name~ : String, model~ : @model.Model)
   /// Event triggered before a conversation starts.
@@ -87,8 +87,12 @@ pub(all) enum OutgoingEvent {
   /// the event you might want to listen for. Compared to `MessageAdded` event,
   /// this event contains more information like `usage` and `tool_calls`.
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
-  /// Event triggered when an external event is received and processed.
-  ExternalEventReceived(ExternalEvent)
+  /// Diagnostics from IDE (errors, warnings from the problems panel)
+  Diagnostics(@diagnostics.Diagnostics)
+  /// User wants to cancel the current operation
+  UserCancellation
+  /// User sends an immediate message (interrupting current flow)
+  UserMessage(String)
   /// Cancelled
   Cancelled
   /// Event triggered when the todo list is updated.
@@ -97,7 +101,7 @@ pub(all) enum OutgoingEvent {
 } derive(Eq, Show)
 
 ///|
-pub impl ToJson for OutgoingEvent with to_json(self : OutgoingEvent) -> Json {
+fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
   match self {
     ModelLoaded(name~, model~) =>
       {
@@ -197,19 +201,26 @@ pub impl ToJson for OutgoingEvent with to_json(self : OutgoingEvent) -> Json {
       let message = message.to_openai()
       { "msg": "RequestCompleted", "usage": usage, "message": message }
     }
-    ExternalEventReceived(external_event) =>
-      { "msg": "ExternalEventReceived", "event": external_event.to_json() }
+    Diagnostics(diagnostics) =>
+      { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
+    UserCancellation => { "msg": "UserCancellation" }
+    UserMessage(message) => { "msg": "UserMessage", "message": message }
     Cancelled => { "msg": "MariaCancelled" }
     TodoUpdated(todo) => { "msg": "TodoUpdated", "todo": todo.to_json() }
-    Custom(name, payload) => Json::object(payload.merge({ "msg": name }))
+    Custom(name, payload) => payload.merge({ "msg": name })
   }
 }
 
 ///|
-pub impl @json.FromJson for OutgoingEvent with from_json(
+pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
+  Json::object(self.to_json_object())
+}
+
+///|
+pub impl @json.FromJson for EventDesc with from_json(
   json : Json,
   json_path : @json.JsonPath,
-) -> OutgoingEvent raise @json.JsonDecodeError {
+) -> EventDesc raise @json.JsonDecodeError {
   guard json is Object({ "msg": String(msg), .. } as json_object) else {
     raise @json.JsonDecodeError(
       (json_path, "Missing 'msg' field in OutgoingEvent"),
@@ -439,17 +450,30 @@ pub impl @json.FromJson for OutgoingEvent with from_json(
       )
       RequestCompleted(usage~, message=@ai.Message::from_openai(message))
     }
-    "ExternalEventReceived" => {
-      guard json_object.get("event") is Some(event_json) else {
+    "Diagnostics" => {
+      guard json_object.get("diagnostics") is Some(diagnostics_json) else {
         raise @json.JsonDecodeError(
-          (json_path, "ExternalEventReceived event missing 'event' field"),
+          (json_path, "Diagnostics event missing 'diagnostics' field"),
         )
       }
-      let external_event : ExternalEvent = ExternalEvent::from_json(
-        event_json,
-        json_path.add_key("event"),
+      let diagnostics : @diagnostics.Diagnostics = @json.FromJson::from_json(
+        diagnostics_json,
+        json_path.add_key("diagnostics"),
       )
-      ExternalEventReceived(external_event)
+      Diagnostics(diagnostics)
+    }
+    "UserCancellation" => UserCancellation
+    "UserMessage" => {
+      guard json_object.get("message") is Some(message_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "Missing 'message' field in UserMessage event"),
+        )
+      }
+      let message : String = @json.FromJson::from_json(
+        message_json,
+        json_path.add_key("message"),
+      )
+      UserMessage(message)
     }
     "MariaCancelled" => Cancelled
     "TodoUpdated" => {
@@ -466,44 +490,75 @@ pub impl @json.FromJson for OutgoingEvent with from_json(
     }
     _ =>
       raise @json.JsonDecodeError(
-        (json_path, "Unknown 'msg' value in OutgoingEvent: \{msg}"),
+        (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
       )
   }
 }
 
 ///|
+/// Serializes an `Event` to JSON.
+///
+/// Note: this implementation behaves identically to the derived version.
+/// We manually implement it here to ensure the stability of the JSON format.
 pub impl ToJson for Event with to_json(self : Event) -> Json {
-  match self {
-    Incoming(external_event) =>
-      { "kind": "Incoming", "external_event": external_event.to_json() }
-    Outgoing(outgoing_event) =>
-      { "kind": "Outgoing", "outgoing_event": outgoing_event.to_json() }
-  }
+  { "id": self.id.to_json(), "desc": self.desc.to_json_object() }
 }
 
 ///|
+/// Deserializes an `Event` from JSON.
+///
+/// Note: this implementation behaves identically to the derived version.
+/// We manually implement it here to ensure the stability of the JSON format.
 pub impl @json.FromJson for Event with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Event raise @json.JsonDecodeError {
   match json {
-    { "kind": "Incoming", "external_event": external_event_json, .. } =>
-      Incoming(
-        ExternalEvent::from_json(
-          external_event_json,
-          json_path.add_key("external_event"),
-        ),
-      )
-    { "kind": "Outgoing", "outgoing_event": outgoing_event_json, .. } =>
-      Outgoing(
-        OutgoingEvent::from_json(
-          outgoing_event_json,
-          json_path.add_key("outgoing_event"),
-        ),
-      )
+    { "id": id, "desc": desc_json, .. } =>
+      {
+        id: @json.from_json(id),
+        desc: @json.from_json(desc_json, path=json_path.add_key("desc")),
+      }
     _ =>
       raise @json.JsonDecodeError(
-        (json_path, "Invalid Event object: missing or unknown 'kind' field"),
+        (json_path, "Invalid Event object: expected fields 'id' and 'desc'"),
       )
+  }
+}
+
+///|
+/// External events that can be sent to the agent from outside sources.
+/// These events are collected via polling and can influence the conversation.
+pub fn Event::is_incoming(self : Event) -> Bool {
+  match self.desc {
+    UserCancellation | UserMessage(_) | Diagnostics(_) => true
+    _ => false
+  }
+}
+
+///|
+/// Indicates whether the event signifies the end of a conversation.
+pub fn Event::is_stopping(self : Event) -> Bool {
+  match self.desc {
+    PostConversation | Custom("MariaFailed", _) => true
+    _ => false
+  }
+}
+
+///|
+/// Indicates whether the event signifies the start of a conversation.
+pub fn Event::is_starting(self : Event) -> Bool {
+  match self.desc {
+    PreConversation => true
+    _ => false
+  }
+}
+
+///|
+/// Indicates whether the event represents a cancellation.
+pub fn Event::is_cancellation(self : Event) -> Bool {
+  match self.desc {
+    UserCancellation | Cancelled => true
+    _ => false
   }
 }
