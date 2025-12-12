@@ -86,7 +86,7 @@ pub fn Manager::new_conversation(
     description,
     id: self.uuid.v4().to_string(),
     system_prompt: None,
-    messages: [],
+    events: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
     cwd: self.cwd,

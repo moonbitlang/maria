@@ -21,6 +21,7 @@
 /// * `agent` : The agent instance emitting the event.
 /// * `event` : The event to emit and log.
 fn Agent::emit(agent : Agent, event : @event.OutgoingEvent) -> Unit {
+  agent.history.add_event(Outgoing(event))
   agent.event_target.emit(event)
 }
 

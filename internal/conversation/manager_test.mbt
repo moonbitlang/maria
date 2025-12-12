@@ -17,7 +17,9 @@ async test "Manager" (t : @test.Test) {
     let conversations = @pathx.join(dot_moonagent, "conversations")
     @json.inspect(mock.json(@fsx.list_directory(conversations)), content=[])
     let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_event(
+      Outgoing(MessageAdded(@ai.user_message(content="Hello"))),
+    )
     manager.save(conversation)
     @json.inspect(manager.list(), content=[
       "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -34,7 +36,9 @@ async test "Manager::load" (t : @test.Test) {
       clock=mock.clock,
     )
     let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_event(
+      Outgoing(MessageAdded(@ai.user_message(content="Hello"))),
+    )
     @json.inspect(
       conversation.id(),
       content="ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -46,8 +50,14 @@ async test "Manager::load" (t : @test.Test) {
       {
         "name": "Test Conversation",
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "messages": [
-          { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
+        "events": [
+          {
+            "kind": "Outgoing",
+            "outgoing_event": {
+              "msg": "MessageAdded",
+              "message": { "role": "user", "content": "Hello" },
+            },
+          },
         ],
         "created_at": "0",
         "updated_at": "2",

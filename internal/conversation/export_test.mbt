@@ -7,21 +7,34 @@ async test "export_to_markdown" (t : @test.Test) {
       cwd=mock.cwd.path(),
     )
     let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.add_message(@ai.user_message(content="Hello, how are you?"))
-    conversation.add_message(
-      @ai.assistant_message(content="I'm fine, thank you!"),
+    conversation.add_event(
+      Outgoing(MessageAdded(@ai.user_message(content="Hello, how are you?"))),
     )
-    conversation.add_message(
-      @ai.user_message(content="What's the weather today?"),
-    )
-    conversation.add_message(
-      @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
-        @ai.tool_call(
-          id="tc_0",
-          name="get_weather",
-          arguments="{\"location\":\"San Francisco\"}",
+    conversation.add_event(
+      Outgoing(
+        RequestCompleted(
+          usage=None,
+          message=@ai.assistant_message(content="I'm fine, thank you!"),
         ),
-      ]),
+      ),
+    )
+    conversation.add_event(
+      Outgoing(
+        MessageAdded(@ai.user_message(content="What's the weather today?")),
+      ),
+    )
+    conversation.add_event(
+      Outgoing(
+        MessageAdded(
+          @ai.assistant_message(content="I'll use the weather tool to check.", tool_calls=[
+            @ai.tool_call(
+              id="tc_0",
+              name="get_weather",
+              arguments="{\"location\":\"San Francisco\"}",
+            ),
+          ]),
+        ),
+      ),
     )
     inspect(
       conversation.export_to_markdown(),
@@ -39,7 +52,6 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|Hello, how are you?
         #|
-        #|**Timestamp:** 2
         #|
         #|---
         #|
@@ -49,7 +61,6 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|I'm fine, thank you!
         #|
-        #|**Timestamp:** 3
         #|
         #|---
         #|
@@ -59,7 +70,6 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|What's the weather today?
         #|
-        #|**Timestamp:** 4
         #|
         #|---
         #|
@@ -74,7 +84,6 @@ async test "export_to_markdown" (t : @test.Test) {
         #|**Parameters:**
         #|- **location:** San Francisco
         #|
-        #|**Timestamp:** 5
       ),
     )
   })
