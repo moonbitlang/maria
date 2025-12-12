@@ -36,6 +36,15 @@ cases, and it's hard to define well-defined behavior, so when we add APIs in
 By the way, if other internal packages cannot have simple and elegant API
 design, you can refer to the above conventions.
 
+## Internal Packages Naming Conventions
+
+When you want to create a helper function MoonBit packages for external MoonBit packages, you can create an `pkgx` package under the `internal/` directory, where `pkg` is the name of the external package.
+
+e.g. `fs` package -> `internal/fsx` package
+
+**Justification:** fs_utility is too long, fsx is short and clear enough.  
+
+
 ## Error Handling
 
 LLM is not deterministic, so it is hard to replicate some errors. Therefore, we
