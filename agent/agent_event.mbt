@@ -48,7 +48,7 @@ pub fn Agent::add_listener(
 /// Returns the external events queue for this agent.
 ///
 /// The environment can use this queue to send events to the agent:
-/// * `UserCancellation` - to cancel the current operation
+/// * `Cancelled` - to cancel the current operation
 /// * `UserMessage` - to send an immediate message that interrupts the flow
 /// * `Diagnostics` - to provide IDE diagnostic information
 ///

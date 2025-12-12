@@ -54,7 +54,7 @@ The `Event` enum represents all possible events that can occur during an agent's
 
 **External Events:**
 - `ExternalEventReceived` - External event processing
-- `Cancelled` - User cancellation
+- `Cancelled` - User Cancel
 - `TodoUpdated` - Todo list updates
 
 ### 2. EventTarget
@@ -69,7 +69,7 @@ The `EventTarget` is the central event dispatcher that:
 
 The `ExternalEventQueue` provides a mechanism for external sources (environment, IDE, user) to send events to the agent:
 - `Diagnostics` - IDE diagnostics (errors, warnings)
-- `UserCancellation` - User wants to cancel the operation
+- `Cancelled` - User wants to cancel the operation
 - `UserMessage` - User sends an immediate message
 
 ## Conversation Lifecycle
@@ -127,7 +127,7 @@ let external_queue = ExternalEventQueue::new()
 
 // From environment (e.g., IDE integration)
 external_queue.send(Diagnostics(diagnostics))
-external_queue.send(UserCancellation)
+external_queue.send(Cancelled)
 
 // From agent (polling)
 let events = external_queue.poll()

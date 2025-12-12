@@ -60,7 +60,7 @@ pub fn ExternalEventQueue::new() -> ExternalEventQueue raise {
 /// queue.send(Diagnostics(diagnostics))
 ///
 /// // Request cancellation
-/// queue.send(UserCancellation)
+/// queue.send(Cancelled)
 ///
 /// // Send user message
 /// queue.send(UserMessage("Stop and explain"))
@@ -99,7 +99,7 @@ pub fn ExternalEventQueue::send(
 /// let external_events = queue.poll()
 /// for event in external_events {
 ///   match event {
-///     UserCancellation => return // Stop conversation
+///     Cancelled => return // Stop conversation
 ///     Diagnostics(d) => process_diagnostics(d)
 ///     UserMessage(msg) => handle_message(msg)
 ///   }
