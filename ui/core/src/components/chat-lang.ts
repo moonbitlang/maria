@@ -11,18 +11,18 @@ monaco.editor.defineTheme("custom-dark", {
 });
 
 // Add CSS for slash command decorations
-const styleId = "chat-slash-command-style";
+const styleId = "chat-token-style";
 if (!document.getElementById(styleId)) {
   const style = document.createElement("style");
   style.id = styleId;
   style.textContent = `
-        .chat-slash-command {
+        .chat-token {
           color: #26569e !important;
           background-color: #adceff7a !important;
           border-radius: 3px;
           padding: 0 2px;
         }
-        .dark .chat-slash-command {
+        .dark .chat-token {
           color: #85b6ff !important;
           background-color: #26477866 !important;
         }
@@ -44,55 +44,101 @@ function isEmptyBeforePosition(
 }
 
 // Decoration types for slash commands
-const slashCommandDecorationType = "chat-slash-command";
+const chatTokenDecorationType = "chat-token";
 
-type SlashCommandToken = {
+type TokenBase = {
   start: number;
   end: number;
+};
+
+type SlashCommandToken = TokenBase & {
   command: string;
 };
 
+type UserMentionToken = TokenBase & {
+  kind: "sym" | "file";
+  identifier: string;
+};
+
+type Token = SlashCommandToken | UserMentionToken;
+
 // Parse slash commands from the text, there can only be one slash command
-function parseSlashCommand(text: string): SlashCommandToken | undefined {
-  let state: "start" | "in-slash" = "start";
+function parseTokens(text: string): Token[] {
+  const tokens: Token[] = [];
+  let state: "initial" | "text" | "in-slash" | "in-hash" = "initial";
   let start = 0;
+
+  const addSlashToken = (end: number) => {
+    tokens.push({
+      start,
+      end,
+      command: text.slice(start + 1, end),
+    });
+  };
+
+  const addHashToken = (end: number) => {
+    const content = text.slice(start + 1, end);
+    const [kind, identifier] = content.split(":", 2);
+    if (kind === "sym" || kind === "file") {
+      tokens.push({
+        start,
+        end,
+        kind: kind as "sym" | "file",
+        identifier: identifier || "",
+      });
+    }
+  };
+
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     switch (state) {
-      case "start": {
+      case "initial": {
         if (char === "/") {
           state = "in-slash";
           start = i;
+        } else if (char === "#") {
+          state = "in-hash";
+          start = i;
         } else if (char.match(/\s/)) {
-          // stay in start state
+          // stay in initial state
         } else {
-          // invalid character before slash command
-          return;
+          // non-whitespace character, transition to normal text
+          state = "text";
+        }
+        break;
+      }
+      case "text": {
+        if (char === "#") {
+          state = "in-hash";
+          start = i;
         }
         break;
       }
       case "in-slash": {
         if (char.match(/\s/)) {
-          // end of slash command
-          return {
-            start,
-            end: i,
-            command: text.slice(start + 1, i),
-          };
-        } else {
-          // stay in in-slash state
+          addSlashToken(i);
+          state = "text";
+        }
+        break;
+      }
+      case "in-hash": {
+        if (char.match(/\s/)) {
+          addHashToken(i);
+          state = "text";
         }
         break;
       }
     }
   }
+
+  // Handle tokens that extend to end of string
   if (state === "in-slash") {
-    return {
-      start,
-      end: text.length,
-      command: text.slice(start + 1),
-    };
+    addSlashToken(text.length);
+  } else if (state === "in-hash") {
+    addHashToken(text.length);
   }
+
+  return tokens;
 }
 
 export function setupSlashCommandDecoration(
@@ -106,28 +152,30 @@ export function setupSlashCommandDecoration(
       return;
     }
     const text = model.getValue();
-    const token = parseSlashCommand(text);
-    if (token === undefined) {
+    const tokens = parseTokens(text);
+    if (tokens.length === 0) {
       decorations.clear();
       return;
     }
 
-    const startPos = model.getPositionAt(token.start);
-    const endPos = model.getPositionAt(token.end);
-    const range = new monaco.Range(
-      startPos.lineNumber,
-      startPos.column,
-      endPos.lineNumber,
-      endPos.column,
+    decorations.set(
+      tokens.map((token) => {
+        const startPos = model.getPositionAt(token.start);
+        const endPos = model.getPositionAt(token.end);
+        const range = new monaco.Range(
+          startPos.lineNumber,
+          startPos.column,
+          endPos.lineNumber,
+          endPos.column,
+        );
+        return {
+          range,
+          options: {
+            inlineClassName: chatTokenDecorationType,
+          },
+        };
+      }),
     );
-    decorations.set([
-      {
-        range,
-        options: {
-          inlineClassName: slashCommandDecorationType,
-        },
-      },
-    ]);
 
     const change = e.changes[0];
     if (!change) return;
@@ -139,42 +187,43 @@ export function setupSlashCommandDecoration(
     );
     if (change.text === "") {
       // Deletion
-      if (token.start <= changeStart && token.end >= changeStart) {
-        const tokenStartPos = model.getPositionAt(token.start);
-        const tokenEndPos = model.getPositionAt(token.end);
-        const tokenRange = new monaco.Range(
-          tokenStartPos.lineNumber,
-          tokenStartPos.column,
-          tokenEndPos.lineNumber,
-          tokenEndPos.column,
-        );
-        editor.executeEdits("chat-token-deleter", [
-          {
-            range: tokenRange,
-            text: "",
-            forceMoveMarkers: true,
-          },
-        ]);
+      for (const token of tokens) {
+        if (token.start <= changeStart && token.end >= changeStart) {
+          const tokenStartPos = model.getPositionAt(token.start);
+          const tokenEndPos = model.getPositionAt(token.end);
+          const tokenRange = new monaco.Range(
+            tokenStartPos.lineNumber,
+            tokenStartPos.column,
+            tokenEndPos.lineNumber,
+            tokenEndPos.column,
+          );
+          editor.executeEdits("chat-token-deleter", [
+            {
+              range: tokenRange,
+              text: "",
+              forceMoveMarkers: true,
+            },
+          ]);
+          break;
+        }
       }
     }
   });
 }
+
+const slashCommands = ["fix-all-warnings"];
 
 monaco.languages.register({ id: "chat" });
 
 monaco.languages.registerCompletionItemProvider(
   { language: "chat" },
   {
-    triggerCharacters: ["/"],
+    triggerCharacters: ["/", "#"],
     provideCompletionItems: function (
       model: monaco.editor.ITextModel,
       position: monaco.Position,
-      // context: monaco.languages.CompletionContext,
+      context: monaco.languages.CompletionContext,
     ): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
-      if (!isEmptyBeforePosition(model, position)) {
-        // No text allowed before the completion
-        return;
-      }
       const wordInfo = model.getWordUntilPosition(position);
       const range = new monaco.Range(
         position.lineNumber,
@@ -182,16 +231,38 @@ monaco.languages.registerCompletionItemProvider(
         position.lineNumber,
         wordInfo.endColumn,
       );
-      return {
-        suggestions: [
-          {
-            label: "fix-all-warnings",
-            insertText: "fix-all-warnings ",
+      if (context.triggerCharacter === "/") {
+        if (!isEmptyBeforePosition(model, position)) {
+          // No text allowed before the completion
+          return;
+        }
+        return {
+          suggestions: slashCommands.map((command) => ({
+            label: command,
+            insertText: command,
             kind: monaco.languages.CompletionItemKind.Text,
             range,
-          },
-        ],
-      };
+          })),
+        };
+      } else if (context.triggerCharacter === "#") {
+        // Future: mention user completion
+        return {
+          suggestions: [
+            {
+              label: "fib",
+              insertText: "sym:fib",
+              kind: monaco.languages.CompletionItemKind.Function,
+              range,
+            },
+            {
+              label: "lib.mbt",
+              insertText: "file:lib.mbt",
+              kind: monaco.languages.CompletionItemKind.File,
+              range,
+            },
+          ],
+        };
+      }
     },
   },
 );
