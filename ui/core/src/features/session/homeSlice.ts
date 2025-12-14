@@ -40,12 +40,18 @@ export const homeSlice = createAppSlice({
       if (newRanges.length !== state.dynamicVariables.length) {
         return;
       }
+      const newVariables = [];
       for (let i = 0; i < newRanges.length; i++) {
         const range = newRanges[i];
         const variable = state.dynamicVariables[i];
         variable.start = range.start;
         variable.end = range.end;
+        if (range.start === range.end) {
+          continue;
+        }
+        newVariables.push(variable);
       }
+      state.dynamicVariables = newVariables;
     },
   },
   selectors: {

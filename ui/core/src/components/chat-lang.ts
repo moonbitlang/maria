@@ -93,19 +93,59 @@ export function setupDynamicVariableDecoration(
   editorInstance = editor;
   decorations = editor.createDecorationsCollection();
 
-  const dd = decorations.onDidChange(() => {
-    const ranges = decorations?.getRanges();
-    if (!ranges || ranges.length === 0) return;
+  const ed = editor.onDidChangeModelContent((e) => {
     const model = editor.getModel();
     if (!model) return;
-    // Update the dynamic variable positions based on the current decorations
     const dynamicVariables = getDynamicVariables();
+    const changedVariableIndexes = new Set<number>();
+    const variablesToDelete: number[] = [];
+
+    for (const change of e.changes) {
+      const rangeStartOffset = change.rangeOffset;
+      const rangeEndOffset = rangeStartOffset + change.rangeLength;
+      for (let i = 0; i < dynamicVariables.length; i++) {
+        const variable = dynamicVariables[i];
+        // Check if the change's range overlaps with the variable's range
+        if (
+          rangeStartOffset < variable.end &&
+          rangeEndOffset > variable.start
+        ) {
+          // Check if the variable is only partially affected
+          const fullyDeleted =
+            rangeStartOffset <= variable.start &&
+            rangeEndOffset >= variable.end;
+          if (!fullyDeleted) {
+            // Variable is partially affected, delete it completely
+            variablesToDelete.push(i);
+          }
+          changedVariableIndexes.add(i);
+        }
+      }
+    }
+
+    // Delete partially affected variables completely
+    if (variablesToDelete.length > 0) {
+      const edits = variablesToDelete.map((i) => {
+        const variable = dynamicVariables[i];
+        return {
+          range: monaco.Range.fromPositions(
+            model.getPositionAt(variable.start),
+            model.getPositionAt(variable.end),
+          ),
+          text: "",
+        };
+      });
+      model.pushEditOperations([], edits, () => null);
+    }
+
+    // Update ranges of changed variables
+    const ranges = decorations?.getRanges();
+    if (!ranges || ranges.length === 0) return;
     if (ranges.length !== dynamicVariables.length) return;
     let rangesChanged = false;
     for (let i = 0; i < ranges.length; i++) {
       const range = ranges[i];
       const variable = dynamicVariables[i];
-      if (!variable) break;
       const startOffset = model.getOffsetAt(range.getStartPosition());
       if (startOffset !== variable.start) {
         rangesChanged = true;
@@ -132,7 +172,7 @@ export function setupDynamicVariableDecoration(
 
   return {
     dispose() {
-      dd.dispose();
+      ed.dispose();
       decorations = undefined;
       editorInstance = undefined;
     },
