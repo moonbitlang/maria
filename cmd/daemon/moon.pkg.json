@@ -21,7 +21,8 @@
     "moonbitlang/maria/internal/errno",
     "moonbitlang/async/fs",
     "moonbitlang/async/process",
-    "moonbitlang/maria/event"
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/internal/buildinfo"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
