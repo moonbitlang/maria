@@ -27,6 +27,76 @@ pub struct Architecture {
 pub impl ToJson for Architecture
 pub impl @json.FromJson for Architecture
 
+type AssistantMessage
+
+type AssistantMessageContent
+
+type ChatCompletionFinishReason
+
+type ChatGenerationParams
+
+type ChatGenerationParamsDataCollection
+
+type ChatGenerationParamsEngine
+
+type ChatGenerationParamsMaxPrice
+
+type ChatGenerationParamsPdf
+
+type ChatGenerationParamsPdfEngine
+
+type ChatGenerationParamsPlugin
+
+type ChatGenerationParamsPluginFileParser
+
+type ChatGenerationParamsPluginModeration
+
+type ChatGenerationParamsPluginResponseHealing
+
+type ChatGenerationParamsPluginWeb
+
+type ChatGenerationParamsProvider
+
+type ChatGenerationParamsResponseFormat
+
+type ChatGenerationParamsRoute
+
+type ChatGenerationTokenUsage
+
+type ChatMessageContentItem
+
+type ChatMessageContentItemCacheControl
+
+type ChatMessageContentItemCacheControlEphemeral
+
+type ChatMessageContentItemText
+
+type ChatMessageTokenLogprob
+
+type ChatMessageTokenLogprobs
+
+type ChatMessageToolCall
+
+type ChatMessageToolCallFunction
+
+type ChatResponse
+
+type ChatResponseChoice
+
+type ChatStreamOptions
+
+type CompletionTokensDetails
+
+type Debug
+
+type Effort
+
+type Message
+
+type MessageContent
+
+type MessageDeveloper
+
 pub struct Model {
   id : String
   canonical_slug : String
@@ -56,6 +126,34 @@ pub struct Pricing {
 pub impl ToJson for Pricing
 pub impl @json.FromJson for Pricing
 
+type PromptTokensDetails
+
+type Quantizations
+
+type Reasoning
+
+type ReasoningSummaryVerbosity
+
+type ResponseFormatJSONSchema
+
+type ResponseFormatTextGrammar
+
+type Schema0
+
+type Sort
+
+type SystemMessage
+
+type SystemMessageContent
+
+type ToolDefinitionJson
+
+type ToolResponseMessage
+
+type ToolResponseMessageContent
+
+type TopLogprob
+
 pub struct TopProvider {
   context_length : Int?
   max_completion_tokens : Int?
@@ -63,6 +161,12 @@ pub struct TopProvider {
 }
 pub impl ToJson for TopProvider
 pub impl @json.FromJson for TopProvider
+
+type Ttl
+
+type UserMessage
+
+type UserMessageContent
 
 // Type aliases
 
