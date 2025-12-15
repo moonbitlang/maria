@@ -1,0 +1,4 @@
+///|
+struct ResponseFormatTextGrammar {
+  grammar : String
+}

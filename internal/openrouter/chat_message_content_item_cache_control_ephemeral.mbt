@@ -1,0 +1,4 @@
+///|
+struct ChatMessageContentItemCacheControlEphemeral {
+  ttl : Ttl?
+}

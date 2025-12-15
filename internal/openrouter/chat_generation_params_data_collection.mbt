@@ -1,0 +1,5 @@
+///|
+enum ChatGenerationParamsDataCollection {
+  Deny
+  Allow
+}
