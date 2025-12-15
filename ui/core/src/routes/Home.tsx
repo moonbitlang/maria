@@ -30,7 +30,7 @@ import {
 } from "../features/session/homeSlice.js";
 import { setActiveTaskId, setTask } from "../features/session/tasksSlice.ts";
 import { RAL } from "../lib/ral";
-import { base } from "../lib/utils.js";
+import { base, composeMessage } from "../lib/utils.js";
 
 function WDSelector({ cwd }: { cwd: string | undefined }) {
   const dispatch = useAppDispatch();
@@ -98,8 +98,10 @@ export default function Home() {
       // dont clear cwd for vsc-webview, it is fixed per workspace
       dispatch(setCwd(undefined)); // Clear cwd
     }
+    const message = composeMessage(input, dynamicVariables);
+    console.log(message);
     const { data } = await postNewTask({
-      message: input,
+      message,
       cwd,
       web_search: webSearchEnabled,
     });

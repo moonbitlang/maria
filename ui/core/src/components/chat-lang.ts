@@ -1,5 +1,9 @@
 import * as monaco from "monaco-editor-core";
-import type { ChatDynamicVariable } from "../lib/types";
+import { RAL } from "../lib/ral";
+import type {
+  ChatDynamicVariable,
+  ChatDynamicVariableInfo,
+} from "../lib/types";
 import { executeCommand, registerCommand } from "./commands";
 
 // Define custom theme with matching background color
@@ -34,40 +38,44 @@ if (!document.getElementById(styleId)) {
 const slashCommands = ["fix-all-warnings"];
 
 function createItem(
-  label: string,
-  kind: monaco.languages.CompletionItemKind,
-  // The offset where the dynamic variable starts, should contains the trigger character
+  info: ChatDynamicVariableInfo,
+  // start offset of the dynamic variable, should include the trigger character
   startOffset: number,
-  // The range to replace when the completion is accepted, should not contains the trigger character
+  // the range to be replaced, should not include the trigger character
   range: monaco.IRange,
 ): monaco.languages.CompletionItem {
+  const label = info.name;
   let insertText = label;
-  switch (kind) {
-    case monaco.languages.CompletionItemKind.Text: {
+  let detail = undefined;
+  switch (info.kind) {
+    case "command": {
       insertText = `${label} `;
       break;
     }
-    case monaco.languages.CompletionItemKind.File: {
+    case "file": {
       insertText = `file:${label} `;
+      detail = info.uri;
       break;
     }
-    default: {
+    case "symbol": {
       insertText = `sym:${label} `;
+      detail = info.uri;
       break;
     }
   }
+  const arg: ChatDynamicVariable = {
+    info,
+    start: startOffset,
+    end: startOffset + insertText.length,
+  };
   return {
     label,
-    kind,
+    kind: info.itemKind,
+    detail,
     command: {
       id: "chat/add-dynamic-variable",
       title: "Chat: Add Dynamic Variable",
-      arguments: [
-        {
-          start: startOffset,
-          end: startOffset + insertText.length,
-        },
-      ],
+      arguments: [arg],
     },
     insertText,
     range,
@@ -226,8 +234,11 @@ function provideSlashCompletions(
     return {
       suggestions: slashCommands.map((command) =>
         createItem(
-          command,
-          monaco.languages.CompletionItemKind.Text,
+          {
+            kind: "command",
+            name: command,
+            itemKind: monaco.languages.CompletionItemKind.Text,
+          },
           startOffset,
           range,
         ),
@@ -242,25 +253,19 @@ async function provideDynamicVariableCompletions(
   startOffset: number,
   range: monaco.IRange,
 ): Promise<monaco.languages.ProviderResult<monaco.languages.CompletionList>> {
+  const ral = RAL();
   const query = model.getValueInRange(range);
-  console.log({ query });
-  return {
-    incomplete: true,
-    suggestions: [
-      createItem(
-        "impl Trait for Type",
-        monaco.languages.CompletionItemKind.Enum,
-        startOffset,
-        range,
-      ),
-      createItem(
-        "hello.mbt",
-        monaco.languages.CompletionItemKind.File,
-        startOffset,
-        range,
-      ),
-    ],
-  };
+  if (ral.platform === "vsc-webview") {
+    const dynamicVariables = await ral.vscodeApi.getDynamicVariables(query);
+    return {
+      incomplete: true,
+      suggestions: dynamicVariables.map((v) => {
+        return createItem(v, startOffset, range);
+      }),
+    };
+  } else {
+    return null;
+  }
 }
 
 monaco.languages.registerCompletionItemProvider(

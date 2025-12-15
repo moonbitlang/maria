@@ -1,5 +1,12 @@
-import { VscodeApi, WebviewApi } from "@maria/core/lib/types.js";
+import {
+  ChatDynamicVariableInfo,
+  CompletionItemKind,
+  IRange,
+  VscodeApi,
+  WebviewApi,
+} from "@maria/core/lib/types.js";
 import * as comlink from "comlink";
+import * as path from "path";
 import * as vscode from "vscode";
 import * as endpoint from "../../vsc-common/endpoint";
 import { DaemonService } from "./daemon-service";
@@ -142,9 +149,181 @@ export class MoonBitAgentViewProvider implements vscode.WebviewViewProvider {
       getUrl: () => {
         return this._daemonService.api;
       },
+      getDynamicVariables: getDynamicVariables,
     };
     const webviewApi = comlink.wrap<WebviewApi>(consumeEndpoint);
     globalState.set("webviewApi", webviewApi);
     comlink.expose(vscodeApi, provideEndpoint);
   }
+}
+
+function toMonacoCompletionItemKind(
+  kind: vscode.CompletionItemKind,
+): CompletionItemKind {
+  switch (kind) {
+    case vscode.CompletionItemKind.Text:
+      return CompletionItemKind.Text;
+    case vscode.CompletionItemKind.Method:
+      return CompletionItemKind.Method;
+    case vscode.CompletionItemKind.Function:
+      return CompletionItemKind.Function;
+    case vscode.CompletionItemKind.Constructor:
+      return CompletionItemKind.Constructor;
+    case vscode.CompletionItemKind.Field:
+      return CompletionItemKind.Field;
+    case vscode.CompletionItemKind.Variable:
+      return CompletionItemKind.Variable;
+    case vscode.CompletionItemKind.Class:
+      return CompletionItemKind.Class;
+    case vscode.CompletionItemKind.Interface:
+      return CompletionItemKind.Interface;
+    case vscode.CompletionItemKind.Module:
+      return CompletionItemKind.Module;
+    case vscode.CompletionItemKind.Property:
+      return CompletionItemKind.Property;
+    case vscode.CompletionItemKind.Unit:
+      return CompletionItemKind.Unit;
+    case vscode.CompletionItemKind.Value:
+      return CompletionItemKind.Value;
+    case vscode.CompletionItemKind.Enum:
+      return CompletionItemKind.Enum;
+    case vscode.CompletionItemKind.Keyword:
+      return CompletionItemKind.Keyword;
+    case vscode.CompletionItemKind.Snippet:
+      return CompletionItemKind.Snippet;
+    case vscode.CompletionItemKind.Color:
+      return CompletionItemKind.Color;
+    case vscode.CompletionItemKind.Reference:
+      return CompletionItemKind.Reference;
+    case vscode.CompletionItemKind.File:
+      return CompletionItemKind.File;
+    case vscode.CompletionItemKind.Folder:
+      return CompletionItemKind.Folder;
+    case vscode.CompletionItemKind.EnumMember:
+      return CompletionItemKind.EnumMember;
+    case vscode.CompletionItemKind.Constant:
+      return CompletionItemKind.Constant;
+    case vscode.CompletionItemKind.Struct:
+      return CompletionItemKind.Struct;
+    case vscode.CompletionItemKind.Event:
+      return CompletionItemKind.Event;
+    case vscode.CompletionItemKind.Operator:
+      return CompletionItemKind.Operator;
+    case vscode.CompletionItemKind.TypeParameter:
+      return CompletionItemKind.TypeParameter;
+    case vscode.CompletionItemKind.User:
+      return CompletionItemKind.User;
+    case vscode.CompletionItemKind.Issue:
+      return CompletionItemKind.Issue;
+  }
+}
+
+function symbolKindToMonacoCompletionKind(
+  kind: vscode.SymbolKind,
+): CompletionItemKind {
+  switch (kind) {
+    case vscode.SymbolKind.File:
+      return CompletionItemKind.File;
+    case vscode.SymbolKind.Module:
+      return CompletionItemKind.Module;
+    case vscode.SymbolKind.Namespace:
+      return CompletionItemKind.Module;
+    case vscode.SymbolKind.Package:
+      return CompletionItemKind.Module;
+    case vscode.SymbolKind.Class:
+      return CompletionItemKind.Class;
+    case vscode.SymbolKind.Method:
+      return CompletionItemKind.Method;
+    case vscode.SymbolKind.Property:
+      return CompletionItemKind.Property;
+    case vscode.SymbolKind.Field:
+      return CompletionItemKind.Field;
+    case vscode.SymbolKind.Constructor:
+      return CompletionItemKind.Constructor;
+    case vscode.SymbolKind.Enum:
+      return CompletionItemKind.Enum;
+    case vscode.SymbolKind.Interface:
+      return CompletionItemKind.Interface;
+    case vscode.SymbolKind.Function:
+      return CompletionItemKind.Function;
+    case vscode.SymbolKind.Variable:
+      return CompletionItemKind.Variable;
+    case vscode.SymbolKind.Constant:
+      return CompletionItemKind.Constant;
+    case vscode.SymbolKind.String:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.Number:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.Boolean:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.Array:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.Object:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.Key:
+      return CompletionItemKind.Property;
+    case vscode.SymbolKind.Null:
+      return CompletionItemKind.Value;
+    case vscode.SymbolKind.EnumMember:
+      return CompletionItemKind.EnumMember;
+    case vscode.SymbolKind.Struct:
+      return CompletionItemKind.Struct;
+    case vscode.SymbolKind.Event:
+      return CompletionItemKind.Event;
+    case vscode.SymbolKind.Operator:
+      return CompletionItemKind.Operator;
+    case vscode.SymbolKind.TypeParameter:
+      return CompletionItemKind.TypeParameter;
+  }
+}
+
+function toMonacoIRange(range: vscode.Range): IRange {
+  return {
+    startLineNumber: range.start.line + 1,
+    startColumn: range.start.character + 1,
+    endLineNumber: range.end.line + 1,
+    endColumn: range.end.character + 1,
+  };
+}
+
+async function getDynamicVariables(
+  query: string,
+): Promise<ChatDynamicVariableInfo[]> {
+  const pattern = query
+    .split("")
+    .map((char) => {
+      const lower = char.toLowerCase();
+      const upper = char.toUpperCase();
+      return lower !== upper ? `[${lower}${upper}]` : char;
+    })
+    .join("");
+  const files = await vscode.workspace.findFiles(
+    `**/*${pattern}*`,
+    undefined,
+    10,
+  );
+  const workspaceSymbols = (await vscode.commands.executeCommand(
+    "vscode.executeWorkspaceSymbolProvider",
+    query,
+  )) as vscode.SymbolInformation[];
+  const fileVariables: ChatDynamicVariableInfo[] = files.map((file) => {
+    return {
+      kind: "file",
+      name: path.basename(file.fsPath),
+      itemKind: toMonacoCompletionItemKind(vscode.CompletionItemKind.File),
+      uri: file.toString(),
+    };
+  });
+  const symbolVariables: ChatDynamicVariableInfo[] = workspaceSymbols.map(
+    (symbol) => {
+      return {
+        kind: "symbol",
+        name: symbol.name,
+        itemKind: symbolKindToMonacoCompletionKind(symbol.kind),
+        uri: symbol.location.uri.toString(),
+        symbolRange: toMonacoIRange(symbol.location.range),
+      };
+    },
+  );
+  return [...fileVariables, ...symbolVariables];
 }

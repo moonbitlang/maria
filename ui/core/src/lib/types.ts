@@ -1,6 +1,6 @@
 import type * as comlink from "comlink";
 import type { OpenDialogReturnValue } from "electron";
-
+import type * as monaco from "monaco-editor-core";
 export type QueuedMessage = {
   id: string;
   content: string;
@@ -188,6 +188,7 @@ export type WebRAL = {
 
 export type VscodeApi = {
   getUrl(): string;
+  getDynamicVariables(query: string): Promise<ChatDynamicVariableInfo[]>;
 };
 
 export type WebviewApi = {
@@ -216,7 +217,66 @@ export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
 
 export type ResultTuple<T> = [T, undefined] | [undefined, Error];
 
+export type IRange = monaco.IRange;
+
+export const CompletionItemKind = {
+  Method: 0,
+  Function: 1,
+  Constructor: 2,
+  Field: 3,
+  Variable: 4,
+  Class: 5,
+  Struct: 6,
+  Interface: 7,
+  Module: 8,
+  Property: 9,
+  Event: 10,
+  Operator: 11,
+  Unit: 12,
+  Value: 13,
+  Constant: 14,
+  Enum: 15,
+  EnumMember: 16,
+  Keyword: 17,
+  Text: 18,
+  Color: 19,
+  File: 20,
+  Reference: 21,
+  Customcolor: 22,
+  Folder: 23,
+  TypeParameter: 24,
+  User: 25,
+  Issue: 26,
+  Tool: 27,
+  Snippet: 28,
+} as const;
+
+export type CompletionItemKind =
+  (typeof CompletionItemKind)[keyof typeof CompletionItemKind];
+
+type ChatDynamicVariableInfoBase = {
+  name: string;
+  itemKind: CompletionItemKind;
+};
+
+export type ChatDynamicVariableInfo = ChatDynamicVariableInfoBase &
+  (
+    | {
+        kind: "command";
+      }
+    | {
+        kind: "file";
+        uri: string;
+      }
+    | {
+        kind: "symbol";
+        uri: string;
+        symbolRange: IRange;
+      }
+  );
+
 export type ChatDynamicVariable = {
+  info: ChatDynamicVariableInfo;
   start: number;
   end: number;
 };
