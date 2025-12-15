@@ -1,9 +1,82 @@
 ///|
+/// `SourceLoc` in MoonBit, used by `moon` to update snapshot
+priv struct Loc {
+  pkg : String
+  filename : String
+  start_line : Int
+  start_column : Int
+  end_line : Int
+  end_column : Int
+} derive(ToJson)
+
+///|
+/// Package name for error messages
+const PackageName : String = "moonbitlang/maria/internal/moon"
+
+///|
+impl @json.FromJson for Loc with from_json(
+  json : Json,
+  json_path : @json.JsonPath,
+) -> Loc raise @json.JsonDecodeError {
+  let func_name : String = "\{PackageName}.Loc::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((json_path, "\{func_name}: expect object"))
+  }
+  let pkg : String = match object.get("pkg") {
+    Some(pkg) => @json.from_json(pkg)
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path.add_key("pkg"), "\{func_name}: missing 'pkg' field"),
+      )
+  }
+  let filename : String = match object.get("filename") {
+    Some(filename) => @json.from_json(filename)
+    None =>
+      raise @json.JsonDecodeError(
+        (
+          json_path.add_key("filename"),
+          "\{func_name}: missing 'filename' field",
+        ),
+      )
+  }
+  let start_line : Int = match object.get("start_line") {
+    Some(start_line) => @json.from_json(start_line)
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "\{func_name}: missing 'start_line' field"),
+      )
+  }
+  let start_column : Int = match object.get("start_column") {
+    Some(start_column) => @json.from_json(start_column)
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "\{func_name}: missing 'start_column' field"),
+      )
+  }
+  let end_line : Int = match object.get("end_line") {
+    Some(end_line) => @json.from_json(end_line)
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "\{func_name}: missing 'end_line' field"),
+      )
+  }
+  let end_column : Int = match object.get("end_column") {
+    Some(end_column) => @json.from_json(end_column)
+    None =>
+      raise @json.JsonDecodeError(
+        (json_path, "\{func_name}: missing 'end_column' field"),
+      )
+  }
+  Loc::{ pkg, filename, start_line, start_column, end_line, end_column }
+}
+
+///|
 priv enum TestFailureMessage {
   String(String)
+  /// Snapshot failure, has format '@EXPECT_FAILED <json>'
   ExpectFailed(
-    loc~ : String,
-    args_loc~ : Array[String?],
+    loc~ : Loc,
+    args_loc~ : Array[Loc?],
     expect~ : String,
     actual~ : String,
     mode~ : String
@@ -15,17 +88,73 @@ impl @json.FromJson for TestFailureMessage with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> TestFailureMessage raise @json.JsonDecodeError {
+  let func_name : String = "\{PackageName}.TestFailureMessage::from_json"
   guard json is String(message) else {
     raise @json.JsonDecodeError(
-      (json_path, "Expected string but got '\{json}'"),
+      (json_path, "\{func_name}: expected string but got '\{json}'"),
     )
   }
   if message is [.. "@EXPECT_FAILED ", .. message] {
-    let message = message.to_string()
+    // Parsing steps:
+    //
+    // 1. Raw input
+    //
+    //    ```plaintext
+    //    @EXPECT_FAILED {"loc": {"pkg":"example","filename":"main.mbt","start_line":4,"start_column":3,"end_line":4,"end_column":30}, "args_loc": "[{\"pkg\":\"example\",\"filename\":\"main.mbt\",\"start_line\":4,\"start_column\":17,\"end_line\":4,\"end_column\":18}, {\"pkg\":\"example\",\"filename\":\"main.mbt\",\"start_line\":4,\"start_column\":28,\"end_line\":4,\"end_column\":29}, null, null]", "expect": "3", "actual": "4", "mode": "json"}
+    //    ```
+    //
+    // 2. Remove '@EXPECT_FAILED ', parse JSON
+    //
+    //    ```json
+    //    {
+    //      "loc": {
+    //        "pkg": "example",
+    //        "filename": "main.mbt",
+    //        "start_line": 4,
+    //        "start_column": 3,
+    //        "end_line": 4,
+    //        "end_column": 30
+    //      },
+    //      "args_loc": "[{\"pkg\":\"example\",\"filename\":\"main.mbt\",\"start_line\":4,\"start_column\":17,\"end_line\":4,\"end_column\":18}, {\"pkg\":\"example\",\"filename\":\"main.mbt\",\"start_line\":4,\"start_column\":28,\"end_line\":4,\"end_column\":29}, null, null]",
+    //      "expect": "3",
+    //      "actual": "4",
+    //      "mode": "json"
+    //    }
+    //    ```
+    //
+    // 3. Parse object members. Note that `args_loc` is a JSON string representing an array of `Loc?`. We need to first `@json.parse` it.
+    //
+    //    ```json
+    //    [
+    //      {
+    //        "pkg": "example",
+    //        "filename": "main.mbt",
+    //        "start_line": 4,
+    //        "start_column": 17,
+    //        "end_line": 4,
+    //        "end_column": 18
+    //      },
+    //      {
+    //        "pkg": "example",
+    //        "filename": "main.mbt",
+    //        "start_line": 4,
+    //        "start_column": 28,
+    //        "end_line": 4,
+    //        "end_column": 29
+    //      },
+    //      null,
+    //      null
+    //    ]
+    //    ```
+    //
+    // 4. Collect parse result and assemble into `ExpectFailed`
     let json = @json.parse(message) catch {
       error =>
         raise @json.JsonDecodeError(
-          (json_path, "Failed to parse EXPECT_FAILED JSON: \{error}"),
+          (
+            json_path,
+            "\{func_name}: failed to parse @EXPECT_FAILED JSON: \{error}",
+          ),
         )
     }
     guard json
@@ -39,11 +168,20 @@ impl @json.FromJson for TestFailureMessage with from_json(
       } else {
       raise @json.JsonDecodeError(
         (
-          json_path, "Expected object with 'loc', 'args_loc', 'expect', 'actual', and 'mode'.",
+          json_path,
+          "\{func_name}: expected object with 'loc', 'args_loc', 'expect', 'actual', and 'mode'.",
         ),
       )
     }
-    let loc : String = @json.from_json(loc, path=json_path.add_key("loc"))
+    let loc : Loc = @json.from_json(loc, path=json_path.add_key("loc"))
+    // It is weird that args_loc is first stringified, then stored as a JSON string, which means
+    // it looks like this:
+    //
+    // ```json
+    // {
+    //   "args_loc": "[{...}, {...}, null]"
+    // }
+    // ```
     let args_loc : String = @json.from_json(
       args_loc,
       path=json_path.add_key("args_loc"),
@@ -53,7 +191,7 @@ impl @json.FromJson for TestFailureMessage with from_json(
         raise @json.JsonDecodeError(
           (
             json_path.add_key("args_loc"),
-            "Failed to parse args_loc JSON: \{error}",
+            "\{func_name}: failed to parse args_loc JSON: \{error}",
           ),
         )
     }
@@ -62,18 +200,17 @@ impl @json.FromJson for TestFailureMessage with from_json(
         (json_path.add_key("args_loc"), "Expected array but got '\{args_loc}'"),
       )
     }
-    let args_loc : Array[String?] = []
-    for arg_loc_json in args_loc_json {
+    let args_loc : Array[Loc?] = []
+    for i, arg_loc_json in args_loc_json {
       match arg_loc_json {
         Null => args_loc.push(None)
-        String(arg_loc) => args_loc.push(Some(arg_loc))
-        _ =>
-          raise @json.JsonDecodeError(
-            (
-              json_path.add_key("args_loc"),
-              "Expected array of strings or null but got '\{arg_loc_json}'",
-            ),
+        arg_loc_json => {
+          let arg_loc = @json.from_json(
+            arg_loc_json,
+            path=json_path.add_key("args_loc").add_index(i),
           )
+          args_loc.push(Some(arg_loc))
+        }
       }
     }
     let expect : String = @json.from_json(
@@ -105,6 +242,7 @@ impl @json.FromJson for TestFailure with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> TestFailure raise @json.JsonDecodeError {
+  let func_name : String = "\{PackageName}.TestFailure::from_json"
   guard json
     is {
       "package": package_,
@@ -116,7 +254,8 @@ impl @json.FromJson for TestFailure with from_json(
     } else {
     raise @json.JsonDecodeError(
       (
-        json_path, "Expected object with 'package', 'filename', 'index', 'test_name', and 'message'.",
+        json_path,
+        "\{func_name}: expected object with 'package', 'filename', 'index', 'test_name', and 'message'.",
       ),
     )
   }

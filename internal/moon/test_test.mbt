@@ -27,6 +27,52 @@ async test "test" (t : @test.Test) {
       {
         "package_": "example",
         "filename": "test.mbt",
+        "index": 0,
+        "test_name": "add",
+        "message": [
+          "ExpectFailed",
+          {
+            "loc": {
+              "pkg": "example",
+              "filename": "test.mbt",
+              "start_line": 4,
+              "start_column": 3,
+              "end_line": 4,
+              "end_column": 30,
+            },
+            "args_loc": [
+              [
+                {
+                  "pkg": "example",
+                  "filename": "test.mbt",
+                  "start_line": 4,
+                  "start_column": 17,
+                  "end_line": 4,
+                  "end_column": 18,
+                },
+              ],
+              [
+                {
+                  "pkg": "example",
+                  "filename": "test.mbt",
+                  "start_line": 4,
+                  "start_column": 28,
+                  "end_line": 4,
+                  "end_column": 29,
+                },
+              ],
+              null,
+              null,
+            ],
+            "expect": "3",
+            "actual": "4",
+            "mode": "json",
+          },
+        ],
+      },
+      {
+        "package_": "example",
+        "filename": "test.mbt",
         "index": 1,
         "test_name": "eq",
         "message": ["String", "test.mbt:9:3-9:22@example FAILED: `2 != 3`"],
