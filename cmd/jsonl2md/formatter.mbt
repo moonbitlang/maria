@@ -179,10 +179,10 @@ async fn Formatter::format_submit_fixed_file(
 /// Formats tool call from a MessageAdded log entry.
 async fn Formatter::format_tool_call(
   self : Formatter,
-  tool_call : @openai.ChatCompletionMessageToolCall,
+  tool_call : @ai.ToolCall,
 ) -> Unit {
-  guard tool_call.function.arguments is Some(arguments) else {
-    self.push_title("Tool call argument: <\{tool_call.function.name}>", level=2)
+  guard tool_call.arguments is Some(arguments) else {
+    self.push_title("Tool call argument: <\{tool_call.name}>", level=2)
     self.lines.push("")
     self.lines.push("No arguments provided.")
     self.lines.push("")
@@ -190,10 +190,7 @@ async fn Formatter::format_tool_call(
   }
   try @json.parse(arguments) catch {
     error => {
-      self.push_title(
-        "Tool call argument: <\{tool_call.function.name}>",
-        level=2,
-      )
+      self.push_title("Tool call argument: <\{tool_call.name}>", level=2)
       self.lines.push("")
       self.lines.push("Failed to parse tool call arguments as JSON: \{error}")
       self.lines.push("")
@@ -203,12 +200,12 @@ async fn Formatter::format_tool_call(
     }
   } noraise {
     args => {
-      if tool_call.function.name is ("replace_in_file" | "meta_write_to_file") {
-        self.format_replace_in_file(tool_call.function.name, args)
-      } else if tool_call.function.name is "submit_fixed_file" {
-        self.format_submit_fixed_file(tool_call.function.name, args)
+      if tool_call.name is ("replace_in_file" | "meta_write_to_file") {
+        self.format_replace_in_file(tool_call.name, args)
+      } else if tool_call.name is "submit_fixed_file" {
+        self.format_submit_fixed_file(tool_call.name, args)
       } else {
-        self.format_tool_call_as_xml(tool_call.function.name, args)
+        self.format_tool_call_as_xml(tool_call.name, args)
       }
       self.lines.push("")
       self.push_title("Original JSON payload", level=3)
@@ -317,34 +314,33 @@ fn Formatter::format_timestamp(
 }
 
 ///|
-/// Formats a MessageAdded log entry.
-async fn Formatter::format_message_added(
+fn Formatter::format_system_prompt_set(
   self : Formatter,
-  message : @openai.ChatCompletionMessageParam,
+  prompt : String,
   timestamp? : Int64,
-) -> Unit {
-  // Tool is already handled when formatting PostToolCall
-  if message is Tool(_) {
-    return
-  }
-  let role = openai_message_role(message)
-  let content = openai_message_content(message)
-    .trim(char_set=" \n\r\t")
-    .to_string()
-  if message is System(_) {
-    self.push_title(role, numbered=true, timestamp?)
-    self.lines.push("")
-    // We need to wrap the system message in code fence to avoid polluting the
-    // markdown structure.
-    let backticks = "`".repeat(
-      @cmp.maximum(3, count_maximum_contiguous_backticks(content) + 1),
-    )
-    self.lines.push("\{backticks}markdown")
-    self.lines.push(content)
-    self.lines.push("\{backticks}")
-    self.lines.push("")
-    return
-  }
+) -> Unit raise {
+  self.push_title("System", numbered=true, timestamp?)
+  self.lines.push("")
+  // We need to wrap the system message in code fence to avoid polluting the
+  // markdown structure.
+  let backticks = "`".repeat(
+    @cmp.maximum(3, count_maximum_contiguous_backticks(prompt) + 1),
+  )
+  self.lines.push("\{backticks}markdown")
+  self.lines.push(prompt)
+  self.lines.push("\{backticks}")
+  self.lines.push("")
+  return
+}
+
+///|
+/// Formats a MessageAdded log entry.
+fn Formatter::format_user_message(
+  self : Formatter,
+  content : String,
+  timestamp? : Int64,
+) -> Unit raise {
+  let role = "User"
   let title = content.split("\n").drop_while(line => line.is_blank()).peek()
   if title is Some(first_line) {
     self.push_title("\{role}: \{first_line}", numbered=true, timestamp?)
@@ -359,7 +355,7 @@ async fn Formatter::format_message_added(
     }
     self.lines.push("")
   }
-  if self.id is Some(_) && message is User(_) {
+  if self.id is Some(_) {
     let lines = []
     loop content.split("\n").collect()[:] {
       ["**File Content:**", "", "```moonbit", .. rest] =>
@@ -441,6 +437,18 @@ fn Formatter::format_post_tool_call(
 }
 
 ///|
+fn Formatter::format_model_loaded(
+  self : Formatter,
+  name : String,
+  timestamp? : Int64,
+) -> Unit raise {
+  self.push_title("System information", timestamp?)
+  self.lines.push("")
+  self.lines.push("Model: \{name}")
+  self.lines.push("")
+}
+
+///|
 /// Formats a log entry from JSON.
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   // Extract timestamp if available
@@ -500,53 +508,53 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       }
     }
   }
-  match json {
-    { "msg": "RequestCompleted", "message": message, .. } => {
-      let message : @openai.ChatCompletionMessage = @json.from_json(message)
-      let content = message.content
-        .unwrap_or("")
-        .trim(char_set=" \n\r\t")
-        .to_string()
-      let title = content.split("\n").drop_while(line => line.is_blank()).peek()
-      if title is Some(title) {
-        self.push_title("Assistant: \{title}", numbered=true, timestamp?)
-        self.lines.push("")
-        self.lines.push(content)
-        self.lines.push("")
-      } else {
-        self.push_title("Assistant", numbered=true, timestamp?)
-        if !content.is_empty() {
-          self.lines.push("")
-          self.lines.push(content)
-        }
-        self.lines.push("")
-      }
-      if message.tool_calls.length() > 0 {
-        for tool_call in message.tool_calls {
-          self.format_tool_call(tool_call)
-        }
-      }
-    }
-    { "msg": "PostToolCall", "name": String(name), "text": String(text), .. } =>
-      if json is { "result": result, .. } {
-        self.format_post_tool_call(name, result=Ok(result), text, timestamp?)
-      } else if json is { "error": error, .. } {
-        self.format_post_tool_call(name, result=Err(error), text, timestamp?)
-      } else {
-        self.format_post_tool_call(name, text, timestamp?)
-      }
-    { "msg": "MessageAdded", "message": message, .. } => {
-      let message : @openai.ChatCompletionMessageParam = @json.from_json(
-        message,
-      )
-      self.format_message_added(message, timestamp?)
-    }
-    { "msg": "ModelLoaded", "name": String(name) | [String(name)], .. } => {
-      self.push_title("System information", timestamp?)
+  guard json is { "event": json, .. } else { return }
+  try @json.from_json(json) catch {
+    error => {
+      self.push_title("Invalid log entry", timestamp?)
       self.lines.push("")
-      self.lines.push("Model: \{name}")
+      self.lines.push("Failed to parse log entry: \{error}")
+      self.lines.push("")
+      self.lines.push("```json")
+      self.lines.push(json.stringify(indent=2))
+      self.lines.push("```")
       self.lines.push("")
     }
-    _ => ()
+  } noraise {
+    (event : @event.Event) =>
+      match event.desc {
+        RequestCompleted(message=Assistant(content, tool_calls~), ..) => {
+          let content = content.trim(char_set=" \n\r\t").to_string()
+          let title = content
+            .split("\n")
+            .drop_while(line => line.is_blank())
+            .peek()
+          if title is Some(title) {
+            self.push_title("Assistant: \{title}", numbered=true, timestamp?)
+            self.lines.push("")
+            self.lines.push(content)
+            self.lines.push("")
+          } else {
+            self.push_title("Assistant", numbered=true, timestamp?)
+            if !content.is_empty() {
+              self.lines.push("")
+              self.lines.push(content)
+            }
+            self.lines.push("")
+          }
+          if tool_calls.length() > 0 {
+            for tool_call in tool_calls {
+              self.format_tool_call(tool_call)
+            }
+          }
+        }
+        SystemPromptSet(prompt) =>
+          self.format_system_prompt_set(prompt, timestamp?)
+        PostToolCall(tool_call, result~, rendered=text) =>
+          self.format_post_tool_call(tool_call.name, result~, text, timestamp?)
+        UserMessage(content) => self.format_user_message(content, timestamp?)
+        ModelLoaded(name~, ..) => self.format_model_loaded(name, timestamp?)
+        _ => ()
+      }
   }
 }
