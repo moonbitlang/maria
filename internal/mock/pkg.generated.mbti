@@ -12,8 +12,7 @@ import(
 )
 
 // Values
-#callsite(autofill(loc))
-pub async fn run(@test.Test, loc~ : SourceLoc, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit
+pub async fn run(@test.Test, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit
 
 pub async fn[T] with_home(Directory, async () -> T) -> T
 

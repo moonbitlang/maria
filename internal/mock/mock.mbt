@@ -396,10 +396,8 @@ let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(16)
 ///   })
 /// }
 /// ```
-#callsite(autofill(loc))
 pub async fn run(
   t : @test.Test,
-  loc~ : SourceLoc,
   timeout? : Int = 600_000,
   retry? : Int,
   action : async (Context) -> Unit,
@@ -443,7 +441,6 @@ pub async fn run(
         let clock = Clock::{ timestamp: 0 }
         let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
         let uuid = @uuid.generator(rand)
-        let file = loc.to_string().split(":").peek().unwrap().to_string()
         // setup filter
         let home = @os.home()
         let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @pathx.join(
@@ -451,7 +448,6 @@ pub async fn run(
         ))
         let filter = Filter::new()
         filter
-        ..add("file", file)
         ..add("cwd", cwd.path())
         ..add("env:MOON_HOME", moon_home)
         ..add("env:HOME", directory(@os.home()).path())
