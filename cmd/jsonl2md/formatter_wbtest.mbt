@@ -120,54 +120,6 @@ async test "format_log_entry/PostToolCall-with-error" (t : @test.Test) {
 }
 
 ///|
-async test "format_log_entry/SystemPromptSet" {
-  let event_target = @event.EventTarget::new()
-  event_target.emit(SystemPromptSet("You are a helpful assistant."))
-  inspect(
-    format_event_target(event_target),
-    content=(
-      #|# 1 System
-      #|
-      #|00:00:00
-      #|
-      #|```markdown
-      #|You are a helpful assistant.
-      #|```
-      #|
-    ),
-  )
-  let event_target = @event.EventTarget::new()
-  event_target.emit(
-    SystemPromptSet(
-      (
-        #|You are a helpful assistant.
-        #|
-        #|```markdown
-        #|Nested code block example
-        #|```
-      ),
-    ),
-  )
-  inspect(
-    format_event_target(event_target),
-    content=(
-      #|# 1 System
-      #|
-      #|00:00:00
-      #|
-      #|````markdown
-      #|You are a helpful assistant.
-      #|
-      #|```markdown
-      #|Nested code block example
-      #|```
-      #|````
-      #|
-    ),
-  )
-}
-
-///|
 async test "format_log_entry/AssistantMessage" (t : @test.Test) {
   @mock.run(t, _ => {
     let event_target = @event.EventTarget::new()
@@ -1329,39 +1281,6 @@ test "recover_diagnostics" {
 }
 
 ///|
-async test "ModelLoaded" (t : @test.Test) {
-  @mock.run(t, _ => {
-    let event_target = @event.EventTarget::new()
-    event_target.emit(
-      ModelLoaded(
-        name="qwen/qwen3-coder-plus",
-        model=@model.Model::new(
-          name="qwen/qwen3-coder-plus",
-          description="Qwen coder",
-          model_name="qwen/qwen3-coder-plus",
-          model_type=SaaS(OpenAI),
-          api_key="sk-test",
-          base_url="https://openrouter.ai/api/v1",
-          safe_zone_tokens=256000,
-          supports_anthropic_prompt_caching=false,
-        ),
-      ),
-    )
-    inspect(
-      format_event_target(event_target),
-      content=(
-        #|# System information
-        #|
-        #|00:00:00
-        #|
-        #|Model: qwen/qwen3-coder-plus
-        #|
-      ),
-    )
-  })
-}
-
-///|
 async test "subagent" (t : @test.Test) {
   @mock.run(t, mock => {
     let entries = []
@@ -1558,18 +1477,8 @@ async test "timestamp" (t : @test.Test) {
   @mock.run(t, _ => {
     let event_target = @event.EventTarget::new()
     event_target.emit(
-      ModelLoaded(
-        name="qwen/qwen3-coder-plus",
-        model=@model.Model::new(
-          name="qwen/qwen3-coder-plus",
-          description="Qwen coder",
-          model_name="qwen/qwen3-coder-plus",
-          model_type=SaaS(OpenAI),
-          api_key="sk-test",
-          base_url="https://openrouter.ai/api/v1",
-          safe_zone_tokens=256000,
-          supports_anthropic_prompt_caching=false,
-        ),
+      UserMessage(
+        "Write the file `toml_parser/src/moon.pkg.json` with the content:\n\n```json\n{\n  \"name\": \"toml_parser\",\n  \"version\": \"1.0.0\",\n  \"description\": \"A MoonBit package for parsing TOML files.\",\n  \"main\": \"src/main.mbt\",\n  \"scripts\": {\n    \"build\": \"moon build\",\n    \"test\": \"moon test\"\n  },\n  \"dependencies\": {\n    \"moonbit/core\": \"^1.0.0\"\n  }\n}\n```",
       ),
     )
     event_target.emit(
@@ -1589,13 +1498,29 @@ async test "timestamp" (t : @test.Test) {
     inspect(
       format_event_target(event_target),
       content=(
-        #|# System information
+        #|# 1 User: Write the file `toml_parser/src/moon.pkg.json` with the content:
         #|
         #|00:00:00
         #|
-        #|Model: qwen/qwen3-coder-plus
+        #|Write the file `toml_parser/src/moon.pkg.json` with the content:
         #|
-        #|# 1 Tool call result: <meta_write_to_file path="toml_parser/src/moon.pkg.json">
+        #|```json
+        #|{
+        #|  "name": "toml_parser",
+        #|  "version": "1.0.0",
+        #|  "description": "A MoonBit package for parsing TOML files.",
+        #|  "main": "src/main.mbt",
+        #|  "scripts": {
+        #|    "build": "moon build",
+        #|    "test": "moon test"
+        #|  },
+        #|  "dependencies": {
+        #|    "moonbit/core": "^1.0.0"
+        #|  }
+        #|}
+        #|```
+        #|
+        #|# 2 Tool call result: <meta_write_to_file path="toml_parser/src/moon.pkg.json">
         #|
         #|00:00:00
         #|

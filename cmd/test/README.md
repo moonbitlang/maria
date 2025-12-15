@@ -9,6 +9,7 @@ moon run cmd/test -- --prompt-file <prompt-file> [--log-file <log-file>]
 ```
 
 Arguments:
+
 - `--prompt-file <path>`: Required. Path to a text/markdown file containing the initial prompt fed to Maria.
 - `--log-file <path>`: Optional. Destination for the JSONL log. If omitted, a file named `maria_test_log_<timestamp>.jsonl` is created in the current working directory. The timestamp uses the system clock and is formatted as a plain date time (e.g. `2025-10-21T04:42:38`).
 
@@ -40,10 +41,35 @@ moon run cmd/test -- --prompt-file prompt.md --log-file session.jsonl
 
 ## Log Format
 
-The log file is line‑delimited JSON (JSONL). Each non‑blank line is one event produced during the session. Selected event types are later consumable by the `jsonl2md` converter:
-- `MessageAdded`: User / assistant / system / tool messages as they are added.
-- `RequestCompleted`: Assistant responses (may include tool calls).
-- `PostToolCall`: Output from a tool invocation.
+The log file is line‑delimited JSON (JSONL). Each non‑blank line is one event produced during the session. Each event has the following structure:
+
+```json
+{
+  "id": "<uuid>",
+  "desc": { "msg": "<event-type>", ... }
+}
+```
+
+The `desc` field contains the event description with a `msg` field indicating the event type. Event types include:
+
+- **Session events**:
+  - `ModelLoaded`: Triggered when a model is loaded (includes `name` and `model` fields)
+  - `SystemPromptSet`: Triggered when the system prompt is set (includes `prompt` field)
+
+- **Maria conversation events** (wrapped in the `desc` object):
+  - `PreConversation`: Before a conversation starts
+  - `PostConversation`: After a conversation ends
+  - `AssistantMessage`: Assistant responses (may include tool calls)
+  - `PreToolCall`: Before a tool is called
+  - `PostToolCall`: After a tool call completes (includes result and rendered output)
+  - `UserMessage`: User messages
+  - `MessageQueued`: When a message is queued to be sent
+  - `MessageUnqueued`: When a message is unqueued from pending queue
+  - `TokenCounted`: Token counting events
+  - `ContextPruned`: Context pruning operations
+  - And others...
+
+Selected event types are consumable by the `jsonl2md` converter for producing readable session transcripts.
 
 ## Converting Log to Markdown
 
@@ -60,8 +86,8 @@ If `--output` is omitted, `jsonl2md` writes `<input-stem>.md` next to the source
 Given a trimmed JSONL (illustrative only):
 
 ```jsonl
-{"msg":"MessageAdded","message":{"role":"user","content":[{"type":"text","text":"What is the capital of France?"}]}}
-{"msg":"RequestCompleted","message":{"role":"assistant","content":"Paris is the capital of France."}}
+{"id":"123e4567-e89b-12d3-a456-426614174000","desc":{"msg":"UserMessage","content":"What is the capital of France?"}}
+{"id":"123e4567-e89b-12d3-a456-426614174001","desc":{"msg":"AssistantMessage","content":"Paris is the capital of France.","usage":null,"tool_calls":[]}}
 ```
 
 Conversion produces Markdown like:

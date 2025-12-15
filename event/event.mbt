@@ -34,23 +34,16 @@ pub(all) struct Event {
 
 ///|
 pub(all) enum EventDesc {
-  /// Event triggered when a model is loaded.
-  ModelLoaded(name~ : String, model~ : @model.Model)
   /// Event triggered before a conversation starts.
   PreConversation
   /// Event triggered after a conversation ends.
   PostConversation
-  /// Event triggered when the system prompt is being set.
-  SystemPromptSet(String)
   /// Event triggered when a message is unqueued from the pending queue.
   MessageUnqueued(id~ : @uuid.Uuid)
   /// Event triggered when a message is queued to be sent to the model.
   /// The message ID can be obtained via the return value of `queue_message`
   /// function.
   MessageQueued(id~ : @uuid.Uuid)
-  /// Event triggered when a tool is added to the agent. This message will only
-  /// be triggered once per agent instance.
-  ToolAdded(@tool.ToolDesc)
   /// Event triggered before a tool is called.
   PreToolCall(@ai.ToolCall)
   /// Event triggered after a tool call is completed.
@@ -97,20 +90,6 @@ pub(all) enum EventDesc {
 ///|
 pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
   match self {
-    ModelLoaded(name~, model~) =>
-      {
-        "msg": "ModelLoaded",
-        "name": name.to_json(),
-        "model": {
-          let json = model.to_json()
-          if json is Object(obj) {
-            obj["api_key"] = "****"
-            Json::object(obj)
-          } else {
-            json
-          }
-        },
-      }
     TokenCounted(token_count) =>
       { "msg": "TokenCounted", "token_count": token_count }
     ContextPruned(origin_token_count~, pruned_token_count~) =>
@@ -172,19 +151,9 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
     }
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
-    SystemPromptSet(prompt) => { "msg": "SystemPromptSet", "prompt": prompt }
     MessageQueued(id~) => { "msg": "MessageQueued", "message": { "id": id } }
     MessageUnqueued(id~) =>
       { "msg": "MessageUnqueued", "message": { "id": id } }
-    ToolAdded(tool_desc) =>
-      {
-        "msg": "ToolAdded",
-        "tool": {
-          "name": tool_desc.name,
-          "description": tool_desc.description,
-          "schema": tool_desc.schema,
-        },
-      }
     AssistantMessage(usage~, tool_calls~, content) => {
       let json : Map[String, Json] = {
         "msg": "AssistantMessage",
@@ -215,27 +184,6 @@ pub impl @json.FromJson for EventDesc with from_json(
     )
   }
   match msg {
-    "ModelLoaded" => {
-      guard json_object.get("name") is Some(name_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ModelLoaded event missing 'name' field"),
-        )
-      }
-      let name : String = @json.from_json(
-        name_json,
-        path=json_path.add_key("name"),
-      )
-      guard json_object.get("model") is Some(model_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ModelLoaded event missing 'model' field"),
-        )
-      }
-      let model : @model.Model = @json.from_json(
-        model_json,
-        path=json_path.add_key("model"),
-      )
-      ModelLoaded(name~, model~)
-    }
     "TokenCounted" => {
       guard json_object.get("token_count") is Some(token_count_json) else {
         raise @json.JsonDecodeError(
@@ -321,18 +269,6 @@ pub impl @json.FromJson for EventDesc with from_json(
     }
     "PreConversation" => PreConversation
     "PostConversation" => PostConversation
-    "SystemPromptSet" => {
-      guard json_object.get("prompt") is Some(prompt_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "SystemPromptSet event missing 'prompt' field"),
-        )
-      }
-      let prompt : String = @json.from_json(
-        prompt_json,
-        path=json_path.add_key("prompt"),
-      )
-      SystemPromptSet(prompt)
-    }
     "MessageQueued" => {
       guard json_object.get("message") is Some(message_wrapper_json) else {
         raise @json.JsonDecodeError(
@@ -366,36 +302,6 @@ pub impl @json.FromJson for EventDesc with from_json(
         path=json_path.add_key("message").add_key("id"),
       )
       MessageUnqueued(id~)
-    }
-    "ToolAdded" => {
-      guard json_object.get("tool") is Some(tool_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ToolAdded event missing 'tool' field"),
-        )
-      }
-      guard tool_json
-        is Object(
-          {
-            "name": name_json,
-            "description": description_json,
-            "schema": schema_json,
-            ..
-          }
-        ) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Invalid 'tool' field in ToolAdded event"),
-        )
-      }
-      let name : String = @json.from_json(
-        name_json,
-        path=json_path.add_key("tool").add_key("name"),
-      )
-      let description : String = @json.from_json(
-        description_json,
-        path=json_path.add_key("tool").add_key("description"),
-      )
-      let schema : Json = schema_json
-      ToolAdded(@tool.tool_desc(description~, name~, schema~))
     }
     "AssistantMessage" => {
       let usage : @ai.Usage? = match json_object.get("usage") {

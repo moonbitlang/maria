@@ -10,11 +10,6 @@ async fn generate(
   } else {
     println("Generating for prompt file \{prompt_file} with default model")
   }
-  let model = @model.load(name?=model)
-  guard model is Some(model) else {
-    println("No model available; please configure a model first.")
-    return
-  }
   let prompt = @fsx.read_file(prompt_file)
   let log_file = @pathx.join(log_dir, "log.jsonl")
   let gen_dir = @pathx.join(log_dir, "cwd")
@@ -28,6 +23,15 @@ async fn generate(
     "maria_test",
     try! @pino.Transport::parse("file:\{log_file}"),
   )
+  let model = @model.load(name?=model)
+  guard model is Some(model) else {
+    println("No model available; please configure a model first.")
+    return
+  }
+  // FIXME: Use event target if it is refactored into a generic type.
+  logger.info("Received event", data={
+    "event": ModelLoaded(name=model.name, model~),
+  })
   @fsx.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
     println("Running test in temporary directory: \{tmpdir}")
     @async.with_task_group(group => {
@@ -45,6 +49,13 @@ async fn generate(
         cwd=tmpdir,
         user_message=prompt,
       )
+      // FIXME: Use event target if it is refactored into a generic type.
+      logger.info("Received event", data={
+        "event": SystemPromptSet(maria.agent.system_prompt().unwrap_or("")),
+      })
+      maria.agent.add_listener(event => logger.info("Received event", data={
+        "event": event,
+      }))
       maria.start() catch {
         error => {
           logger.error("MariaFailed", data={ "error": error.to_string() })

@@ -146,7 +146,6 @@ fn Agent::add_agent_tool(
 ) -> Unit {
   let desc = tool.desc()
   agent.tools[desc.name] = Tool::new(tool, enabled~)
-  agent.emit(ToolAdded(desc))
 }
 
 ///|

@@ -8,9 +8,6 @@
 /// * `prompt` : The system prompt text to be set for the agent's conversation.
 pub fn Agent::set_system_prompt(agent : Agent, prompt : String?) -> Unit {
   agent.history.set_system_prompt(prompt)
-  if prompt is Some(prompt) {
-    agent.emit(SystemPromptSet(prompt))
-  }
 }
 
 ///|
