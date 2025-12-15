@@ -469,7 +469,7 @@ async test "web_search" (t : @test.Test) {
     @json.inspect(
       events
       .filter(e => e is @test_utils.Maria(event) &&
-        event.desc is RequestCompleted(message=Assistant(content, ..), ..) &&
+        event.desc is AssistantMessage(content, ..) &&
         (content.contains("2022") || content.contains("2023")))
       .length() >
       0,

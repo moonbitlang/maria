@@ -523,7 +523,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   } noraise {
     (event : @event.Event) =>
       match event.desc {
-        RequestCompleted(message=Assistant(content, tool_calls~), ..) => {
+        AssistantMessage(content, tool_calls~, ..) => {
           let content = content.trim(char_set=" \n\r\t").to_string()
           let title = content
             .split("\n")

@@ -597,9 +597,7 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
       let events = collector.wait()
       let content = events
         .filter_map(e => if e
-          is Maria(
-            { desc: RequestCompleted(message=Assistant(content, ..), ..), .. }
-          ) {
+          is Maria({ desc: AssistantMessage(content, ..), .. }) {
           Some(content)
         } else {
           None

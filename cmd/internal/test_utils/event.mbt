@@ -69,19 +69,17 @@ pub fn redact_events(events : Array[ServerEvent]) -> Array[ServerEvent] {
         SystemPromptSet(_) => SystemPromptSet("<redacted>")
         MessageQueued(..) => MessageQueued(id=@uuid.nil)
         MessageUnqueued(..) => MessageUnqueued(id=@uuid.nil)
-        RequestCompleted(message=Assistant(_, tool_calls~), ..) =>
-          RequestCompleted(
+        AssistantMessage(_, tool_calls~, ..) =>
+          AssistantMessage(
             usage=Some(
               @ai.usage(input_tokens=0, output_tokens=0, total_tokens=0),
             ),
-            message=@ai.assistant_message(
-              content="<redacted>",
-              tool_calls=tool_calls.map(tc => @ai.tool_call(
-                id=tc.id,
-                name=tc.name,
-                arguments="<redacted>",
-              )),
-            ),
+            tool_calls=tool_calls.map(tc => @ai.tool_call(
+              id=tc.id,
+              name=tc.name,
+              arguments="<redacted>",
+            )),
+            "<redacted>",
           )
         event => event
       }

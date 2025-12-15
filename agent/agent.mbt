@@ -287,9 +287,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 
         // Emit event with API usage statistics and the returned message
         agent.emit(
-          RequestCompleted(
+          AssistantMessage(
             usage=usage.map(u => @ai.Usage::from_openai(u)),
-            message=ai_message,
+            tool_calls=message.tool_calls.map(tc => @ai.ToolCall::from_openai_tool_call(
+              tc,
+            )),
+            message.content.unwrap_or(""),
           ),
         )
 

@@ -46,9 +46,12 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         }
         @stdio.stdout.writeln(response.stringify())
       }
-      RequestCompleted(usage~, message~) => {
+      AssistantMessage(usage~, tool_calls~, content) => {
         let usage = usage.map(fn(u) { u.to_openai() })
-        let message = message.to_openai()
+        let message = @openai.assistant_message(
+          content~,
+          tool_calls=tool_calls.map(fn(tc) { tc.to_openai() }),
+        )
         let response : Json = {
           "method": "maria.agent.request_completed",
           "params": { "usage": usage, "message": message },

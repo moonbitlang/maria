@@ -27,7 +27,6 @@
   "test-import": [
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/event",
-    "moonbitlang/maria/ai",
     "moonbitlang/maria/cmd/internal/test_utils"
   ]
 }

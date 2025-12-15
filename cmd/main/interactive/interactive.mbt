@@ -31,12 +31,10 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   @async.with_task_group(group => {
     let maria = @maria.Maria::new(model~, web_search~)
     maria.agent.add_listener(event => match event.desc {
-      RequestCompleted(message~, ..) => {
-        let content = message.content()
+      AssistantMessage(content, ..) =>
         if !content.is_blank() {
           println(content)
         }
-      }
       PreToolCall(tool_call) =>
         match tool_call.arguments {
           None => println("% \{tool_call.name}")

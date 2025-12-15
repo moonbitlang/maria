@@ -168,17 +168,19 @@ async test "format_log_entry/SystemPromptSet" {
 }
 
 ///|
-async test "format_log_entry/RequestCompleted" (t : @test.Test) {
+async test "format_log_entry/AssistantMessage" (t : @test.Test) {
   @mock.run(t, _ => {
     let event_target = @event.EventTarget::new()
-    let message = @ai.assistant_message(content="I am fine, thank you!", tool_calls=[
+    let tool_calls = [
       @ai.tool_call(
         id="tool_call_1",
         name="get_weather",
         arguments="{\"location\": \"New York\"}",
       ),
-    ])
-    event_target.emit(RequestCompleted(usage=None, message~))
+    ]
+    event_target.emit(
+      AssistantMessage(usage=None, tool_calls~, "I am fine, thank you!"),
+    )
     inspect(
       format_event_target(event_target),
       content=(
@@ -1388,11 +1390,12 @@ async test "subagent" (t : @test.Test) {
       id="call_55cce74b1c784a6cb81034e8",
     )
     event_target.emit(
-      RequestCompleted(
+      AssistantMessage(
         usage=Some(
           @ai.usage(input_tokens=1500, output_tokens=500, total_tokens=2000),
         ),
-        message=@ai.assistant_message(content="", tool_calls=[tool_call]),
+        "",
+        tool_calls=[tool_call],
       ),
     )
     event_target.emit(

@@ -174,18 +174,13 @@ async test "agent/event_system" (t : @test.Test) {
     let mut post_conversation = false
     let mut message_added = false
     let mut token_counted = false
-    let mut request_completed = false
+    let mut assistant_response = false
     agent.add_listener(event => match event.desc {
       PreConversation => pre_conversation = true
       PostConversation => post_conversation = true
       UserMessage(_) => message_added = true
       TokenCounted(_) => token_counted = true
-      RequestCompleted(usage~, message~) => {
-        request_completed = true
-        // DONT use inspect since it may happen multiple times asynchronously
-        assert_true(usage is Some(_) || usage is None)
-        assert_true(message is Assistant(_))
-      }
+      AssistantMessage(_, ..) => assistant_response = true
       _ => ()
     })
     agent.start()
@@ -199,7 +194,7 @@ async test "agent/event_system" (t : @test.Test) {
     inspect(message_added, content="true")
     inspect(token_counted, content="true")
     inspect(post_conversation, content="true")
-    inspect(request_completed, content="true")
+    inspect(assistant_response, content="true")
   })
 }
 
