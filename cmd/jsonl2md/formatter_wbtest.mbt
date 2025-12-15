@@ -1,184 +1,210 @@
 ///|
-async test "format_log_entry/PostToolCall" {
-  let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "PostToolCall",
-    "name": "get_weather",
-    "text": "The weather in New York is sunny.",
-  }
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 Tool call result: <get_weather>
-      #|
-      #|````markdown
-      #|The weather in New York is sunny.
-      #|````
-      #|
-    ),
+async fn collect_log_entries(event_target : @event.EventTarget) -> Array[Json] {
+  let entries = []
+  let logger = @pino.logger(
+    "test",
+    @pino.Transport::callback(entry => entries.push(entry)),
   )
+  event_target.add_listener(event => logger.info("Received event", data={
+    "event": event.to_json(),
+  }))
+  event_target.flush()
+  return entries
 }
 
 ///|
-async test "format_log_entry/PostToolCall-with-result" {
+async fn format_event_target(event_target : @event.EventTarget) -> String {
   let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "PostToolCall",
-    "name": "get_weather",
-    "result": {
-      "location": "New York",
-      "temperature": "25°C",
-      "condition": "Sunny",
-    },
-    "text": "The weather in New York is sunny.",
+  let entries = collect_log_entries(event_target)
+  for entry in entries {
+    formatter.format_log_entry(entry)
   }
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 Tool call result: <get_weather>
-      #|
-      #|````markdown
-      #|The weather in New York is sunny.
-      #|````
-      #|
-    ),
-  )
+  return formatter.to_string()
 }
 
 ///|
-async test "format_log_entry/PostToolCall-with-error" {
-  let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "PostToolCall",
-    "name": "get_weather",
-    "error": { "message": "Location not found." },
-    "text": "Error: Location not found.",
-  }
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 ❌ Tool call error: <get_weather>
-      #|
-      #|````markdown
-      #|Error: Location not found.
-      #|````
-      #|
-    ),
-  )
+async test "format_log_entry/PostToolCall" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    event_target.emit(
+      PostToolCall(
+        @ai.tool_call(
+          id="call_1",
+          name="get_weather",
+          arguments=Json::object({ "location": "New York" }).stringify(),
+        ),
+        result=Ok("The weather in New York is sunny."),
+        rendered="The weather in New York is sunny.",
+      ),
+    )
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# 1 Tool call result: <get_weather>
+        #|
+        #|00:00:00
+        #|
+        #|````markdown
+        #|The weather in New York is sunny.
+        #|````
+        #|
+      ),
+    )
+  })
 }
 
 ///|
-async test "format_log_entry/MessageAdded with multiline tool content" {
-  let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "MessageAdded",
-    "message": {
-      "role": "tool",
-      "tool_call_id": "call_123",
-      "content": [
-        {
-          "type": "text",
-          "text": "✅ Operation completed: Marked task as completed\n\n📝 Current todo list:\n  🟡 ✅ [ea45749e] Create project structure\n  🟡 ⏳ [1efbf50f] Define data structures\n\n📊 Summary: Total 2 items",
-        },
-      ],
-    },
-  }
-  formatter.format_log_entry(log_entry)
-  // The tool message should be ignored and produce no output, as the result
-  // is already logged in PostToolCall.
-  inspect(formatter.to_string(), content="")
-  let log_entry : Json = {
-    "msg": "MessageAdded",
-    "message": {
-      "role": "system",
-      "content": [
-        { "type": "text", "text": "System maintenance scheduled at midnight." },
-      ],
-    },
-  }
-  formatter.format_log_entry(log_entry)
-  // The system message should be ignored and produce no output.
+async test "format_log_entry/PostToolCall-with-result" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    event_target.emit(
+      PostToolCall(
+        @ai.tool_call(
+          id="call_1",
+          name="get_weather",
+          arguments=Json::object({ "location": "New York" }).stringify(),
+        ),
+        result=Ok({
+          "location": "New York",
+          "temperature": "25°C",
+          "condition": "Sunny",
+        }),
+        rendered="The weather in New York is sunny.",
+      ),
+    )
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# 1 Tool call result: <get_weather>
+        #|
+        #|00:00:00
+        #|
+        #|````markdown
+        #|The weather in New York is sunny.
+        #|````
+        #|
+      ),
+    )
+  })
+}
+
+///|
+async test "format_log_entry/PostToolCall-with-error" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    event_target.emit(
+      PostToolCall(
+        @ai.tool_call(
+          id="call_1",
+          name="get_weather",
+          arguments=Json::object({ "location": "Unknown" }).stringify(),
+        ),
+        result=Err(Json::object({ "message": "Location not found." })),
+        rendered="Error: Location not found.",
+      ),
+    )
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# 1 ❌ Tool call error: <get_weather>
+        #|
+        #|00:00:00
+        #|
+        #|````markdown
+        #|Error: Location not found.
+        #|````
+        #|
+      ),
+    )
+  })
+}
+
+///|
+async test "format_log_entry/SystemPromptSet" {
+  let event_target = @event.EventTarget::new()
+  event_target.emit(SystemPromptSet("You are a helpful assistant."))
   inspect(
-    formatter.to_string(),
+    format_event_target(event_target),
     content=(
       #|# 1 System
       #|
+      #|00:00:00
+      #|
       #|```markdown
-      #|System maintenance scheduled at midnight.
+      #|You are a helpful assistant.
       #|```
+      #|
+    ),
+  )
+  let event_target = @event.EventTarget::new()
+  event_target.emit(
+    SystemPromptSet(
+      (
+        #|You are a helpful assistant.
+        #|
+        #|```markdown
+        #|Nested code block example
+        #|```
+      ),
+    ),
+  )
+  inspect(
+    format_event_target(event_target),
+    content=(
+      #|# 1 System
+      #|
+      #|00:00:00
+      #|
+      #|````markdown
+      #|You are a helpful assistant.
+      #|
+      #|```markdown
+      #|Nested code block example
+      #|```
+      #|````
       #|
     ),
   )
 }
 
 ///|
-async test "format_log_entry/MessageAdded" {
-  let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "MessageAdded",
-    "message": {
-      "role": "user",
-      "content": [{ "type": "text", "text": "Hello, how are you?" }],
-    },
-  }
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 User: Hello, how are you?
-      #|
-      #|Hello, how are you?
-      #|
-    ),
-  )
-}
-
-///|
-async test "format_log_entry/RequestCompleted" {
-  let formatter = Formatter::new("test.md")
-  let log_entry : Json = {
-    "msg": "RequestCompleted",
-    "message": {
-      "role": "assistant",
-      "content": "I am fine, thank you!",
-      "tool_calls": [
-        {
-          "id": "tool_call_1",
-          "function": {
-            "name": "get_weather",
-            "arguments": "{\"location\": \"New York\"}",
-          },
-        },
-      ],
-    },
-  }
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 Assistant: I am fine, thank you!
-      #|
-      #|I am fine, thank you!
-      #|
-      #|## Tool call argument: <get_weather>
-      #|
-      #|<location>
-      #|  New York
-      #|</location>
-      #|
-      #|### Original JSON payload
-      #|
-      #|```json
-      #|{
-      #|  "location": "New York"
-      #|}
-      #|```
-      #|
-    ),
-  )
+async test "format_log_entry/RequestCompleted" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    let message = @ai.assistant_message(content="I am fine, thank you!", tool_calls=[
+      @ai.tool_call(
+        id="tool_call_1",
+        name="get_weather",
+        arguments="{\"location\": \"New York\"}",
+      ),
+    ])
+    event_target.emit(RequestCompleted(usage=None, message~))
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# 1 Assistant: I am fine, thank you!
+        #|
+        #|00:00:00
+        #|
+        #|I am fine, thank you!
+        #|
+        #|## Tool call argument: <get_weather>
+        #|
+        #|<location>
+        #|  New York
+        #|</location>
+        #|
+        #|### Original JSON payload
+        #|
+        #|```json
+        #|{
+        #|  "location": "New York"
+        #|}
+        #|```
+        #|
+      ),
+    )
+  })
 }
 
 ///|
@@ -1301,109 +1327,86 @@ test "recover_diagnostics" {
 }
 
 ///|
-async test "ModelLoaded" {
-  let log_entry : Json = {
-    "level": 30,
-    "pid": 49303,
-    "msg": "ModelLoaded",
-    "hostname": "Haoxiangs-MacBook-Pro.local",
-    "time": 1761731846381,
-    "tag": "maria_test",
-    "name": ["qwen/qwen3-coder-plus"],
-    "model": [
-      {
-        "name": "qwen/qwen3-coder-plus",
-        "description": "Qwen coder",
-        "model_name": "qwen/qwen3-coder-plus",
-        "model_type": "saas/openai",
-        "api_key": "sk-test",
-        "base_url": "https://openrouter.ai/api/v1",
-        "safe_zone_tokens": 256000,
-        "supports_anthropic_prompt_caching": false,
-      },
-    ],
-  }
-  let formatter = Formatter::new("test.md")
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# System information
-      #|
-      #|00:00:00
-      #|
-      #|Model: qwen/qwen3-coder-plus
-      #|
-    ),
-  )
+async test "ModelLoaded" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    event_target.emit(
+      ModelLoaded(
+        name="qwen/qwen3-coder-plus",
+        model=@model.Model::new(
+          name="qwen/qwen3-coder-plus",
+          description="Qwen coder",
+          model_name="qwen/qwen3-coder-plus",
+          model_type=SaaS(OpenAI),
+          api_key="sk-test",
+          base_url="https://openrouter.ai/api/v1",
+          safe_zone_tokens=256000,
+          supports_anthropic_prompt_caching=false,
+        ),
+      ),
+    )
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# System information
+        #|
+        #|00:00:00
+        #|
+        #|Model: qwen/qwen3-coder-plus
+        #|
+      ),
+    )
+  })
 }
 
 ///|
 async test "subagent" (t : @test.Test) {
   @mock.run(t, mock => {
-    let log_entries : Array[Json] = [
-      {
-        "msg": "MessageAdded",
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
-        },
-        "message": {
-          "role": "user",
-          "content": "You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n\n**Task Description:**\n\nCreate JSON lexer implementation\n\n**File Content:**\n\n```moonbit\n///|\n/// JSON lexer for tokenizing input strings\nstruct Lexer {\n  input : String\n  position : Int\n  read_position : Int\n  ch : Char?\n}\n\n///|\nfn new_lexer(input : String) -> Lexer {\n  let lexer = { input, position: 0, read_position: 0, ch: None }\n  read_char(lexer)\n  lexer\n}\n```\n\n**Current Syntax Errors:**\n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 87 │       Some(ch) if ch is ('0'..'9' | '.' | '-' | '+' | 'e' | 'E') => {\n    │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 94 │   }\n    │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 130 │ }\n     │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 137 │       Some(ch) if ch is ('a'..'z' | 'A'..'Z' | '_') => {\n     │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 144 │   }\n     │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `?`, you may expect `;` or `}`.\n 189 │           read_string(lexer)?\n     │                             ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `=>`.\n 191 │         '0'..'9' | '-' => {\n     │            ^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token character, you may expect id (lowercase start).\n 194 │         'a'..'z' | 'A'..'Z' | '_' => {\n     │              ^^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token id (uppercase start), you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.\n 203 │     None => {\n     │     ^^^^\n\n**Your Task:**\n\n1. Analyze the syntax errors and understand what needs to be fixed\n2. Use `submit_fixed_file` to provide the complete fixed file content\n3. Only fix syntax errors - do not change logic unless absolutely necessary\n4. Continue until all syntax errors are fixed\n5. Call `attempt_completion` when done\n\n**Guidelines:**\n\n- Focus only on fixing syntax errors, not improving code quality\n- Preserve the original intent and functionality of the code, as much as possible\n- Use proper MoonBit syntax and conventions\n- If you cannot fix an error, explain why clearly\n- When syntax check passes, call `attempt_completion` immediately",
-        },
+    let entries = []
+    let logger = @pino.logger(
+      "test",
+      @pino.Transport::callback(entry => entries.push(entry)),
+    )
+    let logger = logger.child({
+      "tool": {
+        "name": "meta_write_to_file",
+        "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
       },
-      {
-        "msg": "PreConversation",
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
-        },
-      },
-      {
-        "msg": "MessageAdded",
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
-        },
-        "message": {
-          "role": "tool",
-          "content": [{ "type": "text", "text": "Unknown tool: read_file" }],
-          "tool_call_id": "call_802ee514f832463d96132b67",
-        },
-      },
-      {
-        "msg": "PostToolCall",
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
-        },
-        "name": "submit_fixed_file",
-        "error": [
+    })
+    let event_target = @event.EventTarget::new()
+    event_target.add_listener(event => logger.info("Received event", data={
+      "event": event.to_json(),
+    }))
+    event_target.emit(
+      UserMessage(
+        "You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n\n**Task Description:**\n\nCreate JSON lexer implementation\n\n**File Content:**\n\n```moonbit\n///|\n/// JSON lexer for tokenizing input strings\nstruct Lexer {\n  input : String\n  position : Int\n  read_position : Int\n  ch : Char?\n}\n\n///|\nfn new_lexer(input : String) -> Lexer {\n  let lexer = { input, position: 0, read_position: 0, ch: None }\n  read_char(lexer)\n  lexer\n}\n```\n\n**Current Syntax Errors:**\n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 87 │       Some(ch) if ch is ('0'..'9' | '.' | '-' | '+' | 'e' | 'E') => {\n    │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 94 │   }\n    │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 130 │ }\n     │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 137 │       Some(ch) if ch is ('a'..'z' | 'A'..'Z' | '_') => {\n     │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 144 │   }\n     │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `?`, you may expect `;` or `}`.\n 189 │           read_string(lexer)?\n     │                             ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `=>`.\n 191 │         '0'..'9' | '-' => {\n     │            ^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token character, you may expect id (lowercase start).\n 194 │         'a'..'z' | 'A'..'Z' | '_' => {\n     │              ^^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token id (uppercase start), you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.\n 203 │     None => {\n     │     ^^^^\n\n**Your Task:**\n\n1. Analyze the syntax errors and understand what needs to be fixed\n2. Use `submit_fixed_file` to provide the complete fixed file content\n3. Only fix syntax errors - do not change logic unless absolutely necessary\n4. Continue until all syntax errors are fixed\n5. Call `attempt_completion` when done\n\n**Guidelines:**\n\n- Focus only on fixing syntax errors, not improving code quality\n- Preserve the original intent and functionality of the code, as much as possible\n- Use proper MoonBit syntax and conventions\n- If you cannot fix an error, explain why clearly\n- When syntax check passes, call `attempt_completion` immediately",
+      ),
+    )
+    event_target.emit(PreConversation)
+    let tool_call = @ai.tool_call(
+      name="submit_fixed_file",
+      id="call_55cce74b1c784a6cb81034e8",
+    )
+    event_target.emit(
+      RequestCompleted(
+        usage=Some(
+          @ai.usage(input_tokens=1500, output_tokens=500, total_tokens=2000),
+        ),
+        message=@ai.assistant_message(content="", tool_calls=[tool_call]),
+      ),
+    )
+    event_target.emit(
+      PostToolCall(
+        tool_call,
+        result=Err([
           "ToolFailure", "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
-        ],
-        "text": "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
-      },
-      {
-        "msg": "MessageAdded",
-        "tool": {
-          "name": "meta_write_to_file",
-          "id": "d9a50da2-c4d2-4177-8af4-f6a38d284e49",
-        },
-        "message": {
-          "role": "tool",
-          "content": [
-            {
-              "type": "text",
-              "text": "File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
-            },
-          ],
-          "tool_call_id": "call_55cce74b1c784a6cb81034e8",
-        },
-      },
-    ]
+        ]),
+        rendered="File verification failed with syntax errors:\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 103 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 139 │   }\n     │    \n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 159 │   }\n     │    ",
+      ),
+    )
+    event_target.flush()
     let formatter = Formatter::new(@pathx.join(mock.cwd.path(), "dir/log.md"))
-    for entry in log_entries {
+    for entry in entries {
       formatter.format_log_entry(entry)
     }
     inspect(
@@ -1419,6 +1422,8 @@ async test "subagent" (t : @test.Test) {
       formatter.tools.values().collect().map(tool => tool.to_string())[0],
       content=(
         #|# 1 User: You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.
+        #|
+        #|00:00:00
         #|
         #|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.
         #|
@@ -1505,7 +1510,21 @@ async test "subagent" (t : @test.Test) {
         #|- If you cannot fix an error, explain why clearly
         #|- When syntax check passes, call `attempt_completion` immediately
         #|
-        #|# 2 ❌ Tool call error: <submit_fixed_file>
+        #|# 2 Assistant
+        #|
+        #|00:00:00
+        #|
+        #|## Tool call argument: <submit_fixed_file>
+        #|
+        #|Failed to parse tool call arguments as JSON: Unexpected end of file
+        #|
+        #|```json
+        #|
+        #|```
+        #|
+        #|# 3 ❌ Tool call error: <submit_fixed_file>
+        #|
+        #|00:00:00
         #|
         #|````markdown
         #|File verification failed with syntax errors:
@@ -1532,124 +1551,57 @@ async test "subagent" (t : @test.Test) {
 }
 
 ///|
-async test "timestamp" {
-  let entries : Array[Json] = [
-    {
-      "level": 30,
-      "pid": 92341,
-      "msg": "ModelLoaded",
-      "hostname": "Haoxiangs-MacBook-Pro.local",
-      "time": 1762239992779,
-      "tag": "maria_test",
-      "name": ["qwen/qwen3-coder-plus"],
-      "model": [
-        {
-          "name": "qwen/qwen3-coder-plus",
-          "description": "Qwen coder",
-          "model_name": "qwen/qwen3-coder-plus",
-          "model_type": "saas/openai",
-          "api_key": "sk-test",
-          "base_url": "https://openrouter.ai/api/v1",
-          "safe_zone_tokens": 256000,
-          "supports_anthropic_prompt_caching": false,
-        },
-      ],
-    },
-    {
-      "level": 30,
-      "pid": 92341,
-      "msg": "PostToolCall",
-      "hostname": "Haoxiangs-MacBook-Pro.local",
-      "time": 1762240682834,
-      "tag": "maria_test",
-      "tool_call": {
-        "id": "call_10c97dd001b24eb9ad869657",
-        "function": {
-          "name": "meta_write_to_file",
-          "arguments": "{\"path\": \"toml_parser/src/moon.pkg.json\", \"replace\": \"{\\n  \\\"import\\\": []\\n}\", \"description\": \"Updating the package configuration\"}",
-        },
-        "type": "function",
-      },
-      "name": "meta_write_to_file",
-      "result": {
-        "path": "toml_parser/src/moon.pkg.json",
-        "message": "File written successfully to toml_parser/src/moon.pkg.json",
-        "diff": "",
-      },
-      "text": "File written successfully to toml_parser/src/moon.pkg.json\n",
-    },
-  ]
-  let formatter = Formatter::new("test.md")
-  for entry in entries {
-    formatter.format_log_entry(entry)
-  }
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# System information
-      #|
-      #|00:00:00
-      #|
-      #|Model: qwen/qwen3-coder-plus
-      #|
-      #|# 1 Tool call result: <meta_write_to_file path="toml_parser/src/moon.pkg.json">
-      #|
-      #|00:11:30
-      #|
-      #|````markdown
-      #|File written successfully to toml_parser/src/moon.pkg.json
-      #|
-      #|````
-      #|
-    ),
-  )
-}
-
-///|
-async test "should_properly_quote_system_message" {
-  let log_entry : Json = {
-    "msg": "MessageAdded",
-    "message": {
-      "role": "system",
-      "content": [
-        {
-          "type": "text",
-          "text": (
-            #|````markdown
-            #|You are a helpful assistant that helps users write MoonBit code.
-            #|
-            #|```moonbit
-            #|///|
-            #|fn main {
-            #|  println("Hello, MoonBit!")
-            #|}
-            #|```
-            #|````
-          ),
-        },
-      ],
-    },
-  }
-  let formatter = Formatter::new("test.md")
-  formatter.format_log_entry(log_entry)
-  inspect(
-    formatter.to_string(),
-    content=(
-      #|# 1 System
-      #|
-      #|`````markdown
-      #|````markdown
-      #|You are a helpful assistant that helps users write MoonBit code.
-      #|
-      #|```moonbit
-      #|///|
-      #|fn main {
-      #|  println("Hello, MoonBit!")
-      #|}
-      #|```
-      #|````
-      #|`````
-      #|
-    ),
-  )
+async test "timestamp" (t : @test.Test) {
+  @mock.run(t, _ => {
+    let event_target = @event.EventTarget::new()
+    event_target.emit(
+      ModelLoaded(
+        name="qwen/qwen3-coder-plus",
+        model=@model.Model::new(
+          name="qwen/qwen3-coder-plus",
+          description="Qwen coder",
+          model_name="qwen/qwen3-coder-plus",
+          model_type=SaaS(OpenAI),
+          api_key="sk-test",
+          base_url="https://openrouter.ai/api/v1",
+          safe_zone_tokens=256000,
+          supports_anthropic_prompt_caching=false,
+        ),
+      ),
+    )
+    event_target.emit(
+      PostToolCall(
+        @ai.tool_call(
+          name="meta_write_to_file",
+          id="call_10c97dd001b24eb9ad869657",
+        ),
+        result=Ok({
+          "path": "toml_parser/src/moon.pkg.json",
+          "message": "File written successfully to toml_parser/src/moon.pkg.json",
+          "diff": "",
+        }),
+        rendered="File written successfully to toml_parser/src/moon.pkg.json\n",
+      ),
+    )
+    inspect(
+      format_event_target(event_target),
+      content=(
+        #|# System information
+        #|
+        #|00:00:00
+        #|
+        #|Model: qwen/qwen3-coder-plus
+        #|
+        #|# 1 Tool call result: <meta_write_to_file path="toml_parser/src/moon.pkg.json">
+        #|
+        #|00:00:00
+        #|
+        #|````markdown
+        #|File written successfully to toml_parser/src/moon.pkg.json
+        #|
+        #|````
+        #|
+      ),
+    )
+  })
 }
