@@ -86,7 +86,7 @@ function Editor(props: EditorProps) {
         insertMode: "insert",
       },
       defaultColorDecorators: "never",
-      quickSuggestions: false,
+      quickSuggestions: true,
       fixedOverflowWidgets: true,
     });
 

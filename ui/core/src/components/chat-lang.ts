@@ -1,5 +1,4 @@
 import * as monaco from "monaco-editor-core";
-import { RAL } from "../lib/ral";
 import type { ChatDynamicVariable } from "../lib/types";
 import { executeCommand, registerCommand } from "./commands";
 
@@ -32,31 +31,51 @@ if (!document.getElementById(styleId)) {
   document.head.appendChild(style);
 }
 
-function createAddDynamicVariableCommand(
-  variable: ChatDynamicVariable,
-): monaco.languages.Command {
+const slashCommands = ["fix-all-warnings"];
+
+function createItem(
+  label: string,
+  kind: monaco.languages.CompletionItemKind,
+  // The offset where the dynamic variable starts, should contains the trigger character
+  startOffset: number,
+  // The range to replace when the completion is accepted, should not contains the trigger character
+  range: monaco.IRange,
+): monaco.languages.CompletionItem {
+  let insertText = label;
+  switch (kind) {
+    case monaco.languages.CompletionItemKind.Text: {
+      insertText = `${label} `;
+      break;
+    }
+    case monaco.languages.CompletionItemKind.File: {
+      insertText = `file:${label} `;
+      break;
+    }
+    default: {
+      insertText = `sym:${label} `;
+      break;
+    }
+  }
   return {
-    id: "chat/add-dynamic-variable",
-    title: "Chat: Add Dynamic Variable",
-    arguments: [variable],
+    label,
+    kind,
+    command: {
+      id: "chat/add-dynamic-variable",
+      title: "Chat: Add Dynamic Variable",
+      arguments: [
+        {
+          start: startOffset,
+          end: startOffset + insertText.length,
+        },
+      ],
+    },
+    insertText,
+    range,
   };
 }
 
 function getDynamicVariables(): ChatDynamicVariable[] {
   return executeCommand("chat/get-dynamic-variables");
-}
-
-function isEmptyBeforePosition(
-  model: monaco.editor.ITextModel,
-  position: monaco.Position,
-): boolean {
-  const startToCompletionWordStart = new monaco.Range(
-    1,
-    1,
-    position.lineNumber,
-    position.column - 1,
-  );
-  return !!model.getValueInRange(startToCompletionWordStart).match(/^\s*$/);
 }
 
 const chatDynamicVariableClass = "chat-dynamic-variable";
@@ -179,65 +198,125 @@ export function setupDynamicVariableDecoration(
   };
 }
 
-const slashCommands = ["fix-all-warnings"];
-
 monaco.languages.register({ id: "chat" });
+
+const TRIGGER_CHARACTERS = ["/", "#"];
+
+function findTriggerCharacterInLine(
+  line: string,
+  col: number,
+): { char: string; index: number } | undefined {
+  for (let i = col; i >= 0; i--) {
+    const char = line[i];
+    if (TRIGGER_CHARACTERS.includes(char)) {
+      return { char, index: i };
+    }
+  }
+  return undefined;
+}
+
+function provideSlashCompletions(
+  model: monaco.editor.ITextModel,
+  startOffset: number,
+  range: monaco.IRange,
+): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
+  const content = model.getValue().slice(0, startOffset);
+  // only provide slash commands when the content before is empty or whitespace
+  if (content.match(/^\s*$/)) {
+    return {
+      suggestions: slashCommands.map((command) =>
+        createItem(
+          command,
+          monaco.languages.CompletionItemKind.Text,
+          startOffset,
+          range,
+        ),
+      ),
+    };
+  }
+  return null;
+}
+
+async function provideDynamicVariableCompletions(
+  model: monaco.editor.ITextModel,
+  startOffset: number,
+  range: monaco.IRange,
+): Promise<monaco.languages.ProviderResult<monaco.languages.CompletionList>> {
+  const query = model.getValueInRange(range);
+  console.log({ query });
+  return {
+    incomplete: true,
+    suggestions: [
+      createItem(
+        "impl Trait for Type",
+        monaco.languages.CompletionItemKind.Enum,
+        startOffset,
+        range,
+      ),
+      createItem(
+        "hello.mbt",
+        monaco.languages.CompletionItemKind.File,
+        startOffset,
+        range,
+      ),
+    ],
+  };
+}
 
 monaco.languages.registerCompletionItemProvider(
   { language: "chat" },
   {
-    triggerCharacters: ["/", "#"],
-    provideCompletionItems: function (
+    triggerCharacters: TRIGGER_CHARACTERS,
+    provideCompletionItems: async function (
       model: monaco.editor.ITextModel,
       position: monaco.Position,
       context: monaco.languages.CompletionContext,
-    ): monaco.languages.ProviderResult<monaco.languages.CompletionList> {
-      const ral = RAL();
-      const startOffset = model.getOffsetAt(position) - 1;
-      const wordInfo = model.getWordUntilPosition(position);
-      const range = new monaco.Range(
-        position.lineNumber,
-        wordInfo.startColumn,
-        position.lineNumber,
-        wordInfo.endColumn,
-      );
-      if (context.triggerCharacter === "/") {
-        if (!isEmptyBeforePosition(model, position)) {
-          // No text allowed before the completion
-          return;
+    ): Promise<monaco.languages.CompletionList | null | undefined> {
+      switch (context.triggerKind) {
+        case monaco.languages.CompletionTriggerKind.TriggerCharacter: {
+          const startOffset = model.getOffsetAt(position) - 1;
+          const range = monaco.Range.fromPositions(position);
+          switch (context.triggerCharacter) {
+            case "/": {
+              return provideSlashCompletions(model, startOffset, range);
+            }
+            case "#": {
+              return provideDynamicVariableCompletions(
+                model,
+                startOffset,
+                range,
+              );
+            }
+            default: {
+              return null;
+            }
+          }
         }
-        return {
-          suggestions: slashCommands.map((command) => ({
-            label: command,
-            insertText: command,
-            kind: monaco.languages.CompletionItemKind.Text,
-            range,
-          })),
-        };
-      } else if (context.triggerCharacter === "#") {
-        if (ral.platform) {
-          return {
-            suggestions: [
-              {
-                label: "fib",
-                insertText: "sym:fib",
-                command: createAddDynamicVariableCommand({
-                  start: startOffset,
-                  end: startOffset + "sym:fib".length + 1,
-                }),
-                kind: monaco.languages.CompletionItemKind.Function,
+        case monaco.languages.CompletionTriggerKind.Invoke:
+        case monaco.languages.CompletionTriggerKind
+          .TriggerForIncompleteCompletions: {
+          const line = model.getLineContent(position.lineNumber);
+          const trigger = findTriggerCharacterInLine(line, position.column - 2);
+          if (trigger === undefined) return null;
+          const { char, index } = trigger;
+          const triggerPos = new monaco.Position(
+            position.lineNumber,
+            index + 2,
+          );
+          const startOffset = model.getOffsetAt(triggerPos) - 1;
+          const range = monaco.Range.fromPositions(triggerPos, position);
+          switch (char) {
+            case "/": {
+              return provideSlashCompletions(model, startOffset, range);
+            }
+            case "#": {
+              return provideDynamicVariableCompletions(
+                model,
+                startOffset,
                 range,
-              },
-              {
-                label: "lib.mbt",
-                insertText: "file:lib.mbt",
-                kind: monaco.languages.CompletionItemKind.File,
-                range,
-              },
-            ],
-          };
-        } else {
-          return null;
+              );
+            }
+          }
         }
       }
     },
