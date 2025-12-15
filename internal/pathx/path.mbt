@@ -17,22 +17,11 @@ pub let sep : Char = '/'
 /// 
 /// edge cases: when path is relative path without directory component, return "."
 pub fn dirname(path : StringView) -> StringView {
-  // TODO: `moonbitlang/x/path` not handle special case when path is `//` or `/`
-  // wait for `moonbitlang/x/path` bugfix.
-  loop path {
-    [] => "."
-    "/" => "/"
-    "//" => "//"
-    "///" => "/"
-    [.. view, '/'] =>
-      skip~: loop view {
-        "/" => "/"
-        "//" => "//"
-        "///" => "/"
-        [.. view, '/'] => continue skip~ view
-        view => view
-      }
-    [.. view, _] => continue view
+  let dir = @xpath.Path::dirname(path.to_string()).to_string()
+  if dir.is_empty() {
+    "."
+  } else {
+    dir
   }
 }
 
