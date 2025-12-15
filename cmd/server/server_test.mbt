@@ -424,7 +424,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
             "Maria",
             {
               "id": "00000000-0000-0000-0000-000000000000",
-              "desc": { "msg": "MariaCancelled" },
+              "desc": { "msg": "Cancelled" },
             },
           ],
         ],
@@ -625,9 +625,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       content=1,
     )
     @json.inspect(
-      events
-      .filter(e => e is Maria(event) && event.desc is UserCancellation)
-      .length(),
+      events.filter(e => e is Maria(event) && event.desc is Cancelled).length(),
       content=1,
     )
   })

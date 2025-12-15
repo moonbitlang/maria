@@ -42,7 +42,6 @@ pub(all) enum EventDesc {
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   Diagnostics(@diagnostics.Diagnostics)
-  UserCancellation
   UserMessage(String)
   Cancelled
   Custom(String, Map[String, Json])

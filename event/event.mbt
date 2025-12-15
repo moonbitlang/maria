@@ -84,8 +84,6 @@ pub(all) enum EventDesc {
   RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
   /// Diagnostics from IDE (errors, warnings from the problems panel)
   Diagnostics(@diagnostics.Diagnostics)
-  /// User wants to cancel the current operation
-  UserCancellation
   /// User sends an immediate message (interrupting current flow)
   UserMessage(String)
   /// Cancelled
@@ -191,9 +189,8 @@ fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
     }
     Diagnostics(diagnostics) =>
       { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
-    UserCancellation => { "msg": "UserCancellation" }
+    Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
-    Cancelled => { "msg": "MariaCancelled" }
     Custom(name, payload) => payload.merge({ "msg": name })
   }
 }
@@ -444,7 +441,7 @@ pub impl @json.FromJson for EventDesc with from_json(
       )
       Diagnostics(diagnostics)
     }
-    "UserCancellation" => UserCancellation
+    "Cancelled" => Cancelled
     "UserMessage" => {
       guard json_object.get("content") is Some(content_json) else {
         raise @json.JsonDecodeError(
@@ -457,7 +454,6 @@ pub impl @json.FromJson for EventDesc with from_json(
       )
       UserMessage(content)
     }
-    "MariaCancelled" => Cancelled
     _ =>
       raise @json.JsonDecodeError(
         (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
@@ -504,7 +500,7 @@ pub impl @json.FromJson for Event with from_json(
 /// These events are collected via polling and can influence the conversation.
 pub fn Event::is_incoming(self : Event) -> Bool {
   match self.desc {
-    UserCancellation | UserMessage(_) | Diagnostics(_) => true
+    Cancelled | UserMessage(_) | Diagnostics(_) => true
     _ => false
   }
 }
@@ -531,7 +527,7 @@ pub fn Event::is_starting(self : Event) -> Bool {
 /// Indicates whether the event represents a cancellation.
 pub fn Event::is_cancellation(self : Event) -> Bool {
   match self.desc {
-    UserCancellation | Cancelled => true
+    Cancelled => true
     _ => false
   }
 }

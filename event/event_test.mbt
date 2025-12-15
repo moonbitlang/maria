@@ -643,13 +643,13 @@ test "Event::Roundtrip/ModelLoaded" {
 }
 
 ///|
-test "ExternalEvent::Roundtrip/UserCancellation" {
-  let event : @event.EventDesc = UserCancellation
+test "ExternalEvent::Roundtrip/Cancel" {
+  let event : @event.EventDesc = Cancelled
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    UserCancellation => ()
-    _ => fail("Expected UserCancellation")
+    Cancelled => ()
+    _ => fail("Expected Cancel")
   }
 }
 
@@ -830,7 +830,6 @@ test "Event::Roundtrip" {
       ),
     ),
     Cancelled,
-    UserCancellation,
     UserMessage("Stop the current task"),
     Diagnostics(@diagnostics.Diagnostics::new()),
     Diagnostics(
