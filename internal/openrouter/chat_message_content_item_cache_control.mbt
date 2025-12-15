@@ -1,0 +1,4 @@
+///|
+enum ChatMessageContentItemCacheControl {
+  Ephemeral(ChatMessageContentItemCacheControlEphemeral)
+}

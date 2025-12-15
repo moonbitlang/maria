@@ -1,0 +1,4 @@
+///|
+struct ChatGenerationParamsPdf {
+  engine : ChatGenerationParamsPdfEngine?
+}
