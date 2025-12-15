@@ -24,7 +24,7 @@ An `Agent` is an autonomous entity that:
 let model : @model.Model = @model.new(
   api_key=try! @os.getenv("OPENAI_API_KEY").unwrap(),
   base_url="https://openrouter.ai/api/v1",
-  name="x-ai/grok-code-fast-1",
+  name="anthropic/claude-haiku-4.5",
   safe_zone_tokens=200000,
 )
 
