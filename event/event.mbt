@@ -451,10 +451,10 @@ pub impl @json.FromJson for EventDesc with from_json(
       )
       UserMessage(content)
     }
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
-      )
+    custom => {
+      json_object.remove("msg")
+      Custom(custom, json_object)
+    }
   }
 }
 

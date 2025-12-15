@@ -865,6 +865,7 @@ test "Event::Roundtrip" {
         ds
       },
     ),
+    Custom("MariaFailed", { "reason": "Network issue" }),
   ]
   for event in events {
     let event = @event.Event::{ id: uuid.v4(), desc: event }
