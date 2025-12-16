@@ -114,3 +114,160 @@ pub impl ToJson for ChatGenerationParams with to_json(
   }
   Json::object(object)
 }
+
+///|
+pub impl @json.FromJson for ChatGenerationParams with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ChatGenerationParams raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.ChatGenerationParams::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
+  }
+  let messages : Array[Message] = match object.get("messages") {
+    Some(v) => @json.from_json(v, path=path.add_key("messages"))
+    None =>
+      raise @json.JsonDecodeError(
+        (path.add_key("messages"), "\{func_name}: missing field messages"),
+      )
+  }
+  let stream : Bool = match object.get("stream") {
+    Some(v) => @json.from_json(v, path=path.add_key("stream"))
+    None =>
+      raise @json.JsonDecodeError(
+        (path.add_key("stream"), "\{func_name}: missing field stream"),
+      )
+  }
+  let provider : ChatGenerationParamsProvider? = match object.get("provider") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("provider")))
+  }
+  let plugins : Array[ChatGenerationParamsPlugin]? = match
+    object.get("plugins") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("plugins")))
+  }
+  let route : ChatGenerationParamsRoute? = match object.get("route") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("route")))
+  }
+  let user : String? = match object.get("user") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("user")))
+  }
+  let session_id : String? = match object.get("session_id") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("session_id")))
+  }
+  let model : String? = match object.get("model") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("model")))
+  }
+  let models : Array[String]? = match object.get("models") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("models")))
+  }
+  let frequency_penalty : Float? = match object.get("frequency_penalty") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("frequency_penalty")))
+  }
+  let logit_bias : Map[String, Float]? = match object.get("logit_bias") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("logit_bias")))
+  }
+  let logprobs : Bool? = match object.get("logprobs") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("logprobs")))
+  }
+  let top_logprobs : Int? = match object.get("top_logprobs") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("top_logprobs")))
+  }
+  let max_completion_tokens : Int? = match object.get("max_completion_tokens") {
+    None | Some(Null) => None
+    Some(v) =>
+      Some(@json.from_json(v, path=path.add_key("max_completion_tokens")))
+  }
+  let max_tokens : Int? = match object.get("max_tokens") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("max_tokens")))
+  }
+  let metadata : Map[String, String]? = match object.get("metadata") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("metadata")))
+  }
+  let presence_penalty : Float? = match object.get("presence_penalty") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("presence_penalty")))
+  }
+  let reasoning : Reasoning? = match object.get("reasoning") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("reasoning")))
+  }
+  let response_format : ChatGenerationParamsResponseFormat? = match
+    object.get("response_format") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("response_format")))
+  }
+  let seed : Int? = match object.get("seed") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("seed")))
+  }
+  let stop : Array[String]? = match object.get("stop") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("stop")))
+  }
+  let stream_options : ChatStreamOptions? = match object.get("stream_options") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("stream_options")))
+  }
+  let temperature : Float? = match object.get("temperature") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("temperature")))
+  }
+  let tool_choice : Json? = match object.get("tool_choice") {
+    None | Some(Null) => None
+    Some(v) => Some(v)
+  }
+  let tools : Array[ToolDefinitionJson]? = match object.get("tools") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("tools")))
+  }
+  let top_p : Float? = match object.get("top_p") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("top_p")))
+  }
+  let debug : Debug? = match object.get("debug") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("debug")))
+  }
+  ChatGenerationParams::{
+    provider,
+    plugins,
+    route,
+    user,
+    session_id,
+    messages,
+    model,
+    models,
+    frequency_penalty,
+    logit_bias,
+    logprobs,
+    top_logprobs,
+    max_completion_tokens,
+    max_tokens,
+    metadata,
+    presence_penalty,
+    reasoning,
+    response_format,
+    seed,
+    stop,
+    stream,
+    stream_options,
+    temperature,
+    tool_choice,
+    tools,
+    top_p,
+    debug,
+  }
+}
