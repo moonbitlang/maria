@@ -1,8 +1,10 @@
 import type {
+  PostToolCallEvent,
   Status,
   TaskEvent,
   TaskOverview,
   Todo,
+  TodoTool,
 } from "@maria/core/lib/types.ts";
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 import { createAppSlice } from "../../app/createAppSlice";
@@ -136,17 +138,30 @@ export const tasksSlice = createAppSlice({
           return;
         }
 
-        if (event.msg === "TodoUpdated") {
-          task.todos = event.todo.todos;
-        }
-
-        if (event.msg === "PostToolCall") {
+        if (event.desc.msg === "PostToolCall") {
+          // We need to extract event.desc to a variable so that TypeScript can
+          // narrow the type properly
+          const desc: PostToolCallEvent = event.desc;
+          // We need to test for the "result" field specifically for the
+          // "todo" tool because the tool might fail and return an "error" field
+          // instead.
+          if (desc.name === "todo" && desc.result) {
+            // Because `PostToolCallEvent` is a union type that includes
+            // `UnknownTool`, and TypeScript always infers the type of
+            // `desc` as (TodoTool | UnknownTool). So we need to use type
+            // assertion here.
+            const todoTool = desc as PostToolCallEvent & TodoTool;
+            task.todos = todoTool.result[1].todos;
+          }
           // search back for the respective PreToolCall event and change it to PostToolCall
-          const toolCallId = event.tool_call.id;
+          const toolCallId = desc.tool_call.id;
           let found = false;
           for (let i = task.events.length - 1; i >= 0; i--) {
             const e = task.events[i];
-            if (e.msg === "PreToolCall" && e.tool_call.id === toolCallId) {
+            if (
+              e.desc.msg === "PreToolCall" &&
+              e.desc.tool_call.id === toolCallId
+            ) {
               // replace the PreToolCall event with PostToolCall event
               found = true;
               task.events[i] = event;

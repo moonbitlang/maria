@@ -154,14 +154,14 @@ export const apiSlice = createApi({
           await cacheDataLoaded;
 
           source.addEventListener("maria", (event: MessageEvent<string>) => {
-            const data = JSON.parse(event.data) as TaskEvent;
+            const taskEvent = JSON.parse(event.data) as TaskEvent;
+            const data = taskEvent.desc;
             switch (data.msg) {
-              case "RequestCompleted":
+              case "AssistantMessage":
               case "PreToolCall":
               case "PostToolCall":
-              case "TodoUpdated":
-              case "MessageAdded": {
-                dispatch(pushEventForTask({ taskId: id, event: data }));
+              case "UserMessage": {
+                dispatch(pushEventForTask({ taskId: id, event: taskEvent }));
                 return;
               }
               case "MessageUnqueued": {
