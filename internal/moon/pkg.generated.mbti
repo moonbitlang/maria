@@ -73,7 +73,7 @@ pub async fn Module::locate_package(Self, String) -> Package
 pub fn Module::packages(Self) -> Iter[PackageView]
 pub async fn Module::publish(Self, dry_run? : Bool) -> Unit
 pub async fn Module::run(Self, String, Array[String]) -> (Int, String)
-pub async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Array[TestFailure]
+pub async fn Module::test_(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Unit
 pub async fn Module::test_build_only(Self, target_dir? : String, package_? : String, file? : String, index? : Int, enable_coverage? : Bool, debug? : Bool, release? : Bool, strip? : Bool, jobs? : Int, update? : Bool, limit? : Int, patch_file? : String) -> Artifacts
 
 type Package
@@ -102,9 +102,6 @@ pub fn SegmentView::content(Self) -> String
 pub fn SegmentView::diagnostics(Self) -> @diagnostics.Diagnostics
 pub fn SegmentView::replace(Self, String) -> String
 pub impl ToJson for SegmentView
-
-type TestFailure
-pub impl ToJson for TestFailure
 
 // Type aliases
 
