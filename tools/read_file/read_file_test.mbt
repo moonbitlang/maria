@@ -28,6 +28,14 @@ async test "content" (t : @test.Test) {
         #|line 2
         #|line 3
         #|line 4
+        #|line 5
+        #|line 6
+        #|line 7
+        #|line 8
+        #|line 9
+        #|line 10
+        #|line 11
+        #|line 12
       ),
     )
     let args : Json = { "path": "test.txt" }
@@ -38,18 +46,26 @@ async test "content" (t : @test.Test) {
     }
     @json.inspect(output, content={
       "path": "test.txt",
-      "content": "line 1\nline 2\nline 3\nline 4",
+      "content": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12",
       "start_line": 1,
-      "end_line": 4,
+      "end_line": 12,
     })
     inspect(
       output,
       content=(
-        #|File: test.txt (lines 1-4 (4 lines))
-        #|line 1
-        #|line 2
-        #|line 3
-        #|line 4
+        #|File: test.txt (lines 1-12 (12 lines))
+        #| L01 | line 1
+        #|     | line 2
+        #|     | line 3
+        #|     | line 4
+        #|     | line 5
+        #|     | line 6
+        #|     | line 7
+        #|     | line 8
+        #|     | line 9
+        #|     | line 10
+        #| L11 | line 11
+        #|     | line 12
       ),
     )
   })
@@ -85,9 +101,9 @@ async test "line_range" (t : @test.Test) {
       output,
       content=(
         #|File: lines.txt (lines 2-4 (3 lines))
-        #|line 2
-        #|line 3
-        #|line 4
+        #| L2 | line 2
+        #|    | line 3
+        #|    | line 4
       ),
     )
   })
@@ -139,7 +155,7 @@ async test "invalid-range" (t : @test.Test) {
       result,
       content=(
         #|File: test.txt (lines 3-3 (1 lines))
-        #|line 3
+        #| L3 | line 3
       ),
     )
     let args : Json = { "path": "test.txt", "start_line": 4, "end_line": 10 }
@@ -164,8 +180,8 @@ async test "invalid-range" (t : @test.Test) {
       output,
       content=(
         #|File: test.txt (lines 2-3 (2 lines))
-        #|line 2
-        #|line 3
+        #| L2 | line 2
+        #|    | line 3
       ),
     )
   })

@@ -17,7 +17,18 @@ pub impl Show for ReadFileToolResult with output(
     { path, content, start_line, end_line } => {
       let lines = content.split("\n").to_array()
       let selected_lines = lines[start_line - 1:end_line]
-      let selected_content = selected_lines.join("\n")
+      let width = end_line.to_string().length()
+      let selected_content = selected_lines
+        .mapi(fn(i, line) {
+          let line_number = start_line + i
+          let line_marker = if i % 10 == 0 {
+            "L\{line_number.to_string().pad_start(width, '0')}"
+          } else {
+            " ".repeat(width + 1)
+          }
+          " \{line_marker} | \{line}"
+        })
+        .join("\n")
       let range_info = "lines \{start_line}-\{end_line} (\{selected_lines.length()} lines)"
       logger.write_string("File: \{path} (\{range_info})\n\{selected_content}")
     }
@@ -128,11 +139,11 @@ async fn execute_read_file_tool(
 pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
   @tool.new(
     description=(
-      #|Read the contents of a file at the specified path. 
+      #|Read the contents of a file at the specified path.
       #|Use this when you need to examine the contents of an existing file,
-      #| for example to analyze code, review text files, or extract information from configuration files. 
-      #|For very large files (>30k tokens), the tool will automatically extract relevant sections based on 
-      #|the provided query to manage token usage efficiently. 
+      #| for example to analyze code, review text files, or extract information from configuration files.
+      #|For very large files (>30k tokens), the tool will automatically extract relevant sections based on
+      #|the provided query to manage token usage efficiently.
       #|Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).
       #|
       #|When reading a MoonBit file:
