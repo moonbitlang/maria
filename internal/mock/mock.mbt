@@ -103,62 +103,16 @@ pub async fn Context::add_json_tree(
 }
 
 ///|
-struct Filter {
-  keywords : Array[(String, String)]
-}
-
-///|
-fn Filter::new() -> Filter {
-  Filter::{ keywords: [] }
-}
-
-///|
-fn Filter::add(self : Filter, key : String, value : String) -> Unit {
-  self.keywords.push((key, value))
-}
-
-///|
-priv trait Filterable {
-  filter(self : Filter, value : Self) -> Self
-}
-
-///|
-impl Filterable for String with filter(self : Filter, content : String) -> String {
-  let mut content = content
-  for keyword in self.keywords {
-    let (key, value) = keyword
-    content = content.replace_all(old=value, new="(mock:\{key})")
-  }
-  content
-}
-
-///|
-impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
-  match value {
-    String(string) => Json::string(Filterable::filter(self, string))
-    Array(array) => Json::array(array.map(e => Filterable::filter(self, e)))
-    Object(old_object) => {
-      let new_object = {}
-      for k, v in old_object {
-        new_object[Filterable::filter(self, k)] = Filterable::filter(self, v)
-      }
-      Json::object(new_object)
-    }
-    _ => value
-  }
-}
-
-///|
 /// Serializes a value to JSON while masking sensitive fields with the current filter.
 pub fn[T : ToJson] Context::json(self : Context, value : T) -> Json {
-  Filterable::filter(self.filter, value.to_json())
+  self.filter.apply_json(value.to_json())
 }
 
 ///|
 /// Formats a value into a filtered string suited for deterministic snapshots.
 #alias(text)
 pub fn[T : Show] Context::show(self : Context, value : T) -> String {
-  Filterable::filter(self.filter, value.to_string())
+  self.filter.apply_string(value.to_string())
 }
 
 ///|
