@@ -112,7 +112,7 @@ pub fn EventTarget::emit(
 ///       // Log tool call results
 ///       println("Tool \(call.name) completed")
 ///     }
-///     RequestCompleted(usage~, message~) => {
+///     AssistantMessage(usage~, message~) => {
 ///       // Track token usage
 ///       if usage is Some(u) {
 ///         total_tokens += u.total_tokens

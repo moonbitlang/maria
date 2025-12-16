@@ -17,7 +17,7 @@
 ///   // prune context if necessary
 ///   ContextPruned
 ///   // receive assistant response
-///   RequestCompleted
+///   AssistantMessage
 ///   // executing tool call
 ///   PreToolCall
 ///   PostToolCall
@@ -77,11 +77,12 @@ pub(all) enum EventDesc {
   /// FIXME: Currently this event is triggered even if the context is with-in
   /// the limit and no pruning is performed.
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  /// Event triggered when a chat completion request is completed.
-  ///
-  /// If you are interested in details in the assistant response, then this is
-  /// the event you might want to listen for.
-  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
+  /// Event triggered when a assistant message is received from the model.
+  AssistantMessage(
+    usage~ : @ai.Usage?,
+    tool_calls~ : Array[@ai.ToolCall],
+    String
+  )
   /// Diagnostics from IDE (errors, warnings from the problems panel)
   Diagnostics(@diagnostics.Diagnostics)
   /// User sends an immediate message (interrupting current flow)
@@ -92,7 +93,7 @@ pub(all) enum EventDesc {
 } derive(Eq, Show)
 
 ///|
-fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
+pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
   match self {
     ModelLoaded(name~, model~) =>
       {
@@ -182,22 +183,23 @@ fn EventDesc::to_json_object(self : EventDesc) -> Map[String, Json] {
           "schema": tool_desc.schema,
         },
       }
-    RequestCompleted(usage~, message~) => {
-      let usage = usage.map(fn(u) { u.to_openai() })
-      let message = message.to_openai()
-      { "msg": "RequestCompleted", "usage": usage, "message": message }
+    AssistantMessage(usage~, tool_calls~, content) => {
+      let json : Map[String, Json] = {
+        "msg": "AssistantMessage",
+        "tool_calls": tool_calls.map(fn(tc) { tc.to_openai() }),
+        "content": content,
+      }
+      if usage is Some(usage) {
+        json["usage"] = usage.to_openai().to_json()
+      }
+      Json::object(json)
     }
     Diagnostics(diagnostics) =>
       { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
     Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
-    Custom(name, payload) => payload.merge({ "msg": name })
+    Custom(name, payload) => Json::object(payload.merge({ "msg": name }))
   }
-}
-
-///|
-pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
-  Json::object(self.to_json_object())
 }
 
 ///|
@@ -217,18 +219,18 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "ModelLoaded event missing 'name' field"),
         )
       }
-      let name : String = @json.FromJson::from_json(
+      let name : String = @json.from_json(
         name_json,
-        json_path.add_key("name"),
+        path=json_path.add_key("name"),
       )
       guard json_object.get("model") is Some(model_json) else {
         raise @json.JsonDecodeError(
           (json_path, "ModelLoaded event missing 'model' field"),
         )
       }
-      let model : @model.Model = @json.FromJson::from_json(
+      let model : @model.Model = @json.from_json(
         model_json,
-        json_path.add_key("model"),
+        path=json_path.add_key("model"),
       )
       ModelLoaded(name~, model~)
     }
@@ -238,9 +240,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "TokenCounted event missing 'token_count' field"),
         )
       }
-      let token_count : Int = @json.FromJson::from_json(
+      let token_count : Int = @json.from_json(
         token_count_json,
-        json_path.add_key("token_count"),
+        path=json_path.add_key("token_count"),
       )
       TokenCounted(token_count)
     }
@@ -251,9 +253,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "ContextPruned event missing 'origin_token_count' field"),
         )
       }
-      let origin_token_count : Int = @json.FromJson::from_json(
+      let origin_token_count : Int = @json.from_json(
         origin_token_count_json,
-        json_path.add_key("origin_token_count"),
+        path=json_path.add_key("origin_token_count"),
       )
       guard json_object.get("pruned_token_count")
         is Some(pruned_token_count_json) else {
@@ -261,9 +263,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "ContextPruned event missing 'pruned_token_count' field"),
         )
       }
-      let pruned_token_count : Int = @json.FromJson::from_json(
+      let pruned_token_count : Int = @json.from_json(
         pruned_token_count_json,
-        json_path.add_key("pruned_token_count"),
+        path=json_path.add_key("pruned_token_count"),
       )
       ContextPruned(origin_token_count~, pruned_token_count~)
     }
@@ -305,9 +307,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "PostToolCall event missing 'text' field"),
         )
       }
-      let rendered : String = @json.FromJson::from_json(
+      let rendered : String = @json.from_json(
         rendered_json,
-        json_path.add_key("text"),
+        path=json_path.add_key("text"),
       )
       PostToolCall(
         @ai.ToolCall::from_openai_tool_call(tool_call),
@@ -323,9 +325,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "SystemPromptSet event missing 'prompt' field"),
         )
       }
-      let prompt : String = @json.FromJson::from_json(
+      let prompt : String = @json.from_json(
         prompt_json,
-        json_path.add_key("prompt"),
+        path=json_path.add_key("prompt"),
       )
       SystemPromptSet(prompt)
     }
@@ -340,9 +342,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "Invalid 'message' field in MessageQueued event"),
         )
       }
-      let id : @uuid.Uuid = @json.FromJson::from_json(
+      let id : @uuid.Uuid = @json.from_json(
         id_json,
-        json_path.add_key("message").add_key("id"),
+        path=json_path.add_key("message").add_key("id"),
       )
       MessageQueued(id~)
     }
@@ -357,9 +359,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "Invalid 'message' field in MessageUnqueued event"),
         )
       }
-      let id : @uuid.Uuid = @json.FromJson::from_json(
+      let id : @uuid.Uuid = @json.from_json(
         id_json,
-        json_path.add_key("message").add_key("id"),
+        path=json_path.add_key("message").add_key("id"),
       )
       MessageUnqueued(id~)
     }
@@ -382,52 +384,47 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "Invalid 'tool' field in ToolAdded event"),
         )
       }
-      let name : String = @json.FromJson::from_json(
+      let name : String = @json.from_json(
         name_json,
-        json_path.add_key("tool").add_key("name"),
+        path=json_path.add_key("tool").add_key("name"),
       )
-      let description : String = @json.FromJson::from_json(
+      let description : String = @json.from_json(
         description_json,
-        json_path.add_key("tool").add_key("description"),
+        path=json_path.add_key("tool").add_key("description"),
       )
       let schema : Json = schema_json
       ToolAdded(@tool.tool_desc(description~, name~, schema~))
     }
-    "RequestCompleted" => {
-      guard json_object.get("usage") is Some(usage_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "RequestCompleted event missing 'usage' field"),
-        )
-      }
-      let usage : @ai.Usage? = match usage_json {
-        Null => None
-        Array([usage_obj]) =>
+    "AssistantMessage" => {
+      let usage : @ai.Usage? = match json_object.get("usage") {
+        None | Some(Null) => None
+        Some(usage_json) =>
           Some(
             @ai.Usage::from_openai(
-              @json.FromJson::from_json(
-                usage_obj,
-                json_path.add_key("usage").add_index(0),
-              ),
+              @json.from_json(usage_json, path=json_path.add_key("usage")),
             ),
           )
-        _ =>
+      }
+      let tool_calls : Array[@ai.ToolCall] = match
+        json_object.get("tool_calls") {
+        None => []
+        Some(tool_calls_json) => {
+          let tcs : Array[@openai.ChatCompletionMessageToolCall] = @json.from_json(
+            tool_calls_json,
+            path=json_path.add_key("tool_calls"),
+          )
+          tcs.map(@ai.ToolCall::from_openai_tool_call)
+        }
+      }
+      let content : String = match json_object.get("content") {
+        None =>
           raise @json.JsonDecodeError(
-            (
-              json_path.add_key("usage"),
-              "Expected null or array with one element for usage",
-            ),
+            (json_path, "AssistantMessage event missing 'content' field"),
           )
+        Some(content_json) =>
+          @json.from_json(content_json, path=json_path.add_key("content"))
       }
-      guard json_object.get("message") is Some(message_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "RequestCompleted event missing 'message' field"),
-        )
-      }
-      let message : @openai.ChatCompletionMessageParam = @json.FromJson::from_json(
-        message_json,
-        json_path.add_key("message"),
-      )
-      RequestCompleted(usage~, message=@ai.Message::from_openai(message))
+      AssistantMessage(usage~, tool_calls~, content)
     }
     "Diagnostics" => {
       guard json_object.get("diagnostics") is Some(diagnostics_json) else {
@@ -435,9 +432,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "Diagnostics event missing 'diagnostics' field"),
         )
       }
-      let diagnostics : @diagnostics.Diagnostics = @json.FromJson::from_json(
+      let diagnostics : @diagnostics.Diagnostics = @json.from_json(
         diagnostics_json,
-        json_path.add_key("diagnostics"),
+        path=json_path.add_key("diagnostics"),
       )
       Diagnostics(diagnostics)
     }
@@ -448,9 +445,9 @@ pub impl @json.FromJson for EventDesc with from_json(
           (json_path, "Missing 'content' field in UserMessage event"),
         )
       }
-      let content : String = @json.FromJson::from_json(
+      let content : String = @json.from_json(
         content_json,
-        json_path.add_key("content"),
+        path=json_path.add_key("content"),
       )
       UserMessage(content)
     }
@@ -467,7 +464,7 @@ pub impl @json.FromJson for EventDesc with from_json(
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
 pub impl ToJson for Event with to_json(self : Event) -> Json {
-  { "id": self.id.to_json(), "desc": self.desc.to_json_object() }
+  { "id": self.id.to_json(), "desc": self.desc }
 }
 
 ///|

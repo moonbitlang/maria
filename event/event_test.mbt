@@ -288,7 +288,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
 }
 
 ///|
-async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
+async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
@@ -301,28 +301,25 @@ async test "Event::ToJson/RequestCompleted" (t : @test.Test) {
         output_tokens=50,
         total_tokens=200,
       )
-      let message : @ai.Message = @ai.assistant_message(
-        content="This is the final message from the model.",
-        tool_calls=[],
+      emitter.emit(
+        AssistantMessage(
+          usage=Some(usage),
+          tool_calls=[],
+          "This is the final message from the model.",
+        ),
       )
-      emitter.emit(RequestCompleted(usage=Some(usage), message~))
     })
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "desc": {
-          "msg": "RequestCompleted",
-          "usage": [
-            {
-              "completion_tokens": 50,
-              "prompt_tokens": 150,
-              "total_tokens": 200,
-            },
-          ],
-          "message": {
-            "role": "assistant",
-            "tool_calls": [],
-            "content": "This is the final message from the model.",
+          "msg": "AssistantMessage",
+          "tool_calls": [],
+          "content": "This is the final message from the model.",
+          "usage": {
+            "completion_tokens": 50,
+            "prompt_tokens": 150,
+            "total_tokens": 200,
           },
         },
       },
@@ -569,44 +566,40 @@ test "Event::Roundtrip/ToolAdded" {
 }
 
 ///|
-test "Event::Roundtrip/RequestCompleted/WithUsage" {
+test "Event::Roundtrip/AssistantMessage/WithUsage" {
   let usage = @ai.usage(input_tokens=100, output_tokens=50, total_tokens=150)
-  let message = @ai.assistant_message(content="Response from model", tool_calls=[])
-  let event : @event.EventDesc = RequestCompleted(usage=Some(usage), message~)
+  let event : @event.EventDesc = AssistantMessage(
+    usage=Some(usage),
+    tool_calls=[],
+    "Response from model",
+  )
   let json = event.to_json()
+  @json.inspect(json, content={
+    "msg": "AssistantMessage",
+    "tool_calls": [],
+    "content": "Response from model",
+    "usage": {
+      "completion_tokens": 50,
+      "prompt_tokens": 100,
+      "total_tokens": 150,
+    },
+  })
   let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    RequestCompleted(usage=roundtrip_usage, message=msg) => {
-      match roundtrip_usage {
-        Some(u) => {
-          inspect(u.input_tokens, content="100")
-          inspect(u.output_tokens, content="50")
-          inspect(u.total_tokens, content="150")
-        }
-        None => fail("Expected Some(usage)")
-      }
-      inspect(msg.content(), content="Response from model")
-    }
-    _ => fail("Expected RequestCompleted")
-  }
+  assert_eq(roundtripped, event)
 }
 
 ///|
-test "Event::Roundtrip/RequestCompleted/NoUsage" {
-  let message = @ai.assistant_message(content="Response", tool_calls=[])
-  let event : @event.EventDesc = RequestCompleted(usage=None, message~)
+test "Event::Roundtrip/AssistantMessage/NoUsage" {
+  let tool_calls = []
+  tool_calls.push(@ai.tool_call(id="tc1", name="tool1", arguments="{}"))
+  let event : @event.EventDesc = AssistantMessage(
+    usage=None,
+    tool_calls~,
+    "Response",
+  )
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    RequestCompleted(usage=roundtrip_usage, message=msg) => {
-      match roundtrip_usage {
-        None => ()
-        Some(_) => fail("Expected None")
-      }
-      inspect(msg.content(), content="Response")
-    }
-    _ => fail("Expected RequestCompleted")
-  }
+  assert_eq(roundtripped, event)
 }
 
 ///|
@@ -811,14 +804,12 @@ test "Event::Roundtrip" {
         schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
       ),
     ),
-    RequestCompleted(
+    AssistantMessage(
       usage=Some(
         @ai.usage(input_tokens=150, output_tokens=50, total_tokens=200),
       ),
-      message=@ai.assistant_message(
-        content="This is the final message from the model.",
-        tool_calls=[],
-      ),
+      tool_calls=[],
+      "This is the final message from the model.",
     ),
     ModelLoaded(
       name="test_model",

@@ -40,7 +40,7 @@ pub(all) enum EventDesc {
   PostToolCall(@ai.ToolCall, result~ : Result[Json, Json], rendered~ : String)
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
-  RequestCompleted(usage~ : @ai.Usage?, message~ : @ai.Message)
+  AssistantMessage(usage~ : @ai.Usage?, tool_calls~ : Array[@ai.ToolCall], String)
   Diagnostics(@diagnostics.Diagnostics)
   UserMessage(String)
   Cancelled

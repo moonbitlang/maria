@@ -14,7 +14,7 @@
 /// * `PostConversation` - Logs conversation end
 /// * `UserMessage` - Logs the added message
 /// * `ToolAdded` - Logs tool descriptor (name, description, schema)
-/// * `RequestCompleted` - Logs API usage and response message
+/// * `AssistantMessage` - Logs API usage and response message
 ///
 /// Parameters:
 ///
