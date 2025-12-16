@@ -520,12 +520,14 @@ function extractMessageContent(message) {
 }
 
 function formatLogEntry(data) {
+  // Extract desc from the new event format
+  const desc = data.desc || data; // Fallback to data for backward compatibility
   const timestamp = data.time ? formatTimestamp(data.time) : "";
 
   // Handle different message types
-  switch (data.msg) {
+  switch (desc.msg) {
     case "ModelLoaded": {
-      const modelName = Array.isArray(data.name) ? data.name[0] : data.name;
+      const modelName = Array.isArray(desc.name) ? desc.name[0] : desc.name;
       return `
         <div class="log-entry model-loaded">
           <div class="log-header">
@@ -537,15 +539,10 @@ function formatLogEntry(data) {
       `;
     }
 
-    case "MessageAdded": {
-      const message = data.message;
-      const role = formatMessageRole(message);
-      const content = extractMessageContent(message).trim();
+    case "UserMessage": {
+      const content = desc.content.trim();
       const firstLine = content.split("\n").find((line) => line.trim());
-      const title = firstLine ? `${role}: ${firstLine}` : role;
-
-      // System messages are collapsed by default, others are open
-      const isOpen = message.role !== "system";
+      const title = firstLine ? `User: ${firstLine}` : "User";
 
       return `
         <div class="log-entry message-added">
@@ -553,22 +550,23 @@ function formatLogEntry(data) {
             <span class="log-type">${escapeHtml(title)}</span>
             ${timestamp ? `<span class="timestamp">${timestamp}</span>` : ""}
           </div>
-          ${
-            content
-              ? `<div class="log-content">
-                  <details ${isOpen ? "open" : ""}>
-                    <summary>Show content</summary>
-                    <pre>${escapeHtml(content)}</pre>
-                  </details>
-                </div>`
-              : ""
-          }
+          <div class="log-content">
+            <details open>
+              <summary>Show content</summary>
+              <pre>${escapeHtml(content)}</pre>
+            </details>
+          </div>
         </div>
       `;
     }
 
+    case "SystemPromptSet": {
+      // Don't render system prompt messages in the UI
+      return "";
+    }
+
     case "RequestCompleted": {
-      const message = data.message;
+      const message = desc.message;
       const content = (message.content || "").trim();
       const firstLine = content.split("\n").find((line) => line.trim());
       const title = firstLine ? `Assistant: ${firstLine}` : "Assistant";
@@ -617,10 +615,12 @@ function formatLogEntry(data) {
     }
 
     case "PostToolCall": {
-      const name = data.name;
-      const text = data.text || "";
-      const hasError = data.error !== undefined;
-      const hasResult = data.result !== undefined;
+      // Extract tool name from tool_call structure
+      const toolCall = desc.tool_call;
+      const name = toolCall && toolCall.function ? toolCall.function.name : (desc.name || "unknown");
+      const text = desc.rendered || desc.text || "";
+      const hasError = desc.error !== undefined;
+      const hasResult = desc.result !== undefined;
 
       let titlePrefix = "Tool call result";
       if (hasError) {
@@ -628,25 +628,28 @@ function formatLogEntry(data) {
       }
 
       let titleSuffix = `&lt;${name}&gt;`;
-      if (hasResult && data.result) {
-        const result = data.result;
+      if (hasResult && desc.result) {
+        const result = desc.result;
+        // Handle Result type: [operation_type, value] for tools like todo, execute_command
+        const resultValue = Array.isArray(result) && result.length > 1 ? result[1] : result;
         if (
           name === "execute_command" &&
-          Array.isArray(result) &&
-          result[0] === "Completed"
+          resultValue &&
+          resultValue.command
         ) {
-          const cmdInfo = result[1];
-          if (cmdInfo && cmdInfo.command) {
-            titleSuffix = `&lt;${name} command="${escapeHtml(
-              cmdInfo.command
-            )}"&gt;`;
-          }
-          if (cmdInfo && cmdInfo.status !== 0) {
+          titleSuffix = `&lt;${name} command="${escapeHtml(
+            resultValue.command
+          )}"&gt;`;
+          if (resultValue.status !== 0) {
             titlePrefix = "❌ Tool call error";
           }
-        } else if (result.path) {
-          titleSuffix = `&lt;${name} path="${escapeHtml(result.path)}"&gt;`;
+        } else if (resultValue && resultValue.path) {
+          titleSuffix = `&lt;${name} path="${escapeHtml(resultValue.path)}"&gt;`;
         }
+      } else if (hasError && desc.error) {
+        // Error information is in desc.error
+        const errorValue = Array.isArray(desc.error) && desc.error.length > 1 ? desc.error[1] : desc.error;
+        // Error details are already in titlePrefix
       }
 
       return `
@@ -669,13 +672,13 @@ function formatLogEntry(data) {
       return `
         <div class="log-entry generic">
           <div class="log-header">
-            <span class="log-type">${escapeHtml(data.msg || "Unknown")}</span>
+            <span class="log-type">${escapeHtml(desc.msg || "Unknown")}</span>
             ${timestamp ? `<span class="timestamp">${timestamp}</span>` : ""}
           </div>
           <div class="log-content">
             <details>
               <summary>Show details</summary>
-              <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+              <pre>${escapeHtml(JSON.stringify(desc, null, 2))}</pre>
             </details>
           </div>
         </div>
@@ -720,32 +723,49 @@ function connect() {
 
   eventSource.addEventListener("maria", (event) => {
     const data = JSON.parse(event.data);
-    if (data.msg === "TokenCounted") {
+    // Extract desc from the new event format
+    const desc = data.desc || data; // Fallback to data for backward compatibility
+
+    console.log("Received maria event:", desc);
+
+    if (desc.msg === "TokenCounted") {
       // There are too many of these events; ignore them to reduce noise
       return;
     }
 
     // Update task status based on events
-    if (data.msg === "PreConversation") {
+    if (desc.msg === "PreConversation") {
       updateTaskStatus(true);
-    } else if (data.msg === "PostConversation" || data.msg === "MariaFailed") {
+    } else if (desc.msg === "PostConversation" || desc.msg === "MariaFailed") {
       updateTaskStatus(false);
     }
 
-    // Handle TodoUpdated event
-    if (data.msg === "TodoUpdated" && data.todo) {
-      updateTodoList(data.todo);
+    // Handle PostToolCall event for todo tool (only on success, not error)
+    if (desc.msg === "PostToolCall" && desc.tool_call && !desc.error) {
+      const toolName = desc.tool_call.function ? desc.tool_call.function.name : null;
+      if (toolName === "todo" && desc.result) {
+        // Result format: ["Read"|"Write", {...}]
+        if (Array.isArray(desc.result) && desc.result.length === 2) {
+          const operation = desc.result[0]; // "Read" or "Write"
+          const todoData = desc.result[1];
+          // Check if the result contains a todo list structure
+          if (todoData && todoData.todos) {
+            updateTodoList(todoData);
+          }
+        }
+      }
     }
 
     // Handle queue events
-    if (data.msg === "MessageQueued") {
+    if (desc.msg === "MessageQueued") {
       queuedMessages.push({
-        id: data.id,
-        message: data.message,
+        id: desc.message ? desc.message.id : data.id,
+        message: desc.message,
       });
       updateQueueDisplay();
-    } else if (data.msg === "MessageUnqueued") {
-      queuedMessages = queuedMessages.filter((item) => item.id !== data.id);
+    } else if (desc.msg === "MessageUnqueued") {
+      const unqueuedId = desc.message ? desc.message.id : data.id;
+      queuedMessages = queuedMessages.filter((item) => item.id !== unqueuedId);
       updateQueueDisplay();
     }
 
