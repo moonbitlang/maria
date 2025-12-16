@@ -61,3 +61,86 @@ pub impl ToJson for ChatGenerationParamsProvider with to_json(
   }
   Json::object(object)
 }
+
+///|
+pub impl @json.FromJson for ChatGenerationParamsProvider with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ChatGenerationParamsProvider raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.ChatGenerationParamsProvider::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
+  }
+  let allow_fallbacks : Bool? = match object.get("allow_fallbacks") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("allow_fallbacks")))
+  }
+  let require_parameters : Bool? = match object.get("require_parameters") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("require_parameters")))
+  }
+  let data_collection : ChatGenerationParamsDataCollection? = match
+    object.get("data_collection") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("data_collection")))
+  }
+  let zdr : Bool? = match object.get("zdr") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("zdr")))
+  }
+  let enforce_distillable_text : Bool? = match
+    object.get("enforce_distillable_text") {
+    None | Some(Null) => None
+    Some(v) =>
+      Some(@json.from_json(v, path=path.add_key("enforce_distillable_text")))
+  }
+  let order : Array[Schema0]? = match object.get("order") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("order")))
+  }
+  let only : Array[Schema0]? = match object.get("only") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("only")))
+  }
+  let ignore : Array[Schema0]? = match object.get("ignore") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("ignore")))
+  }
+  let quantizations : Array[Quantizations]? = match
+    object.get("quantizations") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("quantizations")))
+  }
+  let sort : Sort? = match object.get("sort") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("sort")))
+  }
+  let max_price : ChatGenerationParamsMaxPrice? = match
+    object.get("max_price") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("max_price")))
+  }
+  let min_throughput : Float? = match object.get("min_throughput") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("min_throughput")))
+  }
+  let max_latency : Float? = match object.get("max_latency") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("max_latency")))
+  }
+  ChatGenerationParamsProvider::{
+    allow_fallbacks,
+    require_parameters,
+    data_collection,
+    zdr,
+    enforce_distillable_text,
+    order,
+    only,
+    ignore,
+    quantizations,
+    sort,
+    max_price,
+    min_throughput,
+    max_latency,
+  }
+}

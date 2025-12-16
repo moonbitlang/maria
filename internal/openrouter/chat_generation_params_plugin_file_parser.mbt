@@ -25,3 +25,34 @@ pub impl ToJson for ChatGenerationParamsPluginFileParser with to_json(
   }
   Json::object(object)
 }
+
+///|
+pub impl @json.FromJson for ChatGenerationParamsPluginFileParser with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ChatGenerationParamsPluginFileParser raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.ChatGenerationParamsPluginFileParser::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
+  }
+  let id : String = match object.get("id") {
+    Some(v) => @json.from_json(v, path=path.add_key("id"))
+    None =>
+      raise @json.JsonDecodeError(
+        (path.add_key("id"), "\{func_name}: missing field id"),
+      )
+  }
+  let enabled : Bool? = match object.get("enabled") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("enabled")))
+  }
+  let max_files : Int? = match object.get("max_files") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("max_files")))
+  }
+  let pdf : ChatGenerationParamsPdf? = match object.get("pdf") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("pdf")))
+  }
+  ChatGenerationParamsPluginFileParser::{ id, enabled, max_files, pdf }
+}

@@ -15,3 +15,23 @@ pub impl ToJson for ChatGenerationParamsPdfEngine with to_json(
     Native => "native"
   }
 }
+
+///|
+pub impl @json.FromJson for ChatGenerationParamsPdfEngine with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ChatGenerationParamsPdfEngine raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.ChatGenerationParamsPdfEngine::from_json"
+  guard json is String(s) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect string"))
+  }
+  match s {
+    "mistral_ocr" => ChatGenerationParamsPdfEngine::MistralOcr
+    "pdf_text" => ChatGenerationParamsPdfEngine::PdfText
+    "native" => ChatGenerationParamsPdfEngine::Native
+    _ =>
+      raise @json.JsonDecodeError(
+        (path, "\{func_name}: invalid value \"\{s}\""),
+      )
+  }
+}

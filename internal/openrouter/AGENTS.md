@@ -199,6 +199,115 @@ pub impl ToJson for UserMessage with to_json(self : UserMessage) -> Json {
 }
 ```
 
+## FromJson Implementation Conventions
+
+This package uses explicit decoders via `pub impl @json.FromJson ...`.
+Implementations should:
+
+- Validate the JSON shape up front (object/array/string/etc.) using `guard`.
+- Thread a `@json.JsonPath` through nested decodes for precise error locations.
+- Treat `Some(Null)` the same as missing for optional fields.
+- Use `@json.from_json(value_json, path=...)` for nested values.
+  - Important: `path` is a named argument (don’t pass `path.add_key(...)` as a second positional argument).
+- Raise `@json.JsonDecodeError((path, "..."))` with a stable `func_name` prefix.
+
+### 1. FromJson for Struct Types
+
+**Pattern**: Guard object → decode required fields → decode optional fields → construct struct.
+
+**Example** (required + optional):
+
+```moonbit
+pub impl @json.FromJson for ToolDefinitionJson with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ToolDefinitionJson raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.ToolDefinitionJson::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
+  }
+
+  let name : String = match object.get("name") {
+    Some(v) => @json.from_json(v, path=path.add_key("name"))
+    None =>
+      raise @json.JsonDecodeError(
+        (path.add_key("name"), "\{func_name}: missing field name"),
+      )
+  }
+
+  let description : String? = match object.get("description") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("description")))
+  }
+
+  ToolDefinitionJson::{ name, description }
+}
+```
+
+**Key points**:
+
+- Required fields: `match object.get("field") { Some(v) => ...; None => raise ... }`.
+- Optional fields: `match object.get("field") { None | Some(Null) => None; Some(v) => Some(...) }`.
+- Always pass the nested path: `path=path.add_key("field")`.
+
+### 2. FromJson for String-like Enums
+
+**Pattern**: Guard string → map to variants → error on unknown values.
+
+```moonbit
+pub impl @json.FromJson for Sort with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> Sort raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.Sort::from_json"
+  guard json is String(s) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect string"))
+  }
+  match s {
+    "price" => Sort::Price
+    "throughput" => Sort::Throughput
+    "latency" => Sort::Latency
+    _ => raise @json.JsonDecodeError((path, "\{func_name}: invalid value \"\{s}\""))
+  }
+}
+```
+
+### 3. FromJson for Union Enums (Discriminated Unions)
+
+**Pattern**: Guard object with discriminator → dispatch and delegate to the inner type.
+
+- Message union uses `role`:
+  - see `internal/openrouter/message.mbt`
+- Content item union uses `type`:
+  - see `internal/openrouter/chat_message_content_item.mbt`
+
+General shape:
+
+```moonbit
+pub impl @json.FromJson for MyUnion with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> MyUnion raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.MyUnion::from_json"
+  guard json is Object({ "type": String(type_str), .. }) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object with type"))
+  }
+  match type_str {
+    "a" => MyUnion::A(@json.from_json(json, path~))
+    "b" => MyUnion::B(@json.from_json(json, path~))
+    _ => raise @json.JsonDecodeError((path.add_key("type"), "\{func_name}: unknown type \"\{type_str}\""))
+  }
+}
+```
+
+### 4. FromJson for Unions of JSON Shapes (String-or-Array)
+
+Used for `*Content` types.
+
+**Pattern**: `match json { String(...) => ...; Array(...) => ...; _ => error }`.
+
+See `internal/openrouter/user_message_content.mbt` and `internal/openrouter/message_content.mbt`.
+
 ## Additional Guidelines
 
 ### 1. Type Naming Conventions
