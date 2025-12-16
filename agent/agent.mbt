@@ -360,12 +360,9 @@ pub async fn new(
   let session_manager = @conversation.Manager::new(uuid~, cwd~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
-  event_target.add_listener(event => {
-    let json = event.to_json()
-    guard json is Object({ "msg": String(msg), .. } as json) else {  }
-    json.remove("msg")
-    logger.info(msg, data=json)
-  })
+  event_target.add_listener(event => logger.info("Received event", data={
+    "event": event.to_json(),
+  }))
   event_target.emit(ModelLoaded(name=model.name, model~))
   let history = session_manager.new_conversation(name="history")
   let external_events = match external_events {
