@@ -49,13 +49,14 @@ pub async fn Server::new(
   port~ : Int,
   cwd? : String,
   web_search? : Bool = false,
+  system_prompt? : String,
 ) -> Server {
   let broadcast = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
   guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
-  let maria = @maria.Maria::new(model~, cwd?, web_search~)
+  let maria = @maria.Maria::new(model~, cwd?, web_search~, system_prompt?)
   maria.agent.add_listener((event : @event.Event) => broadcast.put(event))
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
@@ -148,7 +149,6 @@ async fn Server::serve_http(self : Server) -> Unit {
               "/v1/external-event/user-message" =>
                 self.send_user_message_event(json, w)
               "/v1/enabled-tools" => self.set_enabled_tools(json, w)
-              "/v1/system-prompt" => self.set_system_prompt(json, w)
               "/v1/moonbit/publish" => publish_moonbit_module(json, w)
               _ => fail("unreachable")
             }

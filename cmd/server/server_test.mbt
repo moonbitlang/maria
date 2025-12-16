@@ -43,6 +43,7 @@ async fn configure_server(
   register? : @server.RegisterInfo,
   serve? : StringView,
   model? : String = "mock:claude-haiku-4.5",
+  system_prompt? : String,
 ) -> @server.Server {
   let cwd = @os.cwd()
   let serve = match serve {
@@ -50,7 +51,14 @@ async fn configure_server(
     None => @pathx.join(cwd, "cmd/server")
   }
   configure_models(mock)
-  @server.Server::new(model~, serve~, register?, port=0, cwd=mock.cwd.path())
+  @server.Server::new(
+    model~,
+    serve~,
+    register?,
+    port=0,
+    cwd=mock.cwd.path(),
+    system_prompt?,
+  )
 }
 
 ///|
@@ -521,23 +529,15 @@ async test "GET /v1/tools" (t : @test.Test) {
 #skip
 async test "GET /v1/system-prompt" (t : @test.Test) {
   @mock.run(t, mock => {
-    let server = configure_server(mock)
+    let server = configure_server(
+      mock,
+      system_prompt="You are a helpful assistant.",
+    )
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
     @json.inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b is String(text) && text.length() > 0, content=true)
-    let (r, b) = @httpx.post_json(
-      "http://localhost:\{server.port()}/v1/system-prompt",
-      "New system prompt.",
-    )
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={})
-    let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
-    @json.inspect(r.code, content=200)
-    let b = b.json()
-    @json.inspect(r.code, content=200)
-    @json.inspect(b, content="New system prompt.")
+    @json.inspect(b, content="You are a helpful assistant.")
   })
 }
 

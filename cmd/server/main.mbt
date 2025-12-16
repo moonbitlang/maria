@@ -157,6 +157,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut register_port = None
   let mut register_id = None
   let mut web_search = false
+  let mut system_prompt = None
   loop args {
     ["-m" | "--model", m, .. args] =>
       if m.has_prefix("-") {
@@ -198,6 +199,13 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       web_search = true
       continue args
     }
+    ["--system-prompt", sp, .. args] =>
+      if sp.has_prefix("-") {
+        fail("Expected system prompt after \{args[0]}")
+      } else {
+        system_prompt = Some(sp)
+        continue args
+      }
     [unknown, ..] => {
       let error : Json = {
         "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
@@ -214,5 +222,5 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  Server::new(model?, register?, serve~, port~, web_search~).start()
+  Server::new(model?, register?, serve~, port~, web_search~, system_prompt?).start()
 }

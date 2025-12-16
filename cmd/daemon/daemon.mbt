@@ -105,6 +105,7 @@ priv struct CreateTaskRequest {
   message : @openai.ChatCompletionMessageParam?
   cwd : String?
   web_search : Bool?
+  system_prompt : String?
 }
 
 ///|
@@ -150,7 +151,18 @@ impl @json.FromJson for CreateTaskRequest with from_json(
       )
     None => None
   }
-  CreateTaskRequest::{ name, model, message, cwd, web_search }
+  let system_prompt : String? = match json.get("system_prompt") {
+    Some(Null) => None
+    Some(system_prompt_json) =>
+      Some(
+        @json.from_json(
+          system_prompt_json,
+          path=json_path.add_key("system_prompt"),
+        ),
+      )
+    None => None
+  }
+  CreateTaskRequest::{ name, model, message, cwd, web_search, system_prompt }
 }
 
 ///|
@@ -287,6 +299,10 @@ async fn Daemon::create_task(
   ]
   if request.web_search is Some(true) {
     args.push("--web-search")
+  }
+  if request.system_prompt is Some(system_prompt) {
+    args.push("--system-prompt")
+    args.push(system_prompt)
   }
   let process = self.process.spawn(self.exec_path, args, cwd~) catch {
     error =>

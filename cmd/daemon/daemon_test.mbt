@@ -115,6 +115,34 @@ async test "GET /v1/tasks" (t : @test.Test) {
 
 ///|
 #skip
+async test "GET /v1/tasks with system_prompt" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let daemon = configure_daemon(mock)
+    @async.with_task_group(group => {
+      group.spawn_bg(() => daemon.serve(), no_wait=true)
+      @async.pause()
+      let (_, b) = @httpx.post_json(
+        "http://localhost:\{daemon.port()}/v1/task",
+        {
+          "message": { "role": "user", "content": "Hello!" },
+          "model": "mock:claude-haiku-4.5",
+          "cwd": mock.cwd.path(),
+          "system_prompt": "You are a helpful assistant.",
+        },
+      )
+      guard b.json() is { "task": { "id": String(id), .. }, .. } else {
+        fail("Unexpected response body: \{b.json().stringify(indent=2)}")
+      }
+      let (_, b) = @http.get(
+        "http://localhost:\{daemon.port()}/v1/task/\{id}/system-prompt",
+      )
+      @json.inspect(b.json(), content="You are a helpful assistant.")
+    })
+  })
+}
+
+///|
+#skip
 async test "GET /v1/task/{id}" (t : @test.Test) {
   @mock.run(t, mock => {
     let daemon = configure_daemon(mock)

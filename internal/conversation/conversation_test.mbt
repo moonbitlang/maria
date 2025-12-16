@@ -6,8 +6,10 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
       clock=mock.clock,
       cwd=mock.cwd.path(),
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
-    conversation.set_system_prompt(Some("This is a system prompt."))
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
+      system_prompt="This is a system prompt.",
+    )
     conversation.add_message(@ai.user_message(content="Hello"))
     @json.inspect(mock.json(conversation), content={
       "name": "Test Conversation",

@@ -463,7 +463,10 @@ pub impl @json.FromJson for EventDesc with from_json(
     }
     _ =>
       raise @json.JsonDecodeError(
-        (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
+        (
+          json_path,
+          "Unknown 'msg' value in EventDesc: \{json.stringify(indent=2)}",
+        ),
       )
   }
 }

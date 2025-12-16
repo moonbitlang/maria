@@ -15,14 +15,19 @@ pub async fn Maria::new(
   cwd? : String,
   user_message? : String,
   web_search? : Bool = false,
+  system_prompt? : String,
 ) -> Maria {
   let cwd = match cwd {
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  let system_prompt = [
-    @prompt.prelude, @prompt.moonbit, @todo.prompt, @search_files.prompt,
-  ].join("\n")
+  let system_prompt : String = if system_prompt is Some(system_message) {
+    system_message
+  } else {
+    [@prompt.prelude, @prompt.moonbit, @todo.prompt, @search_files.prompt].join(
+      "\n",
+    )
+  }
   let agent = @agent.new(
     model,
     logger~,

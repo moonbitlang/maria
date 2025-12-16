@@ -79,13 +79,14 @@ pub fn Manager::new_conversation(
   self : Manager,
   name~ : String,
   description? : String,
+  system_prompt? : String,
 ) -> Conversation {
   {
     clock: self.clock,
     name,
     description,
     id: self.uuid.v4().to_string(),
-    system_prompt: None,
+    system_prompt,
     messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),

@@ -44,11 +44,3 @@ pub fn Conversation::messages(
 pub fn Conversation::system_prompt(self : Conversation) -> String? {
   self.system_prompt
 }
-
-///|
-pub fn Conversation::set_system_prompt(
-  self : Conversation,
-  prompt : String?,
-) -> Unit {
-  self.system_prompt = prompt
-}

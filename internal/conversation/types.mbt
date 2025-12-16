@@ -4,7 +4,7 @@ struct Conversation {
   name : String
   description : String?
   id : String
-  mut system_prompt : String?
+  system_prompt : String?
   messages : Array[Message]
   created_at : Int64
   mut updated_at : Int64

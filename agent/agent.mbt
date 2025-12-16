@@ -367,7 +367,10 @@ pub async fn new(
     "event": event.to_json(),
   }))
   event_target.emit(ModelLoaded(name=model.name, model~))
-  let history = session_manager.new_conversation(name="history")
+  let history = session_manager.new_conversation(
+    name="history",
+    system_prompt?=system_message,
+  )
   let external_events = match external_events {
     Some(queue) => queue
     None => @event.ExternalEventQueue::new()
@@ -393,7 +396,6 @@ pub async fn new(
     external_events,
   }
   rules.load()
-  agent.set_system_prompt(system_message)
   match user_message {
     Some(message) => agent.external_events.send(UserMessage(message))
     None => ()
