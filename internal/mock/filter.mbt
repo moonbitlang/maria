@@ -18,8 +18,8 @@ fn Filter::new() -> Filter {
 ///|
 /// Registers a literal value to be replaced with a `(mock:<key>)` placeholder.
 ///
-/// Replacements run in insertion order, so later keywords can override earlier
-/// ones if they target the same text.
+/// Replacements run in insertion order. If an earlier keyword replaces text that
+/// a later keyword would have matched, the later replacement will not occur.
 fn Filter::add(self : Filter, key : String, value : String) -> Unit {
   self.keywords.push((key, value))
 }
