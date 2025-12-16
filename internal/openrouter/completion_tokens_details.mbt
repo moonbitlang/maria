@@ -25,3 +25,40 @@ pub impl ToJson for CompletionTokensDetails with to_json(
   }
   Json::object(object)
 }
+
+///|
+pub impl @json.FromJson for CompletionTokensDetails with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> CompletionTokensDetails raise @json.JsonDecodeError {
+  let func_name = "\{PackageName}.CompletionTokensDetails::from_json"
+  guard json is Object(object) else {
+    raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
+  }
+  let reasoning_tokens : Int? = match object.get("reasoning_tokens") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("reasoning_tokens")))
+  }
+  let audio_tokens : Int? = match object.get("audio_tokens") {
+    None | Some(Null) => None
+    Some(v) => Some(@json.from_json(v, path=path.add_key("audio_tokens")))
+  }
+  let accepted_prediction_tokens : Int? = match
+    object.get("accepted_prediction_tokens") {
+    None | Some(Null) => None
+    Some(v) =>
+      Some(@json.from_json(v, path=path.add_key("accepted_prediction_tokens")))
+  }
+  let rejected_prediction_tokens : Int? = match
+    object.get("rejected_prediction_tokens") {
+    None | Some(Null) => None
+    Some(v) =>
+      Some(@json.from_json(v, path=path.add_key("rejected_prediction_tokens")))
+  }
+  CompletionTokensDetails::{
+    reasoning_tokens,
+    audio_tokens,
+    accepted_prediction_tokens,
+    rejected_prediction_tokens,
+  }
+}
