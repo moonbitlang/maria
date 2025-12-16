@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/jsonx"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+pub fn as_object(Json, path~ : @json.JsonPath) -> Object raise @json.JsonDecodeError
+
+// Errors
+
+// Types and methods
+pub(all) struct Object(Map[String, Json])
+pub fn Object::get(Self, String) -> Json?
+#deprecated
+pub fn Object::inner(Self) -> Map[String, Json]
+pub fn[T : @json.FromJson] Object::optional(Self, String, path~ : @json.JsonPath) -> T? raise @json.JsonDecodeError
+pub fn[T : @json.FromJson] Object::required(Self, String, path~ : @json.JsonPath) -> T raise @json.JsonDecodeError
+
+// Type aliases
+
+// Traits
+
