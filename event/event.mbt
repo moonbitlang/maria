@@ -89,7 +89,9 @@ pub(all) enum EventDesc {
   UserMessage(String)
   /// Cancelled
   Cancelled
-  Custom(String, Map[String, Json])
+  /// Failed. We cannot use `Error` here because it is impossible to deserialize
+  /// `Error` from JSON.
+  Failed(Json)
 } derive(Eq, Show)
 
 ///|
@@ -198,7 +200,7 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
       { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
     Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
-    Custom(name, payload) => Json::object(payload.merge({ "msg": name }))
+    Failed(error) => { "msg": "Failed", "error": error }
   }
 }
 
@@ -451,6 +453,14 @@ pub impl @json.FromJson for EventDesc with from_json(
       )
       UserMessage(content)
     }
+    "Failed" => {
+      guard json_object.get("error") is Some(error_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "Missing 'error' field in Failed event"),
+        )
+      }
+      Failed(error_json)
+    }
     _ =>
       raise @json.JsonDecodeError(
         (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
@@ -506,7 +516,7 @@ pub fn Event::is_incoming(self : Event) -> Bool {
 /// Indicates whether the event signifies the end of a conversation.
 pub fn Event::is_stopping(self : Event) -> Bool {
   match self.desc {
-    PostConversation | Custom("MariaFailed", _) => true
+    PostConversation | Failed(_) => true
     _ => false
   }
 }

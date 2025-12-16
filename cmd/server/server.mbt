@@ -201,13 +201,7 @@ async fn Server::start_maria(self : Server) -> Unit {
               if !@async.is_being_cancelled() {
                 self.broadcast.put(@event.Event::{
                   id: self.uuid.v4(),
-                  desc: Custom("MariaFailed", {
-                    "error": {
-                      "code": (-1).to_json(),
-                      "message": error.to_string().to_json(),
-                      "metadata": error.to_json(),
-                    },
-                  }),
+                  desc: Failed(error.to_json()),
                 })
               } else {
                 self.broadcast.put(@event.Event::{

@@ -865,6 +865,7 @@ test "Event::Roundtrip" {
         ds
       },
     ),
+    Failed(Failure("An error occurred").to_json()),
   ]
   for event in events {
     let event = @event.Event::{ id: uuid.v4(), desc: event }

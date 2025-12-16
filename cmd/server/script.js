@@ -736,7 +736,7 @@ function connect() {
     // Update task status based on events
     if (desc.msg === "PreConversation") {
       updateTaskStatus(true);
-    } else if (desc.msg === "PostConversation" || desc.msg === "MariaFailed") {
+    } else if (desc.msg === "PostConversation" || desc.msg === "Failed" || desc.msg === "Cancelled") {
       updateTaskStatus(false);
     }
 

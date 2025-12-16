@@ -44,7 +44,7 @@ pub(all) enum EventDesc {
   Diagnostics(@diagnostics.Diagnostics)
   UserMessage(String)
   Cancelled
-  Custom(String, Map[String, Json])
+  Failed(Json)
 }
 pub impl Eq for EventDesc
 pub impl Show for EventDesc
