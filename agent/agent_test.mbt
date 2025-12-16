@@ -277,7 +277,7 @@ async test "agent/tool_error_handling" (t : @test.Test) {
     let agent = @agent.new(
       model,
       cwd=mock.cwd.path(),
-      user_message="Use the divide tool to divide 10 by 0.",
+      user_message="Use the divide tool to divide 10 by 0. I know that it will fail, but please try to execute the tool anyway.",
     )
     let mut error_encountered = false
     let binary_op_schema = @tool.JsonSchema::from_json({
