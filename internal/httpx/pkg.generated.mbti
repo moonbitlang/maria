@@ -20,9 +20,10 @@ pub fn reason(Int) -> String
 
 // Errors
 pub suberror JsonError {
-  JsonError(code~ : Int, error~ : Error, message~ : String, data~ : Json)
+  JsonError(code~ : Int, message~ : String, data~ : Json)
 }
-pub fn JsonError::new(Int, Error, message? : String, data? : Json) -> Self
+pub fn JsonError::from_error(Int, Error, message? : String, data? : Json) -> Self
+pub fn JsonError::new(Int, String, data? : Json) -> Self
 pub async fn JsonError::write(Self, ResponseWriter) -> Unit
 
 // Types and methods

@@ -25,13 +25,7 @@ async fn Server::set_system_prompt(
 ) -> Unit {
   let req : PostSystemPromptRequest = @json.from_json(json) catch {
     @json.JsonDecodeError(_) as error =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid request body: \{error}",
-          "data": { "error": error, "body": json },
-        },
-      })
+      raise @httpx.JsonError::from_error(@status.BadRequest, error)
   }
   self.maria.agent.set_system_prompt(req.0)
   w.send_json(code=200, {})

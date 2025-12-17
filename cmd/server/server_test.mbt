@@ -270,10 +270,10 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
     )
     @json.inspect(r.code, content=404)
     @json.inspect(
-      mock.json(b.json()).transform(@json.Replacer::exclude(["metadata"])),
+      mock.json(b.json()).transform(@json.Replacer::exclude(["data"])),
       content={
         "error": {
-          "code": -1,
+          "code": 404,
           "message": "No MoonBit module found in path '(mock:cwd)'",
         },
       },
