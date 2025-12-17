@@ -615,6 +615,7 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
 
 ///|
 #skip
+#cfg(false)
 async test "agent/web_search" (t : @test.Test) {
   @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)

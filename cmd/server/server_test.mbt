@@ -446,6 +446,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
 
 ///|
 #skip
+#cfg(false)
 async test "web_search" (t : @test.Test) {
   @mock.run(t, mock => {
     let group = mock.group
