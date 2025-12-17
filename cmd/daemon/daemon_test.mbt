@@ -566,6 +566,7 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
 
 ///|
 #skip
+#cfg(false)
 async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
     let daemon = configure_daemon(mock)
