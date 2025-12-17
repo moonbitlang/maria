@@ -1,35 +1,9 @@
 ///|
-priv suberror HttpError {
-  HttpError(code~ : Int, reason~ : String, body~ : String)
-} derive(Show, ToJson)
-
-///|
-fn json_error(code : Int, reason : String, body : Json) -> HttpError {
-  HttpError(code~, reason~, body=body.stringify())
-}
-
-///|
-fn text_error(code : Int, reason : String, body : String) -> HttpError {
-  HttpError(code~, reason~, body~)
-}
-
-///|
 /// Connection details used to register the local server with a daemon.
 pub(all) struct RegisterInfo {
   host : String
   port : Int
   id : String
-}
-
-///|
-/// Loads the static HTML shell used by the playground UI and surfaces a
-/// user-friendly 404 page when the asset is missing.
-async fn html_read_file(path : String) -> String {
-  @fsx.read_file(path) catch {
-    @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>
-      raise text_error(404, "NotFound", "<h1>404 Not Found</h1>")
-    error => raise error
-  }
 }
 
 ///|

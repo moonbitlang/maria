@@ -8,14 +8,12 @@ import {
   "moonbitlang/async/aqueue",
   "moonbitlang/maria/agent",
   "moonbitlang/maria/internal/openai",
-  "moonbitlang/maria/internal/fsx",
-  "moonbitlang/maria/internal/pathx",
-  "moonbitlang/async/os_error",
   "moonbitlang/maria/internal/broadcast",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/internal/rand",
   "moonbitlang/maria/internal/httpx",
+  "moonbitlang/maria/internal/httpx/status",
   "moonbitlang/maria/event",
   "moonbitlang/maria/model",
   "moonbitlang/core/json",
@@ -26,6 +24,7 @@ import {
 
 import {
   "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/internal/pathx",
   "moonbitlang/async/socket",
   "moonbitlang/maria/cmd/internal/test_utils",
 } for "test"
