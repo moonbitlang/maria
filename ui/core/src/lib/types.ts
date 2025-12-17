@@ -24,29 +24,18 @@ export type TaskOverview = {
   cwd: string;
 };
 
-type TaskEventBase = {
+export type TaskEvent = {
   id: number;
+  desc: TaskEventDesc;
 };
 
-export type TaskEvent = TaskEventBase &
-  (
-    | RequestCompletedEvent
-    | PreToolCallEvent
-    | PostToolCallEvent
-    | MessageAddedEvent
-    | PostConversationEvent
-    | MessageUnqueuedEvent
-    | TodoUpdatedEvent
-  );
-
-type TodoUpdatedEvent = {
-  msg: "TodoUpdated";
-  todo: {
-    todos: Todo[];
-    created_at: string;
-    updated_at: string;
-  };
-};
+export type TaskEventDesc =
+  | AssistantMessageEvent
+  | PreToolCallEvent
+  | PostToolCallEvent
+  | UserMessageEvent
+  | PostConversationEvent
+  | MessageUnqueuedEvent;
 
 type MessageUnqueuedEvent = {
   msg: "MessageUnqueued";
@@ -67,12 +56,17 @@ type ToolCall = {
   function: ToolCallFunction;
 };
 
-export type RequestCompletedEvent = {
-  msg: "RequestCompleted";
-  message: {
-    content: string;
-    role: "assistant";
-    tool_calls: ToolCall[];
+export type AssistantMessageEvent = {
+  msg: "AssistantMessage";
+  content: string;
+  tool_calls: ToolCall[];
+  usage?: {
+    completion_tokens: number;
+    prompt_tokens: number;
+    prompt_tokens_details?: {
+      cached_tokens: number;
+    };
+    total_tokens: number;
   };
 };
 
@@ -117,6 +111,16 @@ export type MetaWriteToFileTool = {
   result: { path: string; message: string; diff?: string };
 };
 
+export type TodoTool = {
+  name: "todo";
+  result: [
+    "Read" | "Write",
+    {
+      todos: Todo[];
+    },
+  ];
+};
+
 export type Todo = {
   content: string;
   created_at: string;
@@ -138,9 +142,10 @@ export type PreToolCallEvent = {
 type PostToolCallBase = {
   msg: "PostToolCall";
   tool_call: ToolCall;
-  text: string;
+  rendered?: string;
+  text?: string;
   result?: unknown;
-  error?: string;
+  error?: unknown;
 };
 
 // TODO: search_files
@@ -150,24 +155,9 @@ export type PostToolCallEvent = PostToolCallBase &
     | ListFilesTool
     | ReadFileTool
     | MetaWriteToFileTool
+    | TodoTool
     | UnknownTool
   );
-
-type MessageContentPart = {
-  text: string;
-};
-
-type MessageBase = {
-  content: MessageContentPart[] | string;
-};
-
-type SystemMessage = {
-  role: "system";
-};
-
-type UserMessage = {
-  role: "user";
-};
 
 export type AssistantMessage = {
   role: "assistant";
@@ -179,10 +169,9 @@ export type ToolMessage = {
   tool_call_id: string;
 };
 
-export type MessageAddedEvent = {
-  msg: "MessageAdded";
-  message: MessageBase &
-    (SystemMessage | UserMessage | AssistantMessage | ToolMessage);
+export type UserMessageEvent = {
+  msg: "UserMessage";
+  content: string;
 };
 
 export type DaemonTaskSyncEvent = {

@@ -7,15 +7,15 @@ import {
 } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 import {
+  type AssistantMessageEvent,
   type ExecuteCommandTool,
   type ListFilesTool,
-  type MessageAddedEvent,
   type MetaWriteToFileTool,
   type PostToolCallEvent,
   type PreToolCallEvent,
   type ReadFileTool,
-  type RequestCompletedEvent,
   type TaskEvent,
+  type UserMessageEvent,
 } from "../lib/types";
 import { jsonParseSafe } from "../lib/utils";
 import { Badge } from "./ui/badge";
@@ -41,38 +41,16 @@ interface EventsDisplayProps {
   events: TaskEvent[];
 }
 
-function ShowMessageAdded({ event }: { event: MessageAddedEvent }) {
-  const { message } = event;
-  switch (message.role) {
-    case "system": {
-      // dont render system messages
-      return <></>;
-    }
-    case "assistant": {
-      // dont render assistant messages, they are rendered on RequestCompleted
-      return <></>;
-    }
-    case "tool": {
-      // dont render tool messages, they are rendered on PostToolCall
-      return <></>;
-    }
-    case "user": {
-      const contents =
-        typeof message.content === "string"
-          ? [message.content]
-          : message.content.map((part) => part.text);
-
-      return (
-        <Message from="user">
-          <MessageContent>
-            <Response parseIncompleteMarkdown={false}>
-              {contents.join("").trim()}
-            </Response>
-          </MessageContent>
-        </Message>
-      );
-    }
-  }
+function ShowUserMessage({ event }: { event: UserMessageEvent }) {
+  return (
+    <Message from="user">
+      <MessageContent>
+        <Response parseIncompleteMarkdown={false}>
+          {event.content.trim()}
+        </Response>
+      </MessageContent>
+    </Message>
+  );
 }
 
 function ReadFile({ readFile }: { readFile: ReadFileTool }) {
@@ -332,17 +310,15 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
   }
 }
 
-function ShowRequestCompleted({ event }: { event: RequestCompletedEvent }) {
-  const content = event.message.content.trim();
+function ShowAssistantMessage({ event }: { event: AssistantMessageEvent }) {
+  const content = event.content.trim();
   if (content === "") {
     return <></>;
   }
   return (
-    <Message from={event.message.role}>
+    <Message from="assistant">
       <MessageContent>
-        <Response parseIncompleteMarkdown={false}>
-          {event.message.content.trim()}
-        </Response>
+        <Response parseIncompleteMarkdown={false}>{content}</Response>
       </MessageContent>
     </Message>
   );
@@ -383,7 +359,7 @@ function EventErrorFallback({
   return (
     <div className="border-destructive/50 bg-destructive/10 mb-4 w-full rounded-md border p-3 text-sm">
       <p className="text-destructive font-semibold">
-        Error rendering event {event.msg}
+        Error rendering event {event.desc.msg}
       </p>
       <p className="text-muted-foreground mt-1 text-xs">{error.message}</p>
     </div>
@@ -391,15 +367,15 @@ function EventErrorFallback({
 }
 
 function ShowEvent({ event }: { event: TaskEvent }) {
-  switch (event.msg) {
+  switch (event.desc.msg) {
     case "PreToolCall":
-      return <ShowPreToolCall event={event} />;
-    case "MessageAdded":
-      return <ShowMessageAdded event={event} />;
+      return <ShowPreToolCall event={event.desc} />;
+    case "UserMessage":
+      return <ShowUserMessage event={event.desc} />;
     case "PostToolCall":
-      return <ShowPostToolCall event={event} />;
-    case "RequestCompleted":
-      return <ShowRequestCompleted event={event} />;
+      return <ShowPostToolCall event={event.desc} />;
+    case "AssistantMessage":
+      return <ShowAssistantMessage event={event.desc} />;
     default: {
       return null;
     }

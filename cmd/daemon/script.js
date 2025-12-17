@@ -184,15 +184,14 @@ function formatLogEntry(data) {
       return "";
     }
 
-    case "RequestCompleted": {
-      const message = desc.message;
-      const content = (message.content || "").trim();
+    case "AssistantMessage": {
+      const content = (desc.content || "").trim();
       const firstLine = content.split("\n").find((line) => line.trim());
       const title = firstLine ? `Assistant: ${firstLine}` : "Assistant";
 
       let toolCallsHtml = "";
-      if (message.tool_calls && message.tool_calls.length > 0) {
-        toolCallsHtml = message.tool_calls
+      if (desc.tool_calls && desc.tool_calls.length > 0) {
+        toolCallsHtml = desc.tool_calls
           .map((toolCall) => {
             const args = JSON.parse(toolCall.function.arguments || "{}");
             return `
