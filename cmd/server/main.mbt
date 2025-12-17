@@ -1,35 +1,9 @@
 ///|
-priv suberror HttpError {
-  HttpError(code~ : Int, reason~ : String, body~ : String)
-}
-
-///|
-fn json_error(code : Int, reason : String, body : Json) -> HttpError {
-  HttpError(code~, reason~, body=body.stringify())
-}
-
-///|
-fn text_error(code : Int, reason : String, body : String) -> HttpError {
-  HttpError(code~, reason~, body~)
-}
-
-///|
 /// Connection details used to register the local server with a daemon.
 pub(all) struct RegisterInfo {
   host : String
   port : Int
   id : String
-}
-
-///|
-/// Loads the static HTML shell used by the playground UI and surfaces a
-/// user-friendly 404 page when the asset is missing.
-async fn html_read_file(path : String) -> String {
-  @fsx.read_file(path) catch {
-    @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>
-      raise text_error(404, "NotFound", "<h1>404 Not Found</h1>")
-    error => raise error
-  }
 }
 
 ///|
@@ -81,31 +55,26 @@ async fn publish_moonbit_module(
   w : @httpx.ResponseWriter,
 ) -> Unit {
   guard request_json is { "module": { "path": String(path), .. }, .. } else {
-    raise json_error(400, "BadRequest", {
-      "error": {
-        "code": -1,
-        "message": "Missing 'module.path' field in request body",
-      },
-    })
+    raise @httpx.JsonError::new(
+      @status.BadRequest,
+      "Missing 'module.path' field in request body",
+    )
   }
   let process = @spawn.spawn("moon", ["publish"], cwd=path) catch {
     error =>
-      raise json_error(500, "InternalServerError", {
-        "error": {
-          "code": -1,
-          "message": "Failed to spawn 'moon publish' for '\{path}': \{error}",
-        },
-      })
+      raise @httpx.JsonError::from_error(
+        @status.InternalServerError,
+        error,
+        message="Failed to spawn 'moon publish' for '\{path}': \{error}",
+      )
   }
   let module_ = @moon.Module::load(path) catch {
     error =>
-      raise json_error(404, "NotFound", {
-        "error": {
-          "code": -1,
-          "message": "No MoonBit module found in path '\{path}'",
-          "metadata": error.to_json(),
-        },
-      })
+      raise @httpx.JsonError::from_error(
+        @status.NotFound,
+        error,
+        message="No MoonBit module found in path '\{path}'",
+      )
   }
   if process.status == 0 {
     let response : Json = {

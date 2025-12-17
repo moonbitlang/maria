@@ -11,7 +11,6 @@
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/pathx",
-    "moonbitlang/async/os_error",
     "moonbitlang/maria/internal/broadcast",
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/moon",
@@ -20,7 +19,8 @@
     "moonbitlang/maria/internal/httpx",
     "moonbitlang/maria/event",
     "moonbitlang/maria/model",
-    "moonbitlang/maria/internal/diagnostics"
+    "moonbitlang/maria/internal/diagnostics",
+    "moonbitlang/maria/internal/httpx/status"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
