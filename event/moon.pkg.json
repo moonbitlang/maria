@@ -7,11 +7,13 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/diagnostics",
-    "moonbitlang/maria/internal/rand"
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/event_target"
   ],
   "test-import": [
     "moonbitlang/async",
     "moonbitlang/maria/internal/mock",
-    "moonbitlang/maria/internal/rand"
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/event_target"
   ]
 }

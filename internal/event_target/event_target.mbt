@@ -18,9 +18,12 @@
 /// - `emit()` is synchronous and non-blocking (enqueues event)
 /// - `start()` runs an async event loop that dispatches to listeners
 /// - Listeners are invoked sequentially for each event
-struct EventTarget {
-  uuid : @uuid.Generator
-  event_target : @event_target.EventTarget[Event]
+struct EventTarget[T] {
+  // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
+  // This would make the termination signal explicit in the type system rather
+  // than using `None` as a sentinel value.
+  queue : @aqueue.Queue[T]
+  listeners : Array[async (T) -> Unit]
 }
 
 ///|
@@ -41,12 +44,8 @@ struct EventTarget {
 /// // Start in background
 /// spawn(() => emitter.start())
 /// ```
-pub fn EventTarget::new(uuid? : @uuid.Generator) -> EventTarget raise {
-  let uuid = match uuid {
-    None => @uuid.generator(@rand.chacha8())
-    Some(uuid) => uuid
-  }
-  EventTarget::{ uuid, event_target: @event_target.EventTarget::new() }
+pub fn[T] EventTarget::new() -> EventTarget[T] {
+  EventTarget::{ queue: @aqueue.Queue::new(kind=Unbounded), listeners: [] }
 }
 
 ///|
@@ -75,12 +74,10 @@ pub fn EventTarget::new(uuid? : @uuid.Generator) -> EventTarget raise {
 /// emitter.emit(TokenCounted(1500))
 /// emitter.emit(PostConversation)
 /// ```
-pub fn EventTarget::emit(
-  self : EventTarget,
-  desc : EventDesc,
-  id? : @uuid.Uuid = self.uuid.v4(),
-) -> Unit {
-  self.event_target.emit({ id, desc })
+pub fn[T] EventTarget::emit(self : EventTarget[T], event : T) -> Unit {
+  guard self.queue.try_put(event) else {
+    abort("Event queue is full, cannot emit event")
+  }
 }
 
 ///|
@@ -112,11 +109,11 @@ pub fn EventTarget::emit(
 ///   }
 /// })
 /// ```
-pub fn EventTarget::add_listener(
-  self : EventTarget,
-  f : async (Event) -> Unit,
+pub fn[T] EventTarget::add_listener(
+  self : EventTarget[T],
+  f : async (T) -> Unit,
 ) -> Unit {
-  self.event_target.add_listener(f)
+  self.listeners.push(f)
 }
 
 ///|
@@ -142,8 +139,19 @@ pub fn EventTarget::add_listener(
 ///   // ... rest of the application
 /// })
 /// ```
-pub async fn EventTarget::start(self : EventTarget) -> Unit {
-  self.event_target.start()
+pub async fn[T] EventTarget::start(self : EventTarget[T]) -> Unit {
+  while true {
+    let event = self.queue.get()
+    let errors = []
+    for listener in self.listeners {
+      listener(event) catch {
+        error => errors.push(error)
+      }
+    }
+    if errors is [error, ..] {
+      raise error
+    }
+  }
 }
 
 ///|
@@ -169,6 +177,10 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 /// CR: `listener` is suspendable, should we collcect all events
 /// and then call listeners outside of the loop to avoid racing?
 /// assuming listerns can take a long time
-pub async fn EventTarget::flush(self : EventTarget) -> Unit {
-  self.event_target.flush()
+pub async fn[T] EventTarget::flush(self : EventTarget[T]) -> Unit {
+  while self.queue.try_get() is Some(event) {
+    for listener in self.listeners {
+      listener(event)
+    }
+  }
 }

@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/async/aqueue"
+  ]
+}
