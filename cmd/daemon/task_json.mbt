@@ -123,8 +123,13 @@ pub impl @json.FromJson for Task with from_json(
 
 ///|
 pub impl ToJson for Task with to_json(self : Task) -> Json {
-  {
-    "name": self.name,
+  let object : Map[String, Json] = {}
+  if self.name is Some(name) {
+    object["name"] = name.to_json()
+  } else {
+    object["name"] = Json::null()
+  }
+  object.merge_in_place({
     "id": self.id.to_string(),
     "cwd": self.cwd,
     "port": self.port,
@@ -135,7 +140,8 @@ pub impl ToJson for Task with to_json(self : Task) -> Json {
     ),
     "web_search": self.web_search,
     "queued_messages": self.queued_messages,
-  }
+  })
+  Json::object(object)
 }
 
 ///|
@@ -152,8 +158,8 @@ test "Task::ToJson" {
     created: 0,
     web_search: true,
   }
-  @json.inspect(task, content={
-    "name": ["example"],
+  assert_eq(task.to_json(), {
+    "name": "example",
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "cwd": "/tmp/example",
     "port": 8080,
