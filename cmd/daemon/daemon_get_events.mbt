@@ -13,8 +13,7 @@
 ///
 /// - Sets `X-Accel-Buffering: no` to disable proxy buffering for real-time streaming.
 async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
-  w.header().set("Content-Type", "text/event-stream")
-  w.header().set("X-Accel-Buffering", "no")
+  let w = @httpx.EventStreamWriter::new(w)
   w.write_header(200)
   let tasks : Array[Task] = []
   for task in self.by_cwd.values().collect() {
@@ -26,17 +25,14 @@ async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
     }
     tasks.push(task)
   }
-  w.write("event: daemon.tasks.synchronized\n")
-  let data : Json = { "tasks": tasks }
-  w.write("data: \{data.stringify()}\n\n")
-  w.flush()
-  self.events.listen((_, chan) => loop chan.get() {
+  w.write_event(
+    event="daemon.tasks.synchronized",
+    data=Json::object({ "tasks": tasks }),
+  )
+  self.events.listen_forever(e => match e {
     StatusChange(id) => {
       let data : Json = { "task": self.by_id[id] }
-      w.write("event: daemon.task.changed\n")
-      w.write("data: \{data.stringify()}\n\n")
-      w.flush()
-      continue chan.get()
+      w.write_event(event="daemon.task.changed", data~)
     }
   })
 }

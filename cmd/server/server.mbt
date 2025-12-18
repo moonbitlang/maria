@@ -268,34 +268,25 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let queued_messages : Array[Json] = self.maria.agent
     .queued_messages()
     .map(m => { "id": m.id, "message": m.message.to_openai() })
-  w.header().set("Content-Type", "text/event-stream")
-  w
-  ..write_header(200)
-  ..write("event: maria.queued_messages.synchronized\n")
-  ..write("data: \{queued_messages.to_json().stringify()}\n\n")
-  ..flush()
-  self.broadcast.listen((hist, chan) => {
-    for e in hist {
-      chan.put(e)
+  let w = @httpx.EventStreamWriter::new(w)
+  w.write_header(200)
+  w.write_event(
+    event="maria.queued_messages.synchronized",
+    data=queued_messages.to_json(),
+  )
+  self.broadcast.listen_forever(event => {
+    if event.desc is (TokenCounted(_) | ContextPruned(_)) {
+      return
     }
-    for {
-      let event = chan.get()
-      if event.desc is (TokenCounted(_) | ContextPruned(_)) {
-        continue
-      }
-      w
-      ..write("event: maria\n")
-      ..write("data: \{event.to_json().stringify()}\n\n")
-      ..flush()
-      if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
-        let queued_messages : Array[Json] = self.maria.agent
-          .queued_messages()
-          .map(m => { "id": m.id, "message": m.message.to_openai() })
-        w
-        ..write("event: maria.queued_messages.synchronized\n")
-        ..write("data: \{queued_messages.to_json().stringify()}\n\n")
-        ..flush()
-      }
+    w.write_event(event="maria", data=event.to_json())
+    if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
+      let queued_messages : Array[Json] = self.maria.agent
+        .queued_messages()
+        .map(m => { "id": m.id, "message": m.message.to_openai() })
+      w.write_event(
+        event="maria.queued_messages.synchronized",
+        data=queued_messages.to_json(),
+      )
     }
   })
 }

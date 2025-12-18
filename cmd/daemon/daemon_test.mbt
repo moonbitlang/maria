@@ -242,7 +242,7 @@ async test "POST /v1/task" (t : @test.Test) {
       @json.inspect(r.headers["access-control-allow-methods"], content="*")
       @json.inspect(r.headers["access-control-allow-headers"], content="*")
       @json.inspect(r.headers["x-accel-buffering"], content="no")
-      @test_utils.ServerEvent::collect_events(s) |> ignore()
+      ignore(@test_utils.ServerEvent::collect_events(s))
     })
   })
 }
