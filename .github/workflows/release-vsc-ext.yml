@@ -55,8 +55,8 @@ jobs:
         run: |
           mkdir -p ui/vsc-ext/bin/darwin
           mkdir -p ui/vsc-ext/bin/linux
-          cp artifacts/maria-Linux ui/vsc-ext/bin/darwin/maria
-          cp artifacts/maria-macOS ui/vsc-ext/bin/linux/maria
+          cp artifacts/maria-macOS ui/vsc-ext/bin/darwin/maria
+          cp artifacts/maria-Linux ui/vsc-ext/bin/linux/maria
           chmod +x ui/vsc-ext/bin/darwin/maria
           chmod +x ui/vsc-ext/bin/linux/maria
 
