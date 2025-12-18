@@ -11,7 +11,7 @@ export class DaemonService {
   static async instance() {
     if (!this._instance) {
       const context = get("context")!;
-      const mariaPath = context.asAbsolutePath("bin/maria");
+      const mariaPath = context.asAbsolutePath(`bin/${process.platform}/maria`);
       const [_, error] = await setupMariaProcess(mariaPath);
       if (error) {
         // TODO: Handle error properly
