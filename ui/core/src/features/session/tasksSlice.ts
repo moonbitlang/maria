@@ -1,4 +1,5 @@
 import type {
+  ChatDynamicVariable,
   PostToolCallEvent,
   Status,
   TaskEvent,
@@ -9,6 +10,7 @@ import type {
 import { type PayloadAction, createSelector } from "@reduxjs/toolkit";
 import { createAppSlice } from "../../app/createAppSlice";
 import type { RootState } from "../../app/store";
+import * as dynamicVariables from "./dynamic-variables";
 
 type QueuedMessage = {
   id: string;
@@ -22,6 +24,7 @@ type Task = TaskOverview & {
   events: TaskEvent[];
   eventIds: Record<number, true>;
   webSearchEnabled: boolean;
+  dynamicVariables: ChatDynamicVariable[];
 };
 
 export function defaultTask(params: TaskOverview): Task {
@@ -32,6 +35,7 @@ export function defaultTask(params: TaskOverview): Task {
     events: [],
     eventIds: {},
     webSearchEnabled: false,
+    dynamicVariables: [],
     ...params,
   };
 }
@@ -124,6 +128,37 @@ export const tasksSlice = createAppSlice({
         task.inputQueue = task.inputQueue.filter(
           (message) => message.id !== id,
         );
+      }
+    },
+
+    addDynamicVariablesForTask(
+      state,
+      action: PayloadAction<{
+        taskId: string;
+        variable: ChatDynamicVariable;
+      }>,
+    ) {
+      const { taskId, variable } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        dynamicVariables.add(task, variable);
+      }
+    },
+
+    updateDynamicVariableRangesForTask(
+      state,
+      action: {
+        payload: {
+          taskId: string;
+          newRanges: { start: number; end: number }[];
+        };
+      },
+    ) {
+      const { taskId } = action.payload;
+      const task = state.tasks[taskId];
+      if (task) {
+        const newRanges = action.payload.newRanges;
+        dynamicVariables.updateRanges(task, newRanges);
       }
     },
 
@@ -236,6 +271,17 @@ export const tasksSlice = createAppSlice({
     ): boolean | undefined {
       return state.tasks[taskId]?.webSearchEnabled;
     },
+
+    selectDynamicVariablesForTask(
+      state: TasksSliceState,
+      taskId: string,
+    ): ChatDynamicVariable[] | undefined {
+      const task = state.tasks[taskId];
+      if (!task) {
+        return undefined;
+      }
+      return dynamicVariables.get(task);
+    },
   },
 });
 
@@ -249,6 +295,8 @@ export const {
   removeFromInputQueueForTask,
   pushEventForTask,
   toggleWebSearchForTask,
+  addDynamicVariablesForTask,
+  updateDynamicVariableRangesForTask,
 } = tasksSlice.actions;
 
 export const {
@@ -261,6 +309,7 @@ export const {
   selectTaskTodos,
   selectTaskCwd,
   selectWebSearchEnabledForTask,
+  selectDynamicVariablesForTask,
 } = tasksSlice.selectors;
 
 // Memoized selector to prevent unnecessary re-renders

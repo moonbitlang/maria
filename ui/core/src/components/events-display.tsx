@@ -284,14 +284,12 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
     );
   } else if (event.error) {
     // toolcall error
+    const errorText = event.text ?? `Tool call error: <${event.name}>`;
     return (
       <Tool>
         <ToolHeader type={event.name} state="output-error" />
         <ToolContent>
-          <ToolOutput
-            output={undefined}
-            errorText={`Tool call error: <${event.name}>`}
-          />
+          <ToolOutput output={undefined} errorText={errorText} />
         </ToolContent>
       </Tool>
     );

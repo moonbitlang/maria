@@ -32,7 +32,7 @@ async function doSetupMariaProcess(
 
   if (exitCode !== 0) {
     if (
-      process.env["OPENAI_API_KEY"] === undefined ||
+      process.env["OPENAI_API_KEY"] === undefined &&
       process.env["OPENROUTER_API_KEY"] === undefined
     ) {
       return [
