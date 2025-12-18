@@ -1,0 +1,80 @@
+name: release vscode extension
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-maria-cli:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/install-moonbit
+        with:
+          channel: latest
+
+      - name: Build Maria CLI
+        run: |
+          moon build --target native
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifacts
+          cp target/native/release/build/cmd/main/main.exe artifacts/maria-${{ runner.os }}
+
+      - name: Upload Maria CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: maria-cli-${{ matrix.os }}
+          path: artifacts/maria-${{ runner.os }}
+          overwrite: true
+
+  release-vscode-extension:
+    needs: build-maria-cli
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Download Maria CLI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: maria-cli-*
+          merge-multiple: true
+
+      - name: Prepare Maria CLI
+        run: |
+          mkdir -p ui/vsc-ext/bin/darwin
+          mkdir -p ui/vsc-ext/bin/linux
+          cp artifacts/maria-Linux ui/vsc-ext/bin/darwin/maria
+          cp artifacts/maria-macOS ui/vsc-ext/bin/linux/maria
+          chmod +x ui/vsc-ext/bin/darwin/maria
+          chmod +x ui/vsc-ext/bin/linux/maria
+
+      - name: setup node and
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: "./ui/.nvmrc"
+
+      - name: Install pnpm
+        run: |
+          cd ui
+          corepack enable
+          corepack install
+
+      - name: Publish VSCode Extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          cd ui
+          pnpm install
+          NO_BUILD_MARIA=1 pnpm release:vsc-ext

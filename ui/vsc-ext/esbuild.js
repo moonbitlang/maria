@@ -34,15 +34,17 @@ function sh(command, options = {}) {
 
 function buildMaria() {
   sh("moon build", { cwd: path.join(__dirname, "../..") });
-  fs.mkdirSync("./bin", { recursive: true });
+  fs.mkdirSync(`./bin/${process.platform}`, { recursive: true });
   fs.copyFileSync(
     "../../target/native/release/build/cmd/main/main.exe",
-    "./bin/maria",
+    `./bin/${process.platform}/maria`,
   );
 }
 
 async function main() {
-  buildMaria();
+  if (!process.env.NO_BUILD_MARIA) {
+    buildMaria();
+  }
   const ctx = await esbuild.context({
     entryPoints: ["src/extension.ts"],
     bundle: true,
