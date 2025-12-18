@@ -618,7 +618,6 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     )
     @json.inspect(r.code, content=200)
     let events = collector.wait()
-    println(events.to_json().stringify(indent=2))
     @json.inspect(
       events
       .filter(e => e is Maria(event) && event.desc is MessageUnqueued(_))
