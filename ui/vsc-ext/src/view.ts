@@ -299,7 +299,11 @@ async function getDynamicVariables(
       return lower !== upper ? `[${lower}${upper}]` : char;
     })
     .join("");
-  const files = await vscode.workspace.findFiles(`**/*${pattern}*`, null, 10);
+  const files = await vscode.workspace.findFiles(
+    `**/*${pattern}*`,
+    "**/{node_modules,target}/**",
+    10,
+  );
   const workspaceSymbols = (await vscode.commands.executeCommand(
     "vscode.executeWorkspaceSymbolProvider",
     query,
