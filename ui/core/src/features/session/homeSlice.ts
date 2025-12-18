@@ -1,5 +1,6 @@
 import { createAppSlice } from "../../app/createAppSlice";
 import type { ChatDynamicVariable } from "../../lib/types";
+import * as dynamicVariables from "./dynamic-variables";
 
 type HomeState = {
   input: string;
@@ -28,30 +29,15 @@ export const homeSlice = createAppSlice({
     toggleWebSearchEnabled(state) {
       state.webSearchEnabled = !state.webSearchEnabled;
     },
-    addDynamicVariables(state, action: { payload: ChatDynamicVariable }) {
-      state.dynamicVariables.push(action.payload);
+    addDynamicVariable(state, action: { payload: ChatDynamicVariable }) {
+      dynamicVariables.add(state, action.payload);
     },
 
     updateDynamicVariableRanges(
       state,
       action: { payload: { start: number; end: number }[] },
     ) {
-      const newRanges = action.payload;
-      if (newRanges.length !== state.dynamicVariables.length) {
-        return;
-      }
-      const newVariables = [];
-      for (let i = 0; i < newRanges.length; i++) {
-        const range = newRanges[i];
-        const variable = state.dynamicVariables[i];
-        variable.start = range.start;
-        variable.end = range.end;
-        if (range.start === range.end) {
-          continue;
-        }
-        newVariables.push(variable);
-      }
-      state.dynamicVariables = newVariables;
+      dynamicVariables.updateRanges(state, action.payload);
     },
   },
   selectors: {
@@ -65,7 +51,7 @@ export const homeSlice = createAppSlice({
       return state.webSearchEnabled;
     },
     selectDynamicVariables(state): ChatDynamicVariable[] {
-      return state.dynamicVariables;
+      return dynamicVariables.get(state);
     },
   },
 });
@@ -74,7 +60,7 @@ export const {
   setInput,
   setCwd,
   toggleWebSearchEnabled,
-  addDynamicVariables,
+  addDynamicVariable,
   updateDynamicVariableRanges,
 } = homeSlice.actions;
 export const {

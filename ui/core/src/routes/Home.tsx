@@ -18,7 +18,7 @@ import {
 import { WebSearchToggleTool } from "../components/web-search-toggle-tool.js";
 import { useNewTaskMutation } from "../features/api/apiSlice.ts";
 import {
-  addDynamicVariables,
+  addDynamicVariable,
   selectCwd,
   selectDynamicVariables,
   selectInput,
@@ -122,7 +122,7 @@ export default function Home() {
           onChange={(value) => dispatch(setInput(value))}
           onSubmit={handleSubmit}
           onAddDynamicVariable={(variable) => {
-            dispatch(addDynamicVariables(variable));
+            dispatch(addDynamicVariable(variable));
           }}
           onUpdateDynamicVariableRanges={(newRanges) => {
             dispatch(updateDynamicVariableRanges(newRanges));

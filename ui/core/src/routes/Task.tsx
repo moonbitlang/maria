@@ -29,8 +29,10 @@ import {
   useTaskQuery,
 } from "../features/api/apiSlice.ts";
 import {
+  addDynamicVariablesForTask,
   addToInputQueueForTask,
   selectConversationStatus,
+  selectDynamicVariablesForTask,
   selectInputQueue,
   selectTaskCwd,
   selectTaskEvents,
@@ -41,9 +43,11 @@ import {
   setInputForTask,
   setStatusForTask,
   toggleWebSearchForTask,
+  updateDynamicVariableRangesForTask,
 } from "../features/session/tasksSlice.ts";
 import { RAL } from "../lib/ral.ts";
-import { base } from "../lib/utils.ts";
+import type { QueuedMessage } from "../lib/types.ts";
+import { base, composeMessage } from "../lib/utils.ts";
 
 function useSetActiveTaskId(taskId: string) {
   const dispatch = useDispatch();
@@ -62,6 +66,9 @@ function PromptInput({ taskId }: { taskId: string }) {
   const [postMessage] = usePostMessageMutation();
   const [postCancel] = usePostCancelMutation();
   const input = useAppSelector((state) => selectTaskInput(state, taskId)) ?? "";
+  const dynamicVariables =
+    useAppSelector((state) => selectDynamicVariablesForTask(state, taskId)) ??
+    [];
 
   useEffect(() => {
     ref.current?.focus();
@@ -87,7 +94,7 @@ function PromptInput({ taskId }: { taskId: string }) {
   }
 
   async function addMessage() {
-    const content = input.trim();
+    const content = composeMessage(input.trim(), dynamicVariables);
     const { data, error } = await postMessage({
       taskId,
       content,
@@ -127,9 +134,13 @@ function PromptInput({ taskId }: { taskId: string }) {
       ref={ref}
       onChange={setInput}
       onSubmit={handleSubmit}
-      onAddDynamicVariable={() => {}}
-      dynamicVariables={[]}
-      onUpdateDynamicVariableRanges={() => {}}
+      onAddDynamicVariable={(v) => {
+        dispatch(addDynamicVariablesForTask({ taskId, variable: v }));
+      }}
+      dynamicVariables={dynamicVariables}
+      onUpdateDynamicVariableRanges={(newRanges) => {
+        dispatch(updateDynamicVariableRangesForTask({ taskId, newRanges }));
+      }}
       chatStatus={chatStatus}
       placeholder={
         taskStatus === "generating"
@@ -185,39 +196,47 @@ function OpenCwd({ taskId }: { taskId: string }) {
   );
 }
 
+function QueuedMessages({ inputQueue }: { inputQueue: QueuedMessage[] }) {
+  if (inputQueue.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-0 mx-auto mb-2 min-h-0 w-full max-w-4xl duration-300">
+      <div className="text-muted-foreground mb-2 flex items-center gap-2 px-1 text-sm font-medium">
+        <Clock className="h-3.5 w-3.5" />
+        <span>
+          {inputQueue.length} queued{" "}
+          {inputQueue.length === 1 ? "message" : "messages"}
+        </span>
+      </div>
+      <ScrollArea className="bg-muted/30 border-border/50 max-h-32 overflow-y-auto rounded-lg border shadow-sm">
+        {inputQueue.map(({ id, content }, index) => (
+          <Fragment key={id}>
+            <div className="group hover:bg-muted/60 flex items-center gap-3 px-2 py-1 transition-colors">
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground/80 truncate leading-relaxed">
+                  {content}
+                </p>
+              </div>
+            </div>
+            {index < inputQueue.length - 1 && (
+              <Separator className="bg-border/30" />
+            )}
+          </Fragment>
+        ))}
+      </ScrollArea>
+    </div>
+  );
+}
+
 function Input({ taskId }: { taskId: string }) {
   const inputQueue =
     useAppSelector((state) => selectInputQueue(state, taskId)) ?? [];
 
   return (
     <div className="flex flex-col p-4">
-      {inputQueue.length > 0 && (
-        <div className="animate-in fade-in slide-in-from-bottom-0 mx-auto mb-2 min-h-0 w-full max-w-4xl duration-300">
-          <div className="text-muted-foreground mb-2 flex items-center gap-2 px-1 text-sm font-medium">
-            <Clock className="h-3.5 w-3.5" />
-            <span>
-              {inputQueue.length} queued{" "}
-              {inputQueue.length === 1 ? "message" : "messages"}
-            </span>
-          </div>
-          <ScrollArea className="bg-muted/30 border-border/50 max-h-32 overflow-y-auto rounded-lg border shadow-sm">
-            {inputQueue.map(({ id, content }, index) => (
-              <Fragment key={id}>
-                <div className="group hover:bg-muted/60 flex items-center gap-3 px-2 py-1 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-foreground/80 truncate leading-relaxed">
-                      {content}
-                    </p>
-                  </div>
-                </div>
-                {index < inputQueue.length - 1 && (
-                  <Separator className="bg-border/30" />
-                )}
-              </Fragment>
-            ))}
-          </ScrollArea>
-        </div>
-      )}
+      <QueuedMessages inputQueue={inputQueue} />
       <PromptInput taskId={taskId} />
     </div>
   );
