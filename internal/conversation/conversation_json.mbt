@@ -131,8 +131,8 @@ pub fn Conversation::display(
   } else {
     lines.push("Messages: \{self.messages.length()}")
   }
-  fn show_time(ts : Int64) -> String {
-    try @time.unix(ts / 1000) catch {
+  fn show_time(ts : @clock.Timestamp) -> String {
+    try @time.unix(ts.truncate_to_s()) catch {
       _ => return "invalid time".to_string()
     } noraise {
       t => t.to_string()

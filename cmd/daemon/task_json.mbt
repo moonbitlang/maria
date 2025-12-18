@@ -70,28 +70,9 @@ pub impl @json.FromJson for Task with from_json(
         (json_path.add_key("web_search"), "Task::from_json: expected bool"),
       )
   }
-  let created = match map.get("created") {
-    Some(Number(created_num, repr=None)) => {
-      guard created_num >= 0.0 else {
-        raise @json.JsonDecodeError(
-          (
-            json_path.add_key("created"),
-            "Task::from_json: created timestamp cannot be negative",
-          ),
-        )
-      }
-      created_num.to_int64()
-    }
-    Some(Number(_, repr=Some(created_str)) | String(created_str)) =>
-      @strconv.parse_int64(created_str) catch {
-        error =>
-          raise @json.JsonDecodeError(
-            (
-              json_path.add_key("created"),
-              "Task::from_json: invalid Int64 string: \{error}",
-            ),
-          )
-      }
+  let created : @clock.Timestamp = match map.get("created") {
+    Some(created_json) =>
+      @json.from_json(created_json, path=json_path.add_key("created"))
     _ =>
       raise @json.JsonDecodeError(
         (json_path.add_key("created"), "Task::from_json: expected number"),
@@ -134,10 +115,7 @@ pub impl ToJson for Task with to_json(self : Task) -> Json {
     "cwd": self.cwd,
     "port": self.port,
     "status": self.status,
-    "created": Json::number(
-      self.created.to_double(),
-      repr=self.created.to_string(),
-    ),
+    "created": self.created,
     "web_search": self.web_search,
     "queued_messages": self.queued_messages,
   })
@@ -155,7 +133,7 @@ test "Task::ToJson" {
     queued_messages: [
       QueuedMessage::{ id: "msg1", message: { "text": "Hello" } },
     ],
-    created: 0,
+    created: @clock.Timestamp::from_ms(0),
     web_search: true,
   }
   assert_eq(task.to_json(), {

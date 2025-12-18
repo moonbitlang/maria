@@ -1,3 +1,6 @@
 {
-  "import": ["moonbitlang/async", "moonbitlang/x/time"]
+  "import": [
+    "moonbitlang/async",
+    "moonbitlang/x/time"
+  ]
 }

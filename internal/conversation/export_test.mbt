@@ -29,8 +29,8 @@ async test "export_to_markdown" (t : @test.Test) {
         #|# Conversation: ac8a366d-ce7e-47d9-8bc7-27c69e416f1a
         #|
         #|**Name:** Test Conversation
-        #|**Created:** 0
-        #|**Updated:** 5
+        #|**Created:** 1970-01-01T00:00:00Z
+        #|**Updated:** 1970-01-01T00:00:00Z
         #|**Messages:** 4
         #|
         #|## 👤 User
@@ -39,7 +39,7 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|Hello, how are you?
         #|
-        #|**Timestamp:** 2
+        #|**Timestamp:** 1970-01-01T00:00:00Z
         #|
         #|---
         #|
@@ -49,7 +49,7 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|I'm fine, thank you!
         #|
-        #|**Timestamp:** 3
+        #|**Timestamp:** 1970-01-01T00:00:00Z
         #|
         #|---
         #|
@@ -59,7 +59,7 @@ async test "export_to_markdown" (t : @test.Test) {
         #|
         #|What's the weather today?
         #|
-        #|**Timestamp:** 4
+        #|**Timestamp:** 1970-01-01T00:00:00Z
         #|
         #|---
         #|
@@ -74,7 +74,7 @@ async test "export_to_markdown" (t : @test.Test) {
         #|**Parameters:**
         #|- **location:** San Francisco
         #|
-        #|**Timestamp:** 5
+        #|**Timestamp:** 1970-01-01T00:00:00Z
       ),
     )
   })

@@ -118,7 +118,7 @@ async fn main {
     [] => ()
   }
   let clock = @clock.epoch
-  let timestamp = @time.unix(clock.now() / 1000)
+  let timestamp = @time.unix(clock.now().truncate_to_s())
     .to_plain_date_time()
     .to_dash_t_format()
   guard prompt_files.length() > 0 else {
