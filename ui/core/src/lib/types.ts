@@ -17,7 +17,7 @@ export type Status = "idle" | "generating";
 
 export type TaskOverview = {
   id: string;
-  name: string;
+  name: string | null;
   status: Status;
   created: number;
   cwd: string;

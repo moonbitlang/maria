@@ -1,5 +1,5 @@
 import { CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
-
+import ReactMarkdown from "react-markdown";
 import { Link } from "react-router";
 import type { Status, Task } from "../lib/types";
 import {
@@ -45,13 +45,14 @@ export function NavTasks(props: NavTasksProps) {
         <CollapsibleContent>
           <SidebarMenu>
             {tasks.map(({ name, id, status }) => {
+              const title = name ?? "...";
               const path = `/tasks/${id}`;
               const isActive = activeTaskId === id;
               return (
                 <SidebarMenuItem key={id}>
                   <SidebarMenuButton
                     className="text-base"
-                    tooltip={name}
+                    tooltip={title}
                     asChild
                     isActive={isActive}
                     onClick={() => {
@@ -61,7 +62,9 @@ export function NavTasks(props: NavTasksProps) {
                     }}
                   >
                     <Link to={path}>
-                      <span className="truncate">{name}</span>
+                      <div className="truncate">
+                        <ReactMarkdown>{title}</ReactMarkdown>
+                      </div>
                       {getTaskIcon(status)}
                     </Link>
                   </SidebarMenuButton>
