@@ -1,10 +1,24 @@
 ///|
+/// Maria is the main AI coding agent that provides intelligent assistance
+/// for software development tasks. It integrates various tools for file management,
+/// command execution, and code analysis.
 pub struct Maria {
   logger : @pino.Logger
   agent : @agent.Agent
 }
 
 ///|
+/// Creates a new Maria agent instance.
+///
+/// Parameters:
+///
+/// - logger: Optional logger for recording agent activities (defaults to file-based logger)
+/// - model: The AI model to use for the agent
+/// - cwd: Optional working directory (defaults to current working directory)
+/// - user_message: Optional initial user message to start the conversation
+/// - web_search: Whether to enable web search capabilities (defaults to false)
+///
+/// Returns a configured Maria instance ready to assist with coding tasks.
 #as_free_fn
 pub async fn Maria::new(
   logger? : @pino.Logger = @pino.logger(
@@ -47,11 +61,21 @@ pub async fn Maria::new(
 }
 
 ///|
+/// Closes the Maria agent and releases associated resources.
+/// Should be called when the agent is no longer needed (using `defer` ideally).
 pub fn Maria::close(self : Maria) -> Unit {
   self.agent.close()
 }
 
 ///|
+/// Starts the Maria agent and begins processing tasks.
+///
+/// Parameters:
+///
+/// - prompt: Optional initial prompt to send to the agent before starting
+///
+/// The agent will process messages from its queue and respond to user requests,
+/// and stops when there are no more messages to process.
 pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
   if prompt is Some(prompt) {
     let user_message = @ai.user_message(content=prompt)
