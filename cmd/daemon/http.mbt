@@ -1,19 +1,24 @@
 ///|
+/// HTTP error wrapper used to bubble failures to the HTTP layer.
 priv suberror HttpError {
   HttpError(code~ : Int, reason~ : String, body~ : String)
 }
 
 ///|
+/// Constructs an `HttpError` carrying a JSON body that will be stringified.
+/// Use for structured error responses in handlers.
 fn json_error(code : Int, reason : String, body : Json) -> HttpError {
   HttpError(code~, reason~, body=body.stringify())
 }
 
 ///|
+/// Constructs an `HttpError` with a plain-text body.
 fn text_error(code : Int, reason : String, body : String) -> HttpError {
   HttpError(code~, reason~, body~)
 }
 
 ///|
+/// Reads a static HTML file. Returns 404 HTML on ENOENT.
 async fn html_read_file(path : String) -> String {
   @fsx.read_file(path) catch {
     @os_error.OSError(_) as os_error if os_error.is_ENOENT() =>
@@ -23,6 +28,16 @@ async fn html_read_file(path : String) -> String {
 }
 
 ///|
+/// Serves a static asset from the daemon's `serve` directory.
+///
+/// Endpoint: GET /{path}
+///
+/// Request:
+/// - Path param: `path` within the configured `serve` directory.
+///
+/// Response:
+/// - 200 OK: appropriate `Content-Type` and file content.
+/// - 404 NotFound: when the path is outside `serve` or not a file.
 async fn serve_static_file(
   w : @httpx.ResponseWriter,
   serve~ : String,
