@@ -33,7 +33,7 @@ function sh(command, options = {}) {
 }
 
 function buildMaria() {
-  sh("moon build", { cwd: path.join(__dirname, "..") });
+  sh("moon build", { cwd: path.join(__dirname, "../..") });
   fs.mkdirSync("./bin", { recursive: true });
   fs.copyFileSync(
     "../../target/native/release/build/cmd/main/main.exe",

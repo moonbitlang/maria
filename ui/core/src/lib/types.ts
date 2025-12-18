@@ -1,6 +1,5 @@
 import type * as comlink from "comlink";
 import type { OpenDialogReturnValue } from "electron";
-import type * as monaco from "monaco-editor-core";
 export type QueuedMessage = {
   id: string;
   content: string;
@@ -217,8 +216,6 @@ export type RAL = WebRAL | ElectronRAL | VSCWebviewRAL;
 
 export type ResultTuple<T> = [T, undefined] | [undefined, Error];
 
-export type IRange = monaco.IRange;
-
 export const CompletionItemKind = {
   Method: 0,
   Function: 1,
@@ -265,13 +262,8 @@ export type ChatDynamicVariableInfo = ChatDynamicVariableInfoBase &
         kind: "command";
       }
     | {
-        kind: "file";
+        kind: "file" | "symbol";
         uri: string;
-      }
-    | {
-        kind: "symbol";
-        uri: string;
-        symbolRange: IRange;
       }
   );
 

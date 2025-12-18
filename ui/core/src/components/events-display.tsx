@@ -45,10 +45,7 @@ function ShowUserMessage({ event }: { event: UserMessageEvent }) {
   return (
     <Message from="user">
       <MessageContent>
-        <Response
-          parseIncompleteMarkdown={false}
-          allowedLinkPrefixes={["http://", "https://", "file://", "/"]}
-        >
+        <Response parseIncompleteMarkdown={false}>
           {event.content.trim()}
         </Response>
       </MessageContent>
@@ -287,14 +284,12 @@ function ShowPostToolCall({ event }: { event: PostToolCallEvent }) {
     );
   } else if (event.error) {
     // toolcall error
+    const errorText = event.text ?? `Tool call error: <${event.name}>`;
     return (
       <Tool>
         <ToolHeader type={event.name} state="output-error" />
         <ToolContent>
-          <ToolOutput
-            output={undefined}
-            errorText={`Tool call error: <${event.name}>`}
-          />
+          <ToolOutput output={undefined} errorText={errorText} />
         </ToolContent>
       </Tool>
     );
@@ -321,9 +316,7 @@ function ShowAssistantMessage({ event }: { event: AssistantMessageEvent }) {
   return (
     <Message from="assistant">
       <MessageContent>
-        <Response parseIncompleteMarkdown={false}>
-          {event.message.content.trim()}
-        </Response>
+        <Response parseIncompleteMarkdown={false}>{content}</Response>
       </MessageContent>
     </Message>
   );

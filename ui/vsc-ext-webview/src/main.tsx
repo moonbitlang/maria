@@ -18,7 +18,6 @@ const taskId = rootData("task-id");
 const cwd = rootData("cwd");
 
 function updateBodyDarkClass() {
-  debugger;
   const themeKind = document.body.dataset.vscodeThemeKind;
   const isDark =
     themeKind === "vscode-dark" || themeKind === "vscode-high-contrast";

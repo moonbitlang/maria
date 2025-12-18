@@ -27,26 +27,12 @@ export function composeMessage(
       case "command": {
         continue;
       }
+      case "symbol":
       case "file": {
         const { name, uri } = v.info;
-        const fileLink = `[${name}](${uri})`;
+        const fileLink = `[#${name}](${uri})`;
         chars.splice(v.start, v.end - v.start, fileLink);
-        break;
-      }
-      case "symbol": {
-        const {
-          symbolRange: {
-            startLineNumber,
-            startColumn,
-            endLineNumber,
-            endColumn,
-          },
-          name,
-          uri,
-        } = v.info;
-        const symbolLink = `[${name}](${uri}#${startLineNumber}:${startColumn}-${endLineNumber}:${endColumn})`;
-        chars.splice(v.start, v.end - v.start, symbolLink);
-        break;
+        continue;
       }
     }
   }

@@ -33,7 +33,7 @@
     "clsx": "^2.1.1",
     "comlink": "^4.4.2",
     "embla-carousel-react": "^8.6.0",
-    "harden-react-markdown": "^1.1.5",
+    "harden-react-markdown": "^1.1.7",
     "katex": "^0.16.25",
     "lucide-react": "^0.553.0",
     "monaco-editor-core": "^0.55.1",

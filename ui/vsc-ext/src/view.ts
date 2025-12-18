@@ -1,7 +1,6 @@
 import {
   ChatDynamicVariableInfo,
   CompletionItemKind,
-  IRange,
   VscodeApi,
   WebviewApi,
 } from "@maria/core/lib/types.js";
@@ -277,13 +276,16 @@ function symbolKindToMonacoCompletionKind(
   }
 }
 
-function toMonacoIRange(range: vscode.Range): IRange {
-  return {
-    startLineNumber: range.start.line + 1,
-    startColumn: range.start.character + 1,
-    endLineNumber: range.end.line + 1,
-    endColumn: range.end.character + 1,
-  };
+function fileUriToVscodeProtocol(
+  uri: vscode.Uri,
+  position?: vscode.Position,
+): string {
+  const fsPath = uri.fsPath;
+  let pos = "";
+  if (position) {
+    pos = `:${position.line + 1}:${position.character + 1}`;
+  }
+  return `vscode://file${fsPath}${pos}`;
 }
 
 async function getDynamicVariables(
@@ -297,11 +299,7 @@ async function getDynamicVariables(
       return lower !== upper ? `[${lower}${upper}]` : char;
     })
     .join("");
-  const files = await vscode.workspace.findFiles(
-    `**/*${pattern}*`,
-    undefined,
-    10,
-  );
+  const files = await vscode.workspace.findFiles(`**/*${pattern}*`, null, 10);
   const workspaceSymbols = (await vscode.commands.executeCommand(
     "vscode.executeWorkspaceSymbolProvider",
     query,
@@ -311,7 +309,7 @@ async function getDynamicVariables(
       kind: "file",
       name: path.basename(file.fsPath),
       itemKind: toMonacoCompletionItemKind(vscode.CompletionItemKind.File),
-      uri: file.toString(),
+      uri: fileUriToVscodeProtocol(file),
     };
   });
   const symbolVariables: ChatDynamicVariableInfo[] = workspaceSymbols.map(
@@ -320,8 +318,10 @@ async function getDynamicVariables(
         kind: "symbol",
         name: symbol.name,
         itemKind: symbolKindToMonacoCompletionKind(symbol.kind),
-        uri: symbol.location.uri.toString(),
-        symbolRange: toMonacoIRange(symbol.location.range),
+        uri: fileUriToVscodeProtocol(
+          symbol.location.uri,
+          symbol.location.range.start,
+        ),
       };
     },
   );

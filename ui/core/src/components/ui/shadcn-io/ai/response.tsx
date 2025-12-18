@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import hardenReactMarkdown from "harden-react-markdown";
 import "katex/dist/katex.min.css";
-import type { ComponentProps, HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { isValidElement, memo } from "react";
 import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
@@ -157,21 +156,9 @@ function parseIncompleteMarkdown(text: string): string {
   return result;
 }
 
-// Create a hardened version of ReactMarkdown
-const HardenedMarkdown = hardenReactMarkdown(ReactMarkdown);
-
 export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
   options?: Options;
   children: Options["children"];
-  allowedImagePrefixes?: ComponentProps<
-    ReturnType<typeof hardenReactMarkdown>
-  >["allowedImagePrefixes"];
-  allowedLinkPrefixes?: ComponentProps<
-    ReturnType<typeof hardenReactMarkdown>
-  >["allowedLinkPrefixes"];
-  defaultOrigin?: ComponentProps<
-    ReturnType<typeof hardenReactMarkdown>
-  >["defaultOrigin"];
   parseIncompleteMarkdown?: boolean;
 };
 
@@ -353,9 +340,6 @@ export const Response = memo(
     className,
     options,
     children,
-    allowedImagePrefixes,
-    allowedLinkPrefixes,
-    defaultOrigin,
     parseIncompleteMarkdown: shouldParseIncompleteMarkdown = true,
     ...props
   }: ResponseProps) => {
@@ -373,17 +357,15 @@ export const Response = memo(
         )}
         {...props}
       >
-        <HardenedMarkdown
-          allowedImagePrefixes={allowedImagePrefixes ?? ["*"]}
-          allowedLinkPrefixes={allowedLinkPrefixes ?? ["*"]}
+        <ReactMarkdown
           components={components}
-          defaultOrigin={defaultOrigin}
           rehypePlugins={[rehypeKatex]}
           remarkPlugins={[remarkGfm, remarkMath]}
+          urlTransform={(url) => url}
           {...options}
         >
           {parsedChildren}
-        </HardenedMarkdown>
+        </ReactMarkdown>
       </div>
     );
   },
