@@ -354,6 +354,7 @@ pub async fn new(
   cwd~ : StringView,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
+  history? : @conversation.Conversation,
 ) -> Agent {
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
@@ -367,7 +368,10 @@ pub async fn new(
     "event": event.to_json(),
   }))
   event_target.emit(ModelLoaded(name=model.name, model~))
-  let history = session_manager.new_conversation(name="history")
+  let history = match history {
+    Some(history) => history
+    None => session_manager.new_conversation(name="history")
+  }
   let external_events = match external_events {
     Some(queue) => queue
     None => @event.ExternalEventQueue::new()
@@ -402,64 +406,46 @@ pub async fn new(
 }
 
 ///|
+/// Loads an existing agent from a conversation history with the specified
+/// configuration.
+///
+/// Parameters:
+///
+/// * `model` : The AI model to use for generating responses and handling tool
+///   calls.
+/// * `history` : The existing conversation history to load into the agent.
+/// * `uuid` : Optional UUID generator for creating unique identifiers. If not
+///   provided, uses ChaCha8.
+/// * `logger` : Optional logger instance for recording agent activities.
+///   Defaults to file logger at `.moonagent/log.jsonl`.
+/// * `user_message` : Optional initial user message to send immediately after
+///   loading.
+/// * `web_search` : Whether to enable web search functionality. Defaults to
+///   `false`.
+/// * `external_events` : Optional external event queue for receiving events
+///   from the environment.
+///
+/// Returns a new `Agent` instance initialized with the provided conversation
+/// history and configuration.
 pub async fn load(
   model : @model.Model,
-  conversation : @conversation.Conversation,
+  history : @conversation.Conversation,
   uuid? : @uuid.Generator,
-  logger? : @pino.Logger = @pino.logger(
-    "agent",
-    try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
-  ),
+  logger? : @pino.Logger,
   user_message? : String,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
 ) -> Agent {
-  // FIXME:(upstream) function with error not allowed in optional expression
-  let uuid = match uuid {
-    Some(uuid) => uuid
-    None => @uuid.generator(@rand.chacha8())
-  }
-  let cwd = conversation.cwd()
-  let session_manager = @conversation.Manager::new(uuid~, cwd~)
-  let rules = @rules.Loader::new(cwd.to_string(), logger~)
-  let event_target = @event.EventTarget::new()
-  event_target.add_listener(event => {
-    let json = event.to_json()
-    guard json is Object({ "msg": String(msg), .. } as json) else {  }
-    json.remove("msg")
-    logger.info(msg, data=json)
-  })
-  event_target.emit(ModelLoaded(name=model.name, model~))
-  let external_events = match external_events {
-    Some(queue) => queue
-    None => @event.ExternalEventQueue::new()
-  }
-  let agent = Agent::{
-    logger,
-    uuid,
-    history: conversation,
-    cwd: cwd.to_string(),
+  new(
     model,
-    tools: {},
-    input_queue: [],
-    pending_queue: @deque.Deque::new(),
-    event_target,
-    token_counter: @token_counter.Counter::new(logger~),
-    context_pruner: @context_pruner.Pruner::new(
-      safe_zone_tokens=model.safe_zone_tokens,
-      logger~,
-    ),
-    session_manager,
-    rules,
-    web_search,
-    external_events,
-  }
-  rules.load()
-  match user_message {
-    Some(message) => agent.external_events.send(UserMessage(message))
-    None => ()
-  }
-  agent
+    uuid?,
+    logger?,
+    user_message?,
+    cwd=history.cwd(),
+    web_search~,
+    history~,
+    external_events?,
+  )
 }
 
 ///|
