@@ -2,12 +2,15 @@
 package "moonbitlang/maria/cmd/daemon"
 
 import(
+  "moonbitlang/async/fs"
   "moonbitlang/core/json"
   "moonbitlang/maria/internal/uuid"
 )
 
 // Values
 pub async fn detach(exec_path? : String, port? : Int, serve? : StringView) -> Int
+
+pub async fn lock_daemon_file(home~ : StringView) -> @fs.File?
 
 pub async fn start(ArrayView[String]) -> Unit
 
