@@ -106,6 +106,10 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
         content
       }
       let _ = @fsx.write_to_file(path, content_to_append) catch {
+        @os_error.OSError(_, ..) as error if error.is_EACCES() =>
+          return @tool.error(
+            "Permission denied: Cannot write to file \{path}. The file does not have write permissions.",
+          )
         error => return @tool.error("Failed to write to file: \{error}")
       }
       let result = Result::{ path, }

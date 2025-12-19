@@ -589,16 +589,7 @@ async test "no-write-permission" (t : @test.Test) {
     }
     inspect(
       mock.text(result),
-      content=(
-        #|Error in meta_write_to_file: OSError("@fs.open(): \"(mock:cwd)/main.mbt\": Permission denied")
-        #|[
-        #|  "OSError",
-        #|  13,
-        #|  {
-        #|    "context": "@fs.open(): \"(mock:cwd)/main.mbt\""
-        #|  }
-        #|]
-      ),
+      content="Permission denied: Cannot write to file main.mbt. The file does not have write permissions.",
     )
     // Restore write permission for cleanup
     @fs.chmod(file_path, 0o644)

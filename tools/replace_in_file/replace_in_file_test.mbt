@@ -209,16 +209,7 @@ async test "replace_in_file/no-write-permission" (t : @test.Test) {
     }
     inspect(
       mock.text(result),
-      content=(
-        #|Error writing to file: OSError("@fs.open(): \"(mock:cwd)/file.txt\": Permission denied")
-        #|[
-        #|  "OSError",
-        #|  13,
-        #|  {
-        #|    "context": "@fs.open(): \"(mock:cwd)/file.txt\""
-        #|  }
-        #|]
-      ),
+      content="Permission denied: Cannot write to file file.txt. The file does not have write permissions.",
     )
     // Restore write permission for cleanup
     @fs.chmod(file_path, 0o644)

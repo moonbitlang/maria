@@ -4,7 +4,8 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/pathx",
-    "moonbitlang/maria/internal/fuzzy"
+    "moonbitlang/maria/internal/fuzzy",
+    "moonbitlang/async/os_error"
   ],
   "test-import": [
     "moonbitlang/async",
