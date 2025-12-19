@@ -14,6 +14,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/event",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/ai",
+    "moonbitlang/async/fs"
   ]
 }

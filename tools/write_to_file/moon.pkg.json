@@ -4,5 +4,9 @@
     "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/async/fs"
+  ]
 }
