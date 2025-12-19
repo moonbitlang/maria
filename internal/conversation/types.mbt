@@ -3,7 +3,7 @@ struct Conversation {
   clock : &@clock.Clock
   name : String
   description : String?
-  id : String
+  id : @uuid.Uuid
   mut system_prompt : String?
   messages : Array[Message]
   created_at : Int64

@@ -21,7 +21,7 @@ pub fn Conversation::add_messages(
 }
 
 ///|
-pub fn Conversation::id(self : Conversation) -> String {
+pub fn Conversation::id(self : Conversation) -> @uuid.Uuid {
   self.id
 }
 

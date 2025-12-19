@@ -474,6 +474,13 @@ pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
 }
 
 ///|
-pub fn Agent::id(agent : Agent) -> String {
+/// Gets the unique identifier of the agent.
+///
+/// Parameters:
+///
+/// * `agent` : The agent instance to get the identifier for.
+///
+/// Returns the UUID that uniquely identifies this agent instance.
+pub fn Agent::id(agent : Agent) -> @uuid.Uuid {
   agent.history.id()
 }

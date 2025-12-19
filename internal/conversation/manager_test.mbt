@@ -40,8 +40,10 @@ async test "Manager::load" (t : @test.Test) {
       content="ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
     )
     manager.save(conversation)
-    let loaded = manager.load("ac8a366d-ce7e-47d9-8bc7-27c69e416f1a")
-    @json.inspect(manager.load("non-existent-id"), content=null)
+    let loaded = manager.load(
+      @uuid.parse("ac8a366d-ce7e-47d9-8bc7-27c69e416f1a"),
+    )
+    @json.inspect(manager.load(@uuid.nil), content=null)
     @json.inspect(mock.json(loaded), content=[
       {
         "name": "Test Conversation",

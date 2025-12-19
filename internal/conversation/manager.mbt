@@ -3,7 +3,7 @@ struct Manager {
   uuid : @uuid.Generator
   clock : &@clock.Clock
   cwd : StringView
-  cache : @lru.Cache[String, Conversation]
+  cache : @lru.Cache[@uuid.Uuid, Conversation]
 }
 
 ///|
@@ -23,7 +23,7 @@ pub async fn Manager::new(
 }
 
 ///|
-pub async fn Manager::load(self : Manager, id : String) -> Conversation? {
+pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
   let id = id
   if self.cache.get(id) is Some(id) {
     return Some(id)
@@ -53,7 +53,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 }
 
 ///|
-pub async fn Manager::list(self : Manager) -> Array[String] {
+pub async fn Manager::list(self : Manager) -> Array[@uuid.Uuid] {
   let path = self.cwd
     |> @pathx.join(".moonagent")
     |> @pathx.join("conversations")
@@ -67,7 +67,7 @@ pub async fn Manager::list(self : Manager) -> Array[String] {
       try @uuid.parse(name) catch {
         _ => continue
       } noraise {
-        id => ids.push(id.to_string())
+        id => ids.push(id)
       }
     }
   }
@@ -84,7 +84,7 @@ pub fn Manager::new_conversation(
     clock: self.clock,
     name,
     description,
-    id: self.uuid.v4().to_string(),
+    id: self.uuid.v4(),
     system_prompt: None,
     messages: [],
     created_at: self.clock.now(),
