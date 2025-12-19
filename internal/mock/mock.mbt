@@ -162,13 +162,18 @@ pub async fn Directory::add_files(
 }
 
 ///|
-/// Creates a nested directory relative to this directory and returns it.
+/// Creates a nested directory relative to this directory and returns it. If
+/// the directory already exists, it does nothing.
 pub async fn Directory::add_directory(
   self : Directory,
   name : String,
 ) -> Directory {
   let path = @pathx.join(self.0, name)
-  @fs.mkdir(path, permission=0o755)
+  // Ignore EEXIST errors
+  @fs.mkdir(path, permission=0o755) catch {
+    @os_error.OSError(_, ..) as error if error.is_EEXIST() => ()
+    error => raise error
+  }
   Directory(path)
 }
 

@@ -26,7 +26,10 @@
 ///    there are multiple daemons waiting for the same lock, so it is possible
 ///    that after the lock is released, the new owner is still not us. In that
 ///    case, we give up and exit.
-async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
+///
+/// FIXME: Make this private. This function is currently marked as public
+/// because it is used by `cmd/test-to-be-killed` for testing.
+pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   let path = home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json")
   let dir = @pathx.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
@@ -46,17 +49,20 @@ async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   println(
     "[INFO] (Daemon) Detected older daemon version \{old.version}. Requesting shutdown...",
   )
-  let (r, _) = @httpx.post_json(
-    "http://localhost:\{old.port}/v1/shutdown",
-    Json::object({}),
-  )
-  guard r.code is (200..=299) else {
-    println(
-      "[ERROR] (Daemon) Failed to request shutdown from older daemon: \{r.code} \{r.reason}",
-    )
-    return None
+  if !request_shutdown(old.pid, old.port) {
+    println("[ERROR] (Daemon) Failed to send shutdown request to older daemon.")
+    @spawn.kill(old.pid, @signal.sigkill) catch {
+      error => {
+        println(
+          "[ERROR] (Daemon) Failed to kill older daemon (pid=\{old.pid}): \{error}",
+        )
+        return None
+      }
+    }
+    println("[INFO] (Daemon) Forcefully terminated older daemon.")
+  } else {
+    println("[INFO] (Daemon) Shutdown request sent successfully.")
   }
-  println("[INFO] (Daemon) Shutdown request sent successfully.")
   // Wait for the lock to be released
   @async.with_timeout(60_000, () => for {
     match acquire_lock(path) {
@@ -81,5 +87,31 @@ async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
       return None
     }
     error => raise error
+  }
+}
+
+///|
+/// Makes request to /v1/shutdown endpoint of the daemon with given `pid` and
+/// `port` to request shutdown. Returns `true` if the request was successful.
+///
+/// This function has a 10-second timeout, in case of a non-responsive daemon
+/// or a old version daemon that does not support the shutdown endpoint.
+async fn request_shutdown(pid : Int, port : Int) -> Bool {
+  try {
+    let (r, _) = @async.with_timeout(10_000, () => @httpx.post_json(
+      "http://localhost:\{port}/v1/shutdown",
+      Json::object({}),
+    ))
+    return r.code is (200..=299)
+  } catch {
+    error =>
+      if @async.is_being_cancelled() {
+        raise error
+      } else {
+        println(
+          "[ERROR] (Daemon) Failed to send shutdown request to daemon (pid=\{pid}): \{error}",
+        )
+        return false
+      }
   }
 }

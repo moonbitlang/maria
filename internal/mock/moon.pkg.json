@@ -11,6 +11,7 @@
     "moonbitlang/maria/clock",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/model",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/async/os_error"
   ]
 }

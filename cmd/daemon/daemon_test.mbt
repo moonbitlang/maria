@@ -565,6 +565,24 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
 }
 
 ///|
+/// This test requires `cmd/test-to-be-killed` to be built. Skipped by default.
+#skip
+async test "kill older, non-responsive daemon" (t : @test.Test) {
+  let exec_path = "target/native/release/build/cmd/test-to-be-killed/test-to-be-killed.exe"
+  let exec_path = @fsx.resolve(exec_path)
+  @mock.run(t, mock => {
+    let manager = @spawn.Manager::new(cwd=mock.cwd.path())
+    mock.group.spawn_bg(() => @async.with_timeout(20_000, () => manager.start()))
+    let process = manager.spawn(exec_path, [], env={ "HOME": mock.cwd.path() })
+    mock.group.spawn_bg(() => @async.with_timeout(20_000, () => process.wait()
+      |> ignore()))
+    @async.sleep(1_000)
+    let _ = configure_daemon(mock)
+    mock.group.return_immediately(())
+  })
+}
+
+///|
 #skip
 #cfg(false)
 async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
