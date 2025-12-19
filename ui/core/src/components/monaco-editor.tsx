@@ -1,6 +1,7 @@
 import * as monaco from "monaco-editor-core";
 import editorWorker from "monaco-editor-core/esm/vs/editor/editor.worker.start?worker&inline";
 import { memo, useLayoutEffect, useRef } from "react";
+import { RAL } from "../lib/ral";
 import "./chat-lang";
 import { setupDynamicVariableDecoration } from "./chat-lang";
 
@@ -33,6 +34,8 @@ function Editor(props: EditorProps) {
     return containerRef.current;
   }
   useLayoutEffect(() => {
+    const disposables: monaco.IDisposable[] = [];
+
     const container = getContainer();
     container.classList.add("hideSuggestTextIcons");
     const model = monaco.editor.createModel("", "chat");
@@ -90,7 +93,6 @@ function Editor(props: EditorProps) {
       fixedOverflowWidgets: true,
     });
 
-    const d = editorDidMount(editor, monaco);
     const slashCommandDecoration = setupDynamicVariableDecoration(editor);
 
     const updateHeight = () => {
@@ -120,11 +122,48 @@ function Editor(props: EditorProps) {
       attributeFilter: ["class"],
     });
 
+    disposables.push(model, editor, slashCommandDecoration);
+
+    if (RAL().platform === "vsc-webview") {
+      const cut = editor.addAction({
+        id: "vscode-extension-cut",
+        label: "Cut",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX],
+        async run(editor) {
+          const selection = editor.getSelection();
+          if (!selection || selection.isEmpty()) return;
+          const text = editor.getModel()?.getValueInRange(selection);
+          if (!text) return;
+          editor.executeEdits("cut", [{ range: selection, text: "" }]);
+          await navigator.clipboard.writeText(text);
+        },
+      });
+
+      const paste = editor.addAction({
+        id: "vscode-extension-paste",
+        label: "Paste",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV],
+        async run(editor) {
+          const text = await navigator.clipboard.readText();
+          const selection = editor.getSelection();
+          if (!selection) return;
+          editor.executeEdits("paste", [
+            {
+              range: selection,
+              text,
+              forceMoveMarkers: true,
+            },
+          ]);
+        },
+      });
+      disposables.push(cut, paste);
+    }
+
+    const d = editorDidMount(editor, monaco);
+    disposables.push(d);
+
     return () => {
-      model.dispose();
-      editor.dispose();
-      d.dispose();
-      slashCommandDecoration.dispose();
+      disposables.forEach((d) => d.dispose());
       themeObserver.disconnect();
     };
   }, [editorDidMount]);
