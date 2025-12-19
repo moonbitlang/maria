@@ -23,6 +23,7 @@ pub async fn show(args : ArrayView[String]) -> Unit {
     }
     [..] => raise @argument.InvalidArgument(args.join(" "))
   }
+  let id = @uuid.parse(id)
   let cwd = @os.cwd()
   let uuid = @uuid.generator(@rand.chacha8())
   let manager = @conv.Manager::new(uuid~, cwd~)

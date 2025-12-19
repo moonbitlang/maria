@@ -19,7 +19,7 @@ pub fn Conversation::add_messages(Self, Array[@ai.Message]) -> Unit
 pub fn Conversation::cwd(Self) -> StringView
 pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
 pub fn Conversation::export_to_markdown(Self) -> String
-pub fn Conversation::id(Self) -> String
+pub fn Conversation::id(Self) -> @uuid.Uuid
 pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
 pub fn Conversation::set_system_prompt(Self, String?) -> Unit
 pub fn Conversation::system_prompt(Self) -> String?
@@ -27,8 +27,8 @@ pub impl ToJson for Conversation
 pub impl @json.FromJson for Conversation
 
 type Manager
-pub async fn Manager::list(Self) -> Array[String]
-pub async fn Manager::load(Self, String) -> Conversation?
+pub async fn Manager::list(Self) -> Array[@uuid.Uuid]
+pub async fn Manager::load(Self, @uuid.Uuid) -> Conversation?
 pub async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Self
 pub fn Manager::new_conversation(Self, name~ : String, description? : String) -> Conversation
 pub async fn Manager::save(Self, Conversation) -> Unit
