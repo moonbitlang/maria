@@ -60,6 +60,25 @@ test "ReadFileInput::from_json" {
 }
 
 ///|
+fn is_readonly(lines : Array[StringView]) -> Bool {
+  let first_three_lines = if lines.length() <= 3 {
+    lines.join("\n")
+  } else {
+    lines[0:3].join("\n")
+  }
+  let first_three_upper = first_three_lines.to_upper()
+  if first_three_upper.contains("DON'T EDIT") ||
+    first_three_upper.contains("DONT EDIT") ||
+    first_three_upper.contains("READONLY") ||
+    first_three_upper.contains("READ ONLY") ||
+    first_three_upper.contains("NO EDIT") {
+    true
+  } else {
+    false
+  }
+}
+
+///|
 async fn execute_read_file_tool(
   manager : @file.Manager,
   args : Json,
@@ -91,13 +110,20 @@ async fn execute_read_file_tool(
 
     // Open and read the file
     let content = @fsx.read_file(resolved_path)
+    let lines = content.split("\n").to_array()
+
+    // Check for readonly indicators in first 3 lines
+    if is_readonly(lines) {
+      return @tool.error(
+        "Error: The file at \{path} is marked as readonly and cannot be read.",
+      )
+    }
 
     // Update access time
     let stat = @fsx.stat(resolved_path)
     manager.access[resolved_path] = stat.atime()
 
     // Process line range parameters
-    let lines = content.split("\n").to_array()
     let start_line = match start_line {
       Some(n) =>
         if n < 1 {

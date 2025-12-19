@@ -186,3 +186,170 @@ async test "invalid-range" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "readonly-dont-edit" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|DON'T EDIT
+        #|line 2
+        #|line 3
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-dont-edit-it" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|line 1
+        #|DON'T EDIT IT
+        #|line 3
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-readonly" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|line 1
+        #|line 2
+        #|READONLY
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-read-only" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|line 1
+        #|READ ONLY
+        #|line 3
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-no-edit" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|line 1
+        #|line 2
+        #|NO EDIT
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-case-insensitive" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "readonly.txt",
+      content=(
+        #|line 1
+        #|readonly
+        #|line 3
+        #|line 4
+      ),
+    )
+    let args : Json = { "path": "readonly.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    inspect(
+      result,
+      content="Error reading file: This file should be treated as readonly. It contains a readonly marker in the first 3 lines.",
+    )
+  })
+}
+
+///|
+async test "readonly-after-3-lines" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let _ = mock.add_file(
+      "editable.txt",
+      content=(
+        #|line 1
+        #|line 2
+        #|line 3
+        #|readonly
+        #|line 5
+      ),
+    )
+    let args : Json = { "path": "editable.txt" }
+    let tool = @read_file.new(manager)
+    let result = tool.call(args)
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content={
+      "path": "editable.txt",
+      "content": "line 1\nline 2\nline 3\nreadonly\nline 5",
+      "start_line": 1,
+      "end_line": 5,
+    })
+  })
+}
