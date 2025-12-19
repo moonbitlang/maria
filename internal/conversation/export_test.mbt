@@ -4,9 +4,12 @@ async test "export_to_markdown" (t : @test.Test) {
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(mock.rand),
       clock=mock.clock,
+      home=mock.cwd.path(),
+    )
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
     conversation.add_message(@ai.user_message(content="Hello, how are you?"))
     conversation.add_message(
       @ai.assistant_message(content="I'm fine, thank you!"),

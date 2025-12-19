@@ -1,8 +1,8 @@
 ///|
 pub async fn list() -> Unit {
-  let cwd = @os.cwd()
+  let home = @os.home()
   let uuid = @uuid.generator(@rand.chacha8())
-  let manager = @conv.Manager::new(uuid~, cwd~)
+  let manager = @conv.Manager::new(uuid~, home~)
   for i, id in manager.list() {
     let conversation = manager.load(id)
     guard conversation is Some(conversation) else { continue }
@@ -24,9 +24,9 @@ pub async fn show(args : ArrayView[String]) -> Unit {
     [..] => raise @argument.InvalidArgument(args.join(" "))
   }
   let id = @uuid.parse(id)
-  let cwd = @os.cwd()
+  let home = @os.home()
   let uuid = @uuid.generator(@rand.chacha8())
-  let manager = @conv.Manager::new(uuid~, cwd~)
+  let manager = @conv.Manager::new(uuid~, home~)
   let conversation = manager.load(id)
   guard conversation is Some(conversation) else { return }
   if output is Some(output) {

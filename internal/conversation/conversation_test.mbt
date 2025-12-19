@@ -1,12 +1,17 @@
 ///|
 async test "impl ToJson for Conversation" (t : @test.Test) {
   @mock.run(t, mock => {
+    let home = mock.cwd
+    let cwd = home.add_directory("cwd")
     let manager = @conversation.Manager::new(
       uuid=@uuid.generator(mock.rand),
       clock=mock.clock,
-      cwd=mock.cwd.path(),
+      home=home.path(),
     )
-    let conversation = manager.new_conversation(name="Test Conversation")
+    let conversation = manager.new_conversation(
+      name="Test Conversation",
+      cwd=cwd.path(),
+    )
     conversation.set_system_prompt(Some("This is a system prompt."))
     conversation.add_message(@ai.user_message(content="Hello"))
     @json.inspect(mock.json(conversation), content={
@@ -18,7 +23,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
       ],
       "created_at": 0,
       "updated_at": 2,
-      "cwd": "(mock:cwd)",
+      "cwd": "(mock:cwd)/cwd",
     })
   })
 }

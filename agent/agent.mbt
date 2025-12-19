@@ -338,6 +338,12 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 /// * `uuid` : Optional UUID generator. If not provided, creates one using the random generator.
 /// * `logger` : Optional logger instance. Defaults to file logger at `.moonagent/log.jsonl`.
 /// * `cwd` : The current working directory that will be used as the base path for tool operations.
+/// * `system_message` : Optional system prompt to set at initialization.
+/// * `user_message` : Optional initial user message to send immediately after initialization.
+/// * `home` : Optional home directory path. If not provided, uses the OS home directory.
+/// * `web_search` : Whether to enable web search functionality. Defaults to `false`.
+/// * `external_events` : Optional external event queue for receiving events from the environment.
+/// * `history` : Optional existing conversation history to load into the agent.
 ///
 /// Returns a new `Agent` instance initialized with empty conversation history,
 /// no tools, and a fresh event target for handling agent lifecycle events.
@@ -353,17 +359,22 @@ pub async fn new(
   ),
   system_message? : String,
   user_message? : String,
+  home? : StringView,
   cwd~ : StringView,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
   history? : @conversation.Conversation,
 ) -> Agent {
+  let home = match home {
+    Some(path) => path.to_string()
+    None => @os.home()
+  }
   // FIXME:(upstream) function with error not allowed in optional expression
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())
   }
-  let session_manager = @conversation.Manager::new(uuid~, cwd~)
+  let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target = @event.EventTarget::new()
   event_target.add_listener(event => logger.info("Received event", data={
@@ -372,7 +383,7 @@ pub async fn new(
   event_target.emit(ModelLoaded(name=model.name, model~))
   let history = match history {
     Some(history) => history
-    None => session_manager.new_conversation(name="history")
+    None => session_manager.new_conversation(name="history", cwd~)
   }
   let external_events = match external_events {
     Some(queue) => queue
@@ -423,6 +434,8 @@ pub async fn new(
 ///   provided, uses ChaCha8.
 /// * `logger` : Optional logger instance for recording agent activities.
 ///   Defaults to file logger at `.moonagent/log.jsonl`.
+/// * `home` : Optional home directory path. If not provided, uses the OS home
+///   directory.
 /// * `user_message` : Optional initial user message to send immediately after
 ///   loading.
 /// * `web_search` : Whether to enable web search functionality. Defaults to
@@ -437,6 +450,7 @@ pub async fn load(
   history : @conversation.Conversation,
   uuid? : @uuid.Generator,
   logger? : @pino.Logger,
+  home? : StringView,
   user_message? : String,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
@@ -446,6 +460,7 @@ pub async fn load(
     uuid?,
     logger?,
     user_message?,
+    home?,
     cwd=history.cwd(),
     web_search~,
     history~,
