@@ -521,9 +521,9 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       self.lines.push("")
     }
   } noraise {
-    (event : @event.Event) =>
+    (event : @cmd/test.Event) =>
       match event.desc {
-        AssistantMessage(content, tool_calls~, ..) => {
+        Maria(AssistantMessage(content, tool_calls~, ..)) => {
           let content = content.trim(char_set=" \n\r\t").to_string()
           let title = content
             .split("\n")
@@ -550,9 +550,10 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         }
         SystemPromptSet(prompt) =>
           self.format_system_prompt_set(prompt, timestamp?)
-        PostToolCall(tool_call, result~, rendered=text) =>
+        Maria(PostToolCall(tool_call, result~, rendered=text)) =>
           self.format_post_tool_call(tool_call.name, result~, text, timestamp?)
-        UserMessage(content) => self.format_user_message(content, timestamp?)
+        Maria(UserMessage(content)) =>
+          self.format_user_message(content, timestamp?)
         ModelLoaded(name~, ..) => self.format_model_loaded(name, timestamp?)
         _ => ()
       }

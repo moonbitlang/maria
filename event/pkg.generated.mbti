@@ -6,8 +6,6 @@ import(
   "moonbitlang/maria/ai"
   "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/model"
-  "moonbitlang/maria/tool"
 )
 
 // Values
@@ -29,13 +27,10 @@ pub impl ToJson for Event
 pub impl @json.FromJson for Event
 
 pub(all) enum EventDesc {
-  ModelLoaded(name~ : String, model~ : @model.Model)
   PreConversation
   PostConversation
-  SystemPromptSet(String)
   MessageUnqueued(id~ : @uuid.Uuid)
   MessageQueued(id~ : @uuid.Uuid)
-  ToolAdded(@tool.ToolDesc)
   PreToolCall(@ai.ToolCall)
   PostToolCall(@ai.ToolCall, result~ : Result[Json, Json], rendered~ : String)
   TokenCounted(Int)

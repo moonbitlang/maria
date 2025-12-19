@@ -232,62 +232,6 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
 }
 
 ///|
-async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let events = []
-    @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
-      group.spawn_bg(() => emitter.start(), no_wait=true)
-      @async.pause()
-      emitter.add_listener(event => events.push(event))
-      emitter.emit(SystemPromptSet("Hello, this is a system prompt."))
-    })
-    @json.inspect(events, content=[
-      {
-        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "desc": {
-          "msg": "SystemPromptSet",
-          "prompt": "Hello, this is a system prompt.",
-        },
-      },
-    ])
-  })
-}
-
-///|
-async test "Event::ToJson/ToolAdded" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let events = []
-    @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
-      group.spawn_bg(() => emitter.start(), no_wait=true)
-      @async.pause()
-      emitter.add_listener(event => events.push(event))
-      let tool = @tool.new(
-        description="A sample tool for demonstration.",
-        name="sample_tool",
-        schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
-        _ => @tool.ToolResult::ok("Sample output"),
-      )
-      emitter.emit(ToolAdded(tool.desc))
-    })
-    @json.inspect(events, content=[
-      {
-        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "desc": {
-          "msg": "ToolAdded",
-          "tool": {
-            "name": "sample_tool",
-            "description": "A sample tool for demonstration.",
-            "schema": "{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
-          },
-        },
-      },
-    ])
-  })
-}
-
-///|
 async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
@@ -320,48 +264,6 @@ async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
             "completion_tokens": 50,
             "prompt_tokens": 150,
             "total_tokens": 200,
-          },
-        },
-      },
-    ])
-  })
-}
-
-///|
-async test "Event::ModelLoaded" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let events = []
-    @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
-      group.spawn_bg(() => emitter.start(), no_wait=true)
-      @async.pause()
-      emitter.add_listener(event => events.push(event))
-      emitter.emit(
-        ModelLoaded(
-          name="test_model",
-          model=@model.Model::new(
-            api_key="test_api_key",
-            base_url="https://api.example.com",
-            name="test_model",
-            safe_zone_tokens=100000,
-          ),
-        ),
-      )
-    })
-    @json.inspect(events, content=[
-      {
-        "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "desc": {
-          "msg": "ModelLoaded",
-          "name": "test_model",
-          "model": {
-            "name": "test_model",
-            "model_name": "test_model",
-            "model_type": "saas/openai",
-            "api_key": "****",
-            "base_url": "https://api.example.com",
-            "safe_zone_tokens": 100000,
-            "supports_anthropic_prompt_caching": false,
           },
         },
       },
@@ -504,17 +406,6 @@ test "Event::Roundtrip/PostToolCall/Err" {
 }
 
 ///|
-test "Event::Roundtrip/SystemPromptSet" {
-  let event : @event.EventDesc = SystemPromptSet("You are a helpful assistant.")
-  let json = event.to_json()
-  let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    SystemPromptSet(msg) => inspect(msg, content="You are a helpful assistant.")
-    _ => fail("Expected SystemPromptSet")
-  }
-}
-
-///|
 test "Event::Roundtrip/MessageQueued" {
   let id = @uuid.nil
   let event : @event.EventDesc = MessageQueued(id~)
@@ -537,31 +428,6 @@ test "Event::Roundtrip/MessageUnqueued" {
     MessageUnqueued(id=roundtrip_id) =>
       inspect(roundtrip_id == id, content="true")
     _ => fail("Expected MessageUnqueued")
-  }
-}
-
-///|
-test "Event::Roundtrip/ToolAdded" {
-  let tool_desc = @tool.tool_desc(
-    name="sample_tool",
-    description="A sample tool",
-    schema=@tool.JsonSchema::from_json({ "type": "object" }),
-  )
-  let event : @event.EventDesc = ToolAdded(tool_desc)
-  let json = event.to_json()
-  let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    ToolAdded(desc) => {
-      inspect(desc.name, content="sample_tool")
-      inspect(desc.description, content="A sample tool")
-      inspect(
-        desc.schema.to_json(),
-        content=(
-          #|Object({"type": String("object")})
-        ),
-      )
-    }
-    _ => fail("Expected ToolAdded")
   }
 }
 
@@ -610,39 +476,6 @@ test "Event::Roundtrip/Cancelled" {
   match roundtripped {
     Cancelled => ()
     _ => fail("Expected Cancelled")
-  }
-}
-
-///|
-test "Event::Roundtrip/ModelLoaded" {
-  let model = @model.Model::new(
-    api_key="test_api_key",
-    base_url="https://api.example.com",
-    name="test_model",
-    safe_zone_tokens=100000,
-  )
-  let event : @event.EventDesc = ModelLoaded(name="my_model", model~)
-  let json = event.to_json()
-  let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    ModelLoaded(name~, model=roundtrip_model) => {
-      inspect(name, content="my_model")
-      inspect(roundtrip_model.name, content="test_model")
-      inspect(roundtrip_model.base_url, content="https://api.example.com")
-      inspect(roundtrip_model.safe_zone_tokens, content="100000")
-    }
-    _ => fail("Expected ModelLoaded")
-  }
-}
-
-///|
-test "ExternalEvent::Roundtrip/Cancel" {
-  let event : @event.EventDesc = Cancelled
-  let json = event.to_json()
-  let roundtripped : @event.EventDesc = @json.from_json(json)
-  match roundtripped {
-    Cancelled => ()
-    _ => fail("Expected Cancel")
   }
 }
 
@@ -796,29 +629,12 @@ test "Event::Roundtrip" {
       result=Ok("Tool call result"),
       rendered="Tool call rendered output",
     ),
-    SystemPromptSet("Hello, this is a system prompt."),
-    ToolAdded(
-      @tool.tool_desc(
-        name="sample_tool",
-        description="A sample tool for demonstration.",
-        schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
-      ),
-    ),
     AssistantMessage(
       usage=Some(
         @ai.usage(input_tokens=150, output_tokens=50, total_tokens=200),
       ),
       tool_calls=[],
       "This is the final message from the model.",
-    ),
-    ModelLoaded(
-      name="test_model",
-      model=@model.Model::new(
-        api_key="****",
-        base_url="https://api.example.com",
-        name="test_model",
-        safe_zone_tokens=100000,
-      ),
     ),
     Cancelled,
     UserMessage("Stop the current task"),

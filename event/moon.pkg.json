@@ -1,9 +1,7 @@
 {
   "import": [
     "moonbitlang/async/aqueue",
-    "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/maria/model",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/diagnostics",

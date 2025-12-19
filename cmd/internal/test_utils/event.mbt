@@ -66,7 +66,6 @@ pub fn redact_events(events : Array[ServerEvent]) -> Array[ServerEvent] {
     Maria(event) => {
       let desc : @event.EventDesc = match event.desc {
         UserMessage(_) => UserMessage("<redacted>")
-        SystemPromptSet(_) => SystemPromptSet("<redacted>")
         MessageQueued(..) => MessageQueued(id=@uuid.nil)
         MessageUnqueued(..) => MessageUnqueued(id=@uuid.nil)
         AssistantMessage(_, tool_calls~, ..) =>

@@ -366,7 +366,6 @@ pub async fn new(
   event_target.add_listener(event => logger.info("Received event", data={
     "event": event.to_json(),
   }))
-  event_target.emit(ModelLoaded(name=model.name, model~))
   let history = session_manager.new_conversation(name="history")
   let external_events = match external_events {
     Some(queue) => queue
@@ -429,7 +428,6 @@ pub async fn load(
     json.remove("msg")
     logger.info(msg, data=json)
   })
-  event_target.emit(ModelLoaded(name=model.name, model~))
   let external_events = match external_events {
     Some(queue) => queue
     None => @event.ExternalEventQueue::new()

@@ -1,11 +1,32 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/test"
 
+import(
+  "moonbitlang/core/json"
+  "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/uuid"
+  "moonbitlang/maria/model"
+)
+
 // Values
 
 // Errors
 
 // Types and methods
+pub struct Event {
+  id : @uuid.Uuid
+  desc : EventDesc
+}
+pub impl ToJson for Event
+pub impl @json.FromJson for Event
+
+pub enum EventDesc {
+  ModelLoaded(name~ : String, model~ : @model.Model)
+  SystemPromptSet(String)
+  Maria(@event.EventDesc)
+}
+pub impl ToJson for EventDesc
+pub impl @json.FromJson for EventDesc
 
 // Type aliases
 

@@ -11,7 +11,9 @@
     "moonbitlang/maria/internal/backtrace",
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/pathx",
-    "moonbitlang/maria/model"
+    "moonbitlang/maria/model",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/event"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"]
 }
