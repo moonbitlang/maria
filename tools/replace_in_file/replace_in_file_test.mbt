@@ -188,3 +188,30 @@ async test "replace_in_file/agentic" (t : @test.Test) {
 //     content="Some error occurred",
 //   )
 // }
+
+///|
+async test "replace_in_file/no-write-permission" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    mock.add_json_tree({ "file.txt": "Old content" })
+    let file_path = @pathx.join(mock.cwd.path(), "file.txt")
+    // Change file to read-only
+    @fs.chmod(file_path, 0o444)
+    let args : Json = {
+      "path": "file.txt",
+      "search": "",
+      "replace": "New content",
+    }
+    let result = @replace_in_file.new(manager).call(args)
+    // Verify that an error is returned
+    guard result is Error(_) else {
+      fail("Expected Error result but got: \{result}")
+    }
+    inspect(
+      mock.text(result),
+      content="Permission denied: Cannot write to file file.txt. The file does not have write permissions.",
+    )
+    // Restore write permission for cleanup
+    @fs.chmod(file_path, 0o644)
+  })
+}

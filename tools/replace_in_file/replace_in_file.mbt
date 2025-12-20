@@ -116,6 +116,10 @@ async fn @file.Manager::execute_replace_in_file(
     }
     @tool.ok(result)
   } catch {
+    @os_error.OSError(_, ..) as error if error.is_EACCES() =>
+      @tool.error(
+        "Permission denied: Cannot write to file \{path}. The file does not have write permissions.",
+      )
     error => @tool.error("Error writing to file: \{error}", error~)
   }
 }

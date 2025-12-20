@@ -542,3 +542,56 @@ async test "show-original-non-moonbit-file-on-search-failure" (t : @test.Test) {
     )
   })
 }
+
+///|
+#skip
+async test "no-write-permission" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model()
+    mock.add_json_tree({
+      "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
+        indent=2,
+      ),
+      "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
+    })
+    let _ = mock.add_file(
+      "main.mbt",
+      content=(
+        #|///|
+        #|fn main {
+        #|  println("Hello, world!")
+        #|}
+      ),
+    )
+    let file_path = @pathx.join(mock.cwd.path(), "main.mbt")
+    // Change file to read-only
+    @fs.chmod(file_path, 0o444)
+    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let file_manager = @file.manager(cwd=mock.cwd.path())
+    agent.add_tools([
+      @replace_in_file.new(file_manager).to_agent_tool(),
+      @read_file.new(file_manager).to_agent_tool(),
+      @meta_write_to_file.new(agent).to_agent_tool(),
+    ])
+    let result = @tool.call(@meta_write_to_file.new(agent), {
+      "path": "main.mbt",
+      "replace": (
+        #|///|
+        #|fn main {
+        #|  println("Hello, MoonBit!")
+        #|}
+      ),
+      "description": "Update the main function to print 'Hello, MoonBit!' instead of 'Hello, world!'.",
+    })
+    // Verify that an error is returned
+    guard result is Error(_) else {
+      fail("Expected Err result but got: \{result}")
+    }
+    inspect(
+      mock.text(result),
+      content="Permission denied: Cannot write to file main.mbt. The file does not have write permissions.",
+    )
+    // Restore write permission for cleanup
+    @fs.chmod(file_path, 0o644)
+  })
+}

@@ -2,7 +2,12 @@
   "import": [
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/pathx",
-    "moonbitlang/maria/internal/fsx"
+    "moonbitlang/maria/internal/fsx",
+    "moonbitlang/async/os_error"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/async/fs"
+  ]
 }

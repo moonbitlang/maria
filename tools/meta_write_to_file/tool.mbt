@@ -409,6 +409,10 @@ async fn execute_meta_write_to_file(
       })
     }
   } catch {
+    @os_error.OSError(_, ..) as error if error.is_EACCES() =>
+      @tool.error(
+        "Permission denied: Cannot write to file \{params.path}. The file does not have write permissions.",
+      )
     error => @tool.error("Error in meta_write_to_file: \{error}", error~)
   }
 }

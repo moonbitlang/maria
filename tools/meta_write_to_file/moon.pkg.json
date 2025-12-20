@@ -10,12 +10,14 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/fuzzy",
-    "moonbitlang/maria/internal/diagnostics"
+    "moonbitlang/maria/internal/diagnostics",
+    "moonbitlang/async/os_error"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/file",
     "moonbitlang/maria/tools/replace_in_file",
-    "moonbitlang/maria/tools/read_file"
+    "moonbitlang/maria/tools/read_file",
+    "moonbitlang/async/fs"
   ]
 }

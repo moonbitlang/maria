@@ -25,3 +25,26 @@ async test "write_to_file" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "write_to_file/no-write-permission" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let file_path = @pathx.join(mock.cwd.path(), "file.txt")
+    @fsx.write_to_file(file_path, original)
+    // Change file to read-only
+    @fs.chmod(file_path, 0o444)
+    let args = json_input(path="file.txt", content="Line 3", separator="\n")
+    let tool = new(mock.cwd.path())
+    let result = tool.call(args)
+    // Verify that an error is returned
+    guard result is Error(_) else {
+      fail("Expected Err result but got: \{result}")
+    }
+    inspect(
+      mock.text(result),
+      content="Permission denied: Cannot write to file (mock:cwd)/file.txt. The file does not have write permissions.",
+    )
+    // Restore write permission for cleanup
+    @fs.chmod(file_path, 0o644)
+  })
+}
