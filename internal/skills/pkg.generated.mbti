@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/skills"
+
+import(
+  "moonbitlang/maria/ai"
+  "moonbitlang/maria/internal/pino"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+type Loader
+pub async fn Loader::load(Self) -> Unit
+pub async fn Loader::load_and_apply(Self, Array[@ai.Message]) -> Unit
+pub fn Loader::new(home? : String, cwd~ : String, logger? : @pino.Logger) -> Self raise
+pub fn Loader::skills(Self) -> Map[String, Skill]
+
+pub struct Skill {
+  name : String
+  description : String
+  license : String?
+  compatibility : String?
+  allowed_tools : Array[String]
+  metadata : Json?
+  location : String
+}
+pub impl Show for Skill
+pub impl ToJson for Skill
+
+// Type aliases
+
+// Traits
+
