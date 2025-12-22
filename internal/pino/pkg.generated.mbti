@@ -27,7 +27,7 @@ pub impl ToJson for Level
 
 type Logger
 pub fn Logger::child(Self, Map[String, Json]) -> Self
-pub async fn Logger::close(Self) -> Unit
+pub fn Logger::close(Self) -> Unit
 pub async fn Logger::debug(Self, StringView, data? : Map[String, Json]) -> Unit
 pub async fn Logger::error(Self, StringView, data? : Map[String, Json]) -> Unit
 pub async fn Logger::info(Self, StringView, data? : Map[String, Json]) -> Unit

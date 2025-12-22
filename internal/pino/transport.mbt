@@ -108,7 +108,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
 }
 
 ///|
-async fn Transport::close(self : Transport) -> Unit {
+fn Transport::close(self : Transport) -> Unit {
   match self {
     Console => ()
     File(file=Some(file), ..) => file.close()

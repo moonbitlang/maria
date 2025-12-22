@@ -93,8 +93,9 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
         return @tool.error("Error: 'command' parameters is required")
       }
       let timeout = if args is { "timeout": timeout, .. } {
-        guard timeout.as_number() is Some(timeout) else {
-          return @tool.error("'timeout' must be a number")
+        let timeout = match timeout {
+          Number(timeout, ..) => timeout
+          _ => return @tool.error("'timeout' must be a number")
         }
         if timeout <= 0 {
           return @tool.error("'timeout' must be a positive integer")
@@ -123,10 +124,11 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
         ctx.cwd
       }
       let background = if args is { "background": background, .. } {
-        guard background.as_bool() is Some(background) else {
-          return @tool.error("'background' must be a boolean")
+        match background {
+          True => true
+          False => false
+          _ => return @tool.error("'background' must be a boolean")
         }
-        background
       } else {
         false
       }

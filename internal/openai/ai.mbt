@@ -96,7 +96,7 @@ async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
-    if rest.trim_space() == "[DONE]" {
+    if rest.trim() == "[DONE]" {
       return None
     }
     let json = @json.parse(rest)

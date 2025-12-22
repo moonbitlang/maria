@@ -51,7 +51,7 @@ pub async fn generate_git_diff(
       ],
       cwd=tmpdir,
     )
-    let output = process.stdout.trim_space().to_string()
+    let output = process.stdout.trim().to_string()
     if line_number {
       add_line_number_to_diff(output)
     } else {

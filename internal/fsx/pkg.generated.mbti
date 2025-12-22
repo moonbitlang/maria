@@ -20,7 +20,7 @@ pub fn lock_file(@fs.File) -> Unit raise
 
 pub async fn make_directory(StringView, recursive? : Bool, exists_ok? : Bool) -> Unit
 
-pub async fn mkdtemp(String) -> String
+pub fn mkdtemp(String) -> String raise
 
 pub async fn read_file(StringView) -> String
 

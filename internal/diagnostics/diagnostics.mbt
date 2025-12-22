@@ -96,7 +96,7 @@ fn format_metadata_and_path(diagnostic : Diagnostic) -> (String, String) {
     Error => metadata.write_string("error[\{error_code_text}]")
     Warning => metadata.write_string("warning[\{error_code_text}]")
   }
-  let path = diagnostic.loc.path.trim_space().to_string()
+  let path = diagnostic.loc.path.trim().to_string()
   if path != "" {
     if diagnostic.loc.start.line == diagnostic.loc.end.line {
       if diagnostic.loc.start.col == diagnostic.loc.end.col {
@@ -280,7 +280,7 @@ fn format_truncation_summary(truncation_messages : Array[String]) -> String? {
 pub fn from_jsonl(jsonl : StringView) -> Diagnostics {
   let diagnostics = []
   for line in jsonl.split("\n") {
-    let line = line.trim_space()
+    let line = line.trim()
     try {
       let json = @json.parse(line)
       // TODO: fail on json decoding??
