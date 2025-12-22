@@ -24,7 +24,7 @@ fn mkdtemp_bytes(bytes : Bytes) -> Bytes raise @errno.Errno {
 ///
 /// The template is typically expected to end with `XXXXXX`, which will
 /// be replaced with random characters by the underlying implementation.
-pub async fn mkdtemp(template : String) -> String {
+pub fn mkdtemp(template : String) -> String raise {
   let template = @encoding/utf8.encode(template)
   let template = mkdtemp_bytes(template)
   @encoding/utf8.decode(template)

@@ -366,7 +366,7 @@ pub async fn run(
   let os_cwd = @os.cwd()
   let exec = os_args[0]
   let exec = @pathx.relative(os_cwd, exec)
-  let exec_parts = @pathx.split(exec).collect()
+  let exec_parts = @pathx.split(exec)
   guard exec_parts
     is ["target", "native", "debug" | "release", "test", .. parts, _] else {
     abort(

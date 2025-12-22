@@ -106,63 +106,52 @@ pub fn stem(path : StringView) -> StringView {
 
 ///|
 /// Split each path component, handle redundant slashes but doesn't resolve `.` and `..`.
-pub fn split(view : StringView) -> Iter[StringView] {
-  Iter::new(each => {
-    let view = match view {
-      [.. "///", .. rest] =>
-        match each("/") {
-          IterContinue =>
-            skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => rest
-            }
-          IterEnd => return IterEnd
-        }
-      [.. "//", .. rest] =>
-        match each("//") {
-          IterContinue => rest
-          IterEnd => return IterEnd
-        }
-      ['/', .. rest] =>
-        match each("/") {
-          IterContinue => rest
-          IterEnd => return IterEnd
-        }
-      rest => rest
-    }
-    let mut last = view
-    loop view {
-      ['/', .. rest] as view => {
-        let part = last
-          .data()
-          .view(
-            start_offset=last.start_offset(),
-            end_offset=view.start_offset(),
-          )
-        match each(part) {
-          IterContinue => {
-            let rest = skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => rest
-            }
-            last = rest
-            continue rest
-          }
-          IterEnd => break IterEnd
-        }
-      }
-      [_, .. rest] => continue rest
-      [] => {
-        if last.is_empty() {
-          break IterContinue
-        }
-        match each(last) {
-          IterContinue => break IterEnd
-          IterEnd => break IterEnd
-        }
+pub fn split(view : StringView) -> Array[StringView] {
+  let parts : Array[StringView] = []
+  let view = match view {
+    [.. "///", .. rest] => {
+      parts.push("/")
+      skip~: loop rest {
+        ['/', .. rest] => continue skip~ rest
+        rest => rest
       }
     }
-  })
+    [.. "//", .. rest] => {
+      parts.push("//")
+      rest
+    }
+    ['/', .. rest] => {
+      parts.push("/")
+      rest
+    }
+    rest => rest
+  }
+  let mut last = view
+  loop view {
+    ['/', .. rest] as view => {
+      let part = last
+        .data()
+        .view(
+          start_offset=last.start_offset(),
+          end_offset=view.start_offset(),
+        )
+      parts.push(part)
+      let rest = skip~: loop rest {
+        ['/', .. rest] => continue skip~ rest
+        rest => rest
+      }
+      last = rest
+      continue rest
+    }
+    [_, .. rest] => continue rest
+    [] => {
+      if !last.is_empty() {
+        parts.push(last)
+      }
+      break
+    }
+  }
+  parts
 }
 
 ///|

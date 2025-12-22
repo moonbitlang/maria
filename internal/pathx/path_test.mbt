@@ -66,18 +66,18 @@ test "join" {
 
 ///|
 test "split" {
-  @json.inspect(@pathx.split("a/b/c.jpg").collect(), content=["a", "b", "c.jpg"])
-  @json.inspect(@pathx.split("a//c.jpg").collect(), content=["a", "c.jpg"])
-  @json.inspect(@pathx.split("///").collect(), content=["/"])
-  @json.inspect(@pathx.split("//").collect(), content=["//"])
-  @json.inspect(@pathx.split("").collect(), content=[])
-  @json.inspect(@pathx.split("c/").collect(), content=["c"])
-  @json.inspect(@pathx.split("/c").collect(), content=["/", "c"])
-  @json.inspect(@pathx.split("/").collect(), content=["/"])
-  @json.inspect(@pathx.split("a/b/../c/./d//e").collect(), content=[
+  @json.inspect(@pathx.split("a/b/c.jpg"), content=["a", "b", "c.jpg"])
+  @json.inspect(@pathx.split("a//c.jpg"), content=["a", "c.jpg"])
+  @json.inspect(@pathx.split("///"), content=["/"])
+  @json.inspect(@pathx.split("//"), content=["//"])
+  @json.inspect(@pathx.split(""), content=[])
+  @json.inspect(@pathx.split("c/"), content=["c"])
+  @json.inspect(@pathx.split("/c"), content=["/", "c"])
+  @json.inspect(@pathx.split("/"), content=["/"])
+  @json.inspect(@pathx.split("a/b/../c/./d//e"), content=[
     "a", "b", "..", "c", ".", "d", "e",
   ])
-  @json.inspect(@pathx.split("/a/b/../c/./d//e").collect(), content=[
+  @json.inspect(@pathx.split("/a/b/../c/./d//e"), content=[
     "/", "a", "b", "..", "c", ".", "d", "e",
   ])
 }

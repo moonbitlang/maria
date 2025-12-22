@@ -156,7 +156,7 @@ pub async fn Module::find_package(self : Module, name : String) -> PackageView? 
   if self.package_(name) is Some(package_) {
     return Some(package_)
   }
-  let parts = @pathx.split(name).collect()
+  let parts = @pathx.split(name)
   guard parts is [author, module_, ..] else { return None }
   let mod_name = @pathx.join(author, module_)
   if self.cakes.get(mod_name) is Some(cake_mod) {
