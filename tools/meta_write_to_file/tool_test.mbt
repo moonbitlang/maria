@@ -240,7 +240,7 @@ async test "no-op-if-non-moonbit" (t : @test.Test) {
       content="File written successfully to moon.mod.json",
     )
     inspect(
-      moon_mod_file.read().trim_space(),
+      moon_mod_file.read().trim(),
       content=(
         #|{ "name": "example", "version": "0.1.0" }
       ),
@@ -303,7 +303,7 @@ async test "no-op-if-no-syntax-error" (t : @test.Test) {
       content="File written and formatted successfully to main.mbt",
     )
     inspect(
-      main_mbt_file.read().trim_space(),
+      main_mbt_file.read().trim(),
       content=(
         #|///|
         #|enum Color {
@@ -386,7 +386,7 @@ async test "fuzzy-search" (t : @test.Test) {
       output.message,
       content="Changes applied and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     inspect(
       main_mbt_text,
       content=(

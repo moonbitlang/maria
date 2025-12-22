@@ -38,7 +38,7 @@ pub fn Tool::enabled(self : Tool) -> Bool {
 /// * `agent` : The agent instance whose tools will be enabled or disabled.
 /// * `tool_names` : A set containing the names of tools that should be enabled.
 ///   Tools not in this set will be disabled.
-pub async fn Agent::set_enabled_tools(
+pub fn Agent::set_enabled_tools(
   agent : Agent,
   tool_names : Set[String],
 ) -> Unit {

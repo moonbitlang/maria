@@ -9,7 +9,7 @@ pub async fn check_ignore(
   }
   let process = @spawn.spawn("git", args, cwd?)
   process.check()
-  let output = process.stdout.trim_space()
+  let output = process.stdout.trim()
   if output.is_empty() {
     return []
   }

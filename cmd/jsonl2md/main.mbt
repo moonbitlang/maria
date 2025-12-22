@@ -40,7 +40,7 @@ async fn main {
   let formatter = Formatter::new(output_path, recover_diagnostics~)
   let jsonl_text = @fsx.read_file(input_path)
   for json_text in jsonl_text.split("\n").collect() {
-    if json_text.trim_space().is_empty() {
+    if json_text.trim().is_empty() {
       continue
     }
     let json = @json.parse(json_text) catch {

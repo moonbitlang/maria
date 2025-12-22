@@ -271,9 +271,10 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
       guard tc.to_json() is Object(tc_object)
       tc_object.remove("id")
       if tc.function.arguments is Some(arguments) {
-        tc_object["function"].as_object().unwrap()["arguments"] = @json.parse(
-          arguments,
-        )
+        guard tc_object["function"] is Object(map) else {
+          fail("Expected function to be an object")
+        }
+        map["arguments"] = @json.parse(arguments)
       }
       tc_object.to_json()
     })
