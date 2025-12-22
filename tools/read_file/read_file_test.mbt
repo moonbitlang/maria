@@ -55,17 +55,17 @@ async test "content" (t : @test.Test) {
       content=(
         #|File: test.txt (lines 1-12 (12 lines))
         #| L01 | line 1
-        #|     | line 2
-        #|     | line 3
-        #|     | line 4
-        #|     | line 5
-        #|     | line 6
-        #|     | line 7
-        #|     | line 8
-        #|     | line 9
-        #|     | line 10
+        #| L02 | line 2
+        #| L03 | line 3
+        #| L04 | line 4
+        #| L05 | line 5
+        #| L06 | line 6
+        #| L07 | line 7
+        #| L08 | line 8
+        #| L09 | line 9
+        #| L10 | line 10
         #| L11 | line 11
-        #|     | line 12
+        #| L12 | line 12
       ),
     )
   })
@@ -102,8 +102,8 @@ async test "line_range" (t : @test.Test) {
       content=(
         #|File: lines.txt (lines 2-4 (3 lines))
         #| L2 | line 2
-        #|    | line 3
-        #|    | line 4
+        #| L3 | line 3
+        #| L4 | line 4
       ),
     )
   })
@@ -181,7 +181,7 @@ async test "invalid-range" (t : @test.Test) {
       content=(
         #|File: test.txt (lines 2-3 (2 lines))
         #| L2 | line 2
-        #|    | line 3
+        #| L3 | line 3
       ),
     )
   })

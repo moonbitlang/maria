@@ -21,11 +21,7 @@ pub impl Show for ReadFileToolResult with output(
       let selected_content = selected_lines
         .mapi(fn(i, line) {
           let line_number = start_line + i
-          let line_marker = if i % 10 == 0 {
-            "L\{line_number.to_string().pad_start(width, '0')}"
-          } else {
-            " ".repeat(width + 1)
-          }
+          let line_marker = "L\{line_number.to_string().pad_start(width, '0')}"
           " \{line_marker} | \{line}"
         })
         .join("\n")
