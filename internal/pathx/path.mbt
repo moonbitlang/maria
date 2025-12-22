@@ -106,62 +106,73 @@ pub fn stem(path : StringView) -> StringView {
 
 ///|
 /// Split each path component, handle redundant slashes but doesn't resolve `.` and `..`.
-pub fn split(view : StringView) -> Iter[StringView] {
-  Iter::new(each => {
-    let view = match view {
-      [.. "///", .. rest] =>
-        match each("/") {
-          IterContinue =>
-            skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => rest
+pub fn split(view : StringView) -> Iterator[StringView] {
+  enum State {
+    Root
+    Segment
+  }
+  let mut state : State = State::Root
+  let mut last = view
+  Iterator::new(() => state~: loop state {
+    Root =>
+      match view {
+        // More than 3 slashes are treated as single slash.
+        [.. "///", .. rest] => {
+          // Skip all redundant slashes.
+          skip~: loop rest {
+            ['/', .. rest] => continue skip~ rest
+            rest => {
+              state = Segment
+              last = rest
+              break
             }
-          IterEnd => return IterEnd
-        }
-      [.. "//", .. rest] =>
-        match each("//") {
-          IterContinue => rest
-          IterEnd => return IterEnd
-        }
-      ['/', .. rest] =>
-        match each("/") {
-          IterContinue => rest
-          IterEnd => return IterEnd
-        }
-      rest => rest
-    }
-    let mut last = view
-    loop view {
-      ['/', .. rest] as view => {
-        let part = last
-          .data()
-          .view(
-            start_offset=last.start_offset(),
-            end_offset=view.start_offset(),
-          )
-        match each(part) {
-          IterContinue => {
-            let rest = skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => rest
-            }
-            last = rest
-            continue rest
           }
-          IterEnd => break IterEnd
+          Some("/")
+        }
+        [.. "//", .. rest] => {
+          state = Segment
+          last = rest
+          Some("//")
+        }
+        ['/', .. rest] => {
+          state = Segment
+          last = rest
+          Some("/")
+        }
+        rest => {
+          state = Segment
+          last = rest
+          continue state~ Segment
         }
       }
-      [_, .. rest] => continue rest
-      [] => {
-        if last.is_empty() {
-          break IterContinue
+    Segment =>
+      loop last.view() {
+        ['/', .. rest] as view => {
+          // Slice out the part before slash.
+          let part = last
+            .data()
+            .view(
+              start_offset=last.start_offset(),
+              end_offset=view.start_offset(),
+            )
+          // Skip redundant slashes.
+          let rest = skip~: loop rest {
+            ['/', .. rest] => continue skip~ rest
+            rest => rest
+          }
+          last = rest
+          Some(part)
         }
-        match each(last) {
-          IterContinue => break IterEnd
-          IterEnd => break IterEnd
-        }
+        [_, .. rest] => continue rest
+        [] as view =>
+          if last.is_empty() {
+            return None
+          } else {
+            let part = last
+            last = view
+            Some(part)
+          }
       }
-    }
   })
 }
 

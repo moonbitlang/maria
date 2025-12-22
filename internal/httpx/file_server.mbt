@@ -99,7 +99,7 @@ pub async fn FileServer::handle(
 /// Overrides the handler used when a requested file is not found.
 ///
 /// The handler is wrapped by the file server's middleware.
-pub async fn FileServer::set_not_found_handler(
+pub fn FileServer::set_not_found_handler(
   self : FileServer,
   handler : Handler,
 ) -> Unit {

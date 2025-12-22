@@ -24,7 +24,7 @@ pub fn resolve(StringView) -> String raise
 
 pub let sep : Char
 
-pub fn split(StringView) -> Iter[StringView]
+pub fn split(StringView) -> Iterator[StringView]
 
 pub fn stem(StringView) -> StringView
 

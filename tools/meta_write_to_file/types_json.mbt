@@ -13,7 +13,7 @@ pub impl Show for MetaWriteToFileResult with output(
     } else {
       logger.write_string("\n**Changes made during formatting:**\n\n```diff\n")
     }
-    logger.write_string(diff.trim_space().to_string())
+    logger.write_string(diff.trim().to_string())
     logger.write_string("\n```\n")
   }
   if self.learning_prompt is Some(learning_prompt) {

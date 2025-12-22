@@ -64,7 +64,7 @@ pub struct Module {
 pub async fn Module::check(Self, patch_file? : StringView, target_dir? : StringView) -> Unit
 pub async fn Module::check_patch_insert(Self, String, String) -> @diagnostics.Diagnostics
 pub async fn Module::check_patch_replace(Self, SegmentView, String) -> @diagnostics.Diagnostics
-pub async fn Module::diagnostics(Self) -> @diagnostics.Diagnostics
+pub fn Module::diagnostics(Self) -> @diagnostics.Diagnostics
 pub fn Module::files(Self) -> Iter[File]
 pub async fn Module::find_package(Self, String) -> PackageView?
 pub async fn Module::install(Self) -> Unit

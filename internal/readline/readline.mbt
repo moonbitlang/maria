@@ -409,7 +409,7 @@ async fn Interface::delete_line_right(self : Interface) -> Unit {
 const MaxLengthOfKillRing = 32
 
 ///|
-async fn Interface::push_to_kill_ring(
+fn Interface::push_to_kill_ring(
   self : Interface,
   del : BytesView,
 ) -> Unit noraise {

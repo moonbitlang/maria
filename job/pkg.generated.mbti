@@ -39,7 +39,7 @@ pub struct Manager {
   // private fields
 }
 pub fn Manager::get(Self, Id) -> Job?
-pub async fn Manager::list(Self) -> Array[Job]
+pub fn Manager::list(Self) -> Array[Job]
 pub fn Manager::new(cwd~ : String) -> Self
 pub async fn Manager::spawn(Self, name~ : String, description? : String, command~ : String, cwd? : String) -> Job
 pub async fn Manager::start(Self) -> Unit

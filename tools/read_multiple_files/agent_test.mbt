@@ -85,7 +85,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
       @pathx.join(mock.cwd.path(), "output.txt"),
     )
     inspect(
-      file_content.trim_space(),
+      file_content.trim(),
       content=(
         #|xs hello 3
         #| world 4

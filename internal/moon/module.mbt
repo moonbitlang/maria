@@ -239,7 +239,7 @@ fn Module::clear_diagnostics(self : Module) -> Unit {
 }
 
 ///|
-pub async fn Module::diagnostics(self : Module) -> @diagnostics.Diagnostics {
+pub fn Module::diagnostics(self : Module) -> @diagnostics.Diagnostics {
   let diags = @diagnostics.Diagnostics::new()
   for _, pkg in self.packages {
     diags.append(pkg.diagnostics())

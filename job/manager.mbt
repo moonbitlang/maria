@@ -136,7 +136,7 @@ pub async fn Manager::start(self : Manager) -> Unit {
 }
 
 ///|
-pub async fn Manager::list(self : Manager) -> Array[Job] {
+pub fn Manager::list(self : Manager) -> Array[Job] {
   self.jobs.values().to_array()
 }
 

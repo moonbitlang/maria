@@ -12,9 +12,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
     description="List all background jobs",
     schema~,
     @tool.ToolFn(async fn(_args) -> @tool.ToolResult[String] noraise {
-      let jobs = manager.list() catch {
-        error => return @tool.error("Failed to list background jobs: \{error}")
-      }
+      let jobs = manager.list()
       let output = StringBuilder::new()
       for job in jobs {
         output.write_string("- [\{job.id}] \{job.name}\n")

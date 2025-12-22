@@ -35,7 +35,7 @@ fn File::new(
 }
 
 ///|
-async fn File::parse(self : File, content : String) -> Unit {
+fn File::parse(self : File, content : String) -> Unit {
   self.content = content
   self.lines = self.content.split("\n").collect()
   self.segments.clear()

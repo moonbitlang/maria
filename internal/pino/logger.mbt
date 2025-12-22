@@ -33,7 +33,7 @@ pub fn logger(
 ///
 /// This method should be called when the logger is no longer needed to ensure
 /// proper cleanup of resources (e.g., closing file handles).
-pub async fn Logger::close(self : Logger) -> Unit {
+pub fn Logger::close(self : Logger) -> Unit {
   self.transport.close()
 }
 

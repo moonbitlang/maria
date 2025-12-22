@@ -50,7 +50,7 @@ async test "fix-syntax-error" (t : @test.Test) {
       content="File written and formatted successfully to main.mbt",
     )
     // TODO: verify the content is correct by running the program?
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // The output is formatted, so we expect it will be resonasbly stable
     inspect(
       main_mbt_text,
@@ -145,7 +145,7 @@ async test "search-replace" (t : @test.Test) {
       output.message,
       content="Changes applied and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     inspect(
       main_mbt_text,
       content=(
@@ -224,7 +224,7 @@ async test "fix-question-mark-error-propagation" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify the question mark was removed
     // inspect(main_mbt_text)
     if main_mbt_text.contains("?") {
@@ -279,7 +279,7 @@ async test "fix-loop-syntax-error" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify loop was replaced with for or while
     if main_mbt_text.contains("loop {") {
       fail(
@@ -330,7 +330,7 @@ async test "fix-range-pattern-for-loop-error" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify range pattern was fixed (should have ..= or ..<)
     if main_mbt_text.contains("1..10") &&
       !main_mbt_text.contains("1..=10") &&
@@ -386,7 +386,7 @@ async test "fix-range-pattern-match-error" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify range patterns in match were fixed
     let has_bare_range = main_mbt_text.contains("'a'..'z'") ||
       main_mbt_text.contains("'A'..'Z'") ||
@@ -446,7 +446,7 @@ async test "fix-range-pattern-if-is-error" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify range patterns in if-is were fixed
     let has_bare_range = main_mbt_text.contains(" is 90..100") ||
       main_mbt_text.contains(" is 80..90") ||
@@ -521,7 +521,7 @@ async test "fix-multiple-syntax-errors" (t : @test.Test) {
       output.message,
       content="File written and formatted successfully to main.mbt",
     )
-    let main_mbt_text = main_mbt_file.read().trim_space()
+    let main_mbt_text = main_mbt_file.read().trim()
     // Verify all errors were fixed
     if main_mbt_text.contains("?") {
       fail("Question mark should have been removed")

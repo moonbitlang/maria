@@ -49,7 +49,7 @@ pub fn FileServer::handler(Self) -> Handler
 pub fn FileServer::middleware(Self) -> Middleware
 pub fn FileServer::new(StringView) -> Self
 pub fn FileServer::path(Self) -> StringView
-pub async fn FileServer::set_not_found_handler(Self, Handler) -> Unit
+pub fn FileServer::set_not_found_handler(Self, Handler) -> Unit
 
 pub(all) struct Handler(async (RequestReader, ResponseWriter) -> Unit)
 #deprecated
