@@ -8,11 +8,17 @@ pub struct Model {
   base_url : String
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
+  // OAuth credentials for CodexOAuth provider
+  access_token : String?
+  account_id : String?
+  refresh_token : String?
+  id_token : String?
 } derive(ToJson, Eq, Show)
 
 ///|
 pub(all) enum Provider {
   OpenAI
+  CodexOAuth
 } derive(Eq, Show)
 
 ///|
@@ -46,6 +52,10 @@ pub fn Model::new(
   model_type? : Type = SaaS(OpenAI),
   description? : String,
   supports_anthropic_prompt_caching? : Bool = false,
+  access_token? : String,
+  account_id? : String,
+  refresh_token? : String,
+  id_token? : String,
 ) -> Model {
   {
     api_key,
@@ -56,6 +66,10 @@ pub fn Model::new(
     model_name,
     model_type,
     supports_anthropic_prompt_caching,
+    access_token,
+    account_id,
+    refresh_token,
+    id_token,
   }
 }
 
@@ -184,5 +198,55 @@ pub fn open_router_model(
     base_url="https://openrouter.ai/api/v1",
     name=name.to_string(),
     safe_zone_tokens=name.safe_zone_tokens(),
+  )
+}
+
+///|
+pub(all) enum CodexModels {
+  Gpt5_2
+  Gpt5_2Mini
+  O3
+  O4Mini
+}
+
+///|
+pub impl Show for CodexModels with output(self : CodexModels, logger : &Logger) -> Unit {
+  match self {
+    Gpt5_2 => logger.write_string("gpt-5.2")
+    Gpt5_2Mini => logger.write_string("gpt-5.2-mini")
+    O3 => logger.write_string("o3")
+    O4Mini => logger.write_string("o4-mini")
+  }
+}
+
+///|
+fn CodexModels::safe_zone_tokens(self : CodexModels) -> Int {
+  match self {
+    Gpt5_2 => 400_000
+    Gpt5_2Mini => 400_000
+    O3 => 400_000
+    O4Mini => 400_000
+  }
+}
+
+///|
+pub fn codex_oauth_model(
+  access_token~ : String,
+  account_id~ : String,
+  refresh_token~ : String,
+  id_token? : String,
+  name? : CodexModels = Gpt5_2,
+) -> Model {
+  Model::new(
+    api_key="", // Not used for CodexOAuth
+    base_url="https://chatgpt.com/backend-api",
+    name=name.to_string(),
+    model_name=name.to_string(),
+    model_type=SaaS(CodexOAuth),
+    safe_zone_tokens=name.safe_zone_tokens(),
+    access_token~,
+    account_id~,
+    refresh_token~,
+    id_token?,
   )
 }

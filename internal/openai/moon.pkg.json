@@ -1,6 +1,7 @@
 {
   "import": [
     "moonbitlang/maria/model",
+    "moonbitlang/maria/oauth",
     "moonbitlang/async/http",
     "moonbitlang/maria/internal/schema",
     "moonbitlang/async/io",

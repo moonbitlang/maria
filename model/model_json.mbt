@@ -46,6 +46,7 @@ pub impl @json.FromJson for Model with from_json(
     guard json.get("base_url") is Some(base_url) else {
       match model_type {
         SaaS(OpenAI) => "https://api.openai.com/v1"
+        SaaS(CodexOAuth) => "https://chatgpt.com/backend-api"
       }
     }
     @json.from_json(base_url, path=json_path.add_key("base_url"))
@@ -78,6 +79,24 @@ pub impl @json.FromJson for Model with from_json(
       path=json_path.add_key("supports_anthropic_prompt_caching"),
     )
   }
+  let access_token : String? = {
+    guard json.get("access_token") is Some(access_token) else { None }
+    Some(@json.from_json(access_token, path=json_path.add_key("access_token")))
+  }
+  let account_id : String? = {
+    guard json.get("account_id") is Some(account_id) else { None }
+    Some(@json.from_json(account_id, path=json_path.add_key("account_id")))
+  }
+  let refresh_token : String? = {
+    guard json.get("refresh_token") is Some(refresh_token) else { None }
+    Some(
+      @json.from_json(refresh_token, path=json_path.add_key("refresh_token")),
+    )
+  }
+  let id_token : String? = {
+    guard json.get("id_token") is Some(id_token) else { None }
+    Some(@json.from_json(id_token, path=json_path.add_key("id_token")))
+  }
   Model::{
     name,
     description,
@@ -87,6 +106,10 @@ pub impl @json.FromJson for Model with from_json(
     base_url,
     safe_zone_tokens,
     supports_anthropic_prompt_caching,
+    access_token,
+    account_id,
+    refresh_token,
+    id_token,
   }
 }
 
@@ -102,6 +125,7 @@ pub impl @json.FromJson for Type with from_json(
   }
   match json {
     "saas/openai" => Type::SaaS(Provider::OpenAI)
+    "saas/codex_oauth" => Type::SaaS(Provider::CodexOAuth)
     [.. "saas/", .. provider] =>
       raise @json.JsonDecodeError(
         (
@@ -123,5 +147,6 @@ pub impl @json.FromJson for Type with from_json(
 pub impl ToJson for Type with to_json(self) {
   match self {
     SaaS(OpenAI) => "saas/openai"
+    SaaS(CodexOAuth) => "saas/codex_oauth"
   }
 }

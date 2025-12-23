@@ -137,7 +137,12 @@ pub fn Router::new() -> Router {
       w.write_header(@status.NoContent)
     }
     (method_, ['/', .. path]) => {
-      let segments = path.split("/").collect()
+      // Strip query string before matching route
+      let path_without_query : StringView = path
+        .split("?")
+        .head()
+        .unwrap_or(path)
+      let segments = path_without_query.split("/").collect()
       guard layer.route(segments) is Some((routes, values)) else { k(r, w) }
       guard routes.get(method_) is Some(route) else {
         w
