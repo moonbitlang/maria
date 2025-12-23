@@ -2,7 +2,7 @@
 #skip
 async test "fix-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
-    let model = mock.model()
+    let model = mock.model(name=@model.ClaudeSonnet4_5)
     mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
@@ -10,7 +10,13 @@ async test "fix-syntax-error" (t : @test.Test) {
       "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
     })
     let main_mbt_file = mock.add_file("main.mbt")
-    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let system_prompt = [@prompt.prelude, @prompt.moonbit].join("\n")
+    let agent = @agent.new(
+      model,
+      logger=mock.logger,
+      system_message=system_prompt,
+      cwd=mock.cwd.path(),
+    )
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
@@ -85,7 +91,7 @@ async test "fix-syntax-error" (t : @test.Test) {
 #skip
 async test "search-replace" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
-    let model = mock.model()
+    let model = mock.model(name=ClaudeSonnet4_5)
     mock.add_files({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
@@ -102,7 +108,13 @@ async test "search-replace" (t : @test.Test) {
         #|}
       ),
     )
-    let agent = @agent.new(model, logger=mock.logger, cwd=mock.cwd.path())
+    let system_prompt = [@prompt.prelude, @prompt.moonbit].join("\n")
+    let agent = @agent.new(
+      model,
+      logger=mock.logger,
+      cwd=mock.cwd.path(),
+      system_message=system_prompt,
+    )
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([
       @replace_in_file.new(file_manager).to_agent_tool(),
