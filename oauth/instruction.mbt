@@ -1,3 +1,6 @@
+// Copyright 2025 OpenAI under Apache 2.0 License
+// origin: https://github.com/openai/codex/blob/main/codex-rs/core/gpt-5.2-codex_prompt.md
+
 ///|
 pub let base_instructions : String =
   #|You are Codex, based on GPT-5. You are running as a coding agent in the Codex CLI on a user's computer.
