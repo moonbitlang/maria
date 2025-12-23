@@ -56,19 +56,52 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       _ => ()
     })
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
-    group.spawn_bg(() => rl.start())
+    let mut task : @async.Task[Unit]? = None
+    group.spawn_bg(() => for {
+      rl.start() catch {
+        @readline.CtrlC =>
+          if task is Some(round) {
+            round.cancel()
+          } else {
+            // Clear the current input line
+            println("")
+            rl.set_line("")
+            // Re-prompt the user
+            rl.set_prompt("$ ")
+            rl.prompt()
+            continue
+          }
+        error => raise error
+      }
+    })
     if prompt is Some(prompt) {
       println("$ \{prompt}")
-      maria.start(prompt~) catch {
-        error => println("! \{error}")
+      let round = group.spawn(
+        () => maria.start(prompt~) catch { error => println("! \{error}") },
+        allow_failure=true,
+      )
+      task = Some(round)
+      defer {
+        task = None
+      }
+      round.wait() catch {
+        _ => ()
       }
     }
     while true {
       rl.set_prompt("$ ")
       rl.prompt()
       let prompt = rl.read_line()
-      maria.start(prompt~) catch {
-        error => println("! \{error}")
+      let round = group.spawn(
+        () => maria.start(prompt~) catch { error => println("! \{error}") },
+        allow_failure=true,
+      )
+      task = Some(round)
+      defer {
+        task = None
+      }
+      round.wait() catch {
+        _ => ()
       }
     }
   })
