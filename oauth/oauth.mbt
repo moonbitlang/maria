@@ -207,6 +207,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
       w.header().set("Content-Type", "text/html; charset=utf-8")
       w.write_header(400)
       w.write("<h1>Login failed</h1><p>\{err}</p>")
+      w.flush()
       error_ref.val = Some(OAuthError("OAuth error: \{err}"))
       done.val = true
       return
@@ -215,6 +216,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
       w.header().set("Content-Type", "text/html; charset=utf-8")
       w.write_header(400)
       w.write("<h1>State mismatch</h1>")
+      w.flush()
       error_ref.val = Some(OAuthError("State mismatch"))
       done.val = true
       return
@@ -223,6 +225,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
       w.header().set("Content-Type", "text/html; charset=utf-8")
       w.write_header(400)
       w.write("<h1>Missing authorization code</h1>")
+      w.flush()
       error_ref.val = Some(OAuthError("Missing authorization code"))
       done.val = true
       return
@@ -252,6 +255,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
       w.header().set("Content-Type", "text/html; charset=utf-8")
       w.write_header(200)
       w.write(html)
+      w.flush()
       result.val = Some(credentials)
       done.val = true
     } catch {
@@ -259,6 +263,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
         w.header().set("Content-Type", "text/html; charset=utf-8")
         w.write_header(500)
         w.write("<h1>Token exchange failed</h1><p>\{err}</p>")
+        w.flush()
         error_ref.val = Some(err)
         done.val = true
       }
@@ -267,16 +272,11 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
   let server = @httpx.Server::new("[::1]", CALLBACK_PORT)
   @async.with_task_group(fn(group) {
     group.spawn_bg(fn() { server.serve(router.handler()) }, no_wait=true)
-    let timeout_ms : Int64 = 5 * 60 * 1000
-    let start_time = @async.now()
-    while not(done.val) {
-      @async.sleep(100)
-      if @async.now() - start_time > timeout_ms {
-        server.close()
-        raise OAuthError("Login timeout")
+    @async.with_timeout(300_000, error=OAuthError("Login timeout"), fn() {
+      while not(done.val) {
+        @async.sleep(100)
       }
-    }
-    server.close()
+    })
   })
   if error_ref.val is Some(err) {
     raise err
