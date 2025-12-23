@@ -1,5 +1,5 @@
 ///|
-pub enum Role {
+pub(all) enum Role {
   User
   Assistant
   System
@@ -31,7 +31,7 @@ pub impl @json.FromJson for Role with from_json(
 }
 
 ///|
-pub enum ContentType {
+pub(all) enum ContentType {
   InputText
   OutputText
   Text
@@ -199,7 +199,7 @@ async fn ResponseChunkReader::read(self : ResponseChunkReader) -> String? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
-    let data = rest.trim_space().to_string()
+    let data = rest.trim().to_string()
     if data == "[DONE]" {
       return None
     }

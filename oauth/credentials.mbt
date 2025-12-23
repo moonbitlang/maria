@@ -57,20 +57,34 @@ fn parse_jwt(token : String) -> Json raise Error {
 
 ///|
 pub fn extract_token_claims(token : String) -> IdTokenClaims raise Error {
-  let payload = parse_jwt(token).as_object().unwrap()
-  let authClaims = payload["https://api.openai.com/auth"].as_object().unwrap()
+  let payload = if parse_jwt(token) is Object(obj) {
+    obj
+  } else {
+    abort("Invalid token")
+  }
+  let authClaims = if payload["https://api.openai.com/auth"] is Object(obj) {
+    obj
+  } else {
+    abort("Invalid auth claims")
+  }
   {
-    email: payload.get("email").unwrap().as_string().unwrap(),
-    chatgptAccountId: authClaims
-    .get("chatgpt_account_id")
-    .unwrap()
-    .as_string()
-    .unwrap(),
-    chatgptPlanType: authClaims
-    .get("chatgpt_plan_type")
-    .unwrap()
-    .as_string()
-    .unwrap(),
+    email: if payload.get("email") is Some(String(email)) {
+      email
+    } else {
+      abort("No email found in token claims")
+    },
+    chatgptAccountId: if authClaims.get("chatgpt_account_id")
+      is Some(String(chatgptAccountId)) {
+      chatgptAccountId
+    } else {
+      abort("No chatgpt account id found in auth claims")
+    },
+    chatgptPlanType: if authClaims.get("chatgpt_plan_type")
+      is Some(String(chatgptPlanType)) {
+      chatgptPlanType
+    } else {
+      abort("No chatgpt plan type found in auth claims")
+    },
   }
 }
 

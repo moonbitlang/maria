@@ -77,6 +77,9 @@ async fn Loader::load(self : Loader) -> Unit {
 /// model is available.
 pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   self.load()
+  if name is Some(model_name) && model_name.has_prefix("codex/") {
+    return self.load_codex_model(model_name)
+  }
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -92,7 +95,25 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   if model is Some(model) {
     return Some(model)
   }
-  println("[WARN] Unable to find configured model")
+  if name is Some(model_name) {
+    return self.load_openrouter_model(Some(model_name))
+  }
+  println("[INFO] No model specified, auto-detecting...")
+  if self.load_openrouter_model(None) is Some(model) {
+    return Some(model)
+  }
+  if self.load_codex_model("codex/gpt-5.2") is Some(model) {
+    return Some(model)
+  }
+  println(
+    "[ERROR] No API key or Codex OAuth credentials found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or run 'maria login' to authenticate.",
+  )
+  None
+}
+
+///|
+fn Loader::load_openrouter_model(self : Loader, name : String?) -> Model? raise {
+  let _ = self
   let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
     Some(api_key)
   } else if @os.getenv("OPENAI_API_KEY") is Some(api_key) {
@@ -100,25 +121,97 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   } else {
     None
   }
-  guard api_key is Some(api_key) else {
-    println(
-      "[ERROR] OPENROUTER_API_KEY environment variable not set, unable to load default model",
-    )
-    return None
-  }
-  println(
-    "[INFO] Detected OPENROUTER_API_KEY environment variable, falling back to Anthropic Claude Sonnet 4.5 (OpenRouter)",
-  )
+  guard api_key is Some(api_key) else { return None }
   let base_url = "https://openrouter.ai/api/v1"
-  let name = "anthropic/claude-sonnet-4.5"
+  let (model_name, safe_zone_tokens, supports_anthropic_prompt_caching) = match
+    name {
+    Some("qwen/qwen3-coder-plus") => ("qwen/qwen3-coder-plus", 128_000, false)
+    Some("qwen/qwen3-coder-flash") => ("qwen/qwen3-coder-flash", 128_000, false)
+    Some("x-ai/grok-4-fast") => ("x-ai/grok-4-fast", 2_000_000, false)
+    Some("x-ai/grok-code-fast-1") => ("x-ai/grok-code-fast-1", 256_000, false)
+    Some("anthropic/claude-haiku-4.5") =>
+      ("anthropic/claude-haiku-4.5", 200_000, true)
+    Some("anthropic/claude-sonnet-4.5") =>
+      ("anthropic/claude-sonnet-4.5", 200_000, true)
+    Some("anthropic/claude-opus-4.5") =>
+      ("anthropic/claude-opus-4.5", 200_000, true)
+    Some("openai/gpt-5-codex") => ("openai/gpt-5-codex", 400_000, false)
+    Some("openai/gpt-5") => ("openai/gpt-5", 400_000, false)
+    Some("openai/gpt-5-mini") => ("openai/gpt-5-mini", 400_000, false)
+    Some("openai/gpt-5-nano") => ("openai/gpt-5-nano", 400_000, false)
+    Some("moonshotai/kimi-k2-0905") =>
+      ("moonshotai/kimi-k2-0905", 262_144, false)
+    Some("z-ai/glm-4.6") => ("z-ai/glm-4.6", 202_752, false)
+    Some("minimax/minimax-m2") => ("minimax/minimax-m2", 204_800, false)
+    Some("deepseek/deepseek-v3.2") => ("deepseek/deepseek-v3.2", 200_000, false)
+    None => ("anthropic/claude-sonnet-4.5", 200_000, true)
+    Some(other) => (other, 128_000, false)
+  }
+  println("[INFO] Using OpenRouter model '\{model_name}'")
   let model = Model::new(
     api_key~,
     base_url~,
-    name~,
-    safe_zone_tokens=128000,
-    supports_anthropic_prompt_caching=true,
+    name=model_name,
+    safe_zone_tokens~,
+    supports_anthropic_prompt_caching~,
   )
   Some(model)
+}
+
+///|
+async fn Loader::load_codex_model(self : Loader, name : String) -> Model? {
+  let credentials_path = @pathx.join(self.home, ".codex-credentials.json")
+  guard @fsx.exists(credentials_path) else {
+    println(
+      "[ERROR] Codex OAuth credentials not found. Run 'maria login' to authenticate.",
+    )
+    return None
+  }
+  try {
+    let content = @fsx.read_file(credentials_path)
+    let json = @json.parse(content)
+    guard json is Object(obj) else { fail("Invalid credentials format") }
+    let access_token = match obj.get("accessToken") {
+      Some(String(s)) => s
+      _ => fail("Missing accessToken")
+    }
+    let account_id = match obj.get("accountId") {
+      Some(String(s)) => s
+      _ => fail("Missing accountId")
+    }
+    let refresh_token = match obj.get("refreshToken") {
+      Some(String(s)) => s
+      _ => fail("Missing refreshToken")
+    }
+    let id_token : String? = match obj.get("idToken") {
+      Some(String(s)) => Some(s)
+      _ => None
+    }
+    let codex_model = match name {
+      "codex/gpt-5.2" => Gpt5_2
+      "codex/gpt-5.2-mini" => Gpt5_2Mini
+      "codex/o3" => O3
+      "codex/o4-mini" => O4Mini
+      _ => {
+        println("[WARN] Unknown Codex model '\{name}', using gpt-5.2")
+        Gpt5_2
+      }
+    }
+    println("[INFO] Using Codex OAuth model '\{codex_model}'")
+    let model = codex_oauth_model(
+      access_token~,
+      account_id~,
+      refresh_token~,
+      id_token?,
+      name=codex_model,
+    )
+    Some(model)
+  } catch {
+    err => {
+      println("[WARN] Failed to load Codex OAuth credentials: \{err}")
+      None
+    }
+  }
 }
 
 ///|

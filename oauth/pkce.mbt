@@ -21,10 +21,7 @@ fn gen_byte(randomer : @random.Rand) -> Byte {
 ///|
 fn generate_random_bytes(length : Int) -> Bytes {
   let randomer = @rand.chacha8() catch {
-    err => {
-      println("ERROR in @rand.chacha8(): \{err}")
-      abort("Failed to create random generator")
-    }
+    _ => abort("Failed to create random generator")
   }
   let bytes : FixedArray[Byte] = FixedArray::make(length, 0)
   for i in 0..<length {

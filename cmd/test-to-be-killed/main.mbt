@@ -15,7 +15,7 @@ async fn main {
   }
   defer file.close()
   let info : Json = { "pid": @spawn.getpid(), "port": server.port() }
-  file.write(info)
+  file.write(info.stringify())
   println(
     "[INFO] (Daemon) Daemon started with PID \{@spawn.getpid()} and port \{server.port()}.",
   )
