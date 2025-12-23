@@ -142,8 +142,7 @@ async fn chat_codex(
       })
       // Convert Chat Completion messages to Responses API input format
       let input = convert_messages_to_input(request.messages)
-      // Use BASE_INSTRUCTIONS from oauth module
-      let instructions = @oauth.BASE_INSTRUCTIONS
+      let instructions = @oauth.base_instructions
       // Build Responses API request
       let codex_request = @oauth.ResponsesRequest::new(
         model=model.model_name,

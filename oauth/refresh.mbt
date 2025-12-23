@@ -29,9 +29,7 @@ impl @json.FromJson for RefreshResponse with from_json(
 }
 
 ///|
-pub async fn refresh_tokens(
-  refresh_token : String,
-) -> RefreshResponse raise Error {
+async fn refresh_tokens(refresh_token : String) -> RefreshResponse raise Error {
   let body : Json = {
     "client_id": CLIENT_ID,
     "grant_type": "refresh_token",
@@ -43,10 +41,7 @@ pub async fn refresh_tokens(
   })
   guard response.code is (200..=299) else {
     let error_text = data.text()
-    raise ApiError(
-      code=response.code,
-      message="Token refresh failed: \{error_text}",
-    )
+    raise OAuthError("Token refresh failed: \{response.code} - \{error_text}")
   }
   @json.from_json(data.json())
 }

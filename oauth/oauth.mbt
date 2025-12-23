@@ -36,18 +36,13 @@ impl @json.FromJson for TokenResponse with from_json(
 }
 
 ///|
-pub suberror OAuthError {
-  OAuthError(String)
-} derive(Show)
-
-///|
 fn generate_state() -> String {
   let bytes = generate_random_bytes(32)
   strip_padding(@base64.encode(bytes, url_safe=true))
 }
 
 ///|
-pub fn build_authorize_url(pkce : PkceCodes, state : String) -> String {
+fn build_authorize_url(pkce : PkceCodes, state : String) -> String {
   let params = [
     ("response_type", "code"),
     ("client_id", CLIENT_ID),
@@ -98,7 +93,7 @@ fn url_encode(s : String) -> String {
 }
 
 ///|
-pub async fn exchange_code_for_tokens(
+async fn exchange_code_for_tokens(
   code : String,
   pkce : PkceCodes,
 ) -> TokenResponse raise Error {

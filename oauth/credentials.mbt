@@ -14,9 +14,6 @@ pub struct IdTokenClaims {
 } derive(Show)
 
 ///|
-priv suberror ParseError String
-
-///|
 fn add_base64_padding(s : String) -> String {
   let remainder = s.length() % 4
   if remainder == 0 {
@@ -100,7 +97,7 @@ fn get_credentials_path() -> String {
 }
 
 ///|
-pub async fn save_credentials(credentials : Credentials) -> Unit {
+async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
   @fsx.write_to_file(path, credentials.to_json().stringify(), create=0o600)
 }
