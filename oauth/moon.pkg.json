@@ -1,0 +1,15 @@
+{
+  "import": [
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/os",
+    "moonbitlang/maria/internal/pathx",
+    "moonbitlang/maria/internal/fsx",
+    "moonbitlang/maria/internal/httpx",
+    "moonbitlang/maria/internal/spawn",
+    "moonbitlang/x/crypto",
+    "moonbitlang/x/codec/base64",
+    "moonbitlang/async/http",
+    "moonbitlang/async/io",
+    "moonbitlang/async"
+  ]
+}

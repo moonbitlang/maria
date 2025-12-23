@@ -6,6 +6,8 @@ import(
 )
 
 // Values
+pub fn codex_oauth_model(access_token~ : String, account_id~ : String, refresh_token~ : String, id_token? : String, name? : CodexModels) -> Model
+
 pub async fn load(home? : StringView, cwd? : StringView, name? : String) -> Model?
 
 pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
@@ -13,6 +15,14 @@ pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
 // Errors
 
 // Types and methods
+pub(all) enum CodexModels {
+  Gpt5_2
+  Gpt5_2Mini
+  O3
+  O4Mini
+}
+pub impl Show for CodexModels
+
 pub(all) enum CommonModels {
   Qwen3CoderPlus
   Qwen3CoderFlash
@@ -46,9 +56,13 @@ pub struct Model {
   base_url : String
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
+  access_token : String?
+  account_id : String?
+  refresh_token : String?
+  id_token : String?
 }
 #as_free_fn
-pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool) -> Self
+pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool, access_token? : String, account_id? : String, refresh_token? : String, id_token? : String) -> Self
 pub impl Eq for Model
 pub impl Show for Model
 pub impl ToJson for Model
@@ -56,6 +70,7 @@ pub impl @json.FromJson for Model
 
 pub(all) enum Provider {
   OpenAI
+  CodexOAuth
 }
 pub impl Eq for Provider
 pub impl Show for Provider

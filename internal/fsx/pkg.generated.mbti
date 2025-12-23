@@ -36,9 +36,9 @@ pub fn truncate(@fs.File, Int64) -> Unit raise
 
 pub async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
-pub async fn write_bytes_to_file(StringView, Bytes) -> Unit
+pub async fn write_bytes_to_file(StringView, Bytes, create? : Int) -> Unit
 
-pub async fn write_to_file(StringView, StringView) -> Unit
+pub async fn write_to_file(StringView, StringView, create? : Int) -> Unit
 
 // Errors
 
