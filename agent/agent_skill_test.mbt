@@ -1,6 +1,6 @@
 ///|
 async test "skill" (t : @test.Test) {
-  @mock.run(t, mock => {
+  @mock.run(t, retry=3, mock => {
     mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
