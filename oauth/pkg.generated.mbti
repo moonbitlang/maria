@@ -1,0 +1,159 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/oauth"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+pub fn assistant_message(String) -> InputItem
+
+pub fn build_authorize_url(PkceCodes, String) -> String
+
+pub async fn call_responses(ResponsesRequest) -> Json
+
+pub async fn chat(String, model? : String) -> String
+
+pub async fn exchange_code_for_tokens(String, PkceCodes) -> TokenResponse
+
+pub fn extract_token_claims(String) -> IdTokenClaims raise
+
+pub fn generate_pkce() -> PkceCodes
+
+pub async fn load_credentials() -> Credentials
+
+pub async fn refresh_and_save_credentials() -> Credentials
+
+pub async fn refresh_tokens(String) -> RefreshResponse
+
+pub async fn save_credentials(Credentials) -> Unit
+
+pub async fn start_oauth_flow() -> Credentials
+
+pub async fn stream_responses(ResponsesRequest, StreamCallbacks) -> Unit
+
+pub fn system_message(String) -> InputItem
+
+pub fn user_message(String) -> InputItem
+
+// Errors
+pub suberror ApiError {
+  ApiError(code~ : Int, message~ : String)
+}
+pub impl Show for ApiError
+
+pub suberror OAuthError {
+  OAuthError(String)
+}
+pub impl Show for OAuthError
+
+// Types and methods
+pub struct ContentPart {
+  type_ : ContentType
+  text : String
+}
+pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> Self
+pub impl Show for ContentPart
+pub impl ToJson for ContentPart
+pub impl @json.FromJson for ContentPart
+
+pub enum ContentType {
+  InputText
+  OutputText
+  Text
+}
+pub impl Show for ContentType
+pub impl ToJson for ContentType
+pub impl @json.FromJson for ContentType
+
+pub struct Credentials {
+  idToken : String
+  accessToken : String
+  refreshToken : String
+  accountId : String
+}
+pub fn Credentials::access_token(Self) -> String
+pub fn Credentials::account_id(Self) -> String
+pub fn Credentials::id_token(Self) -> String
+pub fn Credentials::refresh_token(Self) -> String
+pub impl Show for Credentials
+pub impl ToJson for Credentials
+pub impl @json.FromJson for Credentials
+
+pub struct IdTokenClaims {
+  email : String
+  chatgptAccountId : String
+  chatgptPlanType : String
+}
+pub fn IdTokenClaims::account_id(Self) -> String
+pub fn IdTokenClaims::email(Self) -> String
+pub fn IdTokenClaims::plan_type(Self) -> String
+pub impl Show for IdTokenClaims
+
+pub struct InputItem {
+  type_ : String
+  role : Role
+  content : Array[ContentPart]
+}
+pub fn InputItem::new(type_~ : String, role~ : Role, content~ : Array[ContentPart]) -> Self
+pub impl Show for InputItem
+pub impl ToJson for InputItem
+
+pub struct PkceCodes {
+  code_verifier : String
+  code_challenge : String
+}
+pub fn PkceCodes::new(code_verifier~ : String, code_challenge~ : String) -> Self
+pub impl Show for PkceCodes
+
+type RefreshResponse
+pub impl Show for RefreshResponse
+
+pub struct ResponsesRequest {
+  model : String
+  input : Array[InputItem]
+  instructions : String
+  stream : Bool?
+  store : Bool?
+  tools : Array[Tool]?
+  tool_choice : String?
+  parallel_tool_calls : Bool?
+  temperature : Double?
+  max_output_tokens : Int?
+}
+pub fn ResponsesRequest::new(model~ : String, input~ : Array[InputItem], instructions~ : String, stream? : Bool, store? : Bool, tools? : Array[Tool], tool_choice? : String, parallel_tool_calls? : Bool, temperature? : Double, max_output_tokens? : Int) -> Self
+pub impl Show for ResponsesRequest
+pub impl ToJson for ResponsesRequest
+
+pub enum Role {
+  User
+  Assistant
+  System
+}
+pub impl Show for Role
+pub impl ToJson for Role
+pub impl @json.FromJson for Role
+
+pub struct StreamCallbacks {
+  on_chunk : (String) -> Unit
+  on_complete : () -> Unit
+  on_error : (Error) -> Unit
+}
+pub fn StreamCallbacks::new(on_chunk~ : (String) -> Unit, on_complete~ : () -> Unit, on_error~ : (Error) -> Unit) -> Self
+
+type TokenResponse
+pub impl Show for TokenResponse
+
+pub struct Tool {
+  type_ : String
+  name : String?
+  description : String?
+  parameters : Json?
+}
+pub impl Show for Tool
+pub impl ToJson for Tool
+
+// Type aliases
+
+// Traits
+
