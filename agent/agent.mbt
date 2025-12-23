@@ -40,6 +40,7 @@ pub(all) struct Agent {
   priv context_pruner : @context_pruner.Pruner
   priv session_manager : @conversation.Manager
   priv rules : @rules.Loader
+  priv skills : @skills.Loader
   mut web_search : Bool
   /// Queue for receiving external events from the environment.
   priv external_events : @event.ExternalEventQueue
@@ -108,6 +109,7 @@ async fn Agent::prepare_messages_for_request(
   messages : Array[@ai.Message],
   tools~ : Array[@tool.ToolDesc],
 ) -> Array[@openai.ChatCompletionMessageParam] {
+  agent.skills.load_and_apply(messages)
   agent.rules.apply(messages)
   let messages = messages.map(fn(msg) { msg.to_openai() })
   let tools = tools.map(x => x.to_openai())
@@ -376,6 +378,7 @@ pub async fn new(
     Some(queue) => queue
     None => @event.ExternalEventQueue::new()
   }
+  let skills = @skills.Loader::new(cwd=cwd.to_string(), logger~)
   let agent = Agent::{
     logger,
     uuid,
@@ -393,10 +396,12 @@ pub async fn new(
     ),
     session_manager,
     rules,
+    skills,
     web_search,
     external_events,
   }
   rules.load()
+  skills.load()
   agent.set_system_prompt(system_message)
   match user_message {
     Some(message) => agent.external_events.send(UserMessage(message))
