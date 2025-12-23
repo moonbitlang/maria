@@ -7,4 +7,3 @@ pub async fn login() -> Unit {
   let claims = @oauth.extract_token_claims(credentials.idToken)
   println("Logged in as: \{claims.email}")
 }
-
