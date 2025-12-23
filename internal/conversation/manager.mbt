@@ -2,7 +2,7 @@
 struct Manager {
   uuid : @uuid.Generator
   clock : &@clock.Clock
-  cwd : StringView
+  home : StringView
   cache : @lru.Cache[@uuid.Uuid, Conversation]
 }
 
@@ -10,16 +10,16 @@ struct Manager {
 pub async fn Manager::new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
-  cwd~ : StringView,
+  home~ : StringView,
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = cwd
+  let conversations = home
     |> @pathx.join(".moonagent")
     |> @pathx.join("conversations")
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
-  Manager::{ uuid, clock, cwd, cache }
+  Manager::{ uuid, clock, home, cache }
 }
 
 ///|
@@ -28,7 +28,7 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = self.cwd
+  let path = self.home
     |> @pathx.join(".moonagent")
     |> @pathx.join("conversations")
     |> @pathx.join("\{id}.json")
@@ -42,7 +42,7 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = self.cwd
+  let path = self.home
     |> @pathx.join(".moonagent")
     |> @pathx.join("conversations")
     |> @pathx.join("\{conversation.id}.json")
@@ -54,7 +54,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[@uuid.Uuid] {
-  let path = self.cwd
+  let path = self.home
     |> @pathx.join(".moonagent")
     |> @pathx.join("conversations")
   let entries = @fsx.list_directory(path)
@@ -79,6 +79,7 @@ pub fn Manager::new_conversation(
   self : Manager,
   name~ : String,
   description? : String,
+  cwd~ : StringView,
 ) -> Conversation {
   {
     clock: self.clock,
@@ -89,6 +90,6 @@ pub fn Manager::new_conversation(
     messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
-    cwd: self.cwd,
+    cwd,
   }
 }

@@ -656,6 +656,7 @@ async test "agent/resume" (t : @test.Test) {
     let id = {
       let agent = @agent.new(
         model,
+        home=cwd.path(),
         cwd=cwd.path(),
         user_message="Hello, please call me Mr. Rabbit.",
       )
@@ -667,7 +668,7 @@ async test "agent/resume" (t : @test.Test) {
     let session_manager = @conversation.Manager::new(
       uuid=mock.uuid,
       clock=mock.clock,
-      cwd=cwd.path(),
+      home=cwd.path(),
     )
     let conversation = session_manager.load(id)
     guard conversation is Some(conversation) else {
