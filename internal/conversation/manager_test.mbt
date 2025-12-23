@@ -51,8 +51,8 @@ async test "Manager::load" (t : @test.Test) {
         "messages": [
           { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
         ],
-        "created_at": "0",
-        "updated_at": "2",
+        "created_at": 0,
+        "updated_at": 2,
         "cwd": "(mock:cwd)",
       },
     ])

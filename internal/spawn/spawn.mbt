@@ -133,7 +133,7 @@ pub async fn spawn(
       run()
     }
     let t1 = clock.now()
-    let elapsed = (t1 - t0).to_int()
+    let elapsed = t1.ms_since(t0).to_int()
     CompletedProcess::{
       exec: command,
       args: arguments,

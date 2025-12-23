@@ -14,7 +14,7 @@ struct Task {
   /// Array of queued message to be processed by the agent.
   queued_messages : Array[QueuedMessage]
   /// Timestamp indicating when the task was created, in milliseconds since epoch.
-  created : Int64
+  created : @clock.Timestamp
   /// Whether the task has web search capabilities enabled.
   web_search : Bool
 }
@@ -55,7 +55,7 @@ fn Task::new(
   id~ : @uuid.Uuid,
   cwd~ : String,
   port~ : Int,
-  created~ : Int64,
+  created~ : @clock.Timestamp,
   web_search~ : Bool,
 ) -> Task {
   Task::{

@@ -2,12 +2,12 @@
 test "Message to_json" {
   let messages : Array[Message] = [
     {
-      timestamp: 1625079600,
+      timestamp: @clock.Timestamp::from_ms(1625079600),
       usage: None,
       message: @ai.user_message(content="Hello, world!"),
     },
     {
-      timestamp: 1625079600,
+      timestamp: @clock.Timestamp::from_ms(1625079600),
       usage: Some(@ai.usage(input_tokens=10, total_tokens=20, output_tokens=10)),
       message: @ai.user_message(content="Hello, world!"),
     },
@@ -38,18 +38,8 @@ impl @json.FromJson for Message with from_json(
     raise @json.JsonDecodeError((json_path, "Expected object for Message"))
   }
   let timestamp = match json.get("timestamp") {
-    Some(Number(timestamp, repr=None)) => timestamp.to_int64()
-    Some(Number(_, repr=Some(repr))) =>
-      @strconv.parse_uint64(repr).reinterpret_as_int64() catch {
-        error =>
-          raise @json.JsonDecodeError(
-            (json_path.add_key("timestamp"), "Invalid timestamp: \{error}"),
-          )
-      }
-    Some(_) =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("timestamp"), "Invalid timestamp"),
-      )
+    Some(timestamp) =>
+      @json.from_json(timestamp, path=json_path.add_key("timestamp"))
     None =>
       raise @json.JsonDecodeError(
         (json_path.add_key("timestamp"), "Missing field"),
@@ -87,10 +77,7 @@ impl @json.FromJson for Message with from_json(
 ///|
 impl ToJson for Message with to_json(self : Message) -> Json {
   let object : Map[String, Json] = {}
-  object["timestamp"] = Json::number(
-    self.timestamp.to_double(),
-    repr=self.timestamp.to_string(),
-  )
+  object["timestamp"] = self.timestamp.to_json()
   if self.usage is Some(usage) {
     object["usage"] = usage.to_openai().to_json()
   }

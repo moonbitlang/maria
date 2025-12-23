@@ -6,8 +6,8 @@ struct Conversation {
   id : @uuid.Uuid
   mut system_prompt : String?
   messages : Array[Message]
-  created_at : Int64
-  mut updated_at : Int64
+  created_at : @clock.Timestamp
+  mut updated_at : @clock.Timestamp
   cwd : StringView
 }
 
@@ -18,8 +18,8 @@ pub fn Conversation::cwd(self : Conversation) -> StringView {
 
 ///|
 priv struct Message {
-  /// The Unix timestamp (in seconds) of when the message was created.
-  timestamp : Int64
+  /// The Unix timestamp (in milliseconds) of when the message was created.
+  timestamp : @clock.Timestamp
   /// Usage statistics for the completion request.
   usage : @ai.Usage?
   message : @ai.Message

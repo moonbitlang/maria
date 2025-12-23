@@ -10,7 +10,8 @@
     "moonbitlang/x/time",
     "moonbitlang/regexp",
     "moonbitlang/maria/event",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/clock"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"],
   "wbtest-import": [

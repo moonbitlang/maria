@@ -46,11 +46,15 @@ pub fn Conversation::export_to_markdown(self : Conversation) -> String {
 }
 
 ///|
-fn format_timestamp(timestamp : Int64) -> String {
+fn format_timestamp(timestamp : @clock.Timestamp) -> String {
   // Convert Unix timestamp to a readable format
   // For now, just return the timestamp as string since we don't have date formatting utilities
   // In a real implementation, you'd want to format this as a proper date/time string
-  timestamp.to_string()
+  try @time.unix(timestamp.truncate_to_s()) catch {
+    _ => return timestamp.ms().to_string()
+  } noraise {
+    t => t.to_string()
+  }
 }
 
 ///|

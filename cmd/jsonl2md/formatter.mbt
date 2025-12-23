@@ -13,7 +13,7 @@ priv struct Formatter {
   tools : Map[String, Formatter]
   /// Versions of fixed files submitted in this subagent.
   submit_fixed_files : Array[String]
-  mut start_timestamp : Int64?
+  mut start_timestamp : @clock.Timestamp?
 }
 
 ///|
@@ -50,7 +50,7 @@ fn Formatter::push_title(
   title : String,
   level? : Int,
   numbered? : Bool = false,
-  timestamp? : Int64,
+  timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   let prefix = "#".repeat(level.unwrap_or(1))
   let title = if numbered {
@@ -306,9 +306,9 @@ fn recover_diagnostics(content : String) -> String raise {
 ///|
 fn Formatter::format_timestamp(
   self : Formatter,
-  timestamp~ : Int64,
+  timestamp~ : @clock.Timestamp,
 ) -> Unit raise {
-  let seconds = timestamp / 1000
+  let seconds = timestamp.truncate_to_s()
   let timestamp = @time.unix(seconds).to_plain_time().to_string()
   self.lines.push(timestamp)
 }
@@ -317,7 +317,7 @@ fn Formatter::format_timestamp(
 fn Formatter::format_system_prompt_set(
   self : Formatter,
   prompt : String,
-  timestamp? : Int64,
+  timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   self.push_title("System", numbered=true, timestamp?)
   self.lines.push("")
@@ -338,7 +338,7 @@ fn Formatter::format_system_prompt_set(
 fn Formatter::format_user_message(
   self : Formatter,
   content : String,
-  timestamp? : Int64,
+  timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   let role = "User"
   let title = content.split("\n").drop_while(line => line.is_blank()).peek()
@@ -383,7 +383,7 @@ fn Formatter::format_post_tool_call(
   name : String,
   result? : Result[Json, Json],
   text : String,
-  timestamp? : Int64,
+  timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   if result is Some(Ok(result)) {
     match (name, result) {
@@ -440,7 +440,7 @@ fn Formatter::format_post_tool_call(
 fn Formatter::format_model_loaded(
   self : Formatter,
   name : String,
-  timestamp? : Int64,
+  timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   self.push_title("System information", timestamp?)
   self.lines.push("")
@@ -452,20 +452,16 @@ fn Formatter::format_model_loaded(
 /// Formats a log entry from JSON.
 async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
   // Extract timestamp if available
-  let timestamp = match json {
-    { "time": Number(timestamp, repr=None), .. } => Some(timestamp.to_int64())
-    { "time": Number(_, repr=Some(timestamp)), .. } =>
-      Some(@strconv.parse_int64(timestamp)) catch {
-        _ => None
-      }
+  let timestamp : @clock.Timestamp? = match json {
+    { "time": timestamp, .. } => Some(@json.from_json(timestamp))
     _ => None
   }
-  let timestamp : Int64? = if timestamp is Some(ts) {
+  let timestamp : @clock.Timestamp? = if timestamp is Some(ts) {
     if self.start_timestamp is Some(start_timestamp) {
-      Some(ts - start_timestamp)
+      Some(@clock.Timestamp::from_ms(ts.ms_since(start_timestamp)))
     } else {
       self.start_timestamp = Some(ts)
-      Some(0)
+      Some(@clock.Timestamp::from_ms(0))
     }
   } else {
     None

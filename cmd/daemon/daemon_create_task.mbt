@@ -242,7 +242,7 @@ async fn Daemon::create_task(
   println(
     "[INFO] (Daemon) Received registration from task '\{id}' on port \{task_port}",
   )
-  let created = self.clock.now() / 1_000
+  let created = self.clock.now()
   let task = Task::new(
     name?=request.name,
     id~,
