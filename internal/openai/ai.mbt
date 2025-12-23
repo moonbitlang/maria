@@ -99,20 +99,15 @@ async fn chat_openai(
 }
 
 ///|
-/// Execute a chat completion request using the Codex OAuth API (ChatGPT backend).
-/// Converts Chat Completions format to Responses API format and back.
-/// Automatically refreshes tokens on 401 errors.
 async fn chat_codex(
   model~ : @model.Model,
   request : Request,
   logger~ : @pino.Logger,
 ) -> ChatCompletion {
-  // Get initial credentials from model or load from file
   let (access_token, account_id) = match
     (model.access_token, model.account_id) {
     (Some(at), Some(aid)) => (at, aid)
     _ =>
-      // Try to load credentials from file
       try {
         let creds = @oauth.load_credentials()
         (creds.accessToken, creds.accountId)
@@ -124,7 +119,6 @@ async fn chat_codex(
           )
       }
   }
-  // Track if we've already tried refreshing
   let has_refreshed = Ref::new(false)
   let current_access_token = Ref::new(access_token)
   let current_account_id = Ref::new(account_id)
@@ -140,32 +134,23 @@ async fn chat_codex(
         "model": { "name": model.model_name, "base_url": model.base_url },
         "request": request,
       })
-      // Convert Chat Completion messages to Responses API input format
       let input = convert_messages_to_input(request.messages)
       let instructions = @oauth.base_instructions
-      // Build Responses API request
+      let tools = convert_tools_to_responses_api(request.tools)
       let codex_request = @oauth.ResponsesRequest::new(
         model=model.model_name,
         input~,
         instructions~,
+        tools~,
         stream=true,
         store=false,
       )
-      // Execute the request
-      let chunks : Array[String] = []
-      let error_ref : Ref[Error?] = Ref::new(None)
-      let done = Ref::new(false)
-      do_codex_stream_request(
+      let result = do_codex_stream_request(
         current_access_token.val,
         current_account_id.val,
         codex_request,
-        on_chunk=fn(chunk) { chunks.push(chunk) },
-        on_complete=fn() { done.val = true },
-        on_error=fn(err) { error_ref.val = Some(err) },
-      )
-      // Check for 401 error and try to refresh token
-      match error_ref.val {
-        Some(HttpError(code=401, ..)) if not(has_refreshed.val) => {
+      ) catch {
+        HttpError(code=401, ..) as err if not(has_refreshed.val) => {
           logger.info("Received 401, attempting to refresh token")
           try {
             let refreshed = @oauth.refresh_and_save_credentials()
@@ -173,25 +158,21 @@ async fn chat_codex(
             current_account_id.val = refreshed.accountId
             has_refreshed.val = true
             logger.info("Token refreshed successfully, retrying request")
-            // Re-raise to trigger retry
-            raise error_ref.val.unwrap()
+            raise err
           } catch {
             refresh_err => {
               logger.error("Failed to refresh token", data={
                 "error": refresh_err.to_string(),
               })
-              raise error_ref.val.unwrap()
+              raise err
             }
           }
         }
-        Some(err) => raise err
-        None => ()
+        err => raise err
       }
-      // Convert response to ChatCompletion format
-      let full_text = chunks.iter().fold(init="", fn(acc, c) { acc + c })
-      let chat_completion = codex_response_to_chat_completion(
+      let chat_completion = codex_stream_result_to_chat_completion(
         model.model_name,
-        full_text,
+        result,
       )
       logger.debug("CodexResponseReceived", data={
         "model": { "name": model.model_name, "base_url": model.base_url },
@@ -203,83 +184,122 @@ async fn chat_codex(
 }
 
 ///|
-/// Execute a streaming request to Codex API.
+fn convert_tools_to_responses_api(
+  tools : Array[ChatCompletionToolParam],
+) -> Array[Json] {
+  tools.map(fn(tool) {
+    match tool {
+      Function(func_def) =>
+        {
+          "type": "function",
+          "name": func_def.name,
+          "description": func_def.description,
+          "parameters": func_def.parameters,
+        }
+    }
+  })
+}
+
+///|
+priv struct CodexStreamResult {
+  text_chunks : Array[String]
+  output_items : Array[@oauth.ResponseItem]
+}
+
+///|
 async fn do_codex_stream_request(
   access_token : String,
   account_id : String,
   request : @oauth.ResponsesRequest,
-  on_chunk~ : (String) -> Unit,
-  on_complete~ : () -> Unit,
-  on_error~ : (Error) -> Unit,
-) -> Unit {
-  try {
-    let client = @http.Client::new("https://chatgpt.com", headers={
-      "Authorization": "Bearer \{access_token}",
-      "ChatGPT-Account-ID": account_id,
-      "Content-Type": "application/json",
-      "Accept": "text/event-stream",
-      "originator": "codex_cli_rs",
-      "User-Agent": "codex_cli_rs/1.0.0",
-    })
-    defer client.close()
-    let body = request.to_json()
-    guard body is Object(body_obj) else {
-      on_error(HttpError(code=500, body="Invalid request body"))
-      return
-    }
-    body_obj["stream"] = true
-    let response = client.post(
-      "/backend-api/codex/responses",
-      Json::object(body_obj),
-    )
-    guard response.code is (200..=299) else {
-      let error_text = client.read_all().text()
-      on_error(
-        HttpError(code=response.code, body="API request failed: \{error_text}"),
-      )
-      return
-    }
-    let reader = CodexChunkReader::new(client)
-    while reader.read() is Some(chunk) {
-      on_chunk(chunk)
-    }
-    on_complete()
-  } catch {
-    error => on_error(error)
+) -> CodexStreamResult raise Error {
+  let client = @http.Client::new("https://chatgpt.com", headers={
+    "Authorization": "Bearer \{access_token}",
+    "ChatGPT-Account-ID": account_id,
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream",
+    "originator": "codex_cli_rs",
+    "User-Agent": "codex_cli_rs/1.0.0",
+  })
+  defer client.close()
+  let body = request.to_json()
+  guard body is Object(body_obj) else {
+    raise HttpError(code=500, body="Invalid request body")
   }
+  body_obj["stream"] = true
+  let response = client.post(
+    "/backend-api/codex/responses",
+    Json::object(body_obj),
+  )
+  guard response.code is (200..=299) else {
+    let error_text = client.read_all().text()
+    raise HttpError(
+      code=response.code,
+      body="API request failed: \{error_text}",
+    )
+  }
+  let reader = CodexEventReader::new(client)
+  let text_chunks : Array[String] = []
+  let output_items : Array[@oauth.ResponseItem] = []
+  while reader.read() is Some(event) {
+    match event {
+      TextDelta(delta) => text_chunks.push(delta)
+      OutputItemDone(item) => output_items.push(item)
+      Completed => break
+    }
+  }
+  { text_chunks, output_items }
 }
 
 ///|
-priv struct CodexChunkReader(&@io.Reader)
-
-///|
-fn CodexChunkReader::new(reader : &@io.Reader) -> CodexChunkReader {
-  CodexChunkReader(reader)
+priv enum CodexSseEvent {
+  TextDelta(String)
+  OutputItemDone(@oauth.ResponseItem)
+  Completed
 }
 
 ///|
-async fn CodexChunkReader::read(self : CodexChunkReader) -> String? {
+priv struct CodexEventReader(&@io.Reader)
+
+///|
+fn CodexEventReader::new(reader : &@io.Reader) -> CodexEventReader {
+  CodexEventReader(reader)
+}
+
+///|
+async fn CodexEventReader::read(self : CodexEventReader) -> CodexSseEvent? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
     let data = rest.trim().to_string()
     if data == "[DONE]" {
-      return None
+      return Some(Completed)
     }
     try {
       let json = @json.parse(data)
       guard json is Object(obj) else { continue }
-      if obj.get("type") is Some(String("response.output_text.delta")) {
-        if obj.get("delta") is Some(String(delta)) {
-          return Some(delta)
-        }
-      }
-      if obj.get("type") is Some(String("response.content_part.delta")) {
-        if obj.get("delta") is Some(Object(delta_obj)) {
-          if delta_obj.get("text") is Some(String(text)) {
-            return Some(text)
+      guard obj.get("type") is Some(String(event_type)) else { continue }
+      match event_type {
+        "response.output_text.delta" =>
+          if obj.get("delta") is Some(String(delta)) {
+            return Some(TextDelta(delta))
           }
-        }
+        "response.content_part.delta" =>
+          if obj.get("delta") is Some(Object(delta_obj)) {
+            if delta_obj.get("text") is Some(String(text)) {
+              return Some(TextDelta(text))
+            }
+          }
+        "response.output_item.done" =>
+          if obj.get("item") is Some(item_json) {
+            try {
+              let item : @oauth.ResponseItem = @json.from_json(item_json)
+              return Some(OutputItemDone(item))
+            } catch {
+              _ => continue
+            }
+          }
+        "response.completed" => return Some(Completed)
+        _ => continue
       }
       continue
     } catch {
@@ -305,37 +325,39 @@ fn extract_text_content(
 }
 
 ///|
-/// Convert Chat Completion messages to Responses API input format.
 fn convert_messages_to_input(
   messages : Array[ChatCompletionMessageParam],
-) -> Array[@oauth.InputItem] {
-  let result : Array[@oauth.InputItem] = []
+) -> Array[@oauth.ResponseInputItem] {
+  let result : Array[@oauth.ResponseInputItem] = []
   for msg in messages {
     match msg {
-      System(_) => continue // Skip system messages (they become instructions)
+      System(_) => continue
       User(user_msg) => {
         let text = extract_text_content(user_msg.content)
-        result.push(
-          @oauth.InputItem::new(type_="message", role=@oauth.User, content=[
-            @oauth.ContentPart::new(type_=@oauth.InputText, text~),
-          ]),
-        )
+        result.push(@oauth.message_input(role="user", content=text))
       }
       Assistant(assistant_msg) => {
         let text = extract_text_content(assistant_msg.content)
-        result.push(
-          @oauth.InputItem::new(type_="message", role=@oauth.Assistant, content=[
-            @oauth.ContentPart::new(type_=@oauth.OutputText, text~),
-          ]),
-        )
+        if !text.is_empty() {
+          result.push(@oauth.message_input(role="assistant", content=text))
+        }
+        for tc in assistant_msg.tool_calls {
+          result.push(
+            @oauth.FunctionCall(
+              call_id=tc.id,
+              name=tc.function.name,
+              arguments=tc.function.arguments.unwrap_or("{}"),
+            ),
+          )
+        }
       }
       Tool(tool_msg) => {
-        // Convert tool message to user message with tool output
         let text = extract_text_content(tool_msg.content)
         result.push(
-          @oauth.InputItem::new(type_="message", role=@oauth.User, content=[
-            @oauth.ContentPart::new(type_=@oauth.InputText, text~),
-          ]),
+          @oauth.function_call_output(
+            call_id=tool_msg.tool_call_id,
+            output=text,
+          ),
         )
       }
     }
@@ -344,18 +366,44 @@ fn convert_messages_to_input(
 }
 
 ///|
-/// Convert Codex response text to ChatCompletion format.
-fn codex_response_to_chat_completion(
+fn codex_stream_result_to_chat_completion(
   model_name : String,
-  content : String,
+  result : CodexStreamResult,
 ) -> ChatCompletion {
+  let mut content : String? = None
+  let tool_calls : Array[ChatCompletionMessageToolCall] = []
+  for item in result.output_items {
+    match item {
+      @oauth.ResponseItem::Message(content=parts, ..) => {
+        let texts = parts.map(fn(part) { part.text })
+        let text = texts
+          .iter()
+          .fold(init="", fn(acc, t) {
+            if acc.is_empty() {
+              t
+            } else {
+              "\{acc}\n\{t}"
+            }
+          })
+        content = Some(text)
+      }
+      @oauth.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
+        tool_calls.push(tool_call(id=call_id, name~, arguments~))
+    }
+  }
+  if content is None && !result.text_chunks.is_empty() {
+    content = Some(
+      result.text_chunks.iter().fold(init="", fn(acc, c) { acc + c }),
+    )
+  }
+  let finish_reason = if tool_calls.is_empty() { Stop } else { ToolCalls }
   ChatCompletion::new(
     id="codex-response",
     choices=[
       ChatCompletionChoice::new(
         index=0,
-        message=ChatCompletionMessage::new(content~),
-        finish_reason=Stop,
+        message=ChatCompletionMessage::new(content?, tool_calls~),
+        finish_reason~,
       ),
     ],
     created=0,

@@ -10,9 +10,13 @@ pub let base_instructions : String
 
 pub fn extract_token_claims(String) -> IdTokenClaims raise
 
+pub fn function_call_output(call_id~ : String, output~ : String) -> ResponseInputItem
+
 pub fn generate_pkce() -> PkceCodes
 
 pub async fn load_credentials() -> Credentials
+
+pub fn message_input(role~ : String, content~ : String) -> ResponseInputItem
 
 pub async fn refresh_and_save_credentials() -> Credentials
 
@@ -75,14 +79,31 @@ pub impl Show for PkceCodes
 type RefreshResponse
 pub impl Show for RefreshResponse
 
+pub(all) enum ResponseInputItem {
+  Message(role~ : String, content~ : Array[ContentPart])
+  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
+  FunctionCallOutput(call_id~ : String, output~ : String)
+}
+pub impl Show for ResponseInputItem
+pub impl ToJson for ResponseInputItem
+
+pub(all) enum ResponseItem {
+  Message(role~ : String, content~ : Array[ContentPart])
+  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
+}
+pub impl Show for ResponseItem
+pub impl @json.FromJson for ResponseItem
+
 pub struct ResponsesRequest {
   model : String
-  input : Array[InputItem]
+  input : Array[ResponseInputItem]
   instructions : String
+  tools : Array[Json]
+  tool_choice : String
   stream : Bool?
   store : Bool?
 }
-pub fn ResponsesRequest::new(model~ : String, input~ : Array[InputItem], instructions~ : String, stream? : Bool, store? : Bool) -> Self
+pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItem], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
 pub impl Show for ResponsesRequest
 pub impl ToJson for ResponsesRequest
 
