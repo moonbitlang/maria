@@ -291,6 +291,7 @@ pub async fn call_responses(request : ResponsesRequest) -> Json raise Error {
     "Authorization": "Bearer \{credentials.accessToken}",
     "ChatGPT-Account-ID": credentials.accountId,
     "Content-Type": "application/json",
+    "Accept": "text/event-stream",
     "originator": "codex_cli_rs",
     "User-Agent": "codex_cli_rs/1.0.0",
   })
@@ -299,7 +300,7 @@ pub async fn call_responses(request : ResponsesRequest) -> Json raise Error {
   guard body is Object(body_obj) else {
     raise ApiError(code=500, message="Invalid request body")
   }
-  body_obj["stream"] = false
+  body_obj["stream"] = true
   let response = client.post(
     "\{CODEX_API_PATH}/responses",
     Json::object(body_obj),
@@ -311,12 +312,17 @@ pub async fn call_responses(request : ResponsesRequest) -> Json raise Error {
       message="API request failed: \{error_text}",
     )
   }
-  let response_body = client.read_all().text()
-  @json.parse(response_body)
+  let reader = ResponseChunkReader::new(client)
+  let chunks : Array[String] = []
+  while reader.read() is Some(chunk) {
+    chunks.push(chunk)
+  }
+  let full_text = chunks.iter().fold(init="", fn(acc, c) { acc + c })
+  { "output_text": full_text }
 }
 
 ///|
-const BASE_INSTRUCTIONS : String =
+pub const BASE_INSTRUCTIONS : String =
   #|You are Codex, based on GPT-5. You are running as a coding agent in the Codex CLI on a user's computer.
   #|
   #|## General

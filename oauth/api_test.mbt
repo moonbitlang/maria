@@ -42,7 +42,7 @@ async test "oauth_login_and_chat" {
   println("Logged in as: \{claims.email}")
   println("Plan: \{claims.chatgptPlanType}")
   println("\nTesting chat API...")
-  let response = @oauth.chat("Say hello in one word")
+  let response = @oauth.chat("Hello")
   println("AI response: \{response}")
   assert_true(response.length() > 0)
 }
@@ -69,9 +69,10 @@ async test "stream_responses" {
   let error_msg : Ref[String?] = Ref::new(None)
   @oauth.stream_responses(
     @oauth.ResponsesRequest::new(
-      model="gpt-4o-mini",
-      input=[@oauth.user_message("Count from 1 to 3")],
-      instructions="Be concise",
+      model="gpt-5.2",
+      input=[@oauth.user_message("Count from 1 to 10")],
+      instructions=@oauth.BASE_INSTRUCTIONS,
+      store=false,
     ),
     @oauth.StreamCallbacks::new(
       on_chunk=fn(chunk) { chunks.push(chunk) },
@@ -107,9 +108,10 @@ async test "call_responses" {
   )
   let response = @oauth.call_responses(
     @oauth.ResponsesRequest::new(
-      model="gpt-4o-mini",
+      model="gpt-5.2",
       input=[@oauth.user_message("What is 2+2?")],
-      instructions="Answer with just the number",
+      instructions=@oauth.BASE_INSTRUCTIONS,
+      store=false,
     ),
   )
   println("Response JSON: \{response}")
