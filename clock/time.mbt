@@ -6,7 +6,7 @@ pub let epoch : Epoch = Epoch::{  }
 
 ///|
 pub impl Clock for Epoch with now(_ : Epoch) -> Timestamp {
-  @async.now()
+  Timestamp::from_ms(@async.now())
 }
 
 ///|

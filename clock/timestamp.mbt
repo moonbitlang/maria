@@ -85,7 +85,7 @@ pub impl @json.FromJson for Timestamp with from_json(
             raise @json.JsonDecodeError(
               (
                 json_path,
-                "Timestamp::from_json: invalid UInt64 string: \{error}",
+                "Timestamp::from_json: invalid Int64 string: \{error}",
               ),
             )
         },

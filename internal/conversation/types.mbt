@@ -18,7 +18,7 @@ pub fn Conversation::cwd(self : Conversation) -> StringView {
 
 ///|
 priv struct Message {
-  /// The Unix timestamp (in seconds) of when the message was created.
+  /// The Unix timestamp (in milliseconds) of when the message was created.
   timestamp : @clock.Timestamp
   /// Usage statistics for the completion request.
   usage : @ai.Usage?
