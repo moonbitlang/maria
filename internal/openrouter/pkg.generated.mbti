@@ -13,6 +13,14 @@ pub async fn get_models(api_key~ : StringView) -> Array[Model]
 pub async fn get_models_count(api_key~ : StringView) -> Int
 
 // Errors
+pub suberror ChatCompletionError {
+  BadRequest(ChatError)
+  Unauthorized(ChatError)
+  TooManyRequests(ChatError)
+  InternalServerError(ChatError)
+  UnknownError(Int, ChatError)
+}
+
 pub suberror InvalidResponse {
   InvalidResponse(@http.Response, &@io.Data)
 }
@@ -27,75 +35,203 @@ pub struct Architecture {
 pub impl ToJson for Architecture
 pub impl @json.FromJson for Architecture
 
-type AssistantMessage
+pub struct AssistantMessage {
+  content : AssistantMessageContent
+  name : String?
+  tool_calls : Array[ChatMessageToolCall]?
+  refusal : String?
+  reasoning : String?
+}
+pub fn AssistantMessage::new(AssistantMessageContent, name? : String, tool_calls? : Array[ChatMessageToolCall], refusal? : String, reasoning? : String) -> Self
+pub impl ToJson for AssistantMessage
+pub impl @json.FromJson for AssistantMessage
 
 type AssistantMessageContent
+pub fn AssistantMessageContent::text(Self) -> String
+pub impl ToJson for AssistantMessageContent
+pub impl @json.FromJson for AssistantMessageContent
 
 type ChatCompletionFinishReason
+pub impl ToJson for ChatCompletionFinishReason
+pub impl @json.FromJson for ChatCompletionFinishReason
+
+type ChatCompletionService
+pub async fn ChatCompletionService::create(Self, provider? : ChatGenerationParamsProvider, plugins? : Array[ChatGenerationParamsPlugin], route? : ChatGenerationParamsRoute, user? : String, session_id? : String, messages~ : Array[Message], model? : String, models? : Array[String], frequency_penalty? : Float, logit_bias? : Map[String, Float], logprobs? : Bool, top_logprobs? : Int, max_completion_tokens? : Int, max_tokens? : Int, metadata? : Map[String, String], presence_penalty? : Float, reasoning? : Reasoning, response_format? : ChatGenerationParamsResponseFormat, seed? : Int, stop? : Array[String], temperature? : Float, tool_choice? : Json, tools? : Array[ToolDefinitionJson], top_p? : Float, debug? : Debug) -> ChatResponse
+
+pub struct ChatError {
+  code : ChatErrorCode
+  message : String
+  param : String?
+  type_ : String?
+}
+pub impl @json.FromJson for ChatError
+
+pub enum ChatErrorCode {
+  String(String)
+  Number(Double)
+}
 
 type ChatGenerationParams
+pub impl ToJson for ChatGenerationParams
+pub impl @json.FromJson for ChatGenerationParams
 
 type ChatGenerationParamsDataCollection
+pub impl ToJson for ChatGenerationParamsDataCollection
+pub impl @json.FromJson for ChatGenerationParamsDataCollection
 
 type ChatGenerationParamsEngine
+pub impl ToJson for ChatGenerationParamsEngine
+pub impl @json.FromJson for ChatGenerationParamsEngine
 
 type ChatGenerationParamsMaxPrice
+pub impl ToJson for ChatGenerationParamsMaxPrice
+pub impl @json.FromJson for ChatGenerationParamsMaxPrice
 
 type ChatGenerationParamsPdf
+pub impl ToJson for ChatGenerationParamsPdf
+pub impl @json.FromJson for ChatGenerationParamsPdf
 
 type ChatGenerationParamsPdfEngine
+pub impl ToJson for ChatGenerationParamsPdfEngine
+pub impl @json.FromJson for ChatGenerationParamsPdfEngine
 
 type ChatGenerationParamsPlugin
+pub impl ToJson for ChatGenerationParamsPlugin
+pub impl @json.FromJson for ChatGenerationParamsPlugin
 
 type ChatGenerationParamsPluginFileParser
+pub impl ToJson for ChatGenerationParamsPluginFileParser
+pub impl @json.FromJson for ChatGenerationParamsPluginFileParser
 
 type ChatGenerationParamsPluginModeration
+pub impl ToJson for ChatGenerationParamsPluginModeration
+pub impl @json.FromJson for ChatGenerationParamsPluginModeration
 
 type ChatGenerationParamsPluginResponseHealing
+pub impl ToJson for ChatGenerationParamsPluginResponseHealing
+pub impl @json.FromJson for ChatGenerationParamsPluginResponseHealing
 
 type ChatGenerationParamsPluginWeb
+pub impl ToJson for ChatGenerationParamsPluginWeb
+pub impl @json.FromJson for ChatGenerationParamsPluginWeb
 
 type ChatGenerationParamsProvider
+pub impl ToJson for ChatGenerationParamsProvider
+pub impl @json.FromJson for ChatGenerationParamsProvider
 
 type ChatGenerationParamsResponseFormat
+pub impl ToJson for ChatGenerationParamsResponseFormat
+pub impl @json.FromJson for ChatGenerationParamsResponseFormat
 
 type ChatGenerationParamsRoute
+pub impl ToJson for ChatGenerationParamsRoute
+pub impl @json.FromJson for ChatGenerationParamsRoute
 
 type ChatGenerationTokenUsage
+pub impl ToJson for ChatGenerationTokenUsage
+pub impl @json.FromJson for ChatGenerationTokenUsage
 
 type ChatMessageContentItem
+pub impl ToJson for ChatMessageContentItem
+pub impl @json.FromJson for ChatMessageContentItem
 
 type ChatMessageContentItemCacheControl
+pub impl ToJson for ChatMessageContentItemCacheControl
+pub impl @json.FromJson for ChatMessageContentItemCacheControl
 
 type ChatMessageContentItemCacheControlEphemeral
+pub impl ToJson for ChatMessageContentItemCacheControlEphemeral
+pub impl @json.FromJson for ChatMessageContentItemCacheControlEphemeral
 
 type ChatMessageContentItemText
+pub impl ToJson for ChatMessageContentItemText
+pub impl @json.FromJson for ChatMessageContentItemText
 
 type ChatMessageTokenLogprob
+pub impl ToJson for ChatMessageTokenLogprob
+pub impl @json.FromJson for ChatMessageTokenLogprob
 
 type ChatMessageTokenLogprobs
+pub impl ToJson for ChatMessageTokenLogprobs
+pub impl @json.FromJson for ChatMessageTokenLogprobs
 
 type ChatMessageToolCall
+pub impl ToJson for ChatMessageToolCall
+pub impl @json.FromJson for ChatMessageToolCall
 
 type ChatMessageToolCallFunction
+pub impl ToJson for ChatMessageToolCallFunction
+pub impl @json.FromJson for ChatMessageToolCallFunction
 
-type ChatResponse
+pub struct ChatResponse {
+  id : String
+  choices : Array[ChatResponseChoice]
+  created : Int
+  model : String
+  object : String
+  system_fingerprint : String?
+  usage : ChatGenerationTokenUsage?
+}
+pub impl ToJson for ChatResponse
+pub impl @json.FromJson for ChatResponse
 
-type ChatResponseChoice
+pub struct ChatResponseChoice {
+  finish_reason : ChatCompletionFinishReason?
+  index : Int
+  message : AssistantMessage
+  logprobs : ChatMessageTokenLogprobs?
+}
+pub impl ToJson for ChatResponseChoice
+pub impl @json.FromJson for ChatResponseChoice
+
+pub struct ChatService {
+  completion : ChatCompletionService
+}
 
 type ChatStreamOptions
+pub impl ToJson for ChatStreamOptions
+pub impl @json.FromJson for ChatStreamOptions
 
 type CompletionTokensDetails
+pub impl ToJson for CompletionTokensDetails
+pub impl @json.FromJson for CompletionTokensDetails
 
 type Debug
+pub impl ToJson for Debug
+pub impl @json.FromJson for Debug
 
 type Effort
+pub impl ToJson for Effort
+pub impl @json.FromJson for Effort
 
-type Message
+pub enum Message {
+  System(SystemMessage)
+  User(UserMessage)
+  Developer(MessageDeveloper)
+  Assistant(AssistantMessage)
+  Tool(ToolResponseMessage)
+}
+pub fn Message::new_assistant(AssistantMessageContent, name? : String, tool_calls? : Array[ChatMessageToolCall], refusal? : String, reasoning? : String) -> Self
+pub fn Message::new_developer(MessageContent, name? : String) -> Self
+pub fn Message::new_system(String, name? : String) -> Self
+pub fn Message::new_user(String, name? : String) -> Self
+pub impl ToJson for Message
+pub impl @json.FromJson for Message
 
-type MessageContent
+pub(all) enum MessageContent {
+  Text(String)
+  Items(Array[ChatMessageContentItemText])
+}
+pub impl ToJson for MessageContent
+pub impl @json.FromJson for MessageContent
 
-type MessageDeveloper
+pub struct MessageDeveloper {
+  content : MessageContent
+  name : String?
+}
+pub fn MessageDeveloper::new(MessageContent, name? : String) -> Self
+pub impl ToJson for MessageDeveloper
+pub impl @json.FromJson for MessageDeveloper
 
 pub struct Model {
   id : String
@@ -113,6 +249,11 @@ pub struct Model {
 pub impl ToJson for Model
 pub impl @json.FromJson for Model
 
+pub struct OpenRouter {
+  chat : ChatService
+}
+pub fn OpenRouter::new(api_key~ : String) -> Self
+
 pub struct Pricing {
   prompt : String
   completion : String
@@ -127,32 +268,141 @@ pub impl ToJson for Pricing
 pub impl @json.FromJson for Pricing
 
 type PromptTokensDetails
+pub impl ToJson for PromptTokensDetails
+pub impl @json.FromJson for PromptTokensDetails
+
+pub(all) enum ProviderName {
+  Ai21
+  AionLabs
+  Alibaba
+  AmazonBedrock
+  AmazonNova
+  Anthropic
+  ArceeAI
+  AtlasCloud
+  Avian
+  Azure
+  BaseTen
+  BytePlus
+  BlackForestLabs
+  Cerebras
+  Chutes
+  Cirrascale
+  Clarifai
+  Cloudflare
+  Cohere
+  Crusoe
+  DeepInfra
+  DeepSeek
+  Featherless
+  Fireworks
+  Friendli
+  GMICloud
+  GoPomelo
+  Google
+  GoogleAIStudio
+  Groq
+  Hyperbolic
+  Inception
+  InferenceNet
+  Infermatic
+  Inflection
+  Liquid
+  Mara
+  Mancer2
+  Minimax
+  ModelRun
+  Mistral
+  Modular
+  MoonshotAI
+  Morph
+  NCompass
+  Nebius
+  NextBit
+  Novita
+  Nvidia
+  OpenAI
+  OpenInference
+  Parasail
+  Perplexity
+  Phala
+  Relace
+  SambaNova
+  SiliconFlow
+  Sourceful
+  Stealth
+  StreamLake
+  Switchpoint
+  Targon
+  Together
+  Venice
+  WandB
+  Xiaomi
+  XAI
+  ZAi
+  FakeProvider
+  Unknown(String)
+}
+pub fn ProviderName::to_string(Self) -> String
+pub impl Show for ProviderName
+pub impl ToJson for ProviderName
+pub impl @json.FromJson for ProviderName
 
 type Quantizations
+pub impl ToJson for Quantizations
+pub impl @json.FromJson for Quantizations
 
 type Reasoning
+pub impl ToJson for Reasoning
+pub impl @json.FromJson for Reasoning
 
 type ReasoningSummaryVerbosity
+pub impl ToJson for ReasoningSummaryVerbosity
+pub impl @json.FromJson for ReasoningSummaryVerbosity
 
 type ResponseFormatJSONSchema
+pub impl ToJson for ResponseFormatJSONSchema
+pub impl @json.FromJson for ResponseFormatJSONSchema
 
 type ResponseFormatTextGrammar
+pub impl ToJson for ResponseFormatTextGrammar
+pub impl @json.FromJson for ResponseFormatTextGrammar
 
 type Schema0
+pub impl ToJson for Schema0
+pub impl @json.FromJson for Schema0
 
 type Sort
+pub impl ToJson for Sort
+pub impl @json.FromJson for Sort
 
-type SystemMessage
+pub struct SystemMessage {
+  content : SystemMessageContent
+  name : String?
+}
+pub fn SystemMessage::new(String, name? : String) -> Self
+pub impl ToJson for SystemMessage
+pub impl @json.FromJson for SystemMessage
 
 type SystemMessageContent
+pub impl ToJson for SystemMessageContent
+pub impl @json.FromJson for SystemMessageContent
 
 type ToolDefinitionJson
+pub impl ToJson for ToolDefinitionJson
+pub impl @json.FromJson for ToolDefinitionJson
 
 type ToolResponseMessage
+pub impl ToJson for ToolResponseMessage
+pub impl @json.FromJson for ToolResponseMessage
 
 type ToolResponseMessageContent
+pub impl ToJson for ToolResponseMessageContent
+pub impl @json.FromJson for ToolResponseMessageContent
 
 type TopLogprob
+pub impl ToJson for TopLogprob
+pub impl @json.FromJson for TopLogprob
 
 pub struct TopProvider {
   context_length : Int?
@@ -163,12 +413,25 @@ pub impl ToJson for TopProvider
 pub impl @json.FromJson for TopProvider
 
 type Ttl
+pub impl ToJson for Ttl
+pub impl @json.FromJson for Ttl
 
-type UserMessage
+pub struct UserMessage {
+  content : UserMessageContent
+  name : String?
+}
+pub fn[T : ToUserMessageContent] UserMessage::new(T, name? : String) -> Self
+pub impl ToJson for UserMessage
+pub impl @json.FromJson for UserMessage
 
 type UserMessageContent
+pub impl ToJson for UserMessageContent
+pub impl @json.FromJson for UserMessageContent
 
 // Type aliases
 
 // Traits
+trait ToUserMessageContent
+pub impl ToUserMessageContent for String
+pub impl ToUserMessageContent for Array[ChatMessageContentItem]
 

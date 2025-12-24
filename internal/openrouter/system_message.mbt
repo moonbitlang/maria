@@ -1,7 +1,12 @@
 ///|
-struct SystemMessage {
+pub struct SystemMessage {
   content : SystemMessageContent
   name : String?
+}
+
+///|
+pub fn SystemMessage::new(content : String, name? : String) -> SystemMessage {
+  SystemMessage::{ content: SystemMessageContent::Text(content), name }
 }
 
 ///|
