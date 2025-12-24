@@ -1,10 +1,21 @@
 ///|
-struct AssistantMessage {
+pub struct AssistantMessage {
   content : AssistantMessageContent
   name : String?
   tool_calls : Array[ChatMessageToolCall]?
   refusal : String?
   reasoning : String?
+}
+
+///|
+pub fn AssistantMessage::new(
+  content : AssistantMessageContent,
+  name? : String,
+  tool_calls? : Array[ChatMessageToolCall],
+  refusal? : String,
+  reasoning? : String,
+) -> AssistantMessage {
+  AssistantMessage::{ content, name, tool_calls, refusal, reasoning }
 }
 
 ///|

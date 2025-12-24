@@ -1,5 +1,5 @@
 ///|
-struct ChatResponse {
+pub struct ChatResponse {
   id : String
   choices : Array[ChatResponseChoice]
   created : Int

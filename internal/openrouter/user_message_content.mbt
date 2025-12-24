@@ -5,6 +5,25 @@ enum UserMessageContent {
 }
 
 ///|
+trait ToUserMessageContent {
+  to_user_message_content(Self) -> UserMessageContent
+}
+
+///|
+pub impl ToUserMessageContent for String with to_user_message_content(
+  self : String,
+) -> UserMessageContent {
+  UserMessageContent::Text(self)
+}
+
+///|
+pub impl ToUserMessageContent for Array[ChatMessageContentItem] with to_user_message_content(
+  self : Array[ChatMessageContentItem],
+) -> UserMessageContent {
+  UserMessageContent::Items(self)
+}
+
+///|
 pub impl ToJson for UserMessageContent with to_json(self : UserMessageContent) -> Json {
   match self {
     Text(text) => text.to_json()

@@ -1,5 +1,5 @@
 ///|
-struct ChatResponseChoice {
+pub struct ChatResponseChoice {
   finish_reason : ChatCompletionFinishReason?
   index : Int
   message : AssistantMessage

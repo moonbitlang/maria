@@ -1,5 +1,5 @@
 ///|
-enum MessageContent {
+pub(all) enum MessageContent {
   Text(String)
   Items(Array[ChatMessageContentItemText])
 }
