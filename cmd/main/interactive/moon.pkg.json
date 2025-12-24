@@ -11,6 +11,8 @@
     "moonbitlang/maria/ai",
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/internal/uuid"
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/commands",
+    "moonbitlang/maria/internal/os"
   ]
 }

@@ -4,6 +4,58 @@ async fn println(msg : String) -> Unit {
 }
 
 ///|
+priv enum Input {
+  Command(name~ : String, arguments~ : String)
+  Prompt(String)
+}
+
+///|
+fn parse_input(input : String) -> Input {
+  if !input.has_prefix("/") {
+    return Input::Prompt(input)
+  }
+  let body = input[1:] catch { _ => "" }
+  let trimmed = body.trim()
+  if trimmed == "" {
+    return Input::Command(name="", arguments="")
+  }
+  match trimmed.find(" ") {
+    Some(i) => {
+      let name = try! trimmed[:i].to_string()
+      let extra = trimmed[i + 1:] catch { _ => "" }
+      Input::Command(name~, arguments=extra.trim().to_string())
+    }
+    None => Input::Command(name=trimmed.to_string(), arguments="")
+  }
+}
+
+///|
+async fn resolve_prompt(loader : @commands.Loader, input : String) -> String? {
+  match parse_input(input) {
+    Prompt(text) => Some(text)
+    Command(name~, arguments=extra) => {
+      if name == "" {
+        println("! Invalid command format. Use /<command-name> <prompt>")
+        return None
+      }
+      loader.load()
+      match loader.get_command(name) {
+        Some(cmd) =>
+          if extra.is_blank() {
+            Some(cmd.content)
+          } else {
+            Some(cmd.content + "\n" + extra)
+          }
+        None => {
+          println("! Command '\{name}' not found.")
+          None
+        }
+      }
+    }
+  }
+}
+
+///|
 pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut prompt : String? = None
   let mut model : String? = None
@@ -45,6 +97,14 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       Some(@pino.logger("maria", @pino.Transport::file(log_file)))
     None => None
   }
+  let cwd = @os.cwd()
+  let command_loader = @commands.Loader::new(
+    cwd~,
+    logger=logger.unwrap_or_else(() => @pino.logger(
+      "commands",
+      @pino.Transport::console(),
+    )),
+  )
   guard @model.load(name?=model) is Some(model) else {
     println("No model available; please configure a model first.")
     return
@@ -115,42 +175,52 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     })
     if prompt is Some(prompt) {
       println("$ \{prompt}")
-      let round = group.spawn(
-        () => maria.start(prompt~) catch {
-          error => {
-            println("! \{error}")
-            clear_inputs_and_prompt(maria, rl)
+      match resolve_prompt(command_loader, prompt) {
+        Some(prompt) => {
+          let round = group.spawn(
+            () => maria.start(prompt~) catch {
+              error => {
+                println("! \{error}")
+                clear_inputs_and_prompt(maria, rl)
+              }
+            },
+            allow_failure=true,
+          )
+          task = Some(round)
+          defer {
+            task = None
           }
-        },
-        allow_failure=true,
-      )
-      task = Some(round)
-      defer {
-        task = None
-      }
-      round.wait() catch {
-        _ => ()
+          round.wait() catch {
+            _ => ()
+          }
+        }
+        None => ()
       }
     }
     while true {
       rl.set_prompt("$ ")
       rl.prompt()
-      let prompt = rl.read_line()
-      let round = group.spawn(
-        () => maria.start(prompt~) catch {
-          error => {
-            println("! \{error}")
-            clear_inputs_and_prompt(maria, rl)
+      let input = rl.read_line()
+      match resolve_prompt(command_loader, input) {
+        Some(prompt) => {
+          let round = group.spawn(
+            () => maria.start(prompt~) catch {
+              error => {
+                println("! \{error}")
+                clear_inputs_and_prompt(maria, rl)
+              }
+            },
+            allow_failure=true,
+          )
+          task = Some(round)
+          defer {
+            task = None
           }
-        },
-        allow_failure=true,
-      )
-      task = Some(round)
-      defer {
-        task = None
-      }
-      round.wait() catch {
-        _ => ()
+          round.wait() catch {
+            _ => ()
+          }
+        }
+        None => ()
       }
     }
   })

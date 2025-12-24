@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/commands"
+
+import(
+  "moonbitlang/maria/internal/pino"
+)
+
+// Values
+
+// Errors
+type CommandFormatError
+pub impl Show for CommandFormatError
+pub impl ToJson for CommandFormatError
+
+// Types and methods
+pub struct Command {
+  name : String
+  description : String?
+  content : String
+  location : String
+}
+pub impl Show for Command
+pub impl ToJson for Command
+
+type Loader
+pub fn Loader::commands(Self) -> Map[String, Command]
+pub fn Loader::get_command(Self, String) -> Command?
+pub async fn Loader::load(Self) -> Unit
+pub fn Loader::new(home? : String, cwd~ : String, logger? : @pino.Logger) -> Self raise
+
+// Type aliases
+
+// Traits
+
