@@ -1,7 +1,15 @@
 ///|
-struct UserMessage {
+pub struct UserMessage {
   content : UserMessageContent
   name : String?
+}
+
+///|
+pub fn[T : ToUserMessageContent] UserMessage::new(
+  content : T,
+  name? : String,
+) -> UserMessage {
+  UserMessage::{ content: content.to_user_message_content(), name }
 }
 
 ///|

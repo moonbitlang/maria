@@ -20,10 +20,7 @@ pub impl @json.FromJson for ChatMessageContentItemCacheControl with from_json(
   let func_name = "\{PackageName}.ChatMessageContentItemCacheControl::from_json"
   guard json is Object({ "type": String(type_str), .. }) else {
     raise @json.JsonDecodeError(
-      (
-        json_path,
-        "\{func_name}: expect object with 'type' field of string",
-      ),
+      (json_path, "\{func_name}: expect object with 'type' field of string"),
     )
   }
   match type_str {
@@ -36,10 +33,7 @@ pub impl @json.FromJson for ChatMessageContentItemCacheControl with from_json(
     }
     _ =>
       raise @json.JsonDecodeError(
-        (
-          json_path.add_key("type"),
-          "\{func_name}: unknown type '\{type_str}'",
-        ),
+        (json_path.add_key("type"), "\{func_name}: unknown type '\{type_str}'"),
       )
   }
 }

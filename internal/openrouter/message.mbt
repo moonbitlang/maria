@@ -1,10 +1,41 @@
 ///|
-enum Message {
+pub enum Message {
   System(SystemMessage)
   User(UserMessage)
   Developer(MessageDeveloper)
   Assistant(AssistantMessage)
   Tool(ToolResponseMessage)
+}
+
+///|
+pub fn Message::new_user(content : String, name? : String) -> Message {
+  Message::User(UserMessage::new(content, name?))
+}
+
+///|
+pub fn Message::new_system(content : String, name? : String) -> Message {
+  Message::System(SystemMessage::new(content, name?))
+}
+
+///|
+pub fn Message::new_developer(
+  content : MessageContent,
+  name? : String,
+) -> Message {
+  Message::Developer(MessageDeveloper::{ content, name })
+}
+
+///|
+pub fn Message::new_assistant(
+  content : AssistantMessageContent,
+  name? : String,
+  tool_calls? : Array[ChatMessageToolCall],
+  refusal? : String,
+  reasoning? : String,
+) -> Message {
+  Message::Assistant(
+    AssistantMessage::new(content, name?, tool_calls?, refusal?, reasoning?),
+  )
 }
 
 ///|

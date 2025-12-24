@@ -5,6 +5,22 @@ enum AssistantMessageContent {
 }
 
 ///|
+pub fn AssistantMessageContent::text(self : AssistantMessageContent) -> String {
+  match self {
+    Text(text) => text
+    Items(items) => {
+      let texts = []
+      for item in items {
+        match item {
+          Text(text_item) => texts.push(text_item.text)
+        }
+      }
+      texts.join("")
+    }
+  }
+}
+
+///|
 pub impl ToJson for AssistantMessageContent with to_json(
   self : AssistantMessageContent,
 ) -> Json {

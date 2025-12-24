@@ -1,7 +1,15 @@
 ///|
-struct MessageDeveloper {
+pub struct MessageDeveloper {
   content : MessageContent
   name : String?
+}
+
+///|
+pub fn MessageDeveloper::new(
+  content : MessageContent,
+  name? : String,
+) -> MessageDeveloper {
+  MessageDeveloper::{ content, name }
 }
 
 ///|

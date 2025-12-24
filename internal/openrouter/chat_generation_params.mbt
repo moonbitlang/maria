@@ -20,8 +20,6 @@ struct ChatGenerationParams {
   response_format : ChatGenerationParamsResponseFormat?
   seed : Int?
   stop : Array[String]?
-  stream : Bool
-  stream_options : ChatStreamOptions?
   temperature : Float?
   tool_choice : Json?
   tools : Array[ToolDefinitionJson]?
@@ -33,10 +31,7 @@ struct ChatGenerationParams {
 pub impl ToJson for ChatGenerationParams with to_json(
   self : ChatGenerationParams,
 ) -> Json {
-  let object : Map[String, Json] = {
-    "messages": self.messages.to_json(),
-    "stream": self.stream.to_json(),
-  }
+  let object : Map[String, Json] = { "messages": self.messages.to_json() }
   if self.provider is Some(provider) {
     object["provider"] = provider.to_json()
   }
@@ -94,9 +89,6 @@ pub impl ToJson for ChatGenerationParams with to_json(
   if self.stop is Some(stop) {
     object["stop"] = stop.to_json()
   }
-  if self.stream_options is Some(stream_options) {
-    object["stream_options"] = stream_options.to_json()
-  }
   if self.temperature is Some(temperature) {
     object["temperature"] = temperature.to_json()
   }
@@ -129,13 +121,6 @@ pub impl @json.FromJson for ChatGenerationParams with from_json(
     None =>
       raise @json.JsonDecodeError(
         (path.add_key("messages"), "\{func_name}: missing field messages"),
-      )
-  }
-  let stream : Bool = match object.get("stream") {
-    Some(v) => @json.from_json(v, path=path.add_key("stream"))
-    None =>
-      raise @json.JsonDecodeError(
-        (path.add_key("stream"), "\{func_name}: missing field stream"),
       )
   }
   let provider : ChatGenerationParamsProvider? = match object.get("provider") {
@@ -217,10 +202,6 @@ pub impl @json.FromJson for ChatGenerationParams with from_json(
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("stop")))
   }
-  let stream_options : ChatStreamOptions? = match object.get("stream_options") {
-    None | Some(Null) => None
-    Some(v) => Some(@json.from_json(v, path=path.add_key("stream_options")))
-  }
   let temperature : Float? = match object.get("temperature") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("temperature")))
@@ -262,8 +243,6 @@ pub impl @json.FromJson for ChatGenerationParams with from_json(
     response_format,
     seed,
     stop,
-    stream,
-    stream_options,
     temperature,
     tool_choice,
     tools,
