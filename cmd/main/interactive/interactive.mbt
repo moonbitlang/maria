@@ -55,6 +55,19 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       }
       _ => ()
     })
+    async fn clear_inputs_and_prompt(
+      maria : @maria.Maria,
+      rl : @readline.Interface,
+    ) -> Unit {
+      let qms = maria.agent.clear_inputs()
+      for qm in qms {
+        rl.set_prompt("$ ")
+        rl.set_line(@encoding/utf8.encode(qm.message.content()))
+        rl.prompt()
+        break
+      }
+    }
+
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
     let mut task : @async.Task[Unit]? = None
     group.spawn_bg(() => for {
@@ -62,6 +75,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
         @readline.CtrlC =>
           if task is Some(round) {
             round.cancel()
+            clear_inputs_and_prompt(maria, rl)
           } else {
             // Clear the current input line
             println("")
@@ -77,7 +91,12 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     if prompt is Some(prompt) {
       println("$ \{prompt}")
       let round = group.spawn(
-        () => maria.start(prompt~) catch { error => println("! \{error}") },
+        () => maria.start(prompt~) catch {
+          error => {
+            println("! \{error}")
+            clear_inputs_and_prompt(maria, rl)
+          }
+        },
         allow_failure=true,
       )
       task = Some(round)
@@ -93,7 +112,12 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       rl.prompt()
       let prompt = rl.read_line()
       let round = group.spawn(
-        () => maria.start(prompt~) catch { error => println("! \{error}") },
+        () => maria.start(prompt~) catch {
+          error => {
+            println("! \{error}")
+            clear_inputs_and_prompt(maria, rl)
+          }
+        },
         allow_failure=true,
       )
       task = Some(round)
