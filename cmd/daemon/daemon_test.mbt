@@ -504,6 +504,7 @@ async test "GET /v1/events" (t : @test.Test) {
               "status": "generating",
               "web_search": false,
               "queued_messages": [],
+              "model": "mock:claude-haiku-4.5",
             },
           ],
           [
@@ -513,6 +514,7 @@ async test "GET /v1/events" (t : @test.Test) {
               "status": "idle",
               "web_search": false,
               "queued_messages": [],
+              "model": "mock:claude-haiku-4.5",
             },
           ],
         ],

@@ -50,6 +50,7 @@ test "CreateTaskResponse::to_json" {
     created: @clock.Timestamp::from_ms(0),
     updated: @clock.Timestamp::from_ms(0),
     web_search: true,
+    model: "gpt-4",
     broadcast: @broadcast.Broadcast::new(),
   }
   let response = CreateTaskResponse::{
@@ -71,6 +72,7 @@ test "CreateTaskResponse::to_json" {
       "updated": 0,
       "web_search": true,
       "queued_messages": [{ "id": "msg1", "message": { "text": "Hello" } }],
+      "model": "gpt-4",
       "name": "example",
     },
     "message": { "id": "223e4567-e89b-12d3-a456-426614174000", "queued": true },
