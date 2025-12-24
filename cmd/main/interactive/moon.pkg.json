@@ -10,6 +10,8 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/ai",
     "moonbitlang/async/io",
-    "moonbitlang/maria/internal/pino"
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/maria/internal/tty",
+    "moonbitlang/maria/internal/os"
   ]
 }

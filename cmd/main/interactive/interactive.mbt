@@ -65,6 +65,21 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       }
       _ => ()
     })
+    if @tty.isatty(@stdio.stdout.fd()) {
+      guard prompt is Some(prompt) else {
+        println("Non-interactive mode requires a prompt to start.")
+        @os.exit(1)
+      }
+      maria.start(prompt~) catch {
+        error => {
+          if logger is Some(logger) {
+            logger.error("MariaFailed", data={ "error": error.to_string() })
+          }
+          println("! \{error}")
+        }
+      }
+      return
+    }
     async fn clear_inputs_and_prompt(
       maria : @maria.Maria,
       rl : @readline.Interface,
