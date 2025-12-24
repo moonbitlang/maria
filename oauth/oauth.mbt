@@ -264,7 +264,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
       }
     }
   })
-  let server = @httpx.Server::new("[::1]", CALLBACK_PORT)
+  let server = @httpx.Server::new("[::1]", CALLBACK_PORT, reuse_addr=true)
   @async.with_task_group(fn(group) {
     group.spawn_bg(fn() { server.serve(router.handler()) }, no_wait=true)
     @async.with_timeout(300_000, error=OAuthError("Login timeout"), fn() {

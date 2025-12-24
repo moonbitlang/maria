@@ -99,6 +99,8 @@ fn get_credentials_path() -> String {
 ///|
 async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
+  let dir = @pathx.dirname(path)
+  @fsx.make_directory(dir, recursive=true, exists_ok=true)
   @fsx.write_to_file(path, credentials.to_json().stringify(), create=0o600)
 }
 
