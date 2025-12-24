@@ -8,6 +8,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut prompt : String? = None
   let mut model : String? = None
   let mut web_search : Bool = false
+  let mut log_file : String? = None
   loop args {
     ["--prompt" | "-p", value, .. rest] => {
       prompt = Some(value)
@@ -21,15 +22,24 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       web_search = true
       continue rest
     }
+    ["--log-file", value, .. rest] => {
+      log_file = Some(value)
+      continue rest
+    }
     [unknown, ..] => raise @argument.InvalidArgument(unknown)
     [] => break
+  }
+  let logger = match log_file {
+    Some(log_file) =>
+      Some(@pino.logger("maria", @pino.Transport::file(log_file)))
+    None => None
   }
   guard @model.load(name?=model) is Some(model) else {
     println("No model available; please configure a model first.")
     return
   }
   @async.with_task_group(group => {
-    let maria = @maria.Maria::new(model~, web_search~)
+    let maria = @maria.Maria::new(model~, web_search~, logger?)
     maria.agent.add_listener(event => match event.desc {
       AssistantMessage(content, ..) =>
         if !content.is_blank() {
