@@ -66,6 +66,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
   configure_models(mock)
   @daemon.Daemon::new(
     uuid=mock.uuid,
+    home=mock.cwd.path(),
     cwd=mock.cwd.path(),
     exec_path=@pathx.join(
       os_cwd, "target/native/release/build/cmd/main/main.exe",
@@ -242,7 +243,7 @@ async test "POST /v1/task" (t : @test.Test) {
       @json.inspect(r.headers["access-control-allow-methods"], content="*")
       @json.inspect(r.headers["access-control-allow-headers"], content="*")
       @json.inspect(r.headers["x-accel-buffering"], content="no")
-      @test_utils.ServerEvent::collect_events(s) |> ignore()
+      ignore(@test_utils.ServerEvent::collect_events(s))
     })
   })
 }
@@ -497,23 +498,29 @@ async test "GET /v1/events" (t : @test.Test) {
           [
             "TaskChanged",
             {
-              "name": null,
-              "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-              "cwd": "(mock:cwd)",
-              "status": "generating",
-              "web_search": false,
-              "queued_messages": [],
+              "type": "running",
+              "running": {
+                "id": "b4ee33c3-d390-4462-8596-cb353feb1196",
+                "cwd": "(mock:cwd)",
+                "status": "generating",
+                "updated": "1766139562",
+                "web_search": false,
+                "queued_messages": [],
+              },
             },
           ],
           [
             "TaskChanged",
             {
-              "name": null,
-              "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-              "cwd": "(mock:cwd)",
-              "status": "idle",
-              "web_search": false,
-              "queued_messages": [],
+              "type": "running",
+              "running": {
+                "id": "b4ee33c3-d390-4462-8596-cb353feb1196",
+                "cwd": "(mock:cwd)",
+                "status": "idle",
+                "updated": "1766139562",
+                "web_search": false,
+                "queued_messages": [],
+              },
             },
           ],
         ],

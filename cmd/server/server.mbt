@@ -47,20 +47,36 @@ pub async fn Server::new(
   register? : RegisterInfo,
   serve~ : String,
   port~ : Int,
+  home? : String,
   cwd? : String,
   web_search? : Bool = false,
+  resume_id? : @uuid.Uuid,
 ) -> Server {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
   let broadcast = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
+  guard @model.load(home~, name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
-  let maria = @maria.Maria::new(model~, cwd?, web_search~)
+  let maria = if resume_id is Some(resume_id) {
+    @maria.Maria::resume_(model~, resume_id, web_search~)
+  } else {
+    @maria.Maria::new(model~, cwd?, web_search~)
+  }
   maria.agent.add_listener((event : @event.Event) => broadcast.put(event))
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   if register is Some(register) {
-    register.register(port~) |> ignore()
+    register.register(
+      port~,
+      new_id=maria.agent.id(),
+      web_search=maria.agent.web_search,
+      cwd=maria.agent.cwd,
+    )
+    |> ignore()
   } else {
     println(
       "[WARN] (Server) No register information provided; skipping registration.",
@@ -268,34 +284,26 @@ async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let queued_messages : Array[Json] = self.maria.agent
     .queued_messages()
     .map(m => { "id": m.id, "message": m.message.to_openai() })
-  w.header().set("Content-Type", "text/event-stream")
-  w
-  ..write_header(200)
-  ..write("event: maria.queued_messages.synchronized\n")
-  ..write("data: \{queued_messages.to_json().stringify()}\n\n")
-  ..flush()
-  self.broadcast.listen((hist, chan) => {
-    for e in hist {
-      chan.put(e)
+  w.header().set("X-Accel-Buffering", "no")
+  let w = @httpx.EventStreamWriter::new(w)
+  w.write_header(200)
+  w.write_event(
+    event="maria.queued_messages.synchronized",
+    data=queued_messages.to_json().stringify(),
+  )
+  self.broadcast.listen_forever(event => {
+    if event.desc is (TokenCounted(_) | ContextPruned(_)) {
+      return
     }
-    for {
-      let event = chan.get()
-      if event.desc is (TokenCounted(_) | ContextPruned(_)) {
-        continue
-      }
-      w
-      ..write("event: maria\n")
-      ..write("data: \{event.to_json().stringify()}\n\n")
-      ..flush()
-      if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
-        let queued_messages : Array[Json] = self.maria.agent
-          .queued_messages()
-          .map(m => { "id": m.id, "message": m.message.to_openai() })
-        w
-        ..write("event: maria.queued_messages.synchronized\n")
-        ..write("data: \{queued_messages.to_json().stringify()}\n\n")
-        ..flush()
-      }
+    w.write_event(event="maria", data=event.to_json())
+    if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
+      let queued_messages : Array[Json] = self.maria.agent
+        .queued_messages()
+        .map(m => { "id": m.id, "message": m.message.to_openai() })
+      w.write_event(
+        event="maria.queued_messages.synchronized",
+        data=queued_messages.to_json().stringify(),
+      )
     }
   })
 }

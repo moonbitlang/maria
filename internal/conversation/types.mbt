@@ -5,22 +5,18 @@ struct Conversation {
   description : String?
   id : @uuid.Uuid
   mut system_prompt : String?
-  messages : Array[Message]
+  events : Array[@event.Event]
   created_at : @clock.Timestamp
   mut updated_at : @clock.Timestamp
-  cwd : StringView
+  cwd : String
 }
 
 ///|
-pub fn Conversation::cwd(self : Conversation) -> StringView {
+pub fn Conversation::cwd(self : Conversation) -> String {
   self.cwd
 }
 
 ///|
-priv struct Message {
-  /// The Unix timestamp (in milliseconds) of when the message was created.
-  timestamp : @clock.Timestamp
-  /// Usage statistics for the completion request.
-  usage : @ai.Usage?
-  message : @ai.Message
+pub fn Conversation::events(self : Conversation) -> ArrayView[@event.Event] {
+  self.events
 }
