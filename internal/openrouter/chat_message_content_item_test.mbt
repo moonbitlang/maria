@@ -13,7 +13,7 @@ test "ChatMessageContentItem/roundtrip" {
       "cache_control": { "type": "ephemeral", "ttl": "5m" },
     },
   ]
-  let converted : Array[@openrouter.ChatMessageContentItem] = from_json_array(
+  let converted : Array[@message.ChatMessageContentItem] = from_json_array(
     original,
   )
   assert_eq(to_json_array(converted), original)

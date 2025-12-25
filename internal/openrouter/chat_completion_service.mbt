@@ -16,7 +16,7 @@ pub async fn ChatCompletionService::create(
   route? : ChatGenerationParamsRoute,
   user? : String,
   session_id? : String,
-  messages~ : Array[Message],
+  messages~ : Array[@message.Message],
   model? : String,
   models? : Array[String],
   frequency_penalty? : Float,
