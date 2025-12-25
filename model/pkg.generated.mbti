@@ -8,6 +8,8 @@ import(
 // Values
 pub fn codex_oauth_model(access_token~ : String, account_id~ : String, refresh_token~ : String, id_token? : String, name? : CodexModels) -> Model
 
+pub fn copilot_model(copilot_token~ : String, github_token~ : String, name? : CopilotModels) -> Model
+
 pub async fn load(home? : StringView, cwd? : StringView, name? : String) -> Model?
 
 pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
@@ -39,6 +41,13 @@ pub(all) enum CommonModels {
 }
 pub impl Show for CommonModels
 
+pub(all) enum CopilotModels {
+  Gpt4_1
+  ClaudeSonnet4
+  Gemini2_5Pro
+}
+pub impl Show for CopilotModels
+
 type Loader
 pub async fn Loader::get_model(Self, name? : String) -> Model?
 pub async fn Loader::models(Self) -> ArrayView[Model]
@@ -68,6 +77,7 @@ pub impl @json.FromJson for Model
 pub(all) enum Provider {
   OpenAI
   CodexOAuth
+  Copilot
 }
 pub impl Eq for Provider
 pub impl Show for Provider

@@ -522,8 +522,10 @@ pub impl @json.FromJson for ChatCompletion with from_json(
     choices,
     path=json_path.add_key("choices"),
   )
-  guard json.get("created") is Some(Number(created, ..)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'created' field"))
+  // created is optional for Copilot API compatibility
+  let created = match json.get("created") {
+    Some(Number(created, ..)) => created.to_int()
+    _ => 0
   }
   guard json.get("model") is Some(String(model)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'model' field"))
@@ -562,7 +564,7 @@ pub impl @json.FromJson for ChatCompletion with from_json(
   ChatCompletion::{
     id,
     choices,
-    created: created.to_int(),
+    created,
     model,
     usage,
     system_fingerprint,

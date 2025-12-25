@@ -19,6 +19,7 @@ pub struct Model {
 pub(all) enum Provider {
   OpenAI
   CodexOAuth
+  Copilot
 } derive(Eq, Show)
 
 ///|
@@ -239,5 +240,53 @@ pub fn codex_oauth_model(
     account_id~,
     refresh_token~,
     id_token?,
+  )
+}
+
+///|
+pub(all) enum CopilotModels {
+  /// GPT-4.1 via GitHub Copilot
+  Gpt4_1
+  /// Claude Sonnet 4 via GitHub Copilot
+  ClaudeSonnet4
+  /// Gemini 2.5 Pro via GitHub Copilot
+  Gemini2_5Pro
+}
+
+///|
+pub impl Show for CopilotModels with output(
+  self : CopilotModels,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    Gpt4_1 => logger.write_string("gpt-4.1")
+    ClaudeSonnet4 => logger.write_string("claude-sonnet-4")
+    Gemini2_5Pro => logger.write_string("gemini-2.5-pro")
+  }
+}
+
+///|
+fn CopilotModels::safe_zone_tokens(self : CopilotModels) -> Int {
+  match self {
+    Gpt4_1 => 1_000_000
+    ClaudeSonnet4 => 200_000
+    Gemini2_5Pro => 1_000_000
+  }
+}
+
+///|
+pub fn copilot_model(
+  copilot_token~ : String,
+  github_token~ : String,
+  name? : CopilotModels = Gpt4_1,
+) -> Model {
+  Model::new(
+    api_key=copilot_token,
+    base_url="https://api.githubcopilot.com",
+    name=name.to_string(),
+    model_name=name.to_string(),
+    model_type=SaaS(Copilot),
+    safe_zone_tokens=name.safe_zone_tokens(),
+    refresh_token=github_token, // Store github_token as refresh_token for refreshing
   )
 }

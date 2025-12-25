@@ -80,6 +80,9 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   if name is Some(model_name) && model_name.has_prefix("codex/") {
     return self.load_codex_model(model_name, allow_auto_login=true)
   }
+  if name is Some(model_name) && model_name.has_prefix("copilot/") {
+    return self.load_copilot_model(model_name, allow_auto_login=true)
+  }
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -106,8 +109,12 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
     is Some(model) {
     return Some(model)
   }
+  if self.load_copilot_model("copilot/gpt-4.1", allow_auto_login=false)
+    is Some(model) {
+    return Some(model)
+  }
   println(
-    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ model to authenticate via OAuth.",
+    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ or copilot/ model to authenticate via OAuth.",
   )
   None
 }
@@ -165,13 +172,13 @@ async fn Loader::load_codex_model(
   name : String,
   allow_auto_login~ : Bool,
 ) -> Model? {
-  let credentials = @oauth.load_credentials() catch {
+  let credentials = @codex.load_credentials() catch {
     _ => {
       if not(allow_auto_login) {
         return None
       }
       println("[INFO] Codex OAuth credentials not found, starting login...")
-      @oauth.start_oauth_flow() catch {
+      @codex.start_oauth_flow() catch {
         err => {
           println("[ERROR] OAuth login failed: \{err}")
           return None
@@ -193,6 +200,44 @@ async fn Loader::load_codex_model(
     refresh_token=credentials.refreshToken,
     id_token=credentials.idToken,
     name=codex_model,
+  )
+  Some(model)
+}
+
+///|
+async fn Loader::load_copilot_model(
+  _self : Loader,
+  name : String,
+  allow_auto_login~ : Bool,
+) -> Model? {
+  let credentials = @copilot.get_valid_credentials() catch {
+    _ => {
+      if not(allow_auto_login) {
+        return None
+      }
+      println("[INFO] Copilot credentials not found, starting login...")
+      @copilot.start_oauth_flow() catch {
+        err => {
+          println("[ERROR] Copilot OAuth login failed: \{err}")
+          return None
+        }
+      }
+    }
+  }
+  let selected_model : CopilotModels = match name {
+    "copilot/gpt-4.1" => Gpt4_1
+    "copilot/claude-sonnet-4" => ClaudeSonnet4
+    "copilot/gemini-2.5-pro" => Gemini2_5Pro
+    _ => {
+      println("[WARN] Unknown Copilot model '\{name}', using gpt-4.1")
+      Gpt4_1
+    }
+  }
+  println("[INFO] Using Copilot model '\{selected_model}'")
+  let model = copilot_model(
+    copilot_token=credentials.copilot_token,
+    github_token=credentials.github_token,
+    name=selected_model,
   )
   Some(model)
 }

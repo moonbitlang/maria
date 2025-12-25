@@ -26,6 +26,7 @@ pub async fn chat(
   // Dispatch based on model type
   match model.model_type {
     SaaS(CodexOAuth) => chat_codex(model~, request, logger~)
+    SaaS(Copilot) => chat_copilot(model~, request, logger~)
     _ => chat_openai(model~, request, logger~, extra_body~)
   }
 }
@@ -109,7 +110,7 @@ async fn chat_codex(
     (Some(at), Some(aid)) => (at, aid)
     _ =>
       try {
-        let creds = @oauth.load_credentials()
+        let creds = @codex.load_credentials()
         (creds.accessToken, creds.accountId)
       } catch {
         _ =>
@@ -135,9 +136,9 @@ async fn chat_codex(
         "request": request,
       })
       let input = convert_messages_to_input(request.messages)
-      let instructions = @oauth.base_instructions
+      let instructions = @codex.base_instructions
       let tools = convert_tools_to_responses_api(request.tools)
-      let codex_request = @oauth.ResponsesRequest::new(
+      let codex_request = @codex.ResponsesRequest::new(
         model=model.model_name,
         input~,
         instructions~,
@@ -153,7 +154,7 @@ async fn chat_codex(
         HttpError(code=401, ..) as err if not(has_refreshed.val) => {
           logger.info("Received 401, attempting to refresh token")
           try {
-            let refreshed = @oauth.refresh_and_save_credentials()
+            let refreshed = @codex.refresh_and_save_credentials()
             current_access_token.val = refreshed.accessToken
             current_account_id.val = refreshed.accountId
             has_refreshed.val = true
@@ -184,6 +185,102 @@ async fn chat_codex(
 }
 
 ///|
+/// Execute a chat completion request using GitHub Copilot API.
+async fn chat_copilot(
+  model~ : @model.Model,
+  request : Request,
+  logger~ : @pino.Logger,
+) -> ChatCompletion {
+  // Get valid credentials (auto-refresh if needed)
+  let credentials = @copilot.get_valid_credentials() catch {
+    err =>
+      raise HttpError(
+        code=401,
+        body="Failed to get Copilot credentials: \{err}",
+      )
+  }
+  let has_refreshed = Ref::new(false)
+  let current_token = Ref::new(credentials.copilot_token)
+  @async.retry(
+    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
+    max_retry=5,
+    fatal_error=error => match error {
+      HttpError(code=403, ..) => true
+      _ => false
+    },
+    () => {
+      logger.debug("CopilotRequestSent", data={
+        "model": { "name": model.model_name, "base_url": model.base_url },
+        "request": request,
+      })
+      let url = "\{model.base_url}/chat/completions"
+      let uri = Uri::parse(url)
+      // Check if this is an agent call (has tool/assistant messages)
+      let is_agent_call = request.messages
+        .iter()
+        .any(fn(msg) {
+          match msg {
+            Tool(_) | Assistant(_) => true
+            _ => false
+          }
+        })
+      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+        "Authorization": "Bearer \{current_token.val}",
+        "Content-Type": "application/json",
+        "Connection": "close",
+        "User-Agent": "GitHubCopilotChat/0.32.4",
+        "Editor-Version": "vscode/1.105.1",
+        "Editor-Plugin-Version": "copilot-chat/0.32.4",
+        "Copilot-Integration-Id": "vscode-chat",
+        "Openai-Intent": "conversation-edits",
+        "X-Initiator": if is_agent_call {
+          "agent"
+        } else {
+          "user"
+        },
+      })
+      defer client.close()
+      let body = request.to_json()
+      let response = client.post(uri.path, body)
+      guard response.code is (200..=299) else {
+        let error_body = client.read_all().text()
+        // Try to refresh token on 401
+        if response.code == 401 && not(has_refreshed.val) {
+          logger.info("Received 401, attempting to refresh Copilot token")
+          try {
+            let refreshed = @copilot.refresh_and_save_credentials()
+            current_token.val = refreshed.copilot_token
+            has_refreshed.val = true
+            logger.info(
+              "Copilot token refreshed successfully, retrying request",
+            )
+            raise HttpError(code=response.code, body=error_body)
+          } catch {
+            refresh_err =>
+              logger.error("Failed to refresh Copilot token", data={
+                "error": refresh_err.to_string(),
+              })
+          }
+        }
+        raise HttpError(code=response.code, body=error_body)
+      }
+      if request.stream is Some(true) {
+        let reader = ChunkReader::new(client)
+        let builder = ChatCompletionBuilder::new()
+        while reader.read() is Some(chunk) {
+          builder.add_chunk(chunk)
+        }
+        builder.to_chat_completion()
+      } else {
+        let body = client.read_all().text()
+        let json = @json.parse(body)
+        @json.from_json(json)
+      }
+    },
+  )
+}
+
+///|
 fn convert_tools_to_responses_api(
   tools : Array[ChatCompletionToolParam],
 ) -> Array[Json] {
@@ -203,14 +300,14 @@ fn convert_tools_to_responses_api(
 ///|
 priv struct CodexStreamResult {
   text_chunks : Array[String]
-  output_items : Array[@oauth.ResponseItem]
+  output_items : Array[@codex.ResponseItem]
 }
 
 ///|
 async fn do_codex_stream_request(
   access_token : String,
   account_id : String,
-  request : @oauth.ResponsesRequest,
+  request : @codex.ResponsesRequest,
 ) -> CodexStreamResult raise Error {
   let client = @http.Client::new("https://chatgpt.com", headers={
     "Authorization": "Bearer \{access_token}",
@@ -239,7 +336,7 @@ async fn do_codex_stream_request(
   }
   let reader = CodexEventReader::new(client)
   let text_chunks : Array[String] = []
-  let output_items : Array[@oauth.ResponseItem] = []
+  let output_items : Array[@codex.ResponseItem] = []
   while reader.read() is Some(event) {
     match event {
       TextDelta(delta) => text_chunks.push(delta)
@@ -253,7 +350,7 @@ async fn do_codex_stream_request(
 ///|
 priv enum CodexSseEvent {
   TextDelta(String)
-  OutputItemDone(@oauth.ResponseItem)
+  OutputItemDone(@codex.ResponseItem)
   Completed
 }
 
@@ -292,7 +389,7 @@ async fn CodexEventReader::read(self : CodexEventReader) -> CodexSseEvent? {
         "response.output_item.done" =>
           if obj.get("item") is Some(item_json) {
             try {
-              let item : @oauth.ResponseItem = @json.from_json(item_json)
+              let item : @codex.ResponseItem = @json.from_json(item_json)
               return Some(OutputItemDone(item))
             } catch {
               _ => continue
@@ -327,23 +424,23 @@ fn extract_text_content(
 ///|
 fn convert_messages_to_input(
   messages : Array[ChatCompletionMessageParam],
-) -> Array[@oauth.ResponseInputItem] {
-  let result : Array[@oauth.ResponseInputItem] = []
+) -> Array[@codex.ResponseInputItem] {
+  let result : Array[@codex.ResponseInputItem] = []
   for msg in messages {
     match msg {
       System(_) => continue
       User(user_msg) => {
         let text = extract_text_content(user_msg.content)
-        result.push(@oauth.message_input(role="user", content=text))
+        result.push(@codex.message_input(role="user", content=text))
       }
       Assistant(assistant_msg) => {
         let text = extract_text_content(assistant_msg.content)
         if !text.is_empty() {
-          result.push(@oauth.message_input(role="assistant", content=text))
+          result.push(@codex.message_input(role="assistant", content=text))
         }
         for tc in assistant_msg.tool_calls {
           result.push(
-            @oauth.FunctionCall(
+            @codex.FunctionCall(
               call_id=tc.id,
               name=tc.function.name,
               arguments=tc.function.arguments.unwrap_or("{}"),
@@ -354,7 +451,7 @@ fn convert_messages_to_input(
       Tool(tool_msg) => {
         let text = extract_text_content(tool_msg.content)
         result.push(
-          @oauth.function_call_output(
+          @codex.function_call_output(
             call_id=tool_msg.tool_call_id,
             output=text,
           ),
@@ -374,7 +471,7 @@ fn codex_stream_result_to_chat_completion(
   let tool_calls : Array[ChatCompletionMessageToolCall] = []
   for item in result.output_items {
     match item {
-      @oauth.ResponseItem::Message(content=parts, ..) => {
+      @codex.ResponseItem::Message(content=parts, ..) => {
         let texts = parts.map(fn(part) { part.text })
         let text = texts
           .iter()
@@ -387,7 +484,7 @@ fn codex_stream_result_to_chat_completion(
           })
         content = Some(text)
       }
-      @oauth.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
+      @codex.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
         tool_calls.push(tool_call(id=call_id, name~, arguments~))
     }
   }

@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/oauth/copilot"
+
+import(
+  "moonbitlang/core/json"
+)
+
+// Values
+pub async fn get_valid_credentials() -> Credentials
+
+pub async fn load_credentials() -> Credentials
+
+pub async fn refresh_and_save_credentials() -> Credentials
+
+pub async fn start_oauth_flow() -> Credentials
+
+// Errors
+
+// Types and methods
+type AccessTokenResponse
+pub impl Show for AccessTokenResponse
+
+type CopilotTokenResponse
+pub impl Show for CopilotTokenResponse
+
+pub struct Credentials {
+  github_token : String
+  copilot_token : String
+  copilot_token_expires_at : Int64
+}
+pub fn Credentials::is_token_valid(Self, Int64) -> Bool
+pub impl Show for Credentials
+pub impl ToJson for Credentials
+pub impl @json.FromJson for Credentials
+
+type DeviceCodeResponse
+pub impl Show for DeviceCodeResponse
+
+// Type aliases
+
+// Traits
+
