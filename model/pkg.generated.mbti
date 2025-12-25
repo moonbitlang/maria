@@ -43,8 +43,32 @@ pub impl Show for CommonModels
 
 pub(all) enum CopilotModels {
   Gpt4_1
+  Gpt4o
+  Gpt5
+  Gpt5Mini
+  Gpt5Codex
+  Gpt5_1
+  Gpt5_1Codex
+  Gpt5_1CodexMax
+  Gpt5_1CodexMini
+  Gpt5_2
+  O3
+  O3Mini
+  O4Mini
+  Claude3_5Sonnet
+  Claude3_7Sonnet
+  Claude3_7SonnetThought
+  ClaudeHaiku4_5
+  ClaudeOpus4
+  ClaudeOpus4_5
+  ClaudeOpus41
   ClaudeSonnet4
+  ClaudeSonnet4_5
+  Gemini2_0Flash
   Gemini2_5Pro
+  Gemini3FlashPreview
+  Gemini3ProPreview
+  GrokCodeFast1
 }
 pub impl Show for CopilotModels
 
