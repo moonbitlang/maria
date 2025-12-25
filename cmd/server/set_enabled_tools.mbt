@@ -21,23 +21,12 @@ async fn Server::set_enabled_tools(
 ) -> Unit {
   let request : PostEnabledToolsRequest = @json.from_json(json) catch {
     @json.JsonDecodeError(_) as error =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid request body: \{error}",
-          "data": { "error": error, "body": json },
-        },
-      })
+      raise @httpx.JsonError::from_error(@status.BadRequest, error)
   }
   let tools = Set::new()
   for tool_name in request.0 {
     if tools.contains(tool_name) {
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Duplicate tool name in request: \{tool_name}",
-        },
-      })
+      raise @httpx.JsonError::new(@status.BadRequest, "Duplicate tool name")
     }
     tools.add(tool_name)
   }

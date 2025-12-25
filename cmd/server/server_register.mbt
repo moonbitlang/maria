@@ -24,22 +24,29 @@ async fn RegisterInfo::register(
     req.to_json(),
   )
   guard r.code is (200..=299) else {
-    raise json_error(500, "InternalServerError", {
-      "error": {
+    raise @httpx.JsonError::new(
+      @status.InternalServerError,
+      "Failed to register server with daemon",
+      data={
         "code": r.code,
-        "message": r.reason,
-        "metadata": { "body": b.text() },
+        "reason": r.reason,
+        "body": b.text() catch {
+          _ => b.binary()
+        },
       },
-    })
+    )
   }
   @json.from_json(b.json()) catch {
     error =>
-      raise json_error(500, "InternalServerError", {
-        "error": {
-          "code": -1,
-          "message": "Failed to parse registration response: \{error}",
-          "metadata": { "body": b.text() },
+      raise @httpx.JsonError::new(
+        @status.InternalServerError,
+        "Failed to parse registration response: \{error}",
+        data={
+          "error": error.to_json(),
+          "body": b.text() catch {
+            _ => b.binary()
+          },
         },
-      })
+      )
   }
 }
