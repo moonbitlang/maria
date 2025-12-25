@@ -64,7 +64,7 @@ pub async fn ChatCompletionService::create(
     top_p,
     debug,
   }
-  let (r, b) = self.client.request("/chat/completions", request.to_json())
+  let (r, b) = self.client.post("/chat/completions", request.to_json())
   match r.code {
     200 => @json.from_json(b)
     400 => raise ChatCompletionError::BadRequest(@json.from_json(b))
