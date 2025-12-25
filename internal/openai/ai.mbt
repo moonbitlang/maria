@@ -509,24 +509,30 @@ fn codex_stream_result_to_chat_completion(
 }
 
 ///|
-priv struct ChunkReader(&@io.Reader)
+struct ChunkReader {
+  reader : &@io.Reader
+  mut closed : Bool
+}
 
 ///|
 fn ChunkReader::new(reader : &@io.Reader) -> ChunkReader {
-  ChunkReader(reader)
+  ChunkReader::{ reader, closed: false }
 }
 
 ///|
 async fn ChunkReader::read(self : ChunkReader) -> ChatCompletionChunk? {
-  for {
-    guard self.0.read_until("\n") is Some(line) else { return None }
+  while !self.closed {
+    guard self.reader.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
     if rest.trim() == "[DONE]" {
+      self.closed = true
       return None
     }
     let json = @json.parse(rest)
     let chunk : ChatCompletionChunk = @json.from_json(json)
     return Some(chunk)
+  } else {
+    return None
   }
 }
 
