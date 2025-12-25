@@ -6,7 +6,7 @@ async test "chat.completion.create" (t : @test.Test) {
     )
     let response = openrouter.chat.completion.create(
       model="anthropic/claude-haiku-4.5",
-      messages=[@openrouter.Message::new_user("Hello!")],
+      messages=[@message.Message::new_user("Hello!")],
     )
     guard response.choices is [choice, ..] else {
       fail("expected at least one choice")
@@ -23,7 +23,7 @@ async test "chat.completion.create/provider" (t : @test.Test) {
     )
     let response = openrouter.chat.completion.create(
       model="anthropic/claude-haiku-4.5",
-      messages=[@openrouter.Message::new_user("Hello!")],
+      messages=[@message.Message::new_user("Hello!")],
       provider=@openrouter.ChatGenerationParamsProvider::new(only=[
         @provider.AmazonBedrock,
         @provider.Anthropic,
@@ -45,7 +45,7 @@ async test "chat.completion.create/plugins" (t : @test.Test) {
     let response = openrouter.chat.completion.create(
       model="anthropic/claude-haiku-4.5",
       messages=[
-        @openrouter.Message::new_user("What's the weather like in New York?"),
+        @message.Message::new_user("What's the weather like in New York?"),
       ],
       plugins=[
         @openrouter.ChatGenerationParamsPlugin::new_web(
@@ -69,7 +69,7 @@ async test "chat.completion.create/bad-request" (t : @test.Test) {
     )
     let response = try? openrouter.chat.completion.create(
       model="nonexistent-model",
-      messages=[@openrouter.Message::new_user("Hello!")],
+      messages=[@message.Message::new_user("Hello!")],
     )
     guard response is Err(_) else { fail("expected error response") }
   })
@@ -81,7 +81,7 @@ async test "chat.completion.create/missing-api-key" (t : @test.Test) {
     let openrouter = @openrouter.OpenRouter::new(api_key="")
     let response = try? openrouter.chat.completion.create(
       model="anthropic/claude-haiku-4.5",
-      messages=[@openrouter.Message::new_user("Hello!")],
+      messages=[@message.Message::new_user("Hello!")],
     )
     guard response is Err(_) else { fail("expected error response") }
   })

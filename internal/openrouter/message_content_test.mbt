@@ -4,6 +4,6 @@ test "MessageContent/roundtrip" {
     "Hello, world!",
     [{ "type": "text", "text": "Item 1" }, { "type": "text", "text": "Item 2" }],
   ]
-  let converted : Array[@openrouter.MessageContent] = from_json_array(original)
+  let converted : Array[@message.MessageContent] = from_json_array(original)
   assert_eq(to_json_array(converted), original)
 }

@@ -2,7 +2,7 @@
 pub struct ChatResponseChoice {
   finish_reason : ChatCompletionFinishReason?
   index : Int
-  message : AssistantMessage
+  message : @message.AssistantMessage
   logprobs : ChatMessageTokenLogprobs?
 }
 
@@ -43,7 +43,7 @@ pub impl @json.FromJson for ChatResponseChoice with from_json(
         @json.from_json(finish_reason_json, path=path.add_key("finish_reason")),
       )
   }
-  let message : AssistantMessage = match object.get("message") {
+  let message : @message.AssistantMessage = match object.get("message") {
     Some(message_json) =>
       @json.from_json(message_json, path=path.add_key("message"))
     None =>

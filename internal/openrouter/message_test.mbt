@@ -25,6 +25,6 @@ test "Message/roundtrip" {
       ],
     },
   ]
-  let converted : Array[@openrouter.Message] = from_json_array(original)
+  let converted : Array[@message.Message] = from_json_array(original)
   assert_eq(to_json_array(converted), original)
 }

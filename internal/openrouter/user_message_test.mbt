@@ -10,6 +10,6 @@ test "UserMessage/roundtrip" {
       "content": [{ "type": "text", "text": "Item 1" }],
     },
   ]
-  let converted : Array[@openrouter.UserMessage] = from_json_array(original)
+  let converted : Array[@message.UserMessage] = from_json_array(original)
   assert_eq(to_json_array(converted), original)
 }

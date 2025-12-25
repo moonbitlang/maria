@@ -5,7 +5,7 @@ struct ChatGenerationParams {
   route : ChatGenerationParamsRoute?
   user : String?
   session_id : String?
-  messages : Array[Message]
+  messages : Array[@message.Message]
   model : String?
   models : Array[String]?
   frequency_penalty : Float?
@@ -116,7 +116,7 @@ pub impl @json.FromJson for ChatGenerationParams with from_json(
   guard json is Object(object) else {
     raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
   }
-  let messages : Array[Message] = match object.get("messages") {
+  let messages : Array[@message.Message] = match object.get("messages") {
     Some(v) => @json.from_json(v, path=path.add_key("messages"))
     None =>
       raise @json.JsonDecodeError(
