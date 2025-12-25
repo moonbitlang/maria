@@ -8,17 +8,6 @@ pub struct Maria {
 }
 
 ///|
-/// Check if the model supports apply_patch tool.
-/// Only GPT 5.1+ models support this tool.
-fn supports_apply_patch(model : @model.Model) -> Bool {
-  let name = model.model_name.to_lower()
-  if name.contains("gpt-5.1") || name.contains("gpt-5.2") {
-    return true
-  }
-  false
-}
-
-///|
 /// Creates a new Maria agent instance.
 ///
 /// Parameters:
@@ -68,7 +57,7 @@ pub async fn Maria::new(
   ])
   agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
   // GPT 5.1+ uses apply_patch only, other models use meta_write_to_file
-  if supports_apply_patch(model) {
+  if model.supports_apply_patch {
     agent.add_tool(@apply_patch.new(agent.cwd))
   } else {
     agent.add_tool(@meta_write_to_file.new(agent))

@@ -8,6 +8,7 @@ pub struct Model {
   base_url : String
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
+  supports_apply_patch : Bool
   // OAuth credentials for CodexOAuth provider
   access_token : String?
   account_id : String?
@@ -58,6 +59,10 @@ pub fn Model::new(
   refresh_token? : String,
   id_token? : String,
 ) -> Model {
+  // Auto-detect apply_patch support based on model name
+  let name_lower = model_name.to_lower()
+  let supports_apply_patch = name_lower.contains("gpt-5.1") ||
+    name_lower.contains("gpt-5.2")
   {
     api_key,
     base_url,
@@ -67,6 +72,7 @@ pub fn Model::new(
     model_name,
     model_type,
     supports_anthropic_prompt_caching,
+    supports_apply_patch,
     access_token,
     account_id,
     refresh_token,

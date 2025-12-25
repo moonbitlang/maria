@@ -86,6 +86,7 @@ pub struct Model {
   base_url : String
   safe_zone_tokens : Int
   supports_anthropic_prompt_caching : Bool
+  supports_apply_patch : Bool
   access_token : String?
   account_id : String?
   refresh_token : String?
