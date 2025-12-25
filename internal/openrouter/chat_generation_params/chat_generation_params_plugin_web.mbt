@@ -61,10 +61,5 @@ pub impl @json.FromJson for ChatGenerationParamsPluginWeb with from_json(
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("engine")))
   }
-  ChatGenerationParamsPluginWeb::{
-    enabled,
-    max_results,
-    search_prompt,
-    engine,
-  }
+  ChatGenerationParamsPluginWeb::{ enabled, max_results, search_prompt, engine }
 }

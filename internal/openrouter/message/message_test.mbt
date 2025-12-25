@@ -25,6 +25,8 @@ test "Message/roundtrip" {
       ],
     },
   ]
-  let converted : Array[@message.Message] = @test_utils.from_json_array(original)
+  let converted : Array[@message.Message] = @test_utils.from_json_array(
+    original,
+  )
   assert_eq(@test_utils.to_json_array(converted), original)
 }
