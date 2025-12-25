@@ -1,5 +1,5 @@
 ///|
-enum ChatGenerationParamsPdfEngine {
+pub(all) enum ChatGenerationParamsPdfEngine {
   MistralOcr
   PdfText
   Native
