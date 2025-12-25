@@ -223,7 +223,13 @@ fn parse_path_abempty(source : StringView, uri : Uri) -> StringView {
       uri.fragment = Some(k)
       return k
     }
-    [] as s => return s
+    [] as s => {
+      let part = path.slice_until(s)
+      if !part.is_empty() {
+        uri.path.push(part)
+      }
+      return s
+    }
     [_, .. s] => continue s
   }
 }
@@ -305,4 +311,27 @@ test {
   assert_eq(uri.path, ["path", "to", "resource"])
   assert_eq(uri.query, Some("query=parameter"))
   assert_eq(uri.fragment, Some("fragment"))
+}
+
+///|
+test {
+  let uri = Uri::{
+    scheme: "",
+    authority: None,
+    path: [],
+    query: None,
+    fragment: None,
+  }
+  inspect(
+    parse_uri(uri, "http://username:password@example.com:8443/path/to/resource"),
+    content="",
+  )
+  assert_eq(uri.scheme, "http")
+  let authority = uri.authority.unwrap_or_error(Failure("Missing authority"))
+  assert_eq(authority.userinfo, Some("username:password"))
+  assert_eq(authority.host, "example.com")
+  assert_eq(authority.port, Some(8443))
+  assert_eq(uri.path, ["path", "to", "resource"])
+  assert_eq(uri.query, None)
+  assert_eq(uri.fragment, None)
 }
