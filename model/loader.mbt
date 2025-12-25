@@ -80,6 +80,9 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   if name is Some(model_name) && model_name.has_prefix("codex/") {
     return self.load_codex_model(model_name, allow_auto_login=true)
   }
+  if name is Some(model_name) && model_name.has_prefix("copilot/") {
+    return self.load_copilot_model(model_name, allow_auto_login=true)
+  }
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -106,8 +109,15 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
     is Some(model) {
     return Some(model)
   }
+  if self.load_copilot_model(
+      "copilot/claude-sonnet-4.5",
+      allow_auto_login=false,
+    )
+    is Some(model) {
+    return Some(model)
+  }
   println(
-    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ model to authenticate via OAuth.",
+    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ or copilot/ model to authenticate via OAuth.",
   )
   None
 }
@@ -165,13 +175,13 @@ async fn Loader::load_codex_model(
   name : String,
   allow_auto_login~ : Bool,
 ) -> Model? {
-  let credentials = @oauth.load_credentials() catch {
+  let credentials = @codex.load_credentials() catch {
     _ => {
       if not(allow_auto_login) {
         return None
       }
       println("[INFO] Codex OAuth credentials not found, starting login...")
-      @oauth.start_oauth_flow() catch {
+      @codex.start_oauth_flow() catch {
         err => {
           println("[ERROR] OAuth login failed: \{err}")
           return None
@@ -180,10 +190,10 @@ async fn Loader::load_codex_model(
     }
   }
   let codex_model = match name {
-    "codex/gpt-5.2" => Gpt5_2
+    "codex/gpt-5.2" => CodexModels::Gpt5_2
     _ => {
       println("[WARN] Unknown Codex model '\{name}', using gpt-5.2")
-      Gpt5_2
+      CodexModels::Gpt5_2
     }
   }
   println("[INFO] Using Codex OAuth model '\{codex_model}'")
@@ -193,6 +203,72 @@ async fn Loader::load_codex_model(
     refresh_token=credentials.refreshToken,
     id_token=credentials.idToken,
     name=codex_model,
+  )
+  Some(model)
+}
+
+///|
+async fn Loader::load_copilot_model(
+  _self : Loader,
+  name : String,
+  allow_auto_login~ : Bool,
+) -> Model? {
+  let credentials = @copilot.get_valid_credentials() catch {
+    _ => {
+      if not(allow_auto_login) {
+        return None
+      }
+      println("[INFO] Copilot credentials not found, starting login...")
+      @copilot.start_oauth_flow() catch {
+        err => {
+          println("[ERROR] Copilot OAuth login failed: \{err}")
+          return None
+        }
+      }
+    }
+  }
+  let selected_model : CopilotModels = match name {
+    // OpenAI models
+    "copilot/gpt-4.1" => Gpt4_1
+    "copilot/gpt-4o" => Gpt4o
+    "copilot/gpt-5" => Gpt5
+    "copilot/gpt-5-mini" => Gpt5Mini
+    "copilot/gpt-5-codex" => Gpt5Codex
+    "copilot/gpt-5.1" => Gpt5_1
+    "copilot/gpt-5.1-codex" => Gpt5_1Codex
+    "copilot/gpt-5.1-codex-max" => Gpt5_1CodexMax
+    "copilot/gpt-5.1-codex-mini" => Gpt5_1CodexMini
+    "copilot/gpt-5.2" => Gpt5_2
+    "copilot/o3" => O3
+    "copilot/o3-mini" => O3Mini
+    "copilot/o4-mini" => O4Mini
+    // Anthropic models
+    "copilot/claude-3.5-sonnet" => Claude3_5Sonnet
+    "copilot/claude-3.7-sonnet" => Claude3_7Sonnet
+    "copilot/claude-3.7-sonnet-thought" => Claude3_7SonnetThought
+    "copilot/claude-haiku-4.5" => ClaudeHaiku4_5
+    "copilot/claude-opus-4" => ClaudeOpus4
+    "copilot/claude-opus-4.5" => ClaudeOpus4_5
+    "copilot/claude-opus-41" => ClaudeOpus41
+    "copilot/claude-sonnet-4" => ClaudeSonnet4
+    "copilot/claude-sonnet-4.5" => ClaudeSonnet4_5
+    // Google models
+    "copilot/gemini-2.0-flash-001" => Gemini2_0Flash
+    "copilot/gemini-2.5-pro" => Gemini2_5Pro
+    "copilot/gemini-3-flash-preview" => Gemini3FlashPreview
+    "copilot/gemini-3-pro-preview" => Gemini3ProPreview
+    // xAI models
+    "copilot/grok-code-fast-1" => GrokCodeFast1
+    _ => {
+      println("[WARN] Unknown Copilot model '\{name}', using gpt-4.1")
+      Gpt4_1
+    }
+  }
+  println("[INFO] Using Copilot model '\{selected_model}'")
+  let model = copilot_model(
+    copilot_token=credentials.copilot_token,
+    github_token=credentials.github_token,
+    name=selected_model,
   )
   Some(model)
 }

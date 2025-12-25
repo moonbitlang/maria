@@ -19,6 +19,7 @@ pub struct Model {
 pub(all) enum Provider {
   OpenAI
   CodexOAuth
+  Copilot
 } derive(Eq, Show)
 
 ///|
@@ -239,5 +240,153 @@ pub fn codex_oauth_model(
     account_id~,
     refresh_token~,
     id_token?,
+  )
+}
+
+///|
+pub(all) enum CopilotModels {
+  // OpenAI models
+  /// GPT-4.1 via GitHub Copilot
+  Gpt4_1
+  /// GPT-4o via GitHub Copilot
+  Gpt4o
+  /// GPT-5 via GitHub Copilot
+  Gpt5
+  /// GPT-5 mini via GitHub Copilot
+  Gpt5Mini
+  /// GPT-5-Codex via GitHub Copilot
+  Gpt5Codex
+  /// GPT-5.1 via GitHub Copilot
+  Gpt5_1
+  /// GPT-5.1 Codex via GitHub Copilot
+  Gpt5_1Codex
+  /// GPT-5.1 Codex Max via GitHub Copilot
+  Gpt5_1CodexMax
+  /// GPT-5.1 Codex Mini via GitHub Copilot
+  Gpt5_1CodexMini
+  /// GPT-5.2 via GitHub Copilot
+  Gpt5_2
+  /// o3 via GitHub Copilot
+  O3
+  /// o3-mini via GitHub Copilot
+  O3Mini
+  /// o4-mini via GitHub Copilot
+  O4Mini
+  // Anthropic models
+  /// Claude 3.5 Sonnet via GitHub Copilot
+  Claude3_5Sonnet
+  /// Claude 3.7 Sonnet via GitHub Copilot
+  Claude3_7Sonnet
+  /// Claude 3.7 Sonnet Thought via GitHub Copilot
+  Claude3_7SonnetThought
+  /// Claude Haiku 4.5 via GitHub Copilot
+  ClaudeHaiku4_5
+  /// Claude Opus 4 via GitHub Copilot
+  ClaudeOpus4
+  /// Claude Opus 4.5 via GitHub Copilot
+  ClaudeOpus4_5
+  /// Claude Opus 41 via GitHub Copilot
+  ClaudeOpus41
+  /// Claude Sonnet 4 via GitHub Copilot
+  ClaudeSonnet4
+  /// Claude Sonnet 4.5 via GitHub Copilot
+  ClaudeSonnet4_5
+  // Google models
+  /// Gemini 2.0 Flash via GitHub Copilot
+  Gemini2_0Flash
+  /// Gemini 2.5 Pro via GitHub Copilot
+  Gemini2_5Pro
+  /// Gemini 3 Flash Preview via GitHub Copilot
+  Gemini3FlashPreview
+  /// Gemini 3 Pro Preview via GitHub Copilot
+  Gemini3ProPreview
+  // xAI models
+  /// Grok Code Fast 1 via GitHub Copilot
+  GrokCodeFast1
+}
+
+///|
+pub impl Show for CopilotModels with output(
+  self : CopilotModels,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    Gpt4_1 => logger.write_string("gpt-4.1")
+    Gpt4o => logger.write_string("gpt-4o")
+    Gpt5 => logger.write_string("gpt-5")
+    Gpt5Mini => logger.write_string("gpt-5-mini")
+    Gpt5Codex => logger.write_string("gpt-5-codex")
+    Gpt5_1 => logger.write_string("gpt-5.1")
+    Gpt5_1Codex => logger.write_string("gpt-5.1-codex")
+    Gpt5_1CodexMax => logger.write_string("gpt-5.1-codex-max")
+    Gpt5_1CodexMini => logger.write_string("gpt-5.1-codex-mini")
+    Gpt5_2 => logger.write_string("gpt-5.2")
+    O3 => logger.write_string("o3")
+    O3Mini => logger.write_string("o3-mini")
+    O4Mini => logger.write_string("o4-mini")
+    Claude3_5Sonnet => logger.write_string("claude-3.5-sonnet")
+    Claude3_7Sonnet => logger.write_string("claude-3.7-sonnet")
+    Claude3_7SonnetThought => logger.write_string("claude-3.7-sonnet-thought")
+    ClaudeHaiku4_5 => logger.write_string("claude-haiku-4.5")
+    ClaudeOpus4 => logger.write_string("claude-opus-4")
+    ClaudeOpus4_5 => logger.write_string("claude-opus-4.5")
+    ClaudeOpus41 => logger.write_string("claude-opus-41")
+    ClaudeSonnet4 => logger.write_string("claude-sonnet-4")
+    ClaudeSonnet4_5 => logger.write_string("claude-sonnet-4.5")
+    Gemini2_0Flash => logger.write_string("gemini-2.0-flash-001")
+    Gemini2_5Pro => logger.write_string("gemini-2.5-pro")
+    Gemini3FlashPreview => logger.write_string("gemini-3-flash-preview")
+    Gemini3ProPreview => logger.write_string("gemini-3-pro-preview")
+    GrokCodeFast1 => logger.write_string("grok-code-fast-1")
+  }
+}
+
+///|
+fn CopilotModels::safe_zone_tokens(self : CopilotModels) -> Int {
+  match self {
+    Gpt4_1 => 1_000_000
+    Gpt4o => 128_000
+    Gpt5 => 400_000
+    Gpt5Mini => 400_000
+    Gpt5Codex => 400_000
+    Gpt5_1 => 400_000
+    Gpt5_1Codex => 400_000
+    Gpt5_1CodexMax => 400_000
+    Gpt5_1CodexMini => 400_000
+    Gpt5_2 => 400_000
+    O3 => 200_000
+    O3Mini => 200_000
+    O4Mini => 200_000
+    Claude3_5Sonnet => 200_000
+    Claude3_7Sonnet => 200_000
+    Claude3_7SonnetThought => 200_000
+    ClaudeHaiku4_5 => 200_000
+    ClaudeOpus4 => 200_000
+    ClaudeOpus4_5 => 200_000
+    ClaudeOpus41 => 200_000
+    ClaudeSonnet4 => 200_000
+    ClaudeSonnet4_5 => 200_000
+    Gemini2_0Flash => 1_000_000
+    Gemini2_5Pro => 1_000_000
+    Gemini3FlashPreview => 1_000_000
+    Gemini3ProPreview => 1_000_000
+    GrokCodeFast1 => 256_000
+  }
+}
+
+///|
+pub fn copilot_model(
+  copilot_token~ : String,
+  github_token~ : String,
+  name? : CopilotModels = Gpt4_1,
+) -> Model {
+  Model::new(
+    api_key=copilot_token,
+    base_url="https://api.githubcopilot.com",
+    name=name.to_string(),
+    model_name=name.to_string(),
+    model_type=SaaS(Copilot),
+    safe_zone_tokens=name.safe_zone_tokens(),
+    refresh_token=github_token, // Store github_token as refresh_token for refreshing
   )
 }

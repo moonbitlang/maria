@@ -213,8 +213,10 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
     }
     None => None
   }
-  guard json.get("index") is Some(Number(index, ..)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'index' field"))
+  // index is optional (Copilot API may not return it), default to 0
+  let index = match json.get("index") {
+    Some(Number(index, ..)) => index.to_int()
+    _ => 0
   }
   guard json.get("message") is Some(message) else {
     raise @json.JsonDecodeError((json_path, "Missing 'message' field"))
@@ -223,7 +225,7 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
     message,
     path=json_path.add_key("message"),
   )
-  ChatCompletionChoice::{ finish_reason, index: index.to_int(), message }
+  ChatCompletionChoice::{ finish_reason, index, message }
 }
 
 ///|
@@ -522,8 +524,10 @@ pub impl @json.FromJson for ChatCompletion with from_json(
     choices,
     path=json_path.add_key("choices"),
   )
-  guard json.get("created") is Some(Number(created, ..)) else {
-    raise @json.JsonDecodeError((json_path, "Missing 'created' field"))
+  // created is optional for Copilot API compatibility
+  let created = match json.get("created") {
+    Some(Number(created, ..)) => created.to_int()
+    _ => 0
   }
   guard json.get("model") is Some(String(model)) else {
     raise @json.JsonDecodeError((json_path, "Missing 'model' field"))
@@ -562,7 +566,7 @@ pub impl @json.FromJson for ChatCompletion with from_json(
   ChatCompletion::{
     id,
     choices,
-    created: created.to_int(),
+    created,
     model,
     usage,
     system_fingerprint,

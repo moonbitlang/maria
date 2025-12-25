@@ -47,6 +47,7 @@ pub impl @json.FromJson for Model with from_json(
       match model_type {
         SaaS(OpenAI) => "https://api.openai.com/v1"
         SaaS(CodexOAuth) => "https://chatgpt.com/backend-api"
+        SaaS(Copilot) => "https://api.githubcopilot.com"
       }
     }
     @json.from_json(base_url, path=json_path.add_key("base_url"))
@@ -126,6 +127,7 @@ pub impl @json.FromJson for Type with from_json(
   match json {
     "saas/openai" => Type::SaaS(Provider::OpenAI)
     "saas/codex_oauth" => Type::SaaS(Provider::CodexOAuth)
+    "saas/copilot" => Type::SaaS(Provider::Copilot)
     [.. "saas/", .. provider] =>
       raise @json.JsonDecodeError(
         (
@@ -148,5 +150,6 @@ pub impl ToJson for Type with to_json(self) {
   match self {
     SaaS(OpenAI) => "saas/openai"
     SaaS(CodexOAuth) => "saas/codex_oauth"
+    SaaS(Copilot) => "saas/copilot"
   }
 }
