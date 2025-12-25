@@ -2,7 +2,7 @@
 pub struct AssistantMessage {
   content : AssistantMessageContent
   name : String?
-  tool_calls : Array[ChatMessageToolCall]?
+  tool_calls : Array[@chat_message.ChatMessageToolCall]?
   refusal : String?
   reasoning : String?
 }
@@ -11,7 +11,7 @@ pub struct AssistantMessage {
 pub fn AssistantMessage::new(
   content : AssistantMessageContent,
   name? : String,
-  tool_calls? : Array[ChatMessageToolCall],
+  tool_calls? : Array[@chat_message.ChatMessageToolCall],
   refusal? : String,
   reasoning? : String,
 ) -> AssistantMessage {
@@ -59,7 +59,7 @@ pub impl @json.FromJson for AssistantMessage with from_json(
     Some(name_json) =>
       Some(@json.from_json(name_json, path=path.add_key("name")))
   }
-  let tool_calls : Array[ChatMessageToolCall]? = match
+  let tool_calls : Array[@chat_message.ChatMessageToolCall]? = match
     object.get("tool_calls") {
     None | Some(Null) => None
     Some(tool_calls_json) =>

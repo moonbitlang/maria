@@ -24,7 +24,7 @@ async test "chat.completion.create/provider" (t : @test.Test) {
     let response = openrouter.chat.completion.create(
       model="anthropic/claude-haiku-4.5",
       messages=[@message.Message::new_user("Hello!")],
-      provider=@openrouter.ChatGenerationParamsProvider::new(only=[
+      provider=@chat_generation_params.ChatGenerationParamsProvider::new(only=[
         @provider.AmazonBedrock,
         @provider.Anthropic,
       ]),
@@ -48,7 +48,7 @@ async test "chat.completion.create/plugins" (t : @test.Test) {
         @message.Message::new_user("What's the weather like in New York?"),
       ],
       plugins=[
-        @openrouter.ChatGenerationParamsPlugin::new_web(
+        @chat_generation_params.ChatGenerationParamsPlugin::new_web(
           enabled=true,
           max_results=3,
         ),

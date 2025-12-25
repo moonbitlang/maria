@@ -1,0 +1,5 @@
+{
+  "test-import": [
+    "moonbitlang/maria/internal/openrouter/internal/test_utils"
+  ]
+}

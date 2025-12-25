@@ -1,7 +1,7 @@
 ///|
 enum UserMessageContent {
   Text(String)
-  Items(Array[ChatMessageContentItem])
+  Items(Array[@chat_message.ChatMessageContentItem])
 }
 
 ///|
@@ -17,8 +17,8 @@ pub impl ToUserMessageContent for String with to_user_message_content(
 }
 
 ///|
-pub impl ToUserMessageContent for Array[ChatMessageContentItem] with to_user_message_content(
-  self : Array[ChatMessageContentItem],
+pub impl ToUserMessageContent for Array[@chat_message.ChatMessageContentItem] with to_user_message_content(
+  self : Array[@chat_message.ChatMessageContentItem],
 ) -> UserMessageContent {
   UserMessageContent::Items(self)
 }
@@ -39,7 +39,7 @@ pub impl @json.FromJson for UserMessageContent with from_json(
   match json {
     String(text) => UserMessageContent::Text(text)
     Array(_) as items_json => {
-      let items : Array[ChatMessageContentItem] = @json.from_json(
+      let items : Array[@chat_message.ChatMessageContentItem] = @json.from_json(
         items_json,
         path=json_path,
       )
