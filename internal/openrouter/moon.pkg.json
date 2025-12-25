@@ -1,5 +1,9 @@
 {
-  "import": ["moonbitlang/async/http", "moonbitlang/async/io"],
+  "import": [
+    "moonbitlang/async/http",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/internal/openrouter/message"
+  ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
     "moonbitlang/async",

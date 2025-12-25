@@ -9,7 +9,8 @@ This document describes the conventions and patterns used in the `internal/openr
 - Each type is defined in its own file, named with snake_case matching the type name
 - Files are organized per directory as MoonBit packages
 - Code is organized in blocks separated by `///|`, with block order being irrelevant
-- Example: `UserMessage` type is in `user_message.mbt`, `ChatMessageContentItem` is in `chat_message_content_item.mbt`
+- Example: `UserMessage` type is in `message/user_message.mbt`,
+  `ChatMessageContentItem` is in `message/chat_message_content_item.mbt`
 
 ### 2. Using `enum` for Union Types
 
@@ -277,7 +278,7 @@ pub impl @json.FromJson for Sort with from_json(
 **Pattern**: Guard object with discriminator → dispatch and delegate to the inner type.
 
 - Message union uses `role`:
-  - see `internal/openrouter/message.mbt`
+  - see `internal/openrouter/message/message.mbt`
 - Content item union uses `type`:
   - see `internal/openrouter/chat_message_content_item.mbt`
 
@@ -306,7 +307,8 @@ Used for `*Content` types.
 
 **Pattern**: `match json { String(...) => ...; Array(...) => ...; _ => error }`.
 
-See `internal/openrouter/user_message_content.mbt` and `internal/openrouter/message_content.mbt`.
+See `internal/openrouter/message/user_message_content.mbt` and
+`internal/openrouter/message/message_content.mbt`.
 
 ## Additional Guidelines
 

@@ -18,7 +18,7 @@ test "AssistantMessage/roundtrip" {
       ],
     },
   ]
-  let converted : Array[@openrouter.AssistantMessage] = from_json_array(
+  let converted : Array[@message.AssistantMessage] = from_json_array(
     original,
   )
   assert_eq(to_json_array(converted), original)
