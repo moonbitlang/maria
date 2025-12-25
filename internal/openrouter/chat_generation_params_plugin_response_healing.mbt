@@ -1,17 +1,20 @@
 ///|
-struct ChatGenerationParamsPluginResponseHealing {
-  id : String
+pub struct ChatGenerationParamsPluginResponseHealing {
   enabled : Bool?
+}
+
+///|
+pub fn ChatGenerationParamsPluginResponseHealing::new(
+  enabled? : Bool,
+) -> ChatGenerationParamsPluginResponseHealing {
+  ChatGenerationParamsPluginResponseHealing::{ enabled, }
 }
 
 ///|
 pub impl ToJson for ChatGenerationParamsPluginResponseHealing with to_json(
   self : ChatGenerationParamsPluginResponseHealing,
 ) -> Json {
-  let object : Map[String, Json] = {
-    "type": "response-healing",
-    "id": self.id.to_json(),
-  }
+  let object : Map[String, Json] = { "id": "response-healing" }
   if self.enabled is Some(enabled) {
     object["enabled"] = enabled.to_json()
   }
@@ -27,16 +30,9 @@ pub impl @json.FromJson for ChatGenerationParamsPluginResponseHealing with from_
   guard json is Object(object) else {
     raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
   }
-  let id : String = match object.get("id") {
-    Some(v) => @json.from_json(v, path=path.add_key("id"))
-    None =>
-      raise @json.JsonDecodeError(
-        (path.add_key("id"), "\{func_name}: missing field id"),
-      )
-  }
   let enabled : Bool? = match object.get("enabled") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("enabled")))
   }
-  ChatGenerationParamsPluginResponseHealing::{ id, enabled }
+  ChatGenerationParamsPluginResponseHealing::{ enabled, }
 }

@@ -1,5 +1,5 @@
 ///|
-struct ChatGenerationParamsProvider {
+pub struct ChatGenerationParamsProvider {
   allow_fallbacks : Bool?
   require_parameters : Bool?
   data_collection : ChatGenerationParamsDataCollection?
@@ -13,6 +13,39 @@ struct ChatGenerationParamsProvider {
   max_price : ChatGenerationParamsMaxPrice?
   min_throughput : Float?
   max_latency : Float?
+}
+
+///|
+pub fn ChatGenerationParamsProvider::new(
+  allow_fallbacks? : Bool,
+  require_parameters? : Bool,
+  data_collection? : ChatGenerationParamsDataCollection,
+  zdr? : Bool,
+  enforce_distillable_text? : Bool,
+  order? : Array[ProviderName],
+  only? : Array[ProviderName],
+  ignore? : Array[ProviderName],
+  quantizations? : Array[Quantizations],
+  sort? : Sort,
+  max_price? : ChatGenerationParamsMaxPrice,
+  min_throughput? : Float,
+  max_latency? : Float,
+) -> ChatGenerationParamsProvider {
+  ChatGenerationParamsProvider::{
+    allow_fallbacks,
+    require_parameters,
+    data_collection,
+    zdr,
+    enforce_distillable_text,
+    order,
+    only,
+    ignore,
+    quantizations,
+    sort,
+    max_price,
+    min_throughput,
+    max_latency,
+  }
 }
 
 ///|
