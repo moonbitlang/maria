@@ -1,7 +1,7 @@
 ///|
 pub(all) enum MessageContent {
   Text(String)
-  Items(Array[ChatMessageContentItemText])
+  Items(Array[@chat_message.ChatMessageContentItemText])
 }
 
 ///|

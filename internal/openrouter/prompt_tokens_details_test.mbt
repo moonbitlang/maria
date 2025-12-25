@@ -5,8 +5,8 @@ test "PromptTokensDetails/roundtrip" {
     { "cached_tokens": 0 },
     { "cached_tokens": 12 },
   ]
-  let converted : Array[@openrouter.PromptTokensDetails] = from_json_array(
+  let converted : Array[@openrouter.PromptTokensDetails] = @test_utils.from_json_array(
     original,
   )
-  assert_eq(to_json_array(converted), original)
+  assert_eq(@test_utils.to_json_array(converted), original)
 }

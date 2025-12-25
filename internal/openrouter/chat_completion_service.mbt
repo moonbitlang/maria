@@ -11,9 +11,9 @@ fn ChatCompletionService::new(client : Client) -> ChatCompletionService {
 ///|
 pub async fn ChatCompletionService::create(
   self : ChatCompletionService,
-  provider? : ChatGenerationParamsProvider,
-  plugins? : Array[ChatGenerationParamsPlugin],
-  route? : ChatGenerationParamsRoute,
+  provider? : @chat_generation_params.ChatGenerationParamsProvider,
+  plugins? : Array[@chat_generation_params.ChatGenerationParamsPlugin],
+  route? : @chat_generation_params.ChatGenerationParamsRoute,
   user? : String,
   session_id? : String,
   messages~ : Array[@message.Message],
@@ -27,17 +27,17 @@ pub async fn ChatCompletionService::create(
   max_tokens? : Int,
   metadata? : Map[String, String],
   presence_penalty? : Float,
-  reasoning? : Reasoning,
-  response_format? : ChatGenerationParamsResponseFormat,
+  reasoning? : @chat_generation_params.Reasoning,
+  response_format? : @chat_generation_params.ChatGenerationParamsResponseFormat,
   seed? : Int,
   stop? : Array[String],
   temperature? : Float,
   tool_choice? : Json,
-  tools? : Array[ToolDefinitionJson],
+  tools? : Array[@chat_generation_params.ToolDefinitionJson],
   top_p? : Float,
-  debug? : Debug,
+  debug? : @chat_generation_params.Debug,
 ) -> ChatResponse {
-  let request : ChatGenerationParams = ChatGenerationParams::{
+  let request : @chat_generation_params.ChatGenerationParams = @chat_generation_params.ChatGenerationParams::{
     provider,
     plugins,
     route,

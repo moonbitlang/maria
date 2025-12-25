@@ -1,7 +1,7 @@
 ///|
 enum SystemMessageContent {
   Text(String)
-  Items(Array[ChatMessageContentItemText])
+  Items(Array[@chat_message.ChatMessageContentItemText])
 }
 
 ///|

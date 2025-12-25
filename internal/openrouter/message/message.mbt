@@ -29,7 +29,7 @@ pub fn Message::new_developer(
 pub fn Message::new_assistant(
   content : AssistantMessageContent,
   name? : String,
-  tool_calls? : Array[ChatMessageToolCall],
+  tool_calls? : Array[@chat_message.ChatMessageToolCall],
   refusal? : String,
   reasoning? : String,
 ) -> Message {
