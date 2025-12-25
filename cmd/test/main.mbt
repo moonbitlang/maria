@@ -1,7 +1,7 @@
 ///|
 async fn generate(
   prompt_file~ : String,
-  log_dir~ : String,
+  log_file~ : String,
   model? : String,
   cwd~ : String,
 ) -> Unit {
@@ -16,58 +16,20 @@ async fn generate(
     return
   }
   let prompt = @fsx.read_file(prompt_file)
-  let log_file = @pathx.join(log_dir, "log.jsonl")
-  let gen_dir = @pathx.join(log_dir, "cwd")
   if @fsx.exists(log_file) {
     fail("Log file \{log_file} already exists")
-  }
-  if @fsx.exists(gen_dir) {
-    fail("Generated directory \{gen_dir} already exists")
   }
   let logger = @pino.logger(
     "maria_test",
     try! @pino.Transport::parse("file:\{log_file}"),
   )
-  @fsx.with_temporary_directory("maria-test-XXXXXXX", tmpdir => {
-    println("Running test in temporary directory: \{tmpdir}")
-    @async.with_task_group(group => {
-      group.add_defer(() => @async.protect_from_cancel(() => {
-        let result = @spawn.spawn("cp", ["-R", tmpdir, gen_dir], cwd~)
-        if result.status != 0 {
-          println(
-            "Failed to copy generated files from \{tmpdir} to \{gen_dir}, giving up",
-          )
-        }
-      }))
-      let maria = @maria.Maria::new(
-        logger~,
-        model~,
-        cwd=tmpdir,
-        user_message=prompt,
-      )
-      maria.start() catch {
-        error => {
-          logger.error("MariaFailed", data={ "error": error.to_string() })
-          raise error
-        }
-      }
-    })
-  })
-}
-
-///|
-fn @time.PlainDateTime::to_dash_t_format(time : @time.PlainDateTime) -> String {
-  fn last_two_digits(number : Int) -> String {
-    (number % 100).to_string().pad_start(2, '0')
+  let maria = @maria.Maria::new(logger~, model~, cwd~, user_message=prompt)
+  maria.start() catch {
+    error => {
+      logger.error("MariaFailed", data={ "error": error.to_string() })
+      raise error
+    }
   }
-
-  let year = last_two_digits(time.year())
-  let month = last_two_digits(time.month())
-  let day = last_two_digits(time.day())
-  let hour = last_two_digits(time.hour())
-  let minute = last_two_digits(time.minute())
-  let second = last_two_digits(time.second())
-  "\{year}-\{month}-\{day}T\{hour}-\{minute}-\{second}"
 }
 
 ///|
@@ -81,34 +43,24 @@ async fn main {
     return
   }
   let cwd = @os.cwd()
-  let prompt_files = []
-  let mut log_dir = "logs"
-  let models = []
+  let mut prompt_file = None
+  let mut log_file = "logs.jsonl"
+  let mut model = None
   loop args {
     ["--prompt-file", pf, .. args] => {
       if pf is ['-', ..] {
         println("Error: --prompt-file takes a file path")
         return
       }
-      prompt_files.push(pf)
+      prompt_file = Some(pf)
       continue args
     }
-    ["--prompt-dir", pd, .. args] => {
-      for entry in @fsx.list_directory(pd) {
-        if entry.kind is Regular {
-          prompt_files.push(entry.path)
-        }
-      }
+    ["--log-file", lf, .. args] => {
+      log_file = lf
       continue args
     }
-    ["--log-dir", ld, .. args] => {
-      log_dir = ld
-      continue args
-    }
-    ["--model" | "--models", ms, .. args] => {
-      for m in ms.split(",") {
-        models.push(m.to_string())
-      }
+    ["--model", m, .. args] => {
+      model = Some(m)
       continue args
     }
     [unknown, ..] => {
@@ -117,25 +69,13 @@ async fn main {
     }
     [] => ()
   }
-  let clock = @clock.epoch
-  let timestamp = @time.unix(clock.now().truncate_to_s())
-    .to_plain_date_time()
-    .to_dash_t_format()
-  guard prompt_files.length() > 0 else {
-    println("Error: --prompt-file/--prompt-dir is required")
+  guard prompt_file is Some(prompt_file) else {
+    println("Error: --prompt-file is required")
     return
   }
-  @async.with_task_group(group => for prompt_file in prompt_files {
-    let name = @pathx.stem(@pathx.basename(prompt_file))
-    for model in models {
-      let log_dir = log_dir
-        |> @pathx.join("\{timestamp}-\{@pathx.basename(model)}-\{name}")
-      let log_dir = @pathx.join(cwd, log_dir)
-      @fsx.make_directory(log_dir, recursive=true, exists_ok=true)
-      group.spawn_bg(
-        () => generate(prompt_file~, log_dir~, model~, cwd~),
-        allow_failure=true,
-      )
-    }
-  })
+  guard model is Some(model) else {
+    println("Error: --model is required")
+    return
+  }
+  generate(prompt_file~, log_file~, model~, cwd~)
 }
