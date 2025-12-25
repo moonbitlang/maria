@@ -86,29 +86,84 @@ pub fn extract_token_claims(token : String) -> IdTokenClaims raise Error {
 }
 
 ///|
-fn get_credentials_path() -> String {
-  let home = @os.home() catch {
+fn get_home() -> String {
+  @os.home() catch {
     err => {
       println("ERROR in @os.home(): \{err}")
       abort("Failed to get home directory")
     }
   }
-  @pathx.join(home, CREDENTIALS_FILE)
+}
+
+///|
+fn get_credentials_path() -> String {
+  @pathx.join(get_home(), CREDENTIALS_FILE)
+}
+
+///|
+fn get_codex_auth_path() -> String {
+  @pathx.join(get_home(), CODEX_AUTH_FILE)
 }
 
 ///|
 async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
+  let dir = @pathx.dirname(path)
+  @fsx.make_directory(dir, recursive=true, exists_ok=true)
   @fsx.write_to_file(path, credentials.to_json().stringify(), create=0o600)
+}
+
+///|
+async fn try_load_from_codex() -> Credentials? {
+  let codex_path = get_codex_auth_path()
+  if not(@fsx.exists_as_file(codex_path)) {
+    return None
+  }
+  try {
+    let content = @fsx.read_file(codex_path)
+    let json = @json.parse(content)
+    guard json is Object(root) else { return None }
+    guard root.get("tokens") is Some(Object(tokens)) else { return None }
+    let id_token = match tokens.get("id_token") {
+      Some(String(s)) => s
+      _ => return None
+    }
+    let access_token = match tokens.get("access_token") {
+      Some(String(s)) => s
+      _ => return None
+    }
+    let refresh_token = match tokens.get("refresh_token") {
+      Some(String(s)) => s
+      _ => return None
+    }
+    let account_id = match tokens.get("account_id") {
+      Some(String(s)) => s
+      _ => return None
+    }
+    let credentials : Credentials = {
+      idToken: id_token,
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      accountId: account_id,
+    }
+    println("[INFO] Imported credentials from codex CLI")
+    save_credentials(credentials)
+    Some(credentials)
+  } catch {
+    _ => None
+  }
 }
 
 ///|
 pub async fn load_credentials() -> Credentials raise Error {
   let path = get_credentials_path()
-  if !@fsx.exists_as_file(path) {
-    raise ParseError("Credentials file not found")
-  } else {
+  if @fsx.exists_as_file(path) {
     let content = @fsx.read_file(path)
-    @json.from_json(@json.parse(content))
+    return @json.from_json(@json.parse(content))
   }
+  // Try to import from codex CLI
+  if try_load_from_codex() is Some(credentials) {
+    return credentials
+  }
+  raise ParseError("Credentials file not found")
 }

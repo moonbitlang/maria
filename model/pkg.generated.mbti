@@ -17,9 +17,6 @@ pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
 // Types and methods
 pub(all) enum CodexModels {
   Gpt5_2
-  Gpt5_2Mini
-  O3
-  O4Mini
 }
 pub impl Show for CodexModels
 
