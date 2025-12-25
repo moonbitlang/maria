@@ -5,8 +5,8 @@ test "ChatStreamOptions/roundtrip" {
     { "include_usage": true },
     { "include_usage": false },
   ]
-  let converted : Array[@openrouter.ChatStreamOptions] = from_json_array(
+  let converted : Array[@openrouter.ChatStreamOptions] = @test_utils.from_json_array(
     original,
   )
-  assert_eq(to_json_array(converted), original)
+  assert_eq(@test_utils.to_json_array(converted), original)
 }

@@ -1,7 +1,7 @@
 ///|
 enum ToolResponseMessageContent {
   Text(String)
-  Items(Array[ChatMessageContentItem])
+  Items(Array[@chat_message.ChatMessageContentItem])
 }
 
 ///|

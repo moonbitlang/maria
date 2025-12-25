@@ -1,7 +1,7 @@
 ///|
 enum AssistantMessageContent {
   Text(String)
-  Items(Array[ChatMessageContentItem])
+  Items(Array[@chat_message.ChatMessageContentItem])
 }
 
 ///|
@@ -12,7 +12,7 @@ pub fn AssistantMessageContent::text(self : AssistantMessageContent) -> String {
       let texts = []
       for item in items {
         match item {
-          Text(text_item) => texts.push(text_item.text)
+          @chat_message.ChatMessageContentItem::Text(text_item) => texts.push(text_item.text)
         }
       }
       texts.join("")
