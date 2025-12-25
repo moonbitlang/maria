@@ -80,6 +80,17 @@ pub impl @json.FromJson for Model with from_json(
       path=json_path.add_key("supports_anthropic_prompt_caching"),
     )
   }
+  let supports_apply_patch : Bool = {
+    guard json.get("supports_apply_patch") is Some(supports_apply_patch) else {
+      // Auto-detect based on model name for GPT 5.1+
+      let name_lower = model_name.to_lower()
+      name_lower.contains("gpt-5.1") || name_lower.contains("gpt-5.2")
+    }
+    @json.from_json(
+      supports_apply_patch,
+      path=json_path.add_key("supports_apply_patch"),
+    )
+  }
   let access_token : String? = {
     guard json.get("access_token") is Some(access_token) else { None }
     Some(@json.from_json(access_token, path=json_path.add_key("access_token")))
@@ -107,6 +118,7 @@ pub impl @json.FromJson for Model with from_json(
     base_url,
     safe_zone_tokens,
     supports_anthropic_prompt_caching,
+    supports_apply_patch,
     access_token,
     account_id,
     refresh_token,

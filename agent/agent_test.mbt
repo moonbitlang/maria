@@ -508,6 +508,7 @@ async test "load-model-name" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 200000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
     @agent.new(

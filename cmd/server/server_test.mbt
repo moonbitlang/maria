@@ -494,8 +494,8 @@ async test "GET /v1/tools" (t : @test.Test) {
       "read_file": { "enabled": true },
       "todo": { "enabled": true },
       "search_files": { "enabled": true },
-      "meta_write_to_file": { "enabled": true },
       "fix_moonbit_warnings": { "enabled": false },
+      "meta_write_to_file": { "enabled": true },
     })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/enabled-tools",
@@ -512,8 +512,8 @@ async test "GET /v1/tools" (t : @test.Test) {
       "read_file": { "enabled": true },
       "todo": { "enabled": true },
       "search_files": { "enabled": true },
-      "meta_write_to_file": { "enabled": true },
       "fix_moonbit_warnings": { "enabled": false },
+      "meta_write_to_file": { "enabled": true },
     })
   })
 }

@@ -1,0 +1,65 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/tools/apply_patch"
+
+import(
+  "moonbitlang/maria/tool"
+)
+
+// Values
+pub async fn apply_hunks(ArrayView[Hunk], String) -> ApplyResult raise ApplyError
+
+pub fn new(String) -> @tool.Tool[String]
+
+pub fn parse_patch(String) -> ParsedPatch raise ParseError
+
+pub let tool_instructions : String
+
+// Errors
+pub(all) suberror ApplyError {
+  ApplyError(String)
+}
+pub impl Show for ApplyError
+
+pub(all) suberror ParseError {
+  InvalidPatch(String)
+  InvalidHunk(message~ : String, line_number~ : Int)
+}
+pub impl Show for ParseError
+
+// Types and methods
+pub struct ApplyResult {
+  added : Array[String]
+  modified : Array[String]
+  deleted : Array[String]
+}
+pub fn ApplyResult::new() -> Self
+pub fn ApplyResult::summary(Self) -> String
+pub impl Show for ApplyResult
+
+pub(all) enum Hunk {
+  AddFile(path~ : String, contents~ : String)
+  DeleteFile(path~ : String)
+  UpdateFile(path~ : String, move_path~ : String?, chunks~ : Array[UpdateFileChunk])
+}
+pub impl Eq for Hunk
+pub impl Show for Hunk
+
+pub struct ParsedPatch {
+  patch : String
+  hunks : Array[Hunk]
+}
+pub impl Show for ParsedPatch
+
+pub struct UpdateFileChunk {
+  change_context : String?
+  old_lines : Array[String]
+  new_lines : Array[String]
+  is_end_of_file : Bool
+}
+pub impl Eq for UpdateFileChunk
+pub impl Show for UpdateFileChunk
+
+// Type aliases
+
+// Traits
+

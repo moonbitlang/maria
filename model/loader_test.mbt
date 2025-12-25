@@ -24,6 +24,7 @@ async test "Loader" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 200000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
     let loader = @model.Loader::new(home=mock.cwd.path(), cwd=mock.cwd.path())
@@ -36,6 +37,7 @@ async test "Loader" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 200000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
   })
@@ -67,6 +69,7 @@ async test "load" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 200000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
     @json.inspect(
@@ -82,6 +85,7 @@ async test "load" (t : @test.Test) {
           "base_url": "https://openrouter.ai/api/v1",
           "safe_zone_tokens": 200000,
           "supports_anthropic_prompt_caching": false,
+          "supports_apply_patch": false,
         },
       ],
     )
@@ -114,6 +118,7 @@ async test "removes-old-models" (t : @test.Test) {
         "base_url": "https://old-base-url.com",
         "safe_zone_tokens": 100000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
     let new_model = @model.new(
@@ -134,6 +139,7 @@ async test "removes-old-models" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 200000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
   })
