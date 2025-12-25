@@ -5,9 +5,9 @@ struct ChatGenerationParamsProvider {
   data_collection : ChatGenerationParamsDataCollection?
   zdr : Bool?
   enforce_distillable_text : Bool?
-  order : Array[Schema0]?
-  only : Array[Schema0]?
-  ignore : Array[Schema0]?
+  order : Array[ProviderName]?
+  only : Array[ProviderName]?
+  ignore : Array[ProviderName]?
   quantizations : Array[Quantizations]?
   sort : Sort?
   max_price : ChatGenerationParamsMaxPrice?
