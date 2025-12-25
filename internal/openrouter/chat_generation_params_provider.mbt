@@ -94,15 +94,15 @@ pub impl @json.FromJson for ChatGenerationParamsProvider with from_json(
     Some(v) =>
       Some(@json.from_json(v, path=path.add_key("enforce_distillable_text")))
   }
-  let order : Array[Schema0]? = match object.get("order") {
+  let order : Array[ProviderName]? = match object.get("order") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("order")))
   }
-  let only : Array[Schema0]? = match object.get("only") {
+  let only : Array[ProviderName]? = match object.get("only") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("only")))
   }
-  let ignore : Array[Schema0]? = match object.get("ignore") {
+  let ignore : Array[ProviderName]? = match object.get("ignore") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("ignore")))
   }
