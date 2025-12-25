@@ -31,6 +31,8 @@ test "ChatResponse/roundtrip" {
       },
     },
   ]
-  let converted : Array[@openrouter.ChatResponse] = @test_utils.from_json_array(original)
+  let converted : Array[@openrouter.ChatResponse] = @test_utils.from_json_array(
+    original,
+  )
   assert_eq(@test_utils.to_json_array(converted), original)
 }

@@ -7,8 +7,8 @@ test "ChatGenerationParamsResponseFormat/roundtrip" {
     { "type": "json_schema", "json_schema": "{}" },
     { "type": "text_grammar", "grammar": "root ::= \"hi\"" },
   ]
-  let converted : Array[@chat_generation_params.ChatGenerationParamsResponseFormat] = @test_utils.from_json_array(
-    original,
-  )
+  let converted : Array[
+    @chat_generation_params.ChatGenerationParamsResponseFormat,
+  ] = @test_utils.from_json_array(original)
   assert_eq(@test_utils.to_json_array(converted), original)
 }

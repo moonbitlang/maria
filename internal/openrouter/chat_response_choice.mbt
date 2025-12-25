@@ -51,7 +51,8 @@ pub impl @json.FromJson for ChatResponseChoice with from_json(
         (path.add_key("message"), "\{func_name}: missing field message"),
       )
   }
-  let logprobs : @chat_message.ChatMessageTokenLogprobs? = match object.get("logprobs") {
+  let logprobs : @chat_message.ChatMessageTokenLogprobs? = match
+    object.get("logprobs") {
     None | Some(Null) => None
     Some(logprobs_json) =>
       Some(@json.from_json(logprobs_json, path=path.add_key("logprobs")))

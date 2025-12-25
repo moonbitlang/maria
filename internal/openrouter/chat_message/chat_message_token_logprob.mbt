@@ -51,8 +51,7 @@ pub impl @json.FromJson for ChatMessageTokenLogprob with from_json(
         (path.add_key("bytes"), "\{func_name}: missing field bytes"),
       )
   }
-  let top_logprobs : Array[TopLogprob]? = match
-    object.get("top_logprobs") {
+  let top_logprobs : Array[TopLogprob]? = match object.get("top_logprobs") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("top_logprobs")))
   }
