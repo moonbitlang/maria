@@ -4,9 +4,7 @@
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/openrouter/message",
     "moonbitlang/maria/internal/openrouter/chat_generation_params",
-    "moonbitlang/maria/internal/openrouter/chat_message",
-    "moonbitlang/maria/internal/uri",
-    "moonbitlang/async/aqueue"
+    "moonbitlang/maria/internal/openrouter/chat_message"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
