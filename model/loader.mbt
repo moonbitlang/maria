@@ -109,7 +109,10 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
     is Some(model) {
     return Some(model)
   }
-  if self.load_copilot_model("copilot/claude-sonnet-4.5", allow_auto_login=false)
+  if self.load_copilot_model(
+      "copilot/claude-sonnet-4.5",
+      allow_auto_login=false,
+    )
     is Some(model) {
     return Some(model)
   }
