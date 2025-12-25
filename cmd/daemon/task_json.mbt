@@ -99,7 +99,25 @@ pub impl @json.FromJson for Task with from_json(
         ),
       )
   }
-  Task::{ name, id, cwd, port, status, created, web_search, queued_messages }
+  let model : String = match map.get("model") {
+    Some(model_json) =>
+      @json.from_json(model_json, path=json_path.add_key("model"))
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path.add_key("model"), "Task::from_json: expected model string"),
+      )
+  }
+  Task::{
+    name,
+    id,
+    cwd,
+    port,
+    status,
+    created,
+    web_search,
+    queued_messages,
+    model,
+  }
 }
 
 ///|
@@ -118,6 +136,7 @@ pub impl ToJson for Task with to_json(self : Task) -> Json {
     "created": self.created,
     "web_search": self.web_search,
     "queued_messages": self.queued_messages,
+    "model": self.model,
   })
   Json::object(object)
 }
@@ -135,6 +154,7 @@ test "Task::ToJson" {
     ],
     created: @clock.Timestamp::from_ms(0),
     web_search: true,
+    model: "gpt-4",
   }
   assert_eq(task.to_json(), {
     "name": "example",
@@ -145,5 +165,6 @@ test "Task::ToJson" {
     "created": 0,
     "web_search": true,
     "queued_messages": [{ "id": "msg1", "message": { "text": "Hello" } }],
+    "model": "gpt-4",
   })
 }
