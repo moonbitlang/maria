@@ -362,6 +362,7 @@ async test "Event::ModelLoaded" (t : @test.Test) {
             "base_url": "https://api.example.com",
             "safe_zone_tokens": 100000,
             "supports_anthropic_prompt_caching": false,
+            "supports_apply_patch": false,
           },
         },
       },

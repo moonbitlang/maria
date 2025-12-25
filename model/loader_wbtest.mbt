@@ -101,6 +101,7 @@ async test "load" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 1000000,
         "supports_anthropic_prompt_caching": true,
+        "supports_apply_patch": false,
       },
     ])
     @json.inspect(
@@ -115,6 +116,7 @@ async test "load" (t : @test.Test) {
           "base_url": "https://openrouter.ai/api/v1",
           "safe_zone_tokens": 128000,
           "supports_anthropic_prompt_caching": true,
+          "supports_apply_patch": false,
         },
       ],
     )
@@ -128,6 +130,7 @@ async test "load" (t : @test.Test) {
         "base_url": "https://openrouter.ai/api/v1",
         "safe_zone_tokens": 256000,
         "supports_anthropic_prompt_caching": false,
+        "supports_apply_patch": false,
       },
     ])
   })
