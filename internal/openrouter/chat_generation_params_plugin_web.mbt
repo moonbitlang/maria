@@ -1,6 +1,5 @@
 ///|
-struct ChatGenerationParamsPluginWeb {
-  id : String
+pub struct ChatGenerationParamsPluginWeb {
   enabled : Bool?
   max_results : Int?
   search_prompt : String?
@@ -8,10 +7,20 @@ struct ChatGenerationParamsPluginWeb {
 }
 
 ///|
+pub fn ChatGenerationParamsPluginWeb::new(
+  enabled? : Bool,
+  max_results? : Int,
+  search_prompt? : String,
+  engine? : ChatGenerationParamsEngine,
+) -> ChatGenerationParamsPluginWeb {
+  ChatGenerationParamsPluginWeb::{ enabled, max_results, search_prompt, engine }
+}
+
+///|
 pub impl ToJson for ChatGenerationParamsPluginWeb with to_json(
   self : ChatGenerationParamsPluginWeb,
 ) -> Json {
-  let object : Map[String, Json] = { "type": "web", "id": self.id.to_json() }
+  let object : Map[String, Json] = { "id": "web" }
   if self.enabled is Some(enabled) {
     object["enabled"] = enabled.to_json()
   }
@@ -36,13 +45,6 @@ pub impl @json.FromJson for ChatGenerationParamsPluginWeb with from_json(
   guard json is Object(object) else {
     raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
   }
-  let id : String = match object.get("id") {
-    Some(v) => @json.from_json(v, path=path.add_key("id"))
-    None =>
-      raise @json.JsonDecodeError(
-        (path.add_key("id"), "\{func_name}: missing field id"),
-      )
-  }
   let enabled : Bool? = match object.get("enabled") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("enabled")))
@@ -60,7 +62,6 @@ pub impl @json.FromJson for ChatGenerationParamsPluginWeb with from_json(
     Some(v) => Some(@json.from_json(v, path=path.add_key("engine")))
   }
   ChatGenerationParamsPluginWeb::{
-    id,
     enabled,
     max_results,
     search_prompt,

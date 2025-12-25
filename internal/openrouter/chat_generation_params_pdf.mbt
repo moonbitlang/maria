@@ -1,6 +1,13 @@
 ///|
-struct ChatGenerationParamsPdf {
+pub struct ChatGenerationParamsPdf {
   engine : ChatGenerationParamsPdfEngine?
+}
+
+///|
+pub fn ChatGenerationParamsPdf::new(
+  engine? : ChatGenerationParamsPdfEngine,
+) -> ChatGenerationParamsPdf {
+  ChatGenerationParamsPdf::{ engine, }
 }
 
 ///|

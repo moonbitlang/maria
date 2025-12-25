@@ -1,19 +1,24 @@
 ///|
-struct ChatGenerationParamsPluginFileParser {
-  id : String
+pub struct ChatGenerationParamsPluginFileParser {
   enabled : Bool?
   max_files : Int?
   pdf : ChatGenerationParamsPdf?
 }
 
 ///|
+pub fn ChatGenerationParamsPluginFileParser::new(
+  enabled? : Bool,
+  max_files? : Int,
+  pdf? : ChatGenerationParamsPdf,
+) -> ChatGenerationParamsPluginFileParser {
+  ChatGenerationParamsPluginFileParser::{ enabled, max_files, pdf }
+}
+
+///|
 pub impl ToJson for ChatGenerationParamsPluginFileParser with to_json(
   self : ChatGenerationParamsPluginFileParser,
 ) -> Json {
-  let object : Map[String, Json] = {
-    "type": "file_parser",
-    "id": self.id.to_json(),
-  }
+  let object : Map[String, Json] = { "id": "file_parser" }
   if self.enabled is Some(enabled) {
     object["enabled"] = enabled.to_json()
   }
@@ -35,13 +40,6 @@ pub impl @json.FromJson for ChatGenerationParamsPluginFileParser with from_json(
   guard json is Object(object) else {
     raise @json.JsonDecodeError((path, "\{func_name}: expect object"))
   }
-  let id : String = match object.get("id") {
-    Some(v) => @json.from_json(v, path=path.add_key("id"))
-    None =>
-      raise @json.JsonDecodeError(
-        (path.add_key("id"), "\{func_name}: missing field id"),
-      )
-  }
   let enabled : Bool? = match object.get("enabled") {
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("enabled")))
@@ -54,5 +52,5 @@ pub impl @json.FromJson for ChatGenerationParamsPluginFileParser with from_json(
     None | Some(Null) => None
     Some(v) => Some(@json.from_json(v, path=path.add_key("pdf")))
   }
-  ChatGenerationParamsPluginFileParser::{ id, enabled, max_files, pdf }
+  ChatGenerationParamsPluginFileParser::{ enabled, max_files, pdf }
 }
