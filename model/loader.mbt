@@ -161,36 +161,21 @@ fn Loader::load_openrouter_model(self : Loader, name : String?) -> Model? raise 
 
 ///|
 async fn Loader::load_codex_model(
-  self : Loader,
+  _self : Loader,
   name : String,
   allow_auto_login~ : Bool,
 ) -> Model? {
-  let credentials_path = @pathx.join(self.home, ".codex/auth.json")
-  let credentials = if @fsx.exists(credentials_path) {
-    @oauth.load_credentials() catch {
-      err => {
-        println("[WARN] Failed to load Codex OAuth credentials: \{err}")
-        if not(allow_auto_login) {
+  let credentials = @oauth.load_credentials() catch {
+    _ => {
+      if not(allow_auto_login) {
+        return None
+      }
+      println("[INFO] Codex OAuth credentials not found, starting login...")
+      @oauth.start_oauth_flow() catch {
+        err => {
+          println("[ERROR] OAuth login failed: \{err}")
           return None
         }
-        println("[INFO] Starting OAuth login flow...")
-        @oauth.start_oauth_flow() catch {
-          login_err => {
-            println("[ERROR] OAuth login failed: \{login_err}")
-            return None
-          }
-        }
-      }
-    }
-  } else {
-    if not(allow_auto_login) {
-      return None
-    }
-    println("[INFO] Codex OAuth credentials not found, starting login...")
-    @oauth.start_oauth_flow() catch {
-      err => {
-        println("[ERROR] OAuth login failed: \{err}")
-        return None
       }
     }
   }
