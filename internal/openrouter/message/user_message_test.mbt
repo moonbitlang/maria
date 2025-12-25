@@ -10,6 +10,8 @@ test "UserMessage/roundtrip" {
       "content": [{ "type": "text", "text": "Item 1" }],
     },
   ]
-  let converted : Array[@message.UserMessage] = @test_utils.from_json_array(original)
+  let converted : Array[@message.UserMessage] = @test_utils.from_json_array(
+    original,
+  )
   assert_eq(@test_utils.to_json_array(converted), original)
 }

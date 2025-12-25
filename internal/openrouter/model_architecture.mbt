@@ -1,4 +1,3 @@
-
 ///|
 pub struct Architecture {
   input_modalities : Array[String]
