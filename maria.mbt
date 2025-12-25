@@ -65,12 +65,13 @@ pub async fn Maria::new(
     @read_file.new(file_manager).to_agent_tool(),
     @todo.new_tool(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
-    @meta_write_to_file.new(agent).to_agent_tool(),
   ])
   agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
-  // Add apply_patch tool for GPT 5.1+ models
+  // GPT 5.1+ uses apply_patch only, other models use meta_write_to_file
   if supports_apply_patch(model) {
     agent.add_tool(@apply_patch.new(agent.cwd))
+  } else {
+    agent.add_tool(@meta_write_to_file.new(agent))
   }
   { logger, agent }
 }
