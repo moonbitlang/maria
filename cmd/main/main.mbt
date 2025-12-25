@@ -8,7 +8,6 @@ async fn main {
     ["conversation", .. rest] => @conversation.show(rest)
     ["server", .. rest] => @server.start(rest)
     ["daemon", .. rest] => @daemon.start(rest)
-    ["login"] => @login.login()
     ["version"] => println(@buildinfo.version)
     [.. rest] => @interactive.interactive(rest)
   }

@@ -9,8 +9,7 @@
     "moonbitlang/maria/cmd/main/interactive",
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/cmd/daemon",
-    "moonbitlang/maria/internal/buildinfo",
-    "moonbitlang/maria/cmd/main/login"
+    "moonbitlang/maria/internal/buildinfo"
   ],
   "overrides": ["moonbitlang/maria/internal/abort"]
 }

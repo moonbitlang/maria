@@ -204,18 +204,12 @@ pub fn open_router_model(
 ///|
 pub(all) enum CodexModels {
   Gpt5_2
-  Gpt5_2Mini
-  O3
-  O4Mini
 }
 
 ///|
 pub impl Show for CodexModels with output(self : CodexModels, logger : &Logger) -> Unit {
   match self {
     Gpt5_2 => logger.write_string("gpt-5.2")
-    Gpt5_2Mini => logger.write_string("gpt-5.2-mini")
-    O3 => logger.write_string("o3")
-    O4Mini => logger.write_string("o4-mini")
   }
 }
 
@@ -223,9 +217,6 @@ pub impl Show for CodexModels with output(self : CodexModels, logger : &Logger) 
 fn CodexModels::safe_zone_tokens(self : CodexModels) -> Int {
   match self {
     Gpt5_2 => 400_000
-    Gpt5_2Mini => 400_000
-    O3 => 400_000
-    O4Mini => 400_000
   }
 }
 
