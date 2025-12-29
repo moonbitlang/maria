@@ -12,44 +12,15 @@ impl @json.FromJson for CreateTaskRequest with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateTaskRequest raise @json.JsonDecodeError {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError(
-      (json_path, "Expected JSON object for CreateTaskRequest"),
-    )
-  }
-  let name : String? = match json.get("name") {
-    Some(Null) => None
-    Some(name_json) =>
-      Some(@json.from_json(name_json, path=json_path.add_key("name")))
-    None => None
-  }
-  let model : String? = match json.get("model") {
-    Some(Null) => None
-    Some(model_json) =>
-      Some(@json.from_json(model_json, path=json_path.add_key("model")))
-    None => None
-  }
-  let message : @openai.ChatCompletionMessageParam? = match
-    json.get("message") {
-    Some(Null) => None
-    Some(message_json) =>
-      Some(@json.from_json(message_json, path=json_path.add_key("message")))
-    None => None
-  }
-  let cwd : String? = match json.get("cwd") {
-    Some(Null) => None
-    Some(cwd_json) =>
-      Some(@json.from_json(cwd_json, path=json_path.add_key("cwd")))
-    None => None
-  }
-  let web_search : Bool? = match json.get("web_search") {
-    Some(Null) => None
-    Some(web_search_json) =>
-      Some(
-        @json.from_json(web_search_json, path=json_path.add_key("web_search")),
-      )
-    None => None
-  }
+  let object = @jsonx.as_object(json, path=json_path)
+  let name : String? = object.optional("name", path=json_path)
+  let model : String? = object.optional("model", path=json_path)
+  let message : @openai.ChatCompletionMessageParam? = object.optional(
+    "message",
+    path=json_path,
+  )
+  let cwd : String? = object.optional("cwd", path=json_path)
+  let web_search : Bool? = object.optional("web_search", path=json_path)
   CreateTaskRequest::{ name, model, message, cwd, web_search }
 }
 

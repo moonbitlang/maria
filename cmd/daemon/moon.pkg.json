@@ -10,6 +10,7 @@
     "moonbitlang/maria/internal/rand",
     "moonbitlang/async/os_error",
     "moonbitlang/maria/internal/pathx",
+    "moonbitlang/maria/internal/jsonx",
     "moonbitlang/maria/model",
     "moonbitlang/maria/internal/moon",
     "moonbitlang/maria/internal/openai",
