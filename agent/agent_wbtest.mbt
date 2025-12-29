@@ -16,7 +16,7 @@ async test "queue_message" (t : @test.Test) {
     @json.inspect(
       @json.inspect(agent.queued_messages(), content=[
         {
-          "id": "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
+          "id": "42858c8d-3684-43ab-837d-ef6894a9b8dc",
           "message": { "role": "user", "content": "First queued message." },
           "web_search": false,
         },
