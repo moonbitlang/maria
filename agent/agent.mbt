@@ -34,7 +34,7 @@ pub(all) struct Agent {
   /// Pending messages to be sent in the next API call.
   priv mut input_queue : Array[@ai.Message]
   priv pending_queue : @deque.Deque[QueuedMessage]
-  event_target : @event.EventTarget
+  event_target : @broadcast.Broadcast[@event.Event]
   priv token_counter : @token_counter.Counter
   /// Pruner for managing context size within token budgets.
   priv context_pruner : @context_pruner.Pruner
@@ -215,107 +215,102 @@ fn Agent::cancel(agent : Agent) -> Unit {
 pub async fn Agent::start(agent : Agent) -> Unit {
   @async.with_task_group(group => {
     // Start the event target in background to handle async event processing
-    group.spawn_bg(() => agent.event_target.start(), no_wait=true)
-    @async.with_task_group(group => {
-      group.add_defer(() => agent.event_target.flush())
-      // Signal the start of conversation
-      agent.emit(PreConversation)
-      // We need to first poll external events before starting the loop,
-      // otherwise the loop will exit immediately.
-      while true {
-        // Poll for external events at the start of each iteration
-        // This handles user cancellation, immediate messages, and diagnostics
-        guard agent.poll_external_events() else { break }
-        let mut web_search = agent.web_search
-        // Test if the agent.input_queue is empty, if so, pop from pending_queue
-        if agent.input_queue.is_empty() {
-          if agent.pending_queue.pop_front() is Some(msg) {
-            // For sure to happen
-            agent.input_queue.push(msg.message)
-            web_search = msg.web_search
-            agent.emit(MessageUnqueued(id=msg.id))
-            agent.emit(UserMessage(msg.message.content()))
-          }
+    let session = agent.event_target.spawn_in(group)
+    defer session.stop()
+    // Signal the start of conversation
+    agent.emit(PreConversation)
+    // We need to first poll external events before starting the loop,
+    // otherwise the loop will exit immediately.
+    while true {
+      // Poll for external events at the start of each iteration
+      // This handles user cancellation, immediate messages, and diagnostics
+      guard agent.poll_external_events() else { break }
+      let mut web_search = agent.web_search
+      // Test if the agent.input_queue is empty, if so, pop from pending_queue
+      if agent.input_queue.is_empty() {
+        if agent.pending_queue.pop_front() is Some(msg) {
+          // For sure to happen
+          agent.input_queue.push(msg.message)
+          web_search = msg.web_search
+          agent.emit(MessageUnqueued(id=msg.id))
+          agent.emit(UserMessage(msg.message.content()))
         }
-        if agent.input_queue.is_empty() {
-          // No messages to send, end the conversation
-          break
-        }
-        let tools = agent.tools_desc()
-        // Retrieve and clear the message queue
-        // staged contains messages that need to be sent in this call
-        // Build the complete message array for the API call
-        // Start with conversation history, then append any queued messages
-        let messages = [..agent.history.messages(), ..agent.input_queue]
+      }
+      if agent.input_queue.is_empty() {
+        // No messages to send, end the conversation
+        break
+      }
+      let tools = agent.tools_desc()
+      // Retrieve and clear the message queue
+      // staged contains messages that need to be sent in this call
+      // Build the complete message array for the API call
+      // Start with conversation history, then append any queued messages
+      let messages = [..agent.history.messages(), ..agent.input_queue]
 
-        // Count tokens, prune if needed, and apply caching
-        let cache_messages = agent.prepare_messages_for_request(
-          messages,
-          tools~,
-        )
+      // Count tokens, prune if needed, and apply caching
+      let cache_messages = agent.prepare_messages_for_request(messages, tools~)
 
-        // Enable web search plugin if configured
-        let extra_body : Map[String, Json] = {}
-        if web_search {
-          // We only support web search plugin for OpenRouter models for now.
-          //
-          // FIXME: We should encode how to enable web search plugin in model
-          // configuration.
-          if agent.model.base_url.contains("openrouter.ai/api/v1") {
-            extra_body["plugins"] = [{ "id": "web" }]
-          } else {
-            agent.logger.warn(
-              "Web search plugin is only supported for OpenRouter models.",
-            )
-          }
-        }
-
-        // Make the API request to get the model's response
-        let response = @openai.chat(
-          model=agent.model,
-          logger=agent.logger,
-          @openai.chat_completion(
-            messages=cache_messages,
-            model=agent.model.model_name,
-            tools=tools.map(x => x.to_openai()),
-          ),
-          extra_body~,
-        )
-        // Extract the message from the response, raise error if no choices returned
-        guard response is { choices: [{ message, .. }, ..], usage, .. } else {
-          raise EmptyChoices
-        }
-        let ai_message = @ai.Message::from_openai_response(message)
-
-        // Emit event with API usage statistics and the returned message
-        agent.emit(
-          AssistantMessage(
-            usage=usage.map(u => @ai.Usage::from_openai(u)),
-            tool_calls=message.tool_calls.map(tc => @ai.ToolCall::from_openai_tool_call(
-              tc,
-            )),
-            message.content.unwrap_or(""),
-          ),
-        )
-
-        // Add all staged messages to permanent conversation history
-        agent.history.add_messages(agent.input_queue)
-        agent.input_queue = []
-
-        // Add the model's response to conversation history
-        agent.history.add_message(ai_message)
-        // Persist the updated conversation history to disk
-        agent.session_manager.save(agent.history)
-        // Execute each tool call and queue the results for the next iteration
-        for call in message.tool_calls {
-          agent.input_queue.push(
-            agent.execute_tool(@ai.ToolCall::from_openai_tool_call(call)),
+      // Enable web search plugin if configured
+      let extra_body : Map[String, Json] = {}
+      if web_search {
+        // We only support web search plugin for OpenRouter models for now.
+        //
+        // FIXME: We should encode how to enable web search plugin in model
+        // configuration.
+        if agent.model.base_url.contains("openrouter.ai/api/v1") {
+          extra_body["plugins"] = [{ "id": "web" }]
+        } else {
+          agent.logger.warn(
+            "Web search plugin is only supported for OpenRouter models.",
           )
         }
       }
-      // Signal the end of conversation
-      agent.emit(PostConversation)
-    })
+
+      // Make the API request to get the model's response
+      let response = @openai.chat(
+        model=agent.model,
+        logger=agent.logger,
+        @openai.chat_completion(
+          messages=cache_messages,
+          model=agent.model.model_name,
+          tools=tools.map(x => x.to_openai()),
+        ),
+        extra_body~,
+      )
+      // Extract the message from the response, raise error if no choices returned
+      guard response is { choices: [{ message, .. }, ..], usage, .. } else {
+        raise EmptyChoices
+      }
+      let ai_message = @ai.Message::from_openai_response(message)
+
+      // Emit event with API usage statistics and the returned message
+      agent.emit(
+        AssistantMessage(
+          usage=usage.map(u => @ai.Usage::from_openai(u)),
+          tool_calls=message.tool_calls.map(tc => @ai.ToolCall::from_openai_tool_call(
+            tc,
+          )),
+          message.content.unwrap_or(""),
+        ),
+      )
+
+      // Add all staged messages to permanent conversation history
+      agent.history.add_messages(agent.input_queue)
+      agent.input_queue = []
+
+      // Add the model's response to conversation history
+      agent.history.add_message(ai_message)
+      // Persist the updated conversation history to disk
+      agent.session_manager.save(agent.history)
+      // Execute each tool call and queue the results for the next iteration
+      for call in message.tool_calls {
+        agent.input_queue.push(
+          agent.execute_tool(@ai.ToolCall::from_openai_tool_call(call)),
+        )
+      }
+    }
+    // Signal the end of conversation
+    agent.emit(PostConversation)
   })
 }
 
@@ -376,11 +371,11 @@ pub async fn new(
   }
   let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
-  let event_target = @event.EventTarget::new()
+  let event_target : @broadcast.Broadcast[@event.Event] = @broadcast.Broadcast::new()
   event_target.add_listener(event => logger.info("Received event", data={
     "event": event.to_json(),
   }))
-  event_target.emit(ModelLoaded(name=model.name))
+  event_target.put({ id: uuid.v4(), desc: ModelLoaded(name=model.name) })
   let history = match history {
     Some(history) => history
     None => session_manager.new_conversation(name="history", cwd~)
