@@ -4,7 +4,7 @@ pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   if self.system_prompt is Some(system_prompt) {
     object["system_prompt"] = system_prompt.to_json()
   }
-  object["messages"] = self.messages.to_json()
+  object["events"] = self.events.to_json()
   object["created_at"] = self.created_at.to_json()
   object["updated_at"] = self.updated_at.to_json()
   if self.description is Some(description) {
@@ -49,18 +49,87 @@ pub impl @json.FromJson for Conversation with from_json(
       )
     None => None
   }
-  let messages = match json.get("messages") {
+  let events = match json.get("events") {
     Some(json) => {
-      let messages : Array[Message] = @json.from_json(
+      let events : Array[@event.Event] = @json.from_json(
         json,
+        path=json_path.add_key("events"),
+      )
+      events
+    }
+    None => {
+      guard json.get("messages") is Some(messages) else {
+        raise @json.JsonDecodeError(
+          (json_path.add_key("events"), "Missing field"),
+        )
+      }
+      let messages : Array[Message] = @json.from_json(
+        messages,
         path=json_path.add_key("messages"),
       )
-      messages
+      let events = []
+      let pending_tool_calls : Map[String, @ai.ToolCall] = Map::new()
+      for message in messages {
+        let id = @uuid.nil
+        match message.message {
+          Assistant(content, tool_calls~) => {
+            for tc in tool_calls {
+              pending_tool_calls[tc.id] = tc
+            }
+            let event = @event.Event::new(
+              id~,
+              @event.EventDesc::AssistantMessage(
+                usage=message.usage,
+                content,
+                tool_calls~,
+              ),
+            )
+            events.push(event)
+          }
+          User(content) => {
+            let event = @event.Event::new(
+              id~,
+              @event.EventDesc::UserMessage(content),
+            )
+            events.push(event)
+          }
+          System(content) => {
+            /// Semantically, a system message does not directly correspond to a
+            /// SystemPromptSet event, but because we always store 0 or 1 system
+            /// message in the past implementation, they are practically
+            /// equivalent.
+            let event = @event.Event::new(
+              id~,
+              @event.EventDesc::SystemPromptSet(Some(content)),
+            )
+            events.push(event)
+          }
+          Tool(content, tool_call_id~) =>
+            match pending_tool_calls.get(tool_call_id) {
+              Some(tc) => {
+                pending_tool_calls.remove(tool_call_id)
+                let event = @event.Event::new(
+                  id~,
+                  @event.EventDesc::PostToolCall(
+                    tc,
+                    result=Ok(content.to_json()),
+                    rendered=content,
+                  ),
+                )
+                events.push(event)
+              }
+              None =>
+                raise @json.JsonDecodeError(
+                  (
+                    json_path,
+                    "Tool message references unknown tool_call_id: \{tool_call_id}",
+                  ),
+                )
+            }
+        }
+      }
+      events
     }
-    None =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("messages"), "Missing field"),
-      )
   }
   let created_at = match json.get("created_at") {
     Some(created_at) =>
@@ -89,10 +158,10 @@ pub impl @json.FromJson for Conversation with from_json(
     description,
     id,
     system_prompt,
-    messages,
     created_at,
     updated_at,
     cwd,
+    events,
   }
 }
 
@@ -106,9 +175,9 @@ pub fn Conversation::display(
   if self.description is Some(description) {
     lines.push("Description: \{description}")
   }
+  let messages = self.messages(include_system=true)
   if show_messages {
-    for i, message in self.messages {
-      let message = message.message
+    for i, message in messages {
       match message {
         Assistant(content, ..) => {
           lines.push("\{i}. [assistant]")
@@ -129,7 +198,7 @@ pub fn Conversation::display(
       }
     }
   } else {
-    lines.push("Messages: \{self.messages.length()}")
+    lines.push("Messages: \{messages.length()}")
   }
   fn show_time(ts : @clock.Timestamp) -> String {
     try @time.unix(ts.truncate_to_s()) catch {

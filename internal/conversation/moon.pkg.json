@@ -7,7 +7,10 @@
     "moonbitlang/x/time",
     "moonbitlang/maria/clock",
     "moonbitlang/maria/ai",
-    "moonbitlang/maria/internal/openai"
+    "moonbitlang/maria/internal/openai",
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/internal/pino",
+    "moonbitlang/async"
   ],
-  "test-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"]
+  "test-import": ["moonbitlang/maria/internal/mock"]
 }

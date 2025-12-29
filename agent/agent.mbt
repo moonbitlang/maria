@@ -245,7 +245,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // staged contains messages that need to be sent in this call
       // Build the complete message array for the API call
       // Start with conversation history, then append any queued messages
-      let messages = [..agent.history.messages(), ..agent.input_queue]
+      let messages = agent.history.messages(include_system=true)
 
       // Count tokens, prune if needed, and apply caching
       let cache_messages = agent.prepare_messages_for_request(messages, tools~)
@@ -281,7 +281,6 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       guard response is { choices: [{ message, .. }, ..], usage, .. } else {
         raise EmptyChoices
       }
-      let ai_message = @ai.Message::from_openai_response(message)
 
       // Emit event with API usage statistics and the returned message
       agent.emit(
@@ -295,11 +294,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       )
 
       // Add all staged messages to permanent conversation history
-      agent.history.add_messages(agent.input_queue)
       agent.input_queue = []
-
-      // Add the model's response to conversation history
-      agent.history.add_message(ai_message)
       // Persist the updated conversation history to disk
       agent.session_manager.save(agent.history)
       // Execute each tool call and queue the results for the next iteration
@@ -361,7 +356,7 @@ pub async fn new(
   history? : @conversation.Conversation,
 ) -> Agent {
   let home = match home {
-    Some(path) => path.to_string()
+    Some(home) => home.to_string()
     None => @os.home()
   }
   // FIXME:(upstream) function with error not allowed in optional expression
@@ -379,8 +374,14 @@ pub async fn new(
     @event.Event::new(id=uuid.v4(), ModelLoaded(name=model.name)),
   )
   let history = match history {
-    Some(history) => history
-    None => session_manager.new_conversation(name="history", cwd~)
+    Some(history) => {
+      for event in history.events() {
+        event_target.put(event)
+      }
+      history
+    }
+    None =>
+      session_manager.new_conversation(name="history", cwd=cwd.to_string())
   }
   let external_events = match external_events {
     Some(queue) => queue

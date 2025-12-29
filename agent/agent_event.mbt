@@ -26,7 +26,9 @@ fn Agent::emit(
   id? : @uuid.Uuid,
 ) -> Unit {
   let id = id.unwrap_or_else(() => agent.uuid.v4())
-  agent.event_target.put(@event.Event::new(id~, event))
+  let event = @event.Event::new(id~, event)
+  agent.event_target.put(event)
+  agent.history.add_event(event)
 }
 
 ///|
