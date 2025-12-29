@@ -533,11 +533,11 @@ async test "agent/queue_message" (t : @test.Test) {
     )
     @json.inspect(
       agent.queue_message(@ai.user_message(content="How are you?")),
-      content="1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+      content="f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
     )
     @json.inspect(
       agent.queue_message(@ai.user_message(content="Thank you")),
-      content="f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
+      content="1258fdc0-c30e-442c-805c-a128e8a3ce43",
     )
     let message_unqueued = []
     agent.add_listener(event => match event.desc {
@@ -546,7 +546,7 @@ async test "agent/queue_message" (t : @test.Test) {
     })
     agent.start()
     @json.inspect(message_unqueued, content=[
-      "1ea1417c-a31f-4b1b-8494-d8486add6aa4", "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
+      "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c", "1258fdc0-c30e-442c-805c-a128e8a3ce43",
     ])
   })
 }
