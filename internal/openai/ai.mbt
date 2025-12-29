@@ -382,13 +382,6 @@ async fn do_codex_stream_request(
 }
 
 ///|
-priv enum ResponseStreamEvent {
-  TextDelta(String)
-  OutputItemDone(@responses.ResponseItem)
-  Completed
-}
-
-///|
 priv struct ResponseStreamEventReader(&@io.Reader)
 
 ///|
@@ -401,7 +394,7 @@ fn ResponseStreamEventReader::new(
 ///|
 async fn ResponseStreamEventReader::read(
   self : ResponseStreamEventReader,
-) -> ResponseStreamEvent? {
+) -> @responses.ResponseStreamEvent? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
@@ -462,8 +455,8 @@ fn extract_text_content(
 ///|
 fn convert_messages_to_input(
   messages : Array[ChatCompletionMessageParam],
-) -> Array[@responses.ResponseInputItem] {
-  let result : Array[@responses.ResponseInputItem] = []
+) -> Array[@responses.ResponseInputItemParam] {
+  let result : Array[@responses.ResponseInputItemParam] = []
   for msg in messages {
     match msg {
       System(_) => continue
@@ -478,7 +471,7 @@ fn convert_messages_to_input(
         }
         for tc in assistant_msg.tool_calls {
           result.push(
-            @responses.ResponseInputItem::FunctionCall(
+            @responses.function_call(
               call_id=tc.id,
               name=tc.function.name,
               arguments=tc.function.arguments.unwrap_or("{}"),
@@ -510,7 +503,7 @@ fn codex_stream_result_to_chat_completion(
   for item in result.output_items {
     match item {
       @responses.ResponseItem::Message(content=parts, ..) => {
-        let texts = parts.map(fn(part) { part.text })
+        let texts = parts.map(fn(part) { part.text() })
         let text = texts
           .iter()
           .fold(init="", fn(acc, t) {

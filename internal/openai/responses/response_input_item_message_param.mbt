@@ -1,0 +1,38 @@
+///|
+struct ResponseInputItemMessageParam {
+  content : ResponseInputMessageContentListParam
+  role : ResponseInputItemMessageParamRole
+  status : ResponseInputItemMessageParamStatus?
+} derive(Show)
+
+///|
+pub impl ToJson for ResponseInputItemMessageParam with to_json(
+  self : ResponseInputItemMessageParam,
+) -> Json {
+  let object : Map[String, Json] = {
+    "role": self.role,
+    "content": self.content,
+  }
+  if self.status is Some(status) {
+    object["status"] = status.to_json()
+  }
+  Json::object(object)
+}
+
+///|
+pub impl @json.FromJson for ResponseInputItemMessageParam with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> ResponseInputItemMessageParam raise @json.JsonDecodeError {
+  let object = @jsonx.as_object(json, path~)
+  let role : ResponseInputItemMessageParamRole = object.required("role", path~)
+  let content : ResponseInputMessageContentListParam = object.required(
+    "content",
+    path~,
+  )
+  let status : ResponseInputItemMessageParamStatus? = object.optional(
+    "status",
+    path~,
+  )
+  ResponseInputItemMessageParam::{ content, role, status }
+}
