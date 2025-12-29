@@ -1,3 +1,9 @@
 import {
-  "moonbitlang/core/json",
+    "moonbitlang/async/http",
+    "moonbitlang/async/io",
+    "moonbitlang/maria/internal/jsonx",
+    "moonbitlang/maria/internal/openai/client",
+    "moonbitlang/maria/internal/openai/shared",
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv"
 }

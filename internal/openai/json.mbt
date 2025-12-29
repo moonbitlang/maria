@@ -47,7 +47,7 @@ pub fn chat_completion(
   max_tokens? : Int,
   temperature? : Double,
   reasoning_effort? : ChatCompletionReasoningEffort,
-  response_format? : ResponseFormat,
+  response_format? : @shared.ResponseFormat,
   stream? : Bool,
   stream_options? : ChatCompletionStreamOptionsParam,
   tool_choice? : ChatCompletionToolChoice,
@@ -207,7 +207,7 @@ pub fn tool(
   parameters~ : Json,
   strict? : Bool,
 ) -> ChatCompletionToolParam {
-  Function(FunctionDefinition::{ name, description, parameters, strict })
+  Function(@shared.FunctionDefinition::{ name, description, parameters, strict })
 }
 
 ///|
@@ -258,8 +258,13 @@ pub fn json_schema(
   schema~ : Map[String, Json],
   description? : String,
   strict? : Bool,
-) -> ResponseFormat {
-  JsonSchema(JsonSchema::{ name, description, schema, strict })
+) -> @shared.ResponseFormat {
+  @shared.ResponseFormat::JsonSchema(@shared.JsonSchema::{
+    name,
+    description,
+    schema,
+    strict,
+  })
 }
 
 ///|
