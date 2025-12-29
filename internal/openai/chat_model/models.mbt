@@ -1,0 +1,215 @@
+///|
+pub const GPT5_2 : String = "gpt-5.2"
+
+///|
+pub const GPT5_2_2025_12_11 : String = "gpt-5.2-2025-12-11"
+
+///|
+pub const GPT5_2ChatLatest : String = "gpt-5.2-chat-latest"
+
+///|
+pub const GPT5_2Pro : String = "gpt-5.2-pro"
+
+///|
+pub const GPT5_2Pro2025_12_11 : String = "gpt-5.2-pro-2025-12-11"
+
+///|
+pub const GPT5_1 : String = "gpt-5.1"
+
+///|
+pub const GPT5_1_2025_11_13 : String = "gpt-5.1-2025-11-13"
+
+///|
+pub const GPT5_1Codex : String = "gpt-5.1-codex"
+
+///|
+pub const GPT5_1Mini : String = "gpt-5.1-mini"
+
+///|
+pub const GPT5_1ChatLatest : String = "gpt-5.1-chat-latest"
+
+///|
+pub const GPT5 : String = "gpt-5"
+
+///|
+pub const GPT5Mini : String = "gpt-5-mini"
+
+///|
+pub const GPT5Nano : String = "gpt-5-nano"
+
+///|
+pub const GPT5_2025_08_07 : String = "gpt-5-2025-08-07"
+
+///|
+pub const GPT5Mini2025_08_07 : String = "gpt-5-mini-2025-08-07"
+
+///|
+pub const GPT5Nano2025_08_07 : String = "gpt-5-nano-2025-08-07"
+
+///|
+pub const GPT5ChatLatest : String = "gpt-5-chat-latest"
+
+///|
+pub const GPT4_1 : String = "gpt-4.1"
+
+///|
+pub const GPT4_1Mini : String = "gpt-4.1-mini"
+
+///|
+pub const GPT4_1Nano : String = "gpt-4.1-nano"
+
+///|
+pub const GPT4_1_2025_04_14 : String = "gpt-4.1-2025-04-14"
+
+///|
+pub const GPT4_1Mini2025_04_14 : String = "gpt-4.1-mini-2025-04-14"
+
+///|
+pub const GPT4_1Nano2025_04_14 : String = "gpt-4.1-nano-2025-04-14"
+
+///|
+pub const O4Mini : String = "o4-mini"
+
+///|
+pub const O4Mini2025_04_16 : String = "o4-mini-2025-04-16"
+
+///|
+pub const O3 : String = "o3"
+
+///|
+pub const O3_2025_04_16 : String = "o3-2025-04-16"
+
+///|
+pub const O3Mini : String = "o3-mini"
+
+///|
+pub const O3Mini2025_01_31 : String = "o3-mini-2025-01-31"
+
+///|
+pub const O1 : String = "o1"
+
+///|
+pub const O1_2024_12_17 : String = "o1-2024-12-17"
+
+///|
+pub const O1Preview : String = "o1-preview"
+
+///|
+pub const O1Preview2024_09_12 : String = "o1-preview-2024-09-12"
+
+///|
+pub const O1Mini : String = "o1-mini"
+
+///|
+pub const O1Mini2024_09_12 : String = "o1-mini-2024-09-12"
+
+///|
+pub const GPT4o : String = "gpt-4o"
+
+///|
+pub const GPT4o2024_11_20 : String = "gpt-4o-2024-11-20"
+
+///|
+pub const GPT4o2024_08_06 : String = "gpt-4o-2024-08-06"
+
+///|
+pub const GPT4o2024_05_13 : String = "gpt-4o-2024-05-13"
+
+///|
+pub const GPT4oAudioPreview : String = "gpt-4o-audio-preview"
+
+///|
+pub const GPT4oAudioPreview2024_10_01 : String = "gpt-4o-audio-preview-2024-10-01"
+
+///|
+pub const GPT4oAudioPreview2024_12_17 : String = "gpt-4o-audio-preview-2024-12-17"
+
+///|
+pub const GPT4oAudioPreview2025_06_03 : String = "gpt-4o-audio-preview-2025-06-03"
+
+///|
+pub const GPT4oMiniAudioPreview : String = "gpt-4o-mini-audio-preview"
+
+///|
+pub const GPT4oMiniAudioPreview2024_12_17 : String = "gpt-4o-mini-audio-preview-2024-12-17"
+
+///|
+pub const GPT4oSearchPreview : String = "gpt-4o-search-preview"
+
+///|
+pub const GPT4oMiniSearchPreview : String = "gpt-4o-mini-search-preview"
+
+///|
+pub const GPT4oSearchPreview2025_03_11 : String = "gpt-4o-search-preview-2025-03-11"
+
+///|
+pub const GPT4oMiniSearchPreview2025_03_11 : String = "gpt-4o-mini-search-preview-2025-03-11"
+
+///|
+pub const Chatgpt4oLatest : String = "chatgpt-4o-latest"
+
+///|
+pub const CodexMiniLatest : String = "codex-mini-latest"
+
+///|
+pub const GPT4oMini : String = "gpt-4o-mini"
+
+///|
+pub const GPT4oMini2024_07_18 : String = "gpt-4o-mini-2024-07-18"
+
+///|
+pub const GPT4Turbo : String = "gpt-4-turbo"
+
+///|
+pub const GPT4Turbo2024_04_09 : String = "gpt-4-turbo-2024-04-09"
+
+///|
+pub const GPT4_0125Preview : String = "gpt-4-0125-preview"
+
+///|
+pub const GPT4TurboPreview : String = "gpt-4-turbo-preview"
+
+///|
+pub const GPT4_1106Preview : String = "gpt-4-1106-preview"
+
+///|
+pub const GPT4VisionPreview : String = "gpt-4-vision-preview"
+
+///|
+pub const GPT4 : String = "gpt-4"
+
+///|
+pub const GPT4_0314 : String = "gpt-4-0314"
+
+///|
+pub const GPT4_0613 : String = "gpt-4-0613"
+
+///|
+pub const GPT4_32k : String = "gpt-4-32k"
+
+///|
+pub const GPT4_32k0314 : String = "gpt-4-32k-0314"
+
+///|
+pub const GPT4_32k0613 : String = "gpt-4-32k-0613"
+
+///|
+pub const GPT3_5Turbo : String = "gpt-3.5-turbo"
+
+///|
+pub const GPT3_5Turbo16k : String = "gpt-3.5-turbo-16k"
+
+///|
+pub const GPT3_5Turbo0301 : String = "gpt-3.5-turbo-0301"
+
+///|
+pub const GPT3_5Turbo0613 : String = "gpt-3.5-turbo-0613"
+
+///|
+pub const GPT3_5Turbo1106 : String = "gpt-3.5-turbo-1106"
+
+///|
+pub const GPT3_5Turbo0125 : String = "gpt-3.5-turbo-0125"
+
+///|
+pub const GPT3_5Turbo16k0613 : String = "gpt-3.5-turbo-16k-0613"

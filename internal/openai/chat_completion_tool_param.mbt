@@ -1,7 +1,7 @@
 ///|
 /// Tool definitions accepted in chat completion requests.
-pub enum ChatCompletionToolParam {
-  Function(FunctionDefinition)
+pub(all) enum ChatCompletionToolParam {
+  Function(@shared.FunctionDefinition)
 }
 
 ///|
