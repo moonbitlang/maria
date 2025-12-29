@@ -153,21 +153,38 @@ async fn chat_codex(
       ) catch {
         HttpError(code=401, ..) as err if not(has_refreshed.val) => {
           logger.info("Received 401, attempting to refresh token")
-          try {
-            let refreshed = @codex.refresh_and_save_credentials()
-            current_access_token.val = refreshed.accessToken
-            current_account_id.val = refreshed.accountId
-            has_refreshed.val = true
-            logger.info("Token refreshed successfully, retrying request")
-            raise err
-          } catch {
-            refresh_err => {
-              logger.error("Failed to refresh token", data={
-                "error": refresh_err.to_string(),
-              })
-              raise err
+          has_refreshed.val = true // Mark as refreshed to prevent infinite loop
+          // Try refresh first, then re-login if refresh fails
+          let refresh_result : @codex.Credentials? = Some(
+            @codex.refresh_and_save_credentials(),
+          ) catch {
+            _ => None
+          }
+          match refresh_result {
+            Some(refreshed) => {
+              current_access_token.val = refreshed.accessToken
+              current_account_id.val = refreshed.accountId
+              logger.info("Token refreshed successfully, retrying request")
+            }
+            None => {
+              logger.info("Refresh failed, triggering re-login flow")
+              let new_creds = @codex.start_oauth_flow() catch {
+                login_err => {
+                  logger.error("Re-login failed", data={
+                    "error": login_err.to_string(),
+                  })
+                  raise HttpError(
+                    code=401,
+                    body="Re-login failed: \{login_err}",
+                  )
+                }
+              }
+              current_access_token.val = new_creds.accessToken
+              current_account_id.val = new_creds.accountId
+              logger.info("Re-login successful, retrying request")
             }
           }
+          raise err
         }
         err => raise err
       }
@@ -246,21 +263,38 @@ async fn chat_copilot(
         let error_body = client.read_all().text()
         // Try to refresh token on 401
         if response.code == 401 && not(has_refreshed.val) {
+          has_refreshed.val = true // Mark as refreshed to prevent infinite loop
           logger.info("Received 401, attempting to refresh Copilot token")
-          try {
-            let refreshed = @copilot.refresh_and_save_credentials()
-            current_token.val = refreshed.copilot_token
-            has_refreshed.val = true
-            logger.info(
-              "Copilot token refreshed successfully, retrying request",
-            )
-            raise HttpError(code=response.code, body=error_body)
-          } catch {
-            refresh_err =>
-              logger.error("Failed to refresh Copilot token", data={
-                "error": refresh_err.to_string(),
-              })
+          let refresh_result : @copilot.Credentials? = Some(
+            @copilot.refresh_and_save_credentials(),
+          ) catch {
+            _ => None
           }
+          match refresh_result {
+            Some(refreshed) => {
+              current_token.val = refreshed.copilot_token
+              logger.info(
+                "Copilot token refreshed successfully, retrying request",
+              )
+            }
+            None => {
+              logger.info("Copilot refresh failed, triggering re-login flow")
+              let new_creds = @copilot.start_oauth_flow() catch {
+                login_err => {
+                  logger.error("Copilot re-login failed", data={
+                    "error": login_err.to_string(),
+                  })
+                  raise HttpError(
+                    code=401,
+                    body="Copilot re-login failed: \{login_err}",
+                  )
+                }
+              }
+              current_token.val = new_creds.copilot_token
+              logger.info("Copilot re-login successful, retrying request")
+            }
+          }
+          raise HttpError(code=response.code, body=error_body)
         }
         raise HttpError(code=response.code, body=error_body)
       }
