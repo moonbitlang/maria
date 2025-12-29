@@ -549,7 +549,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
         PostToolCall(tool_call, result~, rendered=text) =>
           self.format_post_tool_call(tool_call.name, result~, text, timestamp?)
         UserMessage(content) => self.format_user_message(content, timestamp?)
-        ModelLoaded(name~, ..) => self.format_model_loaded(name, timestamp?)
+        ModelLoaded(name~) => self.format_model_loaded(name, timestamp?)
         _ => ()
       }
   }

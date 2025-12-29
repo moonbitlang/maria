@@ -1332,21 +1332,7 @@ test "recover_diagnostics" {
 async test "ModelLoaded" (t : @test.Test) {
   @mock.run(t, _ => {
     let event_target = @event.EventTarget::new()
-    event_target.emit(
-      ModelLoaded(
-        name="qwen/qwen3-coder-plus",
-        model=@model.Model::new(
-          name="qwen/qwen3-coder-plus",
-          description="Qwen coder",
-          model_name="qwen/qwen3-coder-plus",
-          model_type=SaaS(OpenAI),
-          api_key="sk-test",
-          base_url="https://openrouter.ai/api/v1",
-          safe_zone_tokens=256000,
-          supports_anthropic_prompt_caching=false,
-        ),
-      ),
-    )
+    event_target.emit(ModelLoaded(name="qwen/qwen3-coder-plus"))
     inspect(
       format_event_target(event_target),
       content=(
@@ -1557,21 +1543,7 @@ async test "subagent" (t : @test.Test) {
 async test "timestamp" (t : @test.Test) {
   @mock.run(t, _ => {
     let event_target = @event.EventTarget::new()
-    event_target.emit(
-      ModelLoaded(
-        name="qwen/qwen3-coder-plus",
-        model=@model.Model::new(
-          name="qwen/qwen3-coder-plus",
-          description="Qwen coder",
-          model_name="qwen/qwen3-coder-plus",
-          model_type=SaaS(OpenAI),
-          api_key="sk-test",
-          base_url="https://openrouter.ai/api/v1",
-          safe_zone_tokens=256000,
-          supports_anthropic_prompt_caching=false,
-        ),
-      ),
-    )
+    event_target.emit(ModelLoaded(name="qwen/qwen3-coder-plus"))
     event_target.emit(
       PostToolCall(
         @ai.tool_call(
