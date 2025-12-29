@@ -32,3 +32,16 @@ test "Timestamp::ms" {
   let t = @clock.Timestamp::from_ms(1625079600123)
   assert_eq(t.ms(), 1625079600123)
 }
+
+///|
+test "Timestamp::equal" {
+  let t1 = @clock.Timestamp::from_ms(1000)
+  let t2 = @clock.Timestamp::from_ms(1000)
+  assert_eq(t1, t2)
+}
+
+///|
+test "Timestamp::to_string" {
+  let t = @clock.Timestamp::from_ms(1625079600123)
+  inspect(Show::to_string(t), content="1625079600123")
+}

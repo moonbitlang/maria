@@ -20,6 +20,7 @@ pub fn Timestamp::ms(Self) -> Int64
 pub fn Timestamp::ms_since(Self, Self) -> Int64
 pub fn Timestamp::truncate_to_s(Self) -> Int64
 pub impl Eq for Timestamp
+pub impl Show for Timestamp
 pub impl ToJson for Timestamp
 pub impl @json.FromJson for Timestamp
 

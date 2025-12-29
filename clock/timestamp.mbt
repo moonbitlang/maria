@@ -4,6 +4,11 @@
 struct Timestamp(Int64) derive(Eq)
 
 ///|
+pub impl Show for Timestamp with output(self : Timestamp, logger : &Logger) -> Unit {
+  self.0.output(logger)
+}
+
+///|
 /// Creates a new timestamp from the given number of milliseconds since the Unix
 /// epoch.
 ///
