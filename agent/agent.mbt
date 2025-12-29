@@ -380,7 +380,7 @@ pub async fn new(
   event_target.add_listener(event => logger.info("Received event", data={
     "event": event.to_json(),
   }))
-  event_target.emit(ModelLoaded(name=model.name, model~))
+  event_target.emit(ModelLoaded(name=model.name))
   let history = match history {
     Some(history) => history
     None => session_manager.new_conversation(name="history", cwd~)

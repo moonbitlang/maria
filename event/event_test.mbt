@@ -336,35 +336,12 @@ async test "Event::ModelLoaded" (t : @test.Test) {
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
-      emitter.emit(
-        ModelLoaded(
-          name="test_model",
-          model=@model.Model::new(
-            api_key="test_api_key",
-            base_url="https://api.example.com",
-            name="test_model",
-            safe_zone_tokens=100000,
-          ),
-        ),
-      )
+      emitter.emit(ModelLoaded(name="test_model"))
     })
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "desc": {
-          "msg": "ModelLoaded",
-          "name": "test_model",
-          "model": {
-            "name": "test_model",
-            "model_name": "test_model",
-            "model_type": "saas/openai",
-            "api_key": "****",
-            "base_url": "https://api.example.com",
-            "safe_zone_tokens": 100000,
-            "supports_anthropic_prompt_caching": false,
-            "supports_apply_patch": false,
-          },
-        },
+        "desc": { "msg": "ModelLoaded", "name": "test_model" },
       },
     ])
   })
@@ -616,22 +593,11 @@ test "Event::Roundtrip/Cancelled" {
 
 ///|
 test "Event::Roundtrip/ModelLoaded" {
-  let model = @model.Model::new(
-    api_key="test_api_key",
-    base_url="https://api.example.com",
-    name="test_model",
-    safe_zone_tokens=100000,
-  )
-  let event : @event.EventDesc = ModelLoaded(name="my_model", model~)
+  let event : @event.EventDesc = ModelLoaded(name="my_model")
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    ModelLoaded(name~, model=roundtrip_model) => {
-      inspect(name, content="my_model")
-      inspect(roundtrip_model.name, content="test_model")
-      inspect(roundtrip_model.base_url, content="https://api.example.com")
-      inspect(roundtrip_model.safe_zone_tokens, content="100000")
-    }
+    ModelLoaded(name~) => inspect(name, content="my_model")
     _ => fail("Expected ModelLoaded")
   }
 }
@@ -812,15 +778,7 @@ test "Event::Roundtrip" {
       tool_calls=[],
       "This is the final message from the model.",
     ),
-    ModelLoaded(
-      name="test_model",
-      model=@model.Model::new(
-        api_key="****",
-        base_url="https://api.example.com",
-        name="test_model",
-        safe_zone_tokens=100000,
-      ),
-    ),
+    ModelLoaded(name="test_model"),
     Cancelled,
     UserMessage("Stop the current task"),
     Diagnostics(@diagnostics.Diagnostics::new()),

@@ -35,7 +35,7 @@ pub(all) struct Event {
 ///|
 pub(all) enum EventDesc {
   /// Event triggered when a model is loaded.
-  ModelLoaded(name~ : String, model~ : @model.Model)
+  ModelLoaded(name~ : String)
   /// Event triggered before a conversation starts.
   PreConversation
   /// Event triggered after a conversation ends.
@@ -97,20 +97,7 @@ pub(all) enum EventDesc {
 ///|
 pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
   match self {
-    ModelLoaded(name~, model~) =>
-      {
-        "msg": "ModelLoaded",
-        "name": name.to_json(),
-        "model": {
-          let json = model.to_json()
-          if json is Object(obj) {
-            obj["api_key"] = "****"
-            Json::object(obj)
-          } else {
-            json
-          }
-        },
-      }
+    ModelLoaded(name~) => { "msg": "ModelLoaded", "name": name.to_json() }
     TokenCounted(token_count) =>
       { "msg": "TokenCounted", "token_count": token_count }
     ContextPruned(origin_token_count~, pruned_token_count~) =>
@@ -225,16 +212,7 @@ pub impl @json.FromJson for EventDesc with from_json(
         name_json,
         path=json_path.add_key("name"),
       )
-      guard json_object.get("model") is Some(model_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ModelLoaded event missing 'model' field"),
-        )
-      }
-      let model : @model.Model = @json.from_json(
-        model_json,
-        path=json_path.add_key("model"),
-      )
-      ModelLoaded(name~, model~)
+      ModelLoaded(name~)
     }
     "TokenCounted" => {
       guard json_object.get("token_count") is Some(token_count_json) else {
