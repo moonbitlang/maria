@@ -10,13 +10,9 @@ pub let base_instructions : String
 
 pub fn extract_token_claims(String) -> IdTokenClaims raise
 
-pub fn function_call_output(call_id~ : String, output~ : String) -> ResponseInputItem
-
 pub fn generate_pkce() -> PkceCodes
 
 pub async fn load_credentials() -> Credentials
-
-pub fn message_input(role~ : String, content~ : String) -> ResponseInputItem
 
 pub async fn refresh_and_save_credentials() -> Credentials
 
@@ -25,24 +21,6 @@ pub async fn start_oauth_flow() -> Credentials
 // Errors
 
 // Types and methods
-pub struct ContentPart {
-  type_ : ContentType
-  text : String
-}
-pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> Self
-pub impl Show for ContentPart
-pub impl ToJson for ContentPart
-pub impl @json.FromJson for ContentPart
-
-pub(all) enum ContentType {
-  InputText
-  OutputText
-  Text
-}
-pub impl Show for ContentType
-pub impl ToJson for ContentType
-pub impl @json.FromJson for ContentType
-
 pub struct Credentials {
   idToken : String
   accessToken : String
@@ -60,15 +38,6 @@ pub struct IdTokenClaims {
 }
 pub impl Show for IdTokenClaims
 
-pub struct InputItem {
-  type_ : String
-  role : Role
-  content : Array[ContentPart]
-}
-pub fn InputItem::new(type_~ : String, role~ : Role, content~ : Array[ContentPart]) -> Self
-pub impl Show for InputItem
-pub impl ToJson for InputItem
-
 pub struct PkceCodes {
   code_verifier : String
   code_challenge : String
@@ -78,43 +47,6 @@ pub impl Show for PkceCodes
 
 type RefreshResponse
 pub impl Show for RefreshResponse
-
-pub(all) enum ResponseInputItem {
-  Message(role~ : String, content~ : Array[ContentPart])
-  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
-  FunctionCallOutput(call_id~ : String, output~ : String)
-}
-pub impl Show for ResponseInputItem
-pub impl ToJson for ResponseInputItem
-
-pub(all) enum ResponseItem {
-  Message(role~ : String, content~ : Array[ContentPart])
-  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
-}
-pub impl Show for ResponseItem
-pub impl @json.FromJson for ResponseItem
-
-pub struct ResponsesRequest {
-  model : String
-  input : Array[ResponseInputItem]
-  instructions : String
-  tools : Array[Json]
-  tool_choice : String
-  stream : Bool?
-  store : Bool?
-}
-pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItem], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
-pub impl Show for ResponsesRequest
-pub impl ToJson for ResponsesRequest
-
-pub(all) enum Role {
-  User
-  Assistant
-  System
-}
-pub impl Show for Role
-pub impl ToJson for Role
-pub impl @json.FromJson for Role
 
 type TokenResponse
 pub impl Show for TokenResponse
