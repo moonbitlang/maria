@@ -8,7 +8,9 @@
     "moonbitlang/async/io",
     "moonbitlang/async",
     "moonbitlang/maria/internal/pino",
-    "moonbitlang/maria/internal/openai/responses"
+    "moonbitlang/maria/internal/openai/client",
+    "moonbitlang/maria/internal/openai/responses",
+    "moonbitlang/maria/internal/openai/shared"
   ],
   "test-import": [
     "moonbitlang/maria/internal/os",

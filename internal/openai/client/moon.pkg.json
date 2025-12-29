@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/async/http",
+    "moonbitlang/async/io"
+  ]
+}

@@ -215,15 +215,15 @@ fn ChatCompletionBuilder::add_chunk(
 ///|
 fn ChatCompletionBuilder::to_chat_completion(
   self : ChatCompletionBuilder,
-) -> ChatCompletion {
+) -> ChatCompletion raise {
   ChatCompletion::new(
-    id=self.id.unwrap(),
+    id=self.id.unwrap_or_error(@builtin.Failure("Missing id")),
     choices=self.choices
       .iter()
       .filter_map(builder => builder.map(b => b.to_choice()))
       .to_array(),
-    created=self.created.unwrap(),
-    model=self.model.unwrap(),
+    created=self.created.unwrap_or_error(@builtin.Failure("Missing created")),
+    model=self.model.unwrap_or_error(@builtin.Failure("Missing model")),
     usage?=self.usage,
     system_fingerprint?=self.system_fingerprint,
     service_tier?=self.service_tier,
