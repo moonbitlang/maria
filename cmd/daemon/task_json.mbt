@@ -3,10 +3,8 @@ pub impl @json.FromJson for Task with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Task {
-  guard json is Object(map) else {
-    raise @json.JsonDecodeError((json_path, "Task::from_json: expected object"))
-  }
-  let name = match map.get("name") {
+  let object = @jsonx.as_object(json, path=json_path)
+  let name = match object.get("name") {
     Some([String(name)]) | Some(String(name)) => Some(name)
     None | Some(Null) => None
     Some(_) =>
@@ -14,89 +12,39 @@ pub impl @json.FromJson for Task with from_json(
         (json_path.add_key("name"), "Task::from_json: expected string or null"),
       )
   }
-  let id = match map.get("id") {
-    Some(String(id_str)) =>
-      @uuid.parse(id_str) catch {
-        error =>
-          raise @json.JsonDecodeError(
-            (
-              json_path.add_key("id"),
-              "Task::from_json: invalid UUID string: \{error}",
-            ),
-          )
-      }
-    _ =>
+  let id_str : String = object.required("id", path=json_path)
+  let id = @uuid.parse(id_str) catch {
+    error =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("id"), "Task::from_json: expected string"),
+        (
+          json_path.add_key("id"),
+          "Task::from_json: invalid UUID string: \{error}",
+        ),
       )
   }
-  let cwd = match map.get("cwd") {
-    Some(String(cwd)) => cwd
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("cwd"), "Task::from_json: expected string"),
-      )
-  }
-  let port = match map.get("port") {
-    Some(Number(port, ..)) => port.to_int()
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("port"), "Task::from_json: expected number"),
-      )
-  }
-  let status = match map.get("status") {
-    Some(String(status_str)) =>
-      match status_str.to_lower() {
-        "idle" => @server.Idle
-        "generating" => @server.Busy
-        _ =>
-          raise @json.JsonDecodeError(
-            (
-              json_path.add_key("status"),
-              "Task::from_json: unknown status '\{status_str}'",
-            ),
-          )
-      }
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("status"), "Task::from_json: expected string"),
-      )
-  }
-  let web_search = match map.get("web_search") {
-    Some(True) => true
-    Some(False) => false
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("web_search"), "Task::from_json: expected bool"),
-      )
-  }
-  let created : @clock.Timestamp = match map.get("created") {
-    Some(created_json) =>
-      @json.from_json(created_json, path=json_path.add_key("created"))
-    _ =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("created"), "Task::from_json: expected number"),
-      )
-  }
-  let queued_messages = match map.get("queued_messages") {
-    Some(Array(qms)) => {
-      let ms = Array::new()
-      for i, qm_json in qms {
-        let qm : QueuedMessage = @json.from_json(
-          qm_json,
-          path=json_path.add_key("queued_messages").add_index(i),
-        )
-        ms.push(qm)
-      }
-      ms
-    }
-    None => []
+  let cwd : String = object.required("cwd", path=json_path)
+  let port : Int = object.required("port", path=json_path)
+  let status_str : String = object.required("status", path=json_path)
+  let status = match status_str.to_lower() {
+    "idle" => @server.Idle
+    "generating" => @server.Busy
     _ =>
       raise @json.JsonDecodeError(
         (
-          json_path.add_key("queued_messages"),
-          "Task::from_json: expected array",
+          json_path.add_key("status"),
+          "Task::from_json: unknown status '\{status_str}'",
         ),
+      )
+  }
+  let web_search : Bool = object.required("web_search", path=json_path)
+  let created : @clock.Timestamp = object.required("created", path=json_path)
+  let queued_messages : Array[QueuedMessage] = match
+    object.get("queued_messages") {
+    None => []
+    Some(queued_messages_json) =>
+      @json.from_json(
+        queued_messages_json,
+        path=json_path.add_key("queued_messages"),
       )
   }
   Task::{ name, id, cwd, port, status, created, web_search, queued_messages }
