@@ -20,7 +20,7 @@ async test "Manager" (t : @test.Test) {
       name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_event({ id: mock.uuid.v4(), desc: UserMessage("Hello") })
     manager.save(conversation)
     @json.inspect(manager.list(), content=[
       "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -40,7 +40,7 @@ async test "Manager::load" (t : @test.Test) {
       name="Test Conversation",
       cwd=mock.cwd.path(),
     )
-    conversation.add_message(@ai.user_message(content="Hello"))
+    conversation.add_event({ id: mock.uuid.v4(), desc: UserMessage("Hello") })
     @json.inspect(
       conversation.id(),
       content="ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -54,8 +54,11 @@ async test "Manager::load" (t : @test.Test) {
       {
         "name": "Test Conversation",
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "messages": [
-          { "timestamp": 2, "message": { "role": "user", "content": "Hello" } },
+        "events": [
+          {
+            "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+            "desc": { "msg": "UserMessage", "content": "Hello" },
+          },
         ],
         "created_at": 0,
         "updated_at": 2,

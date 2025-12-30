@@ -13,14 +13,14 @@ pub fn Conversation::export_to_markdown(self : Conversation) -> String {
   }
   lines.push("**Created:** \{format_timestamp(self.created_at)}")
   lines.push("**Updated:** \{format_timestamp(self.updated_at)}")
-  lines.push("**Messages:** \{self.messages.length()}")
+  let messages = self.messages()
+  lines.push("**Messages:** \{messages.length()}")
   lines.push("")
 
   // Add messages
-  for i in 0..<self.messages.length() {
-    let message = self.messages[i]
+  for i, message in messages {
     // Role as level 2 heading
-    let role_title = get_role_title(message.message.to_openai())
+    let role_title = get_role_title(message.to_openai())
     lines.push("## \{role_title}")
     lines.push("")
 
@@ -29,14 +29,10 @@ pub fn Conversation::export_to_markdown(self : Conversation) -> String {
     lines.push("")
 
     // Add message content
-    format_message_content(message.message.to_openai(), lines)
-
-    // Add metadata if available
-    lines.push("")
-    lines.push("**Timestamp:** \{format_timestamp(message.timestamp)}")
+    format_message_content(message.to_openai(), lines)
 
     // Add separator between messages (except for last message)
-    if i < self.messages.length() - 1 {
+    if i < messages.length() - 1 {
       lines.push("")
       lines.push("---")
       lines.push("")
