@@ -4,6 +4,7 @@
     "moonbitlang/maria/internal/lru",
     "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx",
+    "moonbitlang/maria/internal/jsonx",
     "moonbitlang/x/time",
     "moonbitlang/maria/clock",
     "moonbitlang/maria/ai",
