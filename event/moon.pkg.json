@@ -6,7 +6,8 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/openai",
     "moonbitlang/maria/internal/diagnostics",
-    "moonbitlang/maria/internal/rand"
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/maria/internal/jsonx"
   ],
   "test-import": [
     "moonbitlang/async",
