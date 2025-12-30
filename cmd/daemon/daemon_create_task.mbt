@@ -250,6 +250,7 @@ async fn Daemon::create_task(
     port=task_port,
     created~,
     web_search=request.web_search is Some(true),
+    model=model.name,
   )
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
   group.spawn_bg(() => {

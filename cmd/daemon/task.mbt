@@ -17,6 +17,8 @@ struct Task {
   created : @clock.Timestamp
   /// Whether the task has web search capabilities enabled.
   web_search : Bool
+  /// The model being used by the task, if applicable.
+  model : String
 }
 
 ///|
@@ -57,6 +59,7 @@ fn Task::new(
   port~ : Int,
   created~ : @clock.Timestamp,
   web_search~ : Bool,
+  model~ : String,
 ) -> Task {
   Task::{
     name,
@@ -67,6 +70,7 @@ fn Task::new(
     queued_messages: [],
     created,
     web_search,
+    model,
   }
 }
 
