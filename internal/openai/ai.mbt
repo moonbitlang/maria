@@ -138,7 +138,7 @@ async fn chat_codex(
       let input = convert_messages_to_input(request.messages)
       let instructions = @codex.base_instructions
       let tools = convert_tools_to_responses_api(request.tools)
-      let codex_request = @codex.ResponsesRequest::new(
+      let codex_request = @responses.ResponsesRequest::new(
         model=model.model_name,
         input~,
         instructions~,
@@ -334,14 +334,14 @@ fn convert_tools_to_responses_api(
 ///|
 priv struct CodexStreamResult {
   text_chunks : Array[String]
-  output_items : Array[@codex.ResponseItem]
+  output_items : Array[@responses.ResponseItem]
 }
 
 ///|
 async fn do_codex_stream_request(
   access_token : String,
   account_id : String,
-  request : @codex.ResponsesRequest,
+  request : @responses.ResponsesRequest,
 ) -> CodexStreamResult raise Error {
   let client = @http.Client::new("https://chatgpt.com", headers={
     "Authorization": "Bearer \{access_token}",
@@ -368,9 +368,9 @@ async fn do_codex_stream_request(
       body="API request failed: \{error_text}",
     )
   }
-  let reader = CodexEventReader::new(client)
+  let reader = ResponseStreamEventReader::new(client)
   let text_chunks : Array[String] = []
-  let output_items : Array[@codex.ResponseItem] = []
+  let output_items : Array[@responses.ResponseItem] = []
   while reader.read() is Some(event) {
     match event {
       TextDelta(delta) => text_chunks.push(delta)
@@ -382,22 +382,26 @@ async fn do_codex_stream_request(
 }
 
 ///|
-priv enum CodexSseEvent {
+priv enum ResponseStreamEvent {
   TextDelta(String)
-  OutputItemDone(@codex.ResponseItem)
+  OutputItemDone(@responses.ResponseItem)
   Completed
 }
 
 ///|
-priv struct CodexEventReader(&@io.Reader)
+priv struct ResponseStreamEventReader(&@io.Reader)
 
 ///|
-fn CodexEventReader::new(reader : &@io.Reader) -> CodexEventReader {
-  CodexEventReader(reader)
+fn ResponseStreamEventReader::new(
+  reader : &@io.Reader,
+) -> ResponseStreamEventReader {
+  ResponseStreamEventReader(reader)
 }
 
 ///|
-async fn CodexEventReader::read(self : CodexEventReader) -> CodexSseEvent? {
+async fn ResponseStreamEventReader::read(
+  self : ResponseStreamEventReader,
+) -> ResponseStreamEvent? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
@@ -423,7 +427,7 @@ async fn CodexEventReader::read(self : CodexEventReader) -> CodexSseEvent? {
         "response.output_item.done" =>
           if obj.get("item") is Some(item_json) {
             try {
-              let item : @codex.ResponseItem = @json.from_json(item_json)
+              let item : @responses.ResponseItem = @json.from_json(item_json)
               return Some(OutputItemDone(item))
             } catch {
               _ => continue
@@ -458,23 +462,23 @@ fn extract_text_content(
 ///|
 fn convert_messages_to_input(
   messages : Array[ChatCompletionMessageParam],
-) -> Array[@codex.ResponseInputItem] {
-  let result : Array[@codex.ResponseInputItem] = []
+) -> Array[@responses.ResponseInputItem] {
+  let result : Array[@responses.ResponseInputItem] = []
   for msg in messages {
     match msg {
       System(_) => continue
       User(user_msg) => {
         let text = extract_text_content(user_msg.content)
-        result.push(@codex.message_input(role="user", content=text))
+        result.push(@responses.message_input(role="user", content=text))
       }
       Assistant(assistant_msg) => {
         let text = extract_text_content(assistant_msg.content)
         if !text.is_empty() {
-          result.push(@codex.message_input(role="assistant", content=text))
+          result.push(@responses.message_input(role="assistant", content=text))
         }
         for tc in assistant_msg.tool_calls {
           result.push(
-            @codex.FunctionCall(
+            @responses.ResponseInputItem::FunctionCall(
               call_id=tc.id,
               name=tc.function.name,
               arguments=tc.function.arguments.unwrap_or("{}"),
@@ -485,7 +489,7 @@ fn convert_messages_to_input(
       Tool(tool_msg) => {
         let text = extract_text_content(tool_msg.content)
         result.push(
-          @codex.function_call_output(
+          @responses.function_call_output(
             call_id=tool_msg.tool_call_id,
             output=text,
           ),
@@ -505,7 +509,7 @@ fn codex_stream_result_to_chat_completion(
   let tool_calls : Array[ChatCompletionMessageToolCall] = []
   for item in result.output_items {
     match item {
-      @codex.ResponseItem::Message(content=parts, ..) => {
+      @responses.ResponseItem::Message(content=parts, ..) => {
         let texts = parts.map(fn(part) { part.text })
         let text = texts
           .iter()
@@ -518,7 +522,7 @@ fn codex_stream_result_to_chat_completion(
           })
         content = Some(text)
       }
-      @codex.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
+      @responses.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
         tool_calls.push(tool_call(id=call_id, name~, arguments~))
     }
   }
