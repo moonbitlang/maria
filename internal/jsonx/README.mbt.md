@@ -1,70 +1,88 @@
 # internal/jsonx
 
-This package provides utility functions for working with JSON in MoonBit, particularly focused on improving error handling when deserializing JSON objects.
+This package provides small helpers to decode JSON objects with accurate
+`@json.JsonDecodeError` paths. It wraps JSON objects in `@jsonx.Object` and
+offers `required` and `optional` field accessors that add the key to the path
+before decoding.
 
 ## Overview
 
-The main functionality provided by this package is the `get_required_field` function, which extracts and deserializes a required field from a JSON object with proper error reporting using JSON paths.
+- `as_object` converts a `Json` value into `@jsonx.Object` with path-aware error
+  reporting.
+- `Object::required` extracts a required field and decodes it.
+- `Object::optional` extracts an optional field and decodes it when present and
+  non-null.
 
 ## Usage
 
-### Extracting Required Fields
-
-Use `get_required_field` to extract and deserialize required fields from JSON objects with automatic error reporting:
+### Extracting Required and Optional Fields
 
 ```moonbit
-let json_obj : Map[String, Json] = // ... parse some JSON
-let name : String = get_required_field(json_obj, "name", path=root_path)
-let age : Int = get_required_field(json_obj, "age", path=root_path)
-```
-
-If a field is missing or deserialization fails, you'll get a `JsonDecodeError` with a proper path indicating exactly where the error occurred (e.g., `$.name` or `$.age`).
-
-### Building Nested Paths
-
-The path can be extended as you traverse nested structures:
-
-```moonbit
-fn parse_user(json : Json, path : @json.JsonPath) -> User!JsonDecodeError {
-  let obj = @json.as_object(json)!
-  let address_json = get_required_field(obj, "address", path)
-  let address = parse_address(address_json, path.add_key("address"))!
-  // ... parse other fields
+///|
+fn parse_user(
+  json : Json,
+  path : @json.JsonPath,
+) -> User raise @json.JsonDecodeError {
+  let object = @jsonx.as_object(json, path~)
+  let name : String = object.required("name", path~)
+  let age : Int = object.required("age", path~)
+  let nickname : String? = object.optional("nickname", path~)
+  User::{ name, age, nickname }
 }
 ```
 
-This will produce error messages like `$.address.street` if something goes wrong in the nested structure.
+If a field is missing or decoding fails, the error carries the full JSON path,
+for example `/age` or `/nickname`.
+
+### Nested Objects
+
+```moonbit
+///|
+fn parse_profile(
+  json : Json,
+  path : @json.JsonPath,
+) -> Profile raise @json.JsonDecodeError {
+  let object = @jsonx.as_object(json, path~)
+  let address_json : Json = object.required("address", path~)
+  let address = parse_address(address_json, path.add_key("address"))
+  Profile::{ address, }
+}
+```
 
 ## API Reference
 
-### `get_required_field`
+### `@jsonx.Object`
 
 ```moonbit
-pub fn[T : @json.FromJson] get_required_field(
-  object : Map[String, Json],
+///|
+pub(all) struct Object(Map[String, Json])
+```
+
+### `as_object`
+
+```moonbit
+pub fn as_object(
+  json : Json,
+  path~ : @json.JsonPath,
+) -> Object raise @json.JsonDecodeError
+```
+
+### `Object::required`
+
+```moonbit
+pub fn[T : @json.FromJson] Object::required(
+  object : Object,
   key : String,
-  path? : @json.JsonPath = root_path,
+  path~ : @json.JsonPath,
 ) -> T raise @json.JsonDecodeError
 ```
 
-Extracts and deserializes a required field from a JSON object.
-
-**Parameters:**
-
-- `object`: The JSON object to extract the field from
-- `key`: The name of the required field to extract
-- `path`: The current JSON path for error reporting context (defaults to `root_path`)
-
-**Returns:** The deserialized value of type `T`
-
-**Raises:** `@json.JsonDecodeError` if the field is missing or deserialization fails
-
-### `root_path`
+### `Object::optional`
 
 ```moonbit
-pub let root_path : @json.JsonPath
+pub fn[T : @json.FromJson] Object::optional(
+  object : Object,
+  key : String,
+  path~ : @json.JsonPath,
+) -> T? raise @json.JsonDecodeError
 ```
-
-The root JSON path for error reporting. Use this as the starting point when calling `get_required_field` and similar functions.
-
-Due to the abstract visibility of `JsonPath`, this is obtained through the indirect method described above.
