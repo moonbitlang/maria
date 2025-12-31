@@ -61,7 +61,7 @@ test "@jsonx.Object::optional/explicit-null" {
     "name": "Alice",
     "age": 25.0,
     "active": true,
-    "nickname": null,
+    "nickname": Json::null(),
   }
   let people : People = @json.from_json(object)
   @json.inspect(people, content={ "name": "Alice", "age": 25, "active": true })
