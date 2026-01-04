@@ -1,0 +1,123 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/jason"
+
+import(
+  "moonbitlang/core/strconv"
+)
+
+// Values
+pub fn[T : FromJason] from_jason(Jason, path? : JasonPath) -> T raise DecodeError
+
+pub let null : Jason
+
+// Errors
+pub suberror DecodeError {
+  MissingField(JasonPath)
+  TypeMismatch(JasonPath, expect~ : Array[JasonType], actual~ : Jason)
+  InvalidNumber(JasonPath, @strconv.StrConvError)
+}
+
+// Types and methods
+pub enum Jason {
+  Null
+  Bool(Bool)
+  String(String)
+  Number(Number)
+  Array(Array[Jason])
+  Object(Object)
+}
+#as_free_fn
+pub fn Jason::array(Array[Self]) -> Self
+pub fn Jason::as_array(Self, path~ : JasonPath) -> Array[Self] raise DecodeError
+pub fn Jason::as_number(Self, path~ : JasonPath) -> Number raise DecodeError
+pub fn Jason::as_object(Self, path~ : JasonPath) -> Object raise DecodeError
+pub fn Jason::as_string(Self, path~ : JasonPath) -> String raise DecodeError
+#as_free_fn
+pub fn Jason::bool(Bool) -> Self
+#as_free_fn
+pub fn Jason::double(Double) -> Self
+#as_free_fn
+pub fn Jason::int(Int) -> Self
+#as_free_fn
+pub fn Jason::int64(Int64) -> Self
+#as_free_fn
+pub fn Jason::number(Number) -> Self
+#as_free_fn
+pub fn Jason::object(Object) -> Self
+#as_free_fn
+pub fn Jason::string(String) -> Self
+pub fn Jason::type_(Self) -> JasonType
+pub impl FromJason for Jason
+pub impl ToJason for Jason
+
+pub enum JasonPath {
+  Root
+  Key(JasonPath, String)
+  Index(JasonPath, Int)
+}
+pub fn JasonPath::add_index(Self, Int) -> Self
+pub fn JasonPath::add_key(Self, String) -> Self
+pub fn JasonPath::root() -> Self
+
+pub enum JasonType {
+  Null
+  Object
+  Array
+  String
+  Number
+  Bool
+}
+
+type Number
+pub fn Number::from_double(Double) -> Self
+pub fn Number::from_int(Int) -> Self
+pub fn Number::from_int64(Int64) -> Self
+pub fn Number::to_double(Self, path? : JasonPath) -> Double raise DecodeError
+pub fn Number::to_int(Self, path? : JasonPath) -> Int raise DecodeError
+pub fn Number::to_int64(Self, path? : JasonPath) -> Int64 raise DecodeError
+pub impl FromJason for Number
+
+pub(all) struct Object(Map[String, Jason])
+pub fn[T : ToJason] Object::from_map(Map[String, T]) -> Self
+pub fn Object::get(Self, String) -> Jason?
+#deprecated
+pub fn Object::inner(Self) -> Map[String, Jason]
+pub fn[T : FromJason] Object::optional(Self, String, path~ : JasonPath) -> T? raise DecodeError
+pub fn[T : FromJason] Object::required(Self, String, path~ : JasonPath) -> T raise DecodeError
+pub impl FromJason for Object
+
+type ObjectBuilder
+pub fn ObjectBuilder::finalize(Self) -> Object
+pub fn ObjectBuilder::new() -> Self
+pub fn[T : ToJason] ObjectBuilder::optional(Self, String, T?) -> Unit
+pub fn[T : ToJason] ObjectBuilder::required(Self, String, T) -> Unit
+
+// Type aliases
+
+// Traits
+pub(open) trait FromJason {
+  from_jason(Jason, path~ : JasonPath) -> Self raise DecodeError
+}
+pub impl FromJason for Bool
+pub impl FromJason for Int
+pub impl FromJason for Int64
+pub impl FromJason for Double
+pub impl FromJason for String
+pub impl[T : FromJason] FromJason for FixedArray[T]
+pub impl[T : FromJason] FromJason for Array[T]
+pub impl[T : FromJason] FromJason for ArrayView[T]
+pub impl[T : FromJason] FromJason for Map[String, T]
+
+pub(open) trait ToJason {
+  to_jason(Self) -> Jason
+}
+pub impl ToJason for Bool
+pub impl ToJason for Int
+pub impl ToJason for Int64
+pub impl ToJason for Double
+pub impl ToJason for String
+pub impl[T : ToJason] ToJason for FixedArray[T]
+pub impl[T : ToJason] ToJason for Array[T]
+pub impl[T : ToJason] ToJason for ArrayView[T]
+pub impl[T : ToJason] ToJason for Map[String, T]
+
