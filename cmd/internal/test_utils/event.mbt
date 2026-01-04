@@ -83,7 +83,13 @@ pub fn redact_events(events : Array[ServerEvent]) -> Array[ServerEvent] {
           )
         event => event
       }
-      return Maria({ id: @uuid.nil, desc })
+      return Maria(
+        @event.Event::new(
+          id=@uuid.nil,
+          created=@clock.Timestamp::from_ms(0),
+          desc,
+        ),
+      )
     }
   })
 }

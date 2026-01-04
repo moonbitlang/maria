@@ -168,6 +168,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": {
               "msg": "MessageQueued",
               "message": { "id": "00000000-0000-0000-0000-000000000000" },
@@ -178,6 +179,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": {
               "msg": "MessageUnqueued",
               "message": { "id": "00000000-0000-0000-0000-000000000000" },
@@ -188,6 +190,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": { "msg": "UserMessage", "content": "<redacted>" },
           },
         ],
@@ -206,6 +209,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": {
               "msg": "MessageQueued",
               "message": { "id": "00000000-0000-0000-0000-000000000000" },
@@ -216,6 +220,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": {
               "msg": "MessageUnqueued",
               "message": { "id": "00000000-0000-0000-0000-000000000000" },
@@ -226,6 +231,7 @@ async test "GET /v1/events" (t : @test.Test) {
           "Maria",
           {
             "id": "00000000-0000-0000-0000-000000000000",
+            "created": 0,
             "desc": { "msg": "UserMessage", "content": "<redacted>" },
           },
         ],
@@ -424,6 +430,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
             "Maria",
             {
               "id": "00000000-0000-0000-0000-000000000000",
+              "created": 0,
               "desc": { "msg": "Cancelled" },
             },
           ],

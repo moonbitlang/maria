@@ -199,15 +199,13 @@ async fn Server::start_maria(self : Server) -> Unit {
             error => {
               println("[ERROR] (Server) Maria task failed: \{error}")
               if !@async.is_being_cancelled() {
-                self.broadcast.put(@event.Event::{
-                  id: self.uuid.v4(),
-                  desc: Failed(error.to_json()),
-                })
+                self.broadcast.put(
+                  @event.Event::new(id=self.uuid.v4(), Failed(error.to_json())),
+                )
               } else {
-                self.broadcast.put(@event.Event::{
-                  id: self.uuid.v4(),
-                  desc: @event.Cancelled,
-                })
+                self.broadcast.put(
+                  @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
+                )
               }
               raise error
             }

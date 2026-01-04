@@ -27,10 +27,31 @@
 /// // conversation ended
 /// PostConversation
 /// ```
-pub(all) struct Event {
+pub struct Event {
   id : @uuid.Uuid
+  created : @clock.Timestamp
   desc : EventDesc
 } derive(Eq, Show)
+
+///|
+/// Creates a new `Event` with the specified parameters.
+///
+/// Parameters:
+///
+/// * `id` : The unique identifier for the event.
+/// * `created` : The timestamp when the event was created. Defaults to the
+///   current time if not provided.
+/// * `desc` : The event description that specifies the type and content of the
+///   event.
+///
+/// Returns a new `Event` instance.
+pub fn Event::new(
+  id~ : @uuid.Uuid,
+  created? : @clock.Timestamp = @clock.epoch.now(),
+  desc : EventDesc,
+) -> Event {
+  Event::{ id, created, desc }
+}
 
 ///|
 pub(all) enum EventDesc {
@@ -455,7 +476,7 @@ pub impl @json.FromJson for EventDesc with from_json(
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
 pub impl ToJson for Event with to_json(self : Event) -> Json {
-  { "id": self.id.to_json(), "desc": self.desc }
+  { "id": self.id.to_json(), "created": self.created, "desc": self.desc }
 }
 
 ///|
@@ -467,20 +488,13 @@ pub impl @json.FromJson for Event with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Event raise @json.JsonDecodeError {
-  match json {
-    { "id": id, "desc": desc_json, .. } =>
-      {
-        id: @json.from_json(id),
-        desc: @json.from_json(desc_json, path=json_path.add_key("desc")),
-      }
-    _ =>
-      raise @json.JsonDecodeError(
-        (
-          json_path,
-          "Invalid Event object: expected fields 'id' and 'desc': \{json.stringify(indent=2)}",
-        ),
-      )
-  }
+  let object = @jsonx.as_object(json, path=json_path)
+  let id : @uuid.Uuid = object.required("id", path=json_path)
+  let created : @clock.Timestamp = object
+    .optional("created", path=json_path)
+    .unwrap_or_else(() => @clock.Timestamp::from_ms(0))
+  let desc : EventDesc = object.required("desc", path=json_path)
+  { id, created, desc }
 }
 
 ///|

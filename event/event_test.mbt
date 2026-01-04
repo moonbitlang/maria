@@ -1,7 +1,7 @@
 ///|
 async test "EventTarget::flush" (t : @test.Test) {
   @mock.run(t, mock => {
-    let event_target = @event.EventTarget::new(uuid=mock.uuid)
+    let event_target = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
     let events : Array[@event.Event] = []
     event_target.add_listener(event => events.push(event))
     @async.with_task_group(group => {
@@ -15,6 +15,7 @@ async test "EventTarget::flush" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": { "msg": "TokenCounted", "token_count": 10 },
       },
     ])
@@ -26,7 +27,7 @@ async test "Event::ToJson/PreConversation" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -35,6 +36,7 @@ async test "Event::ToJson/PreConversation" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": { "msg": "PreConversation" },
       },
     ])
@@ -46,7 +48,7 @@ async test "Event::ToJson/PostConversation" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -55,6 +57,7 @@ async test "Event::ToJson/PostConversation" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": { "msg": "PostConversation" },
       },
     ])
@@ -66,7 +69,7 @@ async test "Event::ToJson/TokenCounted" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -75,6 +78,7 @@ async test "Event::ToJson/TokenCounted" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": { "msg": "TokenCounted", "token_count": 42 },
       },
     ])
@@ -86,7 +90,7 @@ async test "Event::ToJson/ContextPruned" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -95,6 +99,7 @@ async test "Event::ToJson/ContextPruned" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "ContextPruned",
           "origin_token_count": 100,
@@ -110,7 +115,7 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -127,6 +132,7 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "PreToolCall",
           "tool_call": {
@@ -150,7 +156,7 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -169,6 +175,7 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "PostToolCall",
           "tool_call": {
@@ -193,7 +200,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -212,6 +219,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "PostToolCall",
           "tool_call": {
@@ -236,7 +244,7 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -246,6 +254,7 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "SystemPromptSet",
           "prompt": "Hello, this is a system prompt.",
@@ -253,6 +262,7 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
       },
       {
         "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+        "created": 1,
         "desc": { "msg": "SystemPromptSet" },
       },
     ])
@@ -264,7 +274,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -279,6 +289,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "ToolAdded",
           "tool": {
@@ -297,7 +308,7 @@ async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       emitter.add_listener(event => events.push(event))
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
@@ -317,6 +328,7 @@ async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": {
           "msg": "AssistantMessage",
           "tool_calls": [],
@@ -337,7 +349,7 @@ async test "Event::ModelLoaded" (t : @test.Test) {
   @mock.run(t, mock => {
     let events = []
     @async.with_task_group(group => {
-      let emitter = @event.EventTarget::new(uuid=mock.uuid)
+      let emitter = @event.EventTarget::new(uuid=mock.uuid, clock=mock.clock)
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
@@ -346,6 +358,7 @@ async test "Event::ModelLoaded" (t : @test.Test) {
     @json.inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+        "created": 0,
         "desc": { "msg": "ModelLoaded", "name": "test_model" },
       },
     ])
@@ -852,7 +865,7 @@ test "Event::Roundtrip" {
     Failed(Failure("An error occurred").to_json()),
   ]
   for event in events {
-    let event = @event.Event::{ id: uuid.v4(), desc: event }
+    let event = @event.Event::new(id=uuid.v4(), event)
     let roundtripped : @event.Event = @json.from_json(event.to_json())
     assert_eq(roundtripped, event)
   }

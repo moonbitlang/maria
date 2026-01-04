@@ -20,6 +20,7 @@
 /// - Listeners are invoked sequentially for each event
 struct EventTarget {
   uuid : @uuid.Generator
+  clock : &@clock.Clock
   // TODO: Consider adding a `Closed` event variant instead of using `Event?`.
   // This would make the termination signal explicit in the type system rather
   // than using `None` as a sentinel value.
@@ -45,13 +46,17 @@ struct EventTarget {
 /// // Start in background
 /// spawn(() => emitter.start())
 /// ```
-pub fn EventTarget::new(uuid? : @uuid.Generator) -> EventTarget raise {
+pub fn EventTarget::new(
+  uuid? : @uuid.Generator,
+  clock? : &@clock.Clock = @clock.epoch,
+) -> EventTarget raise {
   let uuid = match uuid {
     None => @uuid.generator(@rand.chacha8())
     Some(uuid) => uuid
   }
   EventTarget::{
     uuid,
+    clock,
     queue: @aqueue.Queue::new(kind=Unbounded),
     listeners: [],
   }
@@ -88,7 +93,7 @@ pub fn EventTarget::emit(
   desc : EventDesc,
   id? : @uuid.Uuid = self.uuid.v4(),
 ) -> Unit {
-  guard self.queue.try_put({ id, desc }) else {
+  guard self.queue.try_put({ id, created: self.clock.now(), desc }) else {
     abort("Event queue is full, cannot emit event")
   }
 }

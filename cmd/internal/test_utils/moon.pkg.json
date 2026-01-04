@@ -4,6 +4,7 @@
     "moonbitlang/async/http",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/maria/internal/httpx"
+    "moonbitlang/maria/internal/httpx",
+    "moonbitlang/maria/clock"
   ]
 }

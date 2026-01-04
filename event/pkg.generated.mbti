@@ -4,6 +4,7 @@ package "moonbitlang/maria/event"
 import(
   "moonbitlang/core/json"
   "moonbitlang/maria/ai"
+  "moonbitlang/maria/clock"
   "moonbitlang/maria/internal/diagnostics"
   "moonbitlang/maria/internal/uuid"
   "moonbitlang/maria/tool"
@@ -14,14 +15,16 @@ import(
 // Errors
 
 // Types and methods
-pub(all) struct Event {
+pub struct Event {
   id : @uuid.Uuid
+  created : @clock.Timestamp
   desc : EventDesc
 }
 pub fn Event::is_cancellation(Self) -> Bool
 pub fn Event::is_incoming(Self) -> Bool
 pub fn Event::is_starting(Self) -> Bool
 pub fn Event::is_stopping(Self) -> Bool
+pub fn Event::new(id~ : @uuid.Uuid, created? : @clock.Timestamp, EventDesc) -> Self
 pub impl Eq for Event
 pub impl Show for Event
 pub impl ToJson for Event
@@ -54,7 +57,7 @@ type EventTarget
 pub fn EventTarget::add_listener(Self, async (Event) -> Unit) -> Unit
 pub fn EventTarget::emit(Self, EventDesc, id? : @uuid.Uuid) -> Unit
 pub async fn EventTarget::flush(Self) -> Unit
-pub fn EventTarget::new(uuid? : @uuid.Generator) -> Self raise
+pub fn EventTarget::new(uuid? : @uuid.Generator, clock? : &@clock.Clock) -> Self raise
 pub async fn EventTarget::start(Self) -> Unit
 
 type ExternalEventQueue

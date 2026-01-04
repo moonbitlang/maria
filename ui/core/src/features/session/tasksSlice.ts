@@ -22,7 +22,7 @@ type Task = TaskOverview & {
   chatInput: string;
   inputQueue: QueuedMessage[];
   events: TaskEvent[];
-  eventIds: Record<number, true>;
+  eventIds: Record<string, true>;
   webSearchEnabled: boolean;
   dynamicVariables: ChatDynamicVariable[];
 };

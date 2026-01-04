@@ -375,7 +375,9 @@ pub async fn new(
   event_target.add_listener(event => logger.info("Received event", data={
     "event": event.to_json(),
   }))
-  event_target.put({ id: uuid.v4(), desc: ModelLoaded(name=model.name) })
+  event_target.put(
+    @event.Event::new(id=uuid.v4(), ModelLoaded(name=model.name)),
+  )
   let history = match history {
     Some(history) => history
     None => session_manager.new_conversation(name="history", cwd~)
