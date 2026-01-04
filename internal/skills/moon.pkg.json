@@ -1,6 +1,7 @@
 {
   "import": [
     "moonbitlang/maria/ai",
+    "moonbitlang/maria/internal/git",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/pathx",

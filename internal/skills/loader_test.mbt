@@ -18,6 +18,7 @@ async test "load" (t : @test.Test) {
         },
       },
       "cwd": {
+        ".git": {},
         ".moonagent": {
           "skills": {
             "text-summarization": {
@@ -138,7 +139,7 @@ async test "load/empty" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
       ".moonagent": { "skills": {} },
-      "cwd": { ".moonagent": { "skills": {} } },
+      "cwd": { ".git": {}, ".moonagent": { "skills": {} } },
     })
     let home = mock.cwd.path()
     let cwd = @pathx.join(home, "cwd")
@@ -179,7 +180,9 @@ async test "load/lowercase" (t : @test.Test) {
       },
     })
     let home = mock.cwd.path()
+    // Add a `.git` marker so the loader stops walking up before reaching `home`.
     let cwd = @pathx.join(home, "cwd")
+    mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     let messages = [
@@ -277,6 +280,7 @@ async test "load/invalid-skill" (t : @test.Test) {
     })
     let home = mock.cwd.path()
     let cwd = @pathx.join(home, "cwd")
+    mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     let messages = [
@@ -312,6 +316,8 @@ async test "reload" (t : @test.Test) {
     )
     let home = mock.cwd.path()
     let cwd = @pathx.join(home, "cwd")
+    // Mark `cwd` as a git repo so the loader stops there.
+    mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     @json.inspect(mock.json(loader.skills()), content={
@@ -360,6 +366,161 @@ async test "reload" (t : @test.Test) {
         "description": "A skill to summarize text documents.",
         "allowed_tools": [],
         "location": "(mock:cwd)/.moonagent/skills/text-summarization/SKILL.md",
+      },
+    })
+  })
+}
+
+///|
+async test "load/parent-directories" (t : @test.Test) {
+  @mock.run(t, mock => {
+    // Directory layout:
+    // (home)
+    //   .moonagent/skills/global
+    //   project/.moonagent/skills/project
+    //   project/sub/.moonagent/skills/sub
+    //   project/sub/deep (cwd)
+    // and `project` is marked as a git repo root.
+    mock.add_json_tree({
+      ".moonagent": {
+        "skills": {
+          "global-skill": {
+            "SKILL.md": (
+              #|---
+              #|name: global-skill
+              #|description: Global skill.
+              #|version: 1.0.0
+              #|---
+              #|
+              #|Global instructions.
+            ),
+          },
+        },
+      },
+      "project": {
+        ".git": {},
+        ".moonagent": {
+          "skills": {
+            "project-skill": {
+              "SKILL.md": (
+                #|---
+                #|name: project-skill
+                #|description: Project skill.
+                #|version: 1.0.0
+                #|---
+                #|
+                #|Project instructions.
+              ),
+            },
+          },
+        },
+        "sub": {
+          ".moonagent": {
+            "skills": {
+              "sub-skill": {
+                "SKILL.md": (
+                  #|---
+                  #|name: sub-skill
+                  #|description: Sub skill.
+                  #|version: 1.0.0
+                  #|---
+                  #|
+                  #|Sub instructions.
+                ),
+              },
+            },
+          },
+          "deep": {},
+        },
+      },
+    })
+    let home = mock.cwd.path()
+    let cwd = @pathx.join(home, "project/sub/deep")
+    let loader = @skills.Loader::new(home~, cwd~)
+    loader.load()
+    // If inside a git repo, load skills from the repo root and all
+    // ancestors down to cwd. That means project + sub, and still global.
+    @json.inspect(mock.json(loader.skills()), content={
+      "global-skill": {
+        "name": "global-skill",
+        "description": "Global skill.",
+        "allowed_tools": [],
+        "location": "(mock:cwd)/.moonagent/skills/global-skill/SKILL.md",
+      },
+      "project-skill": {
+        "name": "project-skill",
+        "description": "Project skill.",
+        "allowed_tools": [],
+        "location": "(mock:cwd)/project/.moonagent/skills/project-skill/SKILL.md",
+      },
+      "sub-skill": {
+        "name": "sub-skill",
+        "description": "Sub skill.",
+        "allowed_tools": [],
+        "location": "(mock:cwd)/project/sub/.moonagent/skills/sub-skill/SKILL.md",
+      },
+    })
+  })
+}
+
+///|
+async test "load/no-git-loads-cwd-and-home" (t : @test.Test) {
+  @mock.run(t, mock => {
+    // Directory layout:
+    // (home)
+    //   .moonagent/skills/global
+    //   cwd/.moonagent/skills/local
+    // and there is NO `.git` anywhere.
+    mock.add_json_tree({
+      ".moonagent": {
+        "skills": {
+          "global-skill": {
+            "SKILL.md": (
+              #|---
+              #|name: global-skill
+              #|description: Global skill.
+              #|version: 1.0.0
+              #|---
+              #|
+              #|Global instructions.
+            ),
+          },
+        },
+      },
+      "cwd": {
+        ".moonagent": {
+          "skills": {
+            "local-skill": {
+              "SKILL.md": (
+                #|---
+                #|name: local-skill
+                #|description: Local skill.
+                #|version: 1.0.0
+                #|---
+                #|
+                #|Local instructions.
+              ),
+            },
+          },
+        },
+      },
+    })
+    let home = mock.cwd.path()
+    let cwd = @pathx.join(home, "cwd")
+    let loader = @skills.Loader::new(home~, cwd~)
+    loader.load()
+    @json.inspect(mock.json(loader.skills()), content={
+      "global-skill": {
+        "name": "global-skill",
+        "description": "Global skill.",
+        "allowed_tools": [],
+        "location": "(mock:cwd)/.moonagent/skills/global-skill/SKILL.md",
+      },
+      "local-skill": {
+        "name": "local-skill",
+        "description": "Local skill.",
+        "allowed_tools": [],
+        "location": "(mock:cwd)/cwd/.moonagent/skills/local-skill/SKILL.md",
       },
     })
   })
