@@ -8,10 +8,12 @@
 /// - Local skills: starting from the current working directory and walking up
 ///   through parent directories.
 ///
-/// The upward walk stops when it reaches:
+/// When inside a Git repo, the upward walk stops at:
 ///
-/// - When inside a Git repo: the Git repo root (directory containing `.git`)
-/// - When not inside a Git repo: the current working directory and the user's home directory
+/// - The Git repo root (directory containing `.git`)
+///
+/// When not inside a Git repo, no upward walk is performed; only the current
+/// working directory and the user's home directory are checked.
 ///
 /// Each skill is expected to have a `SKILL.md` or `skill.md` file containing its
 /// definition.
