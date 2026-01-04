@@ -240,7 +240,8 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
       group.spawn_bg(() => emitter.start(), no_wait=true)
       @async.pause()
       emitter.add_listener(event => events.push(event))
-      emitter.emit(SystemPromptSet("Hello, this is a system prompt."))
+      emitter.emit(SystemPromptSet(Some("Hello, this is a system prompt.")))
+      emitter.emit(SystemPromptSet(None))
     })
     @json.inspect(events, content=[
       {
@@ -249,6 +250,10 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
           "msg": "SystemPromptSet",
           "prompt": "Hello, this is a system prompt.",
         },
+      },
+      {
+        "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+        "desc": { "msg": "SystemPromptSet" },
       },
     ])
   })
@@ -482,12 +487,31 @@ test "Event::Roundtrip/PostToolCall/Err" {
 }
 
 ///|
-test "Event::Roundtrip/SystemPromptSet" {
-  let event : @event.EventDesc = SystemPromptSet("You are a helpful assistant.")
+test "Event::Roundtrip/SystemPromptSet/Some" {
+  let event : @event.EventDesc = SystemPromptSet(
+    Some("You are a helpful assistant."),
+  )
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    SystemPromptSet(msg) => inspect(msg, content="You are a helpful assistant.")
+    SystemPromptSet(msg) =>
+      inspect(
+        msg,
+        content=(
+          #|Some("You are a helpful assistant.")
+        ),
+      )
+    _ => fail("Expected SystemPromptSet")
+  }
+}
+
+///|
+test "Event::Roundtrip/SystemPromptSet/None" {
+  let event : @event.EventDesc = SystemPromptSet(None)
+  let json = event.to_json()
+  let roundtripped : @event.EventDesc = @json.from_json(json)
+  match roundtripped {
+    SystemPromptSet(msg) => inspect(msg, content="None")
     _ => fail("Expected SystemPromptSet")
   }
 }
@@ -763,7 +787,8 @@ test "Event::Roundtrip" {
       result=Ok("Tool call result"),
       rendered="Tool call rendered output",
     ),
-    SystemPromptSet("Hello, this is a system prompt."),
+    SystemPromptSet(Some("Hello, this is a system prompt.")),
+    SystemPromptSet(None),
     ToolAdded(
       @tool.tool_desc(
         name="sample_tool",

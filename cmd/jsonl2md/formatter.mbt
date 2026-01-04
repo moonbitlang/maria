@@ -544,7 +544,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
             }
           }
         }
-        SystemPromptSet(prompt) =>
+        SystemPromptSet(Some(prompt)) =>
           self.format_system_prompt_set(prompt, timestamp?)
         PostToolCall(tool_call, result~, rendered=text) =>
           self.format_post_tool_call(tool_call.name, result~, text, timestamp?)

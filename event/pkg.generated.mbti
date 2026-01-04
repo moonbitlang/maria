@@ -31,7 +31,7 @@ pub(all) enum EventDesc {
   ModelLoaded(name~ : String)
   PreConversation
   PostConversation
-  SystemPromptSet(String)
+  SystemPromptSet(String?)
   MessageUnqueued(id~ : @uuid.Uuid)
   MessageQueued(id~ : @uuid.Uuid)
   ToolAdded(@tool.ToolDesc)
