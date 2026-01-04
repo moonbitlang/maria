@@ -41,7 +41,7 @@ pub(all) enum EventDesc {
   /// Event triggered after a conversation ends.
   PostConversation
   /// Event triggered when the system prompt is being set.
-  SystemPromptSet(String)
+  SystemPromptSet(String?)
   /// Event triggered when a message is unqueued from the pending queue.
   MessageUnqueued(id~ : @uuid.Uuid)
   /// Event triggered when a message is queued to be sent to the model.
@@ -159,7 +159,9 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
     }
     PreConversation => { "msg": "PreConversation" }
     PostConversation => { "msg": "PostConversation" }
-    SystemPromptSet(prompt) => { "msg": "SystemPromptSet", "prompt": prompt }
+    SystemPromptSet(Some(prompt)) =>
+      { "msg": "SystemPromptSet", "prompt": prompt }
+    SystemPromptSet(None) => { "msg": "SystemPromptSet" }
     MessageQueued(id~) => { "msg": "MessageQueued", "message": { "id": id } }
     MessageUnqueued(id~) =>
       { "msg": "MessageUnqueued", "message": { "id": id } }
@@ -300,15 +302,16 @@ pub impl @json.FromJson for EventDesc with from_json(
     "PreConversation" => PreConversation
     "PostConversation" => PostConversation
     "SystemPromptSet" => {
-      guard json_object.get("prompt") is Some(prompt_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "SystemPromptSet event missing 'prompt' field"),
-        )
+      let prompt : String? = match json_object.get("prompt") {
+        None | Some(Null) => None
+        Some(prompt_json) => {
+          let prompt : String = @json.from_json(
+            prompt_json,
+            path=json_path.add_key("prompt"),
+          )
+          Some(prompt)
+        }
       }
-      let prompt : String = @json.from_json(
-        prompt_json,
-        path=json_path.add_key("prompt"),
-      )
       SystemPromptSet(prompt)
     }
     "MessageQueued" => {

@@ -122,7 +122,7 @@ async test "format_log_entry/PostToolCall-with-error" (t : @test.Test) {
 ///|
 async test "format_log_entry/SystemPromptSet" {
   let event_target = @event.EventTarget::new()
-  event_target.emit(SystemPromptSet("You are a helpful assistant."))
+  event_target.emit(SystemPromptSet(Some("You are a helpful assistant.")))
   inspect(
     format_event_target(event_target),
     content=(
@@ -139,12 +139,14 @@ async test "format_log_entry/SystemPromptSet" {
   let event_target = @event.EventTarget::new()
   event_target.emit(
     SystemPromptSet(
-      (
-        #|You are a helpful assistant.
-        #|
-        #|```markdown
-        #|Nested code block example
-        #|```
+      Some(
+        (
+          #|You are a helpful assistant.
+          #|
+          #|```markdown
+          #|Nested code block example
+          #|```
+        ),
       ),
     ),
   )
