@@ -455,7 +455,7 @@ pub impl @json.FromJson for EventDesc with from_json(
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
 pub impl ToJson for Event with to_json(self : Event) -> Json {
-  { "id": self.id.to_json(), "desc": self.desc }
+  { "id": self.id.to_json(), "desc": self.desc.to_json() }
 }
 
 ///|
