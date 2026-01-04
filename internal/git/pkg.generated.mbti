@@ -10,6 +10,8 @@ pub async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) ->
 
 pub async fn commit(StringView, Array[StringView], cwd? : StringView) -> Unit
 
+pub async fn find_repo_root(StringView) -> String?
+
 pub async fn generate_git_diff(original~ : String, modified~ : String, line_number? : Bool) -> String
 
 pub async fn init_(String) -> Unit
