@@ -2,10 +2,21 @@
 /// Skill loader that manages and loads skills from both global and local
 /// directories.
 ///
-/// The loader searches for skills in `.moonagent/skills` directories within the
-/// user's home directory (global skills) and the current working directory
-/// (local skills). Each skill is expected to have a `SKILL.md` or `skill.md`
-/// file containing its definition.
+/// The loader searches for skills in `.moonagent/skills` directories:
+///
+/// - Global skills: `~/.moonagent/skills`
+/// - Local skills: starting from the current working directory and walking up
+///   through parent directories.
+///
+/// When inside a Git repo, the upward walk stops at:
+///
+/// - The Git repo root (directory containing `.git`)
+///
+/// When not inside a Git repo, no upward walk is performed; only the current
+/// working directory and the user's home directory are checked.
+///
+/// Each skill is expected to have a `SKILL.md` or `skill.md` file containing its
+/// definition.
 struct Loader {
   /// Logger instance for operation logging.
   logger : @pino.Logger
@@ -127,10 +138,60 @@ pub async fn Loader::load(self : Loader) -> Unit {
     |> @pathx.join(".moonagent")
     |> @pathx.join("skills")
   self.load_skills_from_directory(global_path)
-  let local_path = self.cwd
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("skills")
-  self.load_skills_from_directory(local_path)
+
+  // Determine local skill search roots.
+  //
+  // New rules:
+  // 1) If `.git` exists in cwd or any ancestor, treat that directory as the repo
+  //    root and load skills from cwd up to that repo root (inclusive).
+  // 2) If no `.git` exists in any ancestor, load skills from cwd and home only.
+  //
+  // Precedence rule: load from the furthest directory first so closer directories
+  // override earlier ones.
+  // NOTE: Use canonical (realpath-resolved) paths for both `cwd` and the git
+  // repo root to avoid mismatches when `cwd` contains symlinks.
+  //
+  // `@pathx.normalize` does not resolve symlinks, while `@fsx.resolve` does.
+  // `@git.find_repo_root` internally calls `@fsx.resolve`, so we should resolve
+  // `cwd` here as well; otherwise the walk-up loop may never reach `root_norm`.
+  let cwd_canon = @fsx.resolve(self.cwd[:]) catch { _ => self.cwd }
+  let home_canon = @fsx.resolve(self.home[:]) catch { _ => self.home }
+  let cwd_norm = @pathx.normalize(cwd_canon[:])
+  let home_norm = @pathx.normalize(home_canon[:])
+  let repo_root = @git.find_repo_root(cwd_norm[:])
+  let dirs : Array[String] = []
+  match repo_root {
+    Some(root) => {
+      // Walk up from cwd to git repo root (inclusive).
+      let root_norm = @pathx.normalize(root[:])
+      let mut cur = cwd_norm
+      while true {
+        dirs.push(cur)
+        if cur == root_norm {
+          break
+        }
+        let parent = @pathx.dirname(cur).to_string()
+        // Safety: if we can't reach root for some reason, stop at filesystem root.
+        if parent == cur {
+          break
+        }
+        cur = parent
+      }
+    }
+    None =>
+      // Not in a git repo: load from cwd and home.
+      //
+      // Note: global skills (`home/.moonagent/skills`) are already loaded above,
+      // so we only need to add `cwd` here (and only if it differs from home) to
+      // avoid loading the same directory twice.
+      if cwd_norm != home_norm {
+        dirs.push(cwd_norm)
+      }
+  }
+  for dir in dirs.rev() {
+    let local_path = dir |> @pathx.join(".moonagent") |> @pathx.join("skills")
+    self.load_skills_from_directory(local_path)
+  }
 }
 
 ///|
