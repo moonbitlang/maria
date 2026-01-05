@@ -28,6 +28,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       NEW_MOON: 1
     steps:
@@ -54,6 +55,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    timeout-minutes: 30
 
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -89,6 +91,7 @@ jobs:
 
   info:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     env:
       NEW_MOON: 1
@@ -121,6 +124,7 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     env:
       NEW_MOON: 1
