@@ -31,3 +31,4 @@ dist-ssr
 webview
 bin
 *.vsix
+.vscode-test
