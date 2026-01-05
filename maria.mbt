@@ -8,10 +8,30 @@ pub struct Maria {
 }
 
 ///|
+fn setup_agent(agent : @agent.Agent, cwd~ : String) -> Unit {
+  let job_manager = @job.Manager::new(cwd=agent.cwd)
+  let file_manager = @file.manager(cwd~)
+  let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
+  agent.add_tools([
+    @execute_command.new(job_manager).to_agent_tool(),
+    @list_files.new(file_manager).to_agent_tool(),
+    @read_file.new(file_manager).to_agent_tool(),
+    @todo.new_tool(todo_list).to_agent_tool(),
+    @search_files.new(agent.cwd).to_agent_tool(),
+  ])
+  agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
+  // GPT 5.1+ uses apply_patch only, other models use meta_write_to_file
+  if agent.model.supports_apply_patch {
+    agent.add_tool(@apply_patch.new(agent.cwd))
+  } else {
+    agent.add_tool(@meta_write_to_file.new(agent))
+  }
+}
+
+///|
 /// Creates a new Maria agent instance.
 ///
 /// Parameters:
-///
 /// - logger: Optional logger for recording agent activities (defaults to file-based logger)
 /// - model: The AI model to use for the agent
 /// - cwd: Optional working directory (defaults to current working directory)
@@ -26,6 +46,7 @@ pub async fn Maria::new(
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
   model~ : @model.Model,
+  home? : String,
   cwd? : String,
   user_message? : String,
   web_search? : Bool = false,
@@ -40,28 +61,13 @@ pub async fn Maria::new(
   let agent = @agent.new(
     model,
     logger~,
+    home?=home.map(home => home),
     cwd~,
     system_message=system_prompt,
     user_message?,
     web_search~,
   )
-  let job_manager = @job.Manager::new(cwd=agent.cwd)
-  let file_manager = @file.manager(cwd~)
-  let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
-  agent.add_tools([
-    @execute_command.new(job_manager).to_agent_tool(),
-    @list_files.new(file_manager).to_agent_tool(),
-    @read_file.new(file_manager).to_agent_tool(),
-    @todo.new_tool(todo_list).to_agent_tool(),
-    @search_files.new(agent.cwd).to_agent_tool(),
-  ])
-  agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
-  // GPT 5.1+ uses apply_patch only, other models use meta_write_to_file
-  if model.supports_apply_patch {
-    agent.add_tool(@apply_patch.new(agent.cwd))
-  } else {
-    agent.add_tool(@meta_write_to_file.new(agent))
-  }
+  setup_agent(agent, cwd~)
   { logger, agent }
 }
 
@@ -87,4 +93,49 @@ pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
     self.agent.queue_message(user_message) |> ignore()
   }
   self.agent.start()
+}
+
+///|
+/// Resumes a previously saved Maria agent session.
+///
+/// Parameters:
+/// - logger: Optional logger for recording agent activities (defaults to file-based logger)
+/// - model: The AI model to use for the agent
+/// - cwd: Optional working directory (defaults to current working directory)
+/// - id: The unique identifier of the conversation to resume
+/// - user_message: Optional user message to add to the resumed conversation
+/// - web_search: Whether to enable web search capabilities (defaults to false)
+///
+/// Returns a Maria instance with the conversation history restored.
+/// Fails if the conversation with the given id cannot be found.
+#as_free_fn
+pub async fn Maria::resume_(
+  logger? : @pino.Logger = @pino.logger(
+    "maria",
+    try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
+  ),
+  model~ : @model.Model,
+  home? : String,
+  id : @uuid.Uuid,
+  user_message? : String,
+  web_search? : Bool = false,
+) -> Maria {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
+  let uuid = @uuid.generator(@rand.chacha8())
+  let session_manager = @conversation.Manager::new(home~, uuid~)
+  guard session_manager.load(id) is Some(conversation) else {
+    fail("Conversation with id '\{id}' not found.")
+  }
+  let agent = @agent.load(
+    model,
+    conversation,
+    logger~,
+    user_message?,
+    web_search~,
+  )
+  setup_agent(agent, cwd=conversation.cwd())
+  { logger, agent }
 }

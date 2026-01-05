@@ -23,7 +23,9 @@ pub async fn show(args : ArrayView[String]) -> Unit {
     }
     [..] => raise @argument.InvalidArgument(args.join(" "))
   }
-  let id = @uuid.parse(id)
+  let id = @uuid.parse(id) catch {
+    _ => raise @argument.InvalidArgument("Invalid conversation ID: '\{id}'")
+  }
   let home = @os.home()
   let uuid = @uuid.generator(@rand.chacha8())
   let manager = @conv.Manager::new(uuid~, home~)
