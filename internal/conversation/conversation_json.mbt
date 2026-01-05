@@ -1,9 +1,6 @@
 ///|
 pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
   let object : Map[String, Json] = { "name": self.name, "id": self.id }
-  if self.system_prompt is Some(system_prompt) {
-    object["system_prompt"] = system_prompt.to_json()
-  }
   object["events"] = self.events.to_json()
   object["created_at"] = self.created_at.to_json()
   object["updated_at"] = self.updated_at.to_json()
@@ -40,14 +37,6 @@ pub impl @json.FromJson for Conversation with from_json(
     Some(id) => @json.from_json(id, path=json_path.add_key("id"))
     None =>
       raise @json.JsonDecodeError((json_path.add_key("id"), "Missing field"))
-  }
-  let system_prompt : String? = match json.get("system_prompt") {
-    Some(Null) => None
-    Some(system_prompt) =>
-      Some(
-        @json.from_json(system_prompt, path=json_path.add_key("system_prompt")),
-      )
-    None => None
   }
   let events = match json.get("events") {
     Some(json) => {
@@ -157,7 +146,6 @@ pub impl @json.FromJson for Conversation with from_json(
     name,
     description,
     id,
-    system_prompt,
     created_at,
     updated_at,
     cwd,

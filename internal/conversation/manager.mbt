@@ -101,7 +101,6 @@ pub fn Manager::new_conversation(
     name,
     description,
     id: self.uuid.v4(),
-    system_prompt: None,
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
     cwd,

@@ -120,20 +120,11 @@ pub fn Conversation::messages(
 /// Returns `Some(prompt)` if a system prompt is set, or `None` if no system
 /// prompt is configured.
 pub fn Conversation::system_prompt(self : Conversation) -> String? {
-  self.system_prompt
-}
-
-///|
-/// Sets or clears the system prompt for the conversation.
-///
-/// Parameters:
-///
-/// * `self` : The conversation instance to modify.
-/// * `prompt` : The system prompt to set, or `None` to clear the existing
-///   system prompt.
-pub fn Conversation::set_system_prompt(
-  self : Conversation,
-  prompt : String?,
-) -> Unit {
-  self.system_prompt = prompt
+  for e in self.events().rev_iterator() {
+    match e.desc {
+      SystemPromptSet(prompt) => return prompt
+      _ => ()
+    }
+  }
+  None
 }

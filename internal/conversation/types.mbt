@@ -4,7 +4,6 @@ struct Conversation {
   name : String
   description : String?
   id : @uuid.Uuid
-  mut system_prompt : String?
   events : Array[@event.Event]
   created_at : @clock.Timestamp
   mut updated_at : @clock.Timestamp

@@ -26,7 +26,6 @@ pub fn Conversation::export_to_markdown(Self) -> String
 pub fn Conversation::id(Self) -> @uuid.Uuid
 pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
 pub fn Conversation::name(Self) -> String
-pub fn Conversation::set_system_prompt(Self, String?) -> Unit
 pub fn Conversation::system_prompt(Self) -> String?
 pub fn Conversation::updated(Self) -> @clock.Timestamp
 pub impl ToJson for Conversation

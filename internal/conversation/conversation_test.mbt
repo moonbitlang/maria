@@ -14,7 +14,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
     )
     let event_target = @event.EventTarget::new(uuid=mock.uuid)
     event_target.add_listener(event => conversation.add_event(event))
-    conversation.set_system_prompt(Some("This is a system prompt."))
+    event_target.emit(SystemPromptSet(Some("This is a system prompt.")))
     event_target.emit(UserMessage("Hello"))
     event_target.flush()
     @json.inspect(
@@ -22,18 +22,27 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
       content={
         "name": "Test Conversation",
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
-        "system_prompt": "This is a system prompt.",
         "events": [
           {
             "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
+            "desc": {
+              "msg": "SystemPromptSet",
+              "prompt": "This is a system prompt.",
+            },
+          },
+          {
+            "id": "f378dd8d-6f56-4e4d-8d63-4ff59e92f44c",
             "desc": { "msg": "UserMessage", "content": "Hello" },
           },
         ],
         "created_at": 0,
-        "updated_at": 2,
+        "updated_at": 3,
         "cwd": "(mock:cwd)/cwd",
       },
     )
+    @json.inspect(conversation.system_prompt(), content=[
+      "This is a system prompt.",
+    ])
   })
 }
 
@@ -43,6 +52,7 @@ async test "Conversation::FromJson" (t : @test.Test) {
     let events = []
     let event_target = @event.EventTarget::new(uuid=mock.uuid)
     event_target.add_listener(event => events.push(event))
+    event_target.emit(SystemPromptSet(Some("This is a system prompt.")))
     event_target.emit(UserMessage("Hello"))
     event_target.flush()
     @json.inspect(
@@ -50,6 +60,13 @@ async test "Conversation::FromJson" (t : @test.Test) {
       content=[
         {
           "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
+          "desc": {
+            "msg": "SystemPromptSet",
+            "prompt": "This is a system prompt.",
+          },
+        },
+        {
+          "id": "1ea1417c-a31f-4b1b-8494-d8486add6aa4",
           "desc": { "msg": "UserMessage", "content": "Hello" },
         },
       ],
@@ -65,6 +82,7 @@ async test "Conversation::FromJson" (t : @test.Test) {
     }
     let conversation : @conversation.Conversation = @json.from_json(json)
     @json.inspect(conversation.messages().map(fn(m) { m.to_openai() }), content=[
+      { "role": "system", "content": "This is a system prompt." },
       { "role": "user", "content": "Hello" },
     ])
     @json.inspect(
