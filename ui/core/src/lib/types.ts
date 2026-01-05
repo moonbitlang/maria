@@ -10,7 +10,7 @@ export type Task = TaskOverview & {
   chatInput: string;
   inputQueue: QueuedMessage[];
   events: TaskEvent[];
-  eventIds: Record<number, true>;
+  eventIds: Record<string, true>;
 };
 
 export type Status = "idle" | "generating";
@@ -24,7 +24,8 @@ export type TaskOverview = {
 };
 
 export type TaskEvent = {
-  id: number;
+  id: string;
+  created: number;
   desc: TaskEventDesc;
 };
 
