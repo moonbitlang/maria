@@ -4,16 +4,20 @@ struct Conversation {
   name : String
   description : String?
   id : @uuid.Uuid
-  mut system_prompt : String?
-  messages : Array[Message]
+  events : Array[@event.Event]
   created_at : @clock.Timestamp
   mut updated_at : @clock.Timestamp
-  cwd : StringView
+  cwd : String
 }
 
 ///|
-pub fn Conversation::cwd(self : Conversation) -> StringView {
+pub fn Conversation::cwd(self : Conversation) -> String {
   self.cwd
+}
+
+///|
+pub fn Conversation::events(self : Conversation) -> ArrayView[@event.Event] {
+  self.events
 }
 
 ///|

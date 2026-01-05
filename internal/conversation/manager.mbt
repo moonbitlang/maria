@@ -1,5 +1,6 @@
 ///|
 struct Manager {
+  logger : @pino.Logger
   uuid : @uuid.Generator
   clock : &@clock.Clock
   home : StringView
@@ -11,6 +12,10 @@ pub async fn Manager::new(
   uuid~ : @uuid.Generator,
   clock? : &@clock.Clock = @clock.epoch,
   home~ : StringView,
+  logger? : @pino.Logger = @pino.logger(
+    "conversation_manager",
+    @pino.Transport::console(),
+  ),
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
   let conversations = home
@@ -19,12 +24,11 @@ pub async fn Manager::new(
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
-  Manager::{ uuid, clock, home, cache }
+  Manager::{ uuid, clock, home, cache, logger }
 }
 
 ///|
 pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
-  let id = id
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
@@ -33,9 +37,20 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
     |> @pathx.join("conversations")
     |> @pathx.join("\{id}.json")
   if !@fsx.exists(path) {
+    self.logger.warn(
+      "Conversation with id '\{id}' does not exist at path '\{path}'",
+    )
     return None
   }
-  let conversation = @fsx.read_file(path) |> @json.parse() |> @json.from_json()
+  let conversation = (@fsx.read_file(path) |> @json.parse() |> @json.from_json()) catch {
+    error =>
+      if @async.is_being_cancelled() {
+        raise error
+      } else {
+        self.logger.warn("Failed to load conversation from '\{path}': \{error}")
+        return None
+      }
+  }
   self.cache[id] = conversation
   Some(conversation)
 }
@@ -79,17 +94,16 @@ pub fn Manager::new_conversation(
   self : Manager,
   name~ : String,
   description? : String,
-  cwd~ : StringView,
+  cwd~ : String,
 ) -> Conversation {
   {
     clock: self.clock,
     name,
     description,
     id: self.uuid.v4(),
-    system_prompt: None,
-    messages: [],
     created_at: self.clock.now(),
     updated_at: self.clock.now(),
     cwd,
+    events: [],
   }
 }
