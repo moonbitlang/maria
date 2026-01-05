@@ -322,6 +322,11 @@ pub fn Context::model(
 let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(16)
 
 ///|
+async fn eprintln(msg : String) -> Unit {
+  @stdio.stderr.write(msg + "\n")
+}
+
+///|
 /// Runs a test function within an isolated mock environment with controlled
 /// resources and automatic cleanup.
 ///
@@ -379,6 +384,20 @@ pub async fn run(
     let tmp_pkg_path = @pathx.join(tmpdir, pkg_path)
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
+        group.add_defer(() => eprintln("[\{t.name()}] Completed."))
+        group.spawn_bg(
+          () => {
+            eprintln("[\{t.name()}] Started.")
+            let start = @clock.epoch.now()
+            while true {
+              let elapsed = @clock.epoch.now().ms_since(start).to_double() /
+                1_000
+              eprintln("[\{t.name()}] \{elapsed}s...")
+              @async.sleep(1_000)
+            }
+          },
+          no_wait=true,
+        )
         let mangled = {
           let builder = StringBuilder::new()
           for c in t.name() {
