@@ -87,3 +87,34 @@ test {
   @json.inspect(meta, content={})
   inspect(text, content="")
 }
+
+///|
+test {
+  let content =
+    #|---
+    #|description: "Outer frontmatter"
+    #|---
+    #|
+    #|```markdown
+    #|---
+    #|description: "inner"
+    #|---
+    #|```
+    #|
+    #|Body.
+  let { meta, text } = @yamd.parse(content)
+  @json.inspect(meta, content={ "description": "Outer frontmatter" })
+  inspect(
+    text,
+    content=(
+      #|
+      #|```markdown
+      #|---
+      #|description: "inner"
+      #|---
+      #|```
+      #|
+      #|Body.
+    ),
+  )
+}
