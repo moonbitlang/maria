@@ -11,22 +11,30 @@ pub struct Document {
 fn tokenize_markdown_with_yaml_front_matter(
   content : StringView,
 ) -> (StringView, StringView) {
-  // here we use lexmatch for full match semantics
-  // so we not need non-greedy match semantics, such `.*?`
-  lexmatch content with longest {
-    /// ignore pre-frontmatter
-    (
-      (".+" as _pre_front_matter)
-      (("\n---\n" (".*" as _yaml_value) "\n---\n") as front_matter)
-      (".*" as text)
-      ("\s*" as _trim_space)
-    ) => (front_matter, text)
-    // without pre-frontmatter
-    (
-      (("---\n" (".*" as _yaml_value) "\n---\n") as front_matter)
-      (".*" as text)
-      ("\s*" as _trim_space)
-    ) => (front_matter, text)
+  let lines = content.split("\n").collect()
+  let mut open_index : Int? = None
+  let mut close_index : Int? = None
+  for i = 0; i < lines.length(); i = i + 1 {
+    let line = lines[i].trim()
+    if line == "---" {
+      if open_index is None {
+        open_index = Some(i)
+        continue
+      }
+      close_index = Some(i)
+      break
+    }
+  }
+  match (open_index, close_index) {
+    (Some(open), Some(close)) if close > open => {
+      let front_matter = lines[open:close + 1].join("\n")
+      let rest = if close + 1 < lines.length() {
+        lines[close + 1:].join("\n")
+      } else {
+        ""
+      }
+      (front_matter[:], rest[:])
+    }
     _ => ("", "")
   }
 }
