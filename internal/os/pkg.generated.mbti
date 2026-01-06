@@ -4,6 +4,8 @@ package "moonbitlang/maria/internal/os"
 // Values
 pub fn args() -> Array[String]
 
+pub fn atexit(FuncRef[() -> Unit]) -> Unit
+
 pub fn chdir(StringView) -> Unit raise
 
 pub fn cwd() -> String raise

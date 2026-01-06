@@ -215,3 +215,16 @@ pub fn executable() -> String raise {
   new_buf.unsafe_blit(0, buf, 0, size)
   @encoding/utf8.decode(new_buf.unsafe_reinterpret_as_bytes())
 }
+
+///|
+/// Registers a function to be called when the program exits normally.
+///
+/// The registered function will be executed when the program terminates through
+/// normal means (such as returning from main or calling `exit()`). Functions
+/// are called in reverse order of registration (last registered, first called).
+///
+/// Parameters:
+///
+/// * `f` : The function to be called at program exit. This function takes no
+///   parameters and returns no value.
+pub extern "c" fn atexit(f : FuncRef[() -> Unit]) = "atexit"
