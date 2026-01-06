@@ -16,3 +16,16 @@ pub fn as_object(
   }
   Object(obj)
 }
+
+///|
+/// Returns an iterator over the key-value pairs in the JSON object.
+///
+/// Parameters:
+///
+/// * `self` : The JSON object to iterate over.
+///
+/// Returns an `Iter2[String, Json]` that yields each key-value pair in the
+/// object, where keys are strings and values are JSON values.
+pub fn Object::iter2(self : Object) -> Iter2[String, Json] {
+  self.0.iter2()
+}
