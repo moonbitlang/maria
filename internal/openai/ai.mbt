@@ -39,64 +39,64 @@ async fn chat_openai(
   logger~ : @pino.Logger,
   extra_body~ : Map[String, Json],
 ) -> ChatCompletion {
-  @async.retry(
-    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
-    max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
-    },
-    () => {
-      logger.debug("RequestSent", data={
+  try {
+    logger.debug("RequestSent", data={
+      "model": { "name": model.model_name, "base_url": model.base_url },
+      "request": request,
+    })
+    let url = "\{model.base_url}/chat/completions"
+    let uri = Uri::parse(url)
+    let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+      "Authorization": "Bearer \{model.api_key}",
+      "Content-Type": "application/json",
+      "Connection": "close",
+    })
+    defer client.close()
+    let body = request.to_json()
+    guard body is Object(body) else {
+      abort("Request body is not a JSON object")
+    }
+    for k, v in extra_body {
+      body[k] = v
+    }
+    let response = client.post(uri.path, Json::object(body))
+    guard response.code is (200..=299) else {
+      raise HttpError(code=response.code, body=client.read_all().text())
+    }
+    if request.stream is Some(true) {
+      let reader = ChunkReader::new(client)
+      let builder = ChatCompletionBuilder::new()
+      while reader.read() is Some(chunk) {
+        logger.debug("ChunkReceived", data={ "chunk": chunk })
+        builder.add_chunk(chunk)
+      }
+      let chat_completion = builder.to_chat_completion()
+      logger.debug("ResponseReceived", data={
         "model": { "name": model.model_name, "base_url": model.base_url },
-        "request": request,
+        "response_code": response.code,
+        "response_body": chat_completion,
       })
-      let url = "\{model.base_url}/chat/completions"
-      let uri = Uri::parse(url)
-      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
-        "Authorization": "Bearer \{model.api_key}",
-        "Content-Type": "application/json",
-        "Connection": "close",
+      chat_completion
+    } else {
+      let body = client.read_all().text()
+      let json = @json.parse(body)
+      let chat_completion : ChatCompletion = @json.from_json(json)
+      logger.debug("ResponseReceived", data={
+        "model": { "name": model.model_name, "base_url": model.base_url },
+        "response_code": response.code,
+        "response_body": chat_completion,
       })
-      defer client.close()
-      let body = request.to_json()
-      guard body is Object(body) else {
-        abort("Request body is not a JSON object")
-      }
-      for k, v in extra_body {
-        body[k] = v
-      }
-      let response = client.post(uri.path, Json::object(body))
-      guard response.code is (200..=299) else {
-        raise HttpError(code=response.code, body=client.read_all().text())
-      }
-      if request.stream is Some(true) {
-        let reader = ChunkReader::new(client)
-        let builder = ChatCompletionBuilder::new()
-        while reader.read() is Some(chunk) {
-          logger.debug("ChunkReceived", data={ "chunk": chunk })
-          builder.add_chunk(chunk)
-        }
-        let chat_completion = builder.to_chat_completion()
-        logger.debug("ResponseReceived", data={
-          "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code,
-          "response_body": chat_completion,
-        })
-        chat_completion
-      } else {
-        let body = client.read_all().text()
-        let json = @json.parse(body)
-        let chat_completion : ChatCompletion = @json.from_json(json)
-        logger.debug("ResponseReceived", data={
-          "model": { "name": model.model_name, "base_url": model.base_url },
-          "response_code": response.code,
-          "response_body": chat_completion,
-        })
-        chat_completion
-      }
-    },
-  )
+      chat_completion
+    }
+  } catch {
+    error => {
+      logger.error("RequestFailed", data={
+        "model": { "name": model.model_name, "base_url": model.base_url },
+        "error": error.to_string(),
+      })
+      raise error
+    }
+  }
 }
 
 ///|
@@ -123,82 +123,69 @@ async fn chat_codex(
   let has_refreshed = Ref::new(false)
   let current_access_token = Ref::new(access_token)
   let current_account_id = Ref::new(account_id)
-  @async.retry(
-    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
-    max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
-    },
-    () => {
-      logger.debug("CodexRequestSent", data={
-        "model": { "name": model.model_name, "base_url": model.base_url },
-        "request": request,
-      })
-      let input = convert_messages_to_input(request.messages)
-      let instructions = @codex.base_instructions
-      let tools = convert_tools_to_responses_api(request.tools)
-      let codex_request = @responses.ResponsesRequest::new(
-        model=model.model_name,
-        input~,
-        instructions~,
-        tools~,
-        stream=true,
-        store=false,
-      )
-      let result = do_codex_stream_request(
-        current_access_token.val,
-        current_account_id.val,
-        codex_request,
-      ) catch {
-        HttpError(code=401, ..) as err if not(has_refreshed.val) => {
-          logger.info("Received 401, attempting to refresh token")
-          has_refreshed.val = true // Mark as refreshed to prevent infinite loop
-          // Try refresh first, then re-login if refresh fails
-          let refresh_result : @codex.Credentials? = Some(
-            @codex.refresh_and_save_credentials(),
-          ) catch {
-            _ => None
-          }
-          match refresh_result {
-            Some(refreshed) => {
-              current_access_token.val = refreshed.accessToken
-              current_account_id.val = refreshed.accountId
-              logger.info("Token refreshed successfully, retrying request")
-            }
-            None => {
-              logger.info("Refresh failed, triggering re-login flow")
-              let new_creds = @codex.start_oauth_flow() catch {
-                login_err => {
-                  logger.error("Re-login failed", data={
-                    "error": login_err.to_string(),
-                  })
-                  raise HttpError(
-                    code=401,
-                    body="Re-login failed: \{login_err}",
-                  )
-                }
-              }
-              current_access_token.val = new_creds.accessToken
-              current_account_id.val = new_creds.accountId
-              logger.info("Re-login successful, retrying request")
-            }
-          }
-          raise err
-        }
-        err => raise err
-      }
-      let chat_completion = codex_stream_result_to_chat_completion(
-        model.model_name,
-        result,
-      )
-      logger.debug("CodexResponseReceived", data={
-        "model": { "name": model.model_name, "base_url": model.base_url },
-        "response": chat_completion,
-      })
-      chat_completion
-    },
+  logger.debug("CodexRequestSent", data={
+    "model": { "name": model.model_name, "base_url": model.base_url },
+    "request": request,
+  })
+  let input = convert_messages_to_input(request.messages)
+  let instructions = @codex.base_instructions
+  let tools = convert_tools_to_responses_api(request.tools)
+  let codex_request = @responses.ResponsesRequest::new(
+    model=model.model_name,
+    input~,
+    instructions~,
+    tools~,
+    stream=true,
+    store=false,
   )
+  let result = do_codex_stream_request(
+    current_access_token.val,
+    current_account_id.val,
+    codex_request,
+  ) catch {
+    HttpError(code=401, ..) as err if not(has_refreshed.val) => {
+      logger.info("Received 401, attempting to refresh token")
+      has_refreshed.val = true // Mark as refreshed to prevent infinite loop
+      // Try refresh first, then re-login if refresh fails
+      let refresh_result : @codex.Credentials? = Some(
+        @codex.refresh_and_save_credentials(),
+      ) catch {
+        _ => None
+      }
+      match refresh_result {
+        Some(refreshed) => {
+          current_access_token.val = refreshed.accessToken
+          current_account_id.val = refreshed.accountId
+          logger.info("Token refreshed successfully, retrying request")
+        }
+        None => {
+          logger.info("Refresh failed, triggering re-login flow")
+          let new_creds = @codex.start_oauth_flow() catch {
+            login_err => {
+              logger.error("Re-login failed", data={
+                "error": login_err.to_string(),
+              })
+              raise HttpError(code=401, body="Re-login failed: \{login_err}")
+            }
+          }
+          current_access_token.val = new_creds.accessToken
+          current_account_id.val = new_creds.accountId
+          logger.info("Re-login successful, retrying request")
+        }
+      }
+      raise err
+    }
+    err => raise err
+  }
+  let chat_completion = codex_stream_result_to_chat_completion(
+    model.model_name,
+    result,
+  )
+  logger.debug("CodexResponseReceived", data={
+    "model": { "name": model.model_name, "base_url": model.base_url },
+    "response": chat_completion,
+  })
+  chat_completion
 }
 
 ///|
@@ -218,100 +205,88 @@ async fn chat_copilot(
   }
   let has_refreshed = Ref::new(false)
   let current_token = Ref::new(credentials.copilot_token)
-  @async.retry(
-    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
-    max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
+  logger.debug("CopilotRequestSent", data={
+    "model": { "name": model.model_name, "base_url": model.base_url },
+    "request": request,
+  })
+  let url = "\{model.base_url}/chat/completions"
+  let uri = Uri::parse(url)
+  // Check if this is an agent call (has tool/assistant messages)
+  let is_agent_call = request.messages
+    .iter()
+    .any(fn(msg) {
+      match msg {
+        Tool(_) | Assistant(_) => true
+        _ => false
+      }
+    })
+  let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+    "Authorization": "Bearer \{current_token.val}",
+    "Content-Type": "application/json",
+    "Connection": "close",
+    "User-Agent": "GitHubCopilotChat/0.32.4",
+    "Editor-Version": "vscode/1.105.1",
+    "Editor-Plugin-Version": "copilot-chat/0.32.4",
+    "Copilot-Integration-Id": "vscode-chat",
+    "Openai-Intent": "conversation-edits",
+    "X-Initiator": if is_agent_call {
+      "agent"
+    } else {
+      "user"
     },
-    () => {
-      logger.debug("CopilotRequestSent", data={
-        "model": { "name": model.model_name, "base_url": model.base_url },
-        "request": request,
-      })
-      let url = "\{model.base_url}/chat/completions"
-      let uri = Uri::parse(url)
-      // Check if this is an agent call (has tool/assistant messages)
-      let is_agent_call = request.messages
-        .iter()
-        .any(fn(msg) {
-          match msg {
-            Tool(_) | Assistant(_) => true
-            _ => false
-          }
-        })
-      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
-        "Authorization": "Bearer \{current_token.val}",
-        "Content-Type": "application/json",
-        "Connection": "close",
-        "User-Agent": "GitHubCopilotChat/0.32.4",
-        "Editor-Version": "vscode/1.105.1",
-        "Editor-Plugin-Version": "copilot-chat/0.32.4",
-        "Copilot-Integration-Id": "vscode-chat",
-        "Openai-Intent": "conversation-edits",
-        "X-Initiator": if is_agent_call {
-          "agent"
-        } else {
-          "user"
-        },
-      })
-      defer client.close()
-      let body = request.to_json()
-      let response = client.post(uri.path, body)
-      guard response.code is (200..=299) else {
-        let error_body = client.read_all().text()
-        // Try to refresh token on 401
-        if response.code == 401 && not(has_refreshed.val) {
-          has_refreshed.val = true // Mark as refreshed to prevent infinite loop
-          logger.info("Received 401, attempting to refresh Copilot token")
-          let refresh_result : @copilot.Credentials? = Some(
-            @copilot.refresh_and_save_credentials(),
-          ) catch {
-            _ => None
-          }
-          match refresh_result {
-            Some(refreshed) => {
-              current_token.val = refreshed.copilot_token
-              logger.info(
-                "Copilot token refreshed successfully, retrying request",
+  })
+  defer client.close()
+  let body = request.to_json()
+  let response = client.post(uri.path, body)
+  guard response.code is (200..=299) else {
+    let error_body = client.read_all().text()
+    // Try to refresh token on 401
+    if response.code == 401 && not(has_refreshed.val) {
+      has_refreshed.val = true // Mark as refreshed to prevent infinite loop
+      logger.info("Received 401, attempting to refresh Copilot token")
+      let refresh_result : @copilot.Credentials? = Some(
+        @copilot.refresh_and_save_credentials(),
+      ) catch {
+        _ => None
+      }
+      match refresh_result {
+        Some(refreshed) => {
+          current_token.val = refreshed.copilot_token
+          logger.info("Copilot token refreshed successfully, retrying request")
+        }
+        None => {
+          logger.info("Copilot refresh failed, triggering re-login flow")
+          let new_creds = @copilot.start_oauth_flow() catch {
+            login_err => {
+              logger.error("Copilot re-login failed", data={
+                "error": login_err.to_string(),
+              })
+              raise HttpError(
+                code=401,
+                body="Copilot re-login failed: \{login_err}",
               )
             }
-            None => {
-              logger.info("Copilot refresh failed, triggering re-login flow")
-              let new_creds = @copilot.start_oauth_flow() catch {
-                login_err => {
-                  logger.error("Copilot re-login failed", data={
-                    "error": login_err.to_string(),
-                  })
-                  raise HttpError(
-                    code=401,
-                    body="Copilot re-login failed: \{login_err}",
-                  )
-                }
-              }
-              current_token.val = new_creds.copilot_token
-              logger.info("Copilot re-login successful, retrying request")
-            }
           }
-          raise HttpError(code=response.code, body=error_body)
+          current_token.val = new_creds.copilot_token
+          logger.info("Copilot re-login successful, retrying request")
         }
-        raise HttpError(code=response.code, body=error_body)
       }
-      if request.stream is Some(true) {
-        let reader = ChunkReader::new(client)
-        let builder = ChatCompletionBuilder::new()
-        while reader.read() is Some(chunk) {
-          builder.add_chunk(chunk)
-        }
-        builder.to_chat_completion()
-      } else {
-        let body = client.read_all().text()
-        let json = @json.parse(body)
-        @json.from_json(json)
-      }
-    },
-  )
+      raise HttpError(code=response.code, body=error_body)
+    }
+    raise HttpError(code=response.code, body=error_body)
+  }
+  if request.stream is Some(true) {
+    let reader = ChunkReader::new(client)
+    let builder = ChatCompletionBuilder::new()
+    while reader.read() is Some(chunk) {
+      builder.add_chunk(chunk)
+    }
+    builder.to_chat_completion()
+  } else {
+    let body = client.read_all().text()
+    let json = @json.parse(body)
+    @json.from_json(json)
+  }
 }
 
 ///|
