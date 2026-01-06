@@ -327,6 +327,13 @@ async fn eprintln(msg : String) -> Unit {
 }
 
 ///|
+fn init {
+  if (try? @os.getenv("CI")) is Ok(Some("1" | "true")) {
+    @os.atexit(() => println("\{os_args} exited"))
+  }
+}
+
+///|
 /// Runs a test function within an isolated mock environment with controlled
 /// resources and automatic cleanup.
 ///
