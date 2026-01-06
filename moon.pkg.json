@@ -16,6 +16,10 @@
     "moonbitlang/maria/tools/meta_write_to_file",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/tools/fix_moonbit_warnings",
-    "moonbitlang/maria/tools/apply_patch"
-  ]
+    "moonbitlang/maria/tools/apply_patch",
+    "moonbitlang/maria/internal/conversation",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/internal/rand"
+  ],
+  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
 }
