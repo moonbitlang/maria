@@ -41,19 +41,11 @@ test "CreateMessageRequest::from_json" {
 /// away; subsequent ones are enqueued until the agent becomes idle again.
 async fn Server::create_message(
   self : Server,
-  body_json : Json,
+  r : @httpx.RequestReader,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let request : CreateMessageRequest = @json.from_json(body_json) catch {
-    @json.JsonDecodeError(_) as error =>
-      raise json_error(400, "BadRequest", {
-        "error": {
-          "code": -1,
-          "message": "Invalid 'message' field: \{error}",
-          "data": { "error": error, "body": body_json },
-        },
-      })
-  }
+  let r = @httpx.JsonRequestReader::new(r)
+  let request : CreateMessageRequest = r.read()
   let (id, queued) = {
     let idq = @aqueue.new(kind=Unbounded)
     self.message_queue.put((request, idq))

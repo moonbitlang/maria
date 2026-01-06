@@ -92,81 +92,58 @@ pub async fn Server::new(
 /// Central HTTP router that handles static files, REST endpoints, and SSE
 /// streams behind the necessary CORS wrapper.
 async fn Server::serve_http(self : Server) -> Unit {
+  let router = @httpx.Router::new()
+  router.add_handler(Get, "/v1/status", (_, w) => {
+    let w = @httpx.JsonResponseWriter::new(w)
+    w.write_header(200)
+    w.write_json({
+      "status": self.status(),
+      "web_search": self.maria.agent.web_search,
+    })
+  })
+  router.add_handler(Post, "/v1/cancel", (_, w) => self.cancel_maria(w))
+  router.add_handler(Get, "/v1/queued-messages", (_, w) => self.get_queued_messages(
+    w,
+  ))
+  router.add_handler(Get, "/v1/events", (_, w) => self.get_events(w))
+  router.add_handler(Post, "/v1/external-event/cancel", (_, w) => self.send_cancellation_event(
+    w,
+  ))
+  router.add_handler(Get, "/v1/tools", (_, w) => self.get_tools(w))
+  router.add_handler(Get, "/v1/system-prompt", (_, w) => self.get_system_prompt(
+    w,
+  ))
+  router.add_handler(Get, "/v1/moonbit/modules", (_, w) => self.list_moonbit_modules(
+    w,
+  ))
+  router.add_handler(Post, "/v1/message", (r, w) => self.create_message(r, w))
+  router.add_handler(Post, "/v1/external-event", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    self.send_external_event(r.read_json(), w)
+  })
+  router.add_handler(Post, "/v1/external-event/diagnostics", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    self.send_diagnostics_event(r.read_json(), w)
+  })
+  router.add_handler(Post, "/v1/external-event/user-message", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    self.send_user_message_event(r.read_json(), w)
+  })
+  router.add_handler(Post, "/v1/enabled-tools", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    self.set_enabled_tools(r.read_json(), w)
+  })
+  router.add_handler(Post, "/v1/system-prompt", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    self.set_system_prompt(r.read_json(), w)
+  })
+  router.add_handler(Post, "/v1/moonbit/publish", (r, w) => {
+    let r = @httpx.JsonRequestReader::new(r)
+    publish_moonbit_module(r.read_json(), w)
+  })
   let file_server = @httpx.FileServer::new(self.serve)
-  self.http_server.serve(
-    @httpx.cors((r, w) => {
-      println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
-      try {
-        match (r.method_, r.path) {
-          (Options, _) => w.write_header(204)
-          (Get, "/") => {
-            let index_html = html_read_file(
-              @pathx.join(self.serve, "index.html"),
-            )
-            w.header().set("Content-Type", "text/html")
-            w.write_header(200)
-            w.write(index_html)
-          }
-          (Get, "/v1/status") =>
-            w.send_json(code=200, {
-              "status": self.status(),
-              "web_search": self.maria.agent.web_search,
-            })
-          (Post, "/v1/cancel") => self.cancel_maria(w)
-          (Get, "/v1/queued-messages") => self.get_queued_messages(w)
-          (Get, "/v1/events") => self.get_events(w)
-          (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
-          (Get, "/v1/tools") => self.get_tools(w)
-          (Get, "/v1/system-prompt") => self.get_system_prompt(w)
-          (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
-          (Get, _) => file_server.handle(r, w)
-          (
-            Post,
-            "/v1/message"
-            | "/v1/external-event"
-            | "/v1/external-event/diagnostics"
-            | "/v1/external-event/user-message"
-            | "/v1/enabled-tools"
-            | "/v1/system-prompt"
-            | "/v1/moonbit/publish",
-          ) => {
-            // Parse JSON once for all POST endpoints that need it
-            let json = r.body.read_all().json() catch {
-                error =>
-                  raise json_error(400, "BadRequest", {
-                    "error": {
-                      "code": -1,
-                      "message": "Invalid JSON in request body: \{error}",
-                    },
-                  })
-              }
-            match r.path {
-              "/v1/message" => self.create_message(json, w)
-              "/v1/external-event" => self.send_external_event(json, w)
-              "/v1/external-event/diagnostics" =>
-                self.send_diagnostics_event(json, w)
-              "/v1/external-event/user-message" =>
-                self.send_user_message_event(json, w)
-              "/v1/enabled-tools" => self.set_enabled_tools(json, w)
-              "/v1/system-prompt" => self.set_system_prompt(json, w)
-              "/v1/moonbit/publish" => publish_moonbit_module(json, w)
-              _ => fail("unreachable")
-            }
-          }
-          _ =>
-            w.send_json(code=404, {
-              "error": { "code": -1, "message": "Unknown endpoint: \{r.path}" },
-            })
-        }
-      } catch {
-        HttpError(code~, reason~, body~) => {
-          w.write_header(code, reason~)
-          w.write(body)
-        }
-        error => raise error
-      }
-    }),
-  )
+  router.set_not_found_handler((r, w) => file_server.handle(r, w))
+  self.http_server.serve(@httpx.cors(router.handler()))
 }
 
 ///|
@@ -342,34 +319,38 @@ async fn Server::send_external_event(
   w : @httpx.ResponseWriter,
 ) -> Unit {
   guard json is { "type": String(event_type), .. } else {
-    raise json_error(400, "BadRequest", {
-      "error": "Missing 'type' field in request body",
-    })
+    raise @httpx.JsonError::new(
+      @status.BadRequest,
+      "Missing 'type' field in request body",
+    )
   }
   let queue = self.maria.agent.external_events()
   match event_type {
     "Cancelled" => queue.send(@event.Cancelled)
     "UserMessage" => {
       guard json is { "message": String(message), .. } else {
-        raise json_error(400, "BadRequest", {
-          "error": "Missing 'message' field for UserMessage event",
-        })
+        raise @httpx.JsonError::new(
+          @status.BadRequest,
+          "Missing 'message' field for UserMessage event",
+        )
       }
       queue.send(UserMessage(message))
     }
     "Diagnostics" => {
       guard json is { "diagnostics": String(diagnostics_jsonl), .. } else {
-        raise json_error(400, "BadRequest", {
-          "error": "Missing 'diagnostics' field for Diagnostics event",
-        })
+        raise @httpx.JsonError::new(
+          @status.BadRequest,
+          "Missing 'diagnostics' field for Diagnostics event",
+        )
       }
       let diagnostics = @diagnostics.from_jsonl(diagnostics_jsonl)
       queue.send(Diagnostics(diagnostics))
     }
     _ =>
-      raise json_error(400, "BadRequest", {
-        "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'Cancelled', or 'Diagnostics'",
-      })
+      raise @httpx.JsonError::new(
+        @status.BadRequest,
+        "Unknown event type: \{event_type}. Expected 'UserMessage', 'Cancelled', or 'Diagnostics'",
+      )
   }
   w.send_json(code=200, { "success": true })
 }
@@ -397,9 +378,10 @@ async fn Server::send_diagnostics_event(
         arr.stringify(), // This works because from_jsonl handles JSON per line
       )
     _ =>
-      raise json_error(400, "BadRequest", {
-        "error": "Missing 'diagnostics' field in request body",
-      })
+      raise @httpx.JsonError::new(
+        @status.BadRequest,
+        "Missing 'diagnostics' field in request body",
+      )
   }
   self.maria.agent.external_events().send(Diagnostics(diagnostics))
   w.send_json(code=200, {
@@ -423,9 +405,10 @@ async fn Server::send_user_message_event(
   w : @httpx.ResponseWriter,
 ) -> Unit {
   guard json is { "message": String(message), .. } else {
-    raise json_error(400, "BadRequest", {
-      "error": "Missing 'message' field in request body",
-    })
+    raise @httpx.JsonError::new(
+      @status.BadRequest,
+      "Missing 'message' field in request body",
+    )
   }
   self.maria.agent.external_events().send(UserMessage(message))
   w.send_json(code=200, { "success": true })
