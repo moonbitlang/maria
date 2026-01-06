@@ -385,15 +385,16 @@ pub async fn run(
     async fn run() -> Unit {
       @async.with_timeout(timeout, () => @async.with_task_group(group => {
         if @os.getenv("CI") is Some("1" | "true") {
-          group.add_defer(() => eprintln("[\{t.name()}] Completed."))
+          let test_name = "\{pkg_path}.\{t.name()}"
+          group.add_defer(() => eprintln("[\{test_name}] Completed."))
           group.spawn_bg(
             () => {
-              eprintln("[\{t.name()}] Started.")
+              eprintln("[\{test_name}] Started.")
               let start = @clock.epoch.now()
               while true {
                 let elapsed = @clock.epoch.now().ms_since(start).to_double() /
                   1_000
-                eprintln("[\{t.name()}] \{elapsed}s...")
+                eprintln("[\{test_name}] \{elapsed}s...")
                 @async.sleep(1_000)
               }
             },
