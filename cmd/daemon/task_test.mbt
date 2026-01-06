@@ -9,6 +9,7 @@ test "Task/roundtrip" {
     "created": 0,
     "web_search": true,
     "queued_messages": [{ "id": "msg1", "message": { "text": "Hello" } }],
+    "model": "example",
   }
   let task : @daemon.Task = @json.from_json(json)
   let roundtrip = task.to_json()
