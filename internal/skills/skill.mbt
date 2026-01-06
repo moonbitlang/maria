@@ -73,7 +73,7 @@ fn parse_skill_from_content(
   content : String,
   directory~ : String,
   location~ : String,
-) -> Skill raise SkillFormatError {
+) -> Skill raise {
   let doc = @yamd.parse(content)
   // Extract frontmatter
   let meta = doc.meta

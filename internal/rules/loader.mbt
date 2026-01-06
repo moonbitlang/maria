@@ -75,7 +75,7 @@ pub struct Rule {
 } derive(Show, ToJson)
 
 ///|
-fn Rule::parse(content : String, source~ : Source) -> Rule {
+fn Rule::parse(content : String, source~ : Source) -> Rule raise {
   let doc = @yamd.parse(content)
   let description = match doc.meta.get("description") {
     Some(Json::String(desc)) => Some(desc)

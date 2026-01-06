@@ -32,12 +32,12 @@ fn tokenize_markdown_with_yaml_front_matter(
 }
 
 ///|
-pub fn parse(content : String) -> Document {
+pub fn parse(content : String) -> Document raise @yaml.YamlError {
   let (front_matter, text) = tokenize_markdown_with_yaml_front_matter(content)
   if front_matter.is_empty() {
     Document::{ meta: {}, text: text.to_string() }
   } else {
-    let yaml_value = try! Yaml::load_from_string(front_matter.to_string())[0]
+    let yaml_value = Yaml::load_from_string(front_matter.to_string())[0]
     guard yaml_value.to_json() is Object(meta) else {
       abort("assume yaml value must be Map")
     }
