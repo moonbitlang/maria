@@ -17,7 +17,8 @@
     "moonbitlang/maria/internal/context_pruner",
     "moonbitlang/maria/internal/diagnostics",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/broadcast"
+    "moonbitlang/maria/internal/broadcast",
+    "moonbitlang/maria/internal/jsonx"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

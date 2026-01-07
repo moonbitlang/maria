@@ -3,6 +3,11 @@ package "moonbitlang/maria/cmd/server"
 
 import(
   "moonbitlang/core/json"
+  "moonbitlang/maria/agent"
+  "moonbitlang/maria/ai"
+  "moonbitlang/maria/event"
+  "moonbitlang/maria/internal/httpx"
+  "moonbitlang/maria/internal/uuid"
 )
 
 // Values
@@ -11,6 +16,15 @@ pub async fn start(ArrayView[String]) -> Unit
 // Errors
 
 // Types and methods
+type CreateMessageRequest
+pub fn CreateMessageRequest::new(message~ : @ai.Message, web_search? : Bool) -> Self
+pub impl ToJson for CreateMessageRequest
+
+type CreateMessageResponse
+pub fn CreateMessageResponse::new(id~ : @uuid.Uuid, queued~ : Bool) -> Self
+pub impl ToJson for CreateMessageResponse
+pub impl @json.FromJson for CreateMessageResponse
+
 pub(all) struct RegisterInfo {
   host : String
   port : Int
@@ -20,6 +34,9 @@ pub(all) struct RegisterInfo {
 pub struct RegisterRequest {
   id : String
   port : Int
+  new_id : @uuid.Uuid
+  cwd : String
+  web_search : Bool
 }
 pub impl ToJson for RegisterRequest
 pub impl @json.FromJson for RegisterRequest
@@ -30,9 +47,16 @@ pub impl ToJson for RegisterResponse
 pub impl @json.FromJson for RegisterResponse
 
 type Server
-pub async fn Server::new(model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, cwd? : String, web_search? : Bool) -> Self
+pub async fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid) -> Self
 pub fn Server::port(Self) -> Int
 pub async fn Server::start(Self) -> Unit
+
+pub(all) enum ServerStreamEvent {
+  MariaQueuedMessagesSynchronized(Array[@agent.QueuedMessage])
+  Maria(@event.Event)
+}
+pub impl @httpx.FromEvent for ServerStreamEvent
+pub impl @httpx.ToEvent for ServerStreamEvent
 
 pub(all) enum Status {
   Idle

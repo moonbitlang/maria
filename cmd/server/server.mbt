@@ -43,24 +43,41 @@ pub fn Server::port(self : Server) -> Int {
 /// daemon, and binds an `@httpx.Server`. The returned handle is ready to
 /// `start()`.
 pub async fn Server::new(
+  name? : String,
   model? : String,
   register? : RegisterInfo,
   serve~ : String,
   port~ : Int,
+  home? : String,
   cwd? : String,
   web_search? : Bool = false,
+  resume_id? : @uuid.Uuid,
 ) -> Server {
+  let home = match home {
+    Some(home) => home
+    None => @os.home()
+  }
   let broadcast = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
-  guard @model.load(cwd?=cwd.map(cwd => cwd), name?=model) is Some(model) else {
+  guard @model.load(home~, name?=model) is Some(model) else {
     fail("Failed to load model '\{model}' from cwd '\{cwd}'")
   }
-  let maria = @maria.Maria::new(model~, cwd?, web_search~)
+  let maria = if resume_id is Some(resume_id) {
+    @maria.Maria::resume_(model~, resume_id, web_search~)
+  } else {
+    @maria.Maria::new(name?, model~, cwd?, web_search~)
+  }
   maria.agent.add_listener((event : @event.Event) => broadcast.put(event))
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
   if register is Some(register) {
-    register.register(port~) |> ignore()
+    register.register(
+      port~,
+      new_id=maria.agent.id(),
+      web_search=maria.agent.web_search,
+      cwd=maria.agent.cwd,
+    )
+    |> ignore()
   } else {
     println(
       "[WARN] (Server) No register information provided; skipping registration.",
@@ -260,30 +277,55 @@ pub async fn Server::start(self : Server) -> Unit {
 }
 
 ///|
+pub(all) enum ServerStreamEvent {
+  MariaQueuedMessagesSynchronized(Array[@agent.QueuedMessage])
+  Maria(@event.Event)
+}
+
+///|
+pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
+  event : @httpx.Event,
+) -> ServerStreamEvent raise {
+  let { event, data } = event
+  let data = @json.parse(data)
+  match event {
+    Some("maria.queued_messages.synchronized") =>
+      ServerStreamEvent::MariaQueuedMessagesSynchronized(@json.from_json(data))
+    Some("maria") => ServerStreamEvent::Maria(@json.from_json(data))
+    _ => fail("unrecognized event type: \{event}")
+  }
+}
+
+///|
+pub impl @httpx.ToEvent for ServerStreamEvent with to_event(
+  self : ServerStreamEvent,
+) -> @httpx.Event {
+  match self {
+    ServerStreamEvent::MariaQueuedMessagesSynchronized(queued_messages) =>
+      @httpx.Event::new(
+        event="maria.queued_messages.synchronized",
+        data=queued_messages.to_json().stringify(),
+      )
+    ServerStreamEvent::Maria(event) =>
+      @httpx.Event::new(event="maria", data=event.to_json().stringify())
+  }
+}
+
+///|
 /// Streams Maria lifecycle events plus queue synchronization messages over
 /// Server-Sent Events.
 async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
-  let queued_messages : Array[Json] = self.maria.agent
-    .queued_messages()
-    .map(m => { "id": m.id, "message": m.message.to_openai() })
   let w = @httpx.EventStreamWriter::new(w)
   w.write_header(200)
-  w.write_event(
-    event="maria.queued_messages.synchronized",
-    data=queued_messages.to_json(),
-  )
+  w.write(MariaQueuedMessagesSynchronized(self.maria.agent.queued_messages()))
   self.broadcast.listen_forever(event => {
     if event.desc is (TokenCounted(_) | ContextPruned(_)) {
       return
     }
-    w.write_event(event="maria", data=event.to_json())
+    w.write(Maria(event))
     if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
-      let queued_messages : Array[Json] = self.maria.agent
-        .queued_messages()
-        .map(m => { "id": m.id, "message": m.message.to_openai() })
-      w.write_event(
-        event="maria.queued_messages.synchronized",
-        data=queued_messages.to_json(),
+      w.write(
+        MariaQueuedMessagesSynchronized(self.maria.agent.queued_messages()),
       )
     }
   })

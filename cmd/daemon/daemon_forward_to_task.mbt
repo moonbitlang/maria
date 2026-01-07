@@ -20,6 +20,7 @@
 /// - 404 Not Found: Unknown task `id`.
 async fn Daemon::forward_to_task(
   self : Daemon,
+  group~ : @async.TaskGroup[Unit],
   method_~ : @httpx.Method,
   id~ : StringView,
   paths~ : ArrayView[StringView],
@@ -38,6 +39,38 @@ async fn Daemon::forward_to_task(
     raise json_error(404, "Not Found", {
       "error": { "code": -1, "message": "Task not found: \{id}" },
     })
+  }
+  let task : Running = match task {
+    Running(task) => task
+    Stopped(task) => {
+      let cwd = task.cwd
+      let task_list = self.by_cwd.get_or_init(cwd, () => TaskLock::new())
+      task_list.spawn_mutex.acquire()
+      defer task_list.spawn_mutex.release()
+      if task_list.running is Some(_) {
+        w.write_header(409, reason="Conflict")
+        w.write(
+          Json::object({
+            "error": {
+              "code": -1,
+              "message": "A running task already exists for the specified 'cwd': \{cwd}",
+              "metadata": { "cwd": cwd },
+            },
+          }),
+        )
+        return
+      } else {
+        let task = self.spawn_task(
+          group~,
+          name?=task.name,
+          cwd=task.cwd,
+          resume_id=task.id,
+          broadcast=task.broadcast,
+        )
+        task_list.running = Some(task)
+        task
+      }
+    }
   }
   let path = paths.join("/")
   let c = @http.Client::new("http://localhost:\{task.port}")

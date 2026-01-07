@@ -13,7 +13,7 @@ export type Task = TaskOverview & {
   eventIds: Record<string, true>;
 };
 
-export type Status = "idle" | "generating";
+export type Status = "idle" | "generating" | "stopped";
 
 export type TaskOverview = {
   id: string;

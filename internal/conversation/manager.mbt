@@ -95,6 +95,7 @@ pub fn Manager::new_conversation(
   name~ : String,
   description? : String,
   cwd~ : String,
+  web_search? : Bool = false,
 ) -> Conversation {
   {
     clock: self.clock,
@@ -105,5 +106,6 @@ pub fn Manager::new_conversation(
     updated_at: self.clock.now(),
     cwd,
     events: [],
+    web_search,
   }
 }

@@ -9,7 +9,10 @@
 ///
 /// Emits `StatusChange(task.id)` to the daemon's internal event queue after
 /// each status transition.
-async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
+async fn Daemon::listen_for_status_change(
+  self : Daemon,
+  task : Running,
+) -> Unit {
   println(
     "[INFO] (Daemon) Listening for status changes from task \{task.id}...",
   )
@@ -30,18 +33,18 @@ async fn Daemon::listen_for_status_change(self : Daemon, task : Task) -> Unit {
   }
   println("[INFO] (Daemon) Connected to task \{task.id} event stream.")
   let eb = @httpx.EventStreamReader::new(eb)
-  while eb.read_event() is Some(event) {
-    guard event.event is Some("maria") else { continue }
-    let json = @json.parse(event.data)
-    let event : @event.Event = @json.from_json(json)
-    if event.is_stopping() || event.is_cancellation() {
-      println("[INFO] (Daemon) Task \{task.id} is now idle.")
-      task.status = Idle
-      self.events.put(StatusChange(task.id))
-    } else if event.is_starting() {
-      println("[INFO] (Daemon) Task \{task.id} is now busy.")
-      task.status = Busy
-      self.events.put(StatusChange(task.id))
+  while eb.read() is Some((event : @server.ServerStreamEvent)) {
+    task.broadcast.put(event)
+    if event is Maria(event) {
+      if event.is_stopping() || event.is_cancellation() {
+        println("[INFO] (Daemon) Task \{task.id} is now idle.")
+        task.status = Idle
+        self.events.put(StatusChange(task.id))
+      } else if event.is_starting() {
+        println("[INFO] (Daemon) Task \{task.id} is now busy.")
+        task.status = Busy
+        self.events.put(StatusChange(task.id))
+      }
     }
   }
 }

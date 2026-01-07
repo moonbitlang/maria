@@ -15,6 +15,22 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 }
 
 ///|
+pub impl @json.FromJson for QueuedMessage with from_json(
+  json : Json,
+  path : @json.JsonPath,
+) -> QueuedMessage raise @json.JsonDecodeError {
+  let object = @jsonx.as_object(json, path~)
+  let id : @uuid.Uuid = object.required("id", path~)
+  let message : @openai.ChatCompletionMessageParam = object.required(
+    "message",
+    path~,
+  )
+  let message = @ai.Message::from_openai(message)
+  let web_search : Bool = object.optional("web_search", path~).unwrap_or(false)
+  QueuedMessage::{ id, message, web_search }
+}
+
+///|
 /// Represents an AI agent that interacts with language models and executes tools.
 ///
 /// The `Agent` struct encapsulates the complete state and behavior of an AI agent,
@@ -341,6 +357,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
 /// The agent's context pruner is configured with the model's `safe_zone_tokens`
 /// setting to automatically manage conversation history size.
 pub async fn new(
+  name? : String,
   model : @model.Model,
   uuid? : @uuid.Generator,
   logger? : @pino.Logger = @pino.logger(
@@ -381,7 +398,11 @@ pub async fn new(
       history
     }
     None =>
-      session_manager.new_conversation(name="history", cwd=cwd.to_string())
+      session_manager.new_conversation(
+        name=name.unwrap_or("New Conversation"),
+        cwd=cwd.to_string(),
+        web_search~,
+      )
   }
   let external_events = match external_events {
     Some(queue) => queue

@@ -7,14 +7,17 @@ struct Daemon {
   models : @model.Loader
   uuid : @uuid.Generator
   process : @spawn.Manager
-  by_cwd : Map[String, Task]
+  /// Maps from working directory to a running task.
+  by_cwd : Map[String, TaskLock]
   by_id : Map[@uuid.Uuid, Task]
-  rqs : Map[String, @aqueue.Queue[Int]]
+  rqs : Map[String, @aqueue.Queue[@server.RegisterRequest]]
   exec_path : String
   httpx : @httpx.Server
   port : Int
   events : @broadcast.Broadcast[Event]
   serve : String
+  conversations : @conversation.Manager
+  home : String
 }
 
 ///|
@@ -89,7 +92,7 @@ pub async fn Daemon::new(
     Some(cwd) => cwd.to_string()
     None => @os.cwd()
   }
-  Some(Daemon::{
+  let daemon = Daemon::{
     clock: @clock.epoch,
     models: @model.Loader::new(home=@os.home(), cwd~),
     uuid,
@@ -102,5 +105,9 @@ pub async fn Daemon::new(
     port,
     events: @broadcast.Broadcast::new(),
     serve,
-  })
+    conversations: @conversation.Manager::new(home~, uuid~),
+    home,
+  }
+  daemon.load_stopped()
+  Some(daemon)
 }

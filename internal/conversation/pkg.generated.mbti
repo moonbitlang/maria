@@ -28,6 +28,7 @@ pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message
 pub fn Conversation::name(Self) -> String
 pub fn Conversation::system_prompt(Self) -> String?
 pub fn Conversation::updated(Self) -> @clock.Timestamp
+pub fn Conversation::web_search(Self) -> Bool
 pub impl ToJson for Conversation
 pub impl @json.FromJson for Conversation
 
@@ -35,7 +36,7 @@ type Manager
 pub async fn Manager::list(Self) -> Array[@uuid.Uuid]
 pub async fn Manager::load(Self, @uuid.Uuid) -> Conversation?
 pub async fn Manager::new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, home~ : StringView, logger? : @pino.Logger) -> Self
-pub fn Manager::new_conversation(Self, name~ : String, description? : String, cwd~ : String) -> Conversation
+pub fn Manager::new_conversation(Self, name~ : String, description? : String, cwd~ : String, web_search? : Bool) -> Conversation
 pub async fn Manager::save(Self, Conversation) -> Unit
 
 // Type aliases
