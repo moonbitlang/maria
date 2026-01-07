@@ -56,9 +56,9 @@ pub async fn Maria::new(
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  let system_prompt = [
-    @prompt.prelude, @prompt.moonbit, @todo.prompt, @search_files.prompt,
-  ].join("\n")
+  let system_prompt = [@prompt.prelude, @todo.prompt, @search_files.prompt].join(
+    "\n",
+  )
   let agent = @agent.new(
     name?,
     model,

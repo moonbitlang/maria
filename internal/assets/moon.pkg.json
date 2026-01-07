@@ -1,0 +1,8 @@
+{
+  "import": [
+    "moonbitlang/async/fs",
+    "moonbitlang/maria/internal/fsx",
+    "moonbitlang/maria/internal/pathx",
+    "moonbitlang/maria/internal/pino"
+  ]
+}

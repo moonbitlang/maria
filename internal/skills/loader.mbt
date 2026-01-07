@@ -4,6 +4,7 @@
 ///
 /// The loader searches for skills in `.moonagent/skills` directories:
 ///
+/// - System skills: `~/.moonagent/skills/.system`
 /// - Global skills: `~/.moonagent/skills`
 /// - Local skills: starting from the current working directory and walking up
 ///   through parent directories.
@@ -93,6 +94,9 @@ async fn Loader::load_skills_from_directory(
   let entries = @fsx.list_directory(directory).filter(e => e.kind
     is @fsx.FileKind::Directory)
   for entry in entries {
+    if entry.name == ".system" {
+      continue
+    }
     let skill_dir = @pathx.join(directory, entry.name)
     let upper = @pathx.join(skill_dir, "SKILL.md")
     let lower = @pathx.join(skill_dir, "skill.md")
@@ -134,6 +138,9 @@ async fn Loader::load_skills_from_directory(
 /// * `self` : The loader instance to populate with skills.
 pub async fn Loader::load(self : Loader) -> Unit {
   self.skills.clear()
+  install_system_skills(self.home, self.logger)
+  let system_path = system_skills_root(self.home)
+  self.load_skills_from_directory(system_path)
   let global_path = self.home
     |> @pathx.join(".moonagent")
     |> @pathx.join("skills")
