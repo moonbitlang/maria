@@ -104,11 +104,11 @@ async test "Coverage::analyze" (t : @test.Test) {
         #|   |   if n == 0 {
         #|   |     1
         #| 5 |   } else if n == 1 {
-        #|   |   ^^^^^^^^^^^^^^^^^^ \t<-- UNCOVERED
+        $|   |   ^^^^^^^^^^^^^^^^^^ \t<-- UNCOVERED
         #|   |     1
         #|   |   } else {
         #| 8 |     fib(n - 1) + fib(n - 2)
-        #|   |     ^^^^^^^^^^^^^^^^^^^^^^^ \t<-- UNCOVERED
+        $|   |     ^^^^^^^^^^^^^^^^^^^^^^^ \t<-- UNCOVERED
         #|   |   }
         #|   | }
         #|   …

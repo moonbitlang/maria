@@ -200,8 +200,8 @@ async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
         #|MoonBit project check found the following diagnostics:
         #|
         #|error[4080]: (mock:cwd)/example_test.mbt:2:3-38: This function has type: 
-        #|\t#callsite(autofill(args_loc, loc))
-        #|\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError
+        $|\t#callsite(autofill(args_loc, loc))
+        $|\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError
         #|which requires 1 positional arguments, but is given 2 positional arguments.
         #| 2 │   @json.inspect(@example.x, "string")
         #|   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
