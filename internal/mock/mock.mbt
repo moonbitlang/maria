@@ -379,8 +379,7 @@ pub async fn run(
   let exec = os_args[0]
   let exec = @pathx.relative(os_cwd, exec)
   let exec_parts = @pathx.split(exec).collect()
-  guard exec_parts
-    is ["target", "native", "debug" | "release", "test", .. parts, _] else {
+  guard exec_parts is [_, "native", "debug" | "release", "test", .. parts, _] else {
     abort(
       "Unexpected executable path, @mock should only be used in test: \{exec}",
     )
