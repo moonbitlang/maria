@@ -21,12 +21,18 @@ An `Agent` is an autonomous entity that:
 
 ```moonbit check
 ///|
-let model : @model.Model = @model.new(
-  api_key=try! @os.getenv("OPENAI_API_KEY").unwrap(),
-  base_url="https://openrouter.ai/api/v1",
-  name="anthropic/claude-haiku-4.5",
-  safe_zone_tokens=200000,
-)
+let model : @model.Model = {
+  guard (try? @os.getenv("OPENAI_API_KEY")) is Ok(Some(api_key)) else {
+    println("OPENAI_API_KEY not set, unable to run tests")
+    @os.exit(1)
+  }
+  @model.new(
+    api_key~,
+    base_url="https://openrouter.ai/api/v1",
+    name="anthropic/claude-haiku-4.5",
+    safe_zone_tokens=200000,
+  )
+}
 
 ///|
 async test "basic-example" {
