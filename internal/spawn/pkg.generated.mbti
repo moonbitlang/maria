@@ -15,7 +15,9 @@ pub fn kill(Int, Int) -> Unit raise @errno.Errno
 pub async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
 
 // Errors
-pub suberror Failed CompletedProcess
+pub suberror Failed {
+  Failed(CompletedProcess)
+}
 pub impl Show for Failed
 pub impl ToJson for Failed
 

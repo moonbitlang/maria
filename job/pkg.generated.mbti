@@ -8,7 +8,9 @@ import(
 // Values
 
 // Errors
-pub suberror InvalidJobId Id
+pub suberror InvalidJobId {
+  InvalidJobId(Id)
+}
 
 // Types and methods
 pub(all) struct Id(Int)

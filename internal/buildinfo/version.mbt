@@ -28,18 +28,24 @@ pub let version : Version = try! Version::parse(version_string)
 ///|
 pub fn Version::parse(string : String) -> Version raise {
   lexmatch string {
-    (("\d+" as major) "\." ("(\d+)" as minor) "\." ("(\d+)" as patch)) => {
+    (
+      ("[[:digit:]]+" as major)
+      "\."
+      ("([[:digit:]]+)" as minor)
+      "\."
+      ("([[:digit:]]+)" as patch)
+    ) => {
       let major = @strconv.parse_int(major)
       let minor = @strconv.parse_int(minor)
       let patch = @strconv.parse_int(patch)
       Version::{ major, minor, patch, build: None }
     }
     (
-      ("\d+" as major)
+      ("[[:digit:]]+" as major)
       "\."
-      ("(\d+)" as minor)
+      ("([[:digit:]]+)" as minor)
       "\."
-      ("(\d+)" as patch)
+      ("([[:digit:]]+)" as patch)
       "\+"
       ("([0-9]+)" as build_number)
       "\."

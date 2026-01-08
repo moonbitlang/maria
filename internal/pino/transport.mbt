@@ -8,7 +8,9 @@ enum Transport {
 }
 
 ///|
-priv suberror InvalidTransport StringView derive(Show)
+priv suberror InvalidTransport {
+  InvalidTransport(StringView)
+} derive(Show)
 
 ///|
 /// Parses a transport string and creates the corresponding Transport instance.

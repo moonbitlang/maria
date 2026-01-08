@@ -30,7 +30,9 @@ async fn Module::new(path : String) -> Module {
   let moon_mod_text = @fsx.read_file(moon_mod_path)
   let moon_mod_json = @json.parse(moon_mod_text)
   guard moon_mod_json is Object({ "name": String(name), .. } as moon_mod_json) else {
-    raise Failure("Invalid moon.mod.json: expected object with 'name'.")
+    raise Failure::Failure(
+      "Invalid moon.mod.json: expected object with 'name'.",
+    )
   }
   let source : String = if moon_mod_json is { "source": String(source), .. } {
     if @pathx.is_absolute(source) {

@@ -4,4 +4,6 @@ priv suberror CopilotOAuthError {
 } derive(Show)
 
 ///|
-priv suberror ParseError String
+priv suberror ParseError {
+  ParseError(String)
+}

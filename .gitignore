@@ -18,3 +18,5 @@ compile_flags.txt
 *.exe
 custom_log_path
 node_modules
+_build
+target

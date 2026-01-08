@@ -60,7 +60,9 @@ pub impl[Output : Show] Show for ToolResult[Output] with output(
 }
 
 ///|
-priv suberror ToolFailure String derive(ToJson)
+priv suberror ToolFailure {
+  ToolFailure(String)
+} derive(ToJson)
 
 ///|
 #as_free_fn

@@ -100,15 +100,15 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
     } else {
       lexmatch line {
         (
-          "@@\s+-"
-          ("\d+" as os)
+          "@@[[:space:]]+-"
+          ("[[:digit:]]+" as os)
           ","
-          ("\d+" as oc)
-          "\s+\+"
-          ("\d+" as ms)
+          ("[[:digit:]]+" as oc)
+          "[[:space:]]+\+"
+          ("[[:digit:]]+" as ms)
           ","
-          ("\d+" as mc)
-          "\s+@@",
+          ("[[:digit:]]+" as mc)
+          "[[:space:]]+@@",
           _
         ) => {
           let original_start = @strconv.parse_int(os)

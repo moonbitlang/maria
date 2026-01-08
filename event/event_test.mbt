@@ -211,7 +211,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
             name="failing_tool",
             arguments="{\"paramA\": \"valueA\"}",
           ),
-          result=Err(Failure("Tool call error").to_json()),
+          result=Err(Failure::Failure("Tool call error").to_json()),
           rendered="Tool call error output",
         ),
       )
@@ -862,7 +862,7 @@ test "Event::Roundtrip" {
         ds
       },
     ),
-    Failed(Failure("An error occurred").to_json()),
+    Failed(Failure::Failure("An error occurred").to_json()),
   ]
   for event in events {
     let event = @event.Event::new(id=uuid.v4(), event)

@@ -265,14 +265,14 @@ fn recover_diagnostics(content : String) -> String raise {
       lexmatch line with longest {
         (
           "error\["
-          "\d{4}"
-          "\]:\s+"
+          "[[:digit:]]{4}"
+          "\]:[[:space:]]+"
           "[^:]*"
           ":"
-          ("\d+" as line)
+          ("[[:digit:]]+" as line)
           ":"
-          ("\d+" as column)
-          ":\s+",
+          ("[[:digit:]]+" as column)
+          ":[[:space:]]+",
           _
         ) => {
           let line = @strconv.parse_int(line) - 1

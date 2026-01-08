@@ -17,7 +17,9 @@ extern "c" fn errno_EEXIST() -> Int = "moonbit_maria_errno_EEXIST"
 pub let eexist : Int = errno_EEXIST()
 
 ///|
-pub(all) suberror Errno Int
+pub(all) suberror Errno {
+  Errno(Int)
+}
 
 ///|
 extern "c" fn errno_strerror(errnum : Int) -> @c.Pointer[Byte] = "moonbit_maria_errno_strerror"

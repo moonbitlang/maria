@@ -193,9 +193,9 @@ fn Todo::get(self : Todo, index : Int) -> Item {
 /// Remove common list prefixes from a line
 fn remove_list_prefixes(line : StringView) -> StringView {
   lexmatch line with longest {
-    ("[0-9]+\.\s*", rest) => rest
-    ("-\s*", rest) => rest
-    ("\*\s*", rest) => rest
+    ("[0-9]+\.[[:space:]]*", rest) => rest
+    ("-[[:space:]]*", rest) => rest
+    ("\*[[:space:]]*", rest) => rest
     _ => line
   }
 }

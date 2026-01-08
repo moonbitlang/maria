@@ -4,7 +4,9 @@ package "moonbitlang/maria/cmd/main/argument"
 // Values
 
 // Errors
-pub(all) suberror InvalidArgument String
+pub(all) suberror InvalidArgument {
+  InvalidArgument(String)
+}
 pub impl Show for InvalidArgument
 pub impl ToJson for InvalidArgument
 

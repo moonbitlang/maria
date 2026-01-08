@@ -4,4 +4,6 @@ priv suberror OAuthError {
 } derive(Show)
 
 ///|
-priv suberror ParseError String
+priv suberror ParseError {
+  ParseError(String)
+}
