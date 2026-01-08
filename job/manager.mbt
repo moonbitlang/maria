@@ -122,7 +122,9 @@ pub async fn Manager::spawn(
 }
 
 ///|
-pub suberror InvalidJobId Id
+pub suberror InvalidJobId {
+  InvalidJobId(Id)
+}
 
 ///|
 pub async fn Manager::wait(self : Manager, id : Id) -> Int {

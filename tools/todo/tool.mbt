@@ -153,7 +153,9 @@ struct TodoArgs {
 
 ///|
 /// Parse error type for todo arguments
-suberror TodoArgsError String derive(Show)
+suberror TodoArgsError {
+  TodoArgsError(String)
+} derive(Show)
 
 ///|
 /// Parse JSON arguments into TodoArgs

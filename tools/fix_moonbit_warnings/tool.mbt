@@ -241,7 +241,7 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       @async.with_timeout(
         120_000 * 4,
         () => moon.check(),
-        error=Failure("Timeout after 4 minutes"),
+        error=Failure::Failure("Timeout after 4 minutes"),
       ) catch {
         error => return @tool.error("Failed to check module: \{error}", error~)
       }

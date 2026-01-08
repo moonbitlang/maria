@@ -23,7 +23,9 @@ pub let erange : Int
 pub fn get() -> Int
 
 // Errors
-pub(all) suberror Errno Int
+pub(all) suberror Errno {
+  Errno(Int)
+}
 pub impl Show for Errno
 pub impl ToJson for Errno
 

@@ -137,7 +137,9 @@ async fn execute_read_file_tool(
 }
 
 ///|
-priv suberror MultipleErrors Array[(Error, String)] derive(Show, ToJson)
+priv suberror MultipleErrors {
+  MultipleErrors(Array[(Error, String)])
+} derive(Show, ToJson)
 
 ///|
 fn to_path(rdr : ReadFileToolResult) -> String {

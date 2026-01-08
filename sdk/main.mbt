@@ -92,7 +92,7 @@ async fn main {
         let error : Json = {
           "error": {
             "code": -1,
-            "message": Failure("Expect <prompt> after -p/--prompt").to_string(),
+            "message": Failure::Failure("Expect <prompt> after -p/--prompt").to_string(),
           },
         }
         println(error.stringify())
@@ -105,7 +105,7 @@ async fn main {
         let error : Json = {
           "error": {
             "code": -1,
-            "message": Failure("Expect <model> after -m/--model").to_string(),
+            "message": Failure::Failure("Expect <model> after -m/--model").to_string(),
           },
         }
         println(error.stringify())
@@ -117,7 +117,7 @@ async fn main {
       let error : Json = {
         "error": {
           "code": -1,
-          "message": Failure("Unknown argument: \{unknown}").to_string(),
+          "message": Failure::Failure("Unknown argument: \{unknown}").to_string(),
         },
       }
       println(error.stringify())
@@ -128,7 +128,9 @@ async fn main {
     let error : Json = {
       "error": {
         "code": -1,
-        "message": Failure("Missing required argument: -p/--prompt <prompt>").to_string(),
+        "message": Failure::Failure(
+          "Missing required argument: -p/--prompt <prompt>",
+        ).to_string(),
       },
     }
     println(error.stringify())

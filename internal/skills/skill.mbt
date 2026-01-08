@@ -44,7 +44,9 @@ fn validate_description(desc : String) -> Unit raise SkillFormatError {
 }
 
 ///|
-priv suberror SkillFormatError String derive(Show, ToJson)
+priv suberror SkillFormatError {
+  SkillFormatError(String)
+} derive(Show, ToJson)
 
 ///|
 /// Parses a skill definition from YAML frontmatter content and creates a

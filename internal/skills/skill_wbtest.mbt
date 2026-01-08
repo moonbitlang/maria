@@ -140,12 +140,12 @@ test "parse_skill_from_content/name-mismatches-directory" {
 test "parse_skill_from_content/long-name" {
   let long_skill_name = "skill-name-is-way-too-long-because-it-exceeds-the-sixty-four-character-limit-imposed"
   let content =
-    #|---
+    $|---
     $|name: \{long_skill_name}
-    #|description: A skill with a name that is too long.
-    #|---
-    #|
-    #|This skill has a name that is too long.
+    $|description: A skill with a name that is too long.
+    $|---
+    $|
+    $|This skill has a name that is too long.
   let result = try? parse_skill_from_content(
     content,
     directory=long_skill_name,
@@ -160,12 +160,12 @@ test "parse_skill_from_content/long-name" {
 test "parse_skill_from_content/long-description" {
   let long_description = "A".repeat(1025)
   let content =
-    #|---
-    #|name: long-description-skill
+    $|---
+    $|name: long-description-skill
     $|description: \{long_description}
-    #|---
-    #|
-    #|This skill has a description that is too long.
+    $|---
+    $|
+    $|This skill has a description that is too long.
   let result = try? parse_skill_from_content(
     content,
     directory="long-description-skill",

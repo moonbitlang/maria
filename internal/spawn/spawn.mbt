@@ -17,7 +17,9 @@ pub fn CompletedProcess::check(self : CompletedProcess) -> Unit raise Failed {
 }
 
 ///|
-pub suberror Failed CompletedProcess derive(ToJson)
+pub suberror Failed {
+  Failed(CompletedProcess)
+} derive(ToJson)
 
 ///|
 pub impl Show for Failed with output(self : Failed, logger : &Logger) -> Unit {

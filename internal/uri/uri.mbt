@@ -304,7 +304,9 @@ test {
     content="",
   )
   assert_eq(uri.scheme, "http")
-  let authority = uri.authority.unwrap_or_error(Failure("Missing authority"))
+  let authority = uri.authority.unwrap_or_error(
+    Failure::Failure("Missing authority"),
+  )
   assert_eq(authority.userinfo, Some("username:password"))
   assert_eq(authority.host, "example.com")
   assert_eq(authority.port, Some(8443))
@@ -327,7 +329,9 @@ test {
     content="",
   )
   assert_eq(uri.scheme, "http")
-  let authority = uri.authority.unwrap_or_error(Failure("Missing authority"))
+  let authority = uri.authority.unwrap_or_error(
+    Failure::Failure("Missing authority"),
+  )
   assert_eq(authority.userinfo, Some("username:password"))
   assert_eq(authority.host, "example.com")
   assert_eq(authority.port, Some(8443))

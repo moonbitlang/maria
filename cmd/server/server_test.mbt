@@ -414,7 +414,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       @json.inspect(b.json(), content={
         "pending_messages": [
           {
-            "id": String(id),
+            "id": id,
             "message": {
               "role": "user",
               "content": "This message will be popped on cancellation",
