@@ -60,6 +60,10 @@ pub(all) struct Agent {
   mut web_search : Bool
   /// Queue for receiving external events from the environment.
   priv external_events : @event.ExternalEventQueue
+  /// Compactor for managing context compaction when conversations get too long.
+  priv compactor : @compact.Compactor
+  /// Total tokens used across the conversation, used to trigger auto-compaction.
+  priv mut total_usage_tokens : Int
 }
 
 ///|
@@ -208,6 +212,75 @@ fn Agent::cancel(agent : Agent) -> Unit {
 }
 
 ///|
+/// Runs automatic context compaction when the conversation exceeds token limits.
+///
+/// This function:
+/// 1. Builds a summarization prompt from the current conversation
+/// 2. Calls the LLM to generate a summary
+/// 3. Adds a ContextCompacted event (history remains append-only)
+/// 4. Resets token tracking
+/// 5. Emits `ContextCompacted` event to listeners
+async fn Agent::run_auto_compact(agent : Agent) -> Unit {
+  agent.logger.info("Starting auto-compaction", data={
+    "total_usage_tokens": agent.total_usage_tokens,
+  })
+
+  // Get current messages for summarization
+  let messages = agent.history.messages(include_system=false)
+
+  // Build the summarization prompt
+  let compact_prompt = agent.compactor.build_summarization_prompt(messages)
+
+  // Make API call to get summary
+  let summary = agent.get_compact_summary(compact_prompt)
+
+  // Build the full summary with prefix
+  let full_summary = "\{@compact.SUMMARY_PREFIX}\n\{summary}"
+
+  // Simply add the ContextCompacted event - history remains append-only
+  // The Conversation::messages() method will handle building the compacted view
+  agent.history.add_event(
+    @event.Event::new(
+      id=agent.uuid.v4(),
+      ContextCompacted(summary=full_summary),
+    ),
+  )
+
+  // Reset token counter (will be recounted on next turn)
+  agent.total_usage_tokens = 0
+
+  // Emit the event to listeners
+  agent.emit(ContextCompacted(summary=full_summary))
+
+  // Save the conversation
+  agent.session_manager.save(agent.history)
+  agent.logger.info("Auto-compaction completed", data={
+    "summary_length": summary.length(),
+  })
+}
+
+///|
+/// Makes an API call to get a conversation summary for compaction.
+async fn Agent::get_compact_summary(agent : Agent, prompt : String) -> String {
+  // Create messages for compact request
+  let messages = [@ai.user_message(content=prompt).to_openai()]
+
+  // Make API request with a smaller model or same model
+  let response = @openai.chat(
+    model=agent.model,
+    logger=agent.logger,
+    @openai.chat_completion(messages~, model=agent.model.model_name, tools=[]),
+    extra_body={},
+  )
+
+  // Extract summary from response
+  guard response is { choices: [{ message, .. }, ..], .. } else {
+    return "(no summary available)"
+  }
+  message.content.unwrap_or("(no summary available)")
+}
+
+///|
 /// Starts the agent's conversation loop and executes tool calls until completion.
 ///
 /// This function implements the main agent execution loop:
@@ -308,6 +381,18 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           message.content.unwrap_or(""),
         ),
       )
+
+      // Track total token usage for auto-compaction
+      if usage is Some(u) {
+        agent.total_usage_tokens = agent.total_usage_tokens + u.total_tokens
+      }
+
+      // Check if auto-compaction is needed after this turn
+      // Only compact if there are more tool calls to process (conversation continues)
+      if not(message.tool_calls.is_empty()) &&
+        agent.compactor.should_compact(agent.total_usage_tokens) {
+        agent.run_auto_compact()
+      }
 
       // Add all staged messages to permanent conversation history
       agent.input_queue = []
@@ -429,6 +514,11 @@ pub async fn new(
     skills,
     web_search,
     external_events,
+    compactor: @compact.Compactor::new(
+      safe_zone_tokens=model.safe_zone_tokens,
+      logger~,
+    ),
+    total_usage_tokens: 0,
   }
   rules.load()
   skills.load()
