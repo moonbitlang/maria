@@ -113,6 +113,9 @@ pub(all) enum EventDesc {
   /// Failed. We cannot use `Error` here because it is impossible to deserialize
   /// `Error` from JSON.
   Failed(Json)
+  /// Event triggered when context has been compacted.
+  /// Contains the summary text used for the compacted context.
+  ContextCompacted(summary~ : String)
 } derive(Eq, Show)
 
 ///|
@@ -211,6 +214,8 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
     Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
     Failed(error) => { "msg": "Failed", "error": error }
+    ContextCompacted(summary~) =>
+      { "msg": "ContextCompacted", "summary": summary }
   }
 }
 
@@ -462,6 +467,18 @@ pub impl @json.FromJson for EventDesc with from_json(
         )
       }
       Failed(error_json)
+    }
+    "ContextCompacted" => {
+      guard json_object.get("summary") is Some(summary_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "ContextCompacted event missing 'summary' field"),
+        )
+      }
+      let summary : String = @json.from_json(
+        summary_json,
+        path=json_path.add_key("summary"),
+      )
+      ContextCompacted(summary~)
     }
     _ =>
       raise @json.JsonDecodeError(
