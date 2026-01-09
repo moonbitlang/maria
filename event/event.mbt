@@ -114,6 +114,9 @@ pub(all) enum EventDesc {
   /// Event triggered when a PostToolCall event is pruned from context.
   /// The `id` field references the pruned PostToolCall event's id.
   Pruned(id~ : @uuid.Uuid)
+  /// Event triggered when context has been compacted.
+  /// Contains the summary text used for the compacted context.
+  ContextCompacted(summary~ : String)
 } derive(Eq, Show)
 
 ///|
@@ -211,6 +214,8 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
     UserMessage(content) => { "msg": "UserMessage", "content": content }
     Failed(error) => { "msg": "Failed", "error": error }
     Pruned(id~) => { "msg": "Pruned", "id": id.to_json() }
+    ContextCompacted(summary~) =>
+      { "msg": "ContextCompacted", "summary": summary }
   }
 }
 
@@ -356,6 +361,18 @@ pub impl @json.FromJson for EventDesc with from_json(
     "Pruned" => {
       let id : @uuid.Uuid = object.required("id", path=json_path)
       Pruned(id~)
+    }
+    "ContextCompacted" => {
+      guard object.get("summary") is Some(summary_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "ContextCompacted event missing 'summary' field"),
+        )
+      }
+      let summary : String = @json.from_json(
+        summary_json,
+        path=json_path.add_key("summary"),
+      )
+      ContextCompacted(summary~)
     }
     _ =>
       raise @json.JsonDecodeError(
