@@ -34,41 +34,29 @@ impl @json.FromJson for Message with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Message raise @json.JsonDecodeError {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError((json_path, "Expected object for Message"))
-  }
-  let timestamp = match json.get("timestamp") {
-    Some(timestamp) =>
-      @json.from_json(timestamp, path=json_path.add_key("timestamp"))
-    None =>
-      raise @json.JsonDecodeError(
-        (json_path.add_key("timestamp"), "Missing field"),
-      )
-  }
-  let usage : @openai.CompletionUsage? = match json.get("usage") {
-    Some(Null) => None
-    Some(usage) => Some(@json.from_json(usage, path=json_path.add_key("usage")))
-    None => None
-  }
+  let object = @jsonx.as_object(json, path=json_path)
+  let timestamp : @clock.Timestamp = object.required(
+    "timestamp",
+    path=json_path,
+  )
+  let usage : @openai.CompletionUsage? = object.optional(
+    "usage",
+    path=json_path,
+  )
   let usage = usage.map(@ai.Usage::from_openai)
-  let message : @openai.ChatCompletionMessageParam = match json.get("message") {
-    Some(message) => @json.from_json(message, path=json_path.add_key("message"))
+  let message : @openai.ChatCompletionMessageParam = match
+    object.get("message") {
+    Some(message_json) =>
+      @json.from_json(message_json, path=json_path.add_key("message"))
     None => {
-      let content : String = match json.get("content") {
-        Some(content) =>
-          @json.from_json(content, path=json_path.add_key("content"))
-        None =>
-          raise @json.JsonDecodeError(
-            (json_path.add_key("content"), "Missing field"),
-          )
-      }
+      let content : String = object.required("content", path=json_path)
       let content = @json.parse(content) catch {
         error =>
           raise @json.JsonDecodeError(
             (json_path.add_key("content"), "Invalid JSON content: \{error}"),
           )
       }
-      @json.from_json(content)
+      @json.from_json(content, path=json_path.add_key("content"))
     }
   }
   Message::{ timestamp, usage, message: @ai.Message::from_openai(message) }
