@@ -147,7 +147,7 @@ async fn goto_definition(
 ) -> String raise SearchError {
   let process = @spawn.spawn(
     "moon",
-    ["ide", "goto-definition", "-query", query],
+    ["ide", "goto-definition", query],
     cwd=working_dir,
   ) catch {
     error =>
@@ -173,7 +173,7 @@ async fn find_references(
 ) -> String raise SearchError {
   let process = @spawn.spawn(
     "moon",
-    ["ide", "find-references", "-query", query],
+    ["ide", "find-references", query],
     cwd=working_dir,
   ) catch {
     error =>
@@ -274,6 +274,9 @@ pub impl Show for SearchFilesResult with output(
 }
 
 ///|
+const MoonBitIdeEnabled : Bool = false
+
+///|
 /// Main tool implementation function
 async fn search_files_impl(
   args : Json,
@@ -332,7 +335,7 @@ async fn search_files_impl(
   try {
     // Handle MoonBit symbol searches
     match search_kind {
-      MoonbitDefinition => {
+      MoonbitDefinition if MoonBitIdeEnabled => {
         let path_result = check_path(absolute_search_path)
         let exists = path_result.0
         let is_file = path_result.1
@@ -360,7 +363,11 @@ async fn search_files_impl(
           @tool.ok(MoonbitToolResult(result))
         }
       }
-      MoonbitReferences => {
+      MoonbitDefinition =>
+        @tool.error(
+          "Error: MoonBit IDE features are not enabled in this build.",
+        )
+      MoonbitReferences if MoonBitIdeEnabled => {
         let path_result = check_path(absolute_search_path)
         let exists = path_result.0
         let is_file = path_result.1
@@ -388,6 +395,10 @@ async fn search_files_impl(
           @tool.ok(MoonbitToolResult(result))
         }
       }
+      MoonbitReferences =>
+        @tool.error(
+          "Error: MoonBit IDE features are not enabled in this build.",
+        )
       Regex => {
         // Validate path exists
         let path_result = check_path(absolute_search_path)

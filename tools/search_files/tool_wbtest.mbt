@@ -1,4 +1,5 @@
 ///|
+#cfg(false)
 async test "goto_definition" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
@@ -43,6 +44,7 @@ async test "goto_definition" (t : @test.Test) {
 }
 
 ///|
+#cfg(false)
 async test "find_references" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({
