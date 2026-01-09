@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/assets"
+
+import(
+  "moonbitlang/maria/internal/pino"
+)
+
+// Values
+pub async fn install_assets(String, Array[Asset], String, String, @pino.Logger) -> Unit
+
+// Errors
+
+// Types and methods
+pub(all) struct Asset {
+  path : String
+  content : String
+}
+pub impl Show for Asset
+pub impl ToJson for Asset
+
+// Type aliases
+
+// Traits
+

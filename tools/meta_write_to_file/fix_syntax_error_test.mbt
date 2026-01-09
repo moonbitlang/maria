@@ -10,7 +10,7 @@ async test "fix-syntax-error" (t : @test.Test) {
       "moon.pkg.json": Json::object({ "is-main": true }).stringify(indent=2),
     })
     let main_mbt_file = mock.add_file("main.mbt")
-    let system_prompt = [@prompt.prelude, @prompt.moonbit].join("\n")
+    let system_prompt = [@prompt.prelude].join("\n")
     let agent = @agent.new(
       model,
       logger=mock.logger,
@@ -108,7 +108,7 @@ async test "search-replace" (t : @test.Test) {
         #|}
       ),
     )
-    let system_prompt = [@prompt.prelude, @prompt.moonbit].join("\n")
+    let system_prompt = [@prompt.prelude].join("\n")
     let agent = @agent.new(
       model,
       logger=mock.logger,
