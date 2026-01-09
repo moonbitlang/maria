@@ -216,6 +216,26 @@ async test "replace_segment/list" (t : @test.Test) {
           },
           "message": "Warning (deprecated): `length` is deprecated, use `len` instead",
         },
+        {
+          "error_code": 20,
+          "level": "Warning",
+          "loc": {
+            "end": { "col": 56, "line": 51 },
+            "path": "(mock:cwd)/list/list.mbt",
+            "start": { "col": 45, "line": 51 },
+          },
+          "message": "Warning (deprecated): The name `Iterator` is deprecated, use `Iter` instead. Note that if you have defined `iterator()` method to support `for .. in` loop, you should also rename `iterator()` to `iter()`. See https://github.com/moonbitlang/core/pull/3127 for more details.",
+        },
+        {
+          "error_code": 20,
+          "level": "Warning",
+          "loc": {
+            "end": { "col": 11, "line": 53 },
+            "path": "(mock:cwd)/list/list.mbt",
+            "start": { "col": 3, "line": 53 },
+          },
+          "message": "Warning (deprecated): The name `Iterator` is deprecated, use `Iter` instead. Note that if you have defined `iterator()` method to support `for .. in` loop, you should also rename `iterator()` to `iter()`. See https://github.com/moonbitlang/core/pull/3127 for more details.",
+        },
       ],
     ])
     let files = moon.files().collect()

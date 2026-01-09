@@ -30,16 +30,16 @@ async test "render_diagnostics" (t : @test.Test) {
         #| 2 │ let x : Int = "string"
         #|   │               ^^^^^^^^
         #|
-        #|error[3003]: (mock:cwd)/example2.mbt:1:8-10: Unused parameter list for the main function. The syntax is `fn main { ... }`
-        #| 1 │ fn main() {
-        #|   │        ^^
-        #|
         #|error[4069]: (mock:cwd)/example2.mbt:1:1-3:2: Unexpected main function in the non-main package.
         #| 1 │ fn main() {
         #|   │ ^^^^^^^^^^^
         #|   ┆
         #| 3 │ }
         #|   │ ^
+        #|
+        #|error[3003]: (mock:cwd)/example2.mbt:1:8-10: Unused parameter list for the main function. The syntax is `fn main { ... }`
+        #| 1 │ fn main() {
+        #|   │        ^^
         #|
         #|warning[0002]: (mock:cwd)/example.mbt:2:5-6: Warning (unused_value): Unused variable 'x'
         #| 2 │ let x : Int = "string"

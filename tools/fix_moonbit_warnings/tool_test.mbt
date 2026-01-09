@@ -124,6 +124,6 @@ async test "fix_moonbit_warnings" (t : @test.Test) {
       fail("Expected tool call to succeed, got error: \{output}")
       return
     }
-    inspect(result, content="Processed 2 files and updated 2 segments.")
+    inspect(result, content="Processed 2 files and updated 3 segments.")
   })
 }

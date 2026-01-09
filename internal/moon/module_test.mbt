@@ -155,16 +155,6 @@ async test "diagnostics" (t : @test.Test) {
       "Diagnostics",
       [
         {
-          "error_code": 2,
-          "level": "Warning",
-          "loc": {
-            "end": { "col": 6, "line": 1 },
-            "path": "(mock:cwd)/example.mbt",
-            "start": { "col": 5, "line": 1 },
-          },
-          "message": "Warning (unused_value): Unused variable 'x'",
-        },
-        {
           "error_code": 4014,
           "level": "Error",
           "loc": {
@@ -173,6 +163,16 @@ async test "diagnostics" (t : @test.Test) {
             "start": { "col": 15, "line": 1 },
           },
           "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
+        },
+        {
+          "error_code": 2,
+          "level": "Warning",
+          "loc": {
+            "end": { "col": 6, "line": 1 },
+            "path": "(mock:cwd)/example.mbt",
+            "start": { "col": 5, "line": 1 },
+          },
+          "message": "Warning (unused_value): Unused variable 'x'",
         },
       ],
     ])
