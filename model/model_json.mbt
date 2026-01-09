@@ -48,6 +48,7 @@ pub impl @json.FromJson for Model with from_json(
         SaaS(OpenAI) => "https://api.openai.com/v1"
         SaaS(CodexOAuth) => "https://chatgpt.com/backend-api"
         SaaS(Copilot) => "https://api.githubcopilot.com"
+        SaaS(ClaudeMax) => "https://api.anthropic.com/v1"
       }
     }
     @json.from_json(base_url, path=json_path.add_key("base_url"))
@@ -140,6 +141,7 @@ pub impl @json.FromJson for Type with from_json(
     "saas/openai" => Type::SaaS(Provider::OpenAI)
     "saas/codex_oauth" => Type::SaaS(Provider::CodexOAuth)
     "saas/copilot" => Type::SaaS(Provider::Copilot)
+    "saas/claude_max" => Type::SaaS(Provider::ClaudeMax)
     [.. "saas/", .. provider] =>
       raise @json.JsonDecodeError(
         (
@@ -163,5 +165,6 @@ pub impl ToJson for Type with to_json(self) {
     SaaS(OpenAI) => "saas/openai"
     SaaS(CodexOAuth) => "saas/codex_oauth"
     SaaS(Copilot) => "saas/copilot"
+    SaaS(ClaudeMax) => "saas/claude_max"
   }
 }

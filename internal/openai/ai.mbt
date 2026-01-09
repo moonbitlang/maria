@@ -27,6 +27,7 @@ pub async fn chat(
   match model.model_type {
     SaaS(CodexOAuth) => chat_codex(model~, request, logger~)
     SaaS(Copilot) => chat_copilot(model~, request, logger~)
+    SaaS(ClaudeMax) => chat_claude_max(model~, request, logger~)
     _ => chat_openai(model~, request, logger~, extra_body~)
   }
 }
@@ -310,6 +311,281 @@ async fn chat_copilot(
         let json = @json.parse(body)
         @json.from_json(json)
       }
+    },
+  )
+}
+
+///|
+/// Tool name prefix for Claude Max API
+const CLAUDE_TOOL_PREFIX = "oc_"
+
+///|
+/// Add oc_ prefix to tool name when sending to Claude API
+fn prefix_tool_name(name : String) -> String {
+  "\{CLAUDE_TOOL_PREFIX}\{name}"
+}
+
+///|
+/// Strip oc_ prefix from tool name when receiving from Claude API
+fn strip_tool_prefix(name : String) -> String {
+  if name.has_prefix(CLAUDE_TOOL_PREFIX) {
+    name.substring(start=CLAUDE_TOOL_PREFIX.length())
+  } else {
+    name
+  }
+}
+
+///|
+/// Convert OpenAI Request format to Anthropic messages format
+fn convert_to_anthropic_format(request : Request) -> Json {
+  let messages : Array[Json] = []
+  let mut system_content : String? = None
+  for msg in request.messages {
+    match msg {
+      System(sys_msg) => {
+        // Anthropic uses system as a top-level field
+        system_content = Some(extract_text_content(sys_msg.content))
+      }
+      User(user_msg) => {
+        let content = extract_text_content(user_msg.content)
+        messages.push({ "role": "user", "content": content })
+      }
+      Assistant(assistant_msg) => {
+        let content_parts : Array[Json] = []
+        let text = extract_text_content(assistant_msg.content)
+        if !text.is_empty() {
+          content_parts.push({ "type": "text", "text": text })
+        }
+        // Convert tool calls to tool_use blocks
+        for tc in assistant_msg.tool_calls {
+          let arguments_json = try {
+            @json.parse(tc.function.arguments.unwrap_or("{}"))
+          } catch {
+            _ => Json::object({})
+          }
+          content_parts.push(
+            {
+              "type": "tool_use",
+              "id": tc.id,
+              "name": prefix_tool_name(tc.function.name),
+              "input": arguments_json,
+            },
+          )
+        }
+        if content_parts.is_empty() {
+          continue
+        }
+        messages.push({ "role": "assistant", "content": content_parts.to_json() })
+      }
+      Tool(tool_msg) => {
+        let content = extract_text_content(tool_msg.content)
+        messages.push(
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": tool_msg.tool_call_id,
+                "content": content,
+              },
+            ].to_json(),
+          },
+        )
+      }
+    }
+  }
+  // Convert tools with oc_ prefix
+  let tools : Array[Json] = request.tools.map(fn(tool) {
+    match tool {
+      Function(func_def) =>
+        {
+          "name": prefix_tool_name(func_def.name),
+          "description": func_def.description,
+          "input_schema": func_def.parameters,
+        }
+    }
+  })
+  let result : Map[String, Json] = {
+    "model": request.model.to_json(),
+    "messages": messages.to_json(),
+    "max_tokens": request.max_tokens.unwrap_or(8192).to_json(),
+  }
+  if system_content is Some(sys) {
+    result["system"] = sys.to_json()
+  }
+  if !tools.is_empty() {
+    result["tools"] = tools.to_json()
+  }
+  if request.stream is Some(true) {
+    result["stream"] = true.to_json()
+  }
+  Json::object(result)
+}
+
+///|
+/// Convert Anthropic response to OpenAI ChatCompletion format
+fn convert_anthropic_response_to_openai(
+  model_name : String,
+  response : Json,
+) -> ChatCompletion {
+  guard response is Object(obj) else { abort("Invalid Anthropic response format") }
+  let mut content : String? = None
+  let tool_calls : Array[ChatCompletionMessageToolCall] = []
+  // Parse content blocks
+  if obj.get("content") is Some(Array(content_blocks)) {
+    let text_parts : Array[String] = []
+    for block in content_blocks {
+      guard block is Object(block_obj) else { continue }
+      let block_type = match block_obj.get("type") {
+        Some(String(t)) => t
+        _ => continue
+      }
+      match block_type {
+        "text" =>
+          if block_obj.get("text") is Some(String(text)) {
+            text_parts.push(text)
+          }
+        "tool_use" => {
+          let id = match block_obj.get("id") {
+            Some(String(s)) => s
+            _ => continue
+          }
+          let name = match block_obj.get("name") {
+            Some(String(s)) => strip_tool_prefix(s)
+            _ => continue
+          }
+          let arguments = match block_obj.get("input") {
+            Some(input) => input.stringify()
+            None => "{}"
+          }
+          tool_calls.push(tool_call(id~, name~, arguments~))
+        }
+        _ => continue
+      }
+    }
+    if !text_parts.is_empty() {
+      content = Some(text_parts.join("\n"))
+    }
+  }
+  let finish_reason : ChatCompletionChoiceFinishReason = match obj.get(
+    "stop_reason",
+  ) {
+    Some(String("tool_use")) => ToolCalls
+    Some(String("end_turn")) => Stop
+    Some(String("max_tokens")) => Length
+    _ => Stop
+  }
+  ChatCompletion::new(
+    id=match obj.get("id") {
+      Some(String(s)) => s
+      _ => "claude-response"
+    },
+    choices=[
+      ChatCompletionChoice::new(
+        index=0,
+        message=ChatCompletionMessage::new(content?, tool_calls~),
+        finish_reason~,
+      ),
+    ],
+    created=0,
+    model=model_name,
+  )
+}
+
+///|
+/// Execute a chat completion using Claude Max OAuth.
+async fn chat_claude_max(
+  model~ : @model.Model,
+  request : Request,
+  logger~ : @pino.Logger,
+) -> ChatCompletion {
+  let access_token = match model.access_token {
+    Some(at) => at
+    None =>
+      try {
+        let creds = @claude.get_valid_credentials()
+        creds.access_token
+      } catch {
+        _ =>
+          raise HttpError(
+            code=401,
+            body="Missing access_token for ClaudeMax model and no saved credentials found",
+          )
+      }
+  }
+  let has_refreshed = Ref::new(false)
+  let current_access_token = Ref::new(access_token)
+  @async.retry(
+    ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
+    max_retry=5,
+    fatal_error=error => match error {
+      HttpError(code=403, ..) => true
+      _ => false
+    },
+    () => {
+      logger.debug("ClaudeMaxRequestSent", data={
+        "model": { "name": model.model_name, "base_url": model.base_url },
+        "request": request,
+      })
+      // Convert OpenAI format to Anthropic format
+      let anthropic_request = convert_to_anthropic_format(request)
+      let url = "\{model.base_url}/messages?beta=true"
+      let uri = Uri::parse(url)
+      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+        "Authorization": "Bearer \{current_access_token.val}",
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "oauth-2025-04-20,interleaved-thinking-2025-05-14",
+        "user-agent": "claude-cli/2.1.2 (external, cli)",
+      })
+      defer client.close()
+      let response = client.post(uri.path, anthropic_request)
+      guard response.code is (200..=299) else {
+        let error_body = client.read_all().text()
+        // Try to refresh token on 401
+        if response.code == 401 && not(has_refreshed.val) {
+          has_refreshed.val = true
+          logger.info("Received 401, attempting to refresh Claude token")
+          let refresh_result : @claude.Credentials? = Some(
+            @claude.refresh_and_save_credentials(),
+          ) catch {
+            _ => None
+          }
+          match refresh_result {
+            Some(refreshed) => {
+              current_access_token.val = refreshed.access_token
+              logger.info("Claude token refreshed successfully, retrying request")
+            }
+            None => {
+              logger.info("Claude refresh failed, triggering re-login flow")
+              let new_creds = @claude.start_oauth_flow() catch {
+                login_err => {
+                  logger.error("Claude re-login failed", data={
+                    "error": login_err.to_string(),
+                  })
+                  raise HttpError(code=401, body="Claude re-login failed: \{login_err}")
+                }
+              }
+              current_access_token.val = new_creds.access_token
+              logger.info("Claude re-login successful, retrying request")
+            }
+          }
+          raise HttpError(code=response.code, body=error_body)
+        }
+        raise HttpError(code=response.code, body=error_body)
+      }
+      // Parse Anthropic response and convert to OpenAI format
+      let body = client.read_all().text()
+      let anthropic_response = @json.parse(body)
+      let chat_completion = convert_anthropic_response_to_openai(
+        model.model_name,
+        anthropic_response,
+      )
+      logger.debug("ClaudeMaxResponseReceived", data={
+        "model": { "name": model.model_name, "base_url": model.base_url },
+        "response": chat_completion,
+      })
+      chat_completion
     },
   )
 }

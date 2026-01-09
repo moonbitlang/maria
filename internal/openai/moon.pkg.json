@@ -3,6 +3,7 @@
     "moonbitlang/maria/model",
     "moonbitlang/maria/oauth/codex",
     "moonbitlang/maria/oauth/copilot",
+    "moonbitlang/maria/oauth/claude",
     "moonbitlang/async/http",
     "moonbitlang/maria/internal/schema",
     "moonbitlang/async/io",

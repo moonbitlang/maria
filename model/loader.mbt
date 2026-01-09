@@ -83,6 +83,9 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   if name is Some(model_name) && model_name.has_prefix("copilot/") {
     return self.load_copilot_model(model_name, allow_auto_login=true)
   }
+  if name is Some(model_name) && model_name.has_prefix("claude/") {
+    return self.load_claude_model(model_name, allow_auto_login=true)
+  }
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
@@ -116,8 +119,12 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
     is Some(model) {
     return Some(model)
   }
+  if self.load_claude_model("claude/claude-sonnet-4.5", allow_auto_login=false)
+    is Some(model) {
+    return Some(model)
+  }
   println(
-    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ or copilot/ model to authenticate via OAuth.",
+    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/, copilot/, or claude/ model to authenticate via OAuth.",
   )
   None
 }
@@ -268,6 +275,44 @@ async fn Loader::load_copilot_model(
   let model = copilot_model(
     copilot_token=credentials.copilot_token,
     github_token=credentials.github_token,
+    name=selected_model,
+  )
+  Some(model)
+}
+
+///|
+async fn Loader::load_claude_model(
+  _self : Loader,
+  name : String,
+  allow_auto_login~ : Bool,
+) -> Model? {
+  let credentials = @claude.get_valid_credentials() catch {
+    _ => {
+      if not(allow_auto_login) {
+        return None
+      }
+      println("[INFO] Claude credentials not found, starting login...")
+      @claude.start_oauth_flow() catch {
+        err => {
+          println("[ERROR] Claude OAuth login failed: \{err}")
+          return None
+        }
+      }
+    }
+  }
+  let selected_model : ClaudeMaxModels = match name {
+    "claude/claude-sonnet-4" => ClaudeSonnet4
+    "claude/claude-sonnet-4.5" => ClaudeSonnet4_5
+    "claude/claude-opus-4.5" => ClaudeOpus4_5
+    _ => {
+      println("[WARN] Unknown Claude model '\{name}', using claude-sonnet-4.5")
+      ClaudeSonnet4_5
+    }
+  }
+  println("[INFO] Using Claude Max model '\{selected_model}'")
+  let model = claude_max_model(
+    access_token=credentials.access_token,
+    refresh_token=credentials.refresh_token,
     name=selected_model,
   )
   Some(model)

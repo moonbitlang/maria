@@ -21,6 +21,7 @@ pub(all) enum Provider {
   OpenAI
   CodexOAuth
   Copilot
+  ClaudeMax
 } derive(Eq, Show)
 
 ///|
@@ -394,5 +395,55 @@ pub fn copilot_model(
     model_type=SaaS(Copilot),
     safe_zone_tokens=name.safe_zone_tokens(),
     refresh_token=github_token, // Store github_token as refresh_token for refreshing
+  )
+}
+
+///|
+pub(all) enum ClaudeMaxModels {
+  /// Claude Sonnet 4 via Claude Max
+  ClaudeSonnet4
+  /// Claude Sonnet 4.5 via Claude Max
+  ClaudeSonnet4_5
+  /// Claude Opus 4.5 via Claude Max
+  ClaudeOpus4_5
+}
+
+///|
+pub impl Show for ClaudeMaxModels with output(
+  self : ClaudeMaxModels,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    ClaudeSonnet4 => logger.write_string("claude-sonnet-4-20250514")
+    ClaudeSonnet4_5 => logger.write_string("claude-sonnet-4-5-20250514")
+    ClaudeOpus4_5 => logger.write_string("claude-opus-4-5-20250514")
+  }
+}
+
+///|
+fn ClaudeMaxModels::safe_zone_tokens(self : ClaudeMaxModels) -> Int {
+  match self {
+    ClaudeSonnet4 => 200_000
+    ClaudeSonnet4_5 => 200_000
+    ClaudeOpus4_5 => 200_000
+  }
+}
+
+///|
+pub fn claude_max_model(
+  access_token~ : String,
+  refresh_token~ : String,
+  name? : ClaudeMaxModels = ClaudeSonnet4_5,
+) -> Model {
+  Model::new(
+    api_key="", // Not used for ClaudeMax
+    base_url="https://api.anthropic.com/v1",
+    name=name.to_string(),
+    model_name=name.to_string(),
+    model_type=SaaS(ClaudeMax),
+    safe_zone_tokens=name.safe_zone_tokens(),
+    supports_anthropic_prompt_caching=true,
+    access_token~,
+    refresh_token~,
   )
 }
