@@ -69,9 +69,9 @@ fn[T] MethodMap::new() -> MethodMap[T] {
 }
 
 ///|
-fn[T] MethodMap::keys(self : MethodMap[T]) -> Iterator[Method] {
+fn[T] MethodMap::keys(self : MethodMap[T]) -> Iter[Method] {
   let mut i = 0
-  Iterator::new(() => while i < methods.length() {
+  Iter::new(() => while i < methods.length() {
     let method_ = methods[i]
     i += 1
     if self.get(method_) is Some(_) {

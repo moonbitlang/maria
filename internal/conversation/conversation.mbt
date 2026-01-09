@@ -120,7 +120,7 @@ pub fn Conversation::messages(
 /// Returns `Some(prompt)` if a system prompt is set, or `None` if no system
 /// prompt is configured.
 pub fn Conversation::system_prompt(self : Conversation) -> String? {
-  for e in self.events().rev_iterator() {
+  for e in self.events().rev_iter() {
     match e.desc {
       SystemPromptSet(prompt) => return prompt
       _ => ()
