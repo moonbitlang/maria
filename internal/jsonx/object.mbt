@@ -16,3 +16,8 @@ pub fn as_object(
   }
   Object(obj)
 }
+
+///|
+pub fn Object::iterator2(self : Object) -> Iterator2[String, Json] {
+  self.0.iterator2()
+}

@@ -1,6 +1,6 @@
 ///|
 /// Schema definition for JSON responses.
-struct JsonSchema {
+pub(all) struct JsonSchema {
   name : String
   description : String?
   schema : Map[String, Json]
