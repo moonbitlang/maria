@@ -106,14 +106,14 @@ pub fn stem(path : StringView) -> StringView {
 
 ///|
 /// Split each path component, handle redundant slashes but doesn't resolve `.` and `..`.
-pub fn split(view : StringView) -> Iterator[StringView] {
+pub fn split(view : StringView) -> Iter[StringView] {
   enum State {
     Root
     Segment
   }
   let mut state : State = State::Root
   let mut last = view
-  Iterator::new(() => state~: loop state {
+  Iter::new(() => state~: loop state {
     Root =>
       match view {
         // More than 3 slashes are treated as single slash.

@@ -42,8 +42,8 @@ fn MethodSet::op_set(self : MethodSet, method_ : Method, value : Bool) -> Unit {
 }
 
 ///|
-fn MethodSet::iterator(self : MethodSet) -> Iterator[Method] {
-  methods.iterator().filter(method_ => self[method_])
+fn MethodSet::iterator(self : MethodSet) -> Iter[Method] {
+  methods.iter().filter(method_ => self[method_])
 }
 
 ///|

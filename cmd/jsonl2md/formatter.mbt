@@ -341,7 +341,7 @@ fn Formatter::format_user_message(
   timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   let role = "User"
-  let title = content.split("\n").drop_while(line => line.is_blank()).peek()
+  let title = content.split("\n").drop_while(line => line.is_blank()).next()
   if title is Some(first_line) {
     self.push_title("\{role}: \{first_line}", numbered=true, timestamp?)
     self.lines.push("")
@@ -524,7 +524,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           let title = content
             .split("\n")
             .drop_while(line => line.is_blank())
-            .peek()
+            .next()
           if title is Some(title) {
             self.push_title("Assistant: \{title}", numbered=true, timestamp?)
             self.lines.push("")

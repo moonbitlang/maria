@@ -606,11 +606,11 @@ fn extract_first_json_block(content : String) -> String? {
   .split("```json")
   .drop(1)
   .take(1)
-  .peek()
+  .next()
   .bind(block => block
     .split("```")
     .take(1)
-    .peek()
+    .next()
     .map(s => s.trim(char_set=" \r\n\t").to_string()))
 }
 

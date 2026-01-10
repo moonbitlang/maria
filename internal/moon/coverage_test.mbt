@@ -52,7 +52,7 @@ async test "Coverage::report" (t : @test.Test) {
           {
             "name": "example.mbt",
             "source_digest": "fd5f82b005628fbe3ba4a2a8e641f974",
-            "coverage": [null, null, 1, 1, 0, 0, null, 0, null, null],
+            "coverage": [null, null, 2, 2, 0, 0, null, 0, null, null],
           },
         ],
       },

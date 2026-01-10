@@ -48,8 +48,8 @@ pub fn Diagnostics::is_empty(self : Diagnostics) -> Bool {
 }
 
 ///|
-pub fn Diagnostics::iterator(self : Diagnostics) -> Iterator[Diagnostic] {
-  self.0.iterator()
+pub fn Diagnostics::iterator(self : Diagnostics) -> Iter[Diagnostic] {
+  self.0.iter()
 }
 
 ///|

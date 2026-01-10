@@ -29,7 +29,7 @@ pub fn Diagnostics::filter_map(Self, (Diagnostic) -> Diagnostic?) -> Self
 #deprecated
 pub fn Diagnostics::inner(Self) -> Array[Diagnostic]
 pub fn Diagnostics::is_empty(Self) -> Bool
-pub fn Diagnostics::iterator(Self) -> Iterator[Diagnostic]
+pub fn Diagnostics::iterator(Self) -> Iter[Diagnostic]
 pub fn Diagnostics::length(Self) -> Int
 pub fn Diagnostics::new() -> Self
 pub fn Diagnostics::push(Self, Diagnostic) -> Unit

@@ -39,16 +39,6 @@ async test "check_patch" (t : @test.Test) {
               "Diagnostics",
               [
                 {
-                  "error_code": 2,
-                  "level": "Warning",
-                  "loc": {
-                    "end": { "col": 6, "line": 2 },
-                    "path": "(mock:cwd)/example.mbt",
-                    "start": { "col": 5, "line": 2 },
-                  },
-                  "message": "Warning (unused_value): Unused variable 'x'",
-                },
-                {
                   "error_code": 4014,
                   "level": "Error",
                   "loc": {
@@ -58,6 +48,16 @@ async test "check_patch" (t : @test.Test) {
                   },
                   "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
                 },
+                {
+                  "error_code": 2,
+                  "level": "Warning",
+                  "loc": {
+                    "end": { "col": 6, "line": 2 },
+                    "path": "(mock:cwd)/example.mbt",
+                    "start": { "col": 5, "line": 2 },
+                  },
+                  "message": "Warning (unused_value): Unused variable 'x'",
+                },
               ],
             ],
           },
@@ -65,16 +65,6 @@ async test "check_patch" (t : @test.Test) {
         "diagnostics": [
           "Diagnostics",
           [
-            {
-              "error_code": 2,
-              "level": "Warning",
-              "loc": {
-                "end": { "col": 6, "line": 2 },
-                "path": "(mock:cwd)/example.mbt",
-                "start": { "col": 5, "line": 2 },
-              },
-              "message": "Warning (unused_value): Unused variable 'x'",
-            },
             {
               "error_code": 4014,
               "level": "Error",
@@ -84,6 +74,16 @@ async test "check_patch" (t : @test.Test) {
                 "start": { "col": 15, "line": 2 },
               },
               "message": "Expr Type Mismatch\n        has type : String\n        wanted   : Int",
+            },
+            {
+              "error_code": 2,
+              "level": "Warning",
+              "loc": {
+                "end": { "col": 6, "line": 2 },
+                "path": "(mock:cwd)/example.mbt",
+                "start": { "col": 5, "line": 2 },
+              },
+              "message": "Warning (unused_value): Unused variable 'x'",
             },
           ],
         ],
@@ -105,16 +105,6 @@ async test "check_patch" (t : @test.Test) {
         "Diagnostics",
         [
           {
-            "error_code": 2,
-            "level": "Warning",
-            "loc": {
-              "end": { "col": 6, "line": 2 },
-              "path": "(mock:cwd)/example.mbt",
-              "start": { "col": 5, "line": 2 },
-            },
-            "message": "Warning (unused_value): Unused variable 'x'",
-          },
-          {
             "error_code": 4014,
             "level": "Error",
             "loc": {
@@ -123,6 +113,16 @@ async test "check_patch" (t : @test.Test) {
               "start": { "col": 18, "line": 2 },
             },
             "message": "Expr Type Mismatch\n        has type : Int\n        wanted   : String",
+          },
+          {
+            "error_code": 2,
+            "level": "Warning",
+            "loc": {
+              "end": { "col": 6, "line": 2 },
+              "path": "(mock:cwd)/example.mbt",
+              "start": { "col": 5, "line": 2 },
+            },
+            "message": "Warning (unused_value): Unused variable 'x'",
           },
         ],
       ],
