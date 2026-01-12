@@ -26,6 +26,10 @@ pub impl Show for ReadFileToolResult with output(
     { path, content, start_line, end_line } => {
       let lines = content.split("\n").to_array()
       let expected_lines = end_line - start_line + 1
+      // When content field has been trimmed to only contain the selected range
+      // (which happens for large files with valid ranges), lines.length() will
+      // equal expected_lines, so we use the full lines array. Otherwise, we need
+      // to slice the content to extract the selected range.
       let selected_lines = if lines.length() == expected_lines {
         lines
       } else {
@@ -101,12 +105,15 @@ async fn execute_read_file_tool(
 
     // Open and read the file
     let content = @fsx.read_file(resolved_path)
-    let token_count = count_file_tokens(content) catch {
-      error =>
-        return @tool.error(
-          "Error: Failed to count tokens for file: \{error}",
-          error~,
-        )
+
+    // Determine whether a line range was requested.
+    let has_range = match start_line {
+      Some(_) => true
+      None =>
+        match end_line {
+          Some(_) => true
+          None => false
+        }
     }
 
     // Update access time
@@ -155,14 +162,12 @@ async fn execute_read_file_tool(
         )
     }
     if selected_token_count > MaxReadFileTokens {
-      return @tool.error(
-        "Error: File content is too large (> 25000 tokens). Use \"start_line\" and \"end_line\" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.",
-      )
-    }
-    let content = if token_count > MaxReadFileTokens {
-      selected_content
-    } else {
-      content
+      let error_message = if has_range {
+        "Error: The specified range is still too large (> 25000 tokens). Please specify an even smaller range using start_line and end_line, or use <search_files> to find a specific part of the file to read."
+      } else {
+        "Error: File content is too large (> 25000 tokens). Use start_line and end_line to read a smaller range of the file, or use <search_files> to find a specific part of the file to read."
+      }
+      return @tool.error(error_message)
     }
     return @tool.ok({ path, content, start_line, end_line })
   } catch {
@@ -177,8 +182,8 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
       #|Read the contents of a file at the specified path.
       #|Use this when you need to examine the contents of an existing file,
       #| for example to analyze code, review text files, or extract information from configuration files.
-      #|For very large files (>25000 tokens), the tool will return an error and ask you to use "start_line"
-      #|and "end_line" to target a smaller range or <search_files> to find a specific part of the file.
+      #|For very large files (>25000 tokens), the tool will return an error and ask you to use start_line
+      #|and end_line to target a smaller range or <search_files> to find a specific part of the file.
       #|Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).
       #|
       #|When reading a MoonBit file:

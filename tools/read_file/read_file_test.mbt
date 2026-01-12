@@ -81,15 +81,13 @@ async test "too_large" (t : @test.Test) {
     let result = tool.call({ "path": "large.txt" })
     inspect(
       result,
-      content=(
-        #|Error: File content is too large (> 25000 tokens). Use "start_line" and "end_line" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.
-      ),
+      content="Error: File content is too large (> 25000 tokens). Use start_line and end_line to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.",
     )
   })
 }
 
 ///|
-async test "too_large_range" (t : @test.Test) {
+async test "range_content_exceeds_limit" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
     let content = "x ".repeat(50000)
@@ -103,7 +101,48 @@ async test "too_large_range" (t : @test.Test) {
     inspect(
       result,
       content=(
-        #|Error: File content is too large (> 25000 tokens). Use "start_line" and "end_line" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.
+        #|Error: The specified range is still too large (> 25000 tokens). Please specify an even smaller range using start_line and end_line, or use <search_files> to find a specific part of the file to read.
+      ),
+    )
+  })
+}
+
+///|
+async test "large_file_with_valid_range" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    // Create a large file with many lines
+    let lines = Array::new(capacity=30000)
+    for i = 1; i <= 30000; i = i + 1 {
+      lines.push("Line \{i}: some content here")
+    }
+    let content = lines.join("\n")
+    let _ = mock.add_file("large.txt", content~)
+    let tool = @read_file.new(manager)
+    // Request a small range that should be within token limit
+    let result = tool.call({
+      "path": "large.txt",
+      "start_line": 100,
+      "end_line": 110,
+    })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    inspect(
+      output,
+      content=(
+        #|File: large.txt (lines 100-110 (11 lines))
+        #| L100 | Line 100: some content here
+        #| L101 | Line 101: some content here
+        #| L102 | Line 102: some content here
+        #| L103 | Line 103: some content here
+        #| L104 | Line 104: some content here
+        #| L105 | Line 105: some content here
+        #| L106 | Line 106: some content here
+        #| L107 | Line 107: some content here
+        #| L108 | Line 108: some content here
+        #| L109 | Line 109: some content here
+        #| L110 | Line 110: some content here
       ),
     )
   })
