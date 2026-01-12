@@ -7,6 +7,7 @@
     "moonbitlang/maria/cmd/main/migrator",
     "moonbitlang/maria/cmd/main/conversation",
     "moonbitlang/maria/cmd/main/interactive",
+    "moonbitlang/maria/cmd/main/exec",
     "moonbitlang/maria/cmd/server",
     "moonbitlang/maria/cmd/daemon",
     "moonbitlang/maria/internal/buildinfo"
