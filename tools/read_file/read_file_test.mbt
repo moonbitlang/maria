@@ -130,10 +130,16 @@ async test "large_file_with_valid_range" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
+    // Generate expected content programmatically for lines 100-109
+    let expected_lines = Array::new(capacity=10)
+    for i = 100; i < 110; i = i + 1 {
+      expected_lines.push("Line \{i}: some content here")
+    }
+    let expected_content = expected_lines.join("\n")
     @json.inspect(output, content={
       "path": "large.txt",
       // Content should be trimmed to just the selected range
-      "content": "Line 100: some content here\nLine 101: some content here\nLine 102: some content here\nLine 103: some content here\nLine 104: some content here\nLine 105: some content here\nLine 106: some content here\nLine 107: some content here\nLine 108: some content here\nLine 109: some content here",
+      "content": expected_content,
       "start_line": 100,
       "end_line": 110,
     })
