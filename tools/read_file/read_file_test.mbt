@@ -89,7 +89,7 @@ async test "too_large" (t : @test.Test) {
 }
 
 ///|
-async test "too_large_range" (t : @test.Test) {
+async test "range_content_exceeds_limit" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
     let content = "x ".repeat(50000)
@@ -103,9 +103,40 @@ async test "too_large_range" (t : @test.Test) {
     inspect(
       result,
       content=(
-        #|Error: File content is too large (> 25000 tokens). Use "start_line" and "end_line" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.
+        #|Error: The specified range is still too large (> 25000 tokens). Please specify an even smaller range using start_line and end_line, or use <search_files> to find a specific part of the file to read.
       ),
     )
+  })
+}
+
+///|
+async test "large_file_with_valid_range" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    // Create a large file with many lines
+    let lines = Array::new(capacity=30000)
+    for i = 1; i <= 30000; i = i + 1 {
+      lines.push("Line \{i}: some content here")
+    }
+    let content = lines.join("\n")
+    let _ = mock.add_file("large.txt", content~)
+    let tool = @read_file.new(manager)
+    // Request a small range that should be within token limit
+    let result = tool.call({
+      "path": "large.txt",
+      "start_line": 100,
+      "end_line": 110,
+    })
+    guard result is Ok(output) else {
+      fail("Expected Ok result but got: \{result}")
+    }
+    @json.inspect(output, content={
+      "path": "large.txt",
+      // Content should be trimmed to just the selected range
+      "content": "Line 100: some content here\nLine 101: some content here\nLine 102: some content here\nLine 103: some content here\nLine 104: some content here\nLine 105: some content here\nLine 106: some content here\nLine 107: some content here\nLine 108: some content here\nLine 109: some content here",
+      "start_line": 100,
+      "end_line": 110,
+    })
   })
 }
 
