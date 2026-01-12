@@ -54,7 +54,7 @@ async fn serve_static_file(
       ".gif" => "image/gif"
       _ => "application/octet-stream"
     }
-    println("[INFO] (Daemon) Serving static file: \{path}")
+    logger.info("Serving static file: \{path}")
     let content = html_read_file(path)
     w.header().set("Content-Type", content_type)
     w.write_header(200)

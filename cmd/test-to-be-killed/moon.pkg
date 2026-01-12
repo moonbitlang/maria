@@ -6,6 +6,7 @@ import {
   "moonbitlang/maria/cmd/daemon",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/maria/internal/httpx",
+  "moonbitlang/maria/internal/pino",
 }
 
 options(

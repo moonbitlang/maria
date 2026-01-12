@@ -22,10 +22,10 @@ async fn RegisterInfo::register(
   cwd~ : String,
   model~ : String,
 ) -> RegisterResponse {
-  println("[INFO] (Server \{register.id}) Listening on port \{port}")
-  println(
-    "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
-  )
+  logger.info("Listening on port \{port}", data={ "server": register.id })
+  logger.info("Visit http://localhost:\{port}/ to access the server.", data={
+    "server": register.id,
+  })
   let req : RegisterRequest = {
     id: register.id,
     port,

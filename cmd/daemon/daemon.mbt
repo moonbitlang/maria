@@ -71,8 +71,8 @@ pub async fn Daemon::new(
   let info_file = if lock {
     // Grab daemon lock file
     guard lock_daemon_file(home~) is Some(info_file) else {
-      println(
-        "[INFO] Another Maria daemon is already running for home '\{home}'. Exiting.",
+      logger.info(
+        "Another Maria daemon is already running for home '\{home}'. Exiting.",
       )
       return None
     }
@@ -91,10 +91,10 @@ pub async fn Daemon::new(
       .stringify(),
     )
   }
-  println(
-    "[INFO] Starting HTTP server on port \{port} (version \{@buildinfo.version})...",
+  logger.info(
+    "Starting HTTP server on port \{port} (version \{@buildinfo.version})...",
   )
-  println("[INFO] Visit http://localhost:\{port}/")
+  logger.info("Visit http://localhost:\{port}/")
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())
