@@ -6,6 +6,7 @@ import {
   "moonbitlang/maria/oauth/copilot",
   "moonbitlang/core/json",
   "moonbitlang/core/test",
+  "moonbitlang/maria/internal/pino",
 }
 
 import "test" {

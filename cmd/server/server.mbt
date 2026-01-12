@@ -80,14 +80,12 @@ pub async fn Server::new(
     )
     |> ignore()
   } else {
-    println(
-      "[WARN] (Server) No register information provided; skipping registration.",
-    )
+    logger.warn("No register information provided; skipping registration.")
     let pid = @spawn.getpid()
-    println("[INFO] (Server \{pid}) Listening on port \{port}")
-    println(
-      "[INFO] (Server \{pid}) Visit http://localhost:\{port}/ to access the server.",
-    )
+    logger.info("Listening on port \{port}", data={ "pid": pid })
+    logger.info("Visit http://localhost:\{port}/ to access the server.", data={
+      "pid": pid,
+    })
   }
   let cwd = match cwd {
     Some(cwd) => cwd
@@ -113,7 +111,7 @@ async fn Server::serve_http(self : Server) -> Unit {
   let file_server = @httpx.FileServer::new(self.serve)
   self.http_server.serve(
     @httpx.cors((r, w) => {
-      println("[INFO] (Server) Received request: \{r.method_} \{r.path}")
+      logger.info("Received request: \{r.method_} \{r.path}")
       try {
         match (r.method_, r.path) {
           (Options, _) => w.write_header(204)
@@ -212,10 +210,10 @@ async fn Server::start_maria(self : Server) -> Unit {
       idq.put((id, false))
       let task = group.spawn(
         () => {
-          println("[INFO] (Server) Starting Maria task...")
+          logger.info("Starting Maria task...")
           self.maria.agent.start() catch {
             error => {
-              println("[ERROR] (Server) Maria task failed: \{error}")
+              logger.error("Maria task failed: \{error}")
               if !@async.is_being_cancelled() {
                 self.broadcast.put(
                   @event.Event::new(id=self.uuid.v4(), Failed(error.to_json())),

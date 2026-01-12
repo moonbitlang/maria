@@ -44,7 +44,7 @@ async fn Daemon::register_task(
         "Failed to decode RegisterRequest: \{error}",
       )
   }
-  println("[INFO] Registered task '\{register.id}' on port \{register.port}")
+  logger.info("Registered task '\{register.id}' on port \{register.port}")
   self.rqs[register.id].put(register)
   w.write_header(200)
   let res : @server.RegisterResponse = @server.RegisterResponse::{  }

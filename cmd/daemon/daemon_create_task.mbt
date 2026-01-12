@@ -143,7 +143,7 @@ async fn Daemon::create_task(
     task
   }
   let message = if request.message is Some(message) {
-    println("[INFO] (Daemon) Write initial messages to task '\{task.id}'...")
+    logger.info("Write initial messages to task '\{task.id}'...")
     Some(
       task.create_message(
         @server.CreateMessageRequest::new(

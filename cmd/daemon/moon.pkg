@@ -32,6 +32,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
+  "moonbitlang/maria/internal/pino"
 }
 
 import "test" {

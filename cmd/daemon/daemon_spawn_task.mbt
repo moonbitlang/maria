@@ -59,8 +59,8 @@ async fn Daemon::spawn_task(
   if web_search {
     args.push("--web-search")
   }
-  println(
-    "[INFO] (Daemon) Spawning task (\{self.exec_path}) process at \{cwd.to_json().stringify(indent=2)} with args: \{args}",
+  logger.info(
+    "Spawning task (\{self.exec_path}) process at \{cwd.to_json().stringify(indent=2)} with args: \{args}",
   )
   let process = self.process.spawn(self.exec_path, args, cwd~, env={
     "HOME": self.home,
@@ -74,16 +74,14 @@ async fn Daemon::spawn_task(
         },
       })
   }
-  println(
-    "[INFO] (Daemon) Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
+  logger.info(
+    "Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
   )
   let rq = @aqueue.Queue::new(kind=Unbounded)
   self.rqs[id.to_string()] = rq
   let reg : @server.RegisterRequest = @async.with_timeout(300_000, () => rq.get()) catch {
     @async.TimeoutError => {
-      println(
-        "[ERROR] (Daemon) Timed out waiting for task to register after 5 minutes",
-      )
+      logger.error("Timed out waiting for task to register after 5 minutes")
       raise json_error(500, "Internal Server Error", {
         "error": {
           "code": -1,
@@ -93,8 +91,8 @@ async fn Daemon::spawn_task(
     }
     error => raise error
   }
-  println(
-    "[INFO] (Daemon) Received registration from task '\{reg.new_id}' ('\{reg.id}') on port \{reg.port}",
+  logger.info(
+    "Received registration from task '\{reg.new_id}' ('\{reg.id}') on port \{reg.port}",
   )
   let created : @clock.Timestamp = self.clock.now()
   let task : Running = Running::new(
@@ -113,7 +111,7 @@ async fn Daemon::spawn_task(
     defer self.by_id.remove(task.id)
     let exit_code = process.wait()
     if exit_code != 0 {
-      println("[ERROR] (Daemon) server process exited with code \{exit_code}")
+      logger.error("server process exited with code \{exit_code}")
     }
   })
   self.by_id[task.id] = Running(task)
