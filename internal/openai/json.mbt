@@ -34,6 +34,7 @@ pub fn stream_options(
 /// - `user`: Optional unique identifier for the end-user
 /// - `max_tokens`: Optional maximum number of tokens to generate
 /// - `temperature`: Optional sampling temperature (0.0 to 2.0)
+/// - `reasoning_effort`: Optional reasoning effort setting for reasoning models
 /// - `response_format`: Optional format for structured responses
 ///
 /// Returns a ChatCompletionParam object ready to be passed to the chat function.
@@ -45,6 +46,7 @@ pub fn chat_completion(
   user? : String,
   max_tokens? : Int,
   temperature? : Double,
+  reasoning_effort? : ChatCompletionReasoningEffort,
   response_format? : ResponseFormat,
   stream? : Bool,
   stream_options? : ChatCompletionStreamOptionsParam,
@@ -58,6 +60,7 @@ pub fn chat_completion(
     user,
     max_tokens,
     temperature,
+    reasoning_effort,
     response_format,
     stream,
     stream_options,

@@ -19,6 +19,7 @@ pub struct Request {
   user : String?
   max_tokens : Int?
   temperature : Double?
+  reasoning_effort : ChatCompletionReasoningEffort?
   response_format : ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
@@ -45,6 +46,9 @@ pub impl ToJson for Request with to_json(self : Request) -> Json {
   }
   if self.temperature is Some(temperature) {
     json["temperature"] = temperature.to_json()
+  }
+  if self.reasoning_effort is Some(reasoning_effort) {
+    json["reasoning_effort"] = reasoning_effort.to_json()
   }
   if self.response_format is Some(response_format) {
     json["response_format"] = response_format.to_json()
