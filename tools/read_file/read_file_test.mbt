@@ -72,6 +72,44 @@ async test "content" (t : @test.Test) {
 }
 
 ///|
+async test "too_large" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let content = "x ".repeat(50000)
+    let _ = mock.add_file("large.txt", content~)
+    let tool = @read_file.new(manager)
+    let result = tool.call({ "path": "large.txt" })
+    inspect(
+      result,
+      content=(
+        #|Error: File content is too large (> 25000 tokens). Use "start_line" and "end_line" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.
+      ),
+    )
+  })
+}
+
+///|
+async test "too_large_range" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let manager = @file.manager(cwd=mock.cwd.path())
+    let content = "x ".repeat(50000)
+    let _ = mock.add_file("large.txt", content~)
+    let tool = @read_file.new(manager)
+    let result = tool.call({
+      "path": "large.txt",
+      "start_line": 1,
+      "end_line": 2,
+    })
+    inspect(
+      result,
+      content=(
+        #|Error: File content is too large (> 25000 tokens). Use "start_line" and "end_line" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.
+      ),
+    )
+  })
+}
+
+///|
 async test "line_range" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())

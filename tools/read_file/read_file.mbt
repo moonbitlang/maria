@@ -7,6 +7,15 @@ struct ReadFileToolResult {
 } derive(ToJson, FromJson)
 
 ///|
+const MaxReadFileTokens : Int = 25000
+
+///|
+fn count_file_tokens(content : String) -> Int raise {
+  let encoding = @tiktoken.cl100k_base()
+  encoding.encode(content).length()
+}
+
+///|
 pub impl Show for ReadFileToolResult with output(
   self : ReadFileToolResult,
   logger : &Logger,
@@ -16,7 +25,12 @@ pub impl Show for ReadFileToolResult with output(
     //   logger.write_string("Directory: \{path}\nEntries:\n\{display}")
     { path, content, start_line, end_line } => {
       let lines = content.split("\n").to_array()
-      let selected_lines = lines[start_line - 1:end_line]
+      let expected_lines = end_line - start_line + 1
+      let selected_lines = if lines.length() == expected_lines {
+        lines
+      } else {
+        lines[start_line - 1:end_line].to_array()
+      }
       let width = end_line.to_string().length()
       let selected_content = selected_lines
         .mapi(fn(i, line) {
@@ -87,6 +101,13 @@ async fn execute_read_file_tool(
 
     // Open and read the file
     let content = @fsx.read_file(resolved_path)
+    let token_count = count_file_tokens(content) catch {
+      error =>
+        return @tool.error(
+          "Error: Failed to count tokens for file: \{error}",
+          error~,
+        )
+    }
 
     // Update access time
     let stat = @fsx.stat(resolved_path)
@@ -125,6 +146,24 @@ async fn execute_read_file_tool(
       }
       None => lines.length()
     }
+    let selected_content = lines[start_line - 1:end_line].join("\n")
+    let selected_token_count = count_file_tokens(selected_content) catch {
+      error =>
+        return @tool.error(
+          "Error: Failed to count tokens for file: \{error}",
+          error~,
+        )
+    }
+    if selected_token_count > MaxReadFileTokens {
+      return @tool.error(
+        "Error: File content is too large (> 25000 tokens). Use \"start_line\" and \"end_line\" to read a smaller range of the file, or use <search_files> to find a specific part of the file to read.",
+      )
+    }
+    let content = if token_count > MaxReadFileTokens {
+      selected_content
+    } else {
+      content
+    }
     return @tool.ok({ path, content, start_line, end_line })
   } catch {
     error => @tool.error("Error reading file: \{error}", error~)
@@ -138,8 +177,8 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
       #|Read the contents of a file at the specified path.
       #|Use this when you need to examine the contents of an existing file,
       #| for example to analyze code, review text files, or extract information from configuration files.
-      #|For very large files (>30k tokens), the tool will automatically extract relevant sections based on
-      #|the provided query to manage token usage efficiently.
+      #|For very large files (>25000 tokens), the tool will return an error and ask you to use "start_line"
+      #|and "end_line" to target a smaller range or <search_files> to find a specific part of the file.
       #|Supports reading specific line ranges with [start_line, end_line) format (1-indexed, end_line exclusive).
       #|
       #|When reading a MoonBit file:
