@@ -12,9 +12,12 @@ import {
 
 // Types and methods
 type Counter
+pub fn Counter::apply_calibration(Self, model_name~ : String, raw_count~ : Int) -> Int
+pub fn Counter::calibrate(Self, model_name~ : String, estimated_tokens~ : Int, actual_tokens~ : Int) -> Unit
+pub fn Counter::count_message(Self, @openai.ChatCompletionMessageParam) -> Int
 pub async fn Counter::count_param(Self, messages~ : Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Int
 pub fn Counter::count_string(Self, String) -> Int
-pub fn Counter::new(logger~ : @pino.Logger) -> Self raise
+pub fn Counter::new(logger~ : @pino.Logger, calibration_alpha? : Double) -> Self raise
 
 // Type aliases
 
