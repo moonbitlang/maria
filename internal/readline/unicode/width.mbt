@@ -1,4 +1,6 @@
 ///|
+/// Return the display width of the UTF-8 character immediately left of `index`.
+/// `index` is a byte offset into `string`.
 pub fn char_width_left(string : BytesView, index : Int) -> Int {
   let char = match string[:index] {
     [] => return 0
@@ -43,6 +45,8 @@ pub fn char_width_left(string : BytesView, index : Int) -> Int {
 }
 
 ///|
+/// Return the UTF-8 byte length to move left from `index`.
+/// This includes any trailing zero-width marks before the base character.
 pub fn char_size_left(string : BytesView, index : Int) -> Int {
   for width = 0, string = string[:index] {
     let mut char : Char? = None
@@ -119,6 +123,8 @@ pub fn char_size_left(string : BytesView, index : Int) -> Int {
 }
 
 ///|
+/// Return the display width of the UTF-8 character at `index`.
+/// `index` is a byte offset into `string`.
 pub fn char_width_right(string : BytesView, index : Int) -> Int {
   let char : Char? = match string[index:] {
     [] => return 0
@@ -163,6 +169,8 @@ pub fn char_width_right(string : BytesView, index : Int) -> Int {
 }
 
 ///|
+/// Return the UTF-8 byte length to move right from `index`.
+/// This includes any following zero-width marks after the base character.
 pub fn char_size_right(string : BytesView, index : Int) -> Int {
   for total = 0, rest = string[index:], saw_nonzero = false {
     let mut char : Char? = None
@@ -192,7 +200,13 @@ pub fn char_size_right(string : BytesView, index : Int) -> Int {
         char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F)).to_char()
         tail
       }
-      [0xF0 as b0, 0x90..=0xBF as b1, 0x80..=0xBF as b2, 0x80..=0xBF as b3, .. tail]
+      [
+        0xF0 as b0,
+        0x90..=0xBF as b1,
+        0x80..=0xBF as b2,
+        0x80..=0xBF as b3,
+        .. tail,
+      ]
       | [
         0xF1..=0xF3 as b0,
         0x80..=0xBF as b1,
@@ -218,9 +232,7 @@ pub fn char_size_right(string : BytesView, index : Int) -> Int {
         (b3 & 0x3F)).to_char()
         tail
       }
-      [..] => {
-        return if total == 0 { 1 } else { total }
-      }
+      [..] => return if total == 0 { 1 } else { total }
     }
     guard char is Some(char) else { return if total == 0 { 1 } else { total } }
     let width = @unicode/width.char(char).unwrap_or(1)

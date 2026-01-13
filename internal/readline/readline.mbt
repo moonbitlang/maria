@@ -5,6 +5,8 @@ priv struct Edit {
 }
 
 ///|
+/// Parsed key identity from terminal input.
+/// Printable bytes are represented as `Byte(_)`, control keys use named variants.
 pub enum KeyName {
   Escape
   Enter
@@ -42,6 +44,8 @@ pub enum KeyName {
 }
 
 ///|
+/// Normalized keypress info.
+/// `sequence` holds the raw bytes read from the terminal for this keypress.
 pub struct Key {
   mut meta : Bool
   mut name : KeyName
@@ -100,6 +104,8 @@ struct Interface {
 }
 
 ///|
+/// Create a readline interface bound to the given input/output streams.
+/// Puts the input into raw mode and initializes internal state.
 pub fn interface(
   input~ : @stdio.Input,
   output? : @stdio.Output = @stdio.stdout,
@@ -139,11 +145,14 @@ pub fn interface(
 }
 
 ///|
+/// Close the interface.
+/// Currently a no-op placeholder.
 pub fn Interface::close(_ : Interface) -> Unit {
 
 }
 
 ///|
+/// Replace the current line buffer and update multiline state.
 pub fn Interface::set_line(self : Interface, line : BytesView) -> Unit {
   self.line = line
   loop line[:] {
@@ -319,12 +328,17 @@ fn display_position(
       let b0 = b0.to_int()
       let b1 = b1.to_int()
       let b2 = b2.to_int()
-      let char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F))
-        .unsafe_to_char()
+      let char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F)).unsafe_to_char()
       offset += @unicode/width.char(char).unwrap_or(1)
       continue rest
     }
-    [0xF0 as b0, 0x90..=0xBF as b1, 0x80..=0xBF as b2, 0x80..=0xBF as b3, .. rest]
+    [
+      0xF0 as b0,
+      0x90..=0xBF as b1,
+      0x80..=0xBF as b2,
+      0x80..=0xBF as b3,
+      .. rest,
+    ]
     | [
       0xF1..=0xF3 as b0,
       0x80..=0xBF as b1,
@@ -514,6 +528,7 @@ async fn Interface::delete_right(self : Interface) -> Unit {
 }
 
 ///|
+/// Error raised when the user aborts input (for example Ctrl-C).
 pub suberror Aborted {
   CtrlC
 }
@@ -662,6 +677,7 @@ async fn Interface::word_right(self : Interface) -> Unit {
 }
 
 ///|
+/// Set the prompt bytes used for subsequent renders.
 pub fn Interface::set_prompt(self : Interface, prompt : Bytes) -> Unit {
   self.prompt = prompt
 }
@@ -697,6 +713,8 @@ fn Interface::restore_previous_state(self : Interface) -> Unit {
 }
 
 ///|
+/// Insert a newline at the cursor and update the internal line buffer.
+/// This is intended for use after restoring a previous UI state.
 pub fn Interface::add_new_line_on_tty(self : Interface) -> Unit {
   self.restore_previous_state()
   let before_cursor = self.line[:self.cursor]
@@ -1198,6 +1216,8 @@ async fn Interface::emit_keypress(self : Interface) -> Unit {
 }
 
 ///|
+/// Completion results returned by a user-supplied completer.
+/// `complete_on` is the prefix that should be replaced by the completion.
 pub(all) struct CompletionResult {
   completions : Array[StringView]
   complete_on : StringView
@@ -1396,8 +1416,7 @@ async fn Interface::handle_keypress(
       }
       Backspace => self.delete_left()
       Delete => self.delete_right()
-      Left =>
-        self.move_cursor(-@unicode.char_size_left(self.line, self.cursor))
+      Left => self.move_cursor(-@unicode.char_size_left(self.line, self.cursor))
       Right =>
         self.move_cursor(@unicode.char_size_right(self.line, self.cursor))
       Home => self.move_cursor(-self.cursor)
@@ -1429,6 +1448,8 @@ async fn Interface::handle_keypress(
 }
 
 ///|
+/// Start the background reader and keypress dispatcher tasks.
+/// Call this before awaiting `read_line` or `read_key`.
 pub async fn Interface::start(self : Interface) -> Unit {
   @async.with_task_group(group => {
     group.spawn_bg(() => while true {
@@ -1443,6 +1464,7 @@ pub async fn Interface::start(self : Interface) -> Unit {
 }
 
 ///|
+/// Wait for the next completed line and return it as a UTF-8 string.
 pub async fn Interface::read_line(self : Interface) -> String {
   match self.events.line.get() {
     line => @encoding/utf8.decode(line)
@@ -1450,11 +1472,14 @@ pub async fn Interface::read_line(self : Interface) -> String {
 }
 
 ///|
+/// Wait for the next parsed key event.
 pub async fn Interface::read_key(self : Interface) -> Key {
   self.events.key.get()
 }
 
 ///|
+/// Ask a one-off question using a temporary prompt.
+/// Restores the previous prompt after the line is read.
 pub async fn Interface::question(
   self : Interface,
   query : StringView,
@@ -1469,6 +1494,8 @@ pub async fn Interface::question(
 }
 
 ///|
+/// Render the prompt and current line buffer.
+/// When `preserve_cursor` is false, the cursor resets to the start.
 pub async fn Interface::prompt(
   self : Interface,
   preserve_cursor? : Bool = false,
