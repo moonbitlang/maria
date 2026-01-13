@@ -282,6 +282,85 @@ fn Interface::columns(_ : Interface) -> Int raise {
 const MultilinePrompt = "| "
 
 ///|
+fn display_position(
+  str : Bytes,
+  col~ : Int,
+  is_multiline~ : Bool,
+  tab_size~ : Int,
+) -> Position {
+  let mut offset = 0
+  let mut rows = 0
+  loop str[:] {
+    [] => break
+    ['\n', .. rest] => {
+      rows += (offset + col - 1) / col
+      offset = if is_multiline { MultilinePrompt.length() } else { 0 }
+      continue rest
+    }
+    ['\t', .. rest] => {
+      offset += tab_size - offset % tab_size
+      continue rest
+    }
+    [0x00..=0x7F, .. rest] => {
+      offset += 1
+      continue rest
+    }
+    [0xC2..=0xDF as b0, 0x80..=0xBF as b1, .. rest] => {
+      let b0 = b0.to_int()
+      let b1 = b1.to_int()
+      let char = (((b0 & 0x1F) << 6) | (b1 & 0x3F)).unsafe_to_char()
+      offset += @unicode/width.char(char).unwrap_or(1)
+      continue rest
+    }
+    [0xE0 as b0, 0xA0..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
+    | [0xE1..=0xEC as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
+    | [0xED as b0, 0x80..=0x9F as b1, 0x80..=0xBF as b2, .. rest]
+    | [0xEE..=0xEF as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest] => {
+      let b0 = b0.to_int()
+      let b1 = b1.to_int()
+      let b2 = b2.to_int()
+      let char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F))
+        .unsafe_to_char()
+      offset += @unicode/width.char(char).unwrap_or(1)
+      continue rest
+    }
+    [0xF0 as b0, 0x90..=0xBF as b1, 0x80..=0xBF as b2, 0x80..=0xBF as b3, .. rest]
+    | [
+      0xF1..=0xF3 as b0,
+      0x80..=0xBF as b1,
+      0x80..=0xBF as b2,
+      0x80..=0xBF as b3,
+      .. rest,
+    ]
+    | [
+      0xF4 as b0,
+      0x80..=0x8F as b1,
+      0x80..=0xBF as b2,
+      0x80..=0xBF as b3,
+      .. rest,
+    ] => {
+      let b0 = b0.to_int()
+      let b1 = b1.to_int()
+      let b2 = b2.to_int()
+      let b3 = b3.to_int()
+      let char = (((b0 & 0x07) << 18) |
+      ((b1 & 0x3F) << 12) |
+      ((b2 & 0x3F) << 6) |
+      (b3 & 0x3F)).unsafe_to_char()
+      offset += @unicode/width.char(char).unwrap_or(1)
+      continue rest
+    }
+    [_, .. rest] => {
+      offset += 1
+      continue rest
+    }
+  }
+  let cols = offset % col
+  rows += offset / col
+  { cols, rows }
+}
+
+///|
 fn Interface::get_cursor_pos(self : Interface) -> Position raise {
   let string_before_cursor = @buffer.new()
   string_before_cursor.write_bytes(self.prompt)
@@ -315,28 +394,12 @@ fn Interface::get_display_position(
   self : Interface,
   str : Bytes,
 ) -> Position raise {
-  let mut offset = 0
-  let col = self.columns()
-  let mut rows = 0
-  loop str[:] {
-    [] => break
-    ['\n', .. rest] => {
-      rows += (offset + col - 1) / col
-      offset = if self.is_multiline { MultilinePrompt.length() } else { 0 }
-      continue rest
-    }
-    ['\t', .. rest] => {
-      offset += self.tab_size - offset % self.tab_size
-      continue rest
-    }
-    [_, .. rest] => {
-      offset += 1
-      continue rest
-    }
-  }
-  let cols = offset % col
-  rows += offset / col
-  return { cols, rows }
+  display_position(
+    str,
+    col=self.columns(),
+    is_multiline=self.is_multiline,
+    tab_size=self.tab_size,
+  )
 }
 
 ///|
@@ -441,7 +504,7 @@ async fn Interface::delete_left(self : Interface) -> Unit {
 async fn Interface::delete_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     self.before_edit(self.line, self.cursor)
-    let char_size = @unicode.char_size_left(self.line, self.cursor + 1)
+    let char_size = @unicode.char_size_right(self.line, self.cursor)
     let buffer = @buffer.new()
     buffer.write_bytesview(self.line[:self.cursor])
     buffer.write_bytesview(self.line[self.cursor + char_size:])
@@ -1288,9 +1351,9 @@ async fn Interface::handle_keypress(
       Byte('a') => self.move_cursor(-self.cursor)
       Byte('e') => self.move_cursor(self.line.length() - self.cursor)
       Byte('b') =>
-        self.move_cursor(-@unicode.char_width_left(self.line, self.cursor))
+        self.move_cursor(-@unicode.char_size_left(self.line, self.cursor))
       Byte('f') =>
-        self.move_cursor(@unicode.char_width_right(self.line, self.cursor))
+        self.move_cursor(@unicode.char_size_right(self.line, self.cursor))
       Byte('l') => {
         self.output.cursor_to(col=0, row=0)
         self.output.clear_screen_down()
@@ -1334,9 +1397,9 @@ async fn Interface::handle_keypress(
       Backspace => self.delete_left()
       Delete => self.delete_right()
       Left =>
-        self.move_cursor(-@unicode.char_width_left(self.line, self.cursor))
+        self.move_cursor(-@unicode.char_size_left(self.line, self.cursor))
       Right =>
-        self.move_cursor(@unicode.char_width_right(self.line, self.cursor))
+        self.move_cursor(@unicode.char_size_right(self.line, self.cursor))
       Home => self.move_cursor(-self.cursor)
       End => self.move_cursor(self.line.length() - self.cursor)
       Up => {
