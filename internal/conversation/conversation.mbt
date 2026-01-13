@@ -88,9 +88,23 @@ pub fn Conversation::messages(
   self : Conversation,
   include_system? : Bool = true,
 ) -> Array[@ai.Message] {
+  // First pass: collect pruned event IDs
+  let pruned_ids : Set[@uuid.Uuid] = Set::new()
+  for e in self.events() {
+    match e.desc {
+      Pruned(id~) => pruned_ids.add(id)
+      _ => ()
+    }
+  }
+
+  // Second pass: build messages, skipping pruned events
   let mut sys_msg = None
   let msgs = []
   for e in self.events() {
+    // Skip events that have been pruned
+    if pruned_ids.contains(e.id) {
+      continue
+    }
     match e.desc {
       SystemPromptSet(Some(prompt)) if include_system =>
         sys_msg = Some(@ai.system_message(content=prompt))

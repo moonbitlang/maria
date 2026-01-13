@@ -2,8 +2,10 @@
 package "moonbitlang/maria/internal/context_pruner"
 
 import {
+  "moonbitlang/maria/internal/conversation",
   "moonbitlang/maria/internal/openai",
   "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/uuid",
 }
 
 // Values
@@ -11,7 +13,14 @@ import {
 // Errors
 
 // Types and methods
+pub struct PruneResult {
+  pruned_ids : Array[@uuid.Uuid]
+  origin_token_count : Int
+  pruned_token_count : Int
+}
+
 type Pruner
+pub async fn Pruner::calculate_pruning(Self, @conversation.Conversation, tools? : Array[@openai.ChatCompletionToolParam]) -> PruneResult
 pub fn Pruner::new(safe_zone_tokens~ : Int, logger~ : @pino.Logger) -> Self raise
 pub async fn Pruner::prune_messages(Self, Array[@openai.ChatCompletionMessageParam], tools? : Array[@openai.ChatCompletionToolParam]) -> Unit
 
