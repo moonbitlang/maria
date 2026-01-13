@@ -23,13 +23,13 @@ moon version --all
 
 ```bash
 # Set up your API key
-export OPENAI_API_KEY=<your_api_key>
+export OPENROUTER_API_KEY=<your_api_key>  # or OPENAI_API_KEY
 
 # Update dependencies
 moon update
 
 # Run Maria
-moon run . -- Hello
+moon run cmd/main
 ```
 
 ## Contributing Workflow
