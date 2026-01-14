@@ -37,6 +37,7 @@ pub struct RegisterRequest {
   new_id : @uuid.Uuid
   cwd : String
   web_search : Bool
+  model : String
 }
 pub impl ToJson for RegisterRequest
 pub impl @json.FromJson for RegisterRequest
