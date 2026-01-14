@@ -1,5 +1,5 @@
 ///|
-struct TokenResponse {
+pub struct TokenResponse {
   id_token : String
   access_token : String
   refresh_token : String
@@ -36,17 +36,22 @@ impl @json.FromJson for TokenResponse with from_json(
 }
 
 ///|
-fn generate_state() -> String {
+pub fn generate_state() -> String {
   let bytes = generate_random_bytes(32)
   strip_padding(@base64.encode(bytes, url_safe=true))
 }
 
 ///|
-fn build_authorize_url(pkce : PkceCodes, state : String) -> String {
+pub fn build_authorize_url(
+  pkce : PkceCodes,
+  state : String,
+  redirect_uri? : String,
+) -> String {
+  let redirect_uri = redirect_uri.unwrap_or(REDIRECT_URI)
   let params = [
     ("response_type", "code"),
     ("client_id", CLIENT_ID),
-    ("redirect_uri", REDIRECT_URI),
+    ("redirect_uri", redirect_uri),
     ("scope", "openid profile email offline_access"),
     ("code_challenge", pkce.code_challenge),
     ("code_challenge_method", "S256"),
@@ -93,14 +98,16 @@ fn url_encode(s : String) -> String {
 }
 
 ///|
-async fn exchange_code_for_tokens(
+pub async fn exchange_code_for_tokens(
   code : String,
   pkce : PkceCodes,
+  redirect_uri? : String,
 ) -> TokenResponse raise Error {
+  let redirect_uri = redirect_uri.unwrap_or(REDIRECT_URI)
   let body_params = [
     ("grant_type", "authorization_code"),
     ("code", code),
-    ("redirect_uri", REDIRECT_URI),
+    ("redirect_uri", redirect_uri),
     ("client_id", CLIENT_ID),
     ("code_verifier", pkce.code_verifier),
   ]
@@ -158,7 +165,7 @@ fn url_decode(s : StringView) -> String {
 }
 
 ///|
-fn parse_query_string(query : StringView) -> Map[String, String] {
+pub fn parse_query_string(query : StringView) -> Map[String, String] {
   let result : Map[String, String] = {}
   if query.is_empty() {
     return result

@@ -1,5 +1,5 @@
 ///|
-pub struct Credentials {
+pub(all) struct Credentials {
   github_token : String
   copilot_token : String
   copilot_token_expires_at : Int64
@@ -21,7 +21,7 @@ fn get_credentials_path() -> String {
 }
 
 ///|
-async fn save_credentials(credentials : Credentials) -> Unit {
+pub async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
   let dir = @pathx.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
@@ -41,4 +41,20 @@ pub async fn load_credentials() -> Credentials raise Error {
 ///|
 pub fn Credentials::is_token_valid(self : Credentials, now : Int64) -> Bool {
   self.copilot_token_expires_at - 60L > now
+}
+
+///|
+/// Returns true if credentials file exists
+pub async fn credentials_exist() -> Bool {
+  let path = get_credentials_path()
+  @fsx.exists_as_file(path)
+}
+
+///|
+/// Deletes the credentials file if it exists
+pub async fn delete_credentials() -> Unit {
+  let path = get_credentials_path()
+  if @fsx.exists_as_file(path) {
+    @fsx.remove(path)
+  }
 }

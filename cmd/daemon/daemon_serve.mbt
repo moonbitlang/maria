@@ -12,6 +12,12 @@
 /// - POST /v1/task       → `create_task`
 /// - GET  /v1/task/{id}  → `get_task`
 /// - ANY  /v1/task/{id}/... → `forward_to_task`
+/// - GET  /v1/auth/status → `get_auth_status`
+/// - POST /v1/auth/codex/start → `start_codex_auth`
+/// - GET  /v1/auth/codex/callback → `codex_callback`
+/// - POST /v1/auth/codex/logout → `logout_codex`
+/// - POST /v1/auth/copilot/start → `start_copilot_auth`
+/// - POST /v1/auth/copilot/logout → `logout_copilot`
 /// - POST /v1/shutdown   → graceful shutdown response then stop server
 /// - POST /v1/moonbit/publish → `publish_moonbit_module`
 /// - GET  /{file}        → `serve_static_file`
@@ -45,6 +51,17 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
               self.get_task_events(id~, w)
             (method_, ["", "v1", "task", id, .. paths]) =>
               self.forward_to_task(method_~, group~, id~, paths~, r, w)
+            // Auth endpoints
+            (Get, ["", "v1", "auth", "status"]) => self.get_auth_status(w)
+            (Post, ["", "v1", "auth", "codex", "start"]) =>
+              self.start_codex_auth(r, w)
+            (Get, ["", "v1", "auth", "codex", "callback"]) =>
+              self.codex_callback(r, w)
+            (Post, ["", "v1", "auth", "codex", "logout"]) => self.logout_codex(w)
+            (Post, ["", "v1", "auth", "copilot", "start"]) =>
+              self.start_copilot_auth(group~, r, w)
+            (Post, ["", "v1", "auth", "copilot", "logout"]) =>
+              self.logout_copilot(w)
             (Post, ["", "v1", "shutdown"]) => {
               w.header().set("Content-Type", "application/json")
               w.write_header(200)

@@ -18,6 +18,8 @@ struct Daemon {
   serve : String
   conversations : @conversation.Manager
   home : String
+  /// Pending Codex PKCE flows, keyed by state parameter
+  pending_codex_auth : Map[String, PendingCodexAuth]
 }
 
 ///|
@@ -31,6 +33,17 @@ pub fn Daemon::port(self : Daemon) -> Int {
 ///|
 priv enum Event {
   StatusChange(@uuid.Uuid)
+  AuthStatusChanged(provider~ : String, authenticated~ : Bool)
+  AuthLoginCompleted(provider~ : String)
+  AuthLoginFailed(provider~ : String, message~ : String)
+}
+
+///|
+/// Pending Codex PKCE auth flow state
+priv struct PendingCodexAuth {
+  pkce : @codex.PkceCodes
+  state : String
+  created : @clock.Timestamp
 }
 
 ///|
@@ -107,6 +120,7 @@ pub async fn Daemon::new(
     serve,
     conversations: @conversation.Manager::new(home~, uuid~),
     home,
+    pending_codex_auth: {},
   }
   daemon.load_stopped()
   Some(daemon)

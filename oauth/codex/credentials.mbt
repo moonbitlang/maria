@@ -1,5 +1,5 @@
 ///|
-pub struct Credentials {
+pub(all) struct Credentials {
   idToken : String
   accessToken : String
   refreshToken : String
@@ -106,7 +106,7 @@ fn get_codex_auth_path() -> String {
 }
 
 ///|
-async fn save_credentials(credentials : Credentials) -> Unit {
+pub async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
   let dir = @pathx.dirname(path)
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
@@ -166,4 +166,24 @@ pub async fn load_credentials() -> Credentials raise Error {
     return credentials
   }
   raise ParseError("Credentials file not found")
+}
+
+///|
+/// Returns true if credentials file exists (either our own or from codex CLI)
+pub async fn credentials_exist() -> Bool {
+  let path = get_credentials_path()
+  if @fsx.exists_as_file(path) {
+    return true
+  }
+  let codex_path = get_codex_auth_path()
+  @fsx.exists_as_file(codex_path)
+}
+
+///|
+/// Deletes the credentials file if it exists
+pub async fn delete_credentials() -> Unit {
+  let path = get_credentials_path()
+  if @fsx.exists_as_file(path) {
+    @fsx.remove(path)
+  }
 }
