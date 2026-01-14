@@ -7,6 +7,7 @@ fn cache_content_parts(
   let (index, text) = for i in 0..<parts_length {
     let i = parts_length - 1 - i
     match parts[i] {
+      Text(text) if text.text is "" => continue
       Text(text) => break (i, text.text)
     }
   } else {

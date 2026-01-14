@@ -106,6 +106,13 @@ test "single-user" {
 }
 
 ///|
+test "empty-user" {
+  let messages = [@openai.user_message(content="")]
+  let cached = @cache.cache_messages(messages)
+  @json.inspect(cached, content=[{ "role": "user", "content": "" }])
+}
+
+///|
 test "single-tool" {
   let messages = [
     @openai.tool_message(content="Tool response", tool_call_id="tool_call_1"),
