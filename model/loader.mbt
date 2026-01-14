@@ -86,7 +86,7 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   let model = if name is Some(name) {
     for model in self.models {
       if model.name == name {
-        println("[INFO] Loaded model '\{name}' from configuration")
+        logger.info("Loaded model '\{name}' from configuration")
         break Some(model)
       }
     } else {
@@ -101,7 +101,7 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
   if name is Some(model_name) {
     return self.load_openrouter_model(Some(model_name))
   }
-  println("[INFO] No model specified, auto-detecting...")
+  logger.info("No model specified, auto-detecting...")
   if self.load_openrouter_model(None) is Some(model) {
     return Some(model)
   }
@@ -116,14 +116,14 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
     is Some(model) {
     return Some(model)
   }
-  println(
-    "[ERROR] No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ or copilot/ model to authenticate via OAuth.",
+  logger.error(
+    "No API key found. Set OPENROUTER_API_KEY/OPENAI_API_KEY environment variable or use a codex/ or copilot/ model to authenticate via OAuth.",
   )
   None
 }
 
 ///|
-fn Loader::load_openrouter_model(self : Loader, name : String?) -> Model? raise {
+async fn Loader::load_openrouter_model(self : Loader, name : String?) -> Model? {
   let _ = self
   let api_key = if @os.getenv("OPENROUTER_API_KEY") is Some(api_key) {
     Some(api_key)
@@ -158,7 +158,7 @@ fn Loader::load_openrouter_model(self : Loader, name : String?) -> Model? raise 
     None => ("anthropic/claude-sonnet-4.5", 200_000, true)
     Some(other) => (other, 128_000, false)
   }
-  println("[INFO] Using OpenRouter model '\{model_name}'")
+  logger.info("Using OpenRouter model '\{model_name}'")
   let model = Model::new(
     api_key~,
     base_url~,
@@ -180,10 +180,10 @@ async fn Loader::load_codex_model(
       if not(allow_auto_login) {
         return None
       }
-      println("[INFO] Codex OAuth credentials not found, starting login...")
+      logger.info("Codex OAuth credentials not found, starting login...")
       @codex.start_oauth_flow() catch {
         err => {
-          println("[ERROR] OAuth login failed: \{err}")
+          logger.error("OAuth login failed: \{err}")
           return None
         }
       }
@@ -192,11 +192,11 @@ async fn Loader::load_codex_model(
   let codex_model = match name {
     "codex/gpt-5.2" => CodexModels::Gpt5_2
     _ => {
-      println("[WARN] Unknown Codex model '\{name}', using gpt-5.2")
+      logger.warn("Unknown Codex model '\{name}', using gpt-5.2")
       CodexModels::Gpt5_2
     }
   }
-  println("[INFO] Using Codex OAuth model '\{codex_model}'")
+  logger.info("Using Codex OAuth model '\{codex_model}'")
   let model = codex_oauth_model(
     access_token=credentials.accessToken,
     account_id=credentials.accountId,
@@ -218,10 +218,10 @@ async fn Loader::load_copilot_model(
       if not(allow_auto_login) {
         return None
       }
-      println("[INFO] Copilot credentials not found, starting login...")
+      logger.info("Copilot credentials not found, starting login...")
       @copilot.start_oauth_flow() catch {
         err => {
-          println("[ERROR] Copilot OAuth login failed: \{err}")
+          logger.error("Copilot OAuth login failed: \{err}")
           return None
         }
       }
@@ -260,11 +260,11 @@ async fn Loader::load_copilot_model(
     // xAI models
     "copilot/grok-code-fast-1" => GrokCodeFast1
     _ => {
-      println("[WARN] Unknown Copilot model '\{name}', using gpt-4.1")
+      logger.warn("Unknown Copilot model '\{name}', using gpt-4.1")
       Gpt4_1
     }
   }
-  println("[INFO] Using Copilot model '\{selected_model}'")
+  logger.info("Using Copilot model '\{selected_model}'")
   let model = copilot_model(
     copilot_token=credentials.copilot_token,
     github_token=credentials.github_token,

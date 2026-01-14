@@ -26,7 +26,8 @@
     "moonbitlang/maria/internal/signal",
     "moonbitlang/maria/internal/conversation",
     "moonbitlang/async/semaphore",
-    "moonbitlang/maria/ai"
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/internal/pino"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

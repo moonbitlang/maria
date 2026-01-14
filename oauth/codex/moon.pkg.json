@@ -10,7 +10,7 @@
     "moonbitlang/x/codec/base64",
     "moonbitlang/async/http",
     "moonbitlang/async/io",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/pino"
   ]
 }
-

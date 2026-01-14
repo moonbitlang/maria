@@ -20,10 +20,10 @@ async fn RegisterInfo::register(
   web_search~ : Bool,
   cwd~ : String,
 ) -> RegisterResponse {
-  println("[INFO] (Server \{register.id}) Listening on port \{port}")
-  println(
-    "[INFO] (Server \{register.id}) Visit http://localhost:\{port}/ to access the server.",
-  )
+  logger.info("Listening on port \{port}", data={ "register_id": register.id })
+  logger.info("Visit http://localhost:\{port}/ to access the server.", data={
+    "register_id": register.id,
+  })
   let req : RegisterRequest = { id: register.id, port, new_id, cwd, web_search }
   let (r, b) = @httpx.post_json(
     "http://\{register.host}:\{register.port}/v1/task/register",

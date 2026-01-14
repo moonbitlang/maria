@@ -105,14 +105,14 @@ pub async fn detach(
         if @async.is_being_cancelled() {
           raise error
         } else {
-          println("[ERROR] (Daemon) Waiting for daemon to start: \{error}")
+          logger.error("Waiting for daemon to start: \{error}")
           @async.sleep(500)
           continue
         }
     }
   }) catch {
     @async.TimeoutError as error => {
-      println("[ERROR] (Daemon) Timeout waiting for daemon to start.")
+      logger.error("Timeout waiting for daemon to start.")
       raise error
     }
     error => raise error
@@ -156,7 +156,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   }
   if to_detach {
     let pid = detach(exec_path?, port~, serve~)
-    println("[INFO] (Daemon) Detached Maria daemon with PID \{pid}.")
+    logger.info("Detached Maria daemon with PID \{pid}.")
   } else {
     let home = @os.home()
     let exec_path = if exec_path is Some(exec_path) {
