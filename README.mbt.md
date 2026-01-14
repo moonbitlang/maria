@@ -5,8 +5,7 @@
 ## Usage
 
 ```bash
-$ export OPENAI_API_KEY=<your_api_key>
+$ export OPENROUTER_API_KEY=<your_api_key>  # or OPENAI_API_KEY
 $ moon update
-$ moon run . -- Hello
-Hello! How are you doing today? Is there anything I can help you with?
+$ moon run cmd/main
 ```
