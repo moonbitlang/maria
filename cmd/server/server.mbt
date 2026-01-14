@@ -76,6 +76,7 @@ pub async fn Server::new(
       new_id=maria.agent.id(),
       web_search=maria.agent.web_search,
       cwd=maria.agent.cwd,
+      model=maria.agent.model.name,
     )
     |> ignore()
   } else {

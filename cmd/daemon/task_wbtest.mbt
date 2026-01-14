@@ -10,6 +10,7 @@ test "Task::to_json for Running variant" {
     created: @clock.Timestamp::from_ms(1000),
     updated: @clock.Timestamp::from_ms(2000),
     web_search: false,
+    model: "gpt-4",
     broadcast: @broadcast.Broadcast::new(),
   }
   let task = Task::Running(running)
@@ -66,6 +67,7 @@ test "Task::from_json for Running variant with idle status" {
     "updated": 2000,
     "web_search": false,
     "queued_messages": [],
+    "model": "gpt-4",
   }
   let task : Task = @json.from_json(json)
   guard task is Running(running) else { fail("Expected Running variant") }
@@ -88,6 +90,7 @@ test "Task::from_json for Running variant with generating status" {
     "updated": 2000,
     "web_search": true,
     "queued_messages": [],
+    "model": "gpt-4",
   }
   let task : Task = @json.from_json(json)
   guard task is Running(running) else { fail("Expected Running variant") }
@@ -126,6 +129,7 @@ test "Task roundtrip: Running -> JSON -> Task" {
     created: @clock.Timestamp::from_ms(5000),
     updated: @clock.Timestamp::from_ms(6000),
     web_search: true,
+    model: "gpt-4",
     broadcast: @broadcast.Broadcast::new(),
   }
   let original = Task::Running(running)

@@ -19,6 +19,8 @@ struct Running {
   updated : @clock.Timestamp
   /// Whether the task has web search capabilities enabled.
   web_search : Bool
+  /// The model being used by the task.
+  model : String
   broadcast : @broadcast.Broadcast[@server.ServerStreamEvent]
 }
 
@@ -57,6 +59,7 @@ fn Running::new(
   created~ : @clock.Timestamp,
   updated? : @clock.Timestamp = created,
   web_search~ : Bool,
+  model~ : String,
   broadcast~ : @broadcast.Broadcast[@server.ServerStreamEvent],
 ) -> Running {
   Running::{
@@ -69,6 +72,7 @@ fn Running::new(
     created,
     updated,
     web_search,
+    model,
     broadcast,
   }
 }
@@ -165,6 +169,13 @@ pub impl @json.FromJson for Running with from_json(
         ),
       )
   }
+  let model = match map.get("model") {
+    Some(model) => @json.from_json(model, path=json_path.add_key("model"))
+    _ =>
+      raise @json.JsonDecodeError(
+        (json_path.add_key("model"), "Task::from_json: expected model string"),
+      )
+  }
   Running::{
     name,
     id,
@@ -174,6 +185,7 @@ pub impl @json.FromJson for Running with from_json(
     created,
     updated,
     web_search,
+    model,
     queued_messages,
     broadcast: @broadcast.Broadcast::new(),
   }
@@ -190,6 +202,7 @@ pub impl ToJson for Running with to_json(self : Running) -> Json {
     "updated": self.updated,
     "web_search": self.web_search,
     "queued_messages": self.queued_messages,
+    "model": self.model,
   }
   if self.name is Some(name) {
     object["name"] = name.to_json()

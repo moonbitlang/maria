@@ -69,7 +69,7 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
     home=mock.cwd.path(),
     cwd=mock.cwd.path(),
     exec_path=@pathx.join(
-      os_cwd, "target/native/release/build/cmd/main/main.exe",
+      os_cwd, "_build/native/release/build/cmd/main/main.exe",
     ),
     port=0,
     serve=@pathx.join(os_cwd, "cmd/daemon"),
@@ -451,6 +451,7 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
             "status": "idle",
             "web_search": false,
             "queued_messages": [],
+            "model": "nonexistent-model",
           },
           "message": { "queued": false },
         },
@@ -504,6 +505,7 @@ async test "GET /v1/events" (t : @test.Test) {
               "status": "generating",
               "web_search": false,
               "queued_messages": [],
+              "model": "mock:claude-haiku-4.5",
             },
           ],
           [
@@ -513,6 +515,7 @@ async test "GET /v1/events" (t : @test.Test) {
               "status": "idle",
               "web_search": false,
               "queued_messages": [],
+              "model": "mock:claude-haiku-4.5",
             },
           ],
         ],
@@ -567,7 +570,7 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
 /// This test requires `cmd/test-to-be-killed` to be built. Skipped by default.
 #skip
 async test "kill older, non-responsive daemon" (t : @test.Test) {
-  let exec_path = "target/native/release/build/cmd/test-to-be-killed/test-to-be-killed.exe"
+  let exec_path = "_build/native/release/build/cmd/test-to-be-killed/test-to-be-killed.exe"
   let exec_path = @fsx.resolve(exec_path)
   @mock.run(t, mock => {
     let manager = @spawn.Manager::new(cwd=mock.cwd.path())

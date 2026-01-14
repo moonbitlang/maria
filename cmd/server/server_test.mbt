@@ -91,6 +91,7 @@ async test "register" (t : @test.Test) {
         "port": server.port(),
         "cwd": "(mock:cwd)",
         "web_search": false,
+        "model": "mock:claude-haiku-4.5",
       },
     )
   })

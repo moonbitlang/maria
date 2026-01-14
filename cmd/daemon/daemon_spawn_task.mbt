@@ -104,6 +104,7 @@ async fn Daemon::spawn_task(
     port=reg.port,
     created~,
     web_search=reg.web_search,
+    model=reg.model,
     broadcast~,
   )
   // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
