@@ -8,20 +8,34 @@ import(
 // Values
 pub let base_instructions : String
 
+pub fn build_authorize_url(PkceCodes, String, redirect_uri? : String) -> String
+
+pub async fn credentials_exist() -> Bool
+
+pub async fn delete_credentials() -> Unit
+
+pub async fn exchange_code_for_tokens(String, PkceCodes, redirect_uri? : String) -> TokenResponse
+
 pub fn extract_token_claims(String) -> IdTokenClaims raise
 
 pub fn generate_pkce() -> PkceCodes
 
+pub fn generate_state() -> String
+
 pub async fn load_credentials() -> Credentials
 
+pub fn parse_query_string(StringView) -> Map[String, String]
+
 pub async fn refresh_and_save_credentials() -> Credentials
+
+pub async fn save_credentials(Credentials) -> Unit
 
 pub async fn start_oauth_flow() -> Credentials
 
 // Errors
 
 // Types and methods
-pub struct Credentials {
+pub(all) struct Credentials {
   idToken : String
   accessToken : String
   refreshToken : String
@@ -48,7 +62,11 @@ pub impl Show for PkceCodes
 type RefreshResponse
 pub impl Show for RefreshResponse
 
-type TokenResponse
+pub struct TokenResponse {
+  id_token : String
+  access_token : String
+  refresh_token : String
+}
 pub impl Show for TokenResponse
 
 // Type aliases

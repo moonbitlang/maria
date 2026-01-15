@@ -135,7 +135,6 @@ async test "replace_in_file/search-replace" (t : @test.Test) {
 async test "replace_in_file/agentic" (t : @test.Test) {
   // TODO: add retries support
   @mock.run(timeout=60_000, retry=3, t, mock => {
-    let api_key = mock.getenv("OPENAI_API_KEY")
     let manager = @file.manager(cwd=mock.cwd.path())
     let file = mock.add_file(
       "file.txt",
@@ -146,12 +145,7 @@ async test "replace_in_file/agentic" (t : @test.Test) {
         #|line 4
       ),
     )
-    let model = @model.new(
-      api_key~,
-      base_url="https://openrouter.ai/api/v1",
-      name="qwen/qwen3-coder-plus",
-      safe_zone_tokens=200000,
-    )
+    let model = mock.model(name=ClaudeHaiku4_5)
     let agent = @agent.new(
       model,
       cwd=mock.cwd.path(),

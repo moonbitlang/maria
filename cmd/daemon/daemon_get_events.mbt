@@ -8,6 +8,9 @@
 /// - 200 OK: `text/event-stream` with events:
 ///   - `daemon.tasks.synchronized`: initial snapshot `{ "tasks": Task[] }`.
 ///   - `daemon.task.changed`: per-task updates `{ "task": Task }` when status changes.
+///   - `auth.status.changed`: auth status changed `{ "provider": String, "authenticated": Bool }`.
+///   - `auth.login.completed`: login completed `{ "provider": String }`.
+///   - `auth.login.failed`: login failed `{ "provider": String, "message": String }`.
 ///
 /// Notes:
 ///
@@ -38,6 +41,18 @@ async fn Daemon::get_events(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
     StatusChange(id) => {
       let data : Json = { "task": self.by_id[id] }
       w.write_event(event="daemon.task.changed", data~)
+    }
+    AuthStatusChanged(provider~, authenticated~) => {
+      let data : Json = { "provider": provider, "authenticated": authenticated }
+      w.write_event(event="auth.status.changed", data~)
+    }
+    AuthLoginCompleted(provider~) => {
+      let data : Json = { "provider": provider }
+      w.write_event(event="auth.login.completed", data~)
+    }
+    AuthLoginFailed(provider~, message~) => {
+      let data : Json = { "provider": provider, "message": message }
+      w.write_event(event="auth.login.failed", data~)
     }
   })
 }

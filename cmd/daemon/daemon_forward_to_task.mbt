@@ -44,6 +44,26 @@ async fn Daemon::forward_to_task(
     Running(task) => task
     Stopped(task) => {
       let cwd = task.cwd
+      // Check if the cwd still exists before resuming
+      let cwd_exists = @fsx.exists(cwd) catch {
+        error =>
+          raise json_error(500, "Internal Server Error", {
+            "error": {
+              "code": -1,
+              "message": "Failed to check existence of 'cwd' path: \{error}",
+              "metadata": { "cwd": cwd, "error": error.to_json() },
+            },
+          })
+      }
+      if !cwd_exists {
+        raise json_error(404, "Not Found", {
+          "error": {
+            "code": -1,
+            "message": "Cannot resume conversation: working directory has been removed",
+            "metadata": { "cwd": cwd, "task_id": id.to_string() },
+          },
+        })
+      }
       let task_list = self.by_cwd.get_or_init(cwd, () => TaskLock::new())
       task_list.spawn_mutex.acquire()
       defer task_list.spawn_mutex.release()

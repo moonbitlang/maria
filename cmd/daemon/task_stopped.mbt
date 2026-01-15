@@ -1,6 +1,6 @@
 ///|
 /// Task data representing a stopped process or service.
-struct Stopped {
+priv struct Stopped {
   /// Optional name of the stopped task.
   name : String?
   /// Unique identifier of the stopped task.
@@ -19,7 +19,7 @@ struct Stopped {
 }
 
 ///|
-pub impl ToJson for Stopped with to_json(self : Stopped) -> Json {
+impl ToJson for Stopped with to_json(self : Stopped) -> Json {
   let object : Map[String, Json] = {}
   if self.name is Some(name) {
     object["name"] = name.to_json()
@@ -36,7 +36,7 @@ pub impl ToJson for Stopped with to_json(self : Stopped) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for Stopped with from_json(
+impl @json.FromJson for Stopped with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Stopped raise @json.JsonDecodeError {

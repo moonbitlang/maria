@@ -614,6 +614,127 @@
         color: #0c5460;
       }
 
+      /* Auth Section Styles */
+      #authSection {
+        padding: 15px 20px;
+        border-top: 1px solid #34495e;
+        background: #2c3e50;
+      }
+
+      #authSection h3 {
+        font-size: 0.9em;
+        margin-bottom: 10px;
+        color: #bdc3c7;
+      }
+
+      .auth-status {
+        font-size: 0.85em;
+        margin-bottom: 10px;
+      }
+
+      .auth-provider {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #34495e;
+      }
+
+      .auth-provider:last-child {
+        border-bottom: none;
+      }
+
+      .auth-provider-name {
+        font-weight: bold;
+      }
+
+      .auth-provider-status {
+        font-size: 0.85em;
+      }
+
+      .auth-provider-status.authenticated {
+        color: #2ecc71;
+      }
+
+      .auth-provider-status.not-authenticated {
+        color: #95a5a6;
+      }
+
+      .auth-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85em;
+        margin-left: 10px;
+      }
+
+      .auth-btn.login {
+        background: #3498db;
+        color: white;
+      }
+
+      .auth-btn.login:hover {
+        background: #2980b9;
+      }
+
+      .auth-btn.logout {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .auth-btn.logout:hover {
+        background: #c0392b;
+      }
+
+      .auth-btn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+
+      .auth-email {
+        font-size: 0.75em;
+        color: #bdc3c7;
+        margin-top: 2px;
+      }
+
+      /* Device code modal */
+      .device-code-display {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .device-code-display .user-code {
+        font-size: 2em;
+        font-weight: bold;
+        font-family: monospace;
+        letter-spacing: 0.2em;
+        background: #f5f5f5;
+        padding: 15px 30px;
+        border-radius: 8px;
+        margin: 15px 0;
+        display: inline-block;
+      }
+
+      .device-code-display .instructions {
+        color: #666;
+        margin-bottom: 15px;
+      }
+
+      .device-code-display a {
+        color: #3498db;
+        text-decoration: none;
+      }
+
+      .device-code-display a:hover {
+        text-decoration: underline;
+      }
+
+      .device-code-display .waiting {
+        color: #f39c12;
+        margin-top: 15px;
+      }
+
       /* Message Queue styles */
       #queuePanel {
         background: #fff3cd;
@@ -697,6 +818,30 @@
       <h2>Tasks</h2>
       <div id="taskList"></div>
       <button id="createTaskBtn">+ Create Task</button>
+
+      <!-- Auth Section -->
+      <div id="authSection">
+        <h3>Authentication</h3>
+        <div id="authProviders">
+          <!-- Codex Provider -->
+          <div class="auth-provider" id="codexAuth">
+            <div>
+              <div class="auth-provider-name">Codex (OpenAI)</div>
+              <div class="auth-provider-status not-authenticated" id="codexStatus">Not logged in</div>
+              <div class="auth-email" id="codexEmail"></div>
+            </div>
+            <button class="auth-btn login" id="codexLoginBtn" onclick="loginCodex()">Login</button>
+          </div>
+          <!-- Copilot Provider -->
+          <div class="auth-provider" id="copilotAuth">
+            <div>
+              <div class="auth-provider-name">Copilot (GitHub)</div>
+              <div class="auth-provider-status not-authenticated" id="copilotStatus">Not logged in</div>
+            </div>
+            <button class="auth-btn login" id="copilotLoginBtn" onclick="loginCopilot()">Login</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Main Content -->
@@ -847,6 +992,23 @@
         <div id="modulesList"></div>
         <div class="modal-buttons">
           <button class="btn-secondary" id="closeModulesBtn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Device Code Modal (for Copilot) -->
+    <div id="deviceCodeModal" class="modal">
+      <div class="modal-content">
+        <h3>GitHub Copilot Login</h3>
+        <div class="device-code-display">
+          <div class="instructions">
+            Visit <a id="verificationUri" href="#" target="_blank"></a> and enter the code:
+          </div>
+          <div class="user-code" id="userCode"></div>
+          <div class="waiting">Waiting for authorization...</div>
+        </div>
+        <div class="modal-buttons">
+          <button class="btn-secondary" id="cancelDeviceCodeBtn">Cancel</button>
         </div>
       </div>
     </div>

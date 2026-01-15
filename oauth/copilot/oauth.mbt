@@ -1,5 +1,5 @@
 ///|
-struct DeviceCodeResponse {
+pub struct DeviceCodeResponse {
   device_code : String
   user_code : String
   verification_uri : String
@@ -76,7 +76,7 @@ impl @json.FromJson for AccessTokenResponse with from_json(
 }
 
 ///|
-struct CopilotTokenResponse {
+pub struct CopilotTokenResponse {
   token : String
   expires_at : Int64
 } derive(Show)
@@ -107,7 +107,7 @@ impl @json.FromJson for CopilotTokenResponse with from_json(
 }
 
 ///|
-async fn request_device_code() -> DeviceCodeResponse raise Error {
+pub async fn request_device_code() -> DeviceCodeResponse raise Error {
   let body : Json = { "client_id": CLIENT_ID, "scope": "read:user" }
   let (response, data) = @http.post(DEVICE_CODE_URL, body, headers={
     "Accept": "application/json",
@@ -124,7 +124,7 @@ async fn request_device_code() -> DeviceCodeResponse raise Error {
 }
 
 ///|
-async fn poll_for_access_token(
+pub async fn poll_for_access_token(
   device_code : String,
   interval : Int,
   timeout_seconds : Int,
@@ -162,7 +162,7 @@ async fn poll_for_access_token(
 }
 
 ///|
-async fn get_copilot_token(
+pub async fn get_copilot_token(
   github_token : String,
 ) -> CopilotTokenResponse raise Error {
   let (response, data) = @http.get(COPILOT_API_KEY_URL, headers={

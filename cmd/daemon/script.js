@@ -11,6 +11,12 @@ let availableTools = {};
 let queuedMessages = [];
 let queuePanel, queueHeader, queueList, queueCount, queueToggle;
 
+// Auth state
+let authStatus = {
+  codex: { authenticated: false, email: null, plan: null },
+  copilot: { authenticated: false }
+};
+
 // DOM elements
 const taskListDiv = document.getElementById("taskList");
 const messagesDiv = document.getElementById("messages");
@@ -1059,7 +1065,54 @@ function connectToDaemon() {
     }
   });
 
-  daemonEventSource.onerror = (error) => {
+  // Auth event listeners
+  daemonEventSource.addEventListener("auth.status.changed", (event) => {
+    const data = JSON.parse(event.data);
+    if (data.provider === "codex") {
+      authStatus.codex.authenticated = data.authenticated;
+      if (!data.authenticated) {
+        authStatus.codex.email = null;
+        authStatus.codex.plan = null;
+      }
+    } else if (data.provider === "copilot") {
+      authStatus.copilot.authenticated = data.authenticated;
+    }
+    updateAuthUI();
+    console.log(`✓ Auth status changed: ${data.provider} = ${data.authenticated}`);
+  });
+
+  daemonEventSource.addEventListener("auth.login.completed", (event) => {
+    const data = JSON.parse(event.data);
+    addMessage(`Login completed for ${data.provider}`);
+
+    // Close device code modal if open
+    if (data.provider === "copilot") {
+      const modal = document.getElementById("deviceCodeModal");
+      modal.classList.remove("show");
+      const btn = document.getElementById("copilotLoginBtn");
+      btn.disabled = false;
+    }
+
+    // Reload auth status to get full details
+    loadAuthStatus();
+  });
+
+  daemonEventSource.addEventListener("auth.login.failed", (event) => {
+    const data = JSON.parse(event.data);
+    addMessage(`Login failed for ${data.provider}: ${data.message}`);
+
+    // Close device code modal if open
+    if (data.provider === "copilot") {
+      const modal = document.getElementById("deviceCodeModal");
+      modal.classList.remove("show");
+      const btn = document.getElementById("copilotLoginBtn");
+      btn.disabled = false;
+    }
+
+    updateAuthUI();
+  });
+
+  daemonEventSource.onerror = () => {
     console.error("✗ Daemon connection error");
   };
 }
@@ -1141,6 +1194,178 @@ if (updateToolsBtn) {
   updateToolsBtn.addEventListener("click", updateEnabledTools);
 }
 
+// Auth Functions
+async function loadAuthStatus() {
+  try {
+    const response = await fetch("/v1/auth/status");
+    if (!response.ok) {
+      throw new Error(`Failed to load auth status: ${response.statusText}`);
+    }
+    authStatus = await response.json();
+    updateAuthUI();
+  } catch (error) {
+    console.error("Error loading auth status:", error);
+  }
+}
+
+function updateAuthUI() {
+  // Update Codex UI
+  const codexStatus = document.getElementById("codexStatus");
+  const codexEmail = document.getElementById("codexEmail");
+  const codexLoginBtn = document.getElementById("codexLoginBtn");
+
+  if (authStatus.codex && authStatus.codex.authenticated) {
+    codexStatus.textContent = "Logged in";
+    codexStatus.className = "auth-provider-status authenticated";
+    codexEmail.textContent = authStatus.codex.email || "";
+    codexLoginBtn.textContent = "Logout";
+    codexLoginBtn.className = "auth-btn logout";
+    codexLoginBtn.onclick = logoutCodex;
+  } else {
+    codexStatus.textContent = "Not logged in";
+    codexStatus.className = "auth-provider-status not-authenticated";
+    codexEmail.textContent = "";
+    codexLoginBtn.textContent = "Login";
+    codexLoginBtn.className = "auth-btn login";
+    codexLoginBtn.onclick = loginCodex;
+  }
+
+  // Update Copilot UI
+  const copilotStatus = document.getElementById("copilotStatus");
+  const copilotLoginBtn = document.getElementById("copilotLoginBtn");
+
+  if (authStatus.copilot && authStatus.copilot.authenticated) {
+    copilotStatus.textContent = "Logged in";
+    copilotStatus.className = "auth-provider-status authenticated";
+    copilotLoginBtn.textContent = "Logout";
+    copilotLoginBtn.className = "auth-btn logout";
+    copilotLoginBtn.onclick = logoutCopilot;
+  } else {
+    copilotStatus.textContent = "Not logged in";
+    copilotStatus.className = "auth-provider-status not-authenticated";
+    copilotLoginBtn.textContent = "Login";
+    copilotLoginBtn.className = "auth-btn login";
+    copilotLoginBtn.onclick = loginCopilot;
+  }
+}
+
+async function loginCodex() {
+  const btn = document.getElementById("codexLoginBtn");
+  btn.disabled = true;
+  btn.textContent = "Starting...";
+
+  try {
+    const response = await fetch("/v1/auth/codex/start", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Failed to start login: ${response.statusText}`);
+    }
+    const data = await response.json();
+
+    // Open auth URL in a new window
+    const authWindow = window.open(data.auth_url, "_blank", "width=600,height=700");
+
+    // Listen for OAuth success message from the popup
+    const messageHandler = (event) => {
+      if (event.data && event.data.type === "oauth-success" && event.data.provider === "codex") {
+        window.removeEventListener("message", messageHandler);
+        if (authWindow && !authWindow.closed) {
+          authWindow.close();
+        }
+        loadAuthStatus();
+        addMessage("Codex login successful!");
+      }
+    };
+    window.addEventListener("message", messageHandler);
+
+    addMessage("Codex login started - complete in the popup window");
+  } catch (error) {
+    console.error("Error starting Codex login:", error);
+    addMessage("Failed to start Codex login: " + error.message);
+  } finally {
+    btn.disabled = false;
+    updateAuthUI();
+  }
+}
+
+async function logoutCodex() {
+  const btn = document.getElementById("codexLoginBtn");
+  btn.disabled = true;
+
+  try {
+    const response = await fetch("/v1/auth/codex/logout", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Failed to logout: ${response.statusText}`);
+    }
+    authStatus.codex = { authenticated: false, email: null, plan: null };
+    updateAuthUI();
+    addMessage("Logged out from Codex");
+  } catch (error) {
+    console.error("Error logging out from Codex:", error);
+    addMessage("Failed to logout from Codex: " + error.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function loginCopilot() {
+  const btn = document.getElementById("copilotLoginBtn");
+  btn.disabled = true;
+  btn.textContent = "Starting...";
+
+  try {
+    const response = await fetch("/v1/auth/copilot/start", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Failed to start login: ${response.statusText}`);
+    }
+    const data = await response.json();
+
+    // Show device code modal
+    const modal = document.getElementById("deviceCodeModal");
+    const userCodeEl = document.getElementById("userCode");
+    const verificationUriEl = document.getElementById("verificationUri");
+
+    userCodeEl.textContent = data.user_code;
+    verificationUriEl.textContent = data.verification_uri;
+    verificationUriEl.href = data.verification_uri;
+
+    modal.classList.add("show");
+
+    // Setup cancel button
+    document.getElementById("cancelDeviceCodeBtn").onclick = () => {
+      modal.classList.remove("show");
+      btn.disabled = false;
+      updateAuthUI();
+    };
+
+    addMessage(`Copilot login started - enter code ${data.user_code} at ${data.verification_uri}`);
+  } catch (error) {
+    console.error("Error starting Copilot login:", error);
+    addMessage("Failed to start Copilot login: " + error.message);
+    btn.disabled = false;
+    updateAuthUI();
+  }
+}
+
+async function logoutCopilot() {
+  const btn = document.getElementById("copilotLoginBtn");
+  btn.disabled = true;
+
+  try {
+    const response = await fetch("/v1/auth/copilot/logout", { method: "POST" });
+    if (!response.ok) {
+      throw new Error(`Failed to logout: ${response.statusText}`);
+    }
+    authStatus.copilot = { authenticated: false };
+    updateAuthUI();
+    addMessage("Logged out from Copilot");
+  } catch (error) {
+    console.error("Error logging out from Copilot:", error);
+    addMessage("Failed to logout from Copilot: " + error.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // Auto-load tasks when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize queue panel elements
@@ -1156,5 +1381,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadModels();
+  loadAuthStatus();
   connectToDaemon();
 });

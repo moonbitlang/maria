@@ -22,15 +22,6 @@ pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : I
 pub fn Daemon::port(Self) -> Int
 pub async fn Daemon::serve(Self) -> Unit
 
-type Running
-pub fn Running::is_idle(Self) -> Bool
-pub impl ToJson for Running
-pub impl @json.FromJson for Running
-
-type Stopped
-pub impl ToJson for Stopped
-pub impl @json.FromJson for Stopped
-
 type Task
 pub fn Task::is_idle(Self) -> Bool
 pub impl ToJson for Task

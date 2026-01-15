@@ -1,6 +1,6 @@
 ///|
 /// Active task instance with runtime state and communication capabilities.
-struct Running {
+priv struct Running {
   /// Optional human-readable name for the task.
   name : String?
   /// Unique identifier for the task.
@@ -32,7 +32,7 @@ struct Running {
 /// * `self` : The running task to check the status of.
 ///
 /// Returns `true` if the task's status is idle, `false` otherwise.
-pub fn Running::is_idle(self : Running) -> Bool {
+fn Running::is_idle(self : Running) -> Bool {
   self.status is @server.Idle
 }
 
@@ -78,7 +78,7 @@ fn Running::new(
 }
 
 ///|
-pub impl @json.FromJson for Running with from_json(
+impl @json.FromJson for Running with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Running {
@@ -192,7 +192,7 @@ pub impl @json.FromJson for Running with from_json(
 }
 
 ///|
-pub impl ToJson for Running with to_json(self : Running) -> Json {
+impl ToJson for Running with to_json(self : Running) -> Json {
   let object : Map[String, Json] = {
     "id": self.id.to_string(),
     "cwd": self.cwd,
