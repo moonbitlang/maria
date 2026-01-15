@@ -219,83 +219,42 @@ pub impl @json.FromJson for EventDesc with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> EventDesc raise @json.JsonDecodeError {
-  guard json is Object({ "msg": String(msg), .. } as json_object) else {
-    raise @json.JsonDecodeError(
-      (json_path, "Missing 'msg' field in OutgoingEvent"),
-    )
-  }
+  let object = @jsonx.as_object(json, path=json_path)
+  let msg : String = object.required("msg", path=json_path)
   match msg {
     "ModelLoaded" => {
-      guard json_object.get("name") is Some(name_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ModelLoaded event missing 'name' field"),
-        )
-      }
-      let name : String = @json.from_json(
-        name_json,
-        path=json_path.add_key("name"),
-      )
+      let name : String = object.required("name", path=json_path)
       ModelLoaded(name~)
     }
     "TokenCounted" => {
-      guard json_object.get("token_count") is Some(token_count_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "TokenCounted event missing 'token_count' field"),
-        )
-      }
-      let token_count : Int = @json.from_json(
-        token_count_json,
-        path=json_path.add_key("token_count"),
-      )
+      let token_count : Int = object.required("token_count", path=json_path)
       TokenCounted(token_count)
     }
     "ContextPruned" => {
-      guard json_object.get("origin_token_count")
-        is Some(origin_token_count_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ContextPruned event missing 'origin_token_count' field"),
-        )
-      }
-      let origin_token_count : Int = @json.from_json(
-        origin_token_count_json,
-        path=json_path.add_key("origin_token_count"),
+      let origin_token_count : Int = object.required(
+        "origin_token_count",
+        path=json_path,
       )
-      guard json_object.get("pruned_token_count")
-        is Some(pruned_token_count_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ContextPruned event missing 'pruned_token_count' field"),
-        )
-      }
-      let pruned_token_count : Int = @json.from_json(
-        pruned_token_count_json,
-        path=json_path.add_key("pruned_token_count"),
+      let pruned_token_count : Int = object.required(
+        "pruned_token_count",
+        path=json_path,
       )
       ContextPruned(origin_token_count~, pruned_token_count~)
     }
     "PreToolCall" => {
-      guard json_object.get("tool_call") is Some(tool_call_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "PreToolCall event missing 'tool_call' field"),
-        )
-      }
-      let tool_call : @openai.ChatCompletionMessageToolCall = @json.from_json(
-        tool_call_json,
-        path=json_path.add_key("tool_call"),
+      let tool_call : @openai.ChatCompletionMessageToolCall = object.required(
+        "tool_call",
+        path=json_path,
       )
       PreToolCall(@ai.ToolCall::from_openai_tool_call(tool_call))
     }
     "PostToolCall" => {
-      guard json_object.get("tool_call") is Some(tool_call_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "PostToolCall event missing 'tool_call' field"),
-        )
-      }
-      let tool_call : @openai.ChatCompletionMessageToolCall = @json.from_json(
-        tool_call_json,
-        path=json_path.add_key("tool_call"),
+      let tool_call : @openai.ChatCompletionMessageToolCall = object.required(
+        "tool_call",
+        path=json_path,
       )
       let result : Result[Json, Json] = match
-        (json_object.get("result"), json_object.get("error")) {
+        (object.get("result"), object.get("error")) {
         (Some(result_json), _) => Ok(result_json)
         (None, Some(error_json)) => Err(error_json)
         (None, None) =>
@@ -305,15 +264,7 @@ pub impl @json.FromJson for EventDesc with from_json(
             ),
           )
       }
-      guard json_object.get("text") is Some(rendered_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "PostToolCall event missing 'text' field"),
-        )
-      }
-      let rendered : String = @json.from_json(
-        rendered_json,
-        path=json_path.add_key("text"),
-      )
+      let rendered : String = object.required("text", path=json_path)
       PostToolCall(
         @ai.ToolCall::from_openai_tool_call(tool_call),
         result~,
@@ -323,84 +274,55 @@ pub impl @json.FromJson for EventDesc with from_json(
     "PreConversation" => PreConversation
     "PostConversation" => PostConversation
     "SystemPromptSet" => {
-      let prompt : String? = match json_object.get("prompt") {
-        None | Some(Null) => None
-        Some(prompt_json) => {
-          let prompt : String = @json.from_json(
-            prompt_json,
-            path=json_path.add_key("prompt"),
-          )
-          Some(prompt)
-        }
-      }
+      let prompt : String? = object.optional("prompt", path=json_path)
       SystemPromptSet(prompt)
     }
     "MessageQueued" => {
-      guard json_object.get("message") is Some(message_wrapper_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "MessageQueued event missing 'message' field"),
-        )
-      }
-      guard message_wrapper_json is Object({ "id": id_json, .. }) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Invalid 'message' field in MessageQueued event"),
-        )
-      }
-      let id : @uuid.Uuid = @json.from_json(
-        id_json,
-        path=json_path.add_key("message").add_key("id"),
+      let message_json : Json = object.required("message", path=json_path)
+      let message_object = @jsonx.as_object(
+        message_json,
+        path=json_path.add_key("message"),
+      )
+      let id : @uuid.Uuid = message_object.required(
+        "id",
+        path=json_path.add_key("message"),
       )
       MessageQueued(id~)
     }
     "MessageUnqueued" => {
-      guard json_object.get("message") is Some(message_wrapper_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "MessageUnqueued event missing 'message' field"),
-        )
-      }
-      guard message_wrapper_json is Object({ "id": id_json, .. }) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Invalid 'message' field in MessageUnqueued event"),
-        )
-      }
-      let id : @uuid.Uuid = @json.from_json(
-        id_json,
-        path=json_path.add_key("message").add_key("id"),
+      let message_json : Json = object.required("message", path=json_path)
+      let message_object = @jsonx.as_object(
+        message_json,
+        path=json_path.add_key("message"),
+      )
+      let id : @uuid.Uuid = message_object.required(
+        "id",
+        path=json_path.add_key("message"),
       )
       MessageUnqueued(id~)
     }
     "ToolAdded" => {
-      guard json_object.get("tool") is Some(tool_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "ToolAdded event missing 'tool' field"),
-        )
-      }
-      guard tool_json
-        is Object(
-          {
-            "name": name_json,
-            "description": description_json,
-            "schema": schema_json,
-            ..
-          }
-        ) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Invalid 'tool' field in ToolAdded event"),
-        )
-      }
-      let name : String = @json.from_json(
-        name_json,
-        path=json_path.add_key("tool").add_key("name"),
+      let tool_json : Json = object.required("tool", path=json_path)
+      let tool_object = @jsonx.as_object(
+        tool_json,
+        path=json_path.add_key("tool"),
       )
-      let description : String = @json.from_json(
-        description_json,
-        path=json_path.add_key("tool").add_key("description"),
+      let name : String = tool_object.required(
+        "name",
+        path=json_path.add_key("tool"),
       )
-      let schema : Json = schema_json
+      let description : String = tool_object.required(
+        "description",
+        path=json_path.add_key("tool"),
+      )
+      let schema : Json = tool_object.required(
+        "schema",
+        path=json_path.add_key("tool"),
+      )
       ToolAdded(@tool.tool_desc(description~, name~, schema~))
     }
     "AssistantMessage" => {
-      let usage : @ai.Usage? = match json_object.get("usage") {
+      let usage : @ai.Usage? = match object.get("usage") {
         None | Some(Null) => None
         Some(usage_json) =>
           Some(
@@ -409,8 +331,7 @@ pub impl @json.FromJson for EventDesc with from_json(
             ),
           )
       }
-      let tool_calls : Array[@ai.ToolCall] = match
-        json_object.get("tool_calls") {
+      let tool_calls : Array[@ai.ToolCall] = match object.get("tool_calls") {
         None => []
         Some(tool_calls_json) => {
           let tcs : Array[@openai.ChatCompletionMessageToolCall] = @json.from_json(
@@ -420,48 +341,24 @@ pub impl @json.FromJson for EventDesc with from_json(
           tcs.map(@ai.ToolCall::from_openai_tool_call)
         }
       }
-      let content : String = match json_object.get("content") {
-        None =>
-          raise @json.JsonDecodeError(
-            (json_path, "AssistantMessage event missing 'content' field"),
-          )
-        Some(content_json) =>
-          @json.from_json(content_json, path=json_path.add_key("content"))
-      }
+      let content : String = object.required("content", path=json_path)
       AssistantMessage(usage~, tool_calls~, content)
     }
     "Diagnostics" => {
-      guard json_object.get("diagnostics") is Some(diagnostics_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Diagnostics event missing 'diagnostics' field"),
-        )
-      }
-      let diagnostics : @diagnostics.Diagnostics = @json.from_json(
-        diagnostics_json,
-        path=json_path.add_key("diagnostics"),
+      let diagnostics : @diagnostics.Diagnostics = object.required(
+        "diagnostics",
+        path=json_path,
       )
       Diagnostics(diagnostics)
     }
     "Cancelled" => Cancelled
     "UserMessage" => {
-      guard json_object.get("content") is Some(content_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Missing 'content' field in UserMessage event"),
-        )
-      }
-      let content : String = @json.from_json(
-        content_json,
-        path=json_path.add_key("content"),
-      )
+      let content : String = object.required("content", path=json_path)
       UserMessage(content)
     }
     "Failed" => {
-      guard json_object.get("error") is Some(error_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Missing 'error' field in Failed event"),
-        )
-      }
-      Failed(error_json)
+      let error : Json = object.required("error", path=json_path)
+      Failed(error)
     }
     _ =>
       raise @json.JsonDecodeError(
