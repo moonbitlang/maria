@@ -47,6 +47,7 @@ pub(all) enum EventDesc {
   UserMessage(String)
   Cancelled
   Failed(Json)
+  ContextCompacted(summary~ : String)
 }
 pub impl Eq for EventDesc
 pub impl Show for EventDesc
