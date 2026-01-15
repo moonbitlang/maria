@@ -13,8 +13,7 @@
 /// - GET  /v1/task/{id}  → `get_task`
 /// - ANY  /v1/task/{id}/... → `forward_to_task`
 /// - GET  /v1/auth/status → `get_auth_status`
-/// - POST /v1/auth/codex/start → `start_codex_auth`
-/// - GET  /v1/auth/codex/callback → `codex_callback`
+/// - POST /v1/auth/codex/start → `start_codex_auth` (callback on port 1455)
 /// - POST /v1/auth/codex/logout → `logout_codex`
 /// - POST /v1/auth/copilot/start → `start_copilot_auth`
 /// - POST /v1/auth/copilot/logout → `logout_copilot`
@@ -54,9 +53,7 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             // Auth endpoints
             (Get, ["", "v1", "auth", "status"]) => self.get_auth_status(w)
             (Post, ["", "v1", "auth", "codex", "start"]) =>
-              self.start_codex_auth(r, w)
-            (Get, ["", "v1", "auth", "codex", "callback"]) =>
-              self.codex_callback(r, w)
+              self.start_codex_auth(group~, r, w)
             (Post, ["", "v1", "auth", "codex", "logout"]) => self.logout_codex(w)
             (Post, ["", "v1", "auth", "copilot", "start"]) =>
               self.start_copilot_auth(group~, r, w)
