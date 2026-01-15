@@ -1,0 +1,36 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/openai/client"
+
+import(
+  "moonbitlang/async/http"
+  "moonbitlang/async/io"
+  "moonbitlang/core/json"
+)
+
+// Values
+pub fn add_query_param(String, String, String) -> String
+
+pub async fn build_http_client(String, String, accept_stream~ : Bool) -> (@http.Client, String)
+
+pub fn encode_query_component(String) -> String
+
+pub fn[T : @json.FromJson] parse_json_response(String) -> T raise ClientError
+
+pub fn parse_url(String) -> (String, String) raise ClientError
+
+pub async fn read_sse_line(&@io.Reader) -> String?
+
+// Errors
+pub suberror ClientError {
+  InvalidUrl(String)
+  InvalidResponseBody(String)
+}
+pub impl Show for ClientError
+pub impl ToJson for ClientError
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

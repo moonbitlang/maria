@@ -140,7 +140,7 @@ test "tool_definition" {
 ///|
 /// Test response format helpers
 test "response_format" {
-  let text_format = ResponseFormat::Text
+  let text_format = @shared.ResponseFormat::Text
   let json = text_format.to_json()
   guard json is Object(obj) else { fail("Expected JSON object") }
   guard obj.get("type") is Some(String("text")) else {

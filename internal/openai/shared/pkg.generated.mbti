@@ -1,0 +1,193 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/openai/shared"
+
+import(
+  "moonbitlang/core/builtin"
+  "moonbitlang/core/json"
+)
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct ComparisonFilter {
+  key : String
+  type_ : ComparisonFilterType
+  value : ComparisonFilterValue
+}
+pub impl ToJson for ComparisonFilter
+pub impl @json.FromJson for ComparisonFilter
+
+pub enum ComparisonFilterType {
+  Eq
+  Ne
+  Gt
+  Gte
+  Lt
+  Lte
+}
+pub impl ToJson for ComparisonFilterType
+pub impl @json.FromJson for ComparisonFilterType
+
+pub enum ComparisonFilterValue {
+  String(String)
+  Float(Double)
+  Bool(Bool)
+  Array(Array[ComparisonFilterValueArrayItemUnion])
+}
+pub impl ToJson for ComparisonFilterValue
+pub impl @json.FromJson for ComparisonFilterValue
+
+pub enum ComparisonFilterValueArrayItemUnion {
+  String(String)
+  Float(Double)
+}
+pub impl ToJson for ComparisonFilterValueArrayItemUnion
+pub impl @json.FromJson for ComparisonFilterValueArrayItemUnion
+
+pub struct CompoundFilter {
+  filters : Array[ComparisonFilter]
+  type_ : CompoundFilterType
+}
+pub impl ToJson for CompoundFilter
+pub impl @json.FromJson for CompoundFilter
+
+pub enum CompoundFilterType {
+  And
+  Or
+}
+pub impl ToJson for CompoundFilterType
+pub impl @json.FromJson for CompoundFilterType
+
+pub struct CustomToolInputFormatGrammar {
+  definition : String
+  syntax : String
+  type_ : String
+}
+pub impl ToJson for CustomToolInputFormatGrammar
+pub impl @json.FromJson for CustomToolInputFormatGrammar
+
+pub struct CustomToolInputFormatText {
+  type_ : String
+}
+pub impl ToJson for CustomToolInputFormatText
+pub impl @json.FromJson for CustomToolInputFormatText
+
+pub enum CustomToolInputFormatUnion {
+  Text(CustomToolInputFormatText)
+  Grammar(CustomToolInputFormatGrammar)
+}
+pub impl ToJson for CustomToolInputFormatUnion
+pub impl @json.FromJson for CustomToolInputFormatUnion
+
+pub struct ErrorObject {
+  code : String
+  message : String
+  param : String
+  type_ : String
+}
+pub impl ToJson for ErrorObject
+pub impl @json.FromJson for ErrorObject
+
+pub(all) struct FunctionDefinition {
+  name : String
+  description : String
+  parameters : Json
+  strict : Bool?
+}
+pub impl ToJson for FunctionDefinition
+pub impl @json.FromJson for FunctionDefinition
+
+pub(all) struct JsonSchema {
+  name : String
+  description : String?
+  schema : Map[String, Json]
+  strict : Bool?
+}
+
+pub struct Metadata(Map[String, String])
+#deprecated
+pub fn Metadata::inner(Self) -> Map[String, String]
+pub impl ToJson for Metadata
+pub impl @json.FromJson for Metadata
+
+pub struct Reasoning {
+  effort : ReasoningEffort?
+  generate_summary : ReasoningGenerateSummary?
+  summary : ReasoningSummary?
+}
+pub impl ToJson for Reasoning
+pub impl @json.FromJson for Reasoning
+
+pub enum ReasoningEffort {
+  None_
+  Minimal
+  Low
+  Medium
+  High
+  Xhigh
+}
+pub impl ToJson for ReasoningEffort
+pub impl @json.FromJson for ReasoningEffort
+
+pub enum ReasoningGenerateSummary {
+  Auto
+  Concise
+  Detailed
+}
+pub impl ToJson for ReasoningGenerateSummary
+pub impl @json.FromJson for ReasoningGenerateSummary
+
+pub enum ReasoningSummary {
+  Auto
+  Concise
+  Detailed
+}
+pub impl ToJson for ReasoningSummary
+pub impl @json.FromJson for ReasoningSummary
+
+pub(all) enum ResponseFormat {
+  Text
+  JsonSchema(JsonSchema)
+  JsonObject
+}
+pub impl ToJson for ResponseFormat
+
+pub struct ResponseFormatJSONObject {
+  type_ : String
+}
+pub impl ToJson for ResponseFormatJSONObject
+pub impl @json.FromJson for ResponseFormatJSONObject
+
+pub struct ResponseFormatJSONSchema {
+  json_schema : ResponseFormatJSONSchemaJSONSchema
+  type_ : String
+}
+pub impl ToJson for ResponseFormatJSONSchema
+pub impl @json.FromJson for ResponseFormatJSONSchema
+
+pub struct ResponseFormatJSONSchemaJSONSchema {
+  name : String
+  description : String?
+  schema : Map[String, Json]
+  strict : Bool?
+}
+pub impl ToJson for ResponseFormatJSONSchemaJSONSchema
+pub impl @json.FromJson for ResponseFormatJSONSchemaJSONSchema
+
+pub struct ResponseFormatText {
+  type_ : String
+}
+pub impl ToJson for ResponseFormatText
+pub impl @json.FromJson for ResponseFormatText
+
+// Type aliases
+pub type ChatModel = String
+
+pub using @builtin {type Json as FunctionParameters}
+
+pub type ResponsesModel = String
+
+// Traits
+
