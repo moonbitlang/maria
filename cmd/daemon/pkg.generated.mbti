@@ -17,15 +17,46 @@ pub async fn start(ArrayView[String]) -> Unit
 // Errors
 
 // Types and methods
+pub(all) struct AllAuthStatus {
+  codex : ProviderAuthStatus
+  copilot : ProviderAuthStatus
+}
+pub impl Show for AllAuthStatus
+pub impl ToJson for AllAuthStatus
+
 type Daemon
 pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
 pub fn Daemon::port(Self) -> Int
 pub async fn Daemon::serve(Self) -> Unit
 
+pub(all) struct ProviderAuthStatus {
+  authenticated : Bool
+  email : String?
+  plan : String?
+}
+pub impl Show for ProviderAuthStatus
+pub impl ToJson for ProviderAuthStatus
+
 type Running
 pub fn Running::is_idle(Self) -> Bool
 pub impl ToJson for Running
 pub impl @json.FromJson for Running
+
+pub(all) struct StartCodexAuthResponse {
+  auth_url : String
+  state : String
+}
+pub impl Show for StartCodexAuthResponse
+pub impl ToJson for StartCodexAuthResponse
+
+pub(all) struct StartCopilotAuthResponse {
+  user_code : String
+  verification_uri : String
+  expires_in : Int
+  interval : Int
+}
+pub impl Show for StartCopilotAuthResponse
+pub impl ToJson for StartCopilotAuthResponse
 
 type Stopped
 pub impl ToJson for Stopped

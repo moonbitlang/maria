@@ -42,8 +42,6 @@ priv enum Event {
 /// Pending Codex PKCE auth flow state
 priv struct PendingCodexAuth {
   pkce : @codex.PkceCodes
-  state : String
-  created : @clock.Timestamp
 }
 
 ///|

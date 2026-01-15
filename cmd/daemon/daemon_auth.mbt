@@ -31,7 +31,10 @@ pub(all) struct StartCopilotAuthResponse {
 
 ///|
 /// GET /v1/auth/status - Returns auth status for all providers
-async fn Daemon::get_auth_status(self : Daemon, w : @httpx.ResponseWriter) -> Unit {
+async fn Daemon::get_auth_status(
+  self : Daemon,
+  w : @httpx.ResponseWriter,
+) -> Unit {
   let codex_status = self.get_codex_auth_status()
   let copilot_status = self.get_copilot_auth_status()
   let status : AllAuthStatus = { codex: codex_status, copilot: copilot_status }
@@ -50,7 +53,11 @@ async fn Daemon::get_codex_auth_status(self : Daemon) -> ProviderAuthStatus {
   try {
     let credentials = @codex.load_credentials()
     let claims = @codex.extract_token_claims(credentials.idToken)
-    { authenticated: true, email: Some(claims.email), plan: Some(claims.chatgptPlanType) }
+    {
+      authenticated: true,
+      email: Some(claims.email),
+      plan: Some(claims.chatgptPlanType),
+    }
   } catch {
     _ => { authenticated: false, email: None, plan: None }
   }

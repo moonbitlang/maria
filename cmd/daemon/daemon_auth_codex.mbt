@@ -18,9 +18,8 @@ async fn Daemon::start_codex_auth(
   // (http://localhost:1455/auth/callback)
   let auth_url = @codex.build_authorize_url(pkce, state)
 
-  // Store pending auth state
-  let pending = PendingCodexAuth::{ pkce, state, created: self.clock.now() }
-  self.pending_codex_auth[state] = pending
+  // Store pending auth state (keyed by state parameter)
+  self.pending_codex_auth[state] = PendingCodexAuth::{ pkce, }
 
   // Spawn temporary callback server on port 1455 to receive OAuth callback (in background)
   group.spawn_bg(() => self.spawn_codex_callback_server(), no_wait=true)

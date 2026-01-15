@@ -54,7 +54,8 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             (Get, ["", "v1", "auth", "status"]) => self.get_auth_status(w)
             (Post, ["", "v1", "auth", "codex", "start"]) =>
               self.start_codex_auth(group~, r, w)
-            (Post, ["", "v1", "auth", "codex", "logout"]) => self.logout_codex(w)
+            (Post, ["", "v1", "auth", "codex", "logout"]) =>
+              self.logout_codex(w)
             (Post, ["", "v1", "auth", "copilot", "start"]) =>
               self.start_copilot_auth(group~, r, w)
             (Post, ["", "v1", "auth", "copilot", "logout"]) =>

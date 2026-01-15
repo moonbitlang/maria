@@ -6,11 +6,23 @@ import(
 )
 
 // Values
+pub async fn credentials_exist() -> Bool
+
+pub async fn delete_credentials() -> Unit
+
+pub async fn get_copilot_token(String) -> CopilotTokenResponse
+
 pub async fn get_valid_credentials() -> Credentials
 
 pub async fn load_credentials() -> Credentials
 
+pub async fn poll_for_access_token(String, Int, Int) -> String
+
 pub async fn refresh_and_save_credentials() -> Credentials
+
+pub async fn request_device_code() -> DeviceCodeResponse
+
+pub async fn save_credentials(Credentials) -> Unit
 
 pub async fn start_oauth_flow() -> Credentials
 
@@ -20,10 +32,13 @@ pub async fn start_oauth_flow() -> Credentials
 type AccessTokenResponse
 pub impl Show for AccessTokenResponse
 
-type CopilotTokenResponse
+pub struct CopilotTokenResponse {
+  token : String
+  expires_at : Int64
+}
 pub impl Show for CopilotTokenResponse
 
-pub struct Credentials {
+pub(all) struct Credentials {
   github_token : String
   copilot_token : String
   copilot_token_expires_at : Int64
@@ -33,7 +48,13 @@ pub impl Show for Credentials
 pub impl ToJson for Credentials
 pub impl @json.FromJson for Credentials
 
-type DeviceCodeResponse
+pub struct DeviceCodeResponse {
+  device_code : String
+  user_code : String
+  verification_uri : String
+  expires_in : Int
+  interval : Int
+}
 pub impl Show for DeviceCodeResponse
 
 // Type aliases
