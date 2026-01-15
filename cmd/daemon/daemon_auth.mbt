@@ -1,33 +1,33 @@
 ///|
 /// Auth status for a single provider
-pub(all) struct ProviderAuthStatus {
+priv struct ProviderAuthStatus {
   authenticated : Bool
   email : String?
   plan : String?
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 /// Combined auth status for all providers
-pub(all) struct AllAuthStatus {
+priv struct AllAuthStatus {
   codex : ProviderAuthStatus
   copilot : ProviderAuthStatus
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 /// Response for starting Codex OAuth flow
-pub(all) struct StartCodexAuthResponse {
+priv struct StartCodexAuthResponse {
   auth_url : String
   state : String
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 /// Response for starting Copilot OAuth flow
-pub(all) struct StartCopilotAuthResponse {
+priv struct StartCopilotAuthResponse {
   user_code : String
   verification_uri : String
   expires_in : Int
   interval : Int
-} derive(Show, ToJson)
+} derive(ToJson)
 
 ///|
 /// GET /v1/auth/status - Returns auth status for all providers
