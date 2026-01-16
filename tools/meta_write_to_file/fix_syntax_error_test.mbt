@@ -2,7 +2,7 @@
 #skip
 async test "fix-syntax-error" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
-    let model = mock.model(name=@model.ClaudeHaiku4_5)
+    let model = mock.model(name=@model.ClaudeSonnet4_5)
     mock.add_json_tree({
       "moon.mod.json": Json::object({ "name": "example", "version": "0.1.0" }).stringify(
         indent=2,
@@ -91,7 +91,7 @@ async test "fix-syntax-error" (t : @test.Test) {
 #skip
 async test "search-replace" (t : @test.Test) {
   @mock.run(t, retry=3, mock => {
-    let model = mock.model(name=ClaudeHaiku4_5)
+    let model = mock.model(name=ClaudeSonnet4_5)
     mock.add_files({
       "moon.mod.json": (
         #|{ "name": "example", "version": "0.1.0" }
