@@ -13,7 +13,7 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, 
 
 pub async fn chat(model~ : @model.Model, Request, logger? : @pino.Logger, extra_body? : Map[String, Json]) -> ChatCompletion
 
-pub fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
+pub fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, reasoning_effort? : ChatCompletionReasoningEffort, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
 
 pub fn chunk(id~ : String, choices~ : Array[ChatCompletionChunkChoice], created~ : Int, model~ : String, usage? : CompletionUsage, system_fingerprint? : String, service_tier? : ChatCompletionServiceTier, error? : OpenRouterErrorResponse) -> ChatCompletionChunk
 
@@ -207,6 +207,16 @@ pub struct ChatCompletionMessageToolCallFunction {
 }
 pub impl Show for ChatCompletionMessageToolCallFunction
 
+pub(all) enum ChatCompletionReasoningEffort {
+  None_
+  Minimal
+  Low
+  Medium
+  High
+  Xhigh
+}
+pub impl Show for ChatCompletionReasoningEffort
+
 pub(all) enum ChatCompletionRole {
   Developer
   System
@@ -325,6 +335,7 @@ pub struct Request {
   user : String?
   max_tokens : Int?
   temperature : Double?
+  reasoning_effort : ChatCompletionReasoningEffort?
   response_format : ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
