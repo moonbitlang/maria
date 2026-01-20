@@ -30,7 +30,7 @@ async test "Coverage::report" (t : @test.Test) {
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
+    moon.test_(enable_coverage=true)
     @json.inspect(
       moon.coverage.report(format=Summary),
       content=(
@@ -92,7 +92,7 @@ async test "Coverage::analyze" (t : @test.Test) {
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
+    moon.test_(enable_coverage=true)
     @json.inspect(
       moon.coverage.analyze(),
       content=(
@@ -152,7 +152,7 @@ async test "Coverage::clean" (t : @test.Test) {
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
     @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
+    moon.test_(enable_coverage=true)
     @json.inspect(
       moon.coverage.report(format=Summary),
       content="example.mbt: 2/6\nTotal: 2/6\n",

@@ -23,14 +23,21 @@ async test "test" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(mock.json(moon.test_()), content=[
-      {
-        "package_": "example",
-        "filename": "test.mbt",
-        "index": 1,
-        "test_name": "eq",
-        "message": ["String", "test.mbt:9:3-9:22@example FAILED: `2 != 3`"],
+    @json.inspect(
+      mock
+      .json(try? moon.test_())
+      .transform(@json.Replacer::exclude(["stdout", "elapsed"])),
+      content={
+        "Err": [
+          "Failed",
+          {
+            "exec": "moon",
+            "args": ["test", "--test-failure-json", "--no-strip"],
+            "status": 1,
+            "stderr": "",
+          },
+        ],
       },
-    ])
+    )
   })
 }
