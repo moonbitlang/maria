@@ -100,6 +100,12 @@ pub fn Conversation::messages(
         msgs.push(@ai.assistant_message(content~, tool_calls~))
       PostToolCall(tc, rendered~, ..) =>
         msgs.push(@ai.tool_message(tool_call_id=tc.id, content=rendered))
+      ContextCompacted(summary~) => {
+        // Discard all messages before compaction point
+        msgs.clear()
+        // Add the summary as a user message
+        msgs.push(@ai.user_message(content=summary))
+      }
       _ => ()
     }
   }

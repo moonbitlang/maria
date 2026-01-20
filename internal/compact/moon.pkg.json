@@ -1,0 +1,6 @@
+{
+  "import": [
+    "moonbitlang/maria/ai",
+    "moonbitlang/maria/internal/pino"
+  ]
+}
