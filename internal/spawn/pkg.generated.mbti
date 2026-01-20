@@ -42,12 +42,8 @@ pub struct CompletedProcess {
 pub fn CompletedProcess::check(Self) -> Unit raise Failed
 pub impl ToJson for CompletedProcess
 
-pub struct Manager {
-  mut id : Int
-  cwd : String
-  process : Map[Pid, Process]
-  // private fields
-}
+type Manager
+pub fn Manager::close(Self) -> Unit
 pub fn Manager::get(Self, Pid) -> Process?
 pub fn Manager::list(Self) -> Array[Process]
 pub fn Manager::new(cwd~ : String) -> Self
@@ -56,6 +52,7 @@ pub async fn Manager::start(Self) -> Unit
 pub async fn Manager::wait(Self, Pid) -> Int
 
 type Pid
+pub fn Pid::to_int(Self) -> Int
 pub impl Eq for Pid
 pub impl Hash for Pid
 pub impl Show for Pid
