@@ -166,7 +166,7 @@ async test "check_patch_test" (t : @test.Test) {
             "error_code": 4080,
             "level": "Error",
             "loc": {
-              "end": { "col": 32, "line": 2 },
+              "end": { "col": 31, "line": 2 },
               "path": "(mock:cwd)/a_test.mbt",
               "start": { "col": 3, "line": 2 },
             },
