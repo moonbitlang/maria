@@ -1,0 +1,12 @@
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
+  "moonbitlang/core/json",
+  "moonbitlang/core/strconv",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/async",
+}

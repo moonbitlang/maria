@@ -1,0 +1,20 @@
+import {
+  "moonbitlang/maria/model",
+  "moonbitlang/maria/oauth/codex",
+  "moonbitlang/maria/oauth/copilot",
+  "moonbitlang/async/http",
+  "moonbitlang/maria/internal/schema",
+  "moonbitlang/async/io",
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/openai/responses",
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/tool",
+}

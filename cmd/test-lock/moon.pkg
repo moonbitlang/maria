@@ -1,0 +1,12 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/stdio",
+  "moonbitlang/async/io",
+}
+
+options(
+  "is-main": true,
+)

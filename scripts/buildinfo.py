@@ -124,19 +124,24 @@ let version_string : String = "{version}+{commit_count}.{commit_sha}"
         with open(gitignore_path, "w") as f:
             f.write(f"{version_string_mbt.name}\n")
 
-    # Generate moon.pkg.json if it doesn't exist
-    pkg_json = buildinfo_dir / "moon.pkg.json"
+    # Generate moon.pkg if it doesn't exist
+    pkg_json = buildinfo_dir / "moon.pkg"
     if not pkg_json.exists():
-        pkg_content = f"""{{
-  "is_main": false,
+        pkg_content = f"""import {{
+  "moonbitlang/core/json",
+  "moonbitlang/core/strconv",
+}}
+
+options(
+  is_main: false,
   "pre-build": [
     {{
-      "input": [],
-      "output": "{version_string_mbt.name}",
       "command": "python3 scripts/buildinfo.py"
-    }}
-  ]
-}}
+      "input": [ ],
+      "output": "{version_string_mbt.name}",
+    }},
+  ],
+)
 """
         with open(pkg_json, "w") as f:
             f.write(pkg_content)

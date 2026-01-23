@@ -1,3 +1,0 @@
-{
-  "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
-}

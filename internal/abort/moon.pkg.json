@@ -1,4 +1,0 @@
-{
-  "implement": "moonbitlang/core/abort",
-  "import": ["moonbitlang/maria/internal/backtrace"]
-}

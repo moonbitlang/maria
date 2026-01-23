@@ -1,0 +1,22 @@
+import {
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/maria/internal/lru",
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/internal/jsonx",
+  "moonbitlang/x/time",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/internal/openai",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/rand",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/maria/internal/mock",
+}

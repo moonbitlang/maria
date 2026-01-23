@@ -1,0 +1,15 @@
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/core/strconv",
+}
+
+options(
+  is_main: false,
+  "pre-build": [
+    {
+      "command": "python3 scripts/buildinfo.py",
+      "input": [ ],
+      "output": "version_string.mbt",
+    },
+  ],
+)

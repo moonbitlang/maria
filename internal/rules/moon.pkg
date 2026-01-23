@@ -1,0 +1,20 @@
+import {
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/maria/internal/yamd",
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+}
+
+import "wbtest" {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+}

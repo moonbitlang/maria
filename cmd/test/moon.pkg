@@ -1,0 +1,14 @@
+import {
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria",
+  "moonbitlang/maria/internal/backtrace",
+  "moonbitlang/maria/model",
+}
+
+options(
+  "is-main": true,
+  overrides: [ "moonbitlang/maria/internal/abort" ],
+)
