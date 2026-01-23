@@ -3,111 +3,92 @@ pub impl @json.FromJson for Model with from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Model {
-  guard json is Object(json) else {
-    raise @json.JsonDecodeError(
-      (json_path, "@moonbitlang/maria/model.Model::from_json: expected object"),
-    )
+  let object = @jsonx.as_object(json, path=json_path)
+  let name : String = object.required("name", path=json_path)
+  let model_name : String = object.required("model_name", path=json_path)
+  let model_type : Type = object.required("model_type", path=json_path)
+  let api_key : String = match object.get("api_key") {
+    None => ""
+    Some(api_key_json) =>
+      @json.from_json(api_key_json, path=json_path.add_key("api_key"))
   }
-  let name : String = {
-    guard json.get("name") is Some(name) else {
-      raise @json.JsonDecodeError(
-        (
-          json_path, "@moonbitlang/maria/model.Model::from_json: missing 'name' field",
-        ),
-      )
-    }
-    @json.from_json(name, path=json_path.add_key("name"))
-  }
-  let model_name : String = {
-    guard json.get("model_name") is Some(model_name) else {
-      raise @json.JsonDecodeError(
-        (
-          json_path, "@moonbitlang/maria/model.Model::from_json: missing 'model_name' field",
-        ),
-      )
-    }
-    @json.from_json(model_name, path=json_path.add_key("model_name"))
-  }
-  let model_type : Type = {
-    guard json.get("model_type") is Some(model_type) else {
-      raise @json.JsonDecodeError(
-        (
-          json_path, "@moonbitlang/maria/model.Model::from_json: missing 'model_type' field",
-        ),
-      )
-    }
-    @json.from_json(model_type, path=json_path.add_key("model_type"))
-  }
-  let api_key : String = {
-    guard json.get("api_key") is Some(api_key) else { "" }
-    @json.from_json(api_key, path=json_path.add_key("api_key"))
-  }
-  let base_url : String = {
-    guard json.get("base_url") is Some(base_url) else {
+  let base_url : String = match object.get("base_url") {
+    Some(base_url_json) =>
+      @json.from_json(base_url_json, path=json_path.add_key("base_url"))
+    None =>
       match model_type {
         SaaS(OpenAI) => "https://api.openai.com/v1"
         SaaS(CodexOAuth) => "https://chatgpt.com/backend-api"
         SaaS(Copilot) => "https://api.githubcopilot.com"
       }
-    }
-    @json.from_json(base_url, path=json_path.add_key("base_url"))
   }
-  let description : String? = {
-    guard json.get("description") is Some(description) else { None }
-    Some(@json.from_json(description, path=json_path.add_key("description")))
+  let description : String? = match object.get("description") {
+    None => None
+    Some(description_json) =>
+      Some(
+        @json.from_json(description_json, path=json_path.add_key("description")),
+      )
   }
-  let safe_zone_tokens : Int = {
-    guard json.get("safe_zone_tokens") is Some(safe_zone_tokens) else {
-      // raise @json.JsonDecodeError(
-      //   (
-      //     json_path, "@moonbitlang/maria/model.Model::from_json: missing 'safe_zone_tokens' field",
-      //   ),
-      // )
-      128_000
-    }
-    @json.from_json(
-      safe_zone_tokens,
-      path=json_path.add_key("safe_zone_tokens"),
-    )
+  let safe_zone_tokens : Int = match object.get("safe_zone_tokens") {
+    None => 128_000
+    Some(safe_zone_tokens_json) =>
+      @json.from_json(
+        safe_zone_tokens_json,
+        path=json_path.add_key("safe_zone_tokens"),
+      )
   }
-  let supports_anthropic_prompt_caching : Bool = {
-    guard json.get("supports_anthropic_prompt_caching")
-      is Some(supports_anthropic_prompt_caching) else {
-      false
-    }
-    @json.from_json(
-      supports_anthropic_prompt_caching,
-      path=json_path.add_key("supports_anthropic_prompt_caching"),
-    )
+  let supports_anthropic_prompt_caching : Bool = match
+    object.get("supports_anthropic_prompt_caching") {
+    None => false
+    Some(supports_anthropic_prompt_caching_json) =>
+      @json.from_json(
+        supports_anthropic_prompt_caching_json,
+        path=json_path.add_key("supports_anthropic_prompt_caching"),
+      )
   }
-  let supports_apply_patch : Bool = {
-    guard json.get("supports_apply_patch") is Some(supports_apply_patch) else {
+  let supports_apply_patch : Bool = match object.get("supports_apply_patch") {
+    Some(supports_apply_patch_json) =>
+      @json.from_json(
+        supports_apply_patch_json,
+        path=json_path.add_key("supports_apply_patch"),
+      )
+    None => {
       // Auto-detect based on model name for GPT 5.1+
       let name_lower = model_name.to_lower()
       name_lower.contains("gpt-5.1") || name_lower.contains("gpt-5.2")
     }
-    @json.from_json(
-      supports_apply_patch,
-      path=json_path.add_key("supports_apply_patch"),
-    )
   }
-  let access_token : String? = {
-    guard json.get("access_token") is Some(access_token) else { None }
-    Some(@json.from_json(access_token, path=json_path.add_key("access_token")))
+  let access_token : String? = match object.get("access_token") {
+    None => None
+    Some(access_token_json) =>
+      Some(
+        @json.from_json(
+          access_token_json,
+          path=json_path.add_key("access_token"),
+        ),
+      )
   }
-  let account_id : String? = {
-    guard json.get("account_id") is Some(account_id) else { None }
-    Some(@json.from_json(account_id, path=json_path.add_key("account_id")))
+  let account_id : String? = match object.get("account_id") {
+    None => None
+    Some(account_id_json) =>
+      Some(
+        @json.from_json(account_id_json, path=json_path.add_key("account_id")),
+      )
   }
-  let refresh_token : String? = {
-    guard json.get("refresh_token") is Some(refresh_token) else { None }
-    Some(
-      @json.from_json(refresh_token, path=json_path.add_key("refresh_token")),
-    )
+  let refresh_token : String? = match object.get("refresh_token") {
+    None => None
+    Some(refresh_token_json) =>
+      Some(
+        @json.from_json(
+          refresh_token_json,
+          path=json_path.add_key("refresh_token"),
+        ),
+      )
   }
-  let id_token : String? = {
-    guard json.get("id_token") is Some(id_token) else { None }
-    Some(@json.from_json(id_token, path=json_path.add_key("id_token")))
+  let id_token : String? = match object.get("id_token") {
+    None => None
+    Some(id_token_json) =>
+      Some(@json.from_json(id_token_json, path=json_path.add_key("id_token")))
   }
   Model::{
     name,
