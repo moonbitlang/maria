@@ -13,8 +13,8 @@ async test "queue_message" (t : @test.Test) {
     let _ = agent.queue_message(
       @ai.user_message(content="First queued message."),
     )
-    @json.inspect(
-      @json.inspect(agent.queued_messages(), content=[
+    json_inspect(
+      json_inspect(agent.queued_messages(), content=[
         {
           "id": "42858c8d-3684-43ab-837d-ef6894a9b8dc",
           "message": { "role": "user", "content": "First queued message." },
@@ -24,7 +24,7 @@ async test "queue_message" (t : @test.Test) {
       content=null,
     )
     agent.start()
-    @json.inspect(agent.pending_queue.length(), content=0)
-    @json.inspect(agent.input_queue.length(), content=0)
+    json_inspect(agent.pending_queue.length(), content=0)
+    json_inspect(agent.input_queue.length(), content=0)
   })
 }

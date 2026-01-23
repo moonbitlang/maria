@@ -4,5 +4,5 @@ test "executable" {
   // Suppress unused package warnings.
   ignore(@moon.home())
   ignore(@pathx.join("a", "b"))
-  @json.inspect(executable == @os.args()[0], content=true)
+  json_inspect(executable == @os.args()[0], content=true)
 }

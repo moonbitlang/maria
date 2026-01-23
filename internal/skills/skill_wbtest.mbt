@@ -19,7 +19,7 @@ test "parse_skill_from_content" {
     directory="pdf-processing",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(skill, content={
+  json_inspect(skill, content={
     "name": "pdf-processing",
     "description": "Extract text and tables from PDF files.",
     "license": "Apache-2.0",
@@ -45,7 +45,7 @@ test "parse_skill_from_content/space-delimited-allowed-tools" {
     directory="sample-skill",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(skill, content={
+  json_inspect(skill, content={
     "name": "sample-skill",
     "description": "A sample skill.",
     "allowed_tools": ["tool1", "tool2", "tool3"],
@@ -70,7 +70,7 @@ test "parse_skill_from_content/invalid-allowed-tools" {
     directory="sample-skill",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'allowed-tools' must be a space-delimited string or array of strings, got {\"tool1\":true,\"tool2\":false}",
     ],
@@ -91,7 +91,7 @@ test "parse_skill_from_content/empty-description" {
     directory="invalid-skill",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'description' must be a non-empty string",
     ],
@@ -112,7 +112,7 @@ test "parse_skill_from_content/invalid-name" {
     directory="invalid--name",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot contain consecutive hyphens"],
   })
 }
@@ -131,7 +131,7 @@ test "parse_skill_from_content/name-mismatches-directory" {
     directory="different-directory",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Directory name must match skill name"],
   })
 }
@@ -151,7 +151,7 @@ test "parse_skill_from_content/long-name" {
     directory=long_skill_name,
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name exceeds 64 character limit"],
   })
 }
@@ -171,7 +171,7 @@ test "parse_skill_from_content/long-description" {
     directory="long-description-skill",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Description exceeds 1024 character limit"],
   })
 }
@@ -190,7 +190,7 @@ test "parse_skill_from_content/empty-name" {
     directory="",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Field 'name' must be a non-empty string"],
   })
 }
@@ -209,7 +209,7 @@ test "parse_skill_from_content/name-starts-with-hyphen" {
     directory="-invalidname",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot start or end with a hyphen"],
   })
 }
@@ -228,7 +228,7 @@ test "parse_skill_from_content/name-ends-with-hyphen" {
     directory="invalidname-",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot start or end with a hyphen"],
   })
 }
@@ -246,7 +246,7 @@ test "parse_skill_from_content/missing-name" {
     directory="missing-name",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'name'"],
   })
 }
@@ -264,7 +264,7 @@ test "parse_skill_from_content/missing-description" {
     directory="missing-description",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'description'"],
   })
 }
@@ -278,7 +278,7 @@ test "parse_skill_from_content/missing-frontmatter" {
     directory="missing-frontmatter",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'name'"],
   })
 }
@@ -297,7 +297,7 @@ test "parse_skill_from_content/non-string-name" {
     directory="12345",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["SkillFormatError", "Field 'name' must be a string, got 12345"],
   })
 }
@@ -316,7 +316,7 @@ test "parse_skill_from_content/non-string-description" {
     directory="non-string-description",
     location="/tmp/skill/SKILL.md",
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'description' must be a string, got 67890",
     ],

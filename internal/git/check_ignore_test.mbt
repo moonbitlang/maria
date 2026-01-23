@@ -11,6 +11,6 @@ async test "check-ignore" (t : @test.Test) {
       ["ignored.txt", "not_ignored.txt"],
       cwd=mock.cwd.path(),
     )
-    @json.inspect(ignored_files, content=["ignored.txt"])
+    json_inspect(ignored_files, content=["ignored.txt"])
   })
 }

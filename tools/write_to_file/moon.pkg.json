@@ -3,7 +3,9 @@
     "moonbitlang/maria/tool",
     "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/async/os_error"
+    "moonbitlang/async/os_error",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",

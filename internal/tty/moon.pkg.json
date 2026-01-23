@@ -1,4 +1,9 @@
 {
-  "import": ["moonbitlang/maria/internal/errno"],
-  "native-stub": ["tty.c"]
+  "import": [
+    "moonbitlang/maria/internal/errno",
+    "moonbitlang/core/json"
+  ],
+  "native-stub": [
+    "tty.c"
+  ]
 }

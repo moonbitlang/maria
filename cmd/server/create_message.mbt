@@ -52,8 +52,8 @@ test "CreateMessageRequest::from_json" {
     "web_search": true,
   }
   let req : CreateMessageRequest = @json.from_json(json)
-  @json.inspect(req.message, content=["User", "Hello, world!"])
-  @json.inspect(req.web_search, content=[true])
+  json_inspect(req.message, content=["User", "Hello, world!"])
+  json_inspect(req.web_search, content=[true])
 }
 
 ///|

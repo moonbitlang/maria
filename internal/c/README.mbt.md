@@ -53,7 +53,7 @@ test {
   s[3] = 'l'
   s[4] = 'o'
   s[5] = 0
-  @json.inspect(strlen(s), content="5")
+  json_inspect(strlen(s), content="5")
   @c.free(s)
 }
 ```

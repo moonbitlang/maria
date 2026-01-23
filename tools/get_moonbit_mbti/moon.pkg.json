@@ -1,4 +1,11 @@
 {
-  "import": ["moonbitlang/maria/tool", "moonbitlang/maria/internal/moon"],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "import": [
+    "moonbitlang/maria/tool",
+    "moonbitlang/maria/internal/moon",
+    "moonbitlang/core/test"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

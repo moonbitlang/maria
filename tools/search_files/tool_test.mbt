@@ -14,7 +14,7 @@ async test "search_files" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "SearchResultData",
       {
         "kind": "Regex",
@@ -64,7 +64,7 @@ async test "search_files-moon-definition" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(mock.json(output), content=[
+    json_inspect(mock.json(output), content=[
       "MoonbitToolResult",
       {
         "kind": "MoonbitDefinition",
@@ -109,7 +109,7 @@ async test "search_files-moon-references" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(mock.json(output), content=[
+    json_inspect(mock.json(output), content=[
       "MoonbitToolResult",
       {
         "kind": "MoonbitReferences",

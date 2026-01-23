@@ -4,7 +4,11 @@
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/async",
-    "moonbitlang/maria/internal/mock"
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/core/cmp",
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

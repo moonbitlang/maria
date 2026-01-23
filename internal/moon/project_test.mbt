@@ -21,9 +21,9 @@ async test "project" (t : @test.Test) {
       },
     })
     let project = @moon.Module::load(mock.cwd.path())
-    @json.inspect(project.name, content="example")
+    json_inspect(project.name, content="example")
     let internal_package = project.find_package("example/internal")
-    @json.inspect(mock.json(internal_package), content=[
+    json_inspect(mock.json(internal_package), content=[
       {
         "name": "example/internal",
         "path": "(mock:cwd)/internal",
@@ -44,7 +44,7 @@ async test "project" (t : @test.Test) {
       },
     ])
     project.install()
-    @json.inspect(
+    json_inspect(
       project.find_package("moonbitlang/async/pipe") is Some(_),
       content=true,
     )

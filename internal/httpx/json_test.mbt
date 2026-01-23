@@ -31,8 +31,8 @@ async test "JsonRequestReader" (t : @test.Test) {
         "name": "Example Task",
         "description": "This is an example task.",
       })
-      @json.inspect(r.code, content=200)
-      @json.inspect(b.json(), content=[
+      json_inspect(r.code, content=200)
+      json_inspect(b.json(), content=[
         "Ok",
         { "name": "Example Task", "description": "This is an example task." },
       ])
@@ -40,8 +40,8 @@ async test "JsonRequestReader" (t : @test.Test) {
         "http://localhost:\{server.port()}/task",
         b"\xFF\xFF",
       )
-      @json.inspect(r.code, content=400)
-      @json.inspect(b.json(), content={
+      json_inspect(r.code, content=400)
+      json_inspect(b.json(), content={
         "error": {
           "code": 400,
           "message": "Invalid UTF-8 in request body",
@@ -52,8 +52,8 @@ async test "JsonRequestReader" (t : @test.Test) {
         "http://localhost:\{server.port()}/task",
         b"{ invalid json }",
       )
-      @json.inspect(r.code, content=400)
-      @json.inspect(b.json(), content={
+      json_inspect(r.code, content=400)
+      json_inspect(b.json(), content={
         "error": {
           "code": 400,
           "message": "Invalid JSON in request body",
@@ -63,8 +63,8 @@ async test "JsonRequestReader" (t : @test.Test) {
       let (r, b) = post_json("http://localhost:\{server.port()}/task", {
         "name": "Incomplete Task",
       })
-      @json.inspect(r.code, content=400)
-      @json.inspect(b.json(), content={
+      json_inspect(r.code, content=400)
+      json_inspect(b.json(), content={
         "error": {
           "code": 400,
           "message": "Invalid request body",

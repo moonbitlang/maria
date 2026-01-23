@@ -1,4 +1,12 @@
 {
-  "import": ["moonbitlang/maria/internal/c"],
-  "native-stub": ["errno.c"]
+  "import": [
+    "moonbitlang/maria/internal/c",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    }
+  ],
+  "native-stub": [
+    "errno.c"
+  ]
 }

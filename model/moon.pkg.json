@@ -4,9 +4,16 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/oauth/codex",
-    "moonbitlang/maria/oauth/copilot"
+    "moonbitlang/maria/oauth/copilot",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
-
-  "wbtest-import": ["moonbitlang/maria/internal/mock", "moonbitlang/async"],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "wbtest-import": [
+    "moonbitlang/maria/internal/mock",
+    "moonbitlang/async"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

@@ -1,3 +1,6 @@
 {
-  "import": ["moonbitlang/maria/internal/openai"]
+  "import": [
+    "moonbitlang/maria/internal/openai",
+    "moonbitlang/core/json"
+  ]
 }

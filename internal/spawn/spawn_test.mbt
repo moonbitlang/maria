@@ -10,7 +10,7 @@ async test "Manager::spawn" (t : @test.Test) {
     let manager = @spawn.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
     let process = manager.spawn("sleep", ["2"])
-    @json.inspect(process.pid, content=0)
+    json_inspect(process.pid, content=0)
   })
 }
 
@@ -21,7 +21,7 @@ async test "Manager::wait" (t : @test.Test) {
     mock.group.spawn_bg(() => manager.start(), no_wait=true)
     let process = manager.spawn("sleep", ["2"])
     let status = process.wait()
-    @json.inspect(status, content=0)
+    json_inspect(status, content=0)
   })
 }
 
@@ -31,8 +31,8 @@ async test "spawn/env" (t : @test.Test) {
     let process = @spawn.spawn("sh", ["-c", "echo $TEST_ENV_VAR"], env={
       "TEST_ENV_VAR": "hello_world",
     })
-    @json.inspect(process.status, content=0)
-    @json.inspect(process.stdout.to_string(), content="hello_world\n")
+    json_inspect(process.status, content=0)
+    json_inspect(process.stdout.to_string(), content="hello_world\n")
   })
 }
 
@@ -40,7 +40,7 @@ async test "spawn/env" (t : @test.Test) {
 async test "redirect-stdin" (t : @test.Test) {
   @mock.run(t, _ => {
     let process = @spawn.spawn("cat", [], stdin="Hello, World!\n")
-    @json.inspect(process.status, content=0)
+    json_inspect(process.status, content=0)
     inspect(
       process.stdout,
       content=(
@@ -55,7 +55,7 @@ async test "redirect-stdin" (t : @test.Test) {
 async test "spawn/failed" (t : @test.Test) {
   @mock.run(t, _ => {
     let process = @spawn.spawn("sh", ["-c", "exit 42"])
-    @json.inspect(
+    json_inspect(
       (try? process.check())
       .to_json()
       .transform(@json.Replacer::exclude(["elapsed"])),

@@ -7,7 +7,7 @@ async test "clone" (t : @test.Test) {
       depth=1,
     )
     let entries = mock.cwd.list().map((entry : @mock.Entry) => entry.name())
-    @json.inspect(entries.contains("moon.mod.json"), content=true)
+    json_inspect(entries.contains("moon.mod.json"), content=true)
   })
 }
 

@@ -15,7 +15,7 @@ async test "check_patch" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
-    @json.inspect(files, content=[
+    json_inspect(files, content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -27,7 +27,7 @@ async test "check_patch" (t : @test.Test) {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(mock.json(files), content=[
+    json_inspect(mock.json(files), content=[
       {
         "content": "///|\nlet x : Int = \"string\"",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -91,7 +91,7 @@ async test "check_patch" (t : @test.Test) {
     ])
     let file = files[0]
     let segments = file.segments()
-    @json.inspect(mock.json(segments), content=[
+    json_inspect(mock.json(segments), content=[
       {
         "file": "(mock:cwd)/example.mbt",
         "index": 1,
@@ -99,7 +99,7 @@ async test "check_patch" (t : @test.Test) {
       },
     ])
     let segment = segments[0]
-    @json.inspect(
+    json_inspect(
       mock.json(moon.check_patch_replace(segment, "///|\nlet x : String = 100")),
       content=[
         "Diagnostics",
@@ -147,14 +147,14 @@ async test "check_patch_test" (t : @test.Test) {
     )
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(
+    json_inspect(moon.diagnostics(), content=["Diagnostics", []])
+    json_inspect(
       mock.json(
         moon.check_patch_insert(
           @pathx.join(mock.cwd.path(), "a_test.mbt"),
           (
             #|test "patched-test" {
-            #|  @json.inspect(@example.x, 42)
+            #|  json_inspect(@example.x, 42)
             #|}
           ),
         ),

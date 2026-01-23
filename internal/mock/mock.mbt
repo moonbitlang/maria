@@ -363,7 +363,7 @@ fn init {
 ///   @mock.run(t, ctx => {
 ///     let file = ctx.add_file("test.txt", content="Hello, World!")
 ///     let content = file.read()
-///     @json.inspect(content, content="Hello, World!")
+///     json_inspect(content, content="Hello, World!")
 ///   })
 /// }
 /// ```

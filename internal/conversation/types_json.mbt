@@ -12,7 +12,7 @@ test "Message to_json" {
       message: @ai.user_message(content="Hello, world!"),
     },
   ]
-  @json.inspect(messages, content=[
+  json_inspect(messages, content=[
     {
       "timestamp": 1625079600,
       "message": { "role": "user", "content": "Hello, world!" },

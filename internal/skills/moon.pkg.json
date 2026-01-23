@@ -7,8 +7,16 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/pathx",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/yamd"
+    "moonbitlang/maria/internal/yamd",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"],
-  "wbtest-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ],
+  "wbtest-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

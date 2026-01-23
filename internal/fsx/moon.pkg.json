@@ -5,7 +5,13 @@
     "moonbitlang/async/io",
     "moonbitlang/maria/internal/errno",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/async/os_error"
+    "moonbitlang/async/os_error",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",
@@ -15,5 +21,11 @@
     "moonbitlang/maria/internal/signal",
     "moonbitlang/async/pipe"
   ],
-  "native-stub": ["stat.c", "mkdtemp.c", "readlink.c", "lock.c", "truncate.c"]
+  "native-stub": [
+    "stat.c",
+    "mkdtemp.c",
+    "readlink.c",
+    "lock.c",
+    "truncate.c"
+  ]
 }

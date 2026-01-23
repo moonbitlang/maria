@@ -84,7 +84,7 @@ async test "register" (t : @test.Test) {
     conn.write(res.to_json())
     conn.end_response()
     let server = server_task.wait()
-    @json.inspect(
+    json_inspect(
       mock.json(rb.json()).transform(@json.Replacer::exclude(["new_id"])),
       content={
         "id": "test-server",
@@ -104,34 +104,34 @@ async test "POST /v1/message" (t : @test.Test) {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       { "message": { "role": "user", "content": "Hello, Maria!" } },
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=false)
+    json_inspect(queued, content=false)
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       { "message": { "role": "user", "content": "Hello again!" } },
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
     guard b is { "id": String(qid), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=true)
+    json_inspect(queued, content=true)
     let (r, b) = @http.get(
       "http://localhost:\{server.port()}/v1/queued-messages",
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b, content=[
+    json_inspect(b, content=[
       { "id": qid, "message": { "role": "user", "content": "Hello again!" } },
     ])
   })
@@ -148,7 +148,7 @@ async test "GET /v1/events" (t : @test.Test) {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       @test_utils.ServerEvent::collect_events(s)
     })
     let (_, b) = @httpx.post_json(
@@ -168,7 +168,7 @@ async test "GET /v1/events" (t : @test.Test) {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
     let events = collector.wait()
-    @json.inspect(
+    json_inspect(
       @test_utils.redact_events(
         @test_utils.extract_events_for_message(
           events,
@@ -209,7 +209,7 @@ async test "GET /v1/events" (t : @test.Test) {
         ],
       ],
     )
-    @json.inspect(
+    json_inspect(
       @test_utils.redact_events(
         @test_utils.extract_events_for_message(
           events,
@@ -262,12 +262,12 @@ async test "GET /v1/moonbit/modules" (t : @test.Test) {
     let (r, b) = @http.get(
       "http://localhost:\{server.port()}/v1/moonbit/modules",
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
     guard b is { "modules": Array(modules), .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(mock.json(modules), content=[
+    json_inspect(mock.json(modules), content=[
       {
         "path": "(mock:cwd)",
         "name": "username/example",
@@ -287,8 +287,8 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
       "http://localhost:\{server.port()}/v1/moonbit/publish",
       { "module": { "path": mock.cwd.path() } },
     )
-    @json.inspect(r.code, content=404)
-    @json.inspect(
+    json_inspect(r.code, content=404)
+    json_inspect(
       mock.json(b.json()).transform(@json.Replacer::exclude(["metadata"])),
       content={
         "error": {
@@ -302,8 +302,8 @@ async test "POST /v1/moonbit/publish" (t : @test.Test) {
       "http://localhost:\{server.port()}/v1/moonbit/publish",
       { "module": { "path": mock.cwd.path() } },
     )
-    @json.inspect(r.code, content=500)
-    @json.inspect(
+    json_inspect(r.code, content=500)
+    json_inspect(
       mock
       .json(b.json())
       .transform(@json.Replacer::exclude(["stdout", "stderr"])),
@@ -335,10 +335,10 @@ async test "CORS" (t : @test.Test) {
     defer c.close()
     c.request(Options, "/v1/message")
     let r = c.end_request()
-    @json.inspect(r.code, content=204)
-    @json.inspect(r.headers["access-control-allow-origin"], content="*")
-    @json.inspect(r.headers["access-control-allow-methods"], content="*")
-    @json.inspect(r.headers["access-control-allow-headers"], content="*")
+    json_inspect(r.code, content=204)
+    json_inspect(r.headers["access-control-allow-origin"], content="*")
+    json_inspect(r.headers["access-control-allow-methods"], content="*")
+    json_inspect(r.headers["access-control-allow-headers"], content="*")
   })
 }
 
@@ -349,9 +349,9 @@ async test "GET /" (t : @test.Test) {
     let server = configure_server(mock, serve=mock.cwd.path())
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/")
-    @json.inspect(r.code, content=200)
-    @json.inspect(r.headers["content-type"], content="text/html")
-    @json.inspect(b.text(), content="<h1>Home Page</h1>")
+    json_inspect(r.code, content=200)
+    json_inspect(r.headers["content-type"], content="text/html")
+    json_inspect(b.text(), content="<h1>Home Page</h1>")
   })
 }
 
@@ -362,9 +362,9 @@ async test "GET /script.js" (t : @test.Test) {
     let server = configure_server(mock, serve=mock.cwd.path())
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/script.js")
-    @json.inspect(r.code, content=200)
-    @json.inspect(r.headers["content-type"], content="application/javascript")
-    @json.inspect(b.text(), content="console.log('Hello, world!');")
+    json_inspect(r.code, content=200)
+    json_inspect(r.headers["content-type"], content="application/javascript")
+    json_inspect(b.text(), content="console.log('Hello, world!');")
   })
 }
 
@@ -379,17 +379,17 @@ async test "POST /v1/cancel" (t : @test.Test) {
         let (r, s) = @http.get_stream(
           "http://localhost:\{server.port()}/v1/events",
         )
-        @json.inspect(r.code, content=200)
+        json_inspect(r.code, content=200)
         @test_utils.ServerEvent::collect_events(s)
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
-      @json.inspect(r.code, content=200)
-      @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+      json_inspect(r.code, content=200)
+      json_inspect(b.json(), content={ "status": "idle", "web_search": false })
       let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/message",
         { "message": { "role": "user", "content": "Hello, Maria!" } },
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       let b = b.json()
       guard b is { "id": String(_), "queued": false, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
@@ -411,8 +411,8 @@ async test "POST /v1/cancel" (t : @test.Test) {
         "http://localhost:\{server.port()}/v1/cancel",
         {},
       )
-      @json.inspect(r.code, content=200)
-      @json.inspect(b.json(), content={
+      json_inspect(r.code, content=200)
+      json_inspect(b.json(), content={
         "pending_messages": [
           {
             "id": id,
@@ -426,7 +426,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       })
       let events = collector.wait()
       // There is no MessageAdded event for the cancelled message
-      @json.inspect(
+      json_inspect(
         events
         .filter(e => e is Maria(event) &&
           event.desc is UserMessage(msg) &&
@@ -435,7 +435,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
         content=0,
       )
       // There is a MariaCancelled event
-      @json.inspect(
+      json_inspect(
         events.filter(e => e is Maria(event) && event.desc is Cancelled)
         |> @test_utils.redact_events(),
         content=[
@@ -456,7 +456,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       // We want skip over the first cancellation event.
       @test_utils.ServerEvent::collect_events(s, stop_at_cancel=false)
       |> ignore()
@@ -476,7 +476,7 @@ async test "web_search" (t : @test.Test) {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       @test_utils.ServerEvent::collect_events(s)
     })
     let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
@@ -487,7 +487,7 @@ async test "web_search" (t : @test.Test) {
       "web_search": true,
     })
     let events = collector.wait()
-    @json.inspect(
+    json_inspect(
       events
       .filter(e => e is @test_utils.Maria(event) &&
         event.desc is AssistantMessage(content, ..) &&
@@ -506,9 +506,9 @@ async test "GET /v1/tools" (t : @test.Test) {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/tools")
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b, content={
+    json_inspect(b, content={
       "execute_command": { "enabled": true },
       "list_files": { "enabled": true },
       "read_file": { "enabled": true },
@@ -521,12 +521,12 @@ async test "GET /v1/tools" (t : @test.Test) {
       "http://localhost:\{server.port()}/v1/enabled-tools",
       ["list_files", "read_file", "todo", "search_files", "meta_write_to_file"],
     )
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={})
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={})
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/tools")
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b, content={
+    json_inspect(b, content={
       "execute_command": { "enabled": false },
       "list_files": { "enabled": true },
       "read_file": { "enabled": true },
@@ -545,20 +545,20 @@ async test "GET /v1/system-prompt" (t : @test.Test) {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b is String(text) && text.length() > 0, content=true)
+    json_inspect(b is String(text) && text.length() > 0, content=true)
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/system-prompt",
       "New system prompt.",
     )
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={})
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={})
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(r.code, content=200)
-    @json.inspect(b, content="New system prompt.")
+    json_inspect(r.code, content=200)
+    json_inspect(b, content="New system prompt.")
   })
 }
 
@@ -569,20 +569,20 @@ async test "GET /v1/external-event/user-message" (t : @test.Test) {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/user-message",
       { "message": "Hello, Maria!" },
     )
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "success": true })
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={ "success": true })
     let (r, b) = @http.get(
       "http://localhost:\{server.port()}/v1/queued-messages",
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
-    @json.inspect(b, content=[])
+    json_inspect(b, content=[])
   })
 }
 
@@ -596,12 +596,12 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       @test_utils.ServerEvent::collect_events(s)
     })
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
-    @json.inspect(r.code, content=200)
-    @json.inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(r.code, content=200)
+    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       {
@@ -611,12 +611,12 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
         },
       },
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=false)
+    json_inspect(queued, content=false)
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       {
@@ -626,25 +626,25 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
         },
       },
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let b = b.json()
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    @json.inspect(queued, content=true)
+    json_inspect(queued, content=true)
     let (r, _) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/cancel",
       {},
     )
-    @json.inspect(r.code, content=200)
+    json_inspect(r.code, content=200)
     let events = collector.wait()
-    @json.inspect(
+    json_inspect(
       events
       .filter(e => e is Maria(event) && event.desc is MessageUnqueued(_))
       .length(),
       content=1,
     )
-    @json.inspect(
+    json_inspect(
       events.filter(e => e is Maria(event) && event.desc is Cancelled).length(),
       content=1,
     )
@@ -661,7 +661,7 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
       let (r, s) = @http.get_stream(
         "http://localhost:\{server.port()}/v1/events",
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       @test_utils.ServerEvent::collect_events(s)
     })
     mock.add_json_tree({
@@ -699,7 +699,7 @@ async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
       {},
     )
     let events = collector.wait()
-    @json.inspect(
+    json_inspect(
       events
       .filter(e => e is Maria(event) && event.desc is Diagnostics(_))
       .length() >

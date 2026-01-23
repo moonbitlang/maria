@@ -1,1 +1,6 @@
-{}
+{
+  "import": [
+    "moonbitlang/core/buffer",
+    "moonbitlang/core/json"
+  ]
+}

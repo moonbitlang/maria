@@ -1,3 +1,6 @@
 {
-  "import": ["moonbit-community/yaml"]
+  "import": [
+    "moonbit-community/yaml",
+    "moonbitlang/core/json"
+  ]
 }

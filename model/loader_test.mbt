@@ -15,7 +15,7 @@ async test "Loader" (t : @test.Test) {
       .add_directory("models")
       .add_file("models.json")
     models_file.write_string(models.to_json().stringify(indent=2))
-    @json.inspect(mock.json(@json.parse(models_file.read())), content=[
+    json_inspect(mock.json(@json.parse(models_file.read())), content=[
       {
         "name": "haiku",
         "model_name": "anthropic/claude-haiku-4.5",
@@ -28,7 +28,7 @@ async test "Loader" (t : @test.Test) {
       },
     ])
     let loader = @model.Loader::new(home=mock.cwd.path(), cwd=mock.cwd.path())
-    @json.inspect(mock.json(loader.get_model(name="haiku")), content=[
+    json_inspect(mock.json(loader.get_model(name="haiku")), content=[
       {
         "name": "haiku",
         "model_name": "anthropic/claude-haiku-4.5",
@@ -60,7 +60,7 @@ async test "load" (t : @test.Test) {
       .add_directory("models")
       .add_file("models.json")
     models_file.write_string(models.to_json().stringify(indent=2))
-    @json.inspect(mock.json(@json.parse(models_file.read())), content=[
+    json_inspect(mock.json(@json.parse(models_file.read())), content=[
       {
         "name": "haiku",
         "model_name": "anthropic/claude-haiku-4.5",
@@ -72,7 +72,7 @@ async test "load" (t : @test.Test) {
         "supports_apply_patch": false,
       },
     ])
-    @json.inspect(
+    json_inspect(
       mock.json(
         @model.load(home=mock.cwd.path(), cwd=mock.cwd.path(), name="haiku"),
       ),
@@ -109,7 +109,7 @@ async test "removes-old-models" (t : @test.Test) {
     let models = [old_model]
     models_file.write_string(models.to_json().stringify(indent=2))
     let loader = @model.Loader::new(home=mock.cwd.path(), cwd=mock.cwd.path())
-    @json.inspect(loader.get_model(), content=[
+    json_inspect(loader.get_model(), content=[
       {
         "name": "old_model",
         "model_name": "old/model-name",
@@ -130,7 +130,7 @@ async test "removes-old-models" (t : @test.Test) {
     )
     let models = [new_model]
     models_file.write_string(models.to_json().stringify(indent=2))
-    @json.inspect(loader.get_model(), content=[
+    json_inspect(loader.get_model(), content=[
       {
         "name": "new_model",
         "model_name": "anthropic/claude-haiku-4.5",

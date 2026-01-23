@@ -28,7 +28,7 @@ pub fn input_json(
 
 ///|
 test "params ToJson" {
-  @json.inspect(
+  json_inspect(
     params(
       diagnostic_limit=5,
       patch_code="let x : Int = \"string\"",

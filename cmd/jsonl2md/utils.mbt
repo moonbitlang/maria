@@ -16,15 +16,15 @@ fn count_maximum_contiguous_backticks(content : String) -> Int raise {
 
 ///|
 test "count_maximum_contiguous_backticks" {
-  @json.inspect(
+  json_inspect(
     count_maximum_contiguous_backticks("No backticks here"),
     content=0,
   )
-  @json.inspect(
+  json_inspect(
     count_maximum_contiguous_backticks("Here is `one` backtick"),
     content=1,
   )
-  @json.inspect(
+  json_inspect(
     count_maximum_contiguous_backticks(
       (
         #|Some text

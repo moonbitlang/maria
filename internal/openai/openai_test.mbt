@@ -1,6 +1,6 @@
 ///|
 test "system_message" {
-  @json.inspect(system_message(content="You are a helpful assistant."), content={
+  json_inspect(system_message(content="You are a helpful assistant."), content={
     "role": "system",
     "content": "You are a helpful assistant.",
   })
@@ -8,7 +8,7 @@ test "system_message" {
 
 ///|
 test "user_message" {
-  @json.inspect(user_message(content="Hello", name="Alice"), content={
+  json_inspect(user_message(content="Hello", name="Alice"), content={
     "role": "user",
     "content": "Hello",
     "name": "Alice",
@@ -17,7 +17,7 @@ test "user_message" {
 
 ///|
 test "assistant_message" {
-  @json.inspect(assistant_message(content="Hi there!"), content={
+  json_inspect(assistant_message(content="Hi there!"), content={
     "role": "assistant",
     "tool_calls": [],
     "content": "Hi there!",
@@ -67,7 +67,7 @@ test "ChatCompletionChoice" {
     },
   }
   let completion : ChatCompletion = @json.from_json(json)
-  @json.inspect(completion, content={
+  json_inspect(completion, content={
     "id": "gen-1761639397-aseLxfjMsPT5jVOhxXdW",
     "choices": [
       {
@@ -134,7 +134,7 @@ test "ChatCompletionChoice" {
     },
   }
   let completion : ChatCompletion = @json.from_json(json)
-  @json.inspect(completion, content={
+  json_inspect(completion, content={
     "id": "gen-1761643890-jGqb3sMZR2Kc7xT50AXU",
     "choices": [
       {
@@ -160,7 +160,7 @@ test "tool_call" {
     name="execute_command",
     arguments="{\"command\": \"moon new json_parser\", \"timeout\": 10000}",
   )
-  @json.inspect(tool_call, content={
+  json_inspect(tool_call, content={
     "id": "call_6abfac48947b4400afbf1d5c",
     "function": {
       "name": "execute_command",

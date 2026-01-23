@@ -5,5 +5,5 @@ test "executable" {
     |> @pathx.join("bin")
     |> @pathx.join("internal")
     |> @pathx.join("tcc")
-  @json.inspect(executable == tcc_path, content=true)
+  json_inspect(executable == tcc_path, content=true)
 }

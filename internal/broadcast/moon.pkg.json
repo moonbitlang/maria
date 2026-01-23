@@ -1,4 +1,12 @@
 {
-  "import": ["moonbitlang/async", "moonbitlang/async/cond_var"],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "import": [
+    "moonbitlang/async",
+    "moonbitlang/async/cond_var",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

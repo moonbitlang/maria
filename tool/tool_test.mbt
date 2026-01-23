@@ -1,6 +1,6 @@
 ///|
 test "tool_desc" {
-  @json.inspect(
+  json_inspect(
     @tool.tool_desc(
       description="A sample tool",
       name="sample_tool",

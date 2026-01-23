@@ -86,7 +86,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       guard r.headers
         is {
           "content-type": "application/json",
@@ -98,7 +98,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
         } else {
         fail("Unexpected response headers: \{r.headers}")
       }
-      @json.inspect(b.json(), content={ "tasks": [] })
+      json_inspect(b.json(), content={ "tasks": [] })
       let _ = @httpx.post_json("http://localhost:\{daemon.port()}/v1/task", {
         "message": { "role": "user", "content": "Hello!" },
         "model": "mock:claude-haiku-4.5",
@@ -109,7 +109,7 @@ async test "GET /v1/tasks" (t : @test.Test) {
       guard b is { "tasks": Array(tasks), .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      @json.inspect(tasks.length(), content=1)
+      json_inspect(tasks.length(), content=1)
     })
   })
 }
@@ -151,7 +151,7 @@ async test "GET /v1/task/{id}" (t : @test.Test) {
       } else {
         m
       })
-      @json.inspect(queued_messages, content=[
+      json_inspect(queued_messages, content=[
         {
           "id": "<redacted>",
           "message": { "role": "user", "content": "How are you?" },
@@ -170,7 +170,7 @@ async test "GET /v1/models" (t : @test.Test) {
       group.spawn_bg(() => daemon.serve(), no_wait=true)
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/models")
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       guard r.headers
         is {
           "content-type": "application/json",
@@ -186,7 +186,7 @@ async test "GET /v1/models" (t : @test.Test) {
       guard b is { "models": Array(models), .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      @json.inspect(
+      json_inspect(
         models.contains({ "name": "mock:claude-haiku-4.5" }),
         content=true,
       )
@@ -210,7 +210,7 @@ async test "POST /v1/task" (t : @test.Test) {
           "cwd": mock.cwd.path(),
         },
       )
-      @json.inspect(r.code, content=201)
+      json_inspect(r.code, content=201)
       let b = b.json()
       guard b
         is {
@@ -226,23 +226,23 @@ async test "POST /v1/task" (t : @test.Test) {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
       let status : @server.Status = @json.from_json(status)
-      @json.inspect(status, content="idle")
+      json_inspect(status, content="idle")
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       let b = b.json()
       guard b is { "tasks": Array(tasks), .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      @json.inspect(tasks.length(), content=1)
+      json_inspect(tasks.length(), content=1)
       let (r, s) = @http.get_stream(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/events",
       )
-      @json.inspect(r.code, content=200)
-      @json.inspect(r.headers["content-type"], content="text/event-stream")
-      @json.inspect(r.headers["access-control-allow-origin"], content="*")
-      @json.inspect(r.headers["access-control-allow-methods"], content="*")
-      @json.inspect(r.headers["access-control-allow-headers"], content="*")
-      @json.inspect(r.headers["x-accel-buffering"], content="no")
+      json_inspect(r.code, content=200)
+      json_inspect(r.headers["content-type"], content="text/event-stream")
+      json_inspect(r.headers["access-control-allow-origin"], content="*")
+      json_inspect(r.headers["access-control-allow-methods"], content="*")
+      json_inspect(r.headers["access-control-allow-headers"], content="*")
+      json_inspect(r.headers["x-accel-buffering"], content="no")
       ignore(@test_utils.ServerEvent::collect_events(s))
     })
   })
@@ -264,7 +264,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           "cwd": mock.cwd.path(),
         },
       )
-      @json.inspect(r.code, content=201)
+      json_inspect(r.code, content=201)
       let b = b.json()
       guard b
         is {
@@ -283,7 +283,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
       let queued : Bool = @json.from_json(queued)
-      @json.inspect(queued, content=true)
+      json_inspect(queued, content=true)
       let (_, s) = @http.get_stream(
         "http://localhost:\{daemon.port()}/v1/task/\{id}/events",
       )
@@ -294,8 +294,8 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           pop_ids.push(id)
         }
       }
-      @json.inspect(pop_ids, content=[msg0_id, msg1_id])
-      @json.inspect(
+      json_inspect(pop_ids, content=[msg0_id, msg1_id])
+      json_inspect(
         @test_utils.redact_events(
           @test_utils.extract_events_for_message(
             events,
@@ -336,7 +336,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           ],
         ],
       )
-      @json.inspect(
+      json_inspect(
         @test_utils.redact_events(
           @test_utils.extract_events_for_message(
             events,
@@ -377,7 +377,7 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
           ],
         ],
       )
-      @json.inspect(
+      json_inspect(
         @test_utils.redact_events(events)
         .filter(e => {
           guard e is MariaQueuedMessagesSynchronized(msgs) else { false }
@@ -411,9 +411,9 @@ async test "POST /v1/task with invalid cwd" (t : @test.Test) {
           "cwd": "/non/existent/path",
         },
       )
-      @json.inspect(r.code, content=404)
+      json_inspect(r.code, content=404)
       let b = b.json()
-      @json.inspect(b, content={
+      json_inspect(b, content={
         "error": {
           "code": -1,
           "message": "Specified 'cwd' path does not exist: /non/existent/path",
@@ -440,9 +440,9 @@ async test "POST /v1/task with invalid model" (t : @test.Test) {
           "cwd": mock.cwd.path(),
         },
       )
-      @json.inspect(r.code, content=201)
+      json_inspect(r.code, content=201)
       let b = b.json()
-      @json.inspect(
+      json_inspect(
         b.transform(
           @json.Replacer::exclude(["id", "cwd", "port", "created", "updated"]),
         ),
@@ -490,7 +490,7 @@ async test "GET /v1/events" (t : @test.Test) {
       )
       |> ignore()
       let events = collector.wait()
-      @json.inspect(
+      json_inspect(
         mock
         .json(events)
         .transform(
@@ -540,7 +540,7 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
           "cwd": mock.cwd.path(),
         },
       )
-      @json.inspect(r.code, content=201)
+      json_inspect(r.code, content=201)
       let b = b.json()
       guard b is { "task": { "id": String(id), .. }, .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
@@ -555,9 +555,9 @@ async test "POST /v1/task/{id}/cancel" (t : @test.Test) {
         "http://localhost:\{daemon.port()}/v1/task/\{id}/cancel",
         null,
       )
-      @json.inspect(r.code, content=200)
+      json_inspect(r.code, content=200)
       let events = collector.wait()
-      @json.inspect(
+      json_inspect(
         events.filter(event => event is Maria({ desc: Cancelled, .. })).length() >
         0,
         content=true,
@@ -614,7 +614,7 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
         )
         @test_utils.ServerEvent::collect_events(s)
       })
-      @json.inspect(web_search, content=[true])
+      json_inspect(web_search, content=[true])
       let events = collector.wait()
       let content = events
         .filter_map(e => if e
@@ -624,7 +624,7 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
           None
         })
         .join("\n")
-      @json.inspect(
+      json_inspect(
         content.contains("2022") || content.contains("2023"),
         content=true,
       )

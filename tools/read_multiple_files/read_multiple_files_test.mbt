@@ -23,7 +23,7 @@ async test "nonexistent" (t : @test.Test) {
         #|]
       ),
     )
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       [
         "MultipleErrors",
@@ -71,7 +71,7 @@ async test "content" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "ReadMultipleFilesResult",
       [
         [
@@ -149,7 +149,7 @@ async test "line_range" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "ReadMultipleFilesResult",
       [
         [
@@ -206,7 +206,7 @@ async test "directory" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "ReadMultipleFilesResult",
       [
         [
@@ -327,7 +327,7 @@ async test "invalid-range" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "ReadMultipleFilesResult",
       [
         [
@@ -375,7 +375,7 @@ async test "read multiple mixed files" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "ReadMultipleFilesResult",
       [
         [

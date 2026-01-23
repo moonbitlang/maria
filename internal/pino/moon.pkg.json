@@ -8,6 +8,12 @@
     "moonbitlang/async",
     "moonbitlang/async/os_error",
     "moonbitlang/maria/internal/errno",
-    "moonbitlang/async/aqueue"
+    "moonbitlang/async/aqueue",
+    "moonbitlang/core/buffer",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json"
   ]
 }

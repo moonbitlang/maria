@@ -21,7 +21,7 @@ async test "replace-segment" (t : @test.Test) {
     )
     let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
-    @json.inspect(files, content=[
+    json_inspect(files, content=[
       {
         "content": "///|\nlet x : Int = 42\n\n///|\nlet y : String = \"hello\"",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -34,7 +34,7 @@ async test "replace-segment" (t : @test.Test) {
     ])
     let file = files[0]
     let segments = file.segments()
-    @json.inspect(mock.json(segments), content=[
+    json_inspect(mock.json(segments), content=[
       {
         "file": "(mock:cwd)/example.mbt",
         "index": 1,
@@ -57,7 +57,7 @@ async test "replace-segment" (t : @test.Test) {
         ),
       ),
     )
-    @json.inspect(mock.json(file.segments()), content=[
+    json_inspect(mock.json(file.segments()), content=[
       {
         "file": "(mock:cwd)/example.mbt",
         "index": 1,
@@ -203,7 +203,7 @@ async test "replace_segment/list" (t : @test.Test) {
     )
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(mock.json(moon.diagnostics()), content=[
+    json_inspect(mock.json(moon.diagnostics()), content=[
       "Diagnostics",
       [
         {

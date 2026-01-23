@@ -7,5 +7,5 @@ test "strlen" {
   s[3] = 'l'
   s[4] = 'o'
   s[5] = 0
-  @json.inspect(@c.strlen(s), content="5")
+  json_inspect(@c.strlen(s), content="5")
 }

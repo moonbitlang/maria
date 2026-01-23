@@ -140,7 +140,7 @@ test "extract_task_tags" {
     #|Some text.
     #|<task>Second task</task>
     #|End.
-  @json.inspect(extract_task_tags(tasks), content=["First task", "Second task"])
+  json_inspect(extract_task_tags(tasks), content=["First task", "Second task"])
 }
 
 ///|
@@ -211,7 +211,7 @@ test "remove_list_prefixes" {
   for d in data {
     output[d] = remove_list_prefixes(d)
   }
-  @json.inspect(output, content={
+  json_inspect(output, content={
     "12   First task   ": "12   First task   ",
     "    12   First task   ": "    12   First task   ",
     "123abc": "123abc",

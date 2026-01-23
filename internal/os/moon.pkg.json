@@ -1,13 +1,27 @@
 {
   "targets": {
-    "os_debug_test.mbt": ["debug"],
-    "os_release_test.mbt": ["release"]
+    "os_debug_test.mbt": [
+      "debug"
+    ],
+    "os_release_test.mbt": [
+      "release"
+    ]
   },
   "import": [
     "moonbitlang/maria/internal/errno",
-    "moonbitlang/maria/internal/c"
+    "moonbitlang/maria/internal/c",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/env",
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv",
+    "moonbitlang/core/test"
   ],
-  "native-stub": ["os.c"],
+  "native-stub": [
+    "os.c"
+  ],
   "test-import": [
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/async",

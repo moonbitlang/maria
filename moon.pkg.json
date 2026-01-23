@@ -19,7 +19,12 @@
     "moonbitlang/maria/tools/apply_patch",
     "moonbitlang/maria/internal/conversation",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/maria/internal/rand"
+    "moonbitlang/maria/internal/rand",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
-  "test-import": ["moonbitlang/async", "moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/maria/internal/mock"
+  ]
 }

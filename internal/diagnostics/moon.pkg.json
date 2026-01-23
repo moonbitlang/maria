@@ -1,7 +1,11 @@
 {
   "import": [
     "moonbitlang/maria/internal/fsx",
-    "moonbitlang/maria/internal/pathx"
+    "moonbitlang/maria/internal/pathx",
+    "moonbitlang/core/cmp",
+    "moonbitlang/core/deque",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",

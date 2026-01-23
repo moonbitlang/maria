@@ -12,7 +12,7 @@ async test "test" (t : @test.Test) {
         #|///|
         #|test "add" {
         #|  let x = 2 + 2
-        #|  @json.inspect(x, content=3)
+        #|  json_inspect(x, content=3)
         #|}
         #|
         #|///|
@@ -23,7 +23,7 @@ async test "test" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(mock.json(moon.test_()), content=[
+    json_inspect(mock.json(moon.test_()), content=[
       {
         "package_": "example",
         "filename": "test.mbt",

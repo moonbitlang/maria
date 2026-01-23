@@ -12,7 +12,7 @@ async test "list_files" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
+    json_inspect(output, content={
       "path": ".",
       "entries": [
         { "name": "tool.mbt", "kind": "file", "is_hidden": false },
@@ -37,7 +37,7 @@ async test "list_files_invalid_symlink" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
+    json_inspect(output, content={
       "path": ".",
       "entries": [
         { "name": "file1.txt", "kind": "file", "is_hidden": false },

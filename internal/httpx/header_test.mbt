@@ -10,7 +10,7 @@ test "header" {
       #|{"Content-Type": "application/json", "Set-Cookie": "sessionid=abc123, theme=dark"}
     ),
   )
-  @json.inspect(header, content={
+  json_inspect(header, content={
     "Content-Type": "application/json",
     "Set-Cookie": "sessionid=abc123, theme=dark",
   })

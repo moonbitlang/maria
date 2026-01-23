@@ -16,7 +16,7 @@ async test "moon_run" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     let (status, output) = moon.run(".", ["Hello, MoonBit!", "2"])
-    @json.inspect(status, content=0)
+    json_inspect(status, content=0)
     inspect(
       output,
       content=(

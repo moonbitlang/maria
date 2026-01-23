@@ -17,7 +17,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
     event_target.emit(SystemPromptSet(Some("This is a system prompt.")))
     event_target.emit(UserMessage("Hello"))
     event_target.flush()
-    @json.inspect(
+    json_inspect(
       mock.json(conversation).transform(@json.Replacer::exclude(["created"])),
       content={
         "name": "Test Conversation",
@@ -41,7 +41,7 @@ async test "impl ToJson for Conversation" (t : @test.Test) {
         "web_search": false,
       },
     )
-    @json.inspect(conversation.system_prompt(), content=[
+    json_inspect(conversation.system_prompt(), content=[
       "This is a system prompt.",
     ])
   })
@@ -56,7 +56,7 @@ async test "Conversation::FromJson" (t : @test.Test) {
     event_target.emit(SystemPromptSet(Some("This is a system prompt.")))
     event_target.emit(UserMessage("Hello"))
     event_target.flush()
-    @json.inspect(
+    json_inspect(
       events.to_json().transform(@json.Replacer::exclude(["created"])),
       content=[
         {
@@ -82,15 +82,15 @@ async test "Conversation::FromJson" (t : @test.Test) {
       "cwd": "/home/user/project",
     }
     let conversation : @conversation.Conversation = @json.from_json(json)
-    @json.inspect(conversation.messages().map(fn(m) { m.to_openai() }), content=[
+    json_inspect(conversation.messages().map(fn(m) { m.to_openai() }), content=[
       { "role": "system", "content": "This is a system prompt." },
       { "role": "user", "content": "Hello" },
     ])
-    @json.inspect(
+    json_inspect(
       conversation.messages(include_system=false).map(fn(m) { m.to_openai() }),
       content=[{ "role": "user", "content": "Hello" }],
     )
-    @json.inspect(conversation.system_prompt(), content=[
+    json_inspect(conversation.system_prompt(), content=[
       "This is a system prompt.",
     ])
   })
@@ -127,7 +127,7 @@ async test "Conversation::display" (t : @test.Test) {
       AssistantMessage(usage=None, "Current time is 2024-01-01T12:00:00Z", tool_calls=[]),
     )
     event_target.flush()
-    @json.inspect(
+    json_inspect(
       events.to_json().transform(@json.Replacer::exclude(["created"])),
       content=[
         {

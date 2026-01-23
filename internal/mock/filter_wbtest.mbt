@@ -24,7 +24,7 @@ test "Filter::json masks nested keys and values" {
       "count": 1,
     }),
   )
-  @json.inspect(filtered, content={
+  json_inspect(filtered, content={
     "path": "(mock:home)/config",
     "(mock:home)": "(mock:api)",
     "nested": ["(mock:api)", { "(mock:home)": "(mock:api)" }],
@@ -51,7 +51,7 @@ async test "Context::json uses filter" (t : @test.Test) {
       Json::object({ "cwd": Json::string(cwd) }),
     ])
     let filtered = ctx.json(Json::object(payload))
-    @json.inspect(filtered, content={
+    json_inspect(filtered, content={
       "(mock:cwd)": "(mock:cwd)",
       "items": ["(mock:cwd)", { "cwd": "(mock:cwd)" }],
     })

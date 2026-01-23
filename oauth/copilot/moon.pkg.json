@@ -5,7 +5,7 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/async/http",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "moonbitlang/core/json"
   ]
 }
-

@@ -12,6 +12,14 @@
     {
       "path": "moonbitlang/maria/internal/readline/unicode/width",
       "alias": "unicode/width"
-    }
+    },
+    "moonbitlang/core/buffer",
+    "moonbitlang/core/cmp",
+    "moonbitlang/core/deque",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/env"
   ]
 }

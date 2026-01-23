@@ -215,7 +215,7 @@ test "from_jsonl - single diagnostic" {
   let jsonl =
     #|{"error_code":4014,"level":"error","loc":{"end":{"col":23,"line":1},"path":"example.mbt","start":{"col":15,"line":1}},"message":"Expr Type Mismatch"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  @json.inspect(diagnostics, content=[
+  json_inspect(diagnostics, content=[
     "Diagnostics",
     [
       {
@@ -239,7 +239,7 @@ test "from_jsonl - multiple diagnostics" {
     #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
     #|{"error_code":3003,"level":"error","loc":{"end":{"col":10,"line":2},"path":"main.mbt","start":{"col":8,"line":2}},"message":"Parse error"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  @json.inspect(diagnostics, content=[
+  json_inspect(diagnostics, content=[
     "Diagnostics",
     [
       {
@@ -280,7 +280,7 @@ test "from_jsonl - multiple diagnostics" {
 test "from_jsonl - empty string" {
   let jsonl = ""
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  @json.inspect(diagnostics, content=["Diagnostics", []])
+  json_inspect(diagnostics, content=["Diagnostics", []])
 }
 
 ///|
@@ -290,7 +290,7 @@ test "from_jsonl - empty lines" {
     #|
     #|{"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  @json.inspect(diagnostics, content=[
+  json_inspect(diagnostics, content=[
     "Diagnostics",
     [
       {
@@ -324,7 +324,7 @@ test "from_jsonl - whitespace handling" {
     #|
     #|  {"error_code":2,"level":"warning","loc":{"end":{"col":6,"line":1},"path":"test.mbt","start":{"col":5,"line":1}},"message":"Warning: Unused variable"}  
   let diagnostics = @diagnostics.from_jsonl(jsonl)
-  @json.inspect(diagnostics, content=[
+  json_inspect(diagnostics, content=[
     "Diagnostics",
     [
       {
@@ -381,7 +381,7 @@ test "from_jsonl - round trip" {
     .to_array()
     .join("\n")
   let parsed = @diagnostics.from_jsonl(jsonl_str)
-  @json.inspect(parsed, content=[
+  json_inspect(parsed, content=[
     "Diagnostics",
     [
       {

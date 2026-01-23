@@ -19,7 +19,7 @@ async test "segment" (t : @test.Test) {
     )
     let file = File::new(file.path())
     file.load()
-    @json.inspect(mock.json(file.segments()), content=[
+    json_inspect(mock.json(file.segments()), content=[
       {
         "file": "(mock:cwd)/example.mbt",
         "index": 1,

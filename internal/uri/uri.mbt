@@ -64,11 +64,11 @@ test {
     fragment: None,
   }
   let source = "http://example.com/path?query#fragment"
-  @json.inspect(
+  json_inspect(
     uri.parse_scheme(source),
     content="//example.com/path?query#fragment",
   )
-  @json.inspect(uri.scheme, content="http")
+  json_inspect(uri.scheme, content="http")
 }
 
 ///|

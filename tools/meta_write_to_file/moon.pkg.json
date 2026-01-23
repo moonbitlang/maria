@@ -11,7 +11,9 @@
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/fuzzy",
     "moonbitlang/maria/internal/diagnostics",
-    "moonbitlang/async/os_error"
+    "moonbitlang/async/os_error",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
