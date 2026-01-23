@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/todo"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/clock"
-  "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub fn new(uuid~ : @uuid.Generator, clock? : &@clock.Clock, cwd~ : StringView) -> Todo

@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/httpx"
 
-import(
-  "moonbitlang/async/http"
-  "moonbitlang/async/io"
-  "moonbitlang/core/json"
-)
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
+  "moonbitlang/core/json",
+}
 
 // Values
 pub let cors : Middleware

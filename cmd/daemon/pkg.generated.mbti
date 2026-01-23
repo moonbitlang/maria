@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/daemon"
 
-import(
-  "moonbitlang/async/fs"
-  "moonbitlang/core/json"
-  "moonbitlang/maria/internal/uuid"
-)
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/core/json",
+  "moonbitlang/maria/internal/uuid",
+}
 
 // Values
 pub async fn detach(exec_path? : String, port? : Int, serve? : StringView) -> Int

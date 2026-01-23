@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/internal/test_utils"
 
-import(
-  "moonbitlang/async/http"
-  "moonbitlang/maria/event"
-  "moonbitlang/maria/internal/httpx"
-)
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/httpx",
+}
 
 // Values
 pub async fn[T : @httpx.FromEvent] collect_events(@http.Client, stop_at~ : (T) -> Bool) -> Array[T]

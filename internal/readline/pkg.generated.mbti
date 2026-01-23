@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/readline"
 
-import(
-  "moonbitlang/async/stdio"
-)
+import {
+  "moonbitlang/async/stdio",
+}
 
 // Values
 pub fn interface(input~ : @stdio.Input, output? : @stdio.Output) -> Interface raise

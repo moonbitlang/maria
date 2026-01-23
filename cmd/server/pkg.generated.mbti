@@ -1,14 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/server"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/agent"
-  "moonbitlang/maria/ai"
-  "moonbitlang/maria/event"
-  "moonbitlang/maria/internal/httpx"
-  "moonbitlang/maria/internal/uuid"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/httpx",
+  "moonbitlang/maria/internal/uuid",
+}
 
 // Values
 pub async fn start(ArrayView[String]) -> Unit

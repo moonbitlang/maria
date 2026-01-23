@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria"
 
-import(
-  "moonbitlang/maria/agent"
-  "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/model"
-)
+import {
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/maria/model",
+}
 
 // Values
 

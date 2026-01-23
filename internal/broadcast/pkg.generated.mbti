@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/broadcast"
 
-import(
-  "moonbitlang/async"
-)
+import {
+  "moonbitlang/async",
+}
 
 // Values
 

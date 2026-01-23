@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/execute_command"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/job"
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/job",
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub fn new(@job.Manager) -> @tool.Tool[CommandResult]

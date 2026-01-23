@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/content_extractor"
 
-import(
-  "moonbitlang/maria/internal/openai"
-  "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/model"
-)
+import {
+  "moonbitlang/maria/internal/openai",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/model",
+}
 
 // Values
 
