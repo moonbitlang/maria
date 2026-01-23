@@ -1,0 +1,17 @@
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/async/io",
+  "moonbitlang/async/socket",
+  "moonbitlang/maria/internal/httpx/status",
+  "moonbitlang/maria/internal/httpx/reason",
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+}

@@ -1,0 +1,14 @@
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/async/io",
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/maria/internal/spawn",
+  "moonbitlang/async",
+  "moonbitlang/async/os_error",
+  "moonbitlang/maria/internal/errno",
+  "moonbitlang/async/aqueue",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/json",
+}

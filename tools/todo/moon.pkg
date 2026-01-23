@@ -1,0 +1,18 @@
+import {
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/tool",
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/model",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/ai",
+}

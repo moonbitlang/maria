@@ -1,0 +1,16 @@
+import {
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/maria/internal/spawn",
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/json",
+  "moonbitlang/core/strconv",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/internal/os",
+}

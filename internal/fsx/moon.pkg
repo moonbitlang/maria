@@ -1,0 +1,24 @@
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/async/io",
+  "moonbitlang/maria/internal/errno",
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/async/os_error",
+  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/json",
+  "moonbitlang/core/test",
+}
+
+import "test" {
+  "moonbitlang/async",
+  "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/internal/spawn",
+  "moonbitlang/async/process",
+  "moonbitlang/maria/internal/signal",
+  "moonbitlang/async/pipe",
+}
+
+options(
+  "native-stub": [ "stat.c", "mkdtemp.c", "readlink.c", "lock.c", "truncate.c" ],
+)

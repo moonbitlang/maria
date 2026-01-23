@@ -1,0 +1,15 @@
+import {
+  "moonbitlang/core/json",
+}
+
+options(
+  "native-stub": [ "c.c", "malloc.c", "memcpy.c", "strlen.c" ],
+  targets: {
+    "exit.mbt": [ "native", "llvm" ],
+    "malloc.mbt": [ "native", "llvm" ],
+    "memcpy.mbt": [ "native", "llvm" ],
+    "nullable.mbt": [ "native", "llvm" ],
+    "pointer.mbt": [ "native", "llvm" ],
+    "strlen.mbt": [ "native", "llvm" ],
+  },
+)

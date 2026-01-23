@@ -1,0 +1,19 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/io",
+  "moonbitlang/async/stdio",
+  "moonbitlang/maria",
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/internal/openai",
+  "moonbitlang/maria/internal/backtrace",
+  "moonbitlang/maria/tool",
+  "moonbitlang/maria/internal/os",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/model",
+}
+
+options(
+  "is-main": true,
+  overrides: [ "moonbitlang/maria/internal/abort" ],
+)
