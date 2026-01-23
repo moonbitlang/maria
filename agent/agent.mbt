@@ -106,42 +106,55 @@ pub fn Agent::close(_ : Agent) -> Unit {
 /// Prepares messages for an API request by counting tokens, pruning if needed, and applying caching.
 ///
 /// This function performs the following operations:
-/// 1. Counts tokens before pruning to track context size
-/// 2. Emits a `TokenCounted` event for monitoring
-/// 3. Prunes messages if they exceed the safe zone token budget
-/// 4. Counts tokens after pruning to verify we're within budget
-/// 5. Emits a `ContextPruned` event with before/after counts
-/// 6. Applies prompt caching to optimize API performance
+/// 1. Calculates which events need to be pruned to fit within token budget
+/// 2. Emits `Pruned` events for each event to prune (making pruning persistent)
+/// 3. Emits `TokenCounted` and `ContextPruned` events for monitoring
+/// 4. Gets messages from conversation (respecting pruned events)
+/// 5. Applies prompt caching to optimize API performance
 ///
 /// Parameters:
 ///
 /// * `agent` : The agent instance containing token counter and context pruner.
-/// * `messages` : The message array to prepare (modified in place during pruning).
 /// * `tools` : The tools array for the API call (used for token counting).
 ///
-/// Returns the cached messages ready to be sent to the API.
+/// Returns a tuple of (cached_messages, estimated_token_count) ready to be sent to the API.
 async fn Agent::prepare_messages_for_request(
   agent : Agent,
-  messages : Array[@ai.Message],
   tools~ : Array[@tool.ToolDesc],
-) -> Array[@openai.ChatCompletionMessageParam] {
+) -> (Array[@openai.ChatCompletionMessageParam], Int) {
+  let tools_openai = tools.map(x => x.to_openai())
+
+  // Calculate which events need to be pruned (does not modify conversation)
+  let prune_result = agent.context_pruner.calculate_pruning(
+    agent.history,
+    tools=tools_openai,
+  )
+
+  // Emit TokenCounted event with original token count for monitoring
+  agent.emit(TokenCounted(prune_result.origin_token_count))
+
+  // Emit Pruned events for each event to prune (makes pruning persistent)
+  for event_id in prune_result.pruned_ids {
+    agent.emit(Pruned(id=event_id))
+  }
+
+  // Emit ContextPruned event with before/after token counts
+  agent.emit(
+    ContextPruned(
+      origin_token_count=prune_result.origin_token_count,
+      pruned_token_count=prune_result.pruned_token_count,
+    ),
+  )
+
+  // Get messages from conversation (respects newly emitted Pruned events)
+  let messages = agent.history.messages(include_system=true)
   agent.skills.load_and_apply(messages)
   agent.rules.apply(messages)
-  let messages = messages.map(fn(msg) { msg.to_openai() })
-  let tools = tools.map(x => x.to_openai())
-  // Count tokens before pruning to track context size
-  let origin_token_count = agent.token_counter.count_param(messages~, tools~)
-  // Emit event with original token count for monitoring
-  agent.emit(TokenCounted(origin_token_count))
-  // Prune messages if they exceed the safe zone token budget
-  // This modifies the messages array in place
-  agent.context_pruner.prune_messages(messages, tools~)
-  // Count tokens after pruning to verify we're within budget
-  let pruned_token_count = agent.token_counter.count_param(messages~, tools~)
-  // Emit event with before/after token counts (only logged if pruning occurred)
-  agent.emit(ContextPruned(origin_token_count~, pruned_token_count~))
+  let openai_messages = messages.map(fn(msg) { msg.to_openai() })
+
   // Apply prompt caching to messages to improve API performance
-  @cache.cache_messages(messages)
+  let cached_messages = @cache.cache_messages(openai_messages)
+  (cached_messages, prune_result.pruned_token_count)
 }
 
 ///|
@@ -260,11 +273,10 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       // Retrieve and clear the message queue
       // staged contains messages that need to be sent in this call
       // Build the complete message array for the API call
-      // Start with conversation history, then append any queued messages
-      let messages = agent.history.messages(include_system=true)
-
       // Count tokens, prune if needed, and apply caching
-      let cache_messages = agent.prepare_messages_for_request(messages, tools~)
+      let (cache_messages, estimated_tokens) = agent.prepare_messages_for_request(
+        tools~,
+      )
 
       // Enable web search plugin if configured
       let extra_body : Map[String, Json] = {}
@@ -308,6 +320,15 @@ pub async fn Agent::start(agent : Agent) -> Unit {
           message.content.unwrap_or(""),
         ),
       )
+
+      // Calibrate token counter based on actual usage from model response
+      if usage is Some(u) {
+        agent.token_counter.calibrate(
+          model_name=agent.model.model_name,
+          estimated_tokens~,
+          actual_tokens=u.prompt_tokens,
+        )
+      }
 
       // Add all staged messages to permanent conversation history
       agent.input_queue = []

@@ -113,6 +113,9 @@ pub(all) enum EventDesc {
   /// Failed. We cannot use `Error` here because it is impossible to deserialize
   /// `Error` from JSON.
   Failed(Json)
+  /// Event triggered when a PostToolCall event is pruned from context.
+  /// The `id` field references the pruned PostToolCall event's id.
+  Pruned(id~ : @uuid.Uuid)
 } derive(Eq, Show)
 
 ///|
@@ -211,6 +214,7 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
     Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
     Failed(error) => { "msg": "Failed", "error": error }
+    Pruned(id~) => { "msg": "Pruned", "id": id.to_json() }
   }
 }
 
@@ -462,6 +466,18 @@ pub impl @json.FromJson for EventDesc with from_json(
         )
       }
       Failed(error_json)
+    }
+    "Pruned" => {
+      guard json_object.get("id") is Some(id_json) else {
+        raise @json.JsonDecodeError(
+          (json_path, "Pruned event missing 'id' field"),
+        )
+      }
+      let id : @uuid.Uuid = @json.from_json(
+        id_json,
+        path=json_path.add_key("id"),
+      )
+      Pruned(id~)
     }
     _ =>
       raise @json.JsonDecodeError(

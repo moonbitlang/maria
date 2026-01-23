@@ -47,6 +47,7 @@ pub(all) enum EventDesc {
   UserMessage(String)
   Cancelled
   Failed(Json)
+  Pruned(id~ : @uuid.Uuid)
 }
 pub impl Eq for EventDesc
 pub impl Show for EventDesc

@@ -4,7 +4,11 @@
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/token_counter",
     "moonbitlang/core/json",
-    "moonbitlang/core/test"
+    "moonbitlang/core/test",
+    "moonbitlang/maria/internal/conversation",
+    "moonbitlang/maria/internal/uuid",
+    "moonbitlang/maria/event",
+    "moonbitlang/maria/ai"
   ],
   "test-import": [
     "moonbitlang/async",
