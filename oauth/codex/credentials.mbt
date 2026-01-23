@@ -146,7 +146,7 @@ async fn try_load_from_codex() -> Credentials? {
       refreshToken: refresh_token,
       accountId: account_id,
     }
-    println("[INFO] Imported credentials from codex CLI")
+    logger.info("Imported credentials from codex CLI")
     save_credentials(credentials)
     Some(credentials)
   } catch {

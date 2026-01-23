@@ -13,9 +13,7 @@ async fn Daemon::listen_for_status_change(
   self : Daemon,
   task : Running,
 ) -> Unit {
-  println(
-    "[INFO] (Daemon) Listening for status changes from task \{task.id}...",
-  )
+  logger.info("Listening for status changes from task \{task.id}...")
   let (er, eb) = @http.get_stream("http://localhost:\{task.port}/v1/events")
   defer eb.close()
   guard er.code is (200..=299) else {
@@ -31,17 +29,17 @@ async fn Daemon::listen_for_status_change(
       },
     })
   }
-  println("[INFO] (Daemon) Connected to task \{task.id} event stream.")
+  logger.info("Connected to task \{task.id} event stream.")
   let eb = @httpx.EventStreamReader::new(eb)
   while eb.read() is Some((event : @server.ServerStreamEvent)) {
     task.broadcast.put(event)
     if event is Maria(event) {
       if event.is_stopping() || event.is_cancellation() {
-        println("[INFO] (Daemon) Task \{task.id} is now idle.")
+        logger.info("Task \{task.id} is now idle.")
         task.status = Idle
         self.events.put(StatusChange(task.id))
       } else if event.is_starting() {
-        println("[INFO] (Daemon) Task \{task.id} is now busy.")
+        logger.info("Task \{task.id} is now busy.")
         task.status = Busy
         self.events.put(StatusChange(task.id))
       }

@@ -7,16 +7,14 @@
 /// * `self` : The daemon instance to load conversations into.
 async fn Daemon::load_stopped(self : Daemon) -> Unit {
   let ids = self.conversations.list()
-  println("[INFO] (Daemon) Loading existing conversations: \{ids}")
+  logger.info("Loading existing conversations: \{ids}")
   for id in ids {
     guard self.conversations.load(id) is Some(conversation) else {
-      println(
-        "[WARN] (Daemon) Failed to load conversation '\{id}', skipping...",
-      )
+      logger.warn("Failed to load conversation '\{id}', skipping...")
       continue
     }
-    println(
-      "[INFO] (Daemon) Loaded conversation '\{conversation.id()}' at cwd '\{conversation.cwd()}'",
+    logger.info(
+      "Loaded conversation '\{conversation.id()}' at cwd '\{conversation.cwd()}'",
     )
     let cwd = conversation.cwd()
     let id = conversation.id()

@@ -41,27 +41,25 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   }
   // If the owner version is older, request shutdown
   if old.version >= @buildinfo.version {
-    println(
-      "[INFO] (Daemon) Another daemon version \{old.version} is already running. Exiting.",
+    logger.info(
+      "Another daemon version \{old.version} is already running. Exiting.",
     )
     return None
   }
-  println(
-    "[INFO] (Daemon) Detected older daemon version \{old.version}. Requesting shutdown...",
+  logger.info(
+    "Detected older daemon version \{old.version}. Requesting shutdown...",
   )
   if !request_shutdown(old.pid, old.port) {
-    println("[ERROR] (Daemon) Failed to send shutdown request to older daemon.")
+    logger.error("Failed to send shutdown request to older daemon.")
     @spawn.kill(old.pid, @signal.sigkill) catch {
       error => {
-        println(
-          "[ERROR] (Daemon) Failed to kill older daemon (pid=\{old.pid}): \{error}",
-        )
+        logger.error("Failed to kill older daemon (pid=\{old.pid}): \{error}")
         return None
       }
     }
-    println("[INFO] (Daemon) Forcefully terminated older daemon.")
+    logger.info("Forcefully terminated older daemon.")
   } else {
-    println("[INFO] (Daemon) Shutdown request sent successfully.")
+    logger.info("Shutdown request sent successfully.")
   }
   // Wait for the lock to be released
   @async.with_timeout(60_000, () => for {
@@ -81,9 +79,7 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
     }
   }) catch {
     @async.TimeoutError => {
-      println(
-        "[ERROR] (Daemon) Timeout waiting for older daemon to release lock.",
-      )
+      logger.error("Timeout waiting for older daemon to release lock.")
       return None
     }
     error => raise error
@@ -108,8 +104,8 @@ async fn request_shutdown(pid : Int, port : Int) -> Bool {
       if @async.is_being_cancelled() {
         raise error
       } else {
-        println(
-          "[ERROR] (Daemon) Failed to send shutdown request to daemon (pid=\{pid}): \{error}",
+        logger.error(
+          "Failed to send shutdown request to daemon (pid=\{pid}): \{error}",
         )
         return false
       }
