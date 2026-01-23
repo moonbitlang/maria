@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/replace_in_file"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/file"
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/file",
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub fn new(@file.Manager) -> @tool.Tool[WriteResult]

@@ -24,9 +24,9 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
       let client = @http.Client::new("http://localhost:\{server.port()}")
       client.request(Options, "*")
       let response = client.end_request()
-      @json.inspect(response.code, content=204)
-      @json.inspect(response.reason, content="No Content")
-      @json.inspect(response.headers, content={
+      json_inspect(response.code, content=204)
+      json_inspect(response.reason, content="No Content")
+      json_inspect(response.headers, content={
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
@@ -35,9 +35,9 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
       let client = @http.Client::new("http://localhost:\{server.port()}")
       client.request(Options, "/task")
       let response = client.end_request()
-      @json.inspect(response.code, content=204)
-      @json.inspect(response.reason, content="No Content")
-      @json.inspect(response.headers, content={
+      json_inspect(response.code, content=204)
+      json_inspect(response.reason, content="No Content")
+      json_inspect(response.headers, content={
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
@@ -46,9 +46,9 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
       let client = @http.Client::new("http://localhost:\{server.port()}")
       client.request(Options, "/tasks")
       let response = client.end_request()
-      @json.inspect(response.code, content=204)
-      @json.inspect(response.reason, content="No Content")
-      @json.inspect(response.headers, content={
+      json_inspect(response.code, content=204)
+      json_inspect(response.reason, content="No Content")
+      json_inspect(response.headers, content={
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
@@ -57,18 +57,15 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
       let (response, body) = @http.get(
         "http://localhost:\{server.port()}/task/42",
       )
-      @json.inspect(response.code, content=200)
-      @json.inspect(response.reason, content="OK")
-      @json.inspect(body.text(), content="Hello, world! from Task 42 Handler\n")
+      json_inspect(response.code, content=200)
+      json_inspect(response.reason, content="OK")
+      json_inspect(body.text(), content="Hello, world! from Task 42 Handler\n")
       let (response, body) = @http.get(
         "http://localhost:\{server.port()}/task/100",
       )
-      @json.inspect(response.code, content=200)
-      @json.inspect(response.reason, content="OK")
-      @json.inspect(
-        body.text(),
-        content="Hello, world! from Task 100 Handler\n",
-      )
+      json_inspect(response.code, content=200)
+      json_inspect(response.reason, content="OK")
+      json_inspect(body.text(), content="Hello, world! from Task 100 Handler\n")
     })
   })
 }

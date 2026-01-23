@@ -23,15 +23,15 @@ async test "Coverage::report" (t : @test.Test) {
       "example_test.mbt": (
         #|///|
         #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
+        #|  json_inspect(@example.fib(0), content=1)
         #|}
       ),
     })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
-    @json.inspect(
+    json_inspect(moon.diagnostics(), content=["Diagnostics", []])
+    json_inspect(moon.test_(enable_coverage=true), content=[])
+    json_inspect(
       moon.coverage.report(format=Summary),
       content=(
         #|example.mbt: 2/6
@@ -39,13 +39,13 @@ async test "Coverage::report" (t : @test.Test) {
         #|
       ),
     )
-    @json.inspect(
+    json_inspect(
       moon.coverage.report(
         format=Coveralls,
         output_file=@pathx.join(mock.cwd.path(), "coverage.json"),
       ),
     )
-    @json.inspect(
+    json_inspect(
       @json.parse(@fsx.read_file(@pathx.join(mock.cwd.path(), "coverage.json"))),
       content={
         "source_files": [
@@ -85,15 +85,15 @@ async test "Coverage::analyze" (t : @test.Test) {
       "example_test.mbt": (
         #|///|
         #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
+        #|  json_inspect(@example.fib(0), content=1)
         #|}
       ),
     })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
-    @json.inspect(
+    json_inspect(moon.diagnostics(), content=["Diagnostics", []])
+    json_inspect(moon.test_(enable_coverage=true), content=[])
+    json_inspect(
       moon.coverage.analyze(),
       content=(
         #|Total: 2 uncovered line(s) in 1 file(s)
@@ -145,20 +145,20 @@ async test "Coverage::clean" (t : @test.Test) {
       "example_test.mbt": (
         #|///|
         #|test "fib" {
-        #|  @json.inspect(@example.fib(0), content=1)
+        #|  json_inspect(@example.fib(0), content=1)
         #|}
       ),
     })
     let moon = @moon.Module::load(mock.cwd.path())
     moon.check()
-    @json.inspect(moon.diagnostics(), content=["Diagnostics", []])
-    @json.inspect(moon.test_(enable_coverage=true), content=[])
-    @json.inspect(
+    json_inspect(moon.diagnostics(), content=["Diagnostics", []])
+    json_inspect(moon.test_(enable_coverage=true), content=[])
+    json_inspect(
       moon.coverage.report(format=Summary),
       content="example.mbt: 2/6\nTotal: 2/6\n",
     )
-    @json.inspect(moon.coverage.clean())
-    @json.inspect(
+    json_inspect(moon.coverage.clean())
+    json_inspect(
       (try? moon.coverage.report(format=Summary)) is Err(_),
       content=true,
     )

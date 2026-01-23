@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/assets"
 
-import(
-  "moonbitlang/maria/internal/pino"
-)
+import {
+  "moonbitlang/maria/internal/pino",
+}
 
 // Values
 pub async fn install_assets(String, Array[Asset], String, String, @pino.Logger) -> Unit

@@ -629,7 +629,7 @@ test "extract_first_json_block" {
     #|  "another_key": "another_value"
     #|}
     #|```
-  @json.inspect(extract_first_json_block(content), content=[
+  json_inspect(extract_first_json_block(content), content=[
     "{\n  \"key\": \"value\"\n}",
   ])
 }

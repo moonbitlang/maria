@@ -13,7 +13,7 @@ async test "check_moonbit_project" (t : @test.Test) {
     })
     let args = input_json(diagnostic_limit=10, project_path=mock.cwd.path())
     let result = new(mock.cwd.path()).call(args)
-    @json.inspect(mock.json(result), content=[
+    json_inspect(mock.json(result), content=[
       "Ok",
       {
         "diagnostics": [
@@ -95,7 +95,7 @@ async test "check_moonbit_project/code-patch-insert" (t : @test.Test) {
         #|
       ),
     )
-    @json.inspect(mock.json(result), content=[
+    json_inspect(mock.json(result), content=[
       "Ok",
       {
         "diagnostics": [
@@ -165,14 +165,14 @@ async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
       project_path=mock.cwd.path(),
       patch_code=(
         #|test "patched-test" {
-        #|  @json.inspect(@example.x, "string")
+        #|  json_inspect(@example.x, "string")
         #|}
       ),
       patch_file_name="example_test.mbt",
     )
     let tool = @check_moonbit_project.new(mock.cwd.path())
     let result = tool.call(args)
-    @json.inspect(mock.json(result), content=[
+    json_inspect(mock.json(result), content=[
       "Ok",
       {
         "diagnostics": [
@@ -182,7 +182,7 @@ async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
               "error_code": 4080,
               "level": "Error",
               "loc": {
-                "end": { "col": 38, "line": 2 },
+                "end": { "col": 37, "line": 2 },
                 "path": "(mock:cwd)/example_test.mbt",
                 "start": { "col": 3, "line": 2 },
               },
@@ -191,21 +191,12 @@ async test "check_moonbit_project/test-patch-insert" (t : @test.Test) {
           ],
         ],
         "diagnostic_limit": 10,
-        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4080]: (mock:cwd)/example_test.mbt:2:3-38: This function has type: \n\t#callsite(autofill(args_loc, loc))\n\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\nwhich requires 1 positional arguments, but is given 2 positional arguments.\n 2 │   @json.inspect(@example.x, \"string\")\n   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "rendered_diagnostics": "MoonBit project check found the following diagnostics:\n\nerror[4080]: (mock:cwd)/example_test.mbt:2:3-37: This function has type: \n\t#callsite(autofill(args_loc, loc))\n\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\nwhich requires 1 positional arguments, but is given 2 positional arguments.\n 2 │   json_inspect(@example.x, \"string\")\n   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
       },
     ])
     inspect(
       mock.show(result),
-      content=(
-        #|MoonBit project check found the following diagnostics:
-        #|
-        #|error[4080]: (mock:cwd)/example_test.mbt:2:3-38: This function has type: 
-        $|\t#callsite(autofill(args_loc, loc))
-        $|\t(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError
-        #|which requires 1 positional arguments, but is given 2 positional arguments.
-        #| 2 │   @json.inspect(@example.x, "string")
-        #|   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      ),
+      content="MoonBit project check found the following diagnostics:\u{a}\u{a}error[4080]: (mock:cwd)/example_test.mbt:2:3-37: This function has type: \u{a}\u{9}#callsite(autofill(args_loc, loc))\u{a}\u{9}(&ToJson, content? : Json, loc~ : SourceLoc, args_loc~ : ArgsLoc) -> Unit raise InspectError\u{a}which requires 1 positional arguments, but is given 2 positional arguments.\u{a} 2 │   json_inspect(@example.x, \"string\")\u{a}   │   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
     )
   })
 }

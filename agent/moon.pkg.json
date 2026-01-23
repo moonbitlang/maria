@@ -18,7 +18,10 @@
     "moonbitlang/maria/internal/diagnostics",
     "moonbitlang/maria/internal/os",
     "moonbitlang/maria/internal/broadcast",
-    "moonbitlang/maria/internal/jsonx"
+    "moonbitlang/maria/internal/jsonx",
+    "moonbitlang/core/deque",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",
@@ -34,5 +37,7 @@
     "moonbitlang/maria/tools/list_files",
     "moonbitlang/maria/tools/execute_command"
   ],
-  "wbtest-import": ["moonbitlang/maria/internal/mock"]
+  "wbtest-import": [
+    "moonbitlang/maria/internal/mock"
+  ]
 }

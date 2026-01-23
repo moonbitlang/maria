@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/apply_patch"
 
-import(
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub async fn apply_hunks(ArrayView[Hunk], String) -> ApplyResult raise ApplyError

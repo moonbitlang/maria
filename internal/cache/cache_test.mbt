@@ -7,7 +7,7 @@ test "no-system" {
     @openai.assistant_message(content="The weather is sunny."),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "user",
       "content": [
@@ -42,7 +42,7 @@ test "single-system" {
     @openai.system_message(content="You are a helpful assistant."),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "system",
       "content": [
@@ -63,7 +63,7 @@ test "multi-system" {
     @openai.system_message(content="You are also a funny assistant."),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "system",
       "content": [
@@ -91,7 +91,7 @@ test "multi-system" {
 test "single-user" {
   let messages = [@openai.user_message(content="Hello")]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "user",
       "content": [
@@ -111,7 +111,7 @@ test "single-tool" {
     @openai.tool_message(content="Tool response", tool_call_id="tool_call_1"),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "tool",
       "content": [
@@ -133,7 +133,7 @@ test "system-single-user" {
     @openai.user_message(content="Hello"),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "system",
       "content": [
@@ -174,7 +174,7 @@ test "last-two" {
     @openai.tool_message(content="Tool response", tool_call_id="tool_call_1"),
   ]
   let cached = @cache.cache_messages(messages)
-  @json.inspect(cached, content=[
+  json_inspect(cached, content=[
     {
       "role": "system",
       "content": [
@@ -279,14 +279,14 @@ async test "caches-on-claude-sonnet-4.5" (t : @test.Test) {
     make_request()
     messages.push(@openai.user_message(content="Thank you!"))
     make_request()
-    @json.inspect(cached_tokens.length(), content=3)
+    json_inspect(cached_tokens.length(), content=3)
     // First request should have 0 cached tokens, as we used a unique UUID
     // in system prompt to avoid cache hits.
-    @json.inspect(cached_tokens[0], content=0)
+    json_inspect(cached_tokens[0], content=0)
     // Second request should cache the system prompt and the first user message.
-    @json.inspect(cached_tokens[1] > 0, content=true)
+    json_inspect(cached_tokens[1] > 0, content=true)
     // Third request should additionally cached the second user message, thus a
     // greater number of cached tokens than the second request.
-    @json.inspect(cached_tokens[2] > cached_tokens[1], content=true)
+    json_inspect(cached_tokens[2] > cached_tokens[1], content=true)
   })
 }

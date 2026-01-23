@@ -6,7 +6,7 @@ test "getenv" {
 ///|
 test "unsetenv" {
   @os.unsetenv("HOME")
-  @json.inspect(@os.getenv("HOME"), content=null)
+  json_inspect(@os.getenv("HOME"), content=null)
 }
 
 ///|
@@ -18,7 +18,7 @@ test "cwd" {
 test "home" {
   if @os.getenv("HOME") is Some(home) {
     @os.unsetenv("HOME")
-    @json.inspect(@os.home(), content=home.to_json())
+    json_inspect(@os.home(), content=home.to_json())
   } else {
     ignore(@os.home())
   }
@@ -43,7 +43,7 @@ async test "exit" (t : @test.Test) {
         if exec.has_suffix(".c") {
           return
         }
-        @json.inspect(@spawn.spawn(exec, [args, "42"]).status, content=42)
+        json_inspect(@spawn.spawn(exec, [args, "42"]).status, content=42)
       }
       [_, _, exit_code] => {
         @os.exit(@strconv.parse_int(exit_code))

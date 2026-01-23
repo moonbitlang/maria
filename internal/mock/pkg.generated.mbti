@@ -1,15 +1,15 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/mock"
 
-import(
-  "moonbitlang/async"
-  "moonbitlang/core/random"
-  "moonbitlang/core/test"
-  "moonbitlang/maria/clock"
-  "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/internal/uuid"
-  "moonbitlang/maria/model"
-)
+import {
+  "moonbitlang/async",
+  "moonbitlang/core/random",
+  "moonbitlang/core/test",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/maria/model",
+}
 
 // Values
 pub async fn run(@test.Test, timeout? : Int, retry? : Int, async (Context) -> Unit) -> Unit

@@ -55,19 +55,19 @@ test "ReadFileInput::from_json" {
 
   // ReadFileInput::from_json(@json.parse(json), "")
   let data : ReadFileInput = @json.from_json(json1)
-  @json.inspect(data, content={
+  json_inspect(data, content={
     "path": "example.mbt",
     "start_line": 5,
     "end_line": 10,
   })
   let json2 : Json = { "path": "example.mbt" }
   let data2 : ReadFileInput = @json.from_json(json2)
-  @json.inspect(data2, content={ "path": "example.mbt" })
+  json_inspect(data2, content={ "path": "example.mbt" })
   let json3 : Json = { "path": "example.mbt", "start_line": 2 }
   let data3 : ReadFileInput = @json.from_json(json3)
-  @json.inspect(data3, content={ "path": "example.mbt", "start_line": 2 })
+  json_inspect(data3, content={ "path": "example.mbt", "start_line": 2 })
   let json4 : Json = { "path": "x", "end_line": 2 }
-  @json.inspect((@json.from_json(json4) : ReadFileInput), content={
+  json_inspect((@json.from_json(json4) : ReadFileInput), content={
     "path": "x",
     "end_line": 2,
   })

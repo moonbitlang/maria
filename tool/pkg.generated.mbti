@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tool"
 
-import(
-  "moonbitlang/maria/internal/openai"
-)
+import {
+  "moonbitlang/maria/internal/openai",
+}
 
 // Values
 pub fn tool_desc(description~ : String, name~ : String, schema~ : JsonSchema) -> ToolDesc

@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/yamd"
 
-import(
-  "moonbit-community/yaml"
-)
+import {
+  "moonbit-community/yaml",
+}
 
 // Values
 pub fn parse(String) -> Document raise @yaml.YamlError

@@ -6,7 +6,13 @@
     "moonbitlang/maria/internal/spawn",
     "moonbitlang/regexp",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/internal/git"
+    "moonbitlang/maria/internal/git",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",

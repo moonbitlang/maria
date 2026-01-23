@@ -9,7 +9,7 @@ async test "nonexistent" (t : @test.Test) {
       result,
       content="Error reading file: File not found: nonexistent.txt",
     )
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error reading file: File not found: nonexistent.txt"],
       "Error reading file: File not found: nonexistent.txt",
@@ -44,7 +44,7 @@ async test "content" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
+    json_inspect(output, content={
       "path": "test.txt",
       "content": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12",
       "start_line": 1,
@@ -168,7 +168,7 @@ async test "line_range" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
+    json_inspect(output, content={
       "path": "lines.txt",
       "content": "line 1\nline 2\nline 3\nline 4\nline 5",
       "start_line": 2,
@@ -247,7 +247,7 @@ async test "invalid-range" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content={
+    json_inspect(output, content={
       "path": "test.txt",
       "content": "line 1\nline 2\nline 3",
       "start_line": 2,

@@ -6,7 +6,7 @@ async test "todo_read/empty" (t : @test.Test) {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let tool = @todo.new_tool(todo_list)
     let result = tool.call({ "action": "read" })
-    @json.inspect(result, content=["Ok", ["Read", { "todos": [] }]])
+    json_inspect(result, content=["Ok", ["Read", { "todos": [] }]])
     inspect(
       result,
       content=(
@@ -30,7 +30,7 @@ async test "todo_read/single_task" (t : @test.Test) {
       "priority": "medium",
     })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -86,7 +86,7 @@ async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
     // Mark second task as completed
     let _ = tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -160,7 +160,7 @@ async test "todo_read/different_priorities" (t : @test.Test) {
       "priority": "low",
     })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -233,7 +233,7 @@ async test "todo_read/with_notes" (t : @test.Test) {
       "priority": "low",
     })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -294,7 +294,7 @@ async test "todo_read/all_completed" (t : @test.Test) {
     let _ = tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
     let _ = tool.call({ "action": "mark_completed", "task_id": "f378dd8d" })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -357,7 +357,7 @@ async test "todo_read/all_in_progress" (t : @test.Test) {
     let _ = tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
     let _ = tool.call({ "action": "mark_progress", "task_id": "1ea1417c" })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -436,7 +436,7 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
     let _ = tool.call({ "action": "mark_progress", "task_id": "ac8a366d" })
     let _ = tool.call({ "action": "mark_completed", "task_id": "1ea1417c" })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -513,7 +513,7 @@ async test "todo_read/updated_task_content" (t : @test.Test) {
       "notes": "Added some context",
     })
     let result = tool.call({ "action": "read" })
-    @json.inspect(
+    json_inspect(
       result
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
@@ -562,7 +562,7 @@ async test "todo_write/create/plain" (t : @test.Test) {
       ),
       "priority": "high",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Ok",
       [
         "Write",
@@ -642,7 +642,7 @@ async test "todo_write/create/<task>" (t : @test.Test) {
         #|<task>Test migrated functionality</task>
       ),
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Ok",
       [
         "Write",
@@ -877,7 +877,7 @@ async test "todo_write/mark_completed" (t : @test.Test) {
       "action": "mark_completed",
       "task_id": "nonexistent",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
@@ -938,7 +938,7 @@ async test "todo_write/mark_progress" (t : @test.Test) {
       "action": "mark_progress",
       "task_id": "nonexistent",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
       "Error: Task with ID 'nonexistent' not found.",
@@ -988,7 +988,7 @@ async test "todo_write/add_task" (t : @test.Test) {
       "status": "pending",
       "notes": "This is a very important task",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Ok",
       [
         "Write",
@@ -1182,7 +1182,7 @@ async test "todo_write/error_invalid_action" (t : @test.Test) {
       "action": "invalid_action",
       "content": "Test task",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       [
         "ToolFailure", "Error: Invalid action 'invalid_action'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
@@ -1201,7 +1201,7 @@ async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({ "action": "create" })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Content is required for creating todos."],
       "Error: Content is required for creating todos.",
@@ -1215,7 +1215,7 @@ async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
   @mock.run(t, mock => {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({ "action": "add_task" })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Content is required for adding a task."],
       "Error: Content is required for adding a task.",
@@ -1232,7 +1232,7 @@ async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
       "action": "update",
       "content": "New content",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       ["ToolFailure", "Error: Task ID is required for update operations."],
       "Error: Task ID is required for update operations.",
@@ -1250,7 +1250,7 @@ async test "todo_write/error_invalid_priority" (t : @test.Test) {
       "content": "Test task",
       "priority": "urgent",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       [
         "ToolFailure", "Error: Invalid priority 'String(\"urgent\")'. Must be 'high', 'medium', or 'low'.",
@@ -1275,7 +1275,7 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
       "content": "Test task",
       "status": "done",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Error",
       [
         "ToolFailure", "Error: Invalid status 'String(\"done\")'. Must be 'pending', 'in_progress', or 'completed'.",
@@ -1309,7 +1309,7 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
       "notes": "Need to consider edge cases and backward compatibility",
       "status": "in_progress",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Ok",
       [
         "Write",
@@ -1378,7 +1378,7 @@ async test "todo_write/update_content_only" (t : @test.Test) {
       "task_id": "ac8a366d",
       "content": "Updated task description with more details",
     })
-    @json.inspect(result, content=[
+    json_inspect(result, content=[
       "Ok",
       [
         "Write",

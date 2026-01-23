@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/job"
 
-import(
-  "moonbitlang/core/json"
-)
+import {
+  "moonbitlang/core/json",
+}
 
 // Values
 

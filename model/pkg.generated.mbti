@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/model"
 
-import(
-  "moonbitlang/core/json"
-)
+import {
+  "moonbitlang/core/json",
+}
 
 // Values
 pub fn codex_oauth_model(access_token~ : String, account_id~ : String, refresh_token~ : String, id_token? : String, name? : CodexModels) -> Model

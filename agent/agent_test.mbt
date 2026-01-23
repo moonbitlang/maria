@@ -96,7 +96,7 @@ async test "agent/single_tool_call" (t : @test.Test) {
     // Verify tool was called
     inspect(tool_called, content="true")
     inspect(tool_name, content="add_numbers")
-    @json.inspect(result, content=[8])
+    json_inspect(result, content=[8])
   })
 }
 
@@ -499,7 +499,7 @@ async test "load-model-name" (t : @test.Test) {
       .add_directory("models")
       .add_file("models.json")
     models_file.write_string(models.to_json().stringify(indent=2))
-    @json.inspect(mock.json(@json.parse(models_file.read())), content=[
+    json_inspect(mock.json(@json.parse(models_file.read())), content=[
       {
         "name": "haiku",
         "model_name": "anthropic/claude-haiku-4.5",
@@ -531,11 +531,11 @@ async test "agent/queue_message" (t : @test.Test) {
       cwd=mock.cwd.path(),
       user_message="Hello!",
     )
-    @json.inspect(
+    json_inspect(
       agent.queue_message(@ai.user_message(content="How are you?")),
       content="42858c8d-3684-43ab-837d-ef6894a9b8dc",
     )
-    @json.inspect(
+    json_inspect(
       agent.queue_message(@ai.user_message(content="Thank you")),
       content="aaa2f959-3b7f-4ace-870e-0f67cb28ebe3",
     )
@@ -545,7 +545,7 @@ async test "agent/queue_message" (t : @test.Test) {
       _ => ()
     })
     agent.start()
-    @json.inspect(message_unqueued, content=[
+    json_inspect(message_unqueued, content=[
       "42858c8d-3684-43ab-837d-ef6894a9b8dc", "aaa2f959-3b7f-4ace-870e-0f67cb28ebe3",
     ])
   })
@@ -598,7 +598,7 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
       ).to_agent_tool(),
     ])
     agent.start()
-    @json.inspect(result, content={ "tools": ["tool1", "tool2", "tool3"] })
+    json_inspect(result, content={ "tools": ["tool1", "tool2", "tool3"] })
     result = Json::null()
     agent.set_enabled_tools(
       Set::from_array(["tool1", "tool2", "submit_available_tools"]),
@@ -610,7 +610,7 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
     )
     |> ignore()
     agent.start()
-    @json.inspect(result, content={ "tools": ["tool1", "tool2"] })
+    json_inspect(result, content={ "tools": ["tool1", "tool2"] })
   })
 }
 
@@ -645,7 +645,7 @@ async test "agent/web_search" (t : @test.Test) {
     )
     |> ignore()
     agent.start()
-    @json.inspect(result is { "year": "2022" | "2023", .. }, content=true)
+    json_inspect(result is { "year": "2022" | "2023", .. }, content=true)
   })
 }
 
@@ -700,7 +700,7 @@ async test "agent/resume" (t : @test.Test) {
       ),
     )
     agent.start()
-    @json.inspect(
+    json_inspect(
       result is Some(content) && content.contains("Rabbit"),
       content=true,
     )

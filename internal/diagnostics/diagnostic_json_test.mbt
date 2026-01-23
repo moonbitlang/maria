@@ -22,7 +22,7 @@ test "Loc::from_json" {
     loc.to_json()
   }
 
-  @json.inspect(loc_json.map(round_trip), content=[
+  json_inspect(loc_json.map(round_trip), content=[
     {
       "end": { "col": 10, "line": 5 },
       "path": "example.mbt",
@@ -85,7 +85,7 @@ test "Pos::from_json" {
     pos.to_json()
   }
 
-  @json.inspect(pos_json.map(round_trip), content=[
+  json_inspect(pos_json.map(round_trip), content=[
     { "col": 15, "line": 42 },
     { "col": 5, "line": 10 },
   ])
@@ -118,7 +118,7 @@ test "Level::from_json" {
     level.to_json()
   }
 
-  @json.inspect(level_json.map(round_trip), content=["Error", "Warning"])
+  json_inspect(level_json.map(round_trip), content=["Error", "Warning"])
 }
 
 ///|
@@ -233,7 +233,7 @@ test "Diagnostic::from_json" {
   }
 
   // Note: Level serialization produces "Error"/"Warning" not "error"/"warning"
-  @json.inspect(diag_json.map(round_trip), content=[
+  json_inspect(diag_json.map(round_trip), content=[
     {
       "error_code": 4014,
       "level": "Error",

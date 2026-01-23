@@ -235,7 +235,7 @@ async test "no-op-if-non-moonbit" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(
+    json_inspect(
       output.message,
       content="File written successfully to moon.mod.json",
     )
@@ -298,7 +298,7 @@ async test "no-op-if-no-syntax-error" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(
+    json_inspect(
       output.message,
       content="File written and formatted successfully to main.mbt",
     )

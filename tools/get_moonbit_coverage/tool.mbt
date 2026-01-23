@@ -11,7 +11,7 @@ fn params(file? : String, project_path~ : String) -> Params {
 
 ///|
 test "params ToJson" {
-  @json.inspect(params(file="src/main.mbt", project_path="."), content={
+  json_inspect(params(file="src/main.mbt", project_path="."), content={
     "file": "src/main.mbt",
     "project_path": ".",
   })

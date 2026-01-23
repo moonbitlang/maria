@@ -1,6 +1,6 @@
 ///|
 async test "check_syntax_of_string" {
-  @json.inspect(
+  json_inspect(
     @moon.check_syntax_of_string(
       (
         #|let x : Int = "string",
@@ -22,7 +22,7 @@ async test "check_syntax_of_string" {
       ],
     ],
   )
-  @json.inspect(
+  json_inspect(
     @moon.check_syntax_of_string(
       path="main.mbt",
       (
@@ -55,7 +55,7 @@ async test "check_syntax_of_string-nested-path" {
       #|let x : Int = "string",
     ),
   )
-  @json.inspect(diagnostics, content=[
+  json_inspect(diagnostics, content=[
     "Diagnostics",
     [
       {
@@ -78,7 +78,7 @@ async test "check_syntax_of_file" (t : @test.Test) {
     let file = mock.add_file("example.mbt")
     file.write_string("let x :: Int = \"string\"")
     let diagnostics = check_syntax_of_file(file.path())
-    @json.inspect(mock.json(diagnostics), content=[
+    json_inspect(mock.json(diagnostics), content=[
       "Diagnostics",
       [
         {

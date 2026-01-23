@@ -2,7 +2,7 @@
 async test "timeout" (t : @test.Test) {
   @mock.run(t, mock => @async.with_task_group(_ => {
     let tool = @execute_command.new(@job.Manager::new(cwd=mock.cwd.path()))
-    @json.inspect(tool.call({ "command": "sleep 5", "timeout": 1000 }), content=[
+    json_inspect(tool.call({ "command": "sleep 5", "timeout": 1000 }), content=[
       "Ok",
       [
         "TimedOut",
@@ -85,7 +85,7 @@ async test "cd" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "Completed",
       {
         "command": "cat file.txt",
@@ -103,7 +103,7 @@ async test "cd" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "Completed",
       {
         "command": "cd subdir && cat file.txt",
@@ -128,7 +128,7 @@ async test "background" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(output, content=[
+    json_inspect(output, content=[
       "Background",
       { "command": "sleep 2", "job_id": 0 },
     ])

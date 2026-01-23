@@ -91,7 +91,7 @@ async test "load" (t : @test.Test) {
         content=project_models.to_json().stringify(indent=2),
       )
     let loader = Loader::new(home=home.path(), cwd=project.path())
-    @json.inspect(mock.json(loader.get_model()), content=[
+    json_inspect(mock.json(loader.get_model()), content=[
       {
         "name": "google/gemini-2.5-flash",
         "description": "google gemini 2.5 flash for long-context simple task",
@@ -104,7 +104,7 @@ async test "load" (t : @test.Test) {
         "supports_apply_patch": false,
       },
     ])
-    @json.inspect(
+    json_inspect(
       mock.json(loader.get_model(name="anthropic/claude-sonnet-4")),
       content=[
         {
@@ -120,7 +120,7 @@ async test "load" (t : @test.Test) {
         },
       ],
     )
-    @json.inspect(mock.json(loader.get_model(name="qwen/qwen3-coder")), content=[
+    json_inspect(mock.json(loader.get_model(name="qwen/qwen3-coder")), content=[
       {
         "name": "qwen/qwen3-coder",
         "description": "qwen coder",

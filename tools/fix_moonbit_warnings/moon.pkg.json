@@ -9,7 +9,11 @@
     "moonbitlang/maria/internal/diagnostics",
     "moonbitlang/maria/internal/pino",
     "moonbitlang/maria/internal/uuid",
-    "moonbitlang/async/semaphore"
+    "moonbitlang/async/semaphore",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
-  "test-import": ["moonbitlang/maria/internal/mock"]
+  "test-import": [
+    "moonbitlang/maria/internal/mock"
+  ]
 }

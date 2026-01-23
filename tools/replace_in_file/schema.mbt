@@ -38,7 +38,7 @@ test "Input FromJson/ToJson" {
     input.to_json()
   }
 
-  @json.inspect(json_input.map(round_trip), content=[
+  json_inspect(json_input.map(round_trip), content=[
     { "path": "example.txt", "replace": "new content", "search": "old content" },
     { "path": "example.txt", "replace": "new content" },
   ])

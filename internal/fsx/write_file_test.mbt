@@ -4,6 +4,6 @@ async test "write_to_file" (t : @test.Test) {
     let file = mock.add_file("example.txt", content="")
     @fsx.write_to_file(file.path(), "Hello, Moonbit!")
     let content = @fsx.read_file(file.path())
-    @json.inspect(content, content="Hello, Moonbit!")
+    json_inspect(content, content="Hello, Moonbit!")
   })
 }

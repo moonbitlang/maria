@@ -21,7 +21,7 @@ async test "get_moonbit_coverage" (t : @test.Test) {
       "example_test.mbt": (
         #|///|
         #|test "fib" {
-        #|  @json.inspect(@example.fib(1), content=1)
+        #|  json_inspect(@example.fib(1), content=1)
         #|}
       ),
     })
@@ -31,7 +31,7 @@ async test "get_moonbit_coverage" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(
+    json_inspect(
       output.content,
       content=(
         $|Total: 1 uncovered line(s) in 1 file(s)

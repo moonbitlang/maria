@@ -121,7 +121,7 @@ pub fn Schema::verify(self : Schema, json : Json) -> Bool {
 
 ///|
 test "to_json" {
-  @json.inspect(
+  json_inspect(
     object({
       "name": object({
         "firstName": string(),
@@ -143,7 +143,7 @@ test "to_json" {
       },
     },
   )
-  @json.inspect(
+  json_inspect(
     object({
       "name": object(
         { "firstName": string(), "lastName": string(), "middleName": string() },

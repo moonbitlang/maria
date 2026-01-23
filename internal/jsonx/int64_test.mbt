@@ -72,7 +72,7 @@ test "as_int64/string-type" {
   let result : Result[Int64Data, @json.JsonDecodeError] = try? @json.from_json(
     json,
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["JsonDecodeError", ["/value", "Int64::as_int64: expected number"]],
   })
 }
@@ -102,7 +102,7 @@ test "required_int64/missing" {
   let result : Result[Int64Data, @json.JsonDecodeError] = try? @json.from_json(
     json,
   )
-  @json.inspect(result, content={
+  json_inspect(result, content={
     "Err": ["JsonDecodeError", ["/value", "field 'value' is required"]],
   })
 }

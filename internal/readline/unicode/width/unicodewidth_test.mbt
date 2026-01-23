@@ -232,7 +232,7 @@ test "test_control_line_break" {
 
 ///|
 test "char_str_consistent" {
-  for i in 0..=0x10FFFF {
+  for i in 0..<=0x10FFFF {
     let c = i.unsafe_to_char()
     assert_eq(
       @width.char(c, cjk=false).unwrap_or(1),
@@ -254,8 +254,8 @@ test "test_lisu_tones" {
     assert_char_width(c, Some(1), Some(1))
     assert_str_width(c.to_string(), 1, 1)
   }
-  for c1 in 0xA4F8..=0xA4FB {
-    for c2 in 0xA4FC..=0xA4FD {
+  for c1 in 0xA4F8..<=0xA4FB {
+    for c2 in 0xA4FC..<=0xA4FD {
       let s = c1.unsafe_to_char().to_string() + c2.unsafe_to_char().to_string()
       match (c1, c2) {
         ('\u{A4F8}'..='\u{A4FB}', '\u{A4FC}'..='\u{A4FD}') =>
@@ -527,7 +527,7 @@ test "ambiguous_line_break" {
 test "test_vs1_vs2" {
   assert_str_width("\u{FE00}", 0, 0)
   assert_str_width("\u{FE01}", 0, 0)
-  for i in 0..=0x10FFFF {
+  for i in 0..<=0x10FFFF {
     let c = i.unsafe_to_char()
     if c is ('\u{2018}' | '\u{2019}' | '\u{201C}' | '\u{201D}') {
       assert_str_width(c.to_string(), 1, 2)

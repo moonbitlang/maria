@@ -41,7 +41,7 @@ async test "maria/resume" (t : @test.Test) {
       ),
     )
     maria.start()
-    @json.inspect(
+    json_inspect(
       result is Some(content) && content.contains("Rabbit"),
       content=true,
     )

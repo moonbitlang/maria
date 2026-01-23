@@ -42,7 +42,7 @@ pub fn json_input(
 
 ///|
 test {
-  @json.inspect(
+  json_inspect(
     params(content="Hello, World!", path="example.txt", separator="\n"),
     content={
       "content": "Hello, World!",

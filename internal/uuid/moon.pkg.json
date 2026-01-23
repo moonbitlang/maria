@@ -1,3 +1,9 @@
 {
-  "test-import": ["moonbitlang/maria/internal/rand"]
+  "test-import": [
+    "moonbitlang/maria/internal/rand"
+  ],
+  "import": [
+    "moonbitlang/core/json",
+    "moonbitlang/core/random"
+  ]
 }

@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/openai"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/internal/schema"
-  "moonbitlang/maria/model"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/schema",
+  "moonbitlang/maria/model",
+}
 
 // Values
 pub fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, tool_calls? : Array[ChatCompletionMessageToolCall], name? : String) -> ChatCompletionMessageParam

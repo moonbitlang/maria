@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/moon"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/internal/diagnostics"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/internal/diagnostics",
+}
 
 // Values
 pub async fn check_syntax_of_file(String, cwd? : StringView) -> @diagnostics.Diagnostics

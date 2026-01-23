@@ -1,4 +1,16 @@
 {
-  "import": ["moonbitlang/x/codec/base64", "moonbitlang/regexp"],
+  "import": [
+    "moonbitlang/x/codec/base64",
+    "moonbitlang/regexp",
+    "moonbitlang/core/buffer",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/int",
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv",
+    "moonbitlang/core/test"
+  ],
   "warn-list": "-2-33"
 }

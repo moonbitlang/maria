@@ -33,7 +33,7 @@ async test "@context.Extractor" (t : @test.Test) {
       ),
     ]
     let content = @prompt.moonbit
-    @json.inspect(
+    json_inspect(
       extractor.extract_code_snippets(content, history~) is Some(_),
       content=true,
     )

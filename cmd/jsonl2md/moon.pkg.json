@@ -11,9 +11,15 @@
     "moonbitlang/regexp",
     "moonbitlang/maria/event",
     "moonbitlang/maria/ai",
-    "moonbitlang/maria/clock"
+    "moonbitlang/maria/clock",
+    "moonbitlang/core/cmp",
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv",
+    "moonbitlang/core/test"
   ],
-  "overrides": ["moonbitlang/maria/internal/abort"],
+  "overrides": [
+    "moonbitlang/maria/internal/abort"
+  ],
   "wbtest-import": [
     "moonbitlang/maria/internal/mock",
     "moonbitlang/maria/internal/pino"

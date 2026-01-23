@@ -7,6 +7,7 @@
     "moonbitlang/maria/internal/git",
     "moonbitlang/maria",
     "moonbitlang/maria/internal/os",
-    "moonbitlang/maria/model"
+    "moonbitlang/maria/model",
+    "moonbitlang/core/strconv"
   ]
 }

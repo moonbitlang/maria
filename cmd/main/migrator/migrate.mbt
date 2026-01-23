@@ -66,7 +66,7 @@ async fn Migrator::migrate(
     |> @pathx.join(".moonagent")
     |> @pathx.join("repos")
     |> @pathx.join(src_name)
-  for loop_index in 1..=self.max_while_loop {
+  for loop_index in 1..<=self.max_while_loop {
     if !@fsx.exists(dst_path) {
       @moon.new(name=dst_name, dst_name)
     }

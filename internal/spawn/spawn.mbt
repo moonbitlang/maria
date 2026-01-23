@@ -72,7 +72,7 @@ pub suberror TimedOut {
 /// ```moonbit async
 /// let output = StringBuilder::new()
 /// let status = spawn("echo", ["Hello, World!"], stdout=output)
-/// @json.inspect(status, content=0)
+/// json_inspect(status, content=0)
 /// ```
 pub async fn spawn(
   command : StringView,

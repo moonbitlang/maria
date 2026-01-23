@@ -36,12 +36,12 @@ pub impl @json.FromJson for Status with from_json(json, path) {
 
 ///|
 test "Status::ToJson" {
-  @json.inspect(Idle, content="idle")
-  @json.inspect(Busy, content="generating")
+  json_inspect(Idle, content="idle")
+  json_inspect(Busy, content="generating")
 }
 
 ///|
 test "Status::FromJson" {
-  @json.inspect(@json.from_json("idle") is Idle, content=true)
-  @json.inspect(@json.from_json("generating") is Busy, content=true)
+  json_inspect(@json.from_json("idle") is Idle, content=true)
+  json_inspect(@json.from_json("generating") is Busy, content=true)
 }

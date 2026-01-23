@@ -28,7 +28,14 @@
     "moonbitlang/async/semaphore",
     "moonbitlang/maria/ai",
     "moonbitlang/maria/oauth/codex",
-    "moonbitlang/maria/oauth/copilot"
+    "moonbitlang/maria/oauth/copilot",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json",
+    "moonbitlang/core/strconv",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/maria/internal/mock",

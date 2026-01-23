@@ -6,8 +6,18 @@
     "moonbitlang/async/aqueue",
     "moonbitlang/async",
     "moonbitlang/async/pipe",
-    "moonbitlang/maria/clock"
+    "moonbitlang/maria/clock",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
-  "native-stub": ["spawn.c"],
-  "test-import": ["moonbitlang/maria/internal/mock"]
+  "native-stub": [
+    "spawn.c"
+  ],
+  "test-import": [
+    "moonbitlang/maria/internal/mock"
+  ]
 }

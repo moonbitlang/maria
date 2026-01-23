@@ -40,7 +40,7 @@ async test "load" (t : @test.Test) {
     let cwd = @pathx.join(home, "cwd")
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
-    @json.inspect(mock.json(loader.skills()), content={
+    json_inspect(mock.json(loader.skills()), content={
       "moonbit-agent-guide": {
         "name": "moonbit-agent-guide",
         "description": "Guide for writing, refactoring, and testing MoonBit projects. Use when working in MoonBit modules or packages, organizing MoonBit files, using moon tooling (build/check/test/doc/ide), or following MoonBit-specific layout, documentation, and testing conventions.",
@@ -458,7 +458,7 @@ async test "reload" (t : @test.Test) {
     mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
-    @json.inspect(mock.json(loader.skills()), content={
+    json_inspect(mock.json(loader.skills()), content={
       "moonbit-agent-guide": {
         "name": "moonbit-agent-guide",
         "description": "Guide for writing, refactoring, and testing MoonBit projects. Use when working in MoonBit modules or packages, organizing MoonBit files, using moon tooling (build/check/test/doc/ide), or following MoonBit-specific layout, documentation, and testing conventions.",
@@ -498,7 +498,7 @@ async test "reload" (t : @test.Test) {
       },
     })
     loader.load()
-    @json.inspect(mock.json(loader.skills()), content={
+    json_inspect(mock.json(loader.skills()), content={
       "moonbit-agent-guide": {
         "name": "moonbit-agent-guide",
         "description": "Guide for writing, refactoring, and testing MoonBit projects. Use when working in MoonBit modules or packages, organizing MoonBit files, using moon tooling (build/check/test/doc/ide), or following MoonBit-specific layout, documentation, and testing conventions.",
@@ -590,7 +590,7 @@ async test "load/parent-directories" (t : @test.Test) {
     loader.load()
     // If inside a git repo, load skills from the repo root and all
     // ancestors down to cwd. That means project + sub, and still global.
-    @json.inspect(mock.json(loader.skills()), content={
+    json_inspect(mock.json(loader.skills()), content={
       "moonbit-agent-guide": {
         "name": "moonbit-agent-guide",
         "description": "Guide for writing, refactoring, and testing MoonBit projects. Use when working in MoonBit modules or packages, organizing MoonBit files, using moon tooling (build/check/test/doc/ide), or following MoonBit-specific layout, documentation, and testing conventions.",
@@ -665,7 +665,7 @@ async test "load/no-git-loads-cwd-and-home" (t : @test.Test) {
     let cwd = @pathx.join(home, "cwd")
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
-    @json.inspect(mock.json(loader.skills()), content={
+    json_inspect(mock.json(loader.skills()), content={
       "moonbit-agent-guide": {
         "name": "moonbit-agent-guide",
         "description": "Guide for writing, refactoring, and testing MoonBit projects. Use when working in MoonBit modules or packages, organizing MoonBit files, using moon tooling (build/check/test/doc/ide), or following MoonBit-specific layout, documentation, and testing conventions.",

@@ -62,7 +62,7 @@ async test "Minimal JSON API Server" {
     guard r.code is @status.Ok else {
       fail("Unexpected response code: \{r.code}")
     }
-    @json.inspect(b.json(), content=[
+    json_inspect(b.json(), content=[
       "Ok",
       { "name": "Example Task", "description": "This is an example task." },
     ])

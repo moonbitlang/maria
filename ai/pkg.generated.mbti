@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/ai"
 
-import(
-  "moonbitlang/maria/internal/openai"
-)
+import {
+  "moonbitlang/maria/internal/openai",
+}
 
 // Values
 pub fn assistant_message(content~ : String, tool_calls? : Array[ToolCall]) -> Message

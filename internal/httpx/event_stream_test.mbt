@@ -21,9 +21,9 @@ async test "event-stream" (t : @test.Test) {
       defer c.close()
       c.request(Get, "/")
       let r = c.end_request()
-      @json.inspect(r.code, content=200)
-      @json.inspect(r.reason, content="OK")
-      @json.inspect(r.headers.get("content-type"), content=["text/event-stream"])
+      json_inspect(r.code, content=200)
+      json_inspect(r.reason, content="OK")
+      json_inspect(r.headers.get("content-type"), content=["text/event-stream"])
       let r = @httpx.EventStreamReader::new(c)
       let es = []
       while r.read_event() is Some(event) {

@@ -882,13 +882,13 @@ async test "pruner" (t : @test.Test) {
   ]
   @mock.run(t, mock => {
     let counter = @token_counter.Counter::new(logger=mock.logger)
-    @json.inspect(counter.count_param(messages~, tools~), content=63130)
+    json_inspect(counter.count_param(messages~, tools~), content=63130)
     let pruner = @context_pruner.Pruner::new(
       safe_zone_tokens=32000,
       logger=mock.logger,
     )
     pruner.prune_messages(messages, tools~)
-    @json.inspect(counter.count_param(messages~, tools~), content=31073)
+    json_inspect(counter.count_param(messages~, tools~), content=31073)
   })
 }
 
@@ -906,7 +906,7 @@ async test "prune_basic" (t : @test.Test) {
     )
     pruner.prune_messages(messages)
     // Should not modify anything since there are no tool messages
-    @json.inspect(messages.length(), content=3)
+    json_inspect(messages.length(), content=3)
   })
 }
 
@@ -929,7 +929,7 @@ async test "prune_large_tool_output" (t : @test.Test) {
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Tool output should be replaced with placeholder
-    @json.inspect(tokens_after < tokens_before, content=true)
+    json_inspect(tokens_after < tokens_before, content=true)
   })
 }
 
@@ -951,7 +951,7 @@ async test "prune_already_cleared" (t : @test.Test) {
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should skip already-cleared messages (already cleared so no change)
-    @json.inspect(tokens_after, content=29)
+    json_inspect(tokens_after, content=29)
   })
 }
 
@@ -973,8 +973,8 @@ async test "prune_multiple_tools" (t : @test.Test) {
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Multiple tool outputs should be cleared
-    @json.inspect(tokens_after < tokens_before, content=true)
-    @json.inspect(tokens_after <= 200, content=true)
+    json_inspect(tokens_after < tokens_before, content=true)
+    json_inspect(tokens_after <= 200, content=true)
   })
 }
 
@@ -994,7 +994,7 @@ async test "prune_stops_at_budget" (t : @test.Test) {
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should stop pruning once budget is met
-    @json.inspect(tokens_after <= 2000, content=true)
+    json_inspect(tokens_after <= 2000, content=true)
   })
 }
 
@@ -1013,7 +1013,7 @@ async test "prune_no_tools" (t : @test.Test) {
     pruner.prune_messages(messages)
     let tokens_after = counter.count_param(messages~)
     // Should not modify messages without tools
-    @json.inspect(tokens_after, content=11)
+    json_inspect(tokens_after, content=11)
   })
 }
 
@@ -1027,6 +1027,6 @@ async test "prune_empty_messages" (t : @test.Test) {
     )
     pruner.prune_messages(messages)
     // Should handle empty array gracefully
-    @json.inspect(messages.length(), content=0)
+    json_inspect(messages.length(), content=0)
   })
 }

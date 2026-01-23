@@ -5,6 +5,7 @@
     "moonbitlang/maria/ai",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/internal/httpx",
-    "moonbitlang/maria/clock"
+    "moonbitlang/maria/clock",
+    "moonbitlang/core/json"
   ]
 }

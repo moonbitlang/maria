@@ -12,7 +12,7 @@ async test "files" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     let files = moon.files().collect()
-    @json.inspect(files, content=[
+    json_inspect(files, content=[
       {
         "content": "///|\nlet x : Int = 42",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -24,7 +24,7 @@ async test "files" (t : @test.Test) {
     ])
     moon.check()
     let files = moon.files().collect()
-    @json.inspect(mock.json(files), content=[
+    json_inspect(mock.json(files), content=[
       {
         "content": "///|\nlet x : Int = 42",
         "header": { "start": 0, "end": 0, "diagnostics": ["Diagnostics", []] },
@@ -70,7 +70,7 @@ async test "files" (t : @test.Test) {
     for file in files {
       segments.push(file.segments())
     }
-    @json.inspect(mock.json(segments), content=[
+    json_inspect(mock.json(segments), content=[
       [
         {
           "file": "(mock:cwd)/example.mbt",
@@ -96,7 +96,7 @@ async test "interface" (t : @test.Test) {
     })
     let moon = @moon.Module::load(mock.cwd.path())
     let pkg = moon.find_package("example")
-    @json.inspect(mock.json(pkg), content=[
+    json_inspect(mock.json(pkg), content=[
       {
         "name": "example",
         "path": "(mock:cwd)",
@@ -151,7 +151,7 @@ async test "diagnostics" (t : @test.Test) {
     let moon = Module::load(mock.cwd.path())
     moon.check()
     let diagnostics = moon.diagnostics()
-    @json.inspect(mock.json(diagnostics), content=[
+    json_inspect(mock.json(diagnostics), content=[
       "Diagnostics",
       [
         {
@@ -240,7 +240,7 @@ async test "packages" (t : @test.Test) {
     let moon = @moon.Module::load(mock.cwd.path())
     let pkg_names = moon.packages().map(pkg => pkg.name()).collect()
     pkg_names.sort()
-    @json.inspect(pkg_names, content=[
+    json_inspect(pkg_names, content=[
       "example", "example/app", "example/lib", "example/lib/util",
     ])
   })

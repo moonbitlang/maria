@@ -21,7 +21,7 @@ async test "publish" (t : @test.Test) {
       ),
     )
     let moon = @moon.Module::load(mock.cwd.path())
-    @json.inspect(
+    json_inspect(
       (try? moon.publish(dry_run=true)).to_json()
       is { "Err": ["Failed", { "status": status, .. }], .. } &&
       status != 0,

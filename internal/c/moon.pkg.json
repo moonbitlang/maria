@@ -1,11 +1,37 @@
 {
   "targets": {
-    "nullable.mbt": ["native", "llvm"],
-    "pointer.mbt": ["native", "llvm"],
-    "exit.mbt": ["native", "llvm"],
-    "malloc.mbt": ["native", "llvm"],
-    "memcpy.mbt": ["native", "llvm"],
-    "strlen.mbt": ["native", "llvm"]
+    "nullable.mbt": [
+      "native",
+      "llvm"
+    ],
+    "pointer.mbt": [
+      "native",
+      "llvm"
+    ],
+    "exit.mbt": [
+      "native",
+      "llvm"
+    ],
+    "malloc.mbt": [
+      "native",
+      "llvm"
+    ],
+    "memcpy.mbt": [
+      "native",
+      "llvm"
+    ],
+    "strlen.mbt": [
+      "native",
+      "llvm"
+    ]
   },
-  "native-stub": ["c.c", "malloc.c", "memcpy.c", "strlen.c"]
+  "native-stub": [
+    "c.c",
+    "malloc.c",
+    "memcpy.c",
+    "strlen.c"
+  ],
+  "import": [
+    "moonbitlang/core/json"
+  ]
 }

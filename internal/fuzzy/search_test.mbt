@@ -5,7 +5,7 @@ test "find_match exact match" {
     #|This is a test
     #|End of file
   let needle = "This is a test"
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=[
+  json_inspect(@fuzzy.find_match(haystack, needle), content=[
     { "position": 12, "length": 14, "start_line": 1, "end_line": 1 },
   ])
 }
@@ -19,7 +19,7 @@ test "find_match line-by-line with whitespace" {
   let needle =
     #|line 1
     #|line 2
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=[
+  json_inspect(@fuzzy.find_match(haystack, needle), content=[
     { "position": 0, "length": 21, "start_line": 0, "end_line": 1 },
   ])
   let haystack =
@@ -30,7 +30,7 @@ test "find_match line-by-line with whitespace" {
   let needle =
     #|line 2  
     #|  line 3
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=[
+  json_inspect(@fuzzy.find_match(haystack, needle), content=[
     { "position": 7, "length": 13, "start_line": 1, "end_line": 2 },
   ])
 }
@@ -45,7 +45,7 @@ test "find_match/line-by-line/ignore-empty-lines" {
   let needle =
     #|line 1
     #|line 2
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=[
+  json_inspect(@fuzzy.find_match(haystack, needle), content=[
     { "position": 0, "length": 14, "start_line": 0, "end_line": 2 },
   ])
   let haystack =
@@ -57,12 +57,12 @@ test "find_match/line-by-line/ignore-empty-lines" {
   let needle =
     #|line 2
     #|line 4
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=null)
+  json_inspect(@fuzzy.find_match(haystack, needle), content=null)
 }
 
 ///|
 test "find_match no match found" {
   let haystack = "Hello world"
   let needle = "Not found"
-  @json.inspect(@fuzzy.find_match(haystack, needle), content=null)
+  json_inspect(@fuzzy.find_match(haystack, needle), content=null)
 }

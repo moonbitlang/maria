@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/wait_job"
 
-import(
-  "moonbitlang/maria/job"
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/maria/job",
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub fn new(@job.Manager) -> @tool.Tool[String]

@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/tools/fix_moonbit_warnings"
 
-import(
-  "moonbitlang/maria/agent"
-  "moonbitlang/maria/tool"
-)
+import {
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/tool",
+}
 
 // Values
 pub fn new(@agent.Agent) -> @tool.Tool[String]

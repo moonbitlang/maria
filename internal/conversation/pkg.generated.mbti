@@ -1,14 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/conversation"
 
-import(
-  "moonbitlang/core/json"
-  "moonbitlang/maria/ai"
-  "moonbitlang/maria/clock"
-  "moonbitlang/maria/event"
-  "moonbitlang/maria/internal/pino"
-  "moonbitlang/maria/internal/uuid"
-)
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/uuid",
+}
 
 // Values
 

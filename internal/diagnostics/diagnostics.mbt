@@ -149,7 +149,7 @@ fn render_single_line_range(
   )
   let text_padding = " ".repeat(diagnostic.loc.start.col - 1)
   rendered.push(" \{number_padding} │ \{text_padding}\{caret_text}")
-  for i in (start_line + 1)..=context_end_line {
+  for i in (start_line + 1)..<=context_end_line {
     let line_text = lines[i - 1]
     render_line(number_padding, line_text)
   }
@@ -199,7 +199,7 @@ fn render_multi_line_range(
   render_line(end_line_number, end_line_text)
   let end_line_carets = "^".repeat(diagnostic.loc.end.col - 1)
   rendered.push(" \{number_padding} │ \{end_line_carets}")
-  for i in (end_line + 1)..=context_end_line {
+  for i in (end_line + 1)..<=context_end_line {
     let line_text = lines[i - 1]
     render_line(number_padding, line_text)
   }

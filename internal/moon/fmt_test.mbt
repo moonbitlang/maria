@@ -20,7 +20,7 @@ async test "format_string" {
     let formatted = try? @moon.format_string(item)
     format_all.push(formatted)
   }
-  @json.inspect(format_all, content=[
+  json_inspect(format_all, content=[
     { "Ok": "///|\nfn main {\n  println(\"Hello, world!\")\n}\n" },
     { "Ok": "///|\nstruct Point {\n  x : Int\n  y : Int\n}\n" },
     { "Ok": "enum Shape { Circle(radius: Int), Square(side: Int) }\n" },

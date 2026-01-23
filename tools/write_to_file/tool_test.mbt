@@ -13,7 +13,7 @@ async test "write_to_file" (t : @test.Test) {
     guard result is Ok(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    @json.inspect(mock.json(output), content={ "path": "(mock:cwd)/file.txt" })
+    json_inspect(mock.json(output), content={ "path": "(mock:cwd)/file.txt" })
     let final_content = @fsx.read_file(@pathx.join(mock.cwd.path(), "file.txt"))
     inspect(
       final_content,

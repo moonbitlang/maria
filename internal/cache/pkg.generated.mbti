@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/cache"
 
-import(
-  "moonbitlang/maria/internal/openai"
-)
+import {
+  "moonbitlang/maria/internal/openai",
+}
 
 // Values
 pub fn cache_messages(ArrayView[@openai.ChatCompletionMessageParam]) -> Array[@openai.ChatCompletionMessageParam]

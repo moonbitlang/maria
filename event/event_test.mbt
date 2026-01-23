@@ -12,7 +12,7 @@ async test "EventTarget::flush" (t : @test.Test) {
       event_target.flush()
       task.cancel()
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -33,7 +33,7 @@ async test "Event::ToJson/PreConversation" (t : @test.Test) {
       emitter.add_listener(event => events.push(event))
       emitter.emit(PreConversation)
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -54,7 +54,7 @@ async test "Event::ToJson/PostConversation" (t : @test.Test) {
       emitter.add_listener(event => events.push(event))
       emitter.emit(PostConversation)
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -75,7 +75,7 @@ async test "Event::ToJson/TokenCounted" (t : @test.Test) {
       emitter.add_listener(event => events.push(event))
       emitter.emit(TokenCounted(42))
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -96,7 +96,7 @@ async test "Event::ToJson/ContextPruned" (t : @test.Test) {
       emitter.add_listener(event => events.push(event))
       emitter.emit(ContextPruned(origin_token_count=100, pruned_token_count=20))
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -129,7 +129,7 @@ async test "Event::ToJson/PreToolCall" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -172,7 +172,7 @@ async test "Event::ToJson/PostToolCall success" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -216,7 +216,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -251,7 +251,7 @@ async test "Event::ToJson/SystemPromptSet" (t : @test.Test) {
       emitter.emit(SystemPromptSet(Some("Hello, this is a system prompt.")))
       emitter.emit(SystemPromptSet(None))
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -286,7 +286,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
       )
       emitter.emit(ToolAdded(tool.desc))
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -325,7 +325,7 @@ async test "Event::ToJson/AssistantMessage" (t : @test.Test) {
         ),
       )
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -355,7 +355,7 @@ async test "Event::ModelLoaded" (t : @test.Test) {
       emitter.add_listener(event => events.push(event))
       emitter.emit(ModelLoaded(name="test_model"))
     })
-    @json.inspect(events, content=[
+    json_inspect(events, content=[
       {
         "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
         "created": 0,
@@ -589,7 +589,7 @@ test "Event::Roundtrip/AssistantMessage/WithUsage" {
     "Response from model",
   )
   let json = event.to_json()
-  @json.inspect(json, content={
+  json_inspect(json, content={
     "msg": "AssistantMessage",
     "tool_calls": [],
     "content": "Response from model",
@@ -719,7 +719,7 @@ test "ExternalEvent::Roundtrip/Diagnostics/Multiple" {
   diagnostics.push(diagnostic1)
   diagnostics.push(diagnostic2)
   let event : @event.EventDesc = Diagnostics(diagnostics)
-  @json.inspect(event, content={
+  json_inspect(event, content={
     "msg": "Diagnostics",
     "diagnostics": [
       "Diagnostics",

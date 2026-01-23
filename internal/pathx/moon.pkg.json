@@ -3,7 +3,8 @@
     {
       "path": "moonbitlang/x/path",
       "alias": "xpath"
-    }
+    },
+    "moonbitlang/core/json"
   ],
   "warn-list": "-24"
 }

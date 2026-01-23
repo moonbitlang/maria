@@ -1,3 +1,11 @@
 {
-  "native-stub": ["backtrace.c"]
+  "native-stub": [
+    "backtrace.c"
+  ],
+  "import": [
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    }
+  ]
 }

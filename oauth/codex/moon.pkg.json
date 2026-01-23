@@ -10,7 +10,12 @@
     "moonbitlang/x/codec/base64",
     "moonbitlang/async/http",
     "moonbitlang/async/io",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "encoding/utf8"
+    },
+    "moonbitlang/core/json",
+    "moonbitlang/core/random"
   ]
 }
-

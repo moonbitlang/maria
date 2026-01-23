@@ -8,7 +8,9 @@
     "moonbitlang/maria/internal/diagnostics",
     "moonbitlang/maria/internal/rand",
     "moonbitlang/maria/clock",
-    "moonbitlang/maria/internal/jsonx"
+    "moonbitlang/maria/internal/jsonx",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",

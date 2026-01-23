@@ -206,21 +206,21 @@ test "Layer::add_handler" {
   let route : Route = Route::new((_, _) => ())
   let layer = Layer::new()
   layer.add_route(Get, ["v1", "user", "{id}", "messages"], route)
-  @json.inspect(layer.matches.keys(), content=["v1"])
-  @json.inspect(layer.matches["v1"].matches.keys(), content=["user"])
-  @json.inspect(
+  json_inspect(layer.matches.keys(), content=["v1"])
+  json_inspect(layer.matches["v1"].matches.keys(), content=["user"])
+  json_inspect(
     layer.matches["v1"].matches["user"].default is Some(_),
     content=true,
   )
-  @json.inspect(
+  json_inspect(
     layer.matches["v1"].matches["user"].default.unwrap().matches.keys(),
     content=["messages"],
   )
-  @json.inspect(
+  json_inspect(
     layer.matches["v1"].matches["user"].default.unwrap().matches["messages"].routes.keys(),
     content=["Get"],
   )
-  @json.inspect(
+  json_inspect(
     layer.matches["v1"].matches["user"].default.unwrap().matches["messages"].routes[Get].names,
     content=["id"],
   )
@@ -231,14 +231,14 @@ test "Layer::route" {
   let route : Route = Route::new((_, _) => ())
   let layer = Layer::new()
   layer.add_route(Get, ["v1", "user", "{id}", "messages"], route)
-  @json.inspect(
+  json_inspect(
     layer.route(["v1", "user", "42", "messages"]) is Some(_),
     content=true,
   )
-  @json.inspect(
+  json_inspect(
     layer.route(["v1", "user", "0", "messages"]) is Some(_),
     content=true,
   )
   layer.add_route(Post, ["hello"], route)
-  @json.inspect(layer.route(["hello"]) is Some(_), content=true)
+  json_inspect(layer.route(["hello"]) is Some(_), content=true)
 }

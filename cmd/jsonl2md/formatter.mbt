@@ -291,7 +291,7 @@ fn recover_diagnostics(content : String) -> String raise {
           recovered.push("\{line_number} │\{source_lines[line]}")
           let padding = " ".repeat(column - 1)
           recovered.push("\{indent} │\{padding}^")
-          for i in (line + 1)..=context_end {
+          for i in (line + 1)..<=context_end {
             recovered.push("\{indent} │\{source_lines[i]}")
           }
         }

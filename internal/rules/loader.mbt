@@ -112,7 +112,7 @@ test "Rule::parse" {
     #|console.log("Hello, world!");
     #|
   let rule = Rule::parse(content.to_string(), source=Global)
-  @json.inspect(rule, content={
+  json_inspect(rule, content={
     "description": "This is a test rule",
     "globs": ["**/*.js", "**/*.ts"],
     "always_apply": true,
@@ -126,7 +126,7 @@ test "Rule::parse/no-front-matter" {
   let content =
     #|# No front matter
   let rule = Rule::parse(content, source=Local)
-  @json.inspect(rule, content={
+  json_inspect(rule, content={
     "globs": [],
     "always_apply": false,
     "content": "",

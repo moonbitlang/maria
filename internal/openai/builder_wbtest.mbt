@@ -35,7 +35,7 @@ test "ChatCompletionMessageToolCallBuilder" {
     ),
   )
   let tool_call = builder.to_tool_call()
-  @json.inspect(tool_call, content={
+  json_inspect(tool_call, content={
     "id": "tool_call_1",
     "function": {
       "name": "get_weather",
@@ -96,7 +96,7 @@ test "ChatCompletionMessageBuilder" {
     ]),
   )
   let message = builder.to_message()
-  @json.inspect(message, content={
+  json_inspect(message, content={
     "content": "I will call the tool to get the weather.",
     "role": "assistant",
     "tool_calls": [
@@ -204,7 +204,7 @@ test "ChatCompletionBuilder" {
       ),
     ),
   )
-  @json.inspect(builder.to_chat_completion(), content={
+  json_inspect(builder.to_chat_completion(), content={
     "id": "chatcmpl-123",
     "choices": [
       {

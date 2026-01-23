@@ -10,7 +10,7 @@ async test "add_worktree" (t : @test.Test) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
+    json_inspect(
       mock.cwd.path()
       |> @pathx.join("worktree")
       |> @pathx.join("file.txt")
@@ -32,7 +32,7 @@ async test "add_worktree/new-branch" (t : @test.Test) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
+    json_inspect(
       mock.cwd.path()
       |> @pathx.join("worktree")
       |> @pathx.join("file.txt")
@@ -81,7 +81,7 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
       force=true,
       cwd=mock.cwd.path(),
     ))
-    @json.inspect(
+    json_inspect(
       mock.cwd.path()
       |> @pathx.join("worktree")
       |> @pathx.join("file.txt")
@@ -97,7 +97,7 @@ async test "with_worktree" (t : @test.Test) {
     @git.init_(mock.cwd.path())
     mock.add_json_tree({ "file.txt": "Hello, Moonbit!" })
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
-    @git.with_worktree("worktree", cwd=mock.cwd.path(), () => @json.inspect(
+    @git.with_worktree("worktree", cwd=mock.cwd.path(), () => json_inspect(
       mock.cwd.path()
       |> @pathx.join("worktree")
       |> @pathx.join("file.txt")
@@ -105,6 +105,6 @@ async test "with_worktree" (t : @test.Test) {
       content="Hello, Moonbit!",
     ))
     let entries = mock.cwd.list().map((entry : @mock.Entry) => entry.name())
-    @json.inspect(!entries.contains("worktree"), content=true)
+    json_inspect(!entries.contains("worktree"), content=true)
   })
 }

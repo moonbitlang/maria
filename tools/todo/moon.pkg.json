@@ -4,7 +4,9 @@
     "moonbitlang/maria/internal/fsx",
     "moonbitlang/maria/internal/uuid",
     "moonbitlang/maria/clock",
-    "moonbitlang/maria/tool"
+    "moonbitlang/maria/tool",
+    "moonbitlang/core/json",
+    "moonbitlang/core/test"
   ],
   "test-import": [
     "moonbitlang/async",
