@@ -70,9 +70,10 @@ pub fn ExternalEventQueue::send(
   desc : EventDesc,
 ) -> Unit {
   let created = @clock.epoch.now()
-  guard self.queue.try_put({ id: self.uuid.v4(), created, desc }) else {
-    return
+  let _ = self.queue.try_put({ id: self.uuid.v4(), created, desc }) catch {
+    _ => false
   }
+
 }
 
 ///|
@@ -110,7 +111,9 @@ pub fn ExternalEventQueue::send(
 /// ```
 pub fn ExternalEventQueue::poll(self : ExternalEventQueue) -> Array[Event] {
   let events = []
-  while self.queue.try_get() is Some(event) && event.is_incoming() {
+  while true {
+    let event = self.queue.try_get() catch { _ => None }
+    guard event is Some(event) && event.is_incoming() else { break }
     events.push(event)
   }
   events

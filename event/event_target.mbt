@@ -93,9 +93,10 @@ pub fn EventTarget::emit(
   desc : EventDesc,
   id? : @uuid.Uuid = self.uuid.v4(),
 ) -> Unit {
-  guard self.queue.try_put({ id, created: self.clock.now(), desc }) else {
-    abort("Event queue is full, cannot emit event")
+  let success = self.queue.try_put({ id, created: self.clock.now(), desc }) catch {
+    _ => abort("Event queue is closed, cannot emit event")
   }
+  guard success else { abort("Event queue is full, cannot emit event") }
 }
 
 ///|
@@ -196,7 +197,9 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 /// and then call listeners outside of the loop to avoid racing?
 /// assuming listerns can take a long time
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
-  while self.queue.try_get() is Some(event) {
+  while true {
+    let event = self.queue.try_get() catch { _ => None }
+    guard event is Some(event) else { break }
     for listener in self.listeners {
       listener(event)
     }
