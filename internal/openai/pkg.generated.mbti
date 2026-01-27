@@ -2,7 +2,10 @@
 package "moonbitlang/maria/internal/openai"
 
 import {
+  "moonbitlang/async/http"
   "moonbitlang/core/json",
+  "moonbitlang/maria/internal/openai/responses"
+  "moonbitlang/maria/internal/openai/shared"
   "moonbitlang/maria/internal/pino",
   "moonbitlang/maria/internal/schema",
   "moonbitlang/maria/model",
@@ -13,7 +16,7 @@ pub fn[T : ToChatCompletionMessageParamContent] assistant_message(content? : T, 
 
 pub async fn chat(model~ : @model.Model, Request, logger? : @pino.Logger, extra_body? : Map[String, Json]) -> ChatCompletion
 
-pub fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, reasoning_effort? : ChatCompletionReasoningEffort, response_format? : ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
+pub fn chat_completion(model~ : String, messages~ : Array[ChatCompletionMessageParam], tools? : Array[ChatCompletionToolParam], usage? : CompletionUsageParam, user? : String, max_tokens? : Int, temperature? : Double, reasoning_effort? : ChatCompletionReasoningEffort, response_format? : @shared.ResponseFormat, stream? : Bool, stream_options? : ChatCompletionStreamOptionsParam, tool_choice? : ChatCompletionToolChoice) -> Request
 
 pub fn chunk(id~ : String, choices~ : Array[ChatCompletionChunkChoice], created~ : Int, model~ : String, usage? : CompletionUsage, system_fingerprint? : String, service_tier? : ChatCompletionServiceTier, error? : OpenRouterErrorResponse) -> ChatCompletionChunk
 
@@ -29,7 +32,7 @@ pub async fn[T : Structural] data(model~ : @model.Model, prompt~ : String) -> T
 
 pub async fn json(model~ : @model.Model, prompt~ : String) -> Json
 
-pub fn json_schema(name~ : String, schema~ : Map[String, Json], description? : String, strict? : Bool) -> ResponseFormat
+pub fn json_schema(name~ : String, schema~ : Map[String, Json], description? : String, strict? : Bool) -> @shared.ResponseFormat
 
 pub fn stream_options(include_obfuscation? : Bool, include_usage? : Bool) -> ChatCompletionStreamOptionsParam
 
@@ -50,6 +53,13 @@ pub fn usage(include_~ : Bool) -> CompletionUsageParam
 pub fn[T : ToChatCompletionMessageParamContent] user_message(content~ : T, name? : String) -> ChatCompletionMessageParam
 
 // Errors
+pub suberror ChatCompletionServiceError {
+  ChatInvalidRequestBody
+  ChatMissingCompletionId
+  ChatHttpError(code~ : Int, body~ : String)
+}
+pub impl Show for ChatCompletionServiceError
+pub impl ToJson for ChatCompletionServiceError
 
 // Types and methods
 pub(all) enum CacheControl {
@@ -161,9 +171,42 @@ pub(all) struct ChatCompletionCustomToolChoice {
   name : String
 }
 
+pub struct ChatCompletionDeleted {
+  id : String
+  deleted : Bool
+  object_ : String
+}
+pub impl ToJson for ChatCompletionDeleted
+pub impl @json.FromJson for ChatCompletionDeleted
+
 pub(all) struct ChatCompletionFunctionToolChoice {
   name : String
 }
+
+pub struct ChatCompletionListParams {
+  after : String?
+  limit : Int?
+  model : String?
+  metadata : Map[String, String]?
+  order : ChatCompletionListParamsOrder?
+}
+pub fn ChatCompletionListParams::empty() -> Self
+pub fn ChatCompletionListParams::new(after? : String, limit? : Int, model? : String, metadata? : Map[String, String], order? : ChatCompletionListParamsOrder) -> Self
+
+pub(all) enum ChatCompletionListParamsOrder {
+  Asc
+  Desc
+}
+pub impl ToJson for ChatCompletionListParamsOrder
+
+pub struct ChatCompletionListResponse {
+  data : Array[ChatCompletion]
+  has_more : Bool
+  first_id : String?
+  last_id : String?
+  object_ : String
+}
+pub impl @json.FromJson for ChatCompletionListResponse
 
 pub struct ChatCompletionMessage {
   content : String?
@@ -226,6 +269,18 @@ pub(all) enum ChatCompletionRole {
 }
 pub impl ToJson for ChatCompletionRole
 
+pub struct ChatCompletionService {
+  base_url : String
+  api_key : String
+}
+pub async fn ChatCompletionService::create(Self, Request) -> ChatCompletion
+pub async fn ChatCompletionService::create_stream(Self, Request) -> ChatCompletionStream
+pub async fn ChatCompletionService::delete(Self, String) -> ChatCompletionDeleted
+pub async fn ChatCompletionService::get(Self, String) -> ChatCompletion
+pub async fn ChatCompletionService::list(Self, query? : ChatCompletionListParams) -> ChatCompletionListResponse
+pub fn ChatCompletionService::new(base_url~ : String, api_key~ : String) -> Self
+pub async fn ChatCompletionService::update(Self, String, ChatCompletionUpdateParams) -> ChatCompletion
+
 #alias(ChatCompletionChunkServiceTier)
 pub(all) enum ChatCompletionServiceTier {
   Auto
@@ -235,6 +290,12 @@ pub(all) enum ChatCompletionServiceTier {
   Priority
 }
 pub impl Show for ChatCompletionServiceTier
+
+pub struct ChatCompletionStream {
+  client : @http.Client
+}
+pub fn ChatCompletionStream::close(Self) -> Unit
+pub async fn ChatCompletionStream::read(Self) -> ChatCompletionChunk?
 
 pub struct ChatCompletionStreamOptionsParam {
   include_obfuscation : Bool?
@@ -261,16 +322,27 @@ pub struct ChatCompletionToolMessageParam {
   tool_call_id : String
 }
 
-pub enum ChatCompletionToolParam {
-  Function(FunctionDefinition)
+pub(all) enum ChatCompletionToolParam {
+  Function(@shared.FunctionDefinition)
 }
 pub impl ToJson for ChatCompletionToolParam
+
+pub struct ChatCompletionUpdateParams {
+  metadata : Map[String, String]
+}
+pub fn ChatCompletionUpdateParams::new(metadata? : Map[String, String]) -> Self
+pub impl ToJson for ChatCompletionUpdateParams
 
 pub struct ChatCompletionUserMessageParam {
   content : Array[ChatCompletionContentPartParam]
   name : String?
 }
 pub fn ChatCompletionUserMessageParam::new(content~ : Array[ChatCompletionContentPartParam], name? : String) -> Self
+
+pub struct ChatService {
+  completions : ChatCompletionService
+}
+pub fn ChatService::new(base_url~ : String, api_key~ : String) -> Self
 
 pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
@@ -302,14 +374,11 @@ pub struct CostDetails {
 pub impl Show for CostDetails
 pub impl ToJson for CostDetails
 
-pub struct FunctionDefinition {
-  name : String
-  description : String
-  parameters : Json
-  strict : Bool?
+pub struct OpenAI {
+  chat : ChatService
+  responses : @responses.ResponseService
 }
-
-type JsonSchema
+pub fn OpenAI::new(base_url~ : String, api_key~ : String) -> Self
 
 pub struct OpenRouterErrorResponse {
   code : Int
@@ -327,6 +396,7 @@ pub fn PromptTokensDetails::new(cached_tokens? : Int, audio_tokens? : Int) -> Se
 pub impl Show for PromptTokensDetails
 pub impl ToJson for PromptTokensDetails
 
+#alias(ChatCompletionNewParams)
 pub struct Request {
   model : String
   messages : Array[ChatCompletionMessageParam]
@@ -336,19 +406,12 @@ pub struct Request {
   max_tokens : Int?
   temperature : Double?
   reasoning_effort : ChatCompletionReasoningEffort?
-  response_format : ResponseFormat?
+  response_format : @shared.ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
   tool_choice : ChatCompletionToolChoice?
 }
 pub impl ToJson for Request
-
-pub(all) enum ResponseFormat {
-  Text
-  JsonSchema(JsonSchema)
-  JsonObject
-}
-pub impl ToJson for ResponseFormat
 
 // Type aliases
 

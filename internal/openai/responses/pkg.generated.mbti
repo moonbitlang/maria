@@ -2,22 +2,67 @@
 package "moonbitlang/maria/internal/openai/responses"
 
 import {
+  "moonbitlang/async/http",
   "moonbitlang/core/json",
+  "moonbitlang/maria/internal/openai/shared"
 }
 
 // Values
-pub fn function_call_output(call_id~ : String, output~ : String) -> ResponseInputItem
+pub fn function_call(call_id~ : String, name~ : String, arguments~ : String) -> ResponseInputItemParam
 
-pub fn message_input(role~ : String, content~ : String) -> ResponseInputItem
+pub fn function_call_output(call_id~ : String, output~ : String) -> ResponseInputItemParam
+
+pub fn message_input(role~ : String, content~ : String) -> ResponseInputItemParam
 
 // Errors
+pub suberror ResponseServiceError {
+  InvalidRequestBody
+  MissingResponseId
+  HttpError(code~ : Int, body~ : String)
+}
+pub impl Show for ResponseServiceError
+pub impl ToJson for ResponseServiceError
 
 // Types and methods
+pub struct ApplyPatchTool {
+}
+pub impl ToJson for ApplyPatchTool
+pub impl @json.FromJson for ApplyPatchTool
+
+pub struct CompactedResponse {
+  id : String
+  created_at : Int64
+  object_ : String
+  output : Array[ResponseOutputItem]
+  usage : ResponseUsage
+}
+pub impl @json.FromJson for CompactedResponse
+
+pub struct ComputerTool {
+  display_height : Int64
+  display_width : Int64
+  environment : ComputerToolEnvironment
+}
+pub impl ToJson for ComputerTool
+pub impl @json.FromJson for ComputerTool
+
+pub enum ComputerToolEnvironment {
+  Windows
+  Mac
+  Linux
+  Ubuntu
+  Browser
+}
+pub impl ToJson for ComputerToolEnvironment
+pub impl @json.FromJson for ComputerToolEnvironment
+
 pub struct ContentPart {
   type_ : ContentType
   text : String
 }
 pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> Self
+pub fn ContentPart::text(Self) -> String
+pub fn ContentPart::type_(Self) -> ContentType
 pub impl Show for ContentPart
 pub impl ToJson for ContentPart
 pub impl @json.FromJson for ContentPart
@@ -31,35 +76,1650 @@ pub impl Show for ContentType
 pub impl ToJson for ContentType
 pub impl @json.FromJson for ContentType
 
-pub(all) enum ResponseInputItem {
-  Message(role~ : String, content~ : Array[ContentPart])
+pub struct CustomTool {
+  name : String
+  description : String?
+  format : @shared.CustomToolInputFormatUnion?
+}
+pub impl ToJson for CustomTool
+pub impl @json.FromJson for CustomTool
+
+pub struct EasyInputMessage {
+  content : EasyInputMessageContent
+  role : EasyInputMessageRole
+  type_ : String?
+}
+pub impl ToJson for EasyInputMessage
+pub impl @json.FromJson for EasyInputMessage
+
+pub enum EasyInputMessageContent {
+  Text(String)
+  InputItemContentList(Array[ResponseInputContent])
+}
+pub impl ToJson for EasyInputMessageContent
+pub impl @json.FromJson for EasyInputMessageContent
+
+pub(all) enum EasyInputMessageContentParam {
+  String(String)
+  InputItemContentList(Array[ResponseInputContentParam])
+}
+pub impl Show for EasyInputMessageContentParam
+pub impl ToJson for EasyInputMessageContentParam
+pub impl @json.FromJson for EasyInputMessageContentParam
+
+type EasyInputMessageParam
+pub impl Show for EasyInputMessageParam
+pub impl ToJson for EasyInputMessageParam
+pub impl @json.FromJson for EasyInputMessageParam
+
+pub(all) enum EasyInputMessageRole {
+  User
+  Assistant
+  System
+  Developer
+}
+pub impl Show for EasyInputMessageRole
+pub impl ToJson for EasyInputMessageRole
+pub impl @json.FromJson for EasyInputMessageRole
+
+pub struct FileSearchTool {
+  vector_store_ids : Array[String]
+  filters : FileSearchToolFilters?
+  max_num_results : Int64?
+  ranking_options : FileSearchToolRankingOptions?
+}
+pub impl ToJson for FileSearchTool
+pub impl @json.FromJson for FileSearchTool
+
+pub enum FileSearchToolFilters {
+  Comparison(@shared.ComparisonFilter)
+  Compound(@shared.CompoundFilter)
+}
+pub impl ToJson for FileSearchToolFilters
+pub impl @json.FromJson for FileSearchToolFilters
+
+pub struct FileSearchToolRankingOptions {
+  hybrid_search : FileSearchToolRankingOptionsHybridSearch?
+  ranker : String?
+  score_threshold : Double?
+}
+pub impl ToJson for FileSearchToolRankingOptions
+pub impl @json.FromJson for FileSearchToolRankingOptions
+
+pub struct FileSearchToolRankingOptionsHybridSearch {
+  embedding_weight : Double
+  text_weight : Double
+}
+pub impl ToJson for FileSearchToolRankingOptionsHybridSearch
+pub impl @json.FromJson for FileSearchToolRankingOptionsHybridSearch
+
+pub struct FunctionShellTool {
+}
+pub impl ToJson for FunctionShellTool
+pub impl @json.FromJson for FunctionShellTool
+
+pub struct FunctionTool {
+  name : String
+  parameters : Map[String, Json]
+  strict : Bool
+  description : String?
+}
+pub impl ToJson for FunctionTool
+pub impl @json.FromJson for FunctionTool
+
+pub struct Response {
+  id : String
+  created_at : Double
+  error : ResponseError
+  incomplete_details : ResponseIncompleteDetails
+  instructions : ResponseInstructions
+  metadata : @shared.Metadata
+  model : String
+  object_ : String
+  output : Array[ResponseOutputItem]
+  parallel_tool_calls : Bool
+  temperature : Double
+  tool_choice : ResponseToolChoice
+  tools : Array[Tool]
+  top_p : Double
+  background : Bool?
+  conversation : ResponseConversation?
+  max_output_tokens : Int64?
+  max_tool_calls : Int64?
+  previous_response_id : String?
+  prompt : ResponsePrompt?
+  prompt_cache_key : String
+  prompt_cache_retention : ResponsePromptCacheRetention?
+  reasoning : @shared.Reasoning?
+  safety_identifier : String
+  service_tier : ResponseServiceTier?
+  status : ResponseStatus
+  text : ResponseTextConfig
+  top_logprobs : Int64?
+  truncation : ResponseTruncation?
+  usage : ResponseUsage
+  user : String?
+}
+pub impl ToJson for Response
+pub impl @json.FromJson for Response
+
+type ResponseApplyPatchToolCall
+pub impl ToJson for ResponseApplyPatchToolCall
+pub impl @json.FromJson for ResponseApplyPatchToolCall
+
+type ResponseApplyPatchToolCallOperation
+pub impl ToJson for ResponseApplyPatchToolCallOperation
+pub impl @json.FromJson for ResponseApplyPatchToolCallOperation
+
+type ResponseApplyPatchToolCallOperationCreateFile
+pub impl ToJson for ResponseApplyPatchToolCallOperationCreateFile
+pub impl @json.FromJson for ResponseApplyPatchToolCallOperationCreateFile
+
+type ResponseApplyPatchToolCallOperationDeleteFile
+pub impl ToJson for ResponseApplyPatchToolCallOperationDeleteFile
+pub impl @json.FromJson for ResponseApplyPatchToolCallOperationDeleteFile
+
+type ResponseApplyPatchToolCallOperationUpdateFile
+pub impl ToJson for ResponseApplyPatchToolCallOperationUpdateFile
+pub impl @json.FromJson for ResponseApplyPatchToolCallOperationUpdateFile
+
+type ResponseApplyPatchToolCallOutput
+pub impl ToJson for ResponseApplyPatchToolCallOutput
+pub impl @json.FromJson for ResponseApplyPatchToolCallOutput
+
+type ResponseApplyPatchToolCallOutputStatus
+pub impl ToJson for ResponseApplyPatchToolCallOutputStatus
+pub impl @json.FromJson for ResponseApplyPatchToolCallOutputStatus
+
+type ResponseApplyPatchToolCallStatus
+pub impl ToJson for ResponseApplyPatchToolCallStatus
+pub impl @json.FromJson for ResponseApplyPatchToolCallStatus
+
+type ResponseAudioDeltaEvent
+pub impl ToJson for ResponseAudioDeltaEvent
+pub impl @json.FromJson for ResponseAudioDeltaEvent
+
+type ResponseAudioDoneEvent
+pub impl ToJson for ResponseAudioDoneEvent
+pub impl @json.FromJson for ResponseAudioDoneEvent
+
+type ResponseAudioTranscriptDeltaEvent
+pub impl ToJson for ResponseAudioTranscriptDeltaEvent
+pub impl @json.FromJson for ResponseAudioTranscriptDeltaEvent
+
+type ResponseAudioTranscriptDoneEvent
+pub impl ToJson for ResponseAudioTranscriptDoneEvent
+pub impl @json.FromJson for ResponseAudioTranscriptDoneEvent
+
+type ResponseCodeInterpreterCallCodeDeltaEvent
+pub impl ToJson for ResponseCodeInterpreterCallCodeDeltaEvent
+pub impl @json.FromJson for ResponseCodeInterpreterCallCodeDeltaEvent
+
+type ResponseCodeInterpreterCallCodeDoneEvent
+pub impl ToJson for ResponseCodeInterpreterCallCodeDoneEvent
+pub impl @json.FromJson for ResponseCodeInterpreterCallCodeDoneEvent
+
+type ResponseCodeInterpreterCallCompletedEvent
+pub impl ToJson for ResponseCodeInterpreterCallCompletedEvent
+pub impl @json.FromJson for ResponseCodeInterpreterCallCompletedEvent
+
+type ResponseCodeInterpreterCallInProgressEvent
+pub impl ToJson for ResponseCodeInterpreterCallInProgressEvent
+pub impl @json.FromJson for ResponseCodeInterpreterCallInProgressEvent
+
+type ResponseCodeInterpreterCallInterpretingEvent
+pub impl ToJson for ResponseCodeInterpreterCallInterpretingEvent
+pub impl @json.FromJson for ResponseCodeInterpreterCallInterpretingEvent
+
+type ResponseCodeInterpreterToolCall
+pub impl ToJson for ResponseCodeInterpreterToolCall
+pub impl @json.FromJson for ResponseCodeInterpreterToolCall
+
+type ResponseCodeInterpreterToolCallOutput
+pub impl ToJson for ResponseCodeInterpreterToolCallOutput
+pub impl @json.FromJson for ResponseCodeInterpreterToolCallOutput
+
+type ResponseCodeInterpreterToolCallOutputImage
+pub impl ToJson for ResponseCodeInterpreterToolCallOutputImage
+pub impl @json.FromJson for ResponseCodeInterpreterToolCallOutputImage
+
+type ResponseCodeInterpreterToolCallOutputLogs
+pub impl ToJson for ResponseCodeInterpreterToolCallOutputLogs
+pub impl @json.FromJson for ResponseCodeInterpreterToolCallOutputLogs
+
+type ResponseCodeInterpreterToolCallStatus
+pub impl ToJson for ResponseCodeInterpreterToolCallStatus
+pub impl @json.FromJson for ResponseCodeInterpreterToolCallStatus
+
+pub struct ResponseCompactParams {
+  model : String
+  input : Array[ResponseInputItemParam]?
+  instructions : String?
+  previous_response_id : String?
+}
+pub fn ResponseCompactParams::new(model~ : String, input? : Array[ResponseInputItemParam], instructions? : String, previous_response_id? : String) -> Self
+pub impl ToJson for ResponseCompactParams
+
+type ResponseCompactionItem
+pub impl ToJson for ResponseCompactionItem
+pub impl @json.FromJson for ResponseCompactionItem
+
+type ResponseCompletedEvent
+pub impl ToJson for ResponseCompletedEvent
+pub impl @json.FromJson for ResponseCompletedEvent
+
+type ResponseComputerToolCall
+pub impl ToJson for ResponseComputerToolCall
+pub impl @json.FromJson for ResponseComputerToolCall
+
+type ResponseComputerToolCallAction
+pub impl ToJson for ResponseComputerToolCallAction
+pub impl @json.FromJson for ResponseComputerToolCallAction
+
+type ResponseComputerToolCallActionClick
+pub impl ToJson for ResponseComputerToolCallActionClick
+pub impl @json.FromJson for ResponseComputerToolCallActionClick
+
+type ResponseComputerToolCallActionDoubleClick
+pub impl ToJson for ResponseComputerToolCallActionDoubleClick
+pub impl @json.FromJson for ResponseComputerToolCallActionDoubleClick
+
+type ResponseComputerToolCallActionDrag
+pub impl ToJson for ResponseComputerToolCallActionDrag
+pub impl @json.FromJson for ResponseComputerToolCallActionDrag
+
+type ResponseComputerToolCallActionDragPath
+pub impl ToJson for ResponseComputerToolCallActionDragPath
+pub impl @json.FromJson for ResponseComputerToolCallActionDragPath
+
+type ResponseComputerToolCallActionKeypress
+pub impl ToJson for ResponseComputerToolCallActionKeypress
+pub impl @json.FromJson for ResponseComputerToolCallActionKeypress
+
+type ResponseComputerToolCallActionMove
+pub impl ToJson for ResponseComputerToolCallActionMove
+pub impl @json.FromJson for ResponseComputerToolCallActionMove
+
+type ResponseComputerToolCallActionScreenshot
+pub impl ToJson for ResponseComputerToolCallActionScreenshot
+pub impl @json.FromJson for ResponseComputerToolCallActionScreenshot
+
+type ResponseComputerToolCallActionScroll
+pub impl ToJson for ResponseComputerToolCallActionScroll
+pub impl @json.FromJson for ResponseComputerToolCallActionScroll
+
+type ResponseComputerToolCallActionType
+pub impl ToJson for ResponseComputerToolCallActionType
+pub impl @json.FromJson for ResponseComputerToolCallActionType
+
+type ResponseComputerToolCallActionWait
+pub impl ToJson for ResponseComputerToolCallActionWait
+pub impl @json.FromJson for ResponseComputerToolCallActionWait
+
+pub struct ResponseComputerToolCallOutputScreenshot {
+  file_id : String?
+  image_url : String?
+}
+pub impl ToJson for ResponseComputerToolCallOutputScreenshot
+pub impl @json.FromJson for ResponseComputerToolCallOutputScreenshot
+
+type ResponseComputerToolCallPendingSafetyCheck
+pub impl ToJson for ResponseComputerToolCallPendingSafetyCheck
+pub impl @json.FromJson for ResponseComputerToolCallPendingSafetyCheck
+
+type ResponseComputerToolCallStatus
+pub impl ToJson for ResponseComputerToolCallStatus
+pub impl @json.FromJson for ResponseComputerToolCallStatus
+
+type ResponseComputerToolCallType
+pub impl ToJson for ResponseComputerToolCallType
+pub impl @json.FromJson for ResponseComputerToolCallType
+
+type ResponseContentPartAddedEvent
+pub impl ToJson for ResponseContentPartAddedEvent
+pub impl @json.FromJson for ResponseContentPartAddedEvent
+
+type ResponseContentPartAddedEventPart
+pub impl ToJson for ResponseContentPartAddedEventPart
+pub impl @json.FromJson for ResponseContentPartAddedEventPart
+
+type ResponseContentPartAddedEventPartReasoningText
+pub impl ToJson for ResponseContentPartAddedEventPartReasoningText
+pub impl @json.FromJson for ResponseContentPartAddedEventPartReasoningText
+
+type ResponseContentPartDoneEvent
+pub impl ToJson for ResponseContentPartDoneEvent
+pub impl @json.FromJson for ResponseContentPartDoneEvent
+
+pub struct ResponseConversation {
+  id : String
+}
+pub impl ToJson for ResponseConversation
+pub impl @json.FromJson for ResponseConversation
+
+type ResponseCreatedEvent
+pub impl ToJson for ResponseCreatedEvent
+pub impl @json.FromJson for ResponseCreatedEvent
+
+type ResponseCustomToolCall
+pub impl ToJson for ResponseCustomToolCall
+pub impl @json.FromJson for ResponseCustomToolCall
+
+type ResponseCustomToolCallInputDeltaEvent
+pub impl ToJson for ResponseCustomToolCallInputDeltaEvent
+pub impl @json.FromJson for ResponseCustomToolCallInputDeltaEvent
+
+type ResponseCustomToolCallInputDoneEvent
+pub impl ToJson for ResponseCustomToolCallInputDoneEvent
+pub impl @json.FromJson for ResponseCustomToolCallInputDoneEvent
+
+pub struct ResponseCustomToolCallOutput {
+  call_id : String
+  output : ResponseCustomToolCallOutputOutput
+  id : String?
+  status : String?
+}
+pub impl ToJson for ResponseCustomToolCallOutput
+pub impl @json.FromJson for ResponseCustomToolCallOutput
+
+pub enum ResponseCustomToolCallOutputOutput {
+  Text(String)
+  OutputContentList(Array[ResponseCustomToolCallOutputOutputOutputContentListItem])
+}
+pub impl ToJson for ResponseCustomToolCallOutputOutput
+pub impl @json.FromJson for ResponseCustomToolCallOutputOutput
+
+pub enum ResponseCustomToolCallOutputOutputOutputContentListItem {
+  InputText(ResponseInputText)
+  InputImage(ResponseInputImage)
+  InputFile(ResponseInputFile)
+}
+pub impl ToJson for ResponseCustomToolCallOutputOutputOutputContentListItem
+pub impl @json.FromJson for ResponseCustomToolCallOutputOutputOutputContentListItem
+
+pub struct ResponseError {
+  code : ResponseErrorCode
+  message : String
+}
+pub impl ToJson for ResponseError
+pub impl @json.FromJson for ResponseError
+
+pub enum ResponseErrorCode {
+  ServerError
+  RateLimitExceeded
+  InvalidPrompt
+  VectorStoreTimeout
+  InvalidImage
+  InvalidImageFormat
+  InvalidBase64Image
+  InvalidImageUrl
+  ImageTooLarge
+  ImageTooSmall
+  ImageParseError
+  ImageContentPolicyViolation
+  InvalidImageMode
+  ImageFileTooLarge
+  UnsupportedImageMediaType
+  EmptyImageFile
+  FailedToDownloadImage
+  ImageFileNotFound
+}
+pub impl ToJson for ResponseErrorCode
+pub impl @json.FromJson for ResponseErrorCode
+
+type ResponseErrorEvent
+pub impl ToJson for ResponseErrorEvent
+pub impl @json.FromJson for ResponseErrorEvent
+
+type ResponseFailedEvent
+pub impl ToJson for ResponseFailedEvent
+pub impl @json.FromJson for ResponseFailedEvent
+
+type ResponseFileSearchCallCompletedEvent
+pub impl ToJson for ResponseFileSearchCallCompletedEvent
+pub impl @json.FromJson for ResponseFileSearchCallCompletedEvent
+
+type ResponseFileSearchCallInProgressEvent
+pub impl ToJson for ResponseFileSearchCallInProgressEvent
+pub impl @json.FromJson for ResponseFileSearchCallInProgressEvent
+
+type ResponseFileSearchCallSearchingEvent
+pub impl ToJson for ResponseFileSearchCallSearchingEvent
+pub impl @json.FromJson for ResponseFileSearchCallSearchingEvent
+
+type ResponseFileSearchToolCall
+pub impl ToJson for ResponseFileSearchToolCall
+pub impl @json.FromJson for ResponseFileSearchToolCall
+
+type ResponseFileSearchToolCallResult
+pub impl ToJson for ResponseFileSearchToolCallResult
+pub impl @json.FromJson for ResponseFileSearchToolCallResult
+
+type ResponseFileSearchToolCallResultAttribute
+pub impl ToJson for ResponseFileSearchToolCallResultAttribute
+pub impl @json.FromJson for ResponseFileSearchToolCallResultAttribute
+
+type ResponseFileSearchToolCallStatus
+pub impl ToJson for ResponseFileSearchToolCallStatus
+pub impl @json.FromJson for ResponseFileSearchToolCallStatus
+
+pub enum ResponseFormatTextConfig {
+  Text(@shared.ResponseFormatText)
+  JSONSchema(ResponseFormatTextJSONSchemaConfig)
+  JSONObject(@shared.ResponseFormatJSONObject)
+}
+pub impl ToJson for ResponseFormatTextConfig
+pub impl @json.FromJson for ResponseFormatTextConfig
+
+pub struct ResponseFormatTextJSONSchemaConfig {
+  name : String
+  schema : Map[String, Json]
+  description : String?
+  strict : Bool?
+}
+pub impl ToJson for ResponseFormatTextJSONSchemaConfig
+pub impl @json.FromJson for ResponseFormatTextJSONSchemaConfig
+
+type ResponseFunctionCallArgumentsDeltaEvent
+pub impl ToJson for ResponseFunctionCallArgumentsDeltaEvent
+pub impl @json.FromJson for ResponseFunctionCallArgumentsDeltaEvent
+
+type ResponseFunctionCallArgumentsDoneEvent
+pub impl ToJson for ResponseFunctionCallArgumentsDoneEvent
+pub impl @json.FromJson for ResponseFunctionCallArgumentsDoneEvent
+
+pub enum ResponseFunctionCallOutputItem {
+  InputText(ResponseInputText)
+  InputImage(ResponseInputImage)
+  InputFile(ResponseInputFile)
+}
+pub impl ToJson for ResponseFunctionCallOutputItem
+pub impl @json.FromJson for ResponseFunctionCallOutputItem
+
+pub struct ResponseFunctionShellCallOutputContent {
+  outcome : ResponseFunctionShellCallOutputContentOutcome
+  stderr : String
+  stdout : String
+}
+pub impl ToJson for ResponseFunctionShellCallOutputContent
+pub impl @json.FromJson for ResponseFunctionShellCallOutputContent
+
+pub enum ResponseFunctionShellCallOutputContentOutcome {
+  Timeout(ResponseFunctionShellCallOutputContentOutcomeTimeout)
+  Exit(ResponseFunctionShellCallOutputContentOutcomeExit)
+}
+pub impl ToJson for ResponseFunctionShellCallOutputContentOutcome
+pub impl @json.FromJson for ResponseFunctionShellCallOutputContentOutcome
+
+pub struct ResponseFunctionShellCallOutputContentOutcomeExit {
+  exit_code : Int64
+}
+pub impl ToJson for ResponseFunctionShellCallOutputContentOutcomeExit
+pub impl @json.FromJson for ResponseFunctionShellCallOutputContentOutcomeExit
+
+pub struct ResponseFunctionShellCallOutputContentOutcomeTimeout {
+}
+pub impl ToJson for ResponseFunctionShellCallOutputContentOutcomeTimeout
+pub impl @json.FromJson for ResponseFunctionShellCallOutputContentOutcomeTimeout
+
+type ResponseFunctionShellToolCall
+pub impl ToJson for ResponseFunctionShellToolCall
+pub impl @json.FromJson for ResponseFunctionShellToolCall
+
+type ResponseFunctionShellToolCallAction
+pub impl ToJson for ResponseFunctionShellToolCallAction
+pub impl @json.FromJson for ResponseFunctionShellToolCallAction
+
+type ResponseFunctionShellToolCallOutput
+pub impl ToJson for ResponseFunctionShellToolCallOutput
+pub impl @json.FromJson for ResponseFunctionShellToolCallOutput
+
+type ResponseFunctionShellToolCallOutputOutcome
+pub impl ToJson for ResponseFunctionShellToolCallOutputOutcome
+pub impl @json.FromJson for ResponseFunctionShellToolCallOutputOutcome
+
+type ResponseFunctionShellToolCallOutputOutcomeExit
+pub impl ToJson for ResponseFunctionShellToolCallOutputOutcomeExit
+pub impl @json.FromJson for ResponseFunctionShellToolCallOutputOutcomeExit
+
+type ResponseFunctionShellToolCallOutputOutcomeTimeout
+pub impl ToJson for ResponseFunctionShellToolCallOutputOutcomeTimeout
+pub impl @json.FromJson for ResponseFunctionShellToolCallOutputOutcomeTimeout
+
+type ResponseFunctionShellToolCallOutputOutput
+pub impl ToJson for ResponseFunctionShellToolCallOutputOutput
+pub impl @json.FromJson for ResponseFunctionShellToolCallOutputOutput
+
+type ResponseFunctionShellToolCallStatus
+pub impl ToJson for ResponseFunctionShellToolCallStatus
+pub impl @json.FromJson for ResponseFunctionShellToolCallStatus
+
+pub struct ResponseFunctionToolCall {
+  arguments : String
+  call_id : String
+  name : String
+  id : String?
+  status : ResponseFunctionToolCallStatus?
+}
+pub impl ToJson for ResponseFunctionToolCall
+pub impl @json.FromJson for ResponseFunctionToolCall
+
+type ResponseFunctionToolCallStatus
+pub impl ToJson for ResponseFunctionToolCallStatus
+pub impl @json.FromJson for ResponseFunctionToolCallStatus
+
+type ResponseFunctionWebSearch
+pub impl ToJson for ResponseFunctionWebSearch
+pub impl @json.FromJson for ResponseFunctionWebSearch
+
+type ResponseFunctionWebSearchAction
+pub impl ToJson for ResponseFunctionWebSearchAction
+pub impl @json.FromJson for ResponseFunctionWebSearchAction
+
+type ResponseFunctionWebSearchActionFind
+pub impl ToJson for ResponseFunctionWebSearchActionFind
+pub impl @json.FromJson for ResponseFunctionWebSearchActionFind
+
+type ResponseFunctionWebSearchActionOpenPage
+pub impl ToJson for ResponseFunctionWebSearchActionOpenPage
+pub impl @json.FromJson for ResponseFunctionWebSearchActionOpenPage
+
+type ResponseFunctionWebSearchActionSearch
+pub impl ToJson for ResponseFunctionWebSearchActionSearch
+pub impl @json.FromJson for ResponseFunctionWebSearchActionSearch
+
+type ResponseFunctionWebSearchActionSearchSource
+pub impl ToJson for ResponseFunctionWebSearchActionSearchSource
+pub impl @json.FromJson for ResponseFunctionWebSearchActionSearchSource
+
+type ResponseFunctionWebSearchStatus
+pub impl ToJson for ResponseFunctionWebSearchStatus
+pub impl @json.FromJson for ResponseFunctionWebSearchStatus
+
+pub struct ResponseGetParams {
+  include_obfuscation : Bool?
+  starting_after : Int64?
+  include_items : Array[String]
+}
+pub fn ResponseGetParams::empty() -> Self
+
+type ResponseImageGenCallCompletedEvent
+pub impl ToJson for ResponseImageGenCallCompletedEvent
+pub impl @json.FromJson for ResponseImageGenCallCompletedEvent
+
+type ResponseImageGenCallGeneratingEvent
+pub impl ToJson for ResponseImageGenCallGeneratingEvent
+pub impl @json.FromJson for ResponseImageGenCallGeneratingEvent
+
+type ResponseImageGenCallInProgressEvent
+pub impl ToJson for ResponseImageGenCallInProgressEvent
+pub impl @json.FromJson for ResponseImageGenCallInProgressEvent
+
+type ResponseImageGenCallPartialImageEvent
+pub impl ToJson for ResponseImageGenCallPartialImageEvent
+pub impl @json.FromJson for ResponseImageGenCallPartialImageEvent
+
+type ResponseInProgressEvent
+pub impl ToJson for ResponseInProgressEvent
+pub impl @json.FromJson for ResponseInProgressEvent
+
+pub struct ResponseIncompleteDetails {
+  reason : ResponseIncompleteReason
+}
+pub impl ToJson for ResponseIncompleteDetails
+pub impl @json.FromJson for ResponseIncompleteDetails
+
+type ResponseIncompleteEvent
+pub impl ToJson for ResponseIncompleteEvent
+pub impl @json.FromJson for ResponseIncompleteEvent
+
+pub enum ResponseIncompleteReason {
+  MaxOutputTokens
+  ContentFilter
+}
+pub impl ToJson for ResponseIncompleteReason
+pub impl @json.FromJson for ResponseIncompleteReason
+
+pub enum ResponseInputContent {
+  InputText(ResponseInputText)
+  InputImage(ResponseInputImage)
+  InputFile(ResponseInputFile)
+}
+pub impl ToJson for ResponseInputContent
+pub impl @json.FromJson for ResponseInputContent
+
+type ResponseInputContentParam
+pub impl Show for ResponseInputContentParam
+pub impl ToJson for ResponseInputContentParam
+pub impl @json.FromJson for ResponseInputContentParam
+
+pub struct ResponseInputFile {
+  file_data : String?
+  file_id : String?
+  file_url : String?
+  filename : String?
+}
+pub impl ToJson for ResponseInputFile
+pub impl @json.FromJson for ResponseInputFile
+
+pub struct ResponseInputImage {
+  detail : ResponseInputImageDetail
+  file_id : String?
+  image_url : String?
+}
+pub impl ToJson for ResponseInputImage
+pub impl @json.FromJson for ResponseInputImage
+
+pub enum ResponseInputImageDetail {
+  Low
+  High
+  Auto
+}
+pub impl ToJson for ResponseInputImageDetail
+pub impl @json.FromJson for ResponseInputImageDetail
+
+pub enum ResponseInputItem {
+  EasyMessage(EasyInputMessage)
+  InputMessage(ResponseInputMessageItem)
+  OutputMessage(ResponseOutputMessage)
+  FileSearchCall(ResponseFileSearchToolCall)
+  ComputerCall(ResponseComputerToolCall)
+  ComputerCallOutput(ResponseInputItemComputerCallOutput)
+  WebSearchCall(ResponseFunctionWebSearch)
+  FunctionCall(ResponseFunctionToolCall)
+  FunctionCallOutput(ResponseInputItemFunctionCallOutput)
+  Reasoning(ResponseReasoningItem)
+  Compaction(ResponseCompactionItem)
+  ImageGenerationCall(ResponseOutputItemImageGenerationCall)
+  CodeInterpreterCall(ResponseCodeInterpreterToolCall)
+  LocalShellCall(ResponseInputItemLocalShellCall)
+  LocalShellCallOutput(ResponseInputItemLocalShellCallOutput)
+  ShellCall(ResponseInputItemShellCall)
+  ShellCallOutput(ResponseInputItemShellCallOutput)
+  ApplyPatchCall(ResponseInputItemApplyPatchCall)
+  ApplyPatchCallOutput(ResponseInputItemApplyPatchCallOutput)
+  McpListTools(ResponseOutputItemMcpListTools)
+  McpApprovalRequest(ResponseOutputItemMcpApprovalRequest)
+  McpApprovalResponse(ResponseInputItemMcpApprovalResponse)
+  McpCall(ResponseOutputItemMcpCall)
+  CustomToolCallOutput(ResponseCustomToolCallOutput)
+  CustomToolCall(ResponseCustomToolCall)
+  ItemReference(ResponseInputItemItemReference)
+}
+pub impl ToJson for ResponseInputItem
+pub impl @json.FromJson for ResponseInputItem
+
+pub struct ResponseInputItemApplyPatchCall {
+  call_id : String
+  operation : ResponseApplyPatchToolCallOperation
+  status : String
+  id : String?
+}
+pub impl ToJson for ResponseInputItemApplyPatchCall
+pub impl @json.FromJson for ResponseInputItemApplyPatchCall
+
+pub struct ResponseInputItemApplyPatchCallOutput {
+  call_id : String
+  status : String
+  id : String?
+  output : String?
+}
+pub impl ToJson for ResponseInputItemApplyPatchCallOutput
+pub impl @json.FromJson for ResponseInputItemApplyPatchCallOutput
+
+pub struct ResponseInputItemComputerCallOutput {
+  call_id : String
+  output : ResponseComputerToolCallOutputScreenshot
+  id : String?
+  acknowledged_safety_checks : Array[ResponseInputItemComputerCallOutputAcknowledgedSafetyCheck]?
+  status : String?
+}
+pub impl ToJson for ResponseInputItemComputerCallOutput
+pub impl @json.FromJson for ResponseInputItemComputerCallOutput
+
+pub struct ResponseInputItemComputerCallOutputAcknowledgedSafetyCheck {
+  id : String
+  code : String?
+  message : String?
+}
+pub impl ToJson for ResponseInputItemComputerCallOutputAcknowledgedSafetyCheck
+pub impl @json.FromJson for ResponseInputItemComputerCallOutputAcknowledgedSafetyCheck
+
+pub struct ResponseInputItemFunctionCallOutput {
+  call_id : String
+  output : ResponseInputItemFunctionCallOutputOutput
+  id : String?
+  status : String?
+}
+pub impl ToJson for ResponseInputItemFunctionCallOutput
+pub impl @json.FromJson for ResponseInputItemFunctionCallOutput
+
+pub enum ResponseInputItemFunctionCallOutputOutput {
+  Text(String)
+  OutputItems(Array[ResponseFunctionCallOutputItem])
+}
+pub impl ToJson for ResponseInputItemFunctionCallOutputOutput
+pub impl @json.FromJson for ResponseInputItemFunctionCallOutputOutput
+
+pub struct ResponseInputItemItemReference {
+  id : String
+  type_ : String?
+}
+pub impl ToJson for ResponseInputItemItemReference
+pub impl @json.FromJson for ResponseInputItemItemReference
+
+pub struct ResponseInputItemLocalShellCall {
+  id : String
+  action : ResponseInputItemLocalShellCallAction
+  call_id : String
+  status : String
+}
+pub impl ToJson for ResponseInputItemLocalShellCall
+pub impl @json.FromJson for ResponseInputItemLocalShellCall
+
+pub struct ResponseInputItemLocalShellCallAction {
+  command : Array[String]
+  env : Map[String, String]
+  timeout_ms : Int64?
+  user : String?
+  working_directory : String?
+}
+pub impl ToJson for ResponseInputItemLocalShellCallAction
+pub impl @json.FromJson for ResponseInputItemLocalShellCallAction
+
+pub struct ResponseInputItemLocalShellCallOutput {
+  id : String
+  output : String
+  status : String?
+}
+pub impl ToJson for ResponseInputItemLocalShellCallOutput
+pub impl @json.FromJson for ResponseInputItemLocalShellCallOutput
+
+pub struct ResponseInputItemMcpApprovalResponse {
+  approval_request_id : String
+  approve : Bool
+  id : String?
+  reason : String?
+}
+pub impl ToJson for ResponseInputItemMcpApprovalResponse
+pub impl @json.FromJson for ResponseInputItemMcpApprovalResponse
+
+type ResponseInputItemMessageParam
+pub fn ResponseInputItemMessageParam::input_message(ResponseInputItemMessageParamRole, Array[ResponseInputContentParam]) -> ResponseInputItemParam
+pub impl Show for ResponseInputItemMessageParam
+pub impl ToJson for ResponseInputItemMessageParam
+pub impl @json.FromJson for ResponseInputItemMessageParam
+
+pub(all) enum ResponseInputItemMessageParamRole {
+  User
+  System
+  Developer
+}
+pub impl Show for ResponseInputItemMessageParamRole
+pub impl ToJson for ResponseInputItemMessageParamRole
+pub impl @json.FromJson for ResponseInputItemMessageParamRole
+
+pub(all) enum ResponseInputItemMessageParamStatus {
+  InProgress
+  Completed
+  Incomplete
+}
+pub impl Show for ResponseInputItemMessageParamStatus
+pub impl ToJson for ResponseInputItemMessageParamStatus
+pub impl @json.FromJson for ResponseInputItemMessageParamStatus
+
+pub enum ResponseInputItemParam {
+  Message(EasyInputMessageParam)
+  InputMessage(ResponseInputItemMessageParam)
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
   FunctionCallOutput(call_id~ : String, output~ : String)
 }
-pub impl Show for ResponseInputItem
-pub impl ToJson for ResponseInputItem
+pub fn[T : ToEasyInputMessageContentParam] ResponseInputItemParam::message(role~ : EasyInputMessageRole, content~ : T) -> Self
+pub impl Show for ResponseInputItemParam
+pub impl ToJson for ResponseInputItemParam
+
+pub struct ResponseInputItemShellCall {
+  action : ResponseInputItemShellCallAction
+  call_id : String
+  id : String?
+  status : String?
+}
+pub impl ToJson for ResponseInputItemShellCall
+pub impl @json.FromJson for ResponseInputItemShellCall
+
+pub struct ResponseInputItemShellCallAction {
+  commands : Array[String]
+  max_output_length : Int64?
+  timeout_ms : Int64?
+}
+pub impl ToJson for ResponseInputItemShellCallAction
+pub impl @json.FromJson for ResponseInputItemShellCallAction
+
+pub struct ResponseInputItemShellCallOutput {
+  call_id : String
+  output : Array[ResponseFunctionShellCallOutputContent]
+  id : String?
+  max_output_length : Int64?
+}
+pub impl ToJson for ResponseInputItemShellCallOutput
+pub impl @json.FromJson for ResponseInputItemShellCallOutput
+
+pub struct ResponseInputMessageItem {
+  id : String
+  content : Array[ResponseInputContent]
+  role : ResponseInputMessageItemRole
+  status : ResponseInputMessageItemStatus?
+  type_ : String?
+}
+pub impl ToJson for ResponseInputMessageItem
+pub impl @json.FromJson for ResponseInputMessageItem
+
+pub enum ResponseInputMessageItemRole {
+  User
+  System
+  Developer
+}
+pub impl ToJson for ResponseInputMessageItemRole
+pub impl @json.FromJson for ResponseInputMessageItemRole
+
+pub enum ResponseInputMessageItemStatus {
+  InProgress
+  Completed
+  Incomplete
+}
+pub impl ToJson for ResponseInputMessageItemStatus
+pub impl @json.FromJson for ResponseInputMessageItemStatus
+
+pub struct ResponseInputText {
+  text : String
+}
+pub impl ToJson for ResponseInputText
+pub impl @json.FromJson for ResponseInputText
+
+type ResponseInputTextParam
+pub impl Show for ResponseInputTextParam
+
+pub enum ResponseInstructions {
+  Text(String)
+  InputItemList(Array[ResponseInputItem])
+}
+pub impl ToJson for ResponseInstructions
+pub impl @json.FromJson for ResponseInstructions
 
 pub(all) enum ResponseItem {
   Message(role~ : String, content~ : Array[ContentPart])
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
 }
 pub impl Show for ResponseItem
+pub impl ToJson for ResponseItem
 pub impl @json.FromJson for ResponseItem
 
+type ResponseMcpCallArgumentsDeltaEvent
+pub impl ToJson for ResponseMcpCallArgumentsDeltaEvent
+pub impl @json.FromJson for ResponseMcpCallArgumentsDeltaEvent
+
+type ResponseMcpCallArgumentsDoneEvent
+pub impl ToJson for ResponseMcpCallArgumentsDoneEvent
+pub impl @json.FromJson for ResponseMcpCallArgumentsDoneEvent
+
+type ResponseMcpCallCompletedEvent
+pub impl ToJson for ResponseMcpCallCompletedEvent
+pub impl @json.FromJson for ResponseMcpCallCompletedEvent
+
+type ResponseMcpCallFailedEvent
+pub impl ToJson for ResponseMcpCallFailedEvent
+pub impl @json.FromJson for ResponseMcpCallFailedEvent
+
+type ResponseMcpCallInProgressEvent
+pub impl ToJson for ResponseMcpCallInProgressEvent
+pub impl @json.FromJson for ResponseMcpCallInProgressEvent
+
+type ResponseMcpListToolsCompletedEvent
+pub impl ToJson for ResponseMcpListToolsCompletedEvent
+pub impl @json.FromJson for ResponseMcpListToolsCompletedEvent
+
+type ResponseMcpListToolsFailedEvent
+pub impl ToJson for ResponseMcpListToolsFailedEvent
+pub impl @json.FromJson for ResponseMcpListToolsFailedEvent
+
+type ResponseMcpListToolsInProgressEvent
+pub impl ToJson for ResponseMcpListToolsInProgressEvent
+pub impl @json.FromJson for ResponseMcpListToolsInProgressEvent
+
+pub enum ResponseOutputItem {
+  Message(ResponseOutputMessage)
+  FileSearchCall(ResponseFileSearchToolCall)
+  FunctionCall(ResponseFunctionToolCall)
+  WebSearchCall(ResponseFunctionWebSearch)
+  ComputerCall(ResponseComputerToolCall)
+  Reasoning(ResponseReasoningItem)
+  Compaction(ResponseCompactionItem)
+  ImageGenerationCall(ResponseOutputItemImageGenerationCall)
+  CodeInterpreterCall(ResponseCodeInterpreterToolCall)
+  LocalShellCall(ResponseOutputItemLocalShellCall)
+  ShellCall(ResponseFunctionShellToolCall)
+  ShellCallOutput(ResponseFunctionShellToolCallOutput)
+  ApplyPatchCall(ResponseApplyPatchToolCall)
+  ApplyPatchCallOutput(ResponseApplyPatchToolCallOutput)
+  McpCall(ResponseOutputItemMcpCall)
+  McpListTools(ResponseOutputItemMcpListTools)
+  McpApprovalRequest(ResponseOutputItemMcpApprovalRequest)
+  CustomToolCall(ResponseCustomToolCall)
+}
+pub impl ToJson for ResponseOutputItem
+pub impl @json.FromJson for ResponseOutputItem
+
+type ResponseOutputItemAddedEvent
+pub impl ToJson for ResponseOutputItemAddedEvent
+pub impl @json.FromJson for ResponseOutputItemAddedEvent
+
+pub struct ResponseOutputItemDoneEvent {
+  item : ResponseOutputItem
+  output_index : Int64
+  sequence_number : Int64
+}
+pub impl ToJson for ResponseOutputItemDoneEvent
+pub impl @json.FromJson for ResponseOutputItemDoneEvent
+
+type ResponseOutputItemImageGenerationCall
+pub impl ToJson for ResponseOutputItemImageGenerationCall
+pub impl @json.FromJson for ResponseOutputItemImageGenerationCall
+
+type ResponseOutputItemImageGenerationCallStatus
+pub impl ToJson for ResponseOutputItemImageGenerationCallStatus
+pub impl @json.FromJson for ResponseOutputItemImageGenerationCallStatus
+
+type ResponseOutputItemLocalShellCall
+pub impl ToJson for ResponseOutputItemLocalShellCall
+pub impl @json.FromJson for ResponseOutputItemLocalShellCall
+
+type ResponseOutputItemLocalShellCallAction
+pub impl ToJson for ResponseOutputItemLocalShellCallAction
+pub impl @json.FromJson for ResponseOutputItemLocalShellCallAction
+
+type ResponseOutputItemLocalShellCallStatus
+pub impl ToJson for ResponseOutputItemLocalShellCallStatus
+pub impl @json.FromJson for ResponseOutputItemLocalShellCallStatus
+
+type ResponseOutputItemMcpApprovalRequest
+pub impl ToJson for ResponseOutputItemMcpApprovalRequest
+pub impl @json.FromJson for ResponseOutputItemMcpApprovalRequest
+
+type ResponseOutputItemMcpCall
+pub impl ToJson for ResponseOutputItemMcpCall
+pub impl @json.FromJson for ResponseOutputItemMcpCall
+
+type ResponseOutputItemMcpCallStatus
+pub impl ToJson for ResponseOutputItemMcpCallStatus
+pub impl @json.FromJson for ResponseOutputItemMcpCallStatus
+
+type ResponseOutputItemMcpListTools
+pub impl ToJson for ResponseOutputItemMcpListTools
+pub impl @json.FromJson for ResponseOutputItemMcpListTools
+
+type ResponseOutputItemMcpListToolsTool
+pub impl ToJson for ResponseOutputItemMcpListToolsTool
+pub impl @json.FromJson for ResponseOutputItemMcpListToolsTool
+
+pub struct ResponseOutputMessage {
+  id : String
+  content : Array[ResponseOutputMessageContent]
+  status : ResponseOutputMessageStatus
+  role : ResponseOutputMessageParamRole
+}
+pub impl ToJson for ResponseOutputMessage
+pub impl @json.FromJson for ResponseOutputMessage
+
+pub enum ResponseOutputMessageContent {
+  OutputText(ResponseOutputText)
+  Refusal(ResponseOutputRefusal)
+}
+pub impl ToJson for ResponseOutputMessageContent
+pub impl @json.FromJson for ResponseOutputMessageContent
+
+type ResponseOutputMessageContentParam
+pub impl ToJson for ResponseOutputMessageContentParam
+pub impl @json.FromJson for ResponseOutputMessageContentParam
+
+type ResponseOutputMessageParam
+pub impl ToJson for ResponseOutputMessageParam
+pub impl @json.FromJson for ResponseOutputMessageParam
+
+pub(all) enum ResponseOutputMessageParamRole {
+  Assistant
+}
+pub impl Show for ResponseOutputMessageParamRole
+pub impl ToJson for ResponseOutputMessageParamRole
+pub impl @json.FromJson for ResponseOutputMessageParamRole
+
+type ResponseOutputMessageRefusalContentParam
+pub impl Show for ResponseOutputMessageRefusalContentParam
+pub impl ToJson for ResponseOutputMessageRefusalContentParam
+pub impl @json.FromJson for ResponseOutputMessageRefusalContentParam
+
+pub(all) enum ResponseOutputMessageStatus {
+  InProgress
+  Completed
+  Incomplete
+}
+pub impl Show for ResponseOutputMessageStatus
+pub impl ToJson for ResponseOutputMessageStatus
+pub impl @json.FromJson for ResponseOutputMessageStatus
+
+type ResponseOutputRefusal
+pub impl ToJson for ResponseOutputRefusal
+pub impl @json.FromJson for ResponseOutputRefusal
+
+pub struct ResponseOutputText {
+  annotations : Array[ResponseOutputTextAnnotation]
+  text : String
+  logprobs : Array[ResponseOutputTextLogprob]
+}
+pub impl ToJson for ResponseOutputText
+pub impl @json.FromJson for ResponseOutputText
+
+type ResponseOutputTextAnnotation
+pub impl ToJson for ResponseOutputTextAnnotation
+pub impl @json.FromJson for ResponseOutputTextAnnotation
+
+type ResponseOutputTextAnnotationAddedEvent
+pub impl ToJson for ResponseOutputTextAnnotationAddedEvent
+pub impl @json.FromJson for ResponseOutputTextAnnotationAddedEvent
+
+type ResponseOutputTextAnnotationContainerFileCitationParam
+pub impl ToJson for ResponseOutputTextAnnotationContainerFileCitationParam
+pub impl @json.FromJson for ResponseOutputTextAnnotationContainerFileCitationParam
+
+type ResponseOutputTextAnnotationFileCitationParam
+pub impl ToJson for ResponseOutputTextAnnotationFileCitationParam
+pub impl @json.FromJson for ResponseOutputTextAnnotationFileCitationParam
+
+type ResponseOutputTextAnnotationFilePathParam
+pub impl ToJson for ResponseOutputTextAnnotationFilePathParam
+pub impl @json.FromJson for ResponseOutputTextAnnotationFilePathParam
+
+type ResponseOutputTextAnnotationParam
+pub impl ToJson for ResponseOutputTextAnnotationParam
+pub impl @json.FromJson for ResponseOutputTextAnnotationParam
+
+type ResponseOutputTextAnnotationUrlCitationParam
+pub impl ToJson for ResponseOutputTextAnnotationUrlCitationParam
+pub impl @json.FromJson for ResponseOutputTextAnnotationUrlCitationParam
+
+type ResponseOutputTextLogprob
+pub impl ToJson for ResponseOutputTextLogprob
+pub impl @json.FromJson for ResponseOutputTextLogprob
+
+type ResponseOutputTextLogprobTopLogprob
+pub impl ToJson for ResponseOutputTextLogprobTopLogprob
+pub impl @json.FromJson for ResponseOutputTextLogprobTopLogprob
+
+type ResponseOutputTextParam
+pub impl ToJson for ResponseOutputTextParam
+pub impl @json.FromJson for ResponseOutputTextParam
+
+pub struct ResponsePrompt {
+  id : String
+  variables : Map[String, ResponsePromptVariable]?
+  version : String?
+}
+pub impl ToJson for ResponsePrompt
+pub impl @json.FromJson for ResponsePrompt
+
+pub enum ResponsePromptCacheRetention {
+  InMemory
+  H24
+}
+pub impl ToJson for ResponsePromptCacheRetention
+pub impl @json.FromJson for ResponsePromptCacheRetention
+
+pub enum ResponsePromptVariable {
+  Text(String)
+  InputText(ResponseInputText)
+  InputImage(ResponseInputImage)
+  InputFile(ResponseInputFile)
+}
+pub impl ToJson for ResponsePromptVariable
+pub impl @json.FromJson for ResponsePromptVariable
+
+type ResponseQueuedEvent
+pub impl ToJson for ResponseQueuedEvent
+pub impl @json.FromJson for ResponseQueuedEvent
+
+type ResponseReasoningItem
+pub impl ToJson for ResponseReasoningItem
+pub impl @json.FromJson for ResponseReasoningItem
+
+type ResponseReasoningItemContent
+pub impl ToJson for ResponseReasoningItemContent
+pub impl @json.FromJson for ResponseReasoningItemContent
+
+type ResponseReasoningItemStatus
+pub impl ToJson for ResponseReasoningItemStatus
+pub impl @json.FromJson for ResponseReasoningItemStatus
+
+type ResponseReasoningItemSummary
+pub impl ToJson for ResponseReasoningItemSummary
+pub impl @json.FromJson for ResponseReasoningItemSummary
+
+type ResponseReasoningSummaryPartAddedEvent
+pub impl ToJson for ResponseReasoningSummaryPartAddedEvent
+pub impl @json.FromJson for ResponseReasoningSummaryPartAddedEvent
+
+type ResponseReasoningSummaryPartAddedEventPart
+pub impl ToJson for ResponseReasoningSummaryPartAddedEventPart
+pub impl @json.FromJson for ResponseReasoningSummaryPartAddedEventPart
+
+type ResponseReasoningSummaryPartDoneEvent
+pub impl ToJson for ResponseReasoningSummaryPartDoneEvent
+pub impl @json.FromJson for ResponseReasoningSummaryPartDoneEvent
+
+type ResponseReasoningSummaryPartDoneEventPart
+pub impl ToJson for ResponseReasoningSummaryPartDoneEventPart
+pub impl @json.FromJson for ResponseReasoningSummaryPartDoneEventPart
+
+type ResponseReasoningSummaryTextDeltaEvent
+pub impl ToJson for ResponseReasoningSummaryTextDeltaEvent
+pub impl @json.FromJson for ResponseReasoningSummaryTextDeltaEvent
+
+type ResponseReasoningSummaryTextDoneEvent
+pub impl ToJson for ResponseReasoningSummaryTextDoneEvent
+pub impl @json.FromJson for ResponseReasoningSummaryTextDoneEvent
+
+type ResponseReasoningTextDeltaEvent
+pub impl ToJson for ResponseReasoningTextDeltaEvent
+pub impl @json.FromJson for ResponseReasoningTextDeltaEvent
+
+type ResponseReasoningTextDoneEvent
+pub impl ToJson for ResponseReasoningTextDoneEvent
+pub impl @json.FromJson for ResponseReasoningTextDoneEvent
+
+type ResponseRefusalDeltaEvent
+pub impl ToJson for ResponseRefusalDeltaEvent
+pub impl @json.FromJson for ResponseRefusalDeltaEvent
+
+type ResponseRefusalDoneEvent
+pub impl ToJson for ResponseRefusalDoneEvent
+pub impl @json.FromJson for ResponseRefusalDoneEvent
+
+pub struct ResponseService {
+  base_url : String
+  api_key : String
+}
+pub async fn ResponseService::cancel(Self, String) -> Response
+pub async fn ResponseService::compact(Self, ResponseCompactParams) -> CompactedResponse
+pub async fn ResponseService::create(Self, ResponsesRequest) -> Response
+pub async fn ResponseService::create_stream(Self, ResponsesRequest) -> ResponseStream
+pub async fn ResponseService::delete(Self, String) -> Unit
+pub async fn ResponseService::get(Self, String, query? : ResponseGetParams) -> Response
+pub async fn ResponseService::get_stream(Self, String, query? : ResponseGetParams) -> ResponseStream
+pub fn ResponseService::new(base_url~ : String, api_key~ : String) -> Self
+
+pub enum ResponseServiceTier {
+  Auto
+  Default
+  Flex
+  Scale
+  Priority
+}
+pub impl ToJson for ResponseServiceTier
+pub impl @json.FromJson for ResponseServiceTier
+
+pub enum ResponseStatus {
+  Completed
+  Failed
+  InProgress
+  Cancelled
+  Queued
+  Incomplete
+}
+pub impl ToJson for ResponseStatus
+pub impl @json.FromJson for ResponseStatus
+
+pub struct ResponseStream {
+  client : @http.Client
+}
+pub fn ResponseStream::close(Self) -> Unit
+pub async fn ResponseStream::read(Self) -> ResponseStreamEvent?
+
+pub(all) enum ResponseStreamEvent {
+  AudioDelta(ResponseAudioDeltaEvent)
+  AudioDone(ResponseAudioDoneEvent)
+  AudioTranscriptDelta(ResponseAudioTranscriptDeltaEvent)
+  AudioTranscriptDone(ResponseAudioTranscriptDoneEvent)
+  CodeInterpreterCallCodeDelta(ResponseCodeInterpreterCallCodeDeltaEvent)
+  CodeInterpreterCallCodeDone(ResponseCodeInterpreterCallCodeDoneEvent)
+  CodeInterpreterCallCompleted(ResponseCodeInterpreterCallCompletedEvent)
+  CodeInterpreterCallInProgress(ResponseCodeInterpreterCallInProgressEvent)
+  CodeInterpreterCallInterpreting(ResponseCodeInterpreterCallInterpretingEvent)
+  Completed(ResponseCompletedEvent)
+  ContentPartAdded(ResponseContentPartAddedEvent)
+  ContentPartDone(ResponseContentPartDoneEvent)
+  Created(ResponseCreatedEvent)
+  CustomToolCallInputDelta(ResponseCustomToolCallInputDeltaEvent)
+  CustomToolCallInputDone(ResponseCustomToolCallInputDoneEvent)
+  Error(ResponseErrorEvent)
+  FileSearchCallCompleted(ResponseFileSearchCallCompletedEvent)
+  FileSearchCallInProgress(ResponseFileSearchCallInProgressEvent)
+  FileSearchCallSearching(ResponseFileSearchCallSearchingEvent)
+  FunctionCallArgumentsDelta(ResponseFunctionCallArgumentsDeltaEvent)
+  FunctionCallArgumentsDone(ResponseFunctionCallArgumentsDoneEvent)
+  InProgress(ResponseInProgressEvent)
+  Failed(ResponseFailedEvent)
+  Incomplete(ResponseIncompleteEvent)
+  OutputItemAdded(ResponseOutputItemAddedEvent)
+  OutputItemDone(ResponseOutputItemDoneEvent)
+  OutputTextAnnotationAdded(ResponseOutputTextAnnotationAddedEvent)
+  OutputTextDelta(ResponseTextDeltaEvent)
+  OutputTextDone(ResponseTextDoneEvent)
+  Queued(ResponseQueuedEvent)
+  ReasoningSummaryPartAdded(ResponseReasoningSummaryPartAddedEvent)
+  ReasoningSummaryPartDone(ResponseReasoningSummaryPartDoneEvent)
+  ReasoningSummaryTextDelta(ResponseReasoningSummaryTextDeltaEvent)
+  ReasoningSummaryTextDone(ResponseReasoningSummaryTextDoneEvent)
+  ReasoningTextDelta(ResponseReasoningTextDeltaEvent)
+  ReasoningTextDone(ResponseReasoningTextDoneEvent)
+  RefusalDelta(ResponseRefusalDeltaEvent)
+  RefusalDone(ResponseRefusalDoneEvent)
+  WebSearchCallCompleted(ResponseWebSearchCallCompletedEvent)
+  WebSearchCallInProgress(ResponseWebSearchCallInProgressEvent)
+  WebSearchCallSearching(ResponseWebSearchCallSearchingEvent)
+  ImageGenerationCallCompleted(ResponseImageGenCallCompletedEvent)
+  ImageGenerationCallGenerating(ResponseImageGenCallGeneratingEvent)
+  ImageGenerationCallInProgress(ResponseImageGenCallInProgressEvent)
+  ImageGenerationCallPartialImage(ResponseImageGenCallPartialImageEvent)
+  McpCallArgumentsDelta(ResponseMcpCallArgumentsDeltaEvent)
+  McpCallArgumentsDone(ResponseMcpCallArgumentsDoneEvent)
+  McpCallCompleted(ResponseMcpCallCompletedEvent)
+  McpCallFailed(ResponseMcpCallFailedEvent)
+  McpCallInProgress(ResponseMcpCallInProgressEvent)
+  McpListToolsCompleted(ResponseMcpListToolsCompletedEvent)
+  McpListToolsFailed(ResponseMcpListToolsFailedEvent)
+  McpListToolsInProgress(ResponseMcpListToolsInProgressEvent)
+}
+pub impl ToJson for ResponseStreamEvent
+pub impl @json.FromJson for ResponseStreamEvent
+
+pub struct ResponseTextConfig {
+  format : ResponseFormatTextConfig
+  verbosity : ResponseTextConfigVerbosity?
+}
+pub impl ToJson for ResponseTextConfig
+pub impl @json.FromJson for ResponseTextConfig
+
+pub enum ResponseTextConfigVerbosity {
+  Low
+  Medium
+  High
+}
+pub impl ToJson for ResponseTextConfigVerbosity
+pub impl @json.FromJson for ResponseTextConfigVerbosity
+
+pub struct ResponseTextDeltaEvent {
+  content_index : Int64
+  delta : String
+  item_id : String
+  logprobs : Array[ResponseTextDeltaEventLogprob]
+  output_index : Int64
+  sequence_number : Int64
+}
+pub impl ToJson for ResponseTextDeltaEvent
+pub impl @json.FromJson for ResponseTextDeltaEvent
+
+type ResponseTextDeltaEventLogprob
+pub impl ToJson for ResponseTextDeltaEventLogprob
+pub impl @json.FromJson for ResponseTextDeltaEventLogprob
+
+type ResponseTextDeltaEventLogprobTopLogprob
+pub impl ToJson for ResponseTextDeltaEventLogprobTopLogprob
+pub impl @json.FromJson for ResponseTextDeltaEventLogprobTopLogprob
+
+type ResponseTextDoneEvent
+pub impl ToJson for ResponseTextDoneEvent
+pub impl @json.FromJson for ResponseTextDoneEvent
+
+type ResponseTextDoneEventLogprob
+pub impl ToJson for ResponseTextDoneEventLogprob
+pub impl @json.FromJson for ResponseTextDoneEventLogprob
+
+type ResponseTextDoneEventLogprobTopLogprob
+pub impl ToJson for ResponseTextDoneEventLogprobTopLogprob
+pub impl @json.FromJson for ResponseTextDoneEventLogprobTopLogprob
+
+pub enum ResponseToolChoice {
+  Mode(ToolChoiceOptions)
+  Allowed(ToolChoiceAllowed)
+  Hosted(ToolChoiceTypes)
+  Function(ToolChoiceFunction)
+  Mcp(ToolChoiceMcp)
+  Custom(ToolChoiceCustom)
+  ApplyPatch(ToolChoiceApplyPatch)
+  Shell(ToolChoiceShell)
+}
+pub impl ToJson for ResponseToolChoice
+pub impl @json.FromJson for ResponseToolChoice
+
+pub enum ResponseTruncation {
+  Auto
+  Disabled
+}
+pub impl ToJson for ResponseTruncation
+pub impl @json.FromJson for ResponseTruncation
+
+pub struct ResponseUsage {
+  input_tokens : Int64
+  input_tokens_details : ResponseUsageInputTokensDetails
+  output_tokens : Int64
+  output_tokens_details : ResponseUsageOutputTokensDetails
+  total_tokens : Int64
+}
+pub impl ToJson for ResponseUsage
+pub impl @json.FromJson for ResponseUsage
+
+pub struct ResponseUsageInputTokensDetails {
+  cached_tokens : Int64
+}
+pub impl ToJson for ResponseUsageInputTokensDetails
+pub impl @json.FromJson for ResponseUsageInputTokensDetails
+
+pub struct ResponseUsageOutputTokensDetails {
+  reasoning_tokens : Int64
+}
+pub impl ToJson for ResponseUsageOutputTokensDetails
+pub impl @json.FromJson for ResponseUsageOutputTokensDetails
+
+type ResponseWebSearchCallCompletedEvent
+pub impl ToJson for ResponseWebSearchCallCompletedEvent
+pub impl @json.FromJson for ResponseWebSearchCallCompletedEvent
+
+type ResponseWebSearchCallInProgressEvent
+pub impl ToJson for ResponseWebSearchCallInProgressEvent
+pub impl @json.FromJson for ResponseWebSearchCallInProgressEvent
+
+type ResponseWebSearchCallSearchingEvent
+pub impl ToJson for ResponseWebSearchCallSearchingEvent
+pub impl @json.FromJson for ResponseWebSearchCallSearchingEvent
+
+#alias(ResponseNewParams)
 pub struct ResponsesRequest {
   model : String
-  input : Array[ResponseInputItem]
+  input : Array[ResponseInputItemParam]
   instructions : String
   tools : Array[Json]
   tool_choice : String
   stream : Bool?
   store : Bool?
 }
-pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItem], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
+pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItemParam], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
 pub impl Show for ResponsesRequest
 pub impl ToJson for ResponsesRequest
 
+pub enum Tool {
+  Function(FunctionTool)
+  FileSearch(FileSearchTool)
+  ComputerUsePreview(ComputerTool)
+  WebSearch(WebSearchTool)
+  Mcp(ToolMcp)
+  CodeInterpreter(ToolCodeInterpreter)
+  ImageGeneration(ToolImageGeneration)
+  LocalShell(ToolLocalShell)
+  Shell(FunctionShellTool)
+  Custom(CustomTool)
+  WebSearchPreview(WebSearchPreviewTool)
+  ApplyPatch(ApplyPatchTool)
+}
+pub impl ToJson for Tool
+pub impl @json.FromJson for Tool
+
+pub struct ToolChoiceAllowed {
+  mode : ToolChoiceAllowedMode
+  tools : Array[Json]
+}
+pub impl ToJson for ToolChoiceAllowed
+pub impl @json.FromJson for ToolChoiceAllowed
+
+pub enum ToolChoiceAllowedMode {
+  Auto
+  Required
+}
+pub impl ToJson for ToolChoiceAllowedMode
+pub impl @json.FromJson for ToolChoiceAllowedMode
+
+pub struct ToolChoiceApplyPatch {
+}
+pub impl ToJson for ToolChoiceApplyPatch
+pub impl @json.FromJson for ToolChoiceApplyPatch
+
+pub struct ToolChoiceCustom {
+  name : String
+}
+pub impl ToJson for ToolChoiceCustom
+pub impl @json.FromJson for ToolChoiceCustom
+
+pub struct ToolChoiceFunction {
+  name : String
+}
+pub impl ToJson for ToolChoiceFunction
+pub impl @json.FromJson for ToolChoiceFunction
+
+pub struct ToolChoiceMcp {
+  server_label : String
+  name : String?
+}
+pub impl ToJson for ToolChoiceMcp
+pub impl @json.FromJson for ToolChoiceMcp
+
+pub enum ToolChoiceOptions {
+  None_
+  Auto
+  Required
+}
+pub impl ToJson for ToolChoiceOptions
+pub impl @json.FromJson for ToolChoiceOptions
+
+pub struct ToolChoiceShell {
+}
+pub impl ToJson for ToolChoiceShell
+pub impl @json.FromJson for ToolChoiceShell
+
+pub struct ToolChoiceTypes {
+  type_ : ToolChoiceTypesType
+}
+pub impl ToJson for ToolChoiceTypes
+pub impl @json.FromJson for ToolChoiceTypes
+
+pub enum ToolChoiceTypesType {
+  FileSearch
+  WebSearchPreview
+  ComputerUsePreview
+  WebSearchPreview2025_03_11
+  ImageGeneration
+  CodeInterpreter
+}
+pub impl ToJson for ToolChoiceTypesType
+pub impl @json.FromJson for ToolChoiceTypesType
+
+pub struct ToolCodeInterpreter {
+  container : ToolCodeInterpreterContainer
+}
+pub impl ToJson for ToolCodeInterpreter
+pub impl @json.FromJson for ToolCodeInterpreter
+
+pub enum ToolCodeInterpreterContainer {
+  ContainerId(String)
+  Auto(ToolCodeInterpreterContainerAuto)
+}
+pub impl ToJson for ToolCodeInterpreterContainer
+pub impl @json.FromJson for ToolCodeInterpreterContainer
+
+pub struct ToolCodeInterpreterContainerAuto {
+  file_ids : Array[String]?
+  memory_limit : String?
+}
+pub impl ToJson for ToolCodeInterpreterContainerAuto
+pub impl @json.FromJson for ToolCodeInterpreterContainerAuto
+
+pub struct ToolImageGeneration {
+  background : String?
+  input_fidelity : String?
+  input_image_mask : ToolImageGenerationInputImageMask?
+  model : String?
+  moderation : String?
+  output_compression : Int64?
+  output_format : String?
+  partial_images : Int64?
+  quality : String?
+  size : String?
+}
+pub impl ToJson for ToolImageGeneration
+pub impl @json.FromJson for ToolImageGeneration
+
+pub struct ToolImageGenerationInputImageMask {
+  file_id : String?
+  image_url : String?
+}
+pub impl ToJson for ToolImageGenerationInputImageMask
+pub impl @json.FromJson for ToolImageGenerationInputImageMask
+
+pub struct ToolLocalShell {
+}
+pub impl ToJson for ToolLocalShell
+pub impl @json.FromJson for ToolLocalShell
+
+pub struct ToolMcp {
+  server_label : String
+  allowed_tools : ToolMcpAllowedTools?
+  authorization : String?
+  connector_id : String?
+  headers : Map[String, String]?
+  require_approval : ToolMcpRequireApproval?
+  server_description : String?
+  server_url : String?
+}
+pub impl ToJson for ToolMcp
+pub impl @json.FromJson for ToolMcp
+
+pub enum ToolMcpAllowedTools {
+  ToolNames(Array[String])
+  Filter(ToolMcpAllowedToolsMcpToolFilter)
+}
+pub impl ToJson for ToolMcpAllowedTools
+pub impl @json.FromJson for ToolMcpAllowedTools
+
+pub struct ToolMcpAllowedToolsMcpToolFilter {
+  read_only : Bool?
+  tool_names : Array[String]?
+}
+pub impl ToJson for ToolMcpAllowedToolsMcpToolFilter
+pub impl @json.FromJson for ToolMcpAllowedToolsMcpToolFilter
+
+pub enum ToolMcpRequireApproval {
+  Setting(String)
+  Filter(ToolMcpRequireApprovalMcpToolApprovalFilter)
+}
+pub impl ToJson for ToolMcpRequireApproval
+pub impl @json.FromJson for ToolMcpRequireApproval
+
+pub struct ToolMcpRequireApprovalMcpToolApprovalFilter {
+  always : ToolMcpRequireApprovalMcpToolApprovalFilterAlways?
+  never : ToolMcpRequireApprovalMcpToolApprovalFilterNever?
+}
+pub impl ToJson for ToolMcpRequireApprovalMcpToolApprovalFilter
+pub impl @json.FromJson for ToolMcpRequireApprovalMcpToolApprovalFilter
+
+pub struct ToolMcpRequireApprovalMcpToolApprovalFilterAlways {
+  read_only : Bool?
+  tool_names : Array[String]?
+}
+pub impl ToJson for ToolMcpRequireApprovalMcpToolApprovalFilterAlways
+pub impl @json.FromJson for ToolMcpRequireApprovalMcpToolApprovalFilterAlways
+
+pub struct ToolMcpRequireApprovalMcpToolApprovalFilterNever {
+  read_only : Bool?
+  tool_names : Array[String]?
+}
+pub impl ToJson for ToolMcpRequireApprovalMcpToolApprovalFilterNever
+pub impl @json.FromJson for ToolMcpRequireApprovalMcpToolApprovalFilterNever
+
+pub struct WebSearchPreviewTool {
+  type_ : WebSearchPreviewToolType
+  search_context_size : WebSearchPreviewToolSearchContextSize?
+  user_location : WebSearchPreviewToolUserLocation?
+}
+pub impl ToJson for WebSearchPreviewTool
+pub impl @json.FromJson for WebSearchPreviewTool
+
+pub enum WebSearchPreviewToolSearchContextSize {
+  Low
+  Medium
+  High
+}
+pub impl ToJson for WebSearchPreviewToolSearchContextSize
+pub impl @json.FromJson for WebSearchPreviewToolSearchContextSize
+
+pub enum WebSearchPreviewToolType {
+  WebSearchPreview
+  WebSearchPreview2025_03_11
+}
+pub impl ToJson for WebSearchPreviewToolType
+pub impl @json.FromJson for WebSearchPreviewToolType
+
+pub struct WebSearchPreviewToolUserLocation {
+  city : String?
+  country : String?
+  region : String?
+  timezone : String?
+}
+pub impl ToJson for WebSearchPreviewToolUserLocation
+pub impl @json.FromJson for WebSearchPreviewToolUserLocation
+
+pub struct WebSearchTool {
+  type_ : WebSearchToolType
+  filters : WebSearchToolFilters?
+  search_context_size : WebSearchToolSearchContextSize?
+  user_location : WebSearchToolUserLocation?
+}
+pub impl ToJson for WebSearchTool
+pub impl @json.FromJson for WebSearchTool
+
+pub struct WebSearchToolFilters {
+  allowed_domains : Array[String]?
+}
+pub impl ToJson for WebSearchToolFilters
+pub impl @json.FromJson for WebSearchToolFilters
+
+pub enum WebSearchToolSearchContextSize {
+  Low
+  Medium
+  High
+}
+pub impl ToJson for WebSearchToolSearchContextSize
+pub impl @json.FromJson for WebSearchToolSearchContextSize
+
+pub enum WebSearchToolType {
+  WebSearch
+  WebSearch2025_08_26
+}
+pub impl ToJson for WebSearchToolType
+pub impl @json.FromJson for WebSearchToolType
+
+pub struct WebSearchToolUserLocation {
+  city : String?
+  country : String?
+  region : String?
+  timezone : String?
+  type_ : String?
+}
+pub impl ToJson for WebSearchToolUserLocation
+pub impl @json.FromJson for WebSearchToolUserLocation
+
 // Type aliases
+pub type ResponseFunctionCallOutputItemList = Array[ResponseFunctionCallOutputItem]
+
+pub type ResponseInputMessageContentList = Array[ResponseInputContent]
 
 // Traits
+trait ToEasyInputMessageContentParam
+pub impl ToEasyInputMessageContentParam for String
+pub impl ToEasyInputMessageContentParam for Array[ResponseInputContentParam]
 

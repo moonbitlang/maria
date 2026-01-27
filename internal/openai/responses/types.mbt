@@ -3,15 +3,25 @@
 ///
 /// This is extracted from `oauth/codex` so that `internal/openai` owns the
 /// request/stream item wire types.
-
-///|
 pub struct ResponsesRequest {
+  /// Model ID used to generate the response, like `gpt-4o` or `o3`.
   model : String
-  input : Array[ResponseInputItem]
+  /// Text, image, or file inputs to the model that drive this response.
+  input : Array[ResponseInputItemParam]
+  /// A system (or developer) message inserted into the model context.
+  /// When used with `previous_response_id`, instructions from the previous
+  /// response are replaced, which makes it easy to swap system/developer guidance.
   instructions : String
+  /// Tools the model may call while generating a response.
+  /// Supported tool categories include built-in tools (web or file search),
+  /// MCP connectors, and custom function calls.
   tools : Array[Json]
+  /// How the model should select which tool (or tools) to use when responding.
   tool_choice : String
+  /// When true, the response is streamed back as delta events instead of
+  /// returning a single aggregated response.
   stream : Bool?
+  /// Whether to store the generated model response for later retrieval via API.
   store : Bool?
 } derive(Show)
 
@@ -51,13 +61,25 @@ pub impl @json.FromJson for ContentType with from_json(
 
 ///|
 pub struct ContentPart {
+  /// The kind of content this part represents.
   type_ : ContentType
+  /// The textual content of the part.
   text : String
 } derive(Show)
 
 ///|
 pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> ContentPart {
   { type_, text }
+}
+
+///|
+pub fn ContentPart::text(self : ContentPart) -> String {
+  self.text
+}
+
+///|
+pub fn ContentPart::type_(self : ContentPart) -> ContentType {
+  self.type_
 }
 
 ///|
@@ -70,26 +92,16 @@ pub impl @json.FromJson for ContentPart with from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> ContentPart raise @json.JsonDecodeError {
-  guard json is Object(obj) else {
-    raise @json.JsonDecodeError((path, "ContentPart: expected object"))
-  }
-  let type_ : ContentType = match obj.get("type") {
-    Some(v) => @json.from_json(v, path=path.add_key("type"))
-    None => raise @json.JsonDecodeError((path, "ContentPart: missing 'type'"))
-  }
-  let text : String = match obj.get("text") {
-    Some(String(s)) => s
-    Some(_) =>
-      raise @json.JsonDecodeError((path, "ContentPart: 'text' must be string"))
-    None => raise @json.JsonDecodeError((path, "ContentPart: missing 'text'"))
-  }
+  let object = @jsonx.as_object(json, path~)
+  let type_ : ContentType = object.required("type", path~)
+  let text : String = object.required("text", path~)
   { type_, text }
 }
 
 ///|
 pub fn ResponsesRequest::new(
   model~ : String,
-  input~ : Array[ResponseInputItem],
+  input~ : Array[ResponseInputItemParam],
   instructions~ : String,
   tools? : Array[Json] = [],
   tool_choice? : String = "auto",
@@ -118,100 +130,33 @@ pub impl ToJson for ResponsesRequest with to_json(self : ResponsesRequest) -> Js
 }
 
 ///|
-pub(all) enum ResponseInputItem {
-  Message(role~ : String, content~ : Array[ContentPart])
-  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
-  FunctionCallOutput(call_id~ : String, output~ : String)
-} derive(Show)
-
-///|
-pub impl ToJson for ResponseInputItem with to_json(self : ResponseInputItem) -> Json {
-  match self {
-    Message(role~, content~) =>
-      { "type": "message", "role": role, "content": content.to_json() }
-    FunctionCall(call_id~, name~, arguments~) =>
-      {
-        "type": "function_call",
-        "call_id": call_id,
-        "name": name,
-        "arguments": arguments,
-      }
-    FunctionCallOutput(call_id~, output~) =>
-      { "type": "function_call_output", "call_id": call_id, "output": output }
-  }
-}
-
-///|
-pub(all) enum ResponseItem {
-  Message(role~ : String, content~ : Array[ContentPart])
-  FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
-} derive(Show)
-
-///|
-pub impl @json.FromJson for ResponseItem with from_json(
-  json : Json,
-  path : @json.JsonPath,
-) -> ResponseItem raise @json.JsonDecodeError {
-  guard json is Object(obj) else {
-    raise @json.JsonDecodeError((path, "ResponseItem: expected object"))
-  }
-  let type_ = match obj.get("type") {
-    Some(String(s)) => s
-    _ => raise @json.JsonDecodeError((path, "ResponseItem: missing 'type'"))
-  }
-  match type_ {
-    "message" => {
-      let role = match obj.get("role") {
-        Some(String(s)) => s
-        _ => raise @json.JsonDecodeError((path, "ResponseItem: missing 'role'"))
-      }
-      let content : Array[ContentPart] = match obj.get("content") {
-        Some(content_json) =>
-          @json.from_json(content_json, path=path.add_key("content"))
-        None => []
-      }
-      Message(role~, content~)
-    }
-    "function_call" => {
-      let call_id = match obj.get("call_id") {
-        Some(String(s)) => s
-        _ =>
-          raise @json.JsonDecodeError((path, "ResponseItem: missing 'call_id'"))
-      }
-      let name = match obj.get("name") {
-        Some(String(s)) => s
-        _ => raise @json.JsonDecodeError((path, "ResponseItem: missing 'name'"))
-      }
-      let arguments = match obj.get("arguments") {
-        Some(String(s)) => s
-        _ =>
-          raise @json.JsonDecodeError(
-            (path, "ResponseItem: missing 'arguments'"),
-          )
-      }
-      FunctionCall(call_id~, name~, arguments~)
-    }
-    _ =>
-      raise @json.JsonDecodeError(
-        (path, "ResponseItem: unknown type '\{type_}'"),
-      )
-  }
-}
-
-///|
-pub fn message_input(role~ : String, content~ : String) -> ResponseInputItem {
-  Message(role~, content=[
-    ContentPart::new(
-      type_=if role == "user" { InputText } else { OutputText },
-      text=content,
-    ),
-  ])
-}
-
-///|
 pub fn function_call_output(
   call_id~ : String,
   output~ : String,
-) -> ResponseInputItem {
+) -> ResponseInputItemParam {
   FunctionCallOutput(call_id~, output~)
+}
+
+///|
+pub fn function_call(
+  call_id~ : String,
+  name~ : String,
+  arguments~ : String,
+) -> ResponseInputItemParam {
+  FunctionCall(call_id~, name~, arguments~)
+}
+
+///|
+pub fn message_input(
+  role~ : String,
+  content~ : String,
+) -> ResponseInputItemParam {
+  let role_enum = match role {
+    "user" => EasyInputMessageRole::User
+    "assistant" => EasyInputMessageRole::Assistant
+    "system" => EasyInputMessageRole::System
+    "developer" => EasyInputMessageRole::Developer
+    _ => EasyInputMessageRole::User
+  }
+  ResponseInputItemParam::message(role=role_enum, content~)
 }

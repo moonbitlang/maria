@@ -7,9 +7,12 @@ import {
   "moonbitlang/async/io",
   "moonbitlang/async",
   "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/openai/client",
   "moonbitlang/maria/internal/openai/responses",
+  "moonbitlang/maria/internal/openai/shared",
   "moonbitlang/core/json",
   "moonbitlang/core/test",
+  "moonbitlang/core/builtin",
 }
 
 import "test" {

@@ -20,7 +20,7 @@ pub struct Request {
   max_tokens : Int?
   temperature : Double?
   reasoning_effort : ChatCompletionReasoningEffort?
-  response_format : ResponseFormat?
+  response_format : @shared.ResponseFormat?
   stream : Bool?
   stream_options : ChatCompletionStreamOptionsParam?
   tool_choice : ChatCompletionToolChoice?

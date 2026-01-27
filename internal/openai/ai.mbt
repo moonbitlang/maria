@@ -334,7 +334,7 @@ fn convert_tools_to_responses_api(
 ///|
 priv struct CodexStreamResult {
   text_chunks : Array[String]
-  output_items : Array[@responses.ResponseItem]
+  output_items : Array[@responses.ResponseOutputItem]
 }
 
 ///|
@@ -370,22 +370,16 @@ async fn do_codex_stream_request(
   }
   let reader = ResponseStreamEventReader::new(client)
   let text_chunks : Array[String] = []
-  let output_items : Array[@responses.ResponseItem] = []
+  let output_items : Array[@responses.ResponseOutputItem] = []
   while reader.read() is Some(event) {
     match event {
-      TextDelta(delta) => text_chunks.push(delta)
-      OutputItemDone(item) => output_items.push(item)
-      Completed => break
+      OutputTextDelta(delta) => text_chunks.push(delta.delta)
+      OutputItemDone(event) => output_items.push(event.item)
+      Completed(_) => break
+      _ => ()
     }
   }
   { text_chunks, output_items }
-}
-
-///|
-priv enum ResponseStreamEvent {
-  TextDelta(String)
-  OutputItemDone(@responses.ResponseItem)
-  Completed
 }
 
 ///|
@@ -401,42 +395,18 @@ fn ResponseStreamEventReader::new(
 ///|
 async fn ResponseStreamEventReader::read(
   self : ResponseStreamEventReader,
-) -> ResponseStreamEvent? {
+) -> @responses.ResponseStreamEvent? {
   for {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
     let data = rest.trim().to_string()
     if data == "[DONE]" {
-      return Some(Completed)
+      return None
     }
     try {
       let json = @json.parse(data)
-      guard json is Object(obj) else { continue }
-      guard obj.get("type") is Some(String(event_type)) else { continue }
-      match event_type {
-        "response.output_text.delta" =>
-          if obj.get("delta") is Some(String(delta)) {
-            return Some(TextDelta(delta))
-          }
-        "response.content_part.delta" =>
-          if obj.get("delta") is Some(Object(delta_obj)) {
-            if delta_obj.get("text") is Some(String(text)) {
-              return Some(TextDelta(text))
-            }
-          }
-        "response.output_item.done" =>
-          if obj.get("item") is Some(item_json) {
-            try {
-              let item : @responses.ResponseItem = @json.from_json(item_json)
-              return Some(OutputItemDone(item))
-            } catch {
-              _ => continue
-            }
-          }
-        "response.completed" => return Some(Completed)
-        _ => continue
-      }
-      continue
+      let event : @responses.ResponseStreamEvent = @json.from_json(json)
+      return Some(event)
     } catch {
       _ => continue
     }
@@ -462,8 +432,8 @@ fn extract_text_content(
 ///|
 fn convert_messages_to_input(
   messages : Array[ChatCompletionMessageParam],
-) -> Array[@responses.ResponseInputItem] {
-  let result : Array[@responses.ResponseInputItem] = []
+) -> Array[@responses.ResponseInputItemParam] {
+  let result : Array[@responses.ResponseInputItemParam] = []
   for msg in messages {
     match msg {
       System(_) => continue
@@ -478,7 +448,7 @@ fn convert_messages_to_input(
         }
         for tc in assistant_msg.tool_calls {
           result.push(
-            @responses.ResponseInputItem::FunctionCall(
+            @responses.function_call(
               call_id=tc.id,
               name=tc.function.name,
               arguments=tc.function.arguments.unwrap_or("{}"),
@@ -509,10 +479,17 @@ fn codex_stream_result_to_chat_completion(
   let tool_calls : Array[ChatCompletionMessageToolCall] = []
   for item in result.output_items {
     match item {
-      @responses.ResponseItem::Message(content=parts, ..) => {
-        let texts = parts.map(fn(part) { part.text })
+      @responses.ResponseOutputItem::Message(message) => {
+        let texts = message.content.map(fn(part) {
+          match part {
+            @responses.ResponseOutputMessageContent::OutputText(text) =>
+              text.text
+            @responses.ResponseOutputMessageContent::Refusal(_) => ""
+          }
+        })
         let text = texts
           .iter()
+          .filter(fn(t) { !t.is_empty() })
           .fold(init="", fn(acc, t) {
             if acc.is_empty() {
               t
@@ -520,10 +497,15 @@ fn codex_stream_result_to_chat_completion(
               "\{acc}\n\{t}"
             }
           })
-        content = Some(text)
+        if !text.is_empty() {
+          content = Some(text)
+        }
       }
-      @responses.ResponseItem::FunctionCall(call_id~, name~, arguments~) =>
-        tool_calls.push(tool_call(id=call_id, name~, arguments~))
+      @responses.ResponseOutputItem::FunctionCall(call) =>
+        tool_calls.push(
+          tool_call(id=call.call_id, name=call.name, arguments=call.arguments),
+        )
+      _ => ()
     }
   }
   if content is None && !result.text_chunks.is_empty() {
