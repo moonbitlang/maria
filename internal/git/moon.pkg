@@ -10,7 +10,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/internal/os",
-}
+} for "test"

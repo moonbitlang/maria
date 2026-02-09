@@ -79,7 +79,9 @@ async fn Daemon::spawn_task(
   )
   let rq = @aqueue.Queue::new(kind=Unbounded)
   self.rqs[id.to_string()] = rq
-  let reg : @server.RegisterRequest = @async.with_timeout(300_000, () => rq.get()) catch {
+  let reg : @server.RegisterRequest = @async.with_timeout(300_000, () => {
+    rq.get()
+  }) catch {
     @async.TimeoutError => {
       println(
         "[ERROR] (Daemon) Timed out waiting for task to register after 5 minutes",

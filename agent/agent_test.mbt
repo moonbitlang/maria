@@ -29,11 +29,13 @@ async test "agent/simple_conversation" (t : @test.Test) {
     let mut conversation_started = false
     let mut conversation_ended = false
     let mut message_count = 0
-    agent.add_listener(event => match event.desc {
-      PreConversation => conversation_started = true
-      PostConversation => conversation_ended = true
-      UserMessage(_) => message_count = message_count + 1
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreConversation => conversation_started = true
+        PostConversation => conversation_ended = true
+        UserMessage(_) => message_count = message_count + 1
+        _ => ()
+      }
     })
 
     // Start the agent
@@ -87,9 +89,11 @@ async test "agent/single_tool_call" (t : @test.Test) {
       },
     )
     agent.add_tools([calculator_tool.to_agent_tool()])
-    agent.add_listener(event => match event.desc {
-      PreToolCall(tool_call) => tool_name = tool_call.name
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreToolCall(tool_call) => tool_name = tool_call.name
+        _ => ()
+      }
     })
     agent.start()
 
@@ -144,9 +148,11 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
       }),
     )
     agent.add_tools([add_tool.to_agent_tool(), multiply_tool.to_agent_tool()])
-    agent.add_listener(event => match event.desc {
-      PreToolCall(tool_call) => tool_calls.push(tool_call.name)
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreToolCall(tool_call) => tool_calls.push(tool_call.name)
+        _ => ()
+      }
     })
     agent.start()
 
@@ -175,13 +181,15 @@ async test "agent/event_system" (t : @test.Test) {
     let mut message_added = false
     let mut token_counted = false
     let mut assistant_response = false
-    agent.add_listener(event => match event.desc {
-      PreConversation => pre_conversation = true
-      PostConversation => post_conversation = true
-      UserMessage(_) => message_added = true
-      TokenCounted(_) => token_counted = true
-      AssistantMessage(_, ..) => assistant_response = true
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreConversation => pre_conversation = true
+        PostConversation => post_conversation = true
+        UserMessage(_) => message_added = true
+        TokenCounted(_) => token_counted = true
+        AssistantMessage(_, ..) => assistant_response = true
+        _ => ()
+      }
     })
     agent.start()
 
@@ -220,14 +228,16 @@ async test "agent/file_operations" (t : @test.Test) {
     // Track if files were created/read
     let mut file_written = false
     let mut _file_read = false
-    agent.add_listener(event => match event.desc {
-      PreToolCall(tool_call) =>
-        match tool_call.name {
-          "replace_in_file" => file_written = true
-          "read_file" => _file_read = true
-          _ => ()
-        }
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreToolCall(tool_call) =>
+          match tool_call.name {
+            "replace_in_file" => file_written = true
+            "read_file" => _file_read = true
+            _ => ()
+          }
+        _ => ()
+      }
     })
     agent.start()
 
@@ -253,13 +263,15 @@ async test "agent/token_management" (t : @test.Test) {
     )
     let mut token_count = 0
     let mut _context_pruned = false
-    agent.add_listener(event => match event.desc {
-      TokenCounted(count) => token_count = count
-      ContextPruned(origin_token_count~, pruned_token_count~) => {
-        _context_pruned = true
-        inspect(origin_token_count >= pruned_token_count, content="true")
+    agent.add_listener(event => {
+      match event.desc {
+        TokenCounted(count) => token_count = count
+        ContextPruned(origin_token_count~, pruned_token_count~) => {
+          _context_pruned = true
+          inspect(origin_token_count >= pruned_token_count, content="true")
+        }
+        _ => ()
       }
-      _ => ()
     })
     agent.start()
 
@@ -302,16 +314,18 @@ async test "agent/tool_error_handling" (t : @test.Test) {
       }),
     )
     agent.add_tools([failing_tool.to_agent_tool()])
-    agent.add_listener(event => match event.desc {
-      PostToolCall(_, result~, rendered~) =>
-        match result {
-          Err(_) => {
-            error_encountered = true
-            inspect(rendered, content="Division by zero")
+    agent.add_listener(event => {
+      match event.desc {
+        PostToolCall(_, result~, rendered~) =>
+          match result {
+            Err(_) => {
+              error_encountered = true
+              inspect(rendered, content="Division by zero")
+            }
+            _ => ()
           }
-          _ => ()
-        }
-      _ => ()
+        _ => ()
+      }
     })
     agent.start()
 
@@ -364,9 +378,11 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
     // Register all tools at once
     agent.add_tools(tools.map(fn(t) { t.to_agent_tool() }))
     let tool_names : Array[String] = []
-    agent.add_listener(event => match event.desc {
-      PreToolCall(tool_call) => tool_names.push(tool_call.name)
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreToolCall(tool_call) => tool_names.push(tool_call.name)
+        _ => ()
+      }
     })
     agent.start()
 
@@ -391,9 +407,11 @@ async test "agent/conversation_history" (t : @test.Test) {
       ),
     )
     let mut message_count = 0
-    agent.add_listener(event => match event.desc {
-      UserMessage(_) => message_count = message_count + 1
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        UserMessage(_) => message_count = message_count + 1
+        _ => ()
+      }
     })
     agent.start()
 
@@ -454,14 +472,16 @@ async test "agent/read_multiple_files" (t : @test.Test) {
     // Track if files were created/read
     let mut file_written = false
     let mut multiple_files_read = false
-    agent.add_listener(event => match event.desc {
-      PreToolCall(tool_call) =>
-        match tool_call.name {
-          "replace_in_file" => file_written = true
-          "read_multiple_files" => multiple_files_read = true
-          _ => ()
-        }
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PreToolCall(tool_call) =>
+          match tool_call.name {
+            "replace_in_file" => file_written = true
+            "read_multiple_files" => multiple_files_read = true
+            _ => ()
+          }
+        _ => ()
+      }
     })
     agent.start()
 
@@ -540,9 +560,11 @@ async test "agent/queue_message" (t : @test.Test) {
       content="aaa2f959-3b7f-4ace-870e-0f67cb28ebe3",
     )
     let message_unqueued = []
-    agent.add_listener(event => match event.desc {
-      MessageUnqueued(id~) => message_unqueued.push(id)
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        MessageUnqueued(id~) => message_unqueued.push(id)
+        _ => ()
+      }
     })
     agent.start()
     json_inspect(message_unqueued, content=[

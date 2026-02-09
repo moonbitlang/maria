@@ -3,7 +3,7 @@ extern "c" fn c_backtrace(n : Int) -> FixedArray[Bytes] = "moonbit_maria_backtra
 
 ///|
 pub fn backtrace(n? : Int = 32) -> FixedArray[String] raise {
-  c_backtrace(n).map(@encoding/utf8.decode(_))
+  c_backtrace(n).map(backtrace => @encoding/utf8.decode(backtrace))
 }
 
 ///|

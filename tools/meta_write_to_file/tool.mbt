@@ -158,7 +158,7 @@ fn attempt_completion_new(ctx : FixingContext) -> @tool.Tool[String] {
     name="attempt_completion",
     description="Signal that syntax fixing is complete",
     schema=completion_schema,
-    async fn(args) -> @tool.ToolResult[String] noraise {
+    fn(args) -> @tool.ToolResult[String] noraise {
       let { result } : InputCompletion = @json.from_json(args) catch {
         err =>
           return @tool.error(

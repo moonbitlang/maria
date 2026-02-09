@@ -52,9 +52,9 @@ async test "Minimal JSON API Server" {
   // Tests to verify the /task endpoint
   @async.with_task_group(group => {
     // Start the server with CORS enabled
-    group.spawn_bg(no_wait=true, () => server.serve(
-      @httpx.cors(router.handler()),
-    ))
+    group.spawn_bg(no_wait=true, () => {
+      server.serve(@httpx.cors(router.handler()))
+    })
     let (r, b) = @httpx.post_json("http://localhost:\{server.port()}/task", {
       "name": "Example Task",
       "description": "This is an example task.",
@@ -123,9 +123,9 @@ async test "CORS Middleware" {
   router.set_not_found_handler((r, w) => file_server.handle(r, w))
   let server = @httpx.Server::new("[::1]", 0)
   @async.with_task_group(group => {
-    group.spawn_bg(no_wait=true, () => server.serve(
-      @httpx.cors(router.handler()),
-    ))
+    group.spawn_bg(no_wait=true, () => {
+      server.serve(@httpx.cors(router.handler()))
+    })
     let (r, b) = @http.get("http://localhost:\{server.port()}/hello")
     guard r.code is @status.Ok else {
       fail("Unexpected response code: \{r.code}")

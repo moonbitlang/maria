@@ -1,20 +1,20 @@
 import {
   "moonbitlang/maria/internal/errno",
   "moonbitlang/maria/internal/c",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/async",
   "moonbitlang/maria/internal/pathx",
   "moonbitlang/maria/internal/moon",
   "moonbitlang/maria/internal/mock",
-}
+} for "test"
 
 options(
   "native-stub": [ "os.c" ],

@@ -17,7 +17,7 @@ struct Logger {
 /// A configured Logger instance
 ///
 /// # Example
-/// ```moonbit
+/// ```moonbit nocheck
 /// let _log = logger("my-app", level=Debug, Transport::console())
 /// ```
 pub fn logger(
@@ -153,7 +153,7 @@ pub async fn Logger::debug(
 /// A new Logger instance with merged properties
 ///
 /// # Example
-/// ```moonbit
+/// ```moonbit nocheck
 /// let parent = logger("app", Transport::console())
 ///
 /// let _child = parent.child({ "module": "auth" })

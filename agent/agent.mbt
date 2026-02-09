@@ -302,9 +302,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.emit(
         AssistantMessage(
           usage=usage.map(u => @ai.Usage::from_openai(u)),
-          tool_calls=message.tool_calls.map(tc => @ai.ToolCall::from_openai_tool_call(
-            tc,
-          )),
+          tool_calls=message.tool_calls.map(tc => {
+            @ai.ToolCall::from_openai_tool_call(tc)
+          }),
           message.content.unwrap_or(""),
         ),
       )
@@ -384,9 +384,9 @@ pub async fn new(
   let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target : @broadcast.Broadcast[@event.Event] = @broadcast.Broadcast::new()
-  event_target.add_listener(event => logger.info("Received event", data={
-    "event": event.to_json(),
-  }))
+  event_target.add_listener(event => {
+    logger.info("Received event", data={ "event": event.to_json() })
+  })
   event_target.put(
     @event.Event::new(id=uuid.v4(), ModelLoaded(name=model.name)),
   )

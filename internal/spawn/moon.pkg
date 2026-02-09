@@ -6,14 +6,14 @@ import {
   "moonbitlang/async",
   "moonbitlang/async/pipe",
   "moonbitlang/maria/clock",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
-}
+} for "test"
 
 options(
   "native-stub": [ "spawn.c" ],

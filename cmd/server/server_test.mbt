@@ -67,11 +67,13 @@ async test "register" (t : @test.Test) {
     let addr = @socket.Addr::parse("0.0.0.0:0")
     let daemon = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
     defer daemon.close()
-    let server_task = mock.group.spawn(() => configure_server(mock, register=@server.RegisterInfo::{
-      host: "localhost",
-      port: daemon.addr().port(),
-      id: "test-server",
-    }))
+    let server_task = mock.group.spawn(() => {
+      configure_server(mock, register=@server.RegisterInfo::{
+        host: "localhost",
+        port: daemon.addr().port(),
+        id: "test-server",
+      })
+    })
     let (conn, _) = daemon.accept()
     let conn = @http.ServerConnection::new(conn)
     let r = conn.read_request()
@@ -428,9 +430,11 @@ async test "POST /v1/cancel" (t : @test.Test) {
       // There is no MessageAdded event for the cancelled message
       json_inspect(
         events
-        .filter(e => e is Maria(event) &&
+        .filter(e => {
+          e is Maria(event) &&
           event.desc is UserMessage(msg) &&
-          msg == "This message will be popped on cancellation")
+          msg == "This message will be popped on cancellation"
+        })
         .length(),
         content=0,
       )
@@ -489,9 +493,11 @@ async test "web_search" (t : @test.Test) {
     let events = collector.wait()
     json_inspect(
       events
-      .filter(e => e is @test_utils.Maria(event) &&
+      .filter(e => {
+        e is @test_utils.Maria(event) &&
         event.desc is AssistantMessage(content, ..) &&
-        (content.contains("2022") || content.contains("2023")))
+        (content.contains("2022") || content.contains("2023"))
+      })
       .length() >
       0,
       content=true,

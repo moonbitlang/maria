@@ -16,10 +16,10 @@ import {
   "moonbitlang/core/test",
 }
 
-import "wbtest" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/internal/pino",
-}
+} for "wbtest"
 
 options(
   "is-main": true,

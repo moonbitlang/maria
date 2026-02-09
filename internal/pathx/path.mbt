@@ -113,66 +113,68 @@ pub fn split(view : StringView) -> Iter[StringView] {
   }
   let mut state : State = State::Root
   let mut last = view
-  Iter::new(() => state~: loop state {
-    Root =>
-      match view {
-        // More than 3 slashes are treated as single slash.
-        [.. "///", .. rest] => {
-          // Skip all redundant slashes.
-          skip~: loop rest {
-            ['/', .. rest] => continue skip~ rest
-            rest => {
-              state = Segment
-              last = rest
-              break
+  Iter::new(() => {
+    state~: loop state {
+      Root =>
+        match view {
+          // More than 3 slashes are treated as single slash.
+          [.. "///", .. rest] => {
+            // Skip all redundant slashes.
+            skip~: loop rest {
+              ['/', .. rest] => continue skip~ rest
+              rest => {
+                state = Segment
+                last = rest
+                break
+              }
             }
+            Some("/")
           }
-          Some("/")
-        }
-        [.. "//", .. rest] => {
-          state = Segment
-          last = rest
-          Some("//")
-        }
-        ['/', .. rest] => {
-          state = Segment
-          last = rest
-          Some("/")
-        }
-        rest => {
-          state = Segment
-          last = rest
-          continue state~ Segment
-        }
-      }
-    Segment =>
-      loop last.view() {
-        ['/', .. rest] as view => {
-          // Slice out the part before slash.
-          let part = last
-            .data()
-            .view(
-              start_offset=last.start_offset(),
-              end_offset=view.start_offset(),
-            )
-          // Skip redundant slashes.
-          let rest = skip~: loop rest {
-            ['/', .. rest] => continue skip~ rest
-            rest => rest
+          [.. "//", .. rest] => {
+            state = Segment
+            last = rest
+            Some("//")
           }
-          last = rest
-          Some(part)
+          ['/', .. rest] => {
+            state = Segment
+            last = rest
+            Some("/")
+          }
+          rest => {
+            state = Segment
+            last = rest
+            continue state~ Segment
+          }
         }
-        [_, .. rest] => continue rest
-        [] as view =>
-          if last.is_empty() {
-            return None
-          } else {
+      Segment =>
+        loop last.view() {
+          ['/', .. rest] as view => {
+            // Slice out the part before slash.
             let part = last
-            last = view
+              .data()
+              .view(
+                start_offset=last.start_offset(),
+                end_offset=view.start_offset(),
+              )
+            // Skip redundant slashes.
+            let rest = skip~: loop rest {
+              ['/', .. rest] => continue skip~ rest
+              rest => rest
+            }
+            last = rest
             Some(part)
           }
-      }
+          [_, .. rest] => continue rest
+          [] as view =>
+            if last.is_empty() {
+              return None
+            } else {
+              let part = last
+              last = view
+              Some(part)
+            }
+        }
+    }
   })
 }
 

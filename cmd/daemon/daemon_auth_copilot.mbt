@@ -17,33 +17,35 @@ async fn Daemon::start_copilot_auth(
   // Spawn background task to poll for token
   let events = self.events
   group.spawn_bg(
-    () => try {
-      // Poll for access token
-      let github_token = @copilot.poll_for_access_token(
-        device_code_response.device_code,
-        device_code_response.interval,
-        device_code_response.expires_in,
-      )
-
-      // Get Copilot token
-      let copilot_token_response = @copilot.get_copilot_token(github_token)
-
-      // Save credentials
-      let credentials : @copilot.Credentials = {
-        github_token,
-        copilot_token: copilot_token_response.token,
-        copilot_token_expires_at: copilot_token_response.expires_at,
-      }
-      @copilot.save_credentials(credentials)
-
-      // Broadcast success event
-      events.put(AuthLoginCompleted(provider="copilot"))
-      events.put(AuthStatusChanged(provider="copilot", authenticated=true))
-    } catch {
-      error =>
-        events.put(
-          AuthLoginFailed(provider="copilot", message=error.to_string()),
+    () => {
+      try {
+        // Poll for access token
+        let github_token = @copilot.poll_for_access_token(
+          device_code_response.device_code,
+          device_code_response.interval,
+          device_code_response.expires_in,
         )
+
+        // Get Copilot token
+        let copilot_token_response = @copilot.get_copilot_token(github_token)
+
+        // Save credentials
+        let credentials : @copilot.Credentials = {
+          github_token,
+          copilot_token: copilot_token_response.token,
+          copilot_token_expires_at: copilot_token_response.expires_at,
+        }
+        @copilot.save_credentials(credentials)
+
+        // Broadcast success event
+        events.put(AuthLoginCompleted(provider="copilot"))
+        events.put(AuthStatusChanged(provider="copilot", authenticated=true))
+      } catch {
+        error =>
+          events.put(
+            AuthLoginFailed(provider="copilot", message=error.to_string()),
+          )
+      }
     },
     no_wait=true,
   )

@@ -100,7 +100,7 @@ async test "fix_moonbit_warnings" (t : @test.Test) {
         #|/// Returns an iterator that yields each element of the list in order.
         #|pub fn[A] MutList::iterator(self : MutList[A]) -> Iterator[A] {
         #|  let mut next = self
-        #|  Iterator::new(fn() {
+        #|  Iterator::new(() => {
         #|    match next {
         #|      Empty => None
         #|      More(head, tail~) => {

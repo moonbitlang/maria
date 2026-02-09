@@ -55,30 +55,32 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     } else {
       @maria.Maria::new(model~, web_search~, logger?)
     }
-    maria.agent.add_listener(event => match event.desc {
-      AssistantMessage(content, ..) =>
-        if !content.is_blank() {
-          println(content)
+    maria.agent.add_listener(event => {
+      match event.desc {
+        AssistantMessage(content, ..) =>
+          if !content.is_blank() {
+            println(content)
+          }
+        PreToolCall(tool_call) =>
+          match tool_call.arguments {
+            None => println("% \{tool_call.name}")
+            Some(arguments) =>
+              try {
+                let arguments = @json.parse(arguments)
+                println("% \{tool_call.name} \{arguments.stringify(indent=2)}")
+              } catch {
+                _ => println("% \{tool_call.name}\n  \{arguments}")
+              }
+          }
+        PostToolCall(_, rendered~, ..) => {
+          let lines = rendered.split("\n").collect()
+          for i = 0; i < lines.length(); i = i + 1 {
+            let text = lines[i]
+            println("> \{text}")
+          }
         }
-      PreToolCall(tool_call) =>
-        match tool_call.arguments {
-          None => println("% \{tool_call.name}")
-          Some(arguments) =>
-            try {
-              let arguments = @json.parse(arguments)
-              println("% \{tool_call.name} \{arguments.stringify(indent=2)}")
-            } catch {
-              _ => println("% \{tool_call.name}\n  \{arguments}")
-            }
-        }
-      PostToolCall(_, rendered~, ..) => {
-        let lines = rendered.split("\n").collect()
-        for i = 0; i < lines.length(); i = i + 1 {
-          let text = lines[i]
-          println("> \{text}")
-        }
+        _ => ()
       }
-      _ => ()
     })
     async fn clear_inputs_and_prompt(
       maria : @maria.Maria,
@@ -95,31 +97,35 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
 
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
     let mut task : @async.Task[Unit]? = None
-    group.spawn_bg(() => for {
-      rl.start() catch {
-        @readline.CtrlC =>
-          if task is Some(round) {
-            round.cancel()
-            clear_inputs_and_prompt(maria, rl)
-          } else {
-            // Clear the current input line
-            println("")
-            rl.set_line("")
-            // Re-prompt the user
-            rl.set_prompt("$ ")
-            rl.prompt()
-            continue
-          }
-        error => raise error
+    group.spawn_bg(() => {
+      for {
+        rl.start() catch {
+          @readline.CtrlC =>
+            if task is Some(round) {
+              round.cancel()
+              clear_inputs_and_prompt(maria, rl)
+            } else {
+              // Clear the current input line
+              println("")
+              rl.set_line("")
+              // Re-prompt the user
+              rl.set_prompt("$ ")
+              rl.prompt()
+              continue
+            }
+          error => raise error
+        }
       }
     })
     if prompt is Some(prompt) {
       println("$ \{prompt}")
       let round = group.spawn(
-        () => maria.start(prompt~) catch {
-          error => {
-            println("! \{error}")
-            clear_inputs_and_prompt(maria, rl)
+        () => {
+          maria.start(prompt~) catch {
+            error => {
+              println("! \{error}")
+              clear_inputs_and_prompt(maria, rl)
+            }
           }
         },
         allow_failure=true,
@@ -137,10 +143,12 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       rl.prompt()
       let prompt = rl.read_line()
       let round = group.spawn(
-        () => maria.start(prompt~) catch {
-          error => {
-            println("! \{error}")
-            clear_inputs_and_prompt(maria, rl)
+        () => {
+          maria.start(prompt~) catch {
+            error => {
+              println("! \{error}")
+              clear_inputs_and_prompt(maria, rl)
+            }
           }
         },
         allow_failure=true,

@@ -51,10 +51,12 @@ pub async fn Module::check_patch_replace(
       patch_file=patch_path,
       cwd=self.path,
     )
-    diagnostics.filter_map(d => if d.loc.path.has_suffix(patch_name) {
-      Some({ ..d, loc: { ..d.loc, path: segment.file.path() } })
-    } else {
-      None
+    diagnostics.filter_map(d => {
+      if d.loc.path.has_suffix(patch_name) {
+        Some({ ..d, loc: { ..d.loc, path: segment.file.path() } })
+      } else {
+        None
+      }
     })
   })
 }
@@ -90,10 +92,12 @@ pub async fn Module::check_patch_insert(
       patch_file=patch_path,
       cwd=self.path,
     )
-    diagnostics.filter_map(d => if d.loc.path.has_suffix(patch_name) {
-      Some({ ..d, loc: { ..d.loc, path: file_path } })
-    } else {
-      None
+    diagnostics.filter_map(d => {
+      if d.loc.path.has_suffix(patch_name) {
+        Some({ ..d, loc: { ..d.loc, path: file_path } })
+      } else {
+        None
+      }
     })
   })
 }

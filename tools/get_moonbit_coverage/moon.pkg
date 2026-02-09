@@ -6,7 +6,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "wbtest" {
+import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
-}
+} for "wbtest"

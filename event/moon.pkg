@@ -12,8 +12,8 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/internal/rand",
-}
+} for "test"

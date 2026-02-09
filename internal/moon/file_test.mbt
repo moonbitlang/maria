@@ -188,7 +188,7 @@ async test "replace_segment/list" (t : @test.Test) {
         #|/// Returns an iterator that yields each element of the list in order.
         #|pub fn[A] List::iterator(self : List[A]) -> Iterator[A] {
         #|  let mut next = self
-        #|  Iterator::new(fn() {
+        #|  Iterator::new(() => {
         #|    match next {
         #|      Empty => None
         #|      More(head, tail~) => {
@@ -330,7 +330,7 @@ async test "replace_segment/list" (t : @test.Test) {
         #|/// Returns an iterator that yields each element of the list in order.
         #|pub fn[A] List::iterator(self : List[A]) -> Iterator[A] {
         #|  let mut next = self
-        #|  Iterator::new(fn() {
+        #|  Iterator::new(() => {
         #|    match next {
         #|      Empty => None
         #|      More(head, tail~) => {

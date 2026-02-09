@@ -15,7 +15,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/file",
   "moonbitlang/maria/tools/replace_in_file",
@@ -23,4 +23,4 @@ import "test" {
   "moonbitlang/async/fs",
   "moonbitlang/maria/prompt",
   "moonbitlang/maria/model",
-}
+} for "test"

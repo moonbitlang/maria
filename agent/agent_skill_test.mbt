@@ -129,9 +129,11 @@ async test "skill" (t : @test.Test) {
       @todo.new_tool(todo_list).to_agent_tool(),
     ])
     let tool_calls = []
-    agent.add_listener(event => match event.desc {
-      PostToolCall(tool_call, ..) => tool_calls.push(tool_call)
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PostToolCall(tool_call, ..) => tool_calls.push(tool_call)
+        _ => ()
+      }
     })
     agent.start()
     fn contains_read_file_skill_md(

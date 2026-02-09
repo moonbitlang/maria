@@ -93,7 +93,7 @@ pub fn Schema::verify(self : Schema, json : Json) -> Bool {
     (Schema::String, String(_)) => true
     (Schema::Enum(values), _) => values.contains(json)
     (Schema::Array(schema), Array(values)) =>
-      values.iter().all(schema.verify(_))
+      values.iter().all(value => schema.verify(value))
     (
       Schema::Object(map, required~, additional_properties=additionalProperties),
       Object(json),

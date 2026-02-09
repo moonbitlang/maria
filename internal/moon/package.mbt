@@ -160,7 +160,7 @@ pub async fn Package::interface(self : Package) -> String? {
       if entry.kind is Regular && entry.name.has_suffix(".mbti") {
         return Some(@fsx.read_file(@pathx.join(self.path, entry.name)))
       }
-    } else {
+    } nobreak {
       None
     }
   }

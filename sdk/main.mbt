@@ -17,56 +17,62 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
       return
     }
     let maria = @maria.Maria::new(model~, user_message=prompt)
-    maria.agent.add_listener(event => match event.desc {
-      ToolAdded(desc) => {
-        let response : Json = {
-          "method": "maria.agent.tool_added",
-          "params": { "tool": desc },
+    maria.agent.add_listener(event => {
+      match event.desc {
+        ToolAdded(desc) => {
+          let response : Json = {
+            "method": "maria.agent.tool_added",
+            "params": { "tool": desc },
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
-      }
-      UserMessage(content) => {
-        let response : Json = {
-          "method": "maria.agent.message",
-          "params": { "message": { "role": "user", "content": content } },
+        UserMessage(content) => {
+          let response : Json = {
+            "method": "maria.agent.message",
+            "params": { "message": { "role": "user", "content": content } },
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
-      }
-      PreConversation => {
-        let response : Json = {
-          "method": "maria.agent.conversation_start",
-          "params": {},
+        PreConversation => {
+          let response : Json = {
+            "method": "maria.agent.conversation_start",
+            "params": {},
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
-      }
-      PostConversation => {
-        let response : Json = {
-          "method": "maria.agent.conversation_end",
-          "params": {},
+        PostConversation => {
+          let response : Json = {
+            "method": "maria.agent.conversation_end",
+            "params": {},
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
-      }
-      AssistantMessage(usage~, tool_calls~, content) => {
-        let usage = usage.map(fn(u) { u.to_openai() })
-        let message = @openai.assistant_message(
-          content~,
-          tool_calls=tool_calls.map(fn(tc) { tc.to_openai() }),
-        )
-        let response : Json = {
-          "method": "maria.agent.request_completed",
-          "params": { "usage": usage, "message": message },
+        AssistantMessage(usage~, tool_calls~, content) => {
+          let usage = usage.map(fn(u) { u.to_openai() })
+          let message = @openai.assistant_message(
+            content~,
+            tool_calls=tool_calls.map(fn(tc) { tc.to_openai() }),
+          )
+          let response : Json = {
+            "method": "maria.agent.request_completed",
+            "params": { "usage": usage, "message": message },
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
-      }
-      PostToolCall(tool_call, result~, rendered~) => {
-        let tool_call = tool_call.to_openai()
-        let response : Json = {
-          "method": "maria.agent.post_tool_call",
-          "params": { "tool_call": tool_call, "json": result, "text": rendered },
+        PostToolCall(tool_call, result~, rendered~) => {
+          let tool_call = tool_call.to_openai()
+          let response : Json = {
+            "method": "maria.agent.post_tool_call",
+            "params": {
+              "tool_call": tool_call,
+              "json": result,
+              "text": rendered,
+            },
+          }
+          @stdio.stdout.writeln(response.stringify())
         }
-        @stdio.stdout.writeln(response.stringify())
+        _ => ()
       }
-      _ => ()
     })
     maria.start()
   } catch {

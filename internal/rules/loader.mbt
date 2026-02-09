@@ -20,9 +20,9 @@ async fn Loader::load_rules_from_directory(
     self.logger.warn("Directory '\{directory}' does not exist, skipping.")
     return
   }
-  let dir = @fsx.list_directory(directory).filter(e => e.kind
-    is @fsx.FileKind::Regular &&
-    e.name.has_suffix(".md"))
+  let dir = @fsx.list_directory(directory).filter(e => {
+    e.kind is @fsx.FileKind::Regular && e.name.has_suffix(".md")
+  })
   for rule_path in dir {
     let name = @pathx.stem(rule_path.name).to_string()
     self.rules[name] = Rule::parse(@fsx.read_file(rule_path.path), source~)
@@ -85,9 +85,11 @@ fn Rule::parse(content : String, source~ : Source) -> Rule raise {
     Some(Json::Array(arr)) =>
       arr
       .iter()
-      .filter_map(v => match v {
-        Json::String(s) => Some(s)
-        _ => None
+      .filter_map(v => {
+        match v {
+          Json::String(s) => Some(s)
+          _ => None
+        }
       })
       .collect()
     _ => []

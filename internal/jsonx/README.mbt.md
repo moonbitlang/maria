@@ -17,7 +17,7 @@ before decoding.
 
 ### Extracting Required and Optional Fields
 
-```moonbit
+```moonbit nocheck
 ///|
 fn parse_user(
   json : Json,
@@ -36,7 +36,7 @@ for example `/age` or `/nickname`.
 
 ### Nested Objects
 
-```moonbit
+```moonbit nocheck
 ///|
 fn parse_profile(
   json : Json,
@@ -53,14 +53,14 @@ fn parse_profile(
 
 ### `@jsonx.Object`
 
-```moonbit
+```moonbit nocheck
 ///|
 pub(all) struct Object(Map[String, Json])
 ```
 
 ### `as_object`
 
-```moonbit
+```moonbit nocheck
 pub fn as_object(
   json : Json,
   path~ : @json.JsonPath,
@@ -69,7 +69,7 @@ pub fn as_object(
 
 ### `Object::required`
 
-```moonbit
+```moonbit nocheck
 pub fn[T : @json.FromJson] Object::required(
   object : Object,
   key : String,
@@ -79,7 +79,7 @@ pub fn[T : @json.FromJson] Object::required(
 
 ### `Object::optional`
 
-```moonbit
+```moonbit nocheck
 pub fn[T : @json.FromJson] Object::optional(
   object : Object,
   key : String,

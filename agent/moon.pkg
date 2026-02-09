@@ -23,7 +23,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/file",
@@ -36,8 +36,8 @@ import "test" {
   "moonbitlang/maria/tools/todo",
   "moonbitlang/maria/tools/list_files",
   "moonbitlang/maria/tools/execute_command",
-}
+} for "test"
 
-import "wbtest" {
+import {
   "moonbitlang/maria/internal/mock",
-}
+} for "wbtest"

@@ -27,11 +27,12 @@ impl @httpx.FromEvent for DaemonEvent with from_event(event : @httpx.Event) -> D
 
 ///|
 async fn DaemonEvent::collect_events(s : @http.Client) -> Array[DaemonEvent] {
-  @test_utils.collect_events(s, stop_at=event => if event is TaskChanged(task) &&
-    task.is_idle() {
-    return true
-  } else {
-    return false
+  @test_utils.collect_events(s, stop_at=event => {
+    if event is TaskChanged(task) && task.is_idle() {
+      return true
+    } else {
+      return false
+    }
   })
 }
 
@@ -144,12 +145,13 @@ async test "GET /v1/task/{id}" (t : @test.Test) {
         is { "task": { "queued_messages": Array(queued_messages), .. }, .. } else {
         fail("Unexpected response body: \{b.stringify(indent=2)}")
       }
-      let queued_messages = queued_messages.map(m => if m
-        is Object({ "id": _, .. } as m) {
-        m["id"] = "<redacted>"
-        Json::object(m)
-      } else {
-        m
+      let queued_messages = queued_messages.map(m => {
+        if m is Object({ "id": _, .. } as m) {
+          m["id"] = "<redacted>"
+          Json::object(m)
+        } else {
+          m
+        }
       })
       json_inspect(queued_messages, content=[
         {
@@ -382,8 +384,9 @@ async test "POST /v1/task/{id}/message" (t : @test.Test) {
         .filter(e => {
           guard e is MariaQueuedMessagesSynchronized(msgs) else { false }
           msgs
-          .filter(msg => msg
-            is { "message": { "content": "How are you?", .. }, .. })
+          .filter(msg => {
+            msg is { "message": { "content": "How are you?", .. }, .. }
+          })
           .length() >
           0
         })
@@ -576,8 +579,9 @@ async test "kill older, non-responsive daemon" (t : @test.Test) {
     let manager = @spawn.Manager::new(cwd=mock.cwd.path())
     mock.group.spawn_bg(() => @async.with_timeout(20_000, () => manager.start()))
     let process = manager.spawn(exec_path, [], env={ "HOME": mock.cwd.path() })
-    mock.group.spawn_bg(() => @async.with_timeout(20_000, () => process.wait()
-      |> ignore()))
+    mock.group.spawn_bg(() => {
+      @async.with_timeout(20_000, () => process.wait() |> ignore())
+    })
     @async.sleep(1_000)
     let _ = configure_daemon(mock)
     mock.group.return_immediately(())
@@ -617,11 +621,12 @@ async test "POST /v1/task/{id} with web_search" (t : @test.Test) {
       json_inspect(web_search, content=[true])
       let events = collector.wait()
       let content = events
-        .filter_map(e => if e
-          is Maria({ desc: AssistantMessage(content, ..), .. }) {
-          Some(content)
-        } else {
-          None
+        .filter_map(e => {
+          if e is Maria({ desc: AssistantMessage(content, ..), .. }) {
+            Some(content)
+          } else {
+            None
+          }
         })
         .join("\n")
       json_inspect(

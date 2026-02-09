@@ -199,13 +199,15 @@ async fn Server::start_maria(self : Server) -> Unit {
         web_search?=msg.web_search,
       )
       group.spawn_bg(
-        () => while true {
-          let (msg, idq) = self.message_queue.get()
-          let id = self.maria.agent.queue_message(
-            msg.message,
-            web_search?=msg.web_search,
-          )
-          idq.put((id, true))
+        () => {
+          while true {
+            let (msg, idq) = self.message_queue.get()
+            let id = self.maria.agent.queue_message(
+              msg.message,
+              web_search?=msg.web_search,
+            )
+            idq.put((id, true))
+          }
         },
         no_wait=true,
       )

@@ -42,7 +42,9 @@ let texts : ReadOnlyArray[String] = [
 test (t : @test.Test) {
   let data = []
   for text in texts {
-    let pieces = regexp_search_all(cl100k_base_regex, text).map(x => x.to_string())
+    let pieces = regexp_search_all(cl100k_base_regex, text).map(x => {
+      x.to_string()
+    })
     data.push(LexerResult::{ text, pieces })
   }
   let snapshot_data = SnapshotData::{ data, }
@@ -68,7 +70,9 @@ test (t : @test.Test) {
 test (t : @test.Test) {
   let data = []
   for text in texts {
-    let pieces = regexp_search_all(o200k_base_regex, text).map(x => x.to_string())
+    let pieces = regexp_search_all(o200k_base_regex, text).map(x => {
+      x.to_string()
+    })
     data.push(LexerResult::{ text, pieces })
   }
   let snapshot_data = SnapshotData::{ data, }

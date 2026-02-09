@@ -177,30 +177,37 @@ async fn process_file(
   stat~ : Stat,
 ) -> Unit {
   let segments_updates : Array[(@moon.SegmentView, Result[String?, Error])] = []
-  @async.with_task_group(group => for segment in file.segments() {
-    let warnings = segment.diagnostics().0.filter(d => d.level is Warning)
-    if warnings.is_empty() {
-      continue
-    }
-    sem.acquire()
-    group.spawn_bg(() => {
-      defer sem.release()
-      segments_updates.push(
-        (
-          segment,
-          try? @async.with_timeout(120_000 * 4, () => process_segment(
-            model=agent.model,
-            cwd=agent.cwd,
-            moon~,
-            segment~,
-            description~,
-            logger=agent.logger.child({
-              "tool": { "name": "fix_moonbit_warnings", "id": agent.uuid.v4() },
+  @async.with_task_group(group => {
+    for segment in file.segments() {
+      let warnings = segment.diagnostics().0.filter(d => d.level is Warning)
+      if warnings.is_empty() {
+        continue
+      }
+      sem.acquire()
+      group.spawn_bg(() => {
+        defer sem.release()
+        segments_updates.push(
+          (
+            segment,
+            try? @async.with_timeout(120_000 * 4, () => {
+              process_segment(
+                model=agent.model,
+                cwd=agent.cwd,
+                moon~,
+                segment~,
+                description~,
+                logger=agent.logger.child({
+                  "tool": {
+                    "name": "fix_moonbit_warnings",
+                    "id": agent.uuid.v4(),
+                  },
+                }),
+              )
             }),
-          )),
-        ),
-      )
-    })
+          ),
+        )
+      })
+    }
   })
   stat.files_updated += 1
   for su in segments_updates {
@@ -248,22 +255,20 @@ pub fn new(agent : @agent.Agent) -> @tool.Tool[String] {
       let stat = Stat::{ files_updated: 0, segments_updated: 0 }
       let sem = @semaphore.Semaphore::new(4)
       let mut timed_out = false
-      @async.with_timeout(60_000 * 10 * 8, () => @async.with_task_group(group => for
-        file in files {
-        if file.path().has_suffix(".mbt.md") {
-          // Currently it is not supported to fix MoonBit code embedded in
-          // markdown files
-          continue
-        }
-        group.spawn_bg(() => process_file(
-          agent~,
-          moon~,
-          file~,
-          sem~,
-          description~,
-          stat~,
-        ))
-      })) catch {
+      @async.with_timeout(60_000 * 10 * 8, () => {
+        @async.with_task_group(group => {
+          for file in files {
+            if file.path().has_suffix(".mbt.md") {
+              // Currently it is not supported to fix MoonBit code embedded in
+              // markdown files
+              continue
+            }
+            group.spawn_bg(() => {
+              process_file(agent~, moon~, file~, sem~, description~, stat~)
+            })
+          }
+        })
+      }) catch {
         @async.TimeoutError => timed_out = true
         error =>
           return @tool.error("Failed to process segments: \{error}", error~)

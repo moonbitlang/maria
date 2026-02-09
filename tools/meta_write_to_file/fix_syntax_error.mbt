@@ -76,7 +76,8 @@ fn build_fixing_user_message(
   syntax_errors : String,
 ) -> String {
   (
-    $|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n
+    $|You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.
+    $|
     $|**Task Description:**
     $|
     $|\{description}

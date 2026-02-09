@@ -39,7 +39,7 @@ async fn Daemon::spawn_codex_callback_server(self : Daemon) -> Unit {
   let pending_auth = self.pending_codex_auth
   let events = self.events
   let router = @httpx.Router::new()
-  router.add_handler(@httpx.Method::Get, "/auth/callback", fn(r, w) {
+  router.add_handler(@httpx.Method::Get, "/auth/callback", (r, w) => {
     // Parse query parameters from the URL
     let path = r.path
     let parts = path.split("?").to_array()
@@ -130,10 +130,10 @@ async fn Daemon::spawn_codex_callback_server(self : Daemon) -> Unit {
   println(
     "[DEBUG] Started OAuth callback server on port \{CODEX_CALLBACK_PORT}",
   )
-  @async.with_task_group(fn(group) {
-    group.spawn_bg(fn() { server.serve(router.handler()) }, no_wait=true)
+  @async.with_task_group(group => {
+    group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
     // Wait for callback or timeout after 5 minutes
-    @async.with_timeout(300_000, fn() {
+    @async.with_timeout(300_000, () => {
       while not(done.val) {
         @async.sleep(100)
       }

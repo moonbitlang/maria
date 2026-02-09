@@ -27,19 +27,6 @@ fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
 }
 
 ///|
-fn BytesView::has_prefix(self : BytesView, prefix : BytesView) -> Bool {
-  if self.length() <= prefix.length() {
-    return false
-  }
-  for i in 0..<prefix.length() {
-    if self[i] != prefix[i] {
-      return false
-    }
-  }
-  true
-}
-
-///|
 fn BytesView::trim_start(self : BytesView) -> BytesView {
   loop self {
     [' ', .. rest] => continue rest

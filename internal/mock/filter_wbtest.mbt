@@ -15,7 +15,8 @@ test "Filter::string replacements" {
 ///|
 test "Filter::json masks nested keys and values" {
   let filter = Filter::new()
-  filter..add("home", "/Users/mock")..add("api", "XYZ")
+  filter.add("home", "/Users/mock")
+  filter.add("api", "XYZ")
   let filtered = filter.apply_json(
     Json::object({
       "path": "/Users/mock/config",
@@ -35,7 +36,8 @@ test "Filter::json masks nested keys and values" {
 ///|
 test "Filter::honors insertion order" {
   let filter = Filter::new()
-  filter..add("long", "/tmp/project/data")..add("short", "/tmp/project")
+  filter.add("long", "/tmp/project/data")
+  filter.add("short", "/tmp/project")
   let filtered = filter.apply_string("/tmp/project/data/output.log")
   inspect(filtered, content="(mock:long)/output.log")
 }

@@ -357,7 +357,7 @@ async fn test_build_only(
       _ => continue
     }
     return artifacts
-  } else {
+  } nobreak {
     Artifacts::{ artifacts_path: [] }
   }
 }

@@ -42,9 +42,11 @@ async fn chat_openai(
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
+    fatal_error=error => {
+      match error {
+        HttpError(code=403, ..) => true
+        _ => false
+      }
     },
     () => {
       logger.debug("RequestSent", data={
@@ -126,9 +128,11 @@ async fn chat_codex(
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
+    fatal_error=error => {
+      match error {
+        HttpError(code=403, ..) => true
+        _ => false
+      }
     },
     () => {
       logger.debug("CodexRequestSent", data={
@@ -221,9 +225,11 @@ async fn chat_copilot(
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
-    fatal_error=error => match error {
-      HttpError(code=403, ..) => true
-      _ => false
+    fatal_error=error => {
+      match error {
+        HttpError(code=403, ..) => true
+        _ => false
+      }
     },
     () => {
       logger.debug("CopilotRequestSent", data={
@@ -607,11 +613,13 @@ fn extract_first_json_block(content : String) -> String? {
   .drop(1)
   .take(1)
   .next()
-  .bind(block => block
+  .bind(block => {
+    block
     .split("```")
     .take(1)
     .next()
-    .map(s => s.trim(char_set=" \r\n\t").to_string()))
+    .map(s => s.trim(char_set=" \r\n\t").to_string())
+  })
 }
 
 ///|

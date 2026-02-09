@@ -1,6 +1,6 @@
 import {
   "moonbitlang/maria/internal/c",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
 }
 
 options(

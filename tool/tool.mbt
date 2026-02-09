@@ -124,9 +124,11 @@ pub fn[Output : ToJson + Show] Tool::to_agent_tool(
 ) -> AgentTool {
   Tool::{
     desc: self.desc,
-    f: args => match self.call(args) {
-      Ok(output) => Ok((output.to_json(), output.to_string()))
-      Error(error, output) => Error(error, output)
+    f: args => {
+      match self.call(args) {
+        Ok(output) => Ok((output.to_json(), output.to_string()))
+        Error(error, output) => Error(error, output)
+      }
     },
   }
 }

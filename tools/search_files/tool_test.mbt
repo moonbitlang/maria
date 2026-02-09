@@ -147,14 +147,16 @@ async test "search_files/agentic" (t : @test.Test) {
         $|Use the `search_files` tool to perform the search and provide the results by writing to `results.txt`.
       ),
     )
-    agent.add_listener(event => match event.desc {
-      PostToolCall(tool_call, result~, rendered~) =>
-        mock.logger.info("PostToolCall", data={
-          "tool_call": tool_call.to_openai(),
-          "tool_call_result": result,
-          "tool_call_result_text": rendered,
-        })
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PostToolCall(tool_call, result~, rendered~) =>
+          mock.logger.info("PostToolCall", data={
+            "tool_call": tool_call.to_openai(),
+            "tool_call_result": result,
+            "tool_call_result_text": rendered,
+          })
+        _ => ()
+      }
     })
     let file_manager = @file.manager(cwd=mock.cwd.path())
     agent.add_tools([

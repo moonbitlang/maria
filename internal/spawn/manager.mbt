@@ -107,7 +107,7 @@ pub async fn Manager::spawn(
     arguments,
     stderr,
     stdout,
-    cwd: cwd.map(_.to_string()),
+    cwd: cwd.map(cwd => cwd.to_string()),
     process,
     env,
   })

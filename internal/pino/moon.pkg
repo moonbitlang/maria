@@ -9,6 +9,6 @@ import {
   "moonbitlang/maria/internal/errno",
   "moonbitlang/async/aqueue",
   "moonbitlang/core/buffer",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
 }

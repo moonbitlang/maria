@@ -89,7 +89,7 @@ pub async fn Loader::get_model(self : Loader, name? : String) -> Model? {
         println("[INFO] Loaded model '\{name}' from configuration")
         break Some(model)
       }
-    } else {
+    } nobreak {
       None
     }
   } else {

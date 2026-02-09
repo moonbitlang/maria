@@ -11,6 +11,6 @@ import {
   "moonbitlang/async/io",
   "moonbitlang/maria/internal/pino",
   "moonbitlang/maria/internal/uuid",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
 }

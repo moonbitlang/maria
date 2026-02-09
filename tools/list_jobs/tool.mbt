@@ -11,7 +11,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
     name="list_jobs",
     description="List all background jobs",
     schema~,
-    @tool.ToolFn(async fn(_args) -> @tool.ToolResult[String] noraise {
+    @tool.ToolFn(fn(_args) -> @tool.ToolResult[String] noraise {
       let jobs = manager.list()
       let output = StringBuilder::new()
       for job in jobs {

@@ -4,7 +4,7 @@ import {
   "moonbitlang/maria/internal/pino",
 }
 
-import "wbtest" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/async",
-}
+} for "wbtest"

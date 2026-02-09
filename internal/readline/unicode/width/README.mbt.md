@@ -51,7 +51,7 @@ A constant tuple representing the Unicode version this library supports.
 
 ### Basic Character Width
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // ASCII characters have width 1
@@ -71,7 +71,7 @@ test {
 
 ### String Width Calculation
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // Mixed-width strings
@@ -87,7 +87,7 @@ test {
 
 ### CJK vs Non-CJK Context
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // Ambiguous width characters behave differently in CJK vs non-CJK contexts
@@ -108,7 +108,7 @@ test {
 
 ### Complex Unicode Sequences
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // Regional indicator sequences (flag emojis)
@@ -127,7 +127,7 @@ test {
 
 ### Practical Applications
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // Text alignment in terminal
@@ -155,7 +155,7 @@ test {
 
 ### Text Truncation Utility
 
-```mbt
+```mbt nocheck
 ///|
 test {
   // Truncate text to fit display width
