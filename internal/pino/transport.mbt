@@ -29,7 +29,7 @@ priv suberror InvalidTransport {
 /// - `InvalidTransport` if the scheme is unknown or the format is invalid
 ///
 /// # Example
-/// ```moonbit
+/// ```moonbit nocheck
 /// let _t1 = Transport::parse("console:")
 ///
 /// let _t2 = Transport::parse("file:/var/log/app.log")

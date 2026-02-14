@@ -67,7 +67,7 @@ pub async fn Pruner::prune_messages(
       }
       _ => ()
     }
-  } else {
+  } nobreak {
     false
   }
   pruner.logger.info("ContextPruned", data={

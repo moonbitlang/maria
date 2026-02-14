@@ -125,10 +125,12 @@ async test "Broadcast::listen_forever" {
       no_wait=true,
     )
     group.spawn_bg(
-      () => broadcast.listen_forever(
-        value => results2.push(value),
-        include_history=false,
-      ),
+      () => {
+        broadcast.listen_forever(
+          value => results2.push(value),
+          include_history=false,
+        )
+      },
       no_wait=true,
     )
     broadcast.put(4)

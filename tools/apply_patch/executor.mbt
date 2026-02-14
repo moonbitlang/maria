@@ -91,7 +91,6 @@ fn apply_chunks(
     .collect()
   if lines.length() > 0 && lines[lines.length() - 1].is_empty() {
     let _ = lines.pop()
-
   }
   let replacements : Array[(Int, Int, Array[String])] = []
   let mut line_index = 0
@@ -139,7 +138,6 @@ fn apply_chunks(
     for _ in 0..<old_len {
       if start_idx < lines.length() {
         let _ = lines.remove(start_idx)
-
       }
     }
     for j, new_line in new_segment {

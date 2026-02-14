@@ -4,17 +4,19 @@ async test "event-stream" (t : @test.Test) {
     let s = @httpx.Server::new("[::1]", 0)
     @async.with_task_group(g => {
       g.spawn_bg(
-        () => s.serve((_, w) => {
-          let w = @httpx.EventStreamWriter::new(w)
-          w.write_header(@status.Ok)
-          for i in 0..<3 {
-            w.write_event(
-              id=i.to_string(),
-              event="message",
-              data=Json::object({ "count": i }),
-            )
-          }
-        }),
+        () => {
+          s.serve((_, w) => {
+            let w = @httpx.EventStreamWriter::new(w)
+            w.write_header(@status.Ok)
+            for i in 0..<3 {
+              w.write_event(
+                id=i.to_string(),
+                event="message",
+                data=Json::object({ "count": i }),
+              )
+            }
+          })
+        },
         no_wait=true,
       )
       let c = @http.Client::new("http://localhost:\{s.port()}")

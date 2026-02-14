@@ -14,7 +14,6 @@ import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/openai",
   "moonbitlang/maria/internal/context_pruner",
-  "moonbitlang/maria/internal/diagnostics",
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/broadcast",
   "moonbitlang/maria/internal/jsonx",
@@ -23,7 +22,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/file",
@@ -36,8 +35,8 @@ import "test" {
   "moonbitlang/maria/tools/todo",
   "moonbitlang/maria/tools/list_files",
   "moonbitlang/maria/tools/execute_command",
-}
+} for "test"
 
-import "wbtest" {
+import {
   "moonbitlang/maria/internal/mock",
-}
+} for "wbtest"

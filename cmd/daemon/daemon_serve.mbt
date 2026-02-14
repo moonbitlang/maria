@@ -70,8 +70,6 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
               w.close()
               group.return_immediately(())
             }
-            (Post, ["", "v1", "moonbit", "publish"]) =>
-              publish_moonbit_module(r, w)
             (Get, ["", .. file]) =>
               serve_static_file(w, serve=self.serve, path=file.join("/"))
             _ =>

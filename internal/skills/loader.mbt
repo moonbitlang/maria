@@ -47,7 +47,7 @@ struct Loader {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let loader = @skills.Loader::new(cwd="/path/to/project")
 /// ```
 pub fn Loader::new(
@@ -91,8 +91,9 @@ async fn Loader::load_skills_from_directory(
     return
   }
   self.logger.info("Loading skills from directory '\{directory}'...")
-  let entries = @fsx.list_directory(directory).filter(e => e.kind
-    is @fsx.FileKind::Directory)
+  let entries = @fsx.list_directory(directory).filter(e => {
+    e.kind is @fsx.FileKind::Directory
+  })
   for entry in entries {
     if entry.name == ".system" {
       continue
@@ -305,7 +306,7 @@ fn Loader::apply(self : Loader, messages : Array[@ai.Message]) -> Unit {
       messages[i] = @ai.system_message(content=sys_msg + "\n\n" + skill_prompt)
       return
     }
-  } else {
+  } nobreak {
     // No system message found, prepend a system prompt with skills
     messages.insert(0, @ai.system_message(content=skill_prompt))
     return

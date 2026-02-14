@@ -6,12 +6,12 @@ import {
   "moonbitlang/regexp",
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/git",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/async",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/mock",
@@ -22,4 +22,4 @@ import "test" {
   "moonbitlang/maria/tools/replace_in_file",
   "moonbitlang/maria/internal/pino",
   "moonbitlang/maria/event",
-}
+} for "test"

@@ -1,9 +1,9 @@
 import {
-  "moonbitlang/maria/internal/readline/unicode/width" as @unicode/width,
+  "moonbitlang/maria/internal/readline/unicode/width" @unicode/width,
   "moonbitlang/core/json",
 }
 
-import "test" {
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+import {
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/buffer",
-}
+} for "test"

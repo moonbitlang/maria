@@ -6,12 +6,12 @@ import {
   "moonbitlang/maria/internal/httpx/reason",
   "moonbitlang/maria/internal/pathx",
   "moonbitlang/maria/internal/fsx",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
-}
+} for "test"

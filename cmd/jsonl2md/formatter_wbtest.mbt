@@ -5,9 +5,9 @@ async fn collect_log_entries(event_target : @event.EventTarget) -> Array[Json] {
     "test",
     @pino.Transport::callback(entry => entries.push(entry)),
   )
-  event_target.add_listener(event => logger.info("Received event", data={
-    "event": event.to_json(),
-  }))
+  event_target.add_listener(event => {
+    logger.info("Received event", data={ "event": event.to_json() })
+  })
   event_target.flush()
   return entries
 }
@@ -1364,9 +1364,9 @@ async test "subagent" (t : @test.Test) {
       },
     })
     let event_target = @event.EventTarget::new()
-    event_target.add_listener(event => logger.info("Received event", data={
-      "event": event.to_json(),
-    }))
+    event_target.add_listener(event => {
+      logger.info("Received event", data={ "event": event.to_json() })
+    })
     event_target.emit(
       UserMessage(
         "You are a MoonBit syntax fixing assistant. A file has been written but contains syntax errors that need to be fixed.\n\n\n**Task Description:**\n\nCreate JSON lexer implementation\n\n**File Content:**\n\n```moonbit\n///|\n/// JSON lexer for tokenizing input strings\nstruct Lexer {\n  input : String\n  position : Int\n  read_position : Int\n  ch : Char?\n}\n\n///|\nfn new_lexer(input : String) -> Lexer {\n  let lexer = { input, position: 0, read_position: 0, ch: None }\n  read_char(lexer)\n  lexer\n}\n```\n\n**Current Syntax Errors:**\n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 45 │ }\n    │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 87 │       Some(ch) if ch is ('0'..'9' | '.' | '-' | '+' | 'e' | 'E') => {\n    │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 94 │   }\n    │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `}`, you may expect `{`.\n 130 │ }\n     │ ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `,`, `:` or `)`.\n 137 │       Some(ch) if ch is ('a'..'z' | 'A'..'Z' | '_') => {\n     │                             ^^\n\nerror[3002]: lexer.mbt: Unexpected line break here, missing `{` at the end of this line.\n 144 │   }\n     │    \n\nerror[3002]: lexer.mbt: Parse error, unexpected token `?`, you may expect `;` or `}`.\n 189 │           read_string(lexer)?\n     │                             ^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token .., you may expect `=>`.\n 191 │         '0'..'9' | '-' => {\n     │            ^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token character, you may expect id (lowercase start).\n 194 │         'a'..'z' | 'A'..'Z' | '_' => {\n     │              ^^^\n\nerror[3002]: lexer.mbt: Parse error, unexpected token id (uppercase start), you may expect `pub`, `priv`, `type`, `suberror`, `typealias`, `async`, `fn`, `fnalias`, `struct`, `enum`, `let`, `const`, `extern`, `test`, `impl`, `trait`, `traitalias`, `enumview`, `#attribute` or `using`.\n 203 │     None => {\n     │     ^^^^\n\n**Your Task:**\n\n1. Analyze the syntax errors and understand what needs to be fixed\n2. Use `submit_fixed_file` to provide the complete fixed file content\n3. Only fix syntax errors - do not change logic unless absolutely necessary\n4. Continue until all syntax errors are fixed\n5. Call `attempt_completion` when done\n\n**Guidelines:**\n\n- Focus only on fixing syntax errors, not improving code quality\n- Preserve the original intent and functionality of the code, as much as possible\n- Use proper MoonBit syntax and conventions\n- If you cannot fix an error, explain why clearly\n- When syntax check passes, call `attempt_completion` immediately",

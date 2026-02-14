@@ -9,7 +9,7 @@ fn cache_content_parts(
     match parts[i] {
       Text(text) => break (i, text.text)
     }
-  } else {
+  } nobreak {
     return parts
   }
   let cached = []

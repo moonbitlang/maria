@@ -152,8 +152,8 @@ pub fn EventTarget::add_listener(
 /// Should typically be spawned as a background task:
 ///
 /// ```moonbit no-check
-/// @async.with_task_group(fn(group) {
-///   group.spawn_bg(fn() { emitter.start() }, no_wait=true)
+/// @async.with_task_group((group) => {
+///   group.spawn_bg(() => { emitter.start() }, no_wait=true)
 ///   // ... rest of the application
 /// })
 /// ```

@@ -3,6 +3,6 @@ import {
   "moonbitlang/core/random",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/rand",
-}
+} for "test"

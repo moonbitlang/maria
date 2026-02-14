@@ -13,20 +13,18 @@ import {
   "moonbitlang/async/os_error",
   "moonbitlang/maria/internal/broadcast",
   "moonbitlang/maria/internal/spawn",
-  "moonbitlang/maria/internal/moon",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/internal/rand",
   "moonbitlang/maria/internal/httpx",
   "moonbitlang/maria/event",
   "moonbitlang/maria/model",
-  "moonbitlang/maria/internal/diagnostics",
   "moonbitlang/core/json",
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/async/socket",
   "moonbitlang/maria/cmd/internal/test_utils",
-}
+} for "test"

@@ -75,40 +75,42 @@ pub async fn detach(
     args.push(exec_path)
   }
   let pid = @process.spawn_orphan(@os.executable(), args)
-  @async.with_timeout(60_000, () => for {
-    try {
-      let info_file = @fs.open(
-        home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json"),
-        mode=ReadOnly,
-      )
-      defer info_file.close()
-      if @fsx.get_lock_owner(info_file) is Some(owner) {
-        if owner == pid {
-          let text = info_file.read_all().text()
-          let json = @json.parse(text)
-          if json is { "pid": info_pid, .. } {
-            let info_pid : Int = @json.from_json(info_pid)
-            if info_pid == pid {
-              break pid
-            } else {
-              break info_pid
+  @async.with_timeout(60_000, () => {
+    for {
+      try {
+        let info_file = @fs.open(
+          home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json"),
+          mode=ReadOnly,
+        )
+        defer info_file.close()
+        if @fsx.get_lock_owner(info_file) is Some(owner) {
+          if owner == pid {
+            let text = info_file.read_all().text()
+            let json = @json.parse(text)
+            if json is { "pid": info_pid, .. } {
+              let info_pid : Int = @json.from_json(info_pid)
+              if info_pid == pid {
+                break pid
+              } else {
+                break info_pid
+              }
             }
+            // There is no pid field; wait and retry.
+          } else {
+            break owner
           }
-          // There is no pid field; wait and retry.
-        } else {
-          break owner
         }
+        // The daemon info file is not yet locked by any process; wait and retry.
+      } catch {
+        error =>
+          if @async.is_being_cancelled() {
+            raise error
+          } else {
+            println("[ERROR] (Daemon) Waiting for daemon to start: \{error}")
+            @async.sleep(500)
+            continue
+          }
       }
-      // The daemon info file is not yet locked by any process; wait and retry.
-    } catch {
-      error =>
-        if @async.is_being_cancelled() {
-          raise error
-        } else {
-          println("[ERROR] (Daemon) Waiting for daemon to start: \{error}")
-          @async.sleep(500)
-          continue
-        }
     }
   }) catch {
     @async.TimeoutError as error => {

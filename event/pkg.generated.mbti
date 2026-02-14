@@ -5,7 +5,6 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/clock",
-  "moonbitlang/maria/internal/diagnostics",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/tool",
 }
@@ -43,7 +42,6 @@ pub(all) enum EventDesc {
   TokenCounted(Int)
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   AssistantMessage(usage~ : @ai.Usage?, tool_calls~ : Array[@ai.ToolCall], String)
-  Diagnostics(@diagnostics.Diagnostics)
   UserMessage(String)
   Cancelled
   Failed(Json)

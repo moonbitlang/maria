@@ -67,11 +67,13 @@ async test "register" (t : @test.Test) {
     let addr = @socket.Addr::parse("0.0.0.0:0")
     let daemon = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
     defer daemon.close()
-    let server_task = mock.group.spawn(() => configure_server(mock, register=@server.RegisterInfo::{
-      host: "localhost",
-      port: daemon.addr().port(),
-      id: "test-server",
-    }))
+    let server_task = mock.group.spawn(() => {
+      configure_server(mock, register=@server.RegisterInfo::{
+        host: "localhost",
+        port: daemon.addr().port(),
+        id: "test-server",
+      })
+    })
     let (conn, _) = daemon.accept()
     let conn = @http.ServerConnection::new(conn)
     let r = conn.read_request()
@@ -254,79 +256,6 @@ async test "GET /v1/events" (t : @test.Test) {
 }
 
 ///|
-async test "GET /v1/moonbit/modules" (t : @test.Test) {
-  @mock.run(t, mock => {
-    @moon.new(user="username", name="example", mock.cwd.path())
-    let server = configure_server(mock)
-    mock.group.spawn_bg(() => server.start(), no_wait=true)
-    let (r, b) = @http.get(
-      "http://localhost:\{server.port()}/v1/moonbit/modules",
-    )
-    json_inspect(r.code, content=200)
-    let b = b.json()
-    guard b is { "modules": Array(modules), .. } else {
-      fail("Invalid response body: \{b.stringify(indent=2)}")
-    }
-    json_inspect(mock.json(modules), content=[
-      {
-        "path": "(mock:cwd)",
-        "name": "username/example",
-        "version": "0.1.0",
-        "description": "",
-      },
-    ])
-  })
-}
-
-///|
-async test "POST /v1/moonbit/publish" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let server = configure_server(mock)
-    mock.group.spawn_bg(() => server.start(), no_wait=true)
-    let (r, b) = @httpx.post_json(
-      "http://localhost:\{server.port()}/v1/moonbit/publish",
-      { "module": { "path": mock.cwd.path() } },
-    )
-    json_inspect(r.code, content=404)
-    json_inspect(
-      mock.json(b.json()).transform(@json.Replacer::exclude(["metadata"])),
-      content={
-        "error": {
-          "code": -1,
-          "message": "No MoonBit module found in path '(mock:cwd)'",
-        },
-      },
-    )
-    @moon.new(user="username", name="example", mock.cwd.path())
-    let (r, b) = @httpx.post_json(
-      "http://localhost:\{server.port()}/v1/moonbit/publish",
-      { "module": { "path": mock.cwd.path() } },
-    )
-    json_inspect(r.code, content=500)
-    json_inspect(
-      mock
-      .json(b.json())
-      .transform(@json.Replacer::exclude(["stdout", "stderr"])),
-      content={
-        "error": {
-          "code": -1,
-          "message": "Failed to publish module at '(mock:cwd)'",
-          "metadata": {
-            "module": {
-              "path": "(mock:cwd)",
-              "name": "username/example",
-              "version": "0.1.0",
-              "description": "",
-            },
-            "process": { "status": 255 },
-          },
-        },
-      },
-    )
-  })
-}
-
-///|
 async test "CORS" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
@@ -428,9 +357,11 @@ async test "POST /v1/cancel" (t : @test.Test) {
       // There is no MessageAdded event for the cancelled message
       json_inspect(
         events
-        .filter(e => e is Maria(event) &&
+        .filter(e => {
+          e is Maria(event) &&
           event.desc is UserMessage(msg) &&
-          msg == "This message will be popped on cancellation")
+          msg == "This message will be popped on cancellation"
+        })
         .length(),
         content=0,
       )
@@ -489,9 +420,11 @@ async test "web_search" (t : @test.Test) {
     let events = collector.wait()
     json_inspect(
       events
-      .filter(e => e is @test_utils.Maria(event) &&
+      .filter(e => {
+        e is @test_utils.Maria(event) &&
         event.desc is AssistantMessage(content, ..) &&
-        (content.contains("2022") || content.contains("2023")))
+        (content.contains("2022") || content.contains("2023"))
+      })
       .length() >
       0,
       content=true,
@@ -514,12 +447,11 @@ async test "GET /v1/tools" (t : @test.Test) {
       "read_file": { "enabled": true },
       "todo": { "enabled": true },
       "search_files": { "enabled": true },
-      "fix_moonbit_warnings": { "enabled": false },
-      "meta_write_to_file": { "enabled": true },
+      "write_to_file": { "enabled": true },
     })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/enabled-tools",
-      ["list_files", "read_file", "todo", "search_files", "meta_write_to_file"],
+      ["list_files", "read_file", "todo", "search_files", "write_to_file"],
     )
     json_inspect(r.code, content=200)
     json_inspect(b.json(), content={})
@@ -532,8 +464,7 @@ async test "GET /v1/tools" (t : @test.Test) {
       "read_file": { "enabled": true },
       "todo": { "enabled": true },
       "search_files": { "enabled": true },
-      "fix_moonbit_warnings": { "enabled": false },
-      "meta_write_to_file": { "enabled": true },
+      "write_to_file": { "enabled": true },
     })
   })
 }
@@ -647,64 +578,6 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     json_inspect(
       events.filter(e => e is Maria(event) && event.desc is Cancelled).length(),
       content=1,
-    )
-  })
-}
-
-///|
-#skip
-async test "GET /v1/external-event/diagnostics" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let server = configure_server(mock, model="mock:claude-haiku-4.5")
-    mock.group.spawn_bg(() => server.start(), no_wait=true)
-    let collector = mock.group.spawn(() => {
-      let (r, s) = @http.get_stream(
-        "http://localhost:\{server.port()}/v1/events",
-      )
-      json_inspect(r.code, content=200)
-      @test_utils.ServerEvent::collect_events(s)
-    })
-    mock.add_json_tree({
-      "moon.mod.json": (
-        #|{ "name": "example", "version": "0.1.0" }
-      ),
-      "moon.pkg.json": (
-        #|{ }
-      ),
-      "example.mbt": (
-        #|///|
-        #|let x : Int = "string"
-      ),
-      "example2.mbt": (
-        #|fn main() {
-        #|  let y = "hello"
-        #|}
-      ),
-    })
-    let moon = @moon.Module::load(mock.cwd.path())
-    moon.check()
-    let diagnostics = moon.diagnostics()
-    let _ = @httpx.post_json("http://localhost:\{server.port()}/v1/message", {
-      "message": {
-        "role": "user",
-        "content": "Can you please fix the MoonBit project so that it is free from errors and warnings?",
-      },
-    })
-    let _ = @httpx.post_json(
-      "http://localhost:\{server.port()}/v1/external-event/diagnostics",
-      { "diagnostics": diagnostics.to_json() },
-    )
-    let _ = @httpx.post_json(
-      "http://localhost:\{server.port()}/v1/external-event/cancel",
-      {},
-    )
-    let events = collector.wait()
-    json_inspect(
-      events
-      .filter(e => e is Maria(event) && event.desc is Diagnostics(_))
-      .length() >
-      0,
-      content=true,
     )
   })
 }

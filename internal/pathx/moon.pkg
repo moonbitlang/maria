@@ -1,8 +1,6 @@
 import {
-  "moonbitlang/x/path" as @xpath,
+  "moonbitlang/x/path" @xpath,
   "moonbitlang/core/json",
 }
 
-options(
-  "warn-list": "-24",
-)
+warnings = "-24"

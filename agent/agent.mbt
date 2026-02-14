@@ -157,7 +157,7 @@ async fn Agent::prepare_messages_for_request(
 /// * `agent` : The agent instance to poll events for.
 ///
 /// Returns `true` if the conversation should continue, `false` if cancelled.
-async fn Agent::poll_external_events(agent : Agent) -> Bool {
+fn Agent::poll_external_events(agent : Agent) -> Bool {
   let events = agent.external_events.poll()
   for event in events {
     agent.emit(event.desc, id=event.id)
@@ -178,23 +178,6 @@ async fn Agent::poll_external_events(agent : Agent) -> Bool {
             ),
           ),
         )
-      Diagnostics(diagnostics) =>
-        if !diagnostics.is_empty() {
-          let rendered = diagnostics.render(limit=10, context=2, cwd=agent.cwd)
-          agent.input_queue.push(
-            @ai.user_message(
-              content=(
-                $|[IDE Diagnostics Update]
-                $|
-                $|The following issues were detected in the codebase:
-                $|
-                $|\{rendered}
-                $|
-                $|Please review and address these issues if relevant to your current task.
-              ),
-            ),
-          )
-        }
       _ => ()
     }
   }
@@ -302,9 +285,9 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       agent.emit(
         AssistantMessage(
           usage=usage.map(u => @ai.Usage::from_openai(u)),
-          tool_calls=message.tool_calls.map(tc => @ai.ToolCall::from_openai_tool_call(
-            tc,
-          )),
+          tool_calls=message.tool_calls.map(tc => {
+            @ai.ToolCall::from_openai_tool_call(tc)
+          }),
           message.content.unwrap_or(""),
         ),
       )
@@ -384,9 +367,9 @@ pub async fn new(
   let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_string(), logger~)
   let event_target : @broadcast.Broadcast[@event.Event] = @broadcast.Broadcast::new()
-  event_target.add_listener(event => logger.info("Received event", data={
-    "event": event.to_json(),
-  }))
+  event_target.add_listener(event => {
+    logger.info("Received event", data={ "event": event.to_json() })
+  })
   event_target.put(
     @event.Event::new(id=uuid.v4(), ModelLoaded(name=model.name)),
   )

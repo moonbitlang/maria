@@ -102,7 +102,7 @@ PostConversation          ─── Conversation ends
 
 ### Listening to Events
 
-```moonbit
+```moonbit nocheck
 let emitter = EventTarget::new()
 
 // Register a listener
@@ -122,7 +122,7 @@ emitter.start()
 
 ### Handling External Events
 
-```moonbit
+```moonbit nocheck
 let external_queue = ExternalEventQueue::new()
 
 // From environment (e.g., IDE integration)

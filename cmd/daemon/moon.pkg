@@ -10,7 +10,6 @@ import {
   "moonbitlang/async/os_error",
   "moonbitlang/maria/internal/pathx",
   "moonbitlang/maria/model",
-  "moonbitlang/maria/internal/moon",
   "moonbitlang/maria/internal/openai",
   "moonbitlang/async/aqueue",
   "moonbitlang/maria/cmd/server",
@@ -28,13 +27,13 @@ import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/oauth/codex",
   "moonbitlang/maria/oauth/copilot",
-  "moonbitlang/core/encoding/utf8" as @encoding/utf8,
+  "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/cmd/internal/test_utils",
-}
+} for "test"

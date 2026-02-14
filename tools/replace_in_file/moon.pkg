@@ -9,7 +9,7 @@ import {
   "moonbitlang/core/test",
 }
 
-import "test" {
+import {
   "moonbitlang/async",
   "moonbitlang/maria/tools/read_file",
   "moonbitlang/maria/internal/mock",
@@ -19,4 +19,4 @@ import "test" {
   "moonbitlang/maria/event",
   "moonbitlang/maria/ai",
   "moonbitlang/async/fs",
-}
+} for "test"

@@ -17,10 +17,9 @@ async test "retry" (t : @test.Test) {
 
 ///|
 async test "moon_home" (t : @test.Test) {
-  @mock.run(t, mock => inspect(
-    mock.show(mock.moon_home),
-    content="(mock:env:MOON_HOME)",
-  ))
+  @mock.run(t, mock => {
+    inspect(mock.show(mock.moon_home), content="(mock:env:MOON_HOME)")
+  })
 }
 
 ///|
@@ -91,12 +90,14 @@ async test "add_json_tree/directory_then_add_more" (t : @test.Test) {
 
 ///|
 async test "add_json_tree/invalid_value_panics" (t : @test.Test) {
-  @mock.run(t, mock => try {
-    // Number value should cause a panic
-    mock.add_json_tree({ "file.txt": Json::number(42) })
-    fail("Expected panic for invalid JSON value")
-  } catch {
-    _ => () // Expected to fail
+  @mock.run(t, mock => {
+    try {
+      // Number value should cause a panic
+      mock.add_json_tree({ "file.txt": Json::number(42) })
+      fail("Expected panic for invalid JSON value")
+    } catch {
+      _ => () // Expected to fail
+    }
   })
 }
 

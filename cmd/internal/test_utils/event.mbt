@@ -21,17 +21,19 @@ pub async fn ServerEvent::collect_events(
   s : @http.Client,
   stop_at_cancel? : Bool = true,
 ) -> Array[ServerEvent] {
-  collect_events(s, stop_at=event => if event is Maria(event) {
-    if event.is_stopping() {
-      return true
-    }
-    if stop_at_cancel && event.is_cancellation() {
-      return true
+  collect_events(s, stop_at=event => {
+    if event is Maria(event) {
+      if event.is_stopping() {
+        return true
+      }
+      if stop_at_cancel && event.is_cancellation() {
+        return true
+      } else {
+        return false
+      }
     } else {
       return false
     }
-  } else {
-    return false
   })
 }
 
@@ -54,42 +56,42 @@ pub async fn[T : @httpx.FromEvent] collect_events(
 
 ///|
 pub fn redact_events(events : Array[ServerEvent]) -> Array[ServerEvent] {
-  events.map(event => match event {
-    MariaQueuedMessagesSynchronized(ms) => {
-      for m in ms {
-        if m is Object({ "id": String(_), .. } as message) {
-          message["id"] = "<redacted>"
+  events.map(event => {
+    match event {
+      MariaQueuedMessagesSynchronized(ms) => {
+        for m in ms {
+          if m is Object({ "id": String(_), .. } as message) {
+            message["id"] = "<redacted>"
+          }
         }
+        return event
       }
-      return event
-    }
-    Maria(event) => {
-      let desc : @event.EventDesc = match event.desc {
-        UserMessage(_) => UserMessage("<redacted>")
-        SystemPromptSet(Some(_)) => SystemPromptSet(Some("<redacted>"))
-        MessageQueued(..) => MessageQueued(id=@uuid.nil)
-        MessageUnqueued(..) => MessageUnqueued(id=@uuid.nil)
-        AssistantMessage(_, tool_calls~, ..) =>
-          AssistantMessage(
-            usage=Some(
-              @ai.usage(input_tokens=0, output_tokens=0, total_tokens=0),
-            ),
-            tool_calls=tool_calls.map(tc => @ai.tool_call(
-              id=tc.id,
-              name=tc.name,
-              arguments="<redacted>",
-            )),
-            "<redacted>",
-          )
-        event => event
+      Maria(event) => {
+        let desc : @event.EventDesc = match event.desc {
+          UserMessage(_) => UserMessage("<redacted>")
+          SystemPromptSet(Some(_)) => SystemPromptSet(Some("<redacted>"))
+          MessageQueued(..) => MessageQueued(id=@uuid.nil)
+          MessageUnqueued(..) => MessageUnqueued(id=@uuid.nil)
+          AssistantMessage(_, tool_calls~, ..) =>
+            AssistantMessage(
+              usage=Some(
+                @ai.usage(input_tokens=0, output_tokens=0, total_tokens=0),
+              ),
+              tool_calls=tool_calls.map(tc => {
+                @ai.tool_call(id=tc.id, name=tc.name, arguments="<redacted>")
+              }),
+              "<redacted>",
+            )
+          event => event
+        }
+        return Maria(
+          @event.Event::new(
+            id=@uuid.nil,
+            created=@clock.Timestamp::from_ms(0),
+            desc,
+          ),
+        )
       }
-      return Maria(
-        @event.Event::new(
-          id=@uuid.nil,
-          created=@clock.Timestamp::from_ms(0),
-          desc,
-        ),
-      )
     }
   })
 }

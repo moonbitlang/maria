@@ -1165,7 +1165,7 @@ fn is_char_ligature_transparent(c : Char) -> Bool {
 fn is_solidus_transparent(c : Char) -> Bool {
   let cp = c.to_int()
   is_char_ligature_transparent(c) ||
-  {
+  ({
     // Binary search in SOLIDUS_TRANSPARENT
     let mut low = 0
     let mut high = solidus_transparent.length()
@@ -1181,7 +1181,7 @@ fn is_solidus_transparent(c : Char) -> Bool {
       }
     }
     false
-  }
+  })
 }
 
 ///| Whether this character forms an [emoji presentation sequence]

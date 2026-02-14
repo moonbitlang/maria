@@ -151,14 +151,16 @@ async test "replace_in_file/agentic" (t : @test.Test) {
       cwd=mock.cwd.path(),
       user_message="Update line 2 in file.txt to say 'line 2 modified via agent'.",
     )
-    agent.add_listener(event => match event.desc {
-      PostToolCall(tool_call, result~, rendered~) =>
-        mock.logger.info("PostToolCall", data={
-          "name": tool_call.name,
-          "output": result,
-          "text": rendered,
-        })
-      _ => ()
+    agent.add_listener(event => {
+      match event.desc {
+        PostToolCall(tool_call, result~, rendered~) =>
+          mock.logger.info("PostToolCall", data={
+            "name": tool_call.name,
+            "output": result,
+            "text": rendered,
+          })
+        _ => ()
+      }
     })
     agent.add_tool(@replace_in_file.new(manager))
     agent.start()

@@ -193,7 +193,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
     _ => ()
   }
   let router = @httpx.Router::new()
-  router.add_handler(@httpx.Method::Get, "/auth/callback", fn(r, w) {
+  router.add_handler(@httpx.Method::Get, "/auth/callback", (r, w) => {
     let path = r.path
     let parts = path.split("?").to_array()
     let query_string : StringView = if parts.length() > 1 {
@@ -272,9 +272,9 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
     }
   })
   let server = @httpx.Server::new("[::1]", CALLBACK_PORT, reuse_addr=true)
-  @async.with_task_group(fn(group) {
-    group.spawn_bg(fn() { server.serve(router.handler()) }, no_wait=true)
-    @async.with_timeout(300_000, error=OAuthError("Login timeout"), fn() {
+  @async.with_task_group(group => {
+    group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
+    @async.with_timeout(300_000, error=OAuthError("Login timeout"), () => {
       while not(done.val) {
         @async.sleep(100)
       }

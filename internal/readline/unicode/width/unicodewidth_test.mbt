@@ -508,9 +508,11 @@ async test "emoji_test_file" {
     let emoji = cps
       .trim(char_set=" \t\n")
       .split(" ")
-      .map(s => (try! @strconv.parse_uint(s, base=16))
+      .map(s => {
+        (try! @strconv.parse_uint(s, base=16))
         .reinterpret_as_int()
-        .unsafe_to_char())
+        .unsafe_to_char()
+      })
       |> String::from_iter
     assert_str_width(emoji, 2, 2)
   }

@@ -19,12 +19,11 @@ fn setup_agent(agent : @agent.Agent, cwd~ : String) -> Unit {
     @todo.new_tool(todo_list).to_agent_tool(),
     @search_files.new(agent.cwd).to_agent_tool(),
   ])
-  agent.add_tool(@fix_moonbit_warnings.new(agent), enabled=false)
   // GPT 5.1+ uses apply_patch only, other models use meta_write_to_file
   if agent.model.supports_apply_patch {
     agent.add_tool(@apply_patch.new(agent.cwd))
   } else {
-    agent.add_tool(@meta_write_to_file.new(agent))
+    agent.add_tool(@write_to_file.new(agent.cwd))
   }
 }
 

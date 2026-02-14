@@ -64,20 +64,22 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
     println("[INFO] (Daemon) Shutdown request sent successfully.")
   }
   // Wait for the lock to be released
-  @async.with_timeout(60_000, () => for {
-    match acquire_lock(path) {
-      Ok(file) =>
-        // Successfully acquired lock
-        break Some(file)
-      Err(new) =>
-        if new.pid != old.pid {
-          // Lock is now held by another process; exit
-          return None
-        } else {
-          // Still locked by the same process; wait and retry
-          @async.sleep(500)
-          continue
-        }
+  @async.with_timeout(60_000, () => {
+    for {
+      match acquire_lock(path) {
+        Ok(file) =>
+          // Successfully acquired lock
+          break Some(file)
+        Err(new) =>
+          if new.pid != old.pid {
+            // Lock is now held by another process; exit
+            return None
+          } else {
+            // Still locked by the same process; wait and retry
+            @async.sleep(500)
+            continue
+          }
+      }
     }
   }) catch {
     @async.TimeoutError => {
@@ -98,10 +100,9 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
 /// or a old version daemon that does not support the shutdown endpoint.
 async fn request_shutdown(pid : Int, port : Int) -> Bool {
   try {
-    let (r, _) = @async.with_timeout(10_000, () => @httpx.post_json(
-      "http://localhost:\{port}/v1/shutdown",
-      Json::object({}),
-    ))
+    let (r, _) = @async.with_timeout(10_000, () => {
+      @httpx.post_json("http://localhost:\{port}/v1/shutdown", Json::object({}))
+    })
     return r.code is (200..=299)
   } catch {
     error =>

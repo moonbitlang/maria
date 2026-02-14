@@ -3,18 +3,20 @@
 ///
 /// This is suitable for development or trusted environments. For production
 /// deployments, consider tightening the allowed origins and methods.
-pub let cors : Middleware = (k : Handler) => (r, w) => {
-  w
-  .header()
-  .config({
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Headers": "*",
-  })
-  if r.method_ == Options {
-    w.write_header(@status.NoContent)
-  } else {
-    k(r, w)
+pub let cors : Middleware = (k : Handler) => {
+  (r, w) => {
+    w
+    .header()
+    .config({
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*",
+    })
+    if r.method_ == Options {
+      w.write_header(@status.NoContent)
+    } else {
+      k(r, w)
+    }
   }
 }
 

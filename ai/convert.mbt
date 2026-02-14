@@ -92,9 +92,9 @@ pub fn ToolCall::from_openai_tool_call(
 ///|
 /// Convert an @ai.Usage to an OpenAI CompletionUsage.
 pub fn Usage::to_openai(self : Usage) -> @openai.CompletionUsage {
-  let prompt_tokens_details = self.cache_read_tokens.map(cached_tokens => @openai.PromptTokensDetails::new(
-    cached_tokens~,
-  ))
+  let prompt_tokens_details = self.cache_read_tokens.map(cached_tokens => {
+    @openai.PromptTokensDetails::new(cached_tokens~)
+  })
   @openai.CompletionUsage::new(
     prompt_tokens=self.input_tokens,
     prompt_tokens_details?,
@@ -109,6 +109,8 @@ pub fn Usage::from_openai(u : @openai.CompletionUsage) -> Usage {
   usage(
     input_tokens=u.prompt_tokens,
     output_tokens=u.completion_tokens,
-    cache_read_tokens?=u.prompt_tokens_details.bind(details => details.cached_tokens),
+    cache_read_tokens?=u.prompt_tokens_details.bind(details => {
+      details.cached_tokens
+    }),
   )
 }

@@ -86,7 +86,7 @@ fn Layer::route(
     [] =>
       for r in curr {
         break Some((r.0.routes, r.1))
-      } else {
+      } nobreak {
         None
       }
     [segment, .. segments] => {
@@ -126,46 +126,50 @@ struct Router {
 pub fn Router::new() -> Router {
   let layer = Layer::new()
   let allow = MethodSet::new()
-  let middleware : Middleware = k => (r, w) => match (r.method_, r.path) {
-    (Options, "*") => {
-      w
-      .header()
-      .set(
-        "Allow",
-        allow.iterator().map(method_ => method_.to_string()).join(", "),
-      )
-      w.write_header(@status.NoContent)
-    }
-    (method_, ['/', .. path]) => {
-      // Strip query string before matching route
-      let path_without_query : StringView = path
-        .split("?")
-        .head()
-        .unwrap_or(path)
-      let segments = path_without_query.split("/").collect()
-      guard layer.route(segments) is Some((routes, values)) else { k(r, w) }
-      guard routes.get(method_) is Some(route) else {
-        w
-        .header()
-        .set(
-          "Allow",
-          routes
-          .keys()
-          .iterator()
-          .map(method_ => method_.to_string())
-          .join(", "),
-        )
-        w.write_header(@status.MethodNotAllowed)
-        return
+  let middleware : Middleware = k => {
+    (r, w) => {
+      match (r.method_, r.path) {
+        (Options, "*") => {
+          w
+          .header()
+          .set(
+            "Allow",
+            allow.iterator().map(method_ => method_.to_string()).join(", "),
+          )
+          w.write_header(@status.NoContent)
+        }
+        (method_, ['/', .. path]) => {
+          // Strip query string before matching route
+          let path_without_query : StringView = path
+            .split("?")
+            .head()
+            .unwrap_or(path)
+          let segments = path_without_query.split("/").collect()
+          guard layer.route(segments) is Some((routes, values)) else { k(r, w) }
+          guard routes.get(method_) is Some(route) else {
+            w
+            .header()
+            .set(
+              "Allow",
+              routes
+              .keys()
+              .iterator()
+              .map(method_ => method_.to_string())
+              .join(", "),
+            )
+            w.write_header(@status.MethodNotAllowed)
+            return
+          }
+          for i in 0..<route.names.length() {
+            let name = route.names[i]
+            let value = values[i]
+            r.vars[name] = value
+          }
+          (route.handle.0)(r, w)
+        }
+        (_, _) => w.write_header(@status.BadRequest)
       }
-      for i in 0..<route.names.length() {
-        let name = route.names[i]
-        let value = values[i]
-        r.vars[name] = value
-      }
-      (route.handle.0)(r, w)
     }
-    (_, _) => w.write_header(@status.BadRequest)
   }
   Router::{ layer, allow, handler: middleware(not_found), middleware }
 }

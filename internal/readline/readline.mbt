@@ -1285,7 +1285,9 @@ async fn Interface::tab_completer(
     return
   }
   self.before_edit(self.line, self.cursor)
-  let completion_widths = completions.map(@unicode/width.string(_))
+  let completion_widths = completions.map(completion => {
+    @unicode/width.string(completion)
+  })
   let mut width = 0
   for completion_width in completion_widths {
     width = @cmp.maximum(width, completion_width)
@@ -1452,13 +1454,17 @@ async fn Interface::handle_keypress(
 /// Call this before awaiting `read_line` or `read_key`.
 pub async fn Interface::start(self : Interface) -> Unit {
   @async.with_task_group(group => {
-    group.spawn_bg(() => while true {
-      self.emit_keypress()
+    group.spawn_bg(() => {
+      while true {
+        self.emit_keypress()
+      }
     })
-    group.spawn_bg(() => while true {
-      let keypress = self.events.keypress.get()
-      self.handle_keypress(keypress)
-      self.events.key.put(keypress.key)
+    group.spawn_bg(() => {
+      while true {
+        let keypress = self.events.keypress.get()
+        self.handle_keypress(keypress)
+        self.events.key.put(keypress.key)
+      }
     })
   })
 }

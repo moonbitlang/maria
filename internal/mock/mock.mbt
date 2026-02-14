@@ -190,7 +190,7 @@ pub async fn Directory::add_directory(
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// directory.add_json_tree({
 ///   "file.txt": "content",
 ///   "subdir": {
@@ -389,71 +389,72 @@ pub async fn run(
   @fsx.with_temporary_directory("moonbit-taco-XXXXXXX", tmpdir => {
     let tmp_pkg_path = @pathx.join(tmpdir, pkg_path)
     async fn run() -> Unit {
-      @async.with_timeout(timeout, () => @async.with_task_group(group => {
-        if @os.getenv("CI") is Some("1" | "true") {
-          let test_name = "\{pkg_path}.\{t.name()}"
-          group.add_defer(() => eprintln("[\{test_name}] Completed."))
-          group.spawn_bg(
-            () => {
-              eprintln("[\{test_name}] Started.")
-              let start = @clock.epoch.now()
-              while true {
-                let elapsed = @clock.epoch.now().ms_since(start).to_double() /
-                  1_000
-                eprintln("[\{test_name}] \{elapsed}s...")
-                @async.sleep(1_000)
-              }
-            },
-            no_wait=true,
-          )
-        }
-        let mangled = {
-          let builder = StringBuilder::new()
-          for c in t.name() {
-            if c.is_ascii_alphabetic() || c.is_ascii_digit() {
-              builder.write_char(c)
-            } else {
-              builder.write_string("%\{c.to_int()}")
-            }
+      @async.with_timeout(timeout, () => {
+        @async.with_task_group(group => {
+          if @os.getenv("CI") is Some("1" | "true") {
+            let test_name = "\{pkg_path}.\{t.name()}"
+            group.add_defer(() => eprintln("[\{test_name}] Completed."))
+            group.spawn_bg(
+              () => {
+                eprintln("[\{test_name}] Started.")
+                let start = @clock.epoch.now()
+                while true {
+                  let elapsed = @clock.epoch.now().ms_since(start).to_double() /
+                    1_000
+                  eprintln("[\{test_name}] \{elapsed}s...")
+                  @async.sleep(1_000)
+                }
+              },
+              no_wait=true,
+            )
           }
-          builder.to_string()
-        }
-        let cwd = directory(@pathx.join(tmp_pkg_path, mangled))
-        let log_dir = os_cwd |> @pathx.join("__trajectories__")
-        @fs.mkdir(log_dir, permission=0o755) catch {
-          _ => ()
-        }
-        let logged = log_dir |> @pathx.join("\{mangled}.jsonl")
-        let logger = @pino.logger(mangled, @pino.Transport::file(logged))
-        let clock = Clock::{ timestamp: 0 }
-        let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
-        let uuid = @uuid.generator(rand)
-        // setup filter
-        let home = @os.home()
-        let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => @pathx.join(
-          home, ".moon",
-        ))
-        let filter = Filter::new()
-        filter
-        ..add("cwd", cwd.path())
-        ..add("env:MOON_HOME", moon_home)
-        ..add("env:HOME", directory(@os.home()).path())
-        if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
-          filter.add("env:OPENAI_API_KEY", api_key)
-        }
-        let ctx = Context::{
-          cwd,
-          logger,
-          clock,
-          rand,
-          uuid,
-          filter,
-          group,
-          moon_home,
-        }
-        group.add_defer(() => ctx.close())
-        action(ctx)
-      }))
+          let mangled = {
+            let builder = StringBuilder::new()
+            for c in t.name() {
+              if c.is_ascii_alphabetic() || c.is_ascii_digit() {
+                builder.write_char(c)
+              } else {
+                builder.write_string("%\{c.to_int()}")
+              }
+            }
+            builder.to_string()
+          }
+          let cwd = directory(@pathx.join(tmp_pkg_path, mangled))
+          let log_dir = os_cwd |> @pathx.join("__trajectories__")
+          @fs.mkdir(log_dir, permission=0o755) catch {
+            _ => ()
+          }
+          let logged = log_dir |> @pathx.join("\{mangled}.jsonl")
+          let logger = @pino.logger(mangled, @pino.Transport::file(logged))
+          let clock = Clock::{ timestamp: 0 }
+          let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
+          let uuid = @uuid.generator(rand)
+          // setup filter
+          let home = @os.home()
+          let moon_home = @os.getenv("MOON_HOME").unwrap_or_else(() => {
+            @pathx.join(home, ".moon")
+          })
+          let filter = Filter::new()
+          filter.add("cwd", cwd.path())
+          filter.add("env:MOON_HOME", moon_home)
+          filter.add("env:HOME", directory(@os.home()).path())
+          if @os.getenv("OPENAI_API_KEY") is Some(api_key) && api_key != "" {
+            filter.add("env:OPENAI_API_KEY", api_key)
+          }
+          let ctx = Context::{
+            cwd,
+            logger,
+            clock,
+            rand,
+            uuid,
+            filter,
+            group,
+            moon_home,
+          }
+          group.add_defer(() => ctx.close())
+          action(ctx)
+        })
+      })
     }
 
     if retry is Some(retry) {
