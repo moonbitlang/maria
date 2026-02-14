@@ -104,8 +104,6 @@ pub(all) enum EventDesc {
     tool_calls~ : Array[@ai.ToolCall],
     String
   )
-  /// Diagnostics from IDE (errors, warnings from the problems panel)
-  Diagnostics(@diagnostics.Diagnostics)
   /// User sends an immediate message (interrupting current flow)
   UserMessage(String)
   /// Cancelled
@@ -206,8 +204,6 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
       }
       Json::object(json)
     }
-    Diagnostics(diagnostics) =>
-      { "msg": "Diagnostics", "diagnostics": diagnostics.to_json() }
     Cancelled => { "msg": "Cancelled" }
     UserMessage(content) => { "msg": "UserMessage", "content": content }
     Failed(error) => { "msg": "Failed", "error": error }
@@ -430,18 +426,6 @@ pub impl @json.FromJson for EventDesc with from_json(
       }
       AssistantMessage(usage~, tool_calls~, content)
     }
-    "Diagnostics" => {
-      guard json_object.get("diagnostics") is Some(diagnostics_json) else {
-        raise @json.JsonDecodeError(
-          (json_path, "Diagnostics event missing 'diagnostics' field"),
-        )
-      }
-      let diagnostics : @diagnostics.Diagnostics = @json.from_json(
-        diagnostics_json,
-        path=json_path.add_key("diagnostics"),
-      )
-      Diagnostics(diagnostics)
-    }
     "Cancelled" => Cancelled
     "UserMessage" => {
       guard json_object.get("content") is Some(content_json) else {
@@ -502,7 +486,7 @@ pub impl @json.FromJson for Event with from_json(
 /// These events are collected via polling and can influence the conversation.
 pub fn Event::is_incoming(self : Event) -> Bool {
   match self.desc {
-    Cancelled | UserMessage(_) | Diagnostics(_) => true
+    Cancelled | UserMessage(_) => true
     _ => false
   }
 }

@@ -10,7 +10,6 @@ import {
   "moonbitlang/async/os_error",
   "moonbitlang/maria/internal/pathx",
   "moonbitlang/maria/model",
-  "moonbitlang/maria/internal/moon",
   "moonbitlang/maria/internal/openai",
   "moonbitlang/async/aqueue",
   "moonbitlang/maria/cmd/server",

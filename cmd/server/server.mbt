@@ -21,8 +21,6 @@ struct Server {
   port : Int
   /// Underlying HTTP listener that dispatches all endpoints.
   http_server : @httpx.Server
-  /// Working directory used for model loading and MoonBit module discovery.
-  cwd : String
 }
 
 ///|
@@ -89,10 +87,6 @@ pub async fn Server::new(
       "[INFO] (Server \{pid}) Visit http://localhost:\{port}/ to access the server.",
     )
   }
-  let cwd = match cwd {
-    Some(cwd) => cwd
-    None => @os.cwd()
-  }
   Server::{
     uuid,
     maria,
@@ -102,7 +96,6 @@ pub async fn Server::new(
     serve,
     port,
     http_server,
-    cwd,
   }
 }
 
@@ -136,7 +129,6 @@ async fn Server::serve_http(self : Server) -> Unit {
           (Post, "/v1/external-event/cancel") => self.send_cancellation_event(w)
           (Get, "/v1/tools") => self.get_tools(w)
           (Get, "/v1/system-prompt") => self.get_system_prompt(w)
-          (Get, "/v1/moonbit/modules") => self.list_moonbit_modules(w)
           (Get, _) => file_server.handle(r, w)
           (
             Post,
@@ -161,13 +153,10 @@ async fn Server::serve_http(self : Server) -> Unit {
             match r.path {
               "/v1/message" => self.create_message(json, w)
               "/v1/external-event" => self.send_external_event(json, w)
-              "/v1/external-event/diagnostics" =>
-                self.send_diagnostics_event(json, w)
               "/v1/external-event/user-message" =>
                 self.send_user_message_event(json, w)
               "/v1/enabled-tools" => self.set_enabled_tools(json, w)
               "/v1/system-prompt" => self.set_system_prompt(json, w)
-              "/v1/moonbit/publish" => publish_moonbit_module(json, w)
               _ => fail("unreachable")
             }
           }
@@ -402,55 +391,12 @@ async fn Server::send_external_event(
       }
       queue.send(UserMessage(message))
     }
-    "Diagnostics" => {
-      guard json is { "diagnostics": String(diagnostics_jsonl), .. } else {
-        raise json_error(400, "BadRequest", {
-          "error": "Missing 'diagnostics' field for Diagnostics event",
-        })
-      }
-      let diagnostics = @diagnostics.from_jsonl(diagnostics_jsonl)
-      queue.send(Diagnostics(diagnostics))
-    }
     _ =>
       raise json_error(400, "BadRequest", {
         "error": "Unknown event type: \{event_type}. Expected 'UserMessage', 'Cancelled', or 'Diagnostics'",
       })
   }
   w.send_json(code=200, { "success": true })
-}
-
-///|
-/// Sends diagnostics from the IDE to the agent.
-///
-/// Request body:
-/// ```json
-/// {
-///   "diagnostics": "...<JSONL string>..."  // or
-///   "diagnostics": [ { "error_code": ..., "level": ..., "loc": ..., "message": ... }, ... ]
-/// }
-/// ```
-async fn Server::send_diagnostics_event(
-  self : Server,
-  json : Json,
-  w : @httpx.ResponseWriter,
-) -> Unit {
-  let diagnostics = match json {
-    { "diagnostics": String(jsonl), .. } => @diagnostics.from_jsonl(jsonl)
-    { "diagnostics": Array(_) as arr, .. } =>
-      // Convert JSON array to JSONL and parse
-      @diagnostics.from_jsonl(
-        arr.stringify(), // This works because from_jsonl handles JSON per line
-      )
-    _ =>
-      raise json_error(400, "BadRequest", {
-        "error": "Missing 'diagnostics' field in request body",
-      })
-  }
-  self.maria.agent.external_events().send(Diagnostics(diagnostics))
-  w.send_json(code=200, {
-    "success": true,
-    "count": diagnostics.length().to_json(),
-  })
 }
 
 ///|
