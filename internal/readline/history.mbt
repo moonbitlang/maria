@@ -119,7 +119,13 @@ fn HistoryManager::add_history(
     self.history.back().unwrap()
   }
   if self.events is history {
-    guard history.try_put(self.history) else {
+    let success = history.try_put(self.history) catch {
+      _ =>
+        abort(
+          "@moonbitlang/maria/internal/readline.HistoryManager::add_history: Failed to put history into event queue (closed)",
+        )
+    }
+    guard success else {
       abort(
         "@moonbitlang/maria/internal/readline.HistoryManager::add_history: Failed to put history into event queue",
       )

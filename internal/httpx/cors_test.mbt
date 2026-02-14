@@ -30,7 +30,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
+        "content-length": "0",
       })
       let client = @http.Client::new("http://localhost:\{server.port()}")
       client.request(Options, "/task")
@@ -41,7 +41,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
+        "content-length": "0",
       })
       let client = @http.Client::new("http://localhost:\{server.port()}")
       client.request(Options, "/tasks")
@@ -52,7 +52,7 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
         "access-control-allow-origin": "*",
         "access-control-allow-methods": "*",
         "access-control-allow-headers": "*",
-        "transfer-encoding": "chunked",
+        "content-length": "0",
       })
       let (response, body) = @http.get(
         "http://localhost:\{server.port()}/task/42",
