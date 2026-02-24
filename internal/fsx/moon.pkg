@@ -16,7 +16,6 @@ import {
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/async/process",
   "moonbitlang/maria/internal/signal",
-  "moonbitlang/async/pipe",
 } for "test"
 
 options(

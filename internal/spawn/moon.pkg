@@ -4,7 +4,6 @@ import {
   "moonbitlang/maria/internal/errno",
   "moonbitlang/async/aqueue",
   "moonbitlang/async",
-  "moonbitlang/async/pipe",
   "moonbitlang/maria/clock",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
