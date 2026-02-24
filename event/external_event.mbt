@@ -73,7 +73,6 @@ pub fn ExternalEventQueue::send(
   let _ = self.queue.try_put({ id: self.uuid.v4(), created, desc }) catch {
     _ => false
   }
-
 }
 
 ///|
