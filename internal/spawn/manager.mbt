@@ -173,7 +173,7 @@ pub async fn Manager::start(self : Manager) -> Unit {
             spawn.arguments,
             stderr?,
             stdout?,
-            cwd?=spawn.cwd,
+            cwd?=spawn.cwd.map(cwd => cwd),
             extra_env?=spawn.env,
           )
           refer_status.val = Some(status)

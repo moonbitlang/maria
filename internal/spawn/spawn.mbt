@@ -111,7 +111,7 @@ pub async fn spawn(
       @process.run(
         command,
         arguments,
-        cwd?,
+        cwd?=cwd.map(cwd => cwd),
         stdin?,
         stdout=stdout.1,
         stderr=stderr.1,
