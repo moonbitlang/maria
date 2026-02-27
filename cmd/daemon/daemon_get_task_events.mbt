@@ -4,7 +4,7 @@ async fn Daemon::get_task_events(
   id~ : StringView,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  println("[INFO] (Daemon) Subscribing to events for task '\{id}'")
+  logger.info("Subscribing to events for task '\{id}'")
   guard self.by_id.get(
       @uuid.parse(id) catch {
         _ =>

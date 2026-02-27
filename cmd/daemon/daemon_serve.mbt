@@ -26,8 +26,8 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
     self.httpx.serve(
       @httpx.cors((r, w) => {
         let paths = r.path.split("/").collect()
-        println("[INFO] (Daemon) Received request: \{r.method_} \{r.path}")
-        println("[INFO] (Daemon) Handling request paths: \{paths}")
+        logger.info("Received request: \{r.method_} \{r.path}")
+        logger.info("Handling request paths: \{paths}")
         try {
           match (r.method_, paths) {
             (Options, _) => w.write_header(204)
