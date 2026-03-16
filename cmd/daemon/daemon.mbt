@@ -56,6 +56,7 @@ pub async fn Daemon::new(
   cwd? : StringView,
   home? : StringView,
   lock? : Bool = true,
+  managed_by? : @service.Backend = Detach,
 ) -> Daemon? {
   let home = match home {
     None => @os.home()
@@ -83,13 +84,21 @@ pub async fn Daemon::new(
   // Listen on port
   let httpx_server = @httpx.Server::new("[::1]", port, reuse_addr=true)
   let port = httpx_server.port()
+  let daemon_info = DaemonInfo::{
+    version: @buildinfo.version,
+    port,
+    pid: @spawn.getpid(),
+    managed_by,
+  }
   if info_file is Some(info_file) {
     @fsx.truncate(info_file, 0)
-    info_file.write(
-      DaemonInfo::{ version: @buildinfo.version, port, pid: @spawn.getpid() }
-      .to_json()
-      .stringify(),
-    )
+    info_file.write(daemon_info.to_json().stringify())
+  } else {
+    // In managed mode (lock=false), write daemon.json without holding a lock.
+    let path = home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json")
+    let dir = @pathx.dirname(path)
+    @fsx.make_directory(dir, recursive=true, exists_ok=true)
+    @fsx.write_to_file(path, daemon_info.to_json().stringify())
   }
   logger.info(
     "Starting HTTP server on port \{port} (version \{@buildinfo.version})...",

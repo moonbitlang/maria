@@ -18,7 +18,11 @@ pub fn getenv(StringView) -> String? raise
 
 pub fn gethostname() -> String raise
 
+pub fn getuid() -> UInt
+
 pub fn home() -> String raise
+
+pub fn platform() -> Platform
 
 pub fn setenv(StringView, StringView, overwrite? : Bool) -> Unit raise
 
@@ -29,6 +33,13 @@ pub fn unsetenv(StringView) -> Unit raise
 // Errors
 
 // Types and methods
+pub enum Platform {
+  Unknown
+  MacOS
+  Linux
+}
+pub impl Eq for Platform
+pub impl Show for Platform
 
 // Type aliases
 

@@ -4,6 +4,7 @@ package "moonbitlang/maria/cmd/daemon"
 import {
   "moonbitlang/async/fs",
   "moonbitlang/core/json",
+  "moonbitlang/maria/internal/service",
   "moonbitlang/maria/internal/uuid",
 }
 
@@ -18,7 +19,7 @@ pub async fn start(ArrayView[String]) -> Unit
 
 // Types and methods
 type Daemon
-pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
+pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool, managed_by? : @service.Backend) -> Self?
 pub fn Daemon::port(Self) -> Int
 pub async fn Daemon::serve(Self) -> Unit
 
