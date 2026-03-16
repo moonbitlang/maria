@@ -11,19 +11,19 @@ fn regexp_search_all(
     if !before.is_empty() {
       tokens.push(before)
     }
-    remaining = try! remaining[before.length():]
+    remaining = remaining[before.length():]
     if regex_result.matched() {
       let m = if !regex_result.groups().contains("Assertion") {
         regex_result.results()[0].unwrap()
       } else {
         let m = regex_result.results()[0].unwrap()
-        try! m[0:m.length() - 1]
+        m[0:m.length() - 1]
       }
       tokens.push(m)
-      remaining = try! remaining[m.length():]
+      remaining = remaining[m.length():]
     } else {
-      tokens.push(try! remaining[0:1])
-      remaining = try! remaining[1:]
+      tokens.push(remaining[0:1])
+      remaining = remaining[1:]
     }
   }
   tokens

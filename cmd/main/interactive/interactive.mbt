@@ -98,7 +98,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     let rl = @readline.interface(input=@stdio.stdin, output=@stdio.stdout)
     let mut task : @async.Task[Unit]? = None
     group.spawn_bg(() => {
-      for {
+      for ;; {
         rl.start() catch {
           @readline.CtrlC =>
             if task is Some(round) {

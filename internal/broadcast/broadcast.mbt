@@ -166,7 +166,7 @@ pub async fn[T, G] Broadcast::spawn_in(
           group.spawn_bg(
             () => {
               start.arrive()
-              for {
+              for ;; {
                 let index = reader.index
                 let value = self.read(index)
                 // It is possible that other coroutines have already processed

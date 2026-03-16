@@ -5,9 +5,7 @@ fn Todo::todos(self : Todo) -> ArrayView[Item] {
 
 ///|
 fn Config::uuid(self : Config) -> String {
-  self.uuid.v4().to_string()[:8].to_string() catch {
-    err => "UUID error: \{err}"
-  }
+  self.uuid.v4().to_string()[:8].to_string()
 }
 
 ///|

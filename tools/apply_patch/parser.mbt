@@ -76,14 +76,14 @@ fn parse_one_hunk(
   let first_line = lines[start].trim(chars=" \t").to_string()
   let line_number = start + 1
   if first_line.has_prefix(ADD_FILE_MARKER) {
-    let path = try! first_line[ADD_FILE_MARKER.length():]
+    let path = first_line[ADD_FILE_MARKER.length():]
     let contents = StringBuilder::new()
     let mut parsed_lines = 1
     let mut i = start + 1
     while i < end {
       let line = lines[i]
       if line.has_prefix("+") {
-        contents.write_string(try! line[1:].to_string())
+        contents.write_string(line[1:].to_string())
         contents.write_char('\n')
         parsed_lines += 1
         i += 1
@@ -97,17 +97,17 @@ fn parse_one_hunk(
     )
   }
   if first_line.has_prefix(DELETE_FILE_MARKER) {
-    let path = try! first_line[DELETE_FILE_MARKER.length():]
+    let path = first_line[DELETE_FILE_MARKER.length():]
     return (DeleteFile(path=path.to_string()), 1)
   }
   if first_line.has_prefix(UPDATE_FILE_MARKER) {
-    let path = try! first_line[UPDATE_FILE_MARKER.length():]
+    let path = first_line[UPDATE_FILE_MARKER.length():]
     let mut i = start + 1
     let mut parsed_lines = 1
     let move_path : String? = if i < end {
       let trimmed = lines[i].trim(chars=" \t").to_string()
       if trimmed.has_prefix(MOVE_TO_MARKER) {
-        let mp = try! trimmed[MOVE_TO_MARKER.length():]
+        let mp = trimmed[MOVE_TO_MARKER.length():]
         i += 1
         parsed_lines += 1
         Some(mp.to_string())
@@ -168,7 +168,7 @@ fn parse_update_chunk(
     EMPTY_CHANGE_CONTEXT_MARKER {
     (None, 1)
   } else if first_line.has_prefix(CHANGE_CONTEXT_MARKER) {
-    (Some(try! first_line[CHANGE_CONTEXT_MARKER.length():].to_string()), 1)
+    (Some(first_line[CHANGE_CONTEXT_MARKER.length():].to_string()), 1)
   } else if allow_missing_context {
     (None, 0)
   } else {
@@ -202,12 +202,12 @@ fn parse_update_chunk(
     }
     match line[0] {
       ' ' => {
-        let content = try! line[1:].to_string()
+        let content = line[1:].to_string()
         old_lines.push(content)
         new_lines.push(content)
       }
-      '+' => new_lines.push(try! line[1:].to_string())
-      '-' => old_lines.push(try! line[1:].to_string())
+      '+' => new_lines.push(line[1:].to_string())
+      '-' => old_lines.push(line[1:].to_string())
       _ => {
         if parsed_lines == 0 {
           raise InvalidHunk(
