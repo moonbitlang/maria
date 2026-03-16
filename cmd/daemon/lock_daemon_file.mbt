@@ -63,7 +63,7 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   }
   // Wait for the lock to be released
   @async.with_timeout(60_000, () => {
-    for {
+    for ;; {
       match acquire_lock(path) {
         Ok(file) =>
           // Successfully acquired lock

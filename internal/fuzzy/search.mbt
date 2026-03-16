@@ -11,7 +11,7 @@ fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
   match haystack.find(needle) {
     Some(position) => {
       // Calculate line numbers for the match
-      let before_match = try! haystack[0:position].to_string()
+      let before_match = haystack[0:position].to_string()
       let start_line = before_match.split("\n").to_array().length() - 1
       let needle_lines = needle.split("\n").to_array().length()
       let end_line = start_line + needle_lines - 1

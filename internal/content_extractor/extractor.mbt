@@ -39,7 +39,7 @@ fn split_content_with_sliding_window(
 ) -> Array[String] {
   let lines = content.split("\n").collect()
   let chunks = Array::new()
-  for i in 0..<lines.length() {
+  for i = 0; i < lines.length(); i = i + 1 {
     let start = i
     let end = i + window_size
     if end > lines.length() {

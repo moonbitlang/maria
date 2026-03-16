@@ -83,7 +83,7 @@ async fn collect_files_recursive(
 
 ///|
 /// Simple glob pattern matching (supports * wildcard)
-fn matches_pattern(filename : String, pattern : String) -> Bool raise {
+fn matches_pattern(filename : String, pattern : String) -> Bool {
   if pattern == "*" {
     return true
   }

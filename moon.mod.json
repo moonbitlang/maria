@@ -2,10 +2,10 @@
   "name": "moonbitlang/maria",
   "version": "0.1.0",
   "deps": {
-    "moonbitlang/async": "0.16.6",
-    "moonbitlang/x": "0.4.40",
+    "moonbitlang/async": "0.16.8",
+    "moonbitlang/x": "0.4.41",
     "moonbitlang/regexp": "0.3.5",
-    "moonbit-community/yaml": "0.0.3"
+    "moonbit-community/yaml": "0.0.4"
   },
   "readme": "README.md",
   "repository": "",

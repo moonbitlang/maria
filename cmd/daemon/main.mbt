@@ -76,7 +76,7 @@ pub async fn detach(
   }
   let pid = @process.spawn_orphan(@os.executable(), args)
   @async.with_timeout(60_000, () => {
-    for {
+    for ;; {
       try {
         let info_file = @fs.open(
           home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json"),

@@ -22,7 +22,7 @@ async fn acquire_lock(path : String) -> Result[@fs.File, DaemonInfo] {
         return Ok(file)
       }
       defer file.close()
-      let json = for {
+      let json = for ;; {
         try {
           break file.read_all().text() |> @json.parse()
         } catch {
