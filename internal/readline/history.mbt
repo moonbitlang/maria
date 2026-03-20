@@ -1,4 +1,5 @@
-///| Manages command history with navigation, size limits, and event notification.
+///|
+/// Manages command history with navigation, size limits, and event notification.
 priv struct HistoryManager {
   history : @deque.Deque[BytesView]
   mut index : Int
@@ -6,7 +7,8 @@ priv struct HistoryManager {
   events : @aqueue.Queue[@deque.Deque[BytesView]]
 }
 
-///| Create a history manager with the given maximum entry count.
+///|
+/// Create a history manager with the given maximum entry count.
 fn HistoryManager::new(size : Int) -> HistoryManager {
   HistoryManager::{
     history: @deque.new(),
@@ -16,17 +18,20 @@ fn HistoryManager::new(size : Int) -> HistoryManager {
   }
 }
 
-///| Whether forward navigation (toward newer entries) is possible.
+///|
+/// Whether forward navigation (toward newer entries) is possible.
 fn HistoryManager::can_navigate_to_next(self : HistoryManager) -> Bool {
   self.index > -1 && self.history.length() > 0
 }
 
-///| Whether backward navigation (toward older entries) is possible.
+///|
+/// Whether backward navigation (toward older entries) is possible.
 fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
   self.index < self.history.length() - 1
 }
 
-///| Remove leading spaces.
+///|
+/// Remove leading spaces.
 fn BytesView::trim_start(self : BytesView) -> BytesView {
   loop self {
     [' ', .. rest] => continue rest
@@ -34,7 +39,8 @@ fn BytesView::trim_start(self : BytesView) -> BytesView {
   }
 }
 
-///| Remove trailing spaces.
+///|
+/// Remove trailing spaces.
 fn BytesView::trim_end(self : BytesView) -> BytesView {
   loop self {
     [.. rest, ' '] => continue rest
@@ -42,12 +48,14 @@ fn BytesView::trim_end(self : BytesView) -> BytesView {
   }
 }
 
-///| Remove leading and trailing spaces.
+///|
+/// Remove leading and trailing spaces.
 fn BytesView::trim(self : BytesView) -> BytesView {
   self.trim_start().trim_end()
 }
 
-///| Split on `from`, reverse the parts, and rejoin with `to`.
+///|
+/// Split on `from`, reverse the parts, and rejoin with `to`.
 fn reverse_string(
   line : BytesView,
   from? : Byte = '\r',
@@ -76,7 +84,8 @@ fn reverse_string(
   return buffer.to_bytes()
 }
 
-///| Add a line to history, returning the normalized form stored.
+///|
+/// Add a line to history, returning the normalized form stored.
 fn HistoryManager::add_history(
   self : HistoryManager,
   line : BytesView,
@@ -134,7 +143,8 @@ fn HistoryManager::add_history(
   return final_line
 }
 
-///| Move forward in history, skipping entries matching the search prefix.
+///|
+/// Move forward in history, skipping entries matching the search prefix.
 fn HistoryManager::navigate_to_next(
   self : HistoryManager,
   substring_search : BytesView,
@@ -154,7 +164,8 @@ fn HistoryManager::navigate_to_next(
   return Some(self.history[index])
 }
 
-///| Move backward in history, skipping entries matching the search prefix.
+///|
+/// Move backward in history, skipping entries matching the search prefix.
 fn HistoryManager::navigate_to_previous(
   self : HistoryManager,
   substring_search : BytesView,
