@@ -99,8 +99,16 @@ test "display_position_4byte_utf8_emoji" {
 ///|
 test "history_manager_add_and_navigate" {
   let hm = HistoryManager::new(10)
-  let _ = hm.add_history("first", is_multiline=false, last_command_errored=false)
-  let _ = hm.add_history("second", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(
+    "first",
+    is_multiline=false,
+    last_command_errored=false,
+  )
+  let _ = hm.add_history(
+    "second",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   assert_true(hm.can_navigate_to_prev())
   assert_false(hm.can_navigate_to_next())
 }
@@ -108,8 +116,16 @@ test "history_manager_add_and_navigate" {
 ///|
 test "history_manager_navigate_previous" {
   let hm = HistoryManager::new(10)
-  let _ = hm.add_history("first", is_multiline=false, last_command_errored=false)
-  let _ = hm.add_history("second", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(
+    "first",
+    is_multiline=false,
+    last_command_errored=false,
+  )
+  let _ = hm.add_history(
+    "second",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   let result = hm.navigate_to_previous("")
   assert_true(result is Some(_))
 }
@@ -117,7 +133,11 @@ test "history_manager_navigate_previous" {
 ///|
 test "history_manager_navigate_next_at_start" {
   let hm = HistoryManager::new(10)
-  let _ = hm.add_history("first", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(
+    "first",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   let result = hm.navigate_to_next("")
   assert_true(result is None)
 }
@@ -125,7 +145,11 @@ test "history_manager_navigate_next_at_start" {
 ///|
 test "history_manager_empty_line_not_added" {
   let hm = HistoryManager::new(10)
-  let result = hm.add_history("", is_multiline=false, last_command_errored=false)
+  let result = hm.add_history(
+    "",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   assert_true(result == "")
   assert_false(hm.can_navigate_to_prev())
 }
@@ -140,9 +164,21 @@ test "history_manager_whitespace_only_not_added" {
 ///|
 test "history_manager_size_limit" {
   let hm = HistoryManager::new(2)
-  let _ = hm.add_history("first", is_multiline=false, last_command_errored=false)
-  let _ = hm.add_history("second", is_multiline=false, last_command_errored=false)
-  let _ = hm.add_history("third", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(
+    "first",
+    is_multiline=false,
+    last_command_errored=false,
+  )
+  let _ = hm.add_history(
+    "second",
+    is_multiline=false,
+    last_command_errored=false,
+  )
+  let _ = hm.add_history(
+    "third",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   assert_eq(hm.history.length(), 2)
 }
 
@@ -157,7 +193,11 @@ test "history_manager_duplicate_not_added" {
 ///|
 test "history_manager_zero_size" {
   let hm = HistoryManager::new(0)
-  let result = hm.add_history("test", is_multiline=false, last_command_errored=false)
+  let result = hm.add_history(
+    "test",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   assert_true(result == "test")
   assert_false(hm.can_navigate_to_prev())
 }
