@@ -811,6 +811,10 @@ async fn Interface::multiline_move(
 ) -> Unit {
   let rows = cursor_pos.rows
   let cols = cursor_pos.cols
+  guard rows >= 0 && rows < split_lines.length() else { return }
+  guard rows + direction >= 0 && rows + direction < split_lines.length() else {
+    return
+  }
   let curr = split_lines[rows]
   let down = direction == 1
   let adj = split_lines[rows + direction]
