@@ -37,3 +37,11 @@ test "display_position_wraps_wide_chars" {
   assert_eq(pos.cols, 0)
   assert_eq(pos.rows, 1)
 }
+
+///|
+test "display_position_zero_col_returns_zero" {
+  let bytes = @encoding/utf8.encode("hello")
+  let pos = display_position(bytes, col=0, is_multiline=false, tab_size=4)
+  assert_eq(pos.cols, 0)
+  assert_eq(pos.rows, 0)
+}

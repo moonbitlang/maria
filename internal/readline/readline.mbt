@@ -297,6 +297,9 @@ fn display_position(
   is_multiline~ : Bool,
   tab_size~ : Int,
 ) -> Position {
+  if col <= 0 {
+    return { cols: 0, rows: 0 }
+  }
   let mut offset = 0
   let mut rows = 0
   loop str[:] {
