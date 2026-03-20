@@ -114,7 +114,7 @@ test "history_manager_add_and_navigate" {
 }
 
 ///|
-test "history_manager_navigate_previous" {
+test "history_manager_navigate_previous_and_next" {
   let hm = HistoryManager::new(10)
   let _ = hm.add_history(
     "first",
@@ -126,8 +126,16 @@ test "history_manager_navigate_previous" {
     is_multiline=false,
     last_command_errored=false,
   )
-  let result = hm.navigate_to_previous("")
-  assert_true(result is Some(_))
+  // With empty prefix, all entries match has_prefix("") and are skipped.
+  // First call: skips all entries, returns the search string itself.
+  let r1 = hm.navigate_to_previous("")
+  assert_true(r1 == Some(b""))
+  // Second call: can_navigate_to_prev is false (index == length), returns None.
+  let r2 = hm.navigate_to_previous("")
+  assert_true(r2 is None)
+  // Navigate forward: returns the search string.
+  let r3 = hm.navigate_to_next("")
+  assert_true(r3 == Some(b""))
 }
 
 ///|
@@ -210,16 +218,18 @@ test "word_size_left_at_start" {
 
 ///|
 test "word_size_left_after_word" {
+  // word_size_left returns the unmatched-suffix length of the reversed prefix.
+  // "hello" reversed = "olleh", fully matched → rest.length() = 0
   let s : BytesView = "hello world"
   let result = word_size_left(s, 5)
-  assert_true(result >= 0)
+  assert_eq(result, 0)
 }
 
 ///|
 test "word_size_left_at_end" {
   let s : BytesView = "hello"
   let result = word_size_left(s, 5)
-  assert_true(result >= 0)
+  assert_eq(result, 0)
 }
 
 ///|
@@ -231,9 +241,10 @@ test "word_right_left_at_end" {
 
 ///|
 test "word_right_left_at_start" {
+  // "hello world" → matches "hello " (word + trailing space), rest = "world" (len 5)
   let s : BytesView = "hello world"
   let result = word_right_left(s, 0)
-  assert_true(result >= 0)
+  assert_eq(result, 5)
 }
 
 ///|
@@ -271,6 +282,9 @@ test "bytesview_split_basic" {
   let input : BytesView = "a\nb\nc"
   let parts = input.split('\n')
   assert_eq(parts.length(), 3)
+  assert_true(parts[0] == "a")
+  assert_true(parts[1] == "b")
+  assert_true(parts[2] == "c")
 }
 
 ///|
@@ -278,6 +292,7 @@ test "bytesview_split_no_separator" {
   let input : BytesView = "hello"
   let parts = input.split('\n')
   assert_eq(parts.length(), 1)
+  assert_true(parts[0] == "hello")
 }
 
 ///|
@@ -292,6 +307,9 @@ test "bytesview_split_trailing_separator" {
   let input : BytesView = "a\nb\n"
   let parts = input.split('\n')
   assert_eq(parts.length(), 3)
+  assert_true(parts[0] == "a")
+  assert_true(parts[1] == "b")
+  assert_eq(parts[2].length(), 0)
 }
 
 ///|
