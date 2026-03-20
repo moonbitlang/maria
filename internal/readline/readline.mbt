@@ -577,7 +577,7 @@ pub suberror Aborted {
 }
 
 ///|
-/// Navigate forward in history, optionally filtered by substring search.
+/// Navigate forward in history, optionally filtered by prefix match.
 async fn Interface::history_next(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_next() {
     return
@@ -593,7 +593,7 @@ async fn Interface::history_next(self : Interface) -> Unit {
 }
 
 ///|
-/// Navigate backward in history, optionally filtered by substring search.
+/// Navigate backward in history, optionally filtered by prefix match.
 async fn Interface::history_prev(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_prev() {
     return
