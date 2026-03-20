@@ -4,25 +4,7 @@ package "moonbitlang/maria/internal/pathx"
 // Values
 pub fn basename(StringView) -> StringView
 
-pub fn dirname(StringView) -> StringView
-
-pub fn ext(StringView) -> StringView
-
-pub fn is_absolute(StringView) -> Bool
-
-pub fn is_relative(StringView) -> Bool
-
-pub fn join(StringView, StringView) -> String
-
-pub fn normalize(StringView) -> String
-
-pub fn relative(StringView, StringView) -> String raise
-
 pub fn replace_ext(StringView, StringView) -> String
-
-pub fn resolve(StringView) -> String raise
-
-pub let sep : Char
 
 pub fn split(StringView) -> Iter[StringView]
 

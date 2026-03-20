@@ -29,7 +29,7 @@ import {
   "moonbitlang/maria/tools/replace_in_file",
   "moonbitlang/maria/tools/read_file",
   "moonbitlang/maria/tools/read_multiple_files",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/job",
   "moonbitlang/maria/tools/todo",

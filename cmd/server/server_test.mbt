@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 async fn configure_models(mock : @mock.Context) -> Unit {
   let json : Json = [
     {
@@ -47,7 +50,7 @@ async fn configure_server(
   let cwd = @os.cwd()
   let serve = match serve {
     Some(serve) => serve.to_string()
-    None => @pathx.join(cwd, "cmd/server")
+    None => Path::join(cwd, "cmd/server").to_string()
   }
   configure_models(mock)
   @server.Server::new(

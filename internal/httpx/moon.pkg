@@ -4,7 +4,7 @@ import {
   "moonbitlang/async/socket",
   "moonbitlang/maria/internal/httpx/status",
   "moonbitlang/maria/internal/httpx/reason",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",

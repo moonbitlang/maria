@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 /// Skill loader that manages and loads skills from both global and local
 /// directories.
 ///
@@ -98,9 +101,9 @@ async fn Loader::load_skills_from_directory(
     if entry.name == ".system" {
       continue
     }
-    let skill_dir = @pathx.join(directory, entry.name)
-    let upper = @pathx.join(skill_dir, "SKILL.md")
-    let lower = @pathx.join(skill_dir, "skill.md")
+    let skill_dir = Path::join(directory, entry.name).to_string()
+    let upper = Path::join(skill_dir, "SKILL.md").to_string()
+    let lower = Path::join(skill_dir, "skill.md").to_string()
     let path = if @fsx.exists(upper) {
       upper
     } else if @fsx.exists(lower) {
@@ -142,9 +145,9 @@ pub async fn Loader::load(self : Loader) -> Unit {
   install_system_skills(self.home, self.logger)
   let system_path = system_skills_root(self.home)
   self.load_skills_from_directory(system_path)
-  let global_path = self.home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("skills")
+  let global_path = Path::join(self.home, ".moonagent")
+    .join("skills")
+    .to_string()
   self.load_skills_from_directory(global_path)
 
   // Determine local skill search roots.
@@ -159,26 +162,26 @@ pub async fn Loader::load(self : Loader) -> Unit {
   // NOTE: Use canonical (realpath-resolved) paths for both `cwd` and the git
   // repo root to avoid mismatches when `cwd` contains symlinks.
   //
-  // `@pathx.normalize` does not resolve symlinks, while `@fsx.resolve` does.
+  // `Path::normalize` does not resolve symlinks, while `@fsx.resolve` does.
   // `@git.find_repo_root` internally calls `@fsx.resolve`, so we should resolve
   // `cwd` here as well; otherwise the walk-up loop may never reach `root_norm`.
   let cwd_canon = @fsx.resolve(self.cwd[:]) catch { _ => self.cwd }
   let home_canon = @fsx.resolve(self.home[:]) catch { _ => self.home }
-  let cwd_norm = @pathx.normalize(cwd_canon[:])
-  let home_norm = @pathx.normalize(home_canon[:])
+  let cwd_norm = Path::normalize(cwd_canon).to_string()
+  let home_norm = Path::normalize(home_canon).to_string()
   let repo_root = @git.find_repo_root(cwd_norm[:])
   let dirs : Array[String] = []
   match repo_root {
     Some(root) => {
       // Walk up from cwd to git repo root (inclusive).
-      let root_norm = @pathx.normalize(root[:])
+      let root_norm = Path::normalize(root).to_string()
       let mut cur = cwd_norm
       while true {
         dirs.push(cur)
         if cur == root_norm {
           break
         }
-        let parent = @pathx.dirname(cur).to_string()
+        let parent = Path::dirname(cur).to_string()
         // Safety: if we can't reach root for some reason, stop at filesystem root.
         if parent == cur {
           break
@@ -197,7 +200,7 @@ pub async fn Loader::load(self : Loader) -> Unit {
       }
   }
   for dir in dirs.rev() {
-    let local_path = dir |> @pathx.join(".moonagent") |> @pathx.join("skills")
+    let local_path = Path::join(dir, ".moonagent").join("skills").to_string()
     self.load_skills_from_directory(local_path)
   }
 }

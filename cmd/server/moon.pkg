@@ -24,7 +24,7 @@ import {
 
 import {
   "moonbitlang/maria/internal/mock",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/async/socket",
   "moonbitlang/maria/cmd/internal/test_utils",
 } for "test"

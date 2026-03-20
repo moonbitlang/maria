@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 /// This test relies on `moon build` to have built the `test-lock` binary.
 #skip
 async test "lock_file" (t : @test.Test) {
@@ -10,9 +13,7 @@ async test "lock_file" (t : @test.Test) {
     let file = @fs.open(path, mode=ReadWrite)
     @fsx.lock_file(file)
     let process = @spawn.spawn(
-      @pathx.join(
-        cwd, "_build/native/release/build/cmd/test-lock/test-lock.exe",
-      ),
+      Path::join(cwd, "_build/native/release/build/cmd/test-lock/test-lock.exe").to_string(),
       [path],
     )
     json_inspect(process.status != 0, content=true)
@@ -36,9 +37,7 @@ async test "get_lock_owner" (t : @test.Test) {
     let stdin = @process.write_to_process()
     let stdout = @process.read_from_process()
     let pid = @process.spawn_orphan(
-      @pathx.join(
-        cwd, "_build/native/release/build/cmd/test-lock/test-lock.exe",
-      ),
+      Path::join(cwd, "_build/native/release/build/cmd/test-lock/test-lock.exe").to_string(),
       [path, "--stdin"],
       stdin=stdin.0,
       stdout=stdout.1,

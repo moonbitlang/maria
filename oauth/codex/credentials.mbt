@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 pub(all) struct Credentials {
   idToken : String
   accessToken : String
@@ -97,18 +100,18 @@ fn get_home() -> String {
 
 ///|
 fn get_credentials_path() -> String {
-  @pathx.join(get_home(), CREDENTIALS_FILE)
+  Path::join(get_home(), CREDENTIALS_FILE).to_string()
 }
 
 ///|
 fn get_codex_auth_path() -> String {
-  @pathx.join(get_home(), CODEX_AUTH_FILE)
+  Path::join(get_home(), CODEX_AUTH_FILE).to_string()
 }
 
 ///|
 pub async fn save_credentials(credentials : Credentials) -> Unit {
   let path = get_credentials_path()
-  let dir = @pathx.dirname(path)
+  let dir = Path::dirname(path).to_string()
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   @fsx.write_to_file(path, credentials.to_json().stringify(), create=0o600)
 }

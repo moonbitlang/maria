@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 /// File entry with metadata for enhanced list_files output
 priv struct FileEntry {
   name : String
@@ -53,12 +56,12 @@ async fn execute_list_files(
   manager : @file.Manager,
   path : String,
 ) -> ListFilesResult {
-  let resolved_path = if @pathx.is_absolute(path) {
-    path.view()
+  let resolved_path = if Path::is_absolute(path) {
+    path
   } else {
-    @pathx.join(manager.cwd, path)
+    Path::join(manager.cwd, path).to_string()
   }
-  let resolved_path = @pathx.resolve(resolved_path)
+  let resolved_path = Path::resolve(resolved_path).to_string()
   let entries = @fsx.list_directory(resolved_path)
   let mut file_count = 0
   let mut directory_count = 0

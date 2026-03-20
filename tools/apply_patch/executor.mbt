@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 pub(all) suberror ApplyError {
   ApplyError(String)
 } derive(Show)
@@ -25,7 +28,7 @@ async fn apply_one_hunk(
   match hunk {
     AddFile(path~, contents~) => {
       let full_path = resolve_path(cwd, path)
-      let parent = @pathx.dirname(full_path)
+      let parent = Path::dirname(full_path).to_string()
       if not(parent.is_empty()) {
         @fsx.make_directory(parent, recursive=true, exists_ok=true) catch {
           err =>
@@ -55,7 +58,7 @@ async fn apply_one_hunk(
         None => full_path
       }
       if move_path is Some(_) {
-        let parent = @pathx.dirname(dest_path)
+        let parent = Path::dirname(dest_path).to_string()
         if not(parent.is_empty()) {
           @fsx.make_directory(parent, recursive=true, exists_ok=true) catch {
             err =>
@@ -248,9 +251,9 @@ fn normalize_punctuation(s : String) -> String {
 
 ///|
 fn resolve_path(cwd : String, path : String) -> String {
-  if @pathx.is_absolute(path) {
+  if Path::is_absolute(path) {
     path
   } else {
-    @pathx.join(cwd, path)
+    Path::join(cwd, path).to_string()
   }
 }

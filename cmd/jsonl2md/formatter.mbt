@@ -478,12 +478,12 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
       None => {
         // No sub-formatter found, create a new one and link to the sub-log file
         // in the main log.
-        let dirname = @pathx.dirname(self.path)
+        let dirname = Path::dirname(self.path).to_string()
         let filename = {
-          let basename = @pathx.basename(self.path)
+          let basename = Path::basename(self.path)
           "\{basename}-\{id}.md"
         }
-        let path = @pathx.join(dirname, filename)
+        let path = Path::join(dirname, filename).to_string()
         let formatter = Formatter::{
           recover_diagnostics: self.recover_diagnostics,
           path,

@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 struct Loader {
   home : StringView
   cwd : StringView
@@ -47,17 +50,17 @@ async fn Loader::load(self : Loader) -> Unit {
     @json.from_json(json)
   }
 
-  let project = self.cwd
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("models")
-    |> @pathx.join("models.json")
+  let project = Path::join(self.cwd.to_string(), ".moonagent")
+    .join("models")
+    .join("models.json")
+    .to_string()
   if @fsx.exists(project) {
     self.models.append(load_from_path(project))
   }
-  let user = self.home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("models")
-    |> @pathx.join("models.json")
+  let user = Path::join(self.home.to_string(), ".moonagent")
+    .join("models")
+    .join("models.json")
+    .to_string()
   if @fsx.exists(user) {
     self.models.append(load_from_path(user))
   }

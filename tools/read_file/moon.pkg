@@ -2,7 +2,7 @@ import {
   "moonbitlang/maria/file",
   "moonbitlang/maria/tool",
   "moonbitlang/maria/internal/fsx",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/maria/internal/tiktoken",
   "moonbitlang/core/json",
   "moonbitlang/core/test",

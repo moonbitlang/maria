@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 priv struct DaemonInfo {
   version : @buildinfo.Version
   pid : Int
@@ -79,7 +82,7 @@ pub async fn detach(
     for ;; {
       try {
         let info_file = @fs.open(
-          home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json"),
+          Path::join(home, ".moonagent").join("daemon.json").to_string(),
           mode=ReadOnly,
         )
         defer info_file.close()
@@ -136,7 +139,11 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       continue args
     }
     ["-s" | "--serve", s, .. args] => {
-      serve = if @pathx.is_absolute(s) { s } else { @pathx.join(@os.cwd(), s) }
+      serve = if Path::is_absolute(s) {
+        s
+      } else {
+        Path::join(@os.cwd(), s).to_string()
+      }
       continue args
     }
     ["-d" | "--detach", .. args] => {
@@ -144,10 +151,10 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       continue args
     }
     [e, .. args] => {
-      exec_path = if @pathx.is_absolute(e) {
+      exec_path = if Path::is_absolute(e) {
         Some(e)
       } else {
-        Some(@pathx.join(@os.cwd(), e))
+        Some(Path::join(@os.cwd(), e).to_string())
       }
       continue args
     }

@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 async test "add_worktree" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
@@ -9,9 +12,7 @@ async test "add_worktree" (t : @test.Test) {
       @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
     })
     json_inspect(
-      mock.cwd.path()
-      |> @pathx.join("worktree")
-      |> @pathx.join("file.txt")
+      Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
@@ -29,16 +30,14 @@ async test "add_worktree/new-branch" (t : @test.Test) {
       @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
     })
     json_inspect(
-      mock.cwd.path()
-      |> @pathx.join("worktree")
-      |> @pathx.join("file.txt")
+      Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
     let process = @spawn.spawn(
       "git",
       ["branch", "--show-current"],
-      cwd=mock.cwd.path() |> @pathx.join("worktree"),
+      cwd=Path::join(mock.cwd.path(), "worktree").to_string(),
     )
     inspect(
       process.stdout,
@@ -76,9 +75,7 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
       @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
     })
     json_inspect(
-      mock.cwd.path()
-      |> @pathx.join("worktree")
-      |> @pathx.join("file.txt")
+      Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
       |> @fsx.read_file(),
       content="Hello, Moonbit!",
     )
@@ -93,9 +90,7 @@ async test "with_worktree" (t : @test.Test) {
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     @git.with_worktree("worktree", cwd=mock.cwd.path(), () => {
       json_inspect(
-        mock.cwd.path()
-        |> @pathx.join("worktree")
-        |> @pathx.join("file.txt")
+        Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
         |> @fsx.read_file(),
         content="Hello, Moonbit!",
       )

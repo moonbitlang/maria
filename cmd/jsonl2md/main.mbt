@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 async fn main {
   let args = @os.args()
   @backtrace.initialize()
@@ -51,7 +54,7 @@ async fn main {
     }
     formatter.format_log_entry(json)
   }
-  @fsx.make_directory(@pathx.dirname(output_path))
+  @fsx.make_directory(Path::dirname(output_path).to_string())
   @fsx.write_to_file(output_path, formatter.to_string())
   for tool_formatter in formatter.tools.values().collect() {
     @fsx.write_to_file(tool_formatter.path, tool_formatter.to_string())

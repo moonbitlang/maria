@@ -1,5 +1,6 @@
 import {
   "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/async/fs",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async",

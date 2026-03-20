@@ -1,6 +1,6 @@
 import {
   "moonbitlang/maria/internal/os",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/async/http",

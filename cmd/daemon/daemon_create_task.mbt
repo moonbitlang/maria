@@ -205,7 +205,9 @@ impl ToJson for CreateTaskResponse with to_json(self : CreateTaskResponse) -> Js
 /// * 404 Not Found: If the specified `cwd` path does not exist
 async fn check_working_directory(cwd : String?) -> String {
   guard cwd is Some(cwd) else {
-    @fsx.mkdtemp(@pathx.join(@os.tmpdir(), "maria-server-task-XXXXXX")) catch {
+    @fsx.mkdtemp(
+      Path::join(@os.tmpdir(), "maria-server-task-XXXXXX").to_string(),
+    ) catch {
       error =>
         raise json_error(500, "Internal Server Error", {
           "error": {

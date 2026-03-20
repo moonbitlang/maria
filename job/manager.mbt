@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 pub struct Job {
   id : Id
   name : String
@@ -91,14 +94,14 @@ pub async fn Manager::spawn(
     None => self.cwd
   }
   let id = self.new_id()
-  let jobs_dir = self.cwd
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("jobs")
-    |> @pathx.join("\{id.0}")
+  let jobs_dir = Path::join(self.cwd, ".moonagent")
+    .join("jobs")
+    .join("\{id.0}")
+    .to_string()
   @fsx.make_directory(jobs_dir, recursive=true, exists_ok=true)
-  let stdout_path = jobs_dir |> @pathx.join("stdout")
+  let stdout_path = Path::join(jobs_dir, "stdout").to_string()
   @fsx.FileRead::create(stdout_path).close()
-  let stderr_path = jobs_dir |> @pathx.join("stderr")
+  let stderr_path = Path::join(jobs_dir, "stderr").to_string()
   @fsx.FileRead::create(stderr_path).close()
   let process = self.process.spawn(
     "sh",

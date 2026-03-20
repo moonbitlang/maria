@@ -25,9 +25,9 @@ async test "system/install-writes-assets" (t : @test.Test) {
     @assets.install_assets(
       root, assets, fingerprint, ".maria-system-skills.marker", logger,
     )
-    let skill_path = @pathx.join(root, "demo/SKILL.md")
-    let script_path = @pathx.join(root, "demo/scripts/helper.py")
-    let marker_path = @pathx.join(root, ".maria-system-skills.marker")
+    let skill_path = Path::join(root, "demo/SKILL.md").to_string()
+    let script_path = Path::join(root, "demo/scripts/helper.py").to_string()
+    let marker_path = Path::join(root, ".maria-system-skills.marker").to_string()
     assert_true(@fsx.exists(skill_path))
     assert_true(@fsx.exists(script_path))
     inspect(@fsx.read_file(marker_path).trim(), content=fingerprint)
@@ -47,8 +47,8 @@ async test "system/install-marker-skips" (t : @test.Test) {
     @assets.install_assets(
       root, assets, fingerprint, ".maria-system-skills.marker", logger,
     )
-    let skill_path = @pathx.join(root, "demo/SKILL.md")
-    let marker_path = @pathx.join(root, ".maria-system-skills.marker")
+    let skill_path = Path::join(root, "demo/SKILL.md").to_string()
+    let marker_path = Path::join(root, ".maria-system-skills.marker").to_string()
     @fsx.write_to_file(skill_path, "custom\n")
     @fsx.write_to_file(marker_path, fingerprint + "\n")
     @assets.install_assets(

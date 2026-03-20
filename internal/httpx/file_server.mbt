@@ -1,4 +1,7 @@
 ///|
+using @path {type Path}
+
+///|
 /// Simple static file server rooted at a given directory.
 ///
 /// `FileServer` exposes a middleware and handler that can be mounted into a
@@ -41,8 +44,8 @@ pub fn FileServer::new(path : StringView) -> FileServer {
         return
       }
       let path = match r.path {
-        "/" => @pathx.join(self_path, "index.html")
-        ['/', .. path] => @pathx.join(self_path, path)
+        "/" => Path::join(self_path, "index.html").to_string()
+        ['/', .. path] => Path::join(self_path, path.to_string()).to_string()
         _ => {
           w.write_header(@status.BadRequest)
           return
@@ -66,7 +69,7 @@ pub fn FileServer::new(path : StringView) -> FileServer {
           return
         }
       }
-      let content_type = match @pathx.ext(path) {
+      let content_type = match Path::extname(path) {
         ".js" => "application/javascript"
         ".css" => "text/css"
         ".html" => "text/html"
