@@ -69,7 +69,7 @@ fn reverse_string(
       break
     }
     [c, .. rest] as view if c == from => {
-      parts.push(line[:view.start_offset()])
+      parts.push(line[start:view.start_offset()])
       start = rest.start_offset()
       continue rest
     }

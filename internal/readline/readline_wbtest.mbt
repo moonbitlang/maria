@@ -290,10 +290,10 @@ test "bytesview_trim_all_spaces" {
 }
 
 ///|
-test "reverse_string_two_parts" {
-  let input : BytesView = "line1\nline2"
+test "reverse_string_three_parts" {
+  let input : BytesView = "line1\nline2\nline3"
   let result = reverse_string(input, from='\n', to='\r')
-  assert_true(result == "line2\rline1")
+  assert_true(result == "line3\rline2\rline1")
 }
 
 ///|
