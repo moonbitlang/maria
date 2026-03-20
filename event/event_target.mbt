@@ -193,9 +193,9 @@ pub async fn EventTarget::start(self : EventTarget) -> Unit {
 /// emitter.flush()
 /// save_checkpoint()
 /// ```
-/// CR: `listener` is suspendable, should we collcect all events
+/// CR: `listener` is suspendable, should we collect all events
 /// and then call listeners outside of the loop to avoid racing?
-/// assuming listerns can take a long time
+/// assuming listeners can take a long time
 pub async fn EventTarget::flush(self : EventTarget) -> Unit {
   while true {
     let event = self.queue.try_get() catch { _ => None }
