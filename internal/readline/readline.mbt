@@ -1,4 +1,5 @@
 ///|
+/// Snapshot of line text and cursor for undo/redo.
 priv struct Edit {
   text : BytesView
   cursor : Int
@@ -55,6 +56,7 @@ pub struct Key {
 }
 
 ///|
+/// Internal async queues for dispatching readline events.
 priv struct Events {
   line : @aqueue.Queue[BytesView]
   keypress : @aqueue.Queue[KeyPress]
@@ -62,6 +64,7 @@ priv struct Events {
 }
 
 ///|
+/// Create a fresh set of unbounded event queues.
 fn Events::new() -> Events {
   Events::{
     line: @aqueue.Queue::new(kind=Unbounded),
@@ -71,6 +74,7 @@ fn Events::new() -> Events {
 }
 
 ///|
+/// Readline interface managing line editing, history, and terminal I/O.
 struct Interface {
   input : @stdio.Input
   output : @stdio.Output
@@ -277,12 +281,14 @@ async fn Interface::refresh_line(self : Interface) -> Unit {
 }
 
 ///|
+/// Display coordinates: column offset and row offset from the prompt start.
 priv struct Position {
   cols : Int
   rows : Int
 }
 
 ///|
+/// Return the current terminal width in columns.
 fn Interface::columns(_ : Interface) -> Int raise {
   @tty.window_size().col
 }
@@ -291,6 +297,7 @@ fn Interface::columns(_ : Interface) -> Int raise {
 const MultilinePrompt = "| "
 
 ///|
+/// Compute the display position (column, row) after rendering the given bytes.
 fn display_position(
   str : Bytes,
   col~ : Int,
@@ -378,6 +385,7 @@ fn display_position(
 }
 
 ///|
+/// Compute the display position of the cursor (prompt + text before cursor).
 fn Interface::get_cursor_pos(self : Interface) -> Position raise {
   let string_before_cursor = @buffer.new()
   string_before_cursor.write_bytes(self.prompt)
@@ -407,6 +415,7 @@ async fn Interface::move_cursor(self : Interface, dx : Int) -> Unit {
 }
 
 ///|
+/// Compute the display position for arbitrary text using current terminal width.
 fn Interface::get_display_position(
   self : Interface,
   str : Bytes,
@@ -420,6 +429,7 @@ fn Interface::get_display_position(
 }
 
 ///|
+/// Push a snapshot onto the undo stack, evicting oldest if at capacity.
 fn Interface::push_to_undo_stack(
   self : Interface,
   text : BytesView,
@@ -432,6 +442,7 @@ fn Interface::push_to_undo_stack(
 }
 
 ///|
+/// Save the current state to the undo stack before a destructive edit.
 fn Interface::before_edit(
   self : Interface,
   old_text : BytesView,
@@ -517,6 +528,7 @@ const ModifierMeta = 10
 const ModifierShift = 1
 
 ///|
+/// Append deleted text to the kill ring, dropping oldest if full.
 fn Interface::push_to_kill_ring(
   self : Interface,
   del : BytesView,
@@ -565,6 +577,7 @@ pub suberror Aborted {
 }
 
 ///|
+/// Navigate forward in history, optionally filtered by substring search.
 async fn Interface::history_next(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_next() {
     return
@@ -580,6 +593,7 @@ async fn Interface::history_next(self : Interface) -> Unit {
 }
 
 ///|
+/// Navigate backward in history, optionally filtered by substring search.
 async fn Interface::history_prev(self : Interface) -> Unit {
   if !self.history_manager.can_navigate_to_prev() {
     return
@@ -595,6 +609,7 @@ async fn Interface::history_prev(self : Interface) -> Unit {
 }
 
 ///|
+/// Insert the most recent kill ring entry at the cursor.
 async fn Interface::yank(self : Interface) -> Unit {
   if self.kill_ring.length() > 0 {
     self.yanking = true
@@ -603,6 +618,7 @@ async fn Interface::yank(self : Interface) -> Unit {
 }
 
 ///|
+/// Replace the last yanked text with the next kill ring entry.
 async fn Interface::yank_pop(self : Interface) -> Unit {
   if self.yanking && self.kill_ring.length() > 1 {
     self.before_edit(self.line, self.cursor)
@@ -622,6 +638,7 @@ async fn Interface::yank_pop(self : Interface) -> Unit {
 }
 
 ///|
+/// Count bytes in the word boundary to the left of index.
 fn word_size_left(string : BytesView, index : Int) -> Int {
   if index == 0 {
     return 0
@@ -638,6 +655,7 @@ fn word_size_left(string : BytesView, index : Int) -> Int {
 }
 
 ///|
+/// Count bytes in the word boundary to the right of index.
 fn word_right_left(string : BytesView, index : Int) -> Int {
   if index >= string.length() {
     return 0
@@ -653,6 +671,7 @@ fn word_right_left(string : BytesView, index : Int) -> Int {
 }
 
 ///|
+/// Delete the word to the left of the cursor and add it to the kill ring.
 async fn Interface::delete_word_left(self : Interface) -> Unit {
   if self.cursor > 0 {
     self.before_edit(self.line, self.cursor)
@@ -676,6 +695,7 @@ async fn Interface::delete_word_left(self : Interface) -> Unit {
 }
 
 ///|
+/// Delete the word to the right of the cursor.
 async fn Interface::delete_word_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     self.before_edit(self.line, self.cursor)
@@ -693,6 +713,7 @@ async fn Interface::delete_word_right(self : Interface) -> Unit {
 }
 
 ///|
+/// Move the cursor one word to the left.
 async fn Interface::word_left(self : Interface) -> Unit {
   if self.cursor > 0 {
     let size = word_size_left(self.line, self.cursor)
@@ -701,6 +722,7 @@ async fn Interface::word_left(self : Interface) -> Unit {
 }
 
 ///|
+/// Move the cursor one word to the right.
 async fn Interface::word_right(self : Interface) -> Unit {
   if self.cursor < self.line.length() {
     let size = word_right_left(self.line, self.cursor)
@@ -715,6 +737,7 @@ pub fn Interface::set_prompt(self : Interface, prompt : Bytes) -> Unit {
 }
 
 ///|
+/// Restore the most recent undo snapshot.
 async fn Interface::undo(self : Interface) -> Unit {
   guard self.undo_stack.pop_back() is Some(edit) else { return }
   self.set_line(edit.text)
@@ -723,6 +746,7 @@ async fn Interface::undo(self : Interface) -> Unit {
 }
 
 ///|
+/// Restore the most recent redo snapshot.
 async fn Interface::redo(self : Interface) -> Unit {
   guard self.redo_stack.pop_back() is Some(edit) else { return }
   self.set_line(edit.text)
@@ -731,6 +755,7 @@ async fn Interface::redo(self : Interface) -> Unit {
 }
 
 ///|
+/// Cache current line, cursor, and row state for later restoration.
 fn Interface::save_previous_state(self : Interface) -> Unit {
   self.previous_line = self.line
   self.previous_cursor = self.cursor
@@ -738,6 +763,7 @@ fn Interface::save_previous_state(self : Interface) -> Unit {
 }
 
 ///|
+/// Restore cached line, cursor, and row state.
 fn Interface::restore_previous_state(self : Interface) -> Unit {
   self.set_line(self.previous_line)
   self.cursor = self.previous_cursor
@@ -756,6 +782,7 @@ pub fn Interface::add_new_line_on_tty(self : Interface) -> Unit {
 }
 
 ///|
+/// Commit the current line to the history manager.
 fn Interface::add_history(self : Interface) -> BytesView {
   return self.history_manager.add_history(
     self.line,
@@ -774,6 +801,7 @@ async fn Interface::clear_line(self : Interface) -> Unit {
 }
 
 ///|
+/// Finalize the current line: save state, add to history, clear, and emit.
 async fn Interface::line(self : Interface) -> Unit {
   self.save_previous_state()
   let line = self.add_history()
@@ -784,6 +812,7 @@ async fn Interface::line(self : Interface) -> Unit {
 }
 
 ///|
+/// Split the byte view on a separator byte, returning all parts.
 fn BytesView::split(self : BytesView, sep : Byte) -> Array[BytesView] {
   let parts = []
   let mut start = 0
@@ -803,6 +832,7 @@ fn BytesView::split(self : BytesView, sep : Byte) -> Array[BytesView] {
 }
 
 ///|
+/// Move the cursor up or down one line within multiline content.
 async fn Interface::multiline_move(
   self : Interface,
   direction : Int,
@@ -850,6 +880,7 @@ async fn Interface::multiline_move(
 }
 
 ///|
+/// Move cursor up in multiline, or navigate to previous history entry.
 async fn Interface::move_up_or_history_prev(self : Interface) -> Unit {
   let cursor_pos = self.get_cursor_pos()
   if self.is_multiline && cursor_pos.rows > 0 {
@@ -862,6 +893,7 @@ async fn Interface::move_up_or_history_prev(self : Interface) -> Unit {
 }
 
 ///|
+/// Move cursor down in multiline, or navigate to next history entry.
 async fn Interface::move_down_or_history_next(self : Interface) -> Unit {
   let cursor_pos = self.get_cursor_pos()
   let split_lines = self.line.split('\n')
@@ -886,12 +918,14 @@ async fn Interface::read_byte(self : Interface) -> Byte {
 }
 
 ///|
+/// A parsed keypress with its raw sequence and decoded key identity.
 priv struct KeyPress {
   sequence : Bytes?
   key : Key
 }
 
 ///|
+/// Read raw bytes from input, parse ANSI escape sequences, and emit a keypress event.
 async fn Interface::emit_keypress(self : Interface) -> Unit {
   let mut ch = self.read_byte()
   let s = @buffer.new()
@@ -1260,6 +1294,7 @@ pub(all) struct CompletionResult {
 }
 
 ///|
+/// Invoke the completer and apply the result to the current line.
 async fn Interface::tab_complete(
   self : Interface,
   last_keypress_was_tab~ : Bool,
@@ -1276,6 +1311,7 @@ async fn Interface::tab_complete(
 }
 
 ///|
+/// Find the longest common prefix among an array of strings.
 fn common_prefix(array : Array[StringView]) -> StringView {
   array.sort()
   match array {
@@ -1295,6 +1331,7 @@ fn common_prefix(array : Array[StringView]) -> StringView {
 }
 
 ///|
+/// Render and apply tab completion results to the line and display.
 async fn Interface::tab_completer(
   self : Interface,
   last_keypress_was_tab~ : Bool,
@@ -1358,6 +1395,7 @@ async fn Interface::tab_completer(
 }
 
 ///|
+/// Dispatch a parsed keypress to the appropriate editing command.
 async fn Interface::handle_keypress(
   self : Interface,
   keypress : KeyPress,
