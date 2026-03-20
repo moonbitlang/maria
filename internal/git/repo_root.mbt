@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -21,8 +22,9 @@ pub async fn find_repo_root(path : StringView) -> String? {
     start
   }
   loop start_dir {
-    dir if (@fsx.exists(Path::join(dir, ".git").to_string()) catch { _ => false }) =>
-      Some(dir)
+    dir if (@fsx.exists(Path::join(dir, ".git").to_string()) catch {
+        _ => false
+      }) => Some(dir)
     dir => {
       let parent : String = [..Path::dirname(dir).to_string()]
       // Reached filesystem root (dirname("/") == "/") or an unresolvable state.

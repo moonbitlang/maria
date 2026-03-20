@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -138,7 +139,11 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       continue args
     }
     ["-s" | "--serve", s, .. args] => {
-      serve = if Path::is_absolute(s) { s } else { Path::join(@os.cwd(), s).to_string() }
+      serve = if Path::is_absolute(s) {
+        s
+      } else {
+        Path::join(@os.cwd(), s).to_string()
+      }
       continue args
     }
     ["-d" | "--detach", .. args] => {

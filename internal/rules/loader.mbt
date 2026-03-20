@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -33,7 +34,9 @@ async fn Loader::load_rules_from_directory(
 
 ///|
 pub async fn Loader::load(self : Loader) -> Unit {
-  let global_path = Path::join(@os.home(), ".moonagent").join("rules").to_string()
+  let global_path = Path::join(@os.home(), ".moonagent")
+    .join("rules")
+    .to_string()
   self.load_rules_from_directory(global_path, source=Global)
   let local_path = Path::join(self.cwd, ".moonagent").join("rules").to_string()
   self.load_rules_from_directory(local_path, source=Local)

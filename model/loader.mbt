@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -49,11 +50,17 @@ async fn Loader::load(self : Loader) -> Unit {
     @json.from_json(json)
   }
 
-  let project = Path::join(self.cwd.to_string(), ".moonagent").join("models").join("models.json").to_string()
+  let project = Path::join(self.cwd.to_string(), ".moonagent")
+    .join("models")
+    .join("models.json")
+    .to_string()
   if @fsx.exists(project) {
     self.models.append(load_from_path(project))
   }
-  let user = Path::join(self.home.to_string(), ".moonagent").join("models").join("models.json").to_string()
+  let user = Path::join(self.home.to_string(), ".moonagent")
+    .join("models")
+    .join("models.json")
+    .to_string()
   if @fsx.exists(user) {
     self.models.append(load_from_path(user))
   }

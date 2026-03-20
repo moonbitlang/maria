@@ -12,11 +12,16 @@ async test "readlink" (t : @test.Test) {
       content="source.txt",
     )
     json_inspect(
-      @fsx.readlink(Path::join(mock.cwd.path(), "link.txt").to_string(), bufsize=2),
+      @fsx.readlink(
+        Path::join(mock.cwd.path(), "link.txt").to_string(),
+        bufsize=2,
+      ),
       content="source.txt",
     )
     json_inspect(
-      (try? @fsx.readlink(Path::join(mock.cwd.path(), "nonexistent").to_string()))
+      (try? @fsx.readlink(
+        Path::join(mock.cwd.path(), "nonexistent").to_string(),
+      ))
       is Err(@errno.Errno(errno)) &&
       errno == @errno.enoent,
       content=true,

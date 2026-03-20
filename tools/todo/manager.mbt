@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -73,7 +74,10 @@ pub fn new(
 
 ///|
 fn Config::todo_file_path(self : Config) -> String {
-  return Path::join(self.cwd, ".moonagent").join("todos").join("current_session.json").to_string()
+  return Path::join(self.cwd, ".moonagent")
+    .join("todos")
+    .join("current_session.json")
+    .to_string()
 }
 
 ///|

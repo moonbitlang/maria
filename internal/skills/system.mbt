@@ -11,7 +11,10 @@ const SYSTEM_SKILLS_MARKER_FILENAME = ".maria-system-skills.marker"
 
 ///|
 fn system_skills_root(home : String) -> String {
-  Path::join(home, ".moonagent").join("skills").join(SYSTEM_SKILLS_DIR_NAME).to_string()
+  Path::join(home, ".moonagent")
+  .join("skills")
+  .join(SYSTEM_SKILLS_DIR_NAME)
+  .to_string()
 }
 
 ///|

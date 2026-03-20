@@ -6,7 +6,9 @@ async test "find_repo_root" (t : @test.Test) {
 
     // Non-existent path
     inspect(
-      mock.show(@git.find_repo_root(Path::join(mock.cwd.path(), "nope").to_string())),
+      mock.show(
+        @git.find_repo_root(Path::join(mock.cwd.path(), "nope").to_string()),
+      ),
       content="None",
     )
 

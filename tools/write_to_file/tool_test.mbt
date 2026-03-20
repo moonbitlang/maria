@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -8,7 +9,10 @@ let original =
 ///|
 async test "write_to_file" (t : @test.Test) {
   @mock.run(t, mock => {
-    @fsx.write_to_file(Path::join(mock.cwd.path(), "file.txt").to_string(), original)
+    @fsx.write_to_file(
+      Path::join(mock.cwd.path(), "file.txt").to_string(),
+      original,
+    )
     let args = json_input(path="file.txt", content="Line 3", separator="\n")
     let tool = new(mock.cwd.path())
     let result = tool.call(args)
@@ -16,7 +20,9 @@ async test "write_to_file" (t : @test.Test) {
       fail("Expected Ok result but got: \{result}")
     }
     json_inspect(mock.json(output), content={ "path": "(mock:cwd)/file.txt" })
-    let final_content = @fsx.read_file(Path::join(mock.cwd.path(), "file.txt").to_string())
+    let final_content = @fsx.read_file(
+      Path::join(mock.cwd.path(), "file.txt").to_string(),
+    )
     inspect(
       final_content,
       content=(

@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -144,7 +145,9 @@ pub async fn Loader::load(self : Loader) -> Unit {
   install_system_skills(self.home, self.logger)
   let system_path = system_skills_root(self.home)
   self.load_skills_from_directory(system_path)
-  let global_path = Path::join(self.home, ".moonagent").join("skills").to_string()
+  let global_path = Path::join(self.home, ".moonagent")
+    .join("skills")
+    .to_string()
   self.load_skills_from_directory(global_path)
 
   // Determine local skill search roots.

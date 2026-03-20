@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -20,7 +21,9 @@ pub async fn Manager::new(
   ),
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = Path::join(home.to_string(), ".moonagent").join("conversations").to_string()
+  let conversations = Path::join(home.to_string(), ".moonagent")
+    .join("conversations")
+    .to_string()
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
@@ -32,7 +35,10 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").join("\{id}.json").to_string()
+  let path = Path::join(self.home.to_string(), ".moonagent")
+    .join("conversations")
+    .join("\{id}.json")
+    .to_string()
   if !@fsx.exists(path) {
     self.logger.warn(
       "Conversation with id '\{id}' does not exist at path '\{path}'",
@@ -54,7 +60,10 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").join("\{conversation.id}.json").to_string()
+  let path = Path::join(self.home.to_string(), ".moonagent")
+    .join("conversations")
+    .join("\{conversation.id}.json")
+    .to_string()
   let dir = Path::dirname(path).to_string()
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let json = conversation.to_json()
@@ -63,7 +72,9 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[@uuid.Uuid] {
-  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").to_string()
+  let path = Path::join(self.home.to_string(), ".moonagent")
+    .join("conversations")
+    .to_string()
   let entries = @fsx.list_directory(path)
   let ids = []
   // CR: if we are going to implement list comprehension

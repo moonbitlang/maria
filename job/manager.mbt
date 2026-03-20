@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -93,7 +94,10 @@ pub async fn Manager::spawn(
     None => self.cwd
   }
   let id = self.new_id()
-  let jobs_dir = Path::join(self.cwd, ".moonagent").join("jobs").join("\{id.0}").to_string()
+  let jobs_dir = Path::join(self.cwd, ".moonagent")
+    .join("jobs")
+    .join("\{id.0}")
+    .to_string()
   @fsx.make_directory(jobs_dir, recursive=true, exists_ok=true)
   let stdout_path = Path::join(jobs_dir, "stdout").to_string()
   @fsx.FileRead::create(stdout_path).close()

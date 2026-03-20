@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -117,7 +118,11 @@ async fn search_in_file(
   let results = []
   let relative_path = {
     let result = Path::relative(file_path, base=base_dir).to_string()
-    if result.is_empty() { "." } else { result }
+    if result.is_empty() {
+      "."
+    } else {
+      result
+    }
   }
   for i = 0; i < lines.length(); i = i + 1 {
     let line = lines[i]

@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -381,7 +382,11 @@ pub async fn run(
   let exec = os_args[0]
   let exec = {
     let result = Path::relative(exec, base=os_cwd).to_string()
-    if result.is_empty() { "." } else { result }
+    if result.is_empty() {
+      "."
+    } else {
+      result
+    }
   }
   let exec_parts = @pathx.split(exec).collect()
   guard exec_parts is [_, "native", "debug" | "release", "test", .. parts, _] else {

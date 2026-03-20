@@ -1,3 +1,4 @@
+///|
 using @path {type Path}
 
 ///|
@@ -39,10 +40,14 @@ async test "add_json_tree" (t : @test.Test) {
     let root_file_path = Path::join(mock.cwd.path(), "file.txt").to_string()
     inspect(@fs.read_file(root_file_path).text(), content="hello")
     // Verify nested file
-    let nested_file_path = Path::join(mock.cwd.path(), "subdir").join("nested.txt").to_string()
+    let nested_file_path = Path::join(mock.cwd.path(), "subdir")
+      .join("nested.txt")
+      .to_string()
     inspect(@fs.read_file(nested_file_path).text(), content="world")
     // Verify deeply nested files
-    let deep_dir = Path::join(mock.cwd.path(), "subdir").join("deep").to_string()
+    let deep_dir = Path::join(mock.cwd.path(), "subdir")
+      .join("deep")
+      .to_string()
     let deep_a_path = Path::join(deep_dir, "a.txt").to_string()
     let deep_b_path = Path::join(deep_dir, "b.txt").to_string()
     inspect(@fs.read_file(deep_a_path).text(), content="aaa")
