@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 priv enum WriteResultOperation {
   Created
@@ -36,18 +38,18 @@ async fn @file.Manager::execute_replace_in_file(
   }
   try {
     // Resolve file path relative to current working directory
-    let resolved_path = if @pathx.is_absolute(path) {
+    let resolved_path = if Path::is_absolute(path) {
       path
     } else {
-      @pathx.join(self.cwd, path)
+      Path::join(self.cwd, path).to_string()
     }
-    let resolved_path = @pathx.resolve(resolved_path)
+    let resolved_path = Path::resolve(resolved_path).to_string()
 
     // Check if file exists
     guard @fsx.exists(resolved_path) else {
       // Create directory if it doesn't exist
       @fsx.make_directory(
-        @pathx.dirname(resolved_path),
+        Path::dirname(resolved_path).to_string(),
         recursive=true,
         exists_ok=true,
       )

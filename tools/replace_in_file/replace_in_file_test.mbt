@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 async test "replace_in_file/create" (t : @test.Test) {
   @mock.run(t, mock => {
@@ -190,7 +192,7 @@ async test "replace_in_file/no-write-permission" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
     mock.add_json_tree({ "file.txt": "Old content" })
-    let file_path = @pathx.join(mock.cwd.path(), "file.txt")
+    let file_path = Path::join(mock.cwd.path(), "file.txt").to_string()
     // Change file to read-only
     @fs.chmod(file_path, 0o444)
     let args : Json = {

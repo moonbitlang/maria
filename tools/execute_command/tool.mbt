@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 pub struct CommandOutput {
   text : String
@@ -115,10 +117,10 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       }
       let working_directory = if args
         is { "working_directory": String(working_directory), .. } {
-        if @pathx.is_absolute(working_directory) {
+        if Path::is_absolute(working_directory) {
           working_directory
         } else {
-          @pathx.join(ctx.cwd, working_directory)
+          Path::join(ctx.cwd, working_directory).to_string()
         }
       } else {
         ctx.cwd

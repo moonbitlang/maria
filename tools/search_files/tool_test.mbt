@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 async test "search_files" (t : @test.Test) {
   @mock.run(t, mock => {
@@ -165,7 +167,7 @@ async test "search_files/agentic" (t : @test.Test) {
     ])
     agent.start()
     inspect(
-      @fsx.read_file(@pathx.join(mock.cwd.path(), "results.txt")).contains(
+      @fsx.read_file(Path::join(mock.cwd.path(), "results.txt").to_string()).contains(
         "notes.txt",
       ),
       content="true",

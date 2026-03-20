@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 struct Manager {
   logger : @pino.Logger
@@ -18,9 +20,7 @@ pub async fn Manager::new(
   ),
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("conversations")
+  let conversations = Path::join(home.to_string(), ".moonagent").join("conversations").to_string()
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
@@ -32,10 +32,7 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = self.home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("conversations")
-    |> @pathx.join("\{id}.json")
+  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").join("\{id}.json").to_string()
   if !@fsx.exists(path) {
     self.logger.warn(
       "Conversation with id '\{id}' does not exist at path '\{path}'",
@@ -57,11 +54,8 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = self.home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("conversations")
-    |> @pathx.join("\{conversation.id}.json")
-  let dir = @pathx.dirname(path)
+  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").join("\{conversation.id}.json").to_string()
+  let dir = Path::dirname(path).to_string()
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let json = conversation.to_json()
   @fsx.write_to_file(path, json.stringify(indent=2))
@@ -69,9 +63,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[@uuid.Uuid] {
-  let path = self.home
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("conversations")
+  let path = Path::join(self.home.to_string(), ".moonagent").join("conversations").to_string()
   let entries = @fsx.list_directory(path)
   let ids = []
   // CR: if we are going to implement list comprehension

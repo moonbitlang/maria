@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 /// Generic embedded asset representation.
 pub(all) struct Asset {
@@ -17,7 +19,7 @@ pub async fn install_assets(
   if assets.is_empty() {
     return
   }
-  let marker_path = @pathx.join(root, marker_filename)
+  let marker_path = Path::join(root, marker_filename).to_string()
   let marker_value = @fsx.read_file(marker_path) catch { _ => "" }
   if @fsx.exists(root) && marker_value.trim() == fingerprint {
     return
@@ -44,8 +46,8 @@ pub async fn install_assets(
     if asset.path.is_empty() {
       continue
     }
-    let dest = @pathx.join(root, asset.path)
-    let parent = @pathx.dirname(dest).to_string()
+    let dest = Path::join(root, asset.path).to_string()
+    let parent = Path::dirname(dest).to_string()
     @fsx.make_directory(parent, recursive=true, exists_ok=true) catch {
       error => {
         logger.warn("Failed to create asset directory '\{parent}': \{error}")

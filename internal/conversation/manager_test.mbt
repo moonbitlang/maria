@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 async test "Manager" (t : @test.Test) {
   @mock.run(t, mock => {
@@ -6,7 +8,7 @@ async test "Manager" (t : @test.Test) {
       home=mock.cwd.path(),
     )
     json_inspect(manager.list(), content=[])
-    let dot_moonagent = @pathx.join(mock.cwd.path(), ".moonagent")
+    let dot_moonagent = Path::join(mock.cwd.path(), ".moonagent").to_string()
     json_inspect(mock.json(@fsx.list_directory(dot_moonagent)), content=[
       {
         "path": "(mock:cwd)/.moonagent/conversations",
@@ -14,7 +16,7 @@ async test "Manager" (t : @test.Test) {
         "kind": "Directory",
       },
     ])
-    let conversations = @pathx.join(dot_moonagent, "conversations")
+    let conversations = Path::join(dot_moonagent, "conversations").to_string()
     json_inspect(mock.json(@fsx.list_directory(conversations)), content=[])
     let conversation = manager.new_conversation(
       name="Test Conversation",

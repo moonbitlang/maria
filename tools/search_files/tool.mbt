@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 /// Search result structure matching Python version
 priv struct SearchResult {
@@ -57,7 +59,7 @@ async fn collect_files_recursive(
         does_respect_gitignore.val = false
       }
     }
-    let full_path = @pathx.join(directory, entry.name)
+    let full_path = Path::join(directory, entry.name).to_string()
     match entry.kind {
       Directory => {
         // Recursively collect from subdirectories
@@ -113,8 +115,9 @@ async fn search_in_file(
   }
   let lines = content.split("\n").collect() // Convert to Array
   let results = []
-  let relative_path = @pathx.relative(base_dir, file_path) catch {
-    _ => file_path // fallback to absolute path if relative fails
+  let relative_path = {
+    let result = Path::relative(file_path, base=base_dir).to_string()
+    if result.is_empty() { "." } else { result }
   }
   for i = 0; i < lines.length(); i = i + 1 {
     let line = lines[i]
@@ -327,10 +330,10 @@ async fn search_files_impl(
     )
   }
   // Resolve search path
-  let absolute_search_path = if @pathx.is_absolute(search_path) {
+  let absolute_search_path = if Path::is_absolute(search_path) {
     search_path
   } else {
-    @pathx.join(cwd, search_path)
+    Path::join(cwd, search_path).to_string()
   }
   try {
     // Handle MoonBit symbol searches

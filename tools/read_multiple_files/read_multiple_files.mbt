@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 priv struct ReadFileResult {
   path : String
@@ -72,12 +74,12 @@ async fn execute_read_file_tool(
   }
   try {
     // Resolve file path
-    let resolved_path = if @pathx.is_absolute(path) {
-      path.view()
+    let resolved_path = if Path::is_absolute(path) {
+      path
     } else {
-      @pathx.join(manager.cwd, path)
+      Path::join(manager.cwd, path).to_string()
     }
-    let resolved_path = @pathx.resolve(resolved_path)
+    let resolved_path = Path::resolve(resolved_path).to_string()
 
     // Check if file exists
     if !@fsx.exists(resolved_path) {
@@ -86,7 +88,7 @@ async fn execute_read_file_tool(
     if @fsx.kind(resolved_path) is Directory {
       let entries = @fsx.list_directory(resolved_path).map(entry => {
         match entry.kind {
-          Directory => "\{entry.name}\{@pathx.sep}"
+          Directory => "\{entry.name}\{@path.sep}"
           Regular => entry.name
           _ => entry.name
         }

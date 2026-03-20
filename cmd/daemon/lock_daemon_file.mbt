@@ -30,8 +30,8 @@
 /// FIXME: Make this private. This function is currently marked as public
 /// because it is used by `cmd/test-to-be-killed` for testing.
 pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
-  let path = home |> @pathx.join(".moonagent") |> @pathx.join("daemon.json")
-  let dir = @pathx.dirname(path)
+  let path = Path::join(home.to_string(), ".moonagent").join("daemon.json").to_string()
+  let dir = Path::dirname(path).to_string()
   @fsx.make_directory(dir, recursive=true, exists_ok=true)
   let old = match acquire_lock(path) {
     Ok(file) =>

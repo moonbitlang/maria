@@ -1396,7 +1396,7 @@ async test "subagent" (t : @test.Test) {
       ),
     )
     event_target.flush()
-    let formatter = Formatter::new(@pathx.join(mock.cwd.path(), "dir/log.md"))
+    let formatter = Formatter::new(Path::join(mock.cwd.path(), "dir/log.md").to_string())
     for entry in entries {
       formatter.format_log_entry(entry)
     }

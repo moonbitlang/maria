@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 let schema : @tool.JsonSchema = {
   "type": "object",
@@ -84,10 +86,10 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
       let { path, separator, content } : Params = @json.from_json(args) catch {
         error => return @tool.error("Invalid arguments: \{error}")
       }
-      let path = if @pathx.is_absolute(path) {
+      let path = if Path::is_absolute(path) {
         path
       } else {
-        @pathx.join(cwd, path)
+        Path::join(cwd, path).to_string()
       }
       let separator = separator.unwrap_or("\n")
       let content_to_append = if (@fsx.exists(path) catch {

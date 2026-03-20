@@ -8,7 +8,7 @@ import {
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/internal/rand",
   "moonbitlang/async/os_error",
-  "moonbitlang/maria/internal/pathx",
+  "moonbitlang/x/path" @path,
   "moonbitlang/maria/model",
   "moonbitlang/maria/internal/openai",
   "moonbitlang/async/aqueue",

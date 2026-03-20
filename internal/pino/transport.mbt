@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 enum Transport {
   Console
@@ -65,7 +67,7 @@ async fn mkdir(path : String) -> Unit {
       break
     }
     dirs.push(dir)
-    continue @pathx.dirname(dir)
+    continue Path::dirname(dir).to_string()
   }
   for i in 0..<dirs.length() {
     let dir = dirs[dirs.length() - 1 - i]
@@ -84,7 +86,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       let file = match file {
         Some(file) => file
         None => {
-          let dir : String = [..@pathx.dirname(path)]
+          let dir : String = [..Path::dirname(path).to_string()]
           if !@fs.exists(dir) {
             mkdir(dir)
           }

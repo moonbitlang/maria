@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 /// Kind of a file-system entry.
 ///
@@ -53,7 +55,7 @@ pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
   defer dir.close()
   let entries = []
   for basename in dir.read_all() {
-    let filename = @pathx.join(path, basename)
+    let filename = Path::join(path.to_string(), basename).to_string()
     let kind = @fs.kind(filename, follow_symlink=false)
     entries.push(DirectoryEntry::{
       path: filename,

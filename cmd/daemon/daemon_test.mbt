@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 priv enum DaemonEvent {
   TasksSynchronized(Array[@daemon.Task])
@@ -69,11 +71,11 @@ async fn configure_daemon(mock : @mock.Context) -> Daemon {
     uuid=mock.uuid,
     home=mock.cwd.path(),
     cwd=mock.cwd.path(),
-    exec_path=@pathx.join(
+    exec_path=Path::join(
       os_cwd, "_build/native/release/build/cmd/main/main.exe",
-    ),
+    ).to_string(),
     port=0,
-    serve=@pathx.join(os_cwd, "cmd/daemon"),
+    serve=Path::join(os_cwd, "cmd/daemon").to_string(),
     lock=false,
   ).unwrap()
 }

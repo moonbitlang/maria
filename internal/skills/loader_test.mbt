@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 async test "load" (t : @test.Test) {
   @mock.run(t, mock => {
@@ -37,7 +39,7 @@ async test "load" (t : @test.Test) {
       },
     })
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     json_inspect(mock.json(loader.skills()), content={
@@ -153,7 +155,7 @@ async test "load/empty" (t : @test.Test) {
       "cwd": { ".git": {}, ".moonagent": { "skills": {} } },
     })
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     let messages = [
@@ -253,7 +255,7 @@ async test "load/lowercase" (t : @test.Test) {
     })
     let home = mock.cwd.path()
     // Add a `.git` marker so the loader stops walking up before reaching `home`.
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
@@ -356,7 +358,7 @@ async test "load/invalid-skill" (t : @test.Test) {
       },
     })
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
@@ -453,7 +455,7 @@ async test "reload" (t : @test.Test) {
       ),
     )
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     // Mark `cwd` as a git repo so the loader stops there.
     mock.add_json_tree({ "cwd": { ".git": {} } })
     let loader = @skills.Loader::new(home~, cwd~)
@@ -585,7 +587,7 @@ async test "load/parent-directories" (t : @test.Test) {
       },
     })
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "project/sub/deep")
+    let cwd = Path::join(home, "project/sub/deep").to_string()
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     // If inside a git repo, load skills from the repo root and all
@@ -662,7 +664,7 @@ async test "load/no-git-loads-cwd-and-home" (t : @test.Test) {
       },
     })
     let home = mock.cwd.path()
-    let cwd = @pathx.join(home, "cwd")
+    let cwd = Path::join(home, "cwd").to_string()
     let loader = @skills.Loader::new(home~, cwd~)
     loader.load()
     json_inspect(mock.json(loader.skills()), content={

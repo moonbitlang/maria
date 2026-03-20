@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 async test "retry" (t : @test.Test) {
   try {
@@ -34,22 +36,19 @@ async test "add_json_tree" (t : @test.Test) {
       "empty_dir": {},
     })
     // Verify root file
-    let root_file_path = @pathx.join(mock.cwd.path(), "file.txt")
+    let root_file_path = Path::join(mock.cwd.path(), "file.txt").to_string()
     inspect(@fs.read_file(root_file_path).text(), content="hello")
     // Verify nested file
-    let nested_file_path = @pathx.join(
-      @pathx.join(mock.cwd.path(), "subdir"),
-      "nested.txt",
-    )
+    let nested_file_path = Path::join(mock.cwd.path(), "subdir").join("nested.txt").to_string()
     inspect(@fs.read_file(nested_file_path).text(), content="world")
     // Verify deeply nested files
-    let deep_dir = @pathx.join(@pathx.join(mock.cwd.path(), "subdir"), "deep")
-    let deep_a_path = @pathx.join(deep_dir, "a.txt")
-    let deep_b_path = @pathx.join(deep_dir, "b.txt")
+    let deep_dir = Path::join(mock.cwd.path(), "subdir").join("deep").to_string()
+    let deep_a_path = Path::join(deep_dir, "a.txt").to_string()
+    let deep_b_path = Path::join(deep_dir, "b.txt").to_string()
     inspect(@fs.read_file(deep_a_path).text(), content="aaa")
     inspect(@fs.read_file(deep_b_path).text(), content="bbb")
     // Verify empty directory exists
-    let empty_dir_path = @pathx.join(mock.cwd.path(), "empty_dir")
+    let empty_dir_path = Path::join(mock.cwd.path(), "empty_dir").to_string()
     inspect(@fs.kind(empty_dir_path) is @fs.FileKind::Directory, content="true")
   })
 }
@@ -68,7 +67,7 @@ async test "add_json_tree/empty_tree" (t : @test.Test) {
 async test "add_json_tree/empty_content" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_json_tree({ "empty.txt": "" })
-    let file_path = @pathx.join(mock.cwd.path(), "empty.txt")
+    let file_path = Path::join(mock.cwd.path(), "empty.txt").to_string()
     inspect(@fs.read_file(file_path).text(), content="")
   })
 }
@@ -81,8 +80,8 @@ async test "add_json_tree/directory_then_add_more" (t : @test.Test) {
     // Then add more to the root
     mock.add_json_tree({ "dir2": { "b.txt": "b" } })
     // Verify both exist
-    let a_path = @pathx.join(@pathx.join(mock.cwd.path(), "dir1"), "a.txt")
-    let b_path = @pathx.join(@pathx.join(mock.cwd.path(), "dir2"), "b.txt")
+    let a_path = Path::join(mock.cwd.path(), "dir1").join("a.txt").to_string()
+    let b_path = Path::join(mock.cwd.path(), "dir2").join("b.txt").to_string()
     inspect(@fs.read_file(a_path).text(), content="a")
     inspect(@fs.read_file(b_path).text(), content="b")
   })
@@ -109,9 +108,9 @@ async test "add_json_tree/special_characters_in_filename" (t : @test.Test) {
       "file-with-dashes.txt": "content2",
       "file_with_underscores.txt": "content3",
     })
-    let p1 = @pathx.join(mock.cwd.path(), "file with spaces.txt")
-    let p2 = @pathx.join(mock.cwd.path(), "file-with-dashes.txt")
-    let p3 = @pathx.join(mock.cwd.path(), "file_with_underscores.txt")
+    let p1 = Path::join(mock.cwd.path(), "file with spaces.txt").to_string()
+    let p2 = Path::join(mock.cwd.path(), "file-with-dashes.txt").to_string()
+    let p3 = Path::join(mock.cwd.path(), "file_with_underscores.txt").to_string()
     inspect(@fs.read_file(p1).text(), content="content1")
     inspect(@fs.read_file(p2).text(), content="content2")
     inspect(@fs.read_file(p3).text(), content="content3")

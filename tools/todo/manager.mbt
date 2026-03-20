@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 fn Todo::todos(self : Todo) -> ArrayView[Item] {
   self.items.todos
@@ -71,10 +73,7 @@ pub fn new(
 
 ///|
 fn Config::todo_file_path(self : Config) -> String {
-  return self.cwd
-    |> @pathx.join(".moonagent")
-    |> @pathx.join("todos")
-    |> @pathx.join("current_session.json")
+  return Path::join(self.cwd, ".moonagent").join("todos").join("current_session.json").to_string()
 }
 
 ///|
@@ -94,7 +93,7 @@ async fn Todo::load(self : Todo) -> Unit {
 async fn Todo::save(self : Todo) -> Unit {
   let todo_file_path = self.config.todo_file_path()
   @fsx.make_directory(
-    @pathx.dirname(todo_file_path),
+    Path::dirname(todo_file_path).to_string(),
     recursive=true,
     exists_ok=true,
   )

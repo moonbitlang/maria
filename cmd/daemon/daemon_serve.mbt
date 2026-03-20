@@ -34,7 +34,7 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             // GET /
             (Get, ["", ""]) => {
               let index_html = html_read_file(
-                @pathx.join(self.serve, "index.html"),
+                Path::join(self.serve, "index.html").to_string(),
               )
               w.header().set("Content-Type", "text/html")
               w.write_header(200)

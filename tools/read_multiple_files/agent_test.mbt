@@ -1,3 +1,5 @@
+using @path {type Path}
+
 ///|
 let args1 : Json = {
   "files": [
@@ -83,7 +85,7 @@ async test "agent/read_multiple_files/specified_ranges" (t : @test.Test) {
     // Verify file was actually created
 
     let file_content = @fsx.read_file(
-      @pathx.join(mock.cwd.path(), "output.txt"),
+      Path::join(mock.cwd.path(), "output.txt").to_string(),
     )
     inspect(
       file_content.trim(),
