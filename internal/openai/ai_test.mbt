@@ -14,6 +14,101 @@ fn with_mock_server(
 }
 
 ///|
+async test "chat" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      let body =
+        #|{"id":"chatcmpl-mock","object":"chat.completion","created":1700000000,"model":"mock-model","choices":[{"index":0,"message":{"role":"assistant","content":"Hello"},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+      w.write_header(200)
+      w.write(body)
+      w.close()
+    })
+    let completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Say hello."),
+        ],
+        max_tokens=50,
+        temperature=0.7,
+      ),
+    )
+    guard completion.choices[0].message.content is Some(content) else {
+      fail("Expected message content")
+    }
+    json_inspect(content.contains("Hello"), content=true)
+  })
+}
+
+///|
+async test "chat_with_usage" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      let body =
+        #|{"id":"chatcmpl-mock","object":"chat.completion","created":1700000000,"model":"mock-model","choices":[{"index":0,"message":{"role":"assistant","content":"Hello"},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+      w.write_header(200)
+      w.write(body)
+      w.close()
+    })
+    let completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Say hello."),
+        ],
+        usage=usage(include_=true),
+        max_tokens=50,
+        temperature=0.7,
+      ),
+    )
+    guard completion.usage is Some(u) else { fail("Expected usage info") }
+    json_inspect(u.prompt_tokens > 0, content=true)
+    json_inspect(u.completion_tokens > 0, content=true)
+    json_inspect(u.total_tokens > 0, content=true)
+  })
+}
+
+///|
+async test "text" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      let body =
+        #|{"id":"chatcmpl-mock","object":"chat.completion","created":1700000000,"model":"mock-model","choices":[{"index":0,"message":{"role":"assistant","content":"Hello, World!"},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+      w.write_header(200)
+      w.write(body)
+      w.close()
+    })
+    let result = text(model~, prompt="Say hello.")
+    json_inspect(result.contains("Hello"), content=true)
+  })
+}
+
+///|
+async test "json" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      let body =
+        #|{"id":"chatcmpl-mock","object":"chat.completion","created":1700000000,"model":"mock-model","choices":[{"index":0,"message":{"role":"assistant","content":"```json\n{\"message\": \"Hello, World!\"}\n```"},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+      w.write_header(200)
+      w.write(body)
+      w.close()
+    })
+    let result = json(
+      model~,
+      prompt="Return a JSON object with a message field.",
+    )
+    guard result is { "message": String(msg), .. } else {
+      fail("Expected JSON with message field")
+    }
+    json_inspect(msg.contains("Hello"), content=true)
+  })
+}
+
+///|
 /// Test tool definition
 test "tool_definition" {
   let tool_def = tool(
