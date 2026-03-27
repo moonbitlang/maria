@@ -6,11 +6,17 @@ priv struct DaemonInfo {
   version : @buildinfo.Version
   pid : Int
   port : Int
+  managed_by : @service.Backend
 }
 
 ///|
 impl ToJson for DaemonInfo with to_json(self) {
-  { "version": self.version.to_string(), "pid": self.pid, "port": self.port }
+  {
+    "version": self.version.to_string(),
+    "pid": self.pid,
+    "port": self.port,
+    "managed_by": self.managed_by.to_json(),
+  }
 }
 
 ///|
@@ -52,7 +58,11 @@ impl @json.FromJson for DaemonInfo with from_json(
         (json_path, "Missing field 'port' in DaemonInfo"),
       )
   }
-  DaemonInfo::{ version, pid, port }
+  let managed_by : @service.Backend = match object.get("managed_by") {
+    Some(v) => @json.from_json(v, path=json_path.add_key("managed_by"))
+    None => @service.Backend::Detach
+  }
+  DaemonInfo::{ version, pid, port, managed_by }
 }
 
 ///|
@@ -128,11 +138,20 @@ pub async fn detach(
 /// CLI entry point used by `moon run cmd/main -- daemon`. Parses flags,
 /// optionally detaches into a background process, and otherwise starts the
 /// HTTP server in the foreground.
+///
+/// Flags:
+///   -p, --port <port>    Port to bind (default 8090)
+///   -s, --serve <dir>    Directory to serve UI from
+///   -d, --detach         Detach and run in background (spawn_orphan + lock)
+///   --managed            Run in foreground without lock (for launchd/systemd)
+///   service <cmd>        Manage OS service: install|uninstall|start|stop|restart|status
 pub async fn start(args : ArrayView[String]) -> Unit {
   let mut port = 8090
   let mut serve = @os.cwd()
   let mut exec_path = None
   let mut to_detach = false
+  let mut managed = false
+  let mut service_cmd : String? = None
   loop args {
     ["-p" | "--port", p, .. args] => {
       port = @strconv.parse_int(p)
@@ -150,6 +169,26 @@ pub async fn start(args : ArrayView[String]) -> Unit {
       to_detach = true
       continue args
     }
+    ["--managed", .. args] => {
+      managed = true
+      continue args
+    }
+    ["service", cmd, ..] => {
+      service_cmd = Some(cmd)
+      break
+    }
+    [
+      "install"
+      | "uninstall"
+      | "start"
+      | "stop"
+      | "restart"
+      | "status" as cmd,
+      ..,
+    ] => {
+      service_cmd = Some(cmd)
+      break
+    }
     [e, .. args] => {
       exec_path = if Path::is_absolute(e) {
         Some(e)
@@ -163,17 +202,106 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   guard @model.load(home=@os.home(), cwd=@os.cwd()) is Some(_) else {
     @os.exit(-1)
   }
-  if to_detach {
+  let home = @os.home()
+  let resolved_exec_path = if exec_path is Some(exec_path) {
+    exec_path
+  } else {
+    @os.executable()
+  }
+  // When installing a service, the plist/unit must reference a real binary,
+  // not the moon runtime (tcc). Detect this and resolve to the built binary.
+  let service_exec_path = if exec_path is Some(_) {
+    resolved_exec_path
+  } else {
+    let candidate = @fsx.resolve(resolved_exec_path) catch {
+      _ => resolved_exec_path
+    }
+    if candidate.has_suffix("/tcc") || candidate.has_suffix("/tcc.exe") {
+      // Running under `moon run` — use the release build binary instead
+      let cwd = @os.cwd()
+      let release_bin = @pathx.join(
+        cwd, "_build/native/release/build/cmd/main/main.exe",
+      )
+      if @fsx.exists(release_bin) {
+        release_bin
+      } else {
+        let debug_bin = @pathx.join(
+          cwd, "_build/native/debug/build/cmd/main/main.exe",
+        )
+        if @fsx.exists(debug_bin) {
+          debug_bin
+        } else {
+          resolved_exec_path
+        }
+      }
+    } else {
+      resolved_exec_path
+    }
+  }
+  if service_cmd is Some(cmd) {
+    let config = @service.ServiceConfig::{
+      exec_path: service_exec_path,
+      port,
+      serve,
+      home,
+    }
+    let mgr = @service.detect(config)
+    match cmd {
+      "install" => {
+        mgr.install()
+        logger.info("Service installed.")
+      }
+      "uninstall" => {
+        mgr.uninstall()
+        logger.info("Service uninstalled.")
+      }
+      "start" => {
+        let port = mgr.ensure_running()
+        logger.info("Daemon running on port \{port}.")
+      }
+      "stop" => {
+        mgr.stop()
+        logger.info("Daemon stopped.")
+      }
+      "restart" => {
+        mgr.restart()
+        logger.info("Daemon restarted.")
+      }
+      "status" => {
+        let s = mgr.status()
+        logger.info("Daemon status: \{s}")
+      }
+      _ => {
+        logger.error(
+          "Unknown service command: \{cmd}. Use: install|uninstall|start|stop|restart|status",
+        )
+        @os.exit(1)
+      }
+    }
+  } else if to_detach {
     let pid = detach(exec_path?, port~, serve~)
     logger.info("Detached Maria daemon with PID \{pid}.")
-  } else {
-    let home = @os.home()
-    let exec_path = if exec_path is Some(exec_path) {
-      exec_path
-    } else {
-      @os.executable()
+  } else if managed {
+    let managed_by : @service.Backend = match @os.platform() {
+      MacOS => Launchd
+      Linux => Systemd
+      _ => Detach
     }
-    guard Daemon::new(exec_path~, port~, serve~, home~) is Some(daemon) else {
+    guard Daemon::new(
+        exec_path=resolved_exec_path,
+        port~,
+        serve~,
+        home~,
+        lock=false,
+        managed_by~,
+      )
+      is Some(daemon) else {
+      return
+    }
+    daemon.serve()
+  } else {
+    guard Daemon::new(exec_path=resolved_exec_path, port~, serve~, home~)
+      is Some(daemon) else {
       return
     }
     daemon.serve()
