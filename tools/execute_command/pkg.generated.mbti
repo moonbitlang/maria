@@ -8,7 +8,7 @@ import {
 }
 
 // Values
-pub fn new(@job.Manager) -> @tool.Tool[CommandResult]
+pub fn new(@job.Manager) -> @tool.Tool
 
 // Errors
 

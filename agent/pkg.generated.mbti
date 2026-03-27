@@ -32,7 +32,7 @@ pub(all) struct Agent {
   // private fields
 }
 pub fn Agent::add_listener(Self, async (@event.Event) -> Unit) -> Unit
-pub fn[Output : ToJson + Show] Agent::add_tool(Self, @tool.Tool[Output], enabled? : Bool) -> Unit
+pub fn Agent::add_tool(Self, @tool.Tool, enabled? : Bool) -> Unit
 pub fn Agent::add_tools(Self, Array[@tool.AgentTool]) -> Unit
 pub fn Agent::clear_inputs(Self) -> Array[QueuedMessage]
 pub fn Agent::close(Self) -> Unit

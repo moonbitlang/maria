@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub fn new(String) -> @tool.Tool[SearchFilesResult]
+pub fn new(String) -> @tool.Tool
 
 pub let prompt : String
 

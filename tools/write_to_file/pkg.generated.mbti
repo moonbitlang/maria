@@ -9,7 +9,7 @@ import {
 // Values
 pub fn json_input(content~ : String, path~ : String, separator? : String) -> Json
 
-pub fn new(String) -> @tool.Tool[Result]
+pub fn new(String) -> @tool.Tool
 
 // Errors
 

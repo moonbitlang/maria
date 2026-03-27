@@ -247,6 +247,11 @@ enum SearchFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
+impl @tool.ToolOutput for SearchFilesResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
 pub impl Show for SearchFilesResult with output(
   self : SearchFilesResult,
   logger : &Logger,
@@ -289,7 +294,7 @@ const MoonBitIdeEnabled : Bool = false
 async fn search_files_impl(
   args : Json,
   cwd : String,
-) -> @tool.ToolResult[SearchFilesResult] noraise {
+) -> @tool.ToolResult noraise {
   // Extract parameters with validation
   guard args
     is {
@@ -298,7 +303,7 @@ async fn search_files_impl(
       "kind": String(kind_str),
       ..
     } else {
-    return @tool.error(
+    return @tool.failed(
       "Error: 'path', 'regex' and 'kind' parameters are required",
     )
   }
@@ -317,7 +322,7 @@ async fn search_files_impl(
   //
   let search_path = if search_path.length() > 0 && search_path.has_prefix("~") {
     let os_home = @os.home() catch {
-      _ => return @tool.error("failed to get HOME directory")
+      _ => return @tool.failed("failed to get HOME directory")
     }
     search_path.replace(old="~", new=os_home)
   } else {
@@ -330,7 +335,7 @@ async fn search_files_impl(
 
   // Parse search kind
   guard SearchKind::from_string(kind_str) is Some(search_kind) else {
-    @tool.error(
+    @tool.failed(
       "Error: Invalid search kind '\{kind_str}'. Must be 'regex', 'moonbit_definition', or 'moonbit_references'",
     )
   }
@@ -348,9 +353,9 @@ async fn search_files_impl(
         let exists = path_result.0
         let is_file = path_result.1
         if not(exists) {
-          @tool.error("Error: Directory not found: \{search_path}")
+          @tool.failed("Error: Directory not found: \{search_path}")
         } else if is_file {
-          @tool.error(
+          @tool.failed(
             "Error: Path must be a directory for MoonBit definition search: \{search_path}",
           )
         } else {
@@ -368,11 +373,11 @@ async fn search_files_impl(
             output,
             message,
           }
-          @tool.ok(MoonbitToolResult(result))
+          @tool.success(MoonbitToolResult(result))
         }
       }
       MoonbitDefinition =>
-        @tool.error(
+        @tool.failed(
           "Error: MoonBit IDE features are not enabled in this build.",
         )
       MoonbitReferences if MoonBitIdeEnabled => {
@@ -380,9 +385,9 @@ async fn search_files_impl(
         let exists = path_result.0
         let is_file = path_result.1
         if not(exists) {
-          @tool.error("Error: Directory not found: \{search_path}")
+          @tool.failed("Error: Directory not found: \{search_path}")
         } else if is_file {
-          @tool.error(
+          @tool.failed(
             "Error: Path must be a directory for MoonBit references search: \{search_path}",
           )
         } else {
@@ -400,11 +405,11 @@ async fn search_files_impl(
             output,
             message,
           }
-          @tool.ok(MoonbitToolResult(result))
+          @tool.success(MoonbitToolResult(result))
         }
       }
       MoonbitReferences =>
-        @tool.error(
+        @tool.failed(
           "Error: MoonBit IDE features are not enabled in this build.",
         )
       Regex => {
@@ -413,11 +418,11 @@ async fn search_files_impl(
         let exists = path_result.0
         let is_file = path_result.1
         if not(exists) {
-          @tool.error("Error: Search path not found: \{search_path}")
+          @tool.failed("Error: Search path not found: \{search_path}")
         } else {
           // Compile regex
           let regex_result = @regexp.compile(search_pattern) catch {
-            error => return @tool.error("Invalid regex pattern: \{error}")
+            error => return @tool.failed("Invalid regex pattern: \{error}")
           }
           let does_respect_gitignore = Ref::new(true)
 
@@ -481,27 +486,27 @@ async fn search_files_impl(
             truncated,
             message,
           }
-          @tool.ok(SearchResultData(result))
+          @tool.success(SearchResultData(result))
         }
       }
     }
   } catch {
     SearchError::FileReadError(path~, error~) =>
-      @tool.error("Could not read file '\{path}': \{error}")
+      @tool.failed("Could not read file '\{path}': \{error}")
     SearchError::MoonAnalysisError(query~, error~) =>
-      @tool.error("Error performing MoonBit analysis for '\{query}': \{error}")
-    error => @tool.error("Error searching files: \{error}", error~)
+      @tool.failed("Error performing MoonBit analysis for '\{query}': \{error}")
+    error => @tool.failed("Error searching files: \{error}")
   }
 }
 
 ///|
 /// Main search files tool implementation
-pub fn new(cwd : String) -> @tool.Tool[SearchFilesResult] {
+pub fn new(cwd : String) -> @tool.Tool {
   @tool.new(
     description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
     name="search_files",
     schema~,
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[SearchFilesResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       search_files_impl(args, cwd)
     }),
   )

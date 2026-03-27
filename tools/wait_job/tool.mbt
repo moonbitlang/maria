@@ -38,31 +38,31 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 })
 
 ///|
-pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
+pub fn new(manager : @job.Manager) -> @tool.Tool {
   @tool.new(
     description="Wait for a background job to complete and capture its output.",
     name="wait_job",
     schema~,
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[String] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       let params : Params = @json.from_json(args) catch {
-        error => return @tool.error("Invalid parameters: \{error}")
+        error => return @tool.failed("Invalid parameters: \{error}")
       }
       let { job_id, timeout, max_output_lines } = params
       guard manager.get(@job.Id(job_id)) is Some(job) else {
-        return @tool.error("Job with ID \{job_id} does not exist")
+        return @tool.failed("Job with ID \{job_id} does not exist")
       }
       let status = @async.with_timeout_opt(timeout, () => job.wait()) catch {
         error =>
-          return @tool.error("Failed to wait for job \{job_id}: \{error}")
+          return @tool.failed("Failed to wait for job \{job_id}: \{error}")
       }
       guard status is Some(status) else {
-        return @tool.error("Timeout waiting for job \{job_id} to complete")
+        return @tool.failed("Timeout waiting for job \{job_id} to complete")
       }
       let output = StringBuilder::new()
       output.write_string("Job \{job_id} completed with exit code \{status}\n")
       let stdout = @fsx.read_file(job.stdout) catch {
         error =>
-          return @tool.error(
+          return @tool.failed(
             "Failed to read stdout of job \{job_id} from \{job.stdout}: \{error}",
           )
       }
@@ -71,14 +71,14 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
       )
       let stderr = @fsx.read_file(job.stderr) catch {
         error =>
-          return @tool.error(
+          return @tool.failed(
             "Failed to read stderr of job \{job_id} from \{job.stderr}: \{error}",
           )
       }
       output.write_string(
         "Stderr:\n\{truncate_output(stderr, max_output_lines~)}\n",
       )
-      @tool.ok(output.to_string())
+      @tool.success(output.to_string())
     }),
   )
 }

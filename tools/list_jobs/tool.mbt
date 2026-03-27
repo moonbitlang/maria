@@ -6,12 +6,12 @@ let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 })
 
 ///|
-pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
+pub fn new(manager : @job.Manager) -> @tool.Tool {
   @tool.new(
     name="list_jobs",
     description="List all background jobs",
     schema~,
-    @tool.ToolFn(fn(_args) -> @tool.ToolResult[String] noraise {
+    @tool.ToolFn(fn(_args) -> @tool.ToolResult noraise {
       let jobs = manager.list()
       let output = StringBuilder::new()
       for job in jobs {
@@ -30,7 +30,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool[String] {
         }
         output.write_string("  Status: \{status_str}\n")
       }
-      @tool.ok(output.to_string())
+      @tool.success(output.to_string())
     }),
   )
 }

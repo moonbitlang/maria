@@ -8,7 +8,7 @@ import {
 }
 
 // Values
-pub fn new(@file.Manager) -> @tool.Tool[ReadFileToolResult]
+pub fn new(@file.Manager) -> @tool.Tool
 
 // Errors
 

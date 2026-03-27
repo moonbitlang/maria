@@ -28,7 +28,7 @@ let schema : @tool.JsonSchema = {
 }
 
 ///|
-pub fn new(cwd : String) -> @tool.Tool[String] {
+pub fn new(cwd : String) -> @tool.Tool {
   @tool.new(
     name="apply_patch",
     description=(
@@ -52,21 +52,21 @@ pub fn new(cwd : String) -> @tool.Tool[String] {
       #|*** End Patch
     ),
     schema~,
-    async fn(args) -> @tool.ToolResult[String] noraise {
+    async fn(args) -> @tool.ToolResult noraise {
       let params : Params = @json.from_json(args) catch {
-        err => return @tool.error("Invalid arguments: \{err}")
+        err => return @tool.failed("Invalid arguments: \{err}")
       }
       // Parse the patch
       let parsed = parse_patch(params.patch) catch {
-        InvalidPatch(msg) => return @tool.error("Invalid patch: \{msg}")
+        InvalidPatch(msg) => return @tool.failed("Invalid patch: \{msg}")
         InvalidHunk(message~, line_number~) =>
-          return @tool.error("Invalid hunk at line \{line_number}: \{message}")
+          return @tool.failed("Invalid hunk at line \{line_number}: \{message}")
       }
       // Apply the patch
       let result = apply_hunks(parsed.hunks[:], cwd) catch {
-        ApplyError(msg) => return @tool.error("Failed to apply patch: \{msg}")
+        ApplyError(msg) => return @tool.failed("Failed to apply patch: \{msg}")
       }
-      @tool.ok(format_result(result))
+      @tool.success(format_result(result))
     },
   )
 }

@@ -5,6 +5,11 @@ enum TodoResult {
 } derive(ToJson, FromJson)
 
 ///|
+impl @tool.ToolOutput for TodoResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
 pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
   match self {
     Read(result) => result.output(logger)
@@ -59,14 +64,12 @@ impl Show for TodoReadResult with output(
 }
 
 ///|
-pub fn new_tool(list : Todo) -> @tool.Tool[TodoResult] {
+pub fn new_tool(list : Todo) -> @tool.Tool {
   @tool.new(
     description="Request to manage the todo list for the session. This tool helps you track progress, organize complex tasks, and understand the current status of ongoing work. Use this tool proactively to stay aware of task progress and demonstrate thoroughness.",
     name="todo",
     schema=todo_schema,
-    async fn(args) -> @tool.ToolResult[TodoResult] noraise {
-      list.execute_todo(args)
-    },
+    async fn(args) -> @tool.ToolResult noraise { list.execute_todo(args) },
   )
 }
 
@@ -223,17 +226,16 @@ pub fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
 async fn Todo::execute_todo(
   self : Todo,
   args : Json,
-) -> @tool.ToolResult[TodoResult] noraise {
+) -> @tool.ToolResult noraise {
   let todo_args = parse_todo_args(args) catch {
-    TodoArgsError(msg) => return @tool.error(msg)
+    TodoArgsError(msg) => return @tool.failed(msg)
   }
   self.load() catch {
-    error =>
-      return @tool.error("Error loading existing todo list: \{error}", error~)
+    error => return @tool.failed("Error loading existing todo list: \{error}")
   }
   // Handle read action
   if todo_args.action is Read {
-    return @tool.ok(TodoResult::Read({ todos: self.todos() }))
+    return @tool.success(TodoResult::Read({ todos: self.todos() }))
   }
   let { action, content, task_id, priority, status, notes } = todo_args
   match action {
@@ -241,14 +243,14 @@ async fn Todo::execute_todo(
     Create =>
       match content {
         None =>
-          return @tool.error("Error: Content is required for creating todos.")
+          return @tool.failed("Error: Content is required for creating todos.")
         Some(content) => {
           // Clear existing todos and create new ones
           self.parse(content, priority~, notes?)
           try {
             self.save()
             let todos = self.todos()
-            return @tool.ok(
+            return @tool.success(
               TodoResult::Write({
                 todos,
                 message: "Created \{todos.length()} new todo items",
@@ -257,19 +259,18 @@ async fn Todo::execute_todo(
               }),
             )
           } catch {
-            error =>
-              return @tool.error("Failed to save todo list: \{error}", error~)
+            error => return @tool.failed("Failed to save todo list: \{error}")
           }
         }
       }
     AddTask => {
       guard content is Some(content) else {
-        return @tool.error("Error: Content is required for adding a task.")
+        return @tool.failed("Error: Content is required for adding a task.")
       }
       let item = self.add_task(content, status~, priority~, notes~)
       try {
         self.save()
-        return @tool.ok(
+        return @tool.success(
           TodoResult::Write({
             todos: self.todos().map(t => t),
             message: "Added new task: \{item.content}",
@@ -278,15 +279,15 @@ async fn Todo::execute_todo(
           }),
         )
       } catch {
-        error => return @tool.error("Failed to save new task: \{error}", error~)
+        error => return @tool.failed("Failed to save new task: \{error}")
       }
     }
     Update | MarkProgress | MarkCompleted => {
       guard task_id is Some(task_id) else {
-        return @tool.error("Error: Task ID is required for update operations.")
+        return @tool.failed("Error: Task ID is required for update operations.")
       }
       guard self.find(task_id) is Some(task_index) else {
-        return @tool.error("Error: Task with ID '\{task_id}' not found.")
+        return @tool.failed("Error: Task with ID '\{task_id}' not found.")
       }
       let todo = self.get(task_index)
       // Apply specific action
@@ -326,7 +327,7 @@ async fn Todo::execute_todo(
       }
       try {
         self.save()
-        @tool.ok(
+        @tool.success(
           TodoResult::Write({
             todos: self.todos(),
             message: action_message,
@@ -335,8 +336,7 @@ async fn Todo::execute_todo(
           }),
         )
       } catch {
-        error =>
-          return @tool.error("Failed to save task update: \{error}", error~)
+        error => return @tool.failed("Failed to save task update: \{error}")
       }
     }
   }

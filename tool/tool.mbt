@@ -26,36 +26,55 @@ pub fn tool_desc(
 }
 
 ///|
-pub struct Tool[Output] {
-  desc : ToolDesc
-  priv f : ToolFn[Output]
+pub(open) trait ToolOutput {
+  to_message(Self) -> @ai.Message
 }
 
 ///|
-pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
+pub impl ToolOutput for String with to_message(self) {
+  @ai.tool_message(content=self, tool_call_id="")
+}
 
 ///|
-pub enum ToolResult[Output] {
-  Ok(Output)
-  Error(Error, String)
-} derive(ToJson)
+pub impl ToolOutput for Json with to_message(self) {
+  @ai.tool_message(content=self.stringify(), tool_call_id="")
+}
+
+///|
+pub struct Tool {
+  desc : ToolDesc
+  priv f : ToolFn
+}
+
+///|
+pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
+
+///|
+pub enum ToolResult {
+  Success(&ToolOutput)
+  Failed(Error)
+}
 
 ///|
 #as_free_fn
-pub fn[Output] ToolResult::ok(output : Output) -> ToolResult[Output] {
-  Ok(output)
+pub fn ToolResult::success(output : &ToolOutput) -> ToolResult {
+  Success(output)
 }
 
 ///|
-pub impl[Output : Show] Show for ToolResult[Output] with output(
-  self : ToolResult[Output],
-  logger : &Logger,
-) -> Unit {
+pub impl ToJson for ToolResult with to_json(self) {
   match self {
-    Ok(output) => logger.write_string(output.to_string())
-    Error(ToolFailure(_), message) => logger.write_string(message)
-    Error(error, message) =>
-      logger.write_string("\{message}\n\{error.to_json().stringify(indent=2)}")
+    Success(output) => ["Success", output.to_message().content().to_json()]
+    Failed(error) => ["Failed", error.to_json()]
+  }
+}
+
+///|
+pub impl Show for ToolResult with output(self : ToolResult, logger : &Logger) -> Unit {
+  match self {
+    Success(output) => logger.write_string(output.to_message().content())
+    Failed(ToolFailure(message)) => logger.write_string(message)
+    Failed(error) => logger.write_string(error.to_json().stringify(indent=2))
   }
 }
 
@@ -66,15 +85,12 @@ priv suberror ToolFailure {
 
 ///|
 #as_free_fn
-pub fn[Output] ToolResult::error(
-  output : String,
-  error? : Error = ToolFailure(output),
-) -> ToolResult[Output] {
-  Error(error, output)
+pub fn ToolResult::failed(message : String) -> ToolResult {
+  Failed(ToolFailure(message))
 }
 
 ///|
-/// 
+///
 /// - `description`: Tool description that can be read by the LLM.
 /// - `name`: Tool name used by the LLM to call the tool.
 /// - `schema`: JSON schema to validate LLM-generated output and provide type information to the LLM.
@@ -82,27 +98,23 @@ pub fn[Output] ToolResult::error(
 /// - `f`: Function whose `input` must conform to the `schema` defined above.
 ///
 #as_free_fn
-pub fn[Output] Tool::new(
+pub fn Tool::new(
   description~ : String,
   name~ : String,
   schema~ : JsonSchema,
-  f : ToolFn[Output],
-) -> Tool[Output] {
+  f : ToolFn,
+) -> Tool {
   Tool::{ desc: { description, name, schema }, f }
 }
 
 ///|
-// TODO(upstream): `as_free_fn` completion not need parens 
 #as_free_fn
-pub async fn[Output] Tool::call(
-  tool : Tool[Output],
-  args : Json,
-) -> ToolResult[Output] noraise {
+pub async fn Tool::call(tool : Tool, args : Json) -> ToolResult noraise {
   (tool.f)(args)
 }
 
 ///|
-struct AgentTool(Tool[(Json, String)])
+struct AgentTool(Tool)
 
 ///|
 pub fn AgentTool::desc(self : AgentTool) -> ToolDesc {
@@ -113,22 +125,11 @@ pub fn AgentTool::desc(self : AgentTool) -> ToolDesc {
 pub async fn AgentTool::call(
   self : AgentTool,
   args : Json,
-) -> ToolResult[(Json, String)] noraise {
+) -> ToolResult noraise {
   self.0.call(args)
 }
 
 ///|
-/// Convert a Tool[Output] to Tool[Json] by converting outputs to Json
-pub fn[Output : ToJson + Show] Tool::to_agent_tool(
-  self : Tool[Output],
-) -> AgentTool {
-  Tool::{
-    desc: self.desc,
-    f: args => {
-      match self.call(args) {
-        Ok(output) => Ok((output.to_json(), output.to_string()))
-        Error(error, output) => Error(error, output)
-      }
-    },
-  }
+pub fn Tool::to_agent_tool(self : Tool) -> AgentTool {
+  AgentTool(self)
 }

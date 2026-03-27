@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool"
 
 import {
+  "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/openai",
 }
 
@@ -12,7 +13,7 @@ pub fn tool_desc(description~ : String, name~ : String, schema~ : JsonSchema) ->
 
 // Types and methods
 type AgentTool
-pub async fn AgentTool::call(Self, Json) -> ToolResult[(Json, String)] noraise
+pub async fn AgentTool::call(Self, Json) -> ToolResult noraise
 pub fn AgentTool::desc(Self) -> ToolDesc
 
 pub(all) struct JsonSchema(Json)
@@ -23,15 +24,15 @@ pub impl Eq for JsonSchema
 pub impl Show for JsonSchema
 pub impl ToJson for JsonSchema
 
-pub struct Tool[Output] {
+pub struct Tool {
   desc : ToolDesc
   // private fields
 }
 #as_free_fn
-pub async fn[Output] Tool::call(Self[Output], Json) -> ToolResult[Output] noraise
+pub async fn Tool::call(Self, Json) -> ToolResult noraise
 #as_free_fn
-pub fn[Output] Tool::new(description~ : String, name~ : String, schema~ : JsonSchema, ToolFn[Output]) -> Self[Output]
-pub fn[Output : ToJson + Show] Tool::to_agent_tool(Self[Output]) -> AgentTool
+pub fn Tool::new(description~ : String, name~ : String, schema~ : JsonSchema, ToolFn) -> Self
+pub fn Tool::to_agent_tool(Self) -> AgentTool
 
 pub struct ToolDesc {
   description : String
@@ -43,22 +44,27 @@ pub impl Eq for ToolDesc
 pub impl Show for ToolDesc
 pub impl ToJson for ToolDesc
 
-pub(all) struct ToolFn[Output](async (Json) -> ToolResult[Output] noraise)
+pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
 #deprecated
-pub fn[Output] ToolFn::inner(Self[Output]) -> async (Json) -> ToolResult[Output] noraise
+pub fn ToolFn::inner(Self) -> async (Json) -> ToolResult noraise
 
-pub enum ToolResult[Output] {
-  Ok(Output)
-  Error(Error, String)
+pub enum ToolResult {
+  Success(&ToolOutput)
+  Failed(Error)
 }
 #as_free_fn
-pub fn[Output] ToolResult::error(String, error? : Error) -> Self[Output]
+pub fn ToolResult::failed(String) -> Self
 #as_free_fn
-pub fn[Output] ToolResult::ok(Output) -> Self[Output]
-pub impl[Output : Show] Show for ToolResult[Output]
-pub impl[Output : ToJson] ToJson for ToolResult[Output]
+pub fn ToolResult::success(&ToolOutput) -> Self
+pub impl Show for ToolResult
+pub impl ToJson for ToolResult
 
 // Type aliases
 
 // Traits
+pub(open) trait ToolOutput {
+  to_message(Self) -> @ai.Message
+}
+pub impl ToolOutput for String
+pub impl ToolOutput for Json
 

@@ -15,12 +15,9 @@ pub fn Tool::desc(self : Tool) -> @tool.ToolDesc {
 }
 
 ///|
-async fn Tool::call(
-  self : Tool,
-  args : Json,
-) -> @tool.ToolResult[(Json, String)] noraise {
+async fn Tool::call(self : Tool, args : Json) -> @tool.ToolResult noraise {
   guard self.enabled else {
-    return @tool.error("Tool '\{self.tool.desc().name}' is disabled.")
+    return @tool.failed("Tool '\{self.tool.desc().name}' is disabled.")
   }
   self.tool.call(args)
 }
@@ -105,9 +102,13 @@ async fn Agent::execute_tool(
         }
       }
   }
-  let (result, rendered) = match tool.call(arguments) {
-    Ok((json, text)) => (Ok(json), text)
-    Error(error, text) => (Err(error.to_json()), text)
+  let tool_result = tool.call(arguments)
+  let (result, rendered) = match tool_result {
+    Success(output) => {
+      let content = output.to_message().content()
+      (Ok(content.to_json()), content)
+    }
+    Failed(error) => (Err(error.to_json()), tool_result.to_string())
   }
   agent.emit(PostToolCall(tool_call, result~, rendered~))
   @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
@@ -157,9 +158,9 @@ fn Agent::add_agent_tool(
 /// * `agent` : The agent instance to add the tool to.
 /// * `tool` : The tool to be added, which will be indexed by its name for
 ///   future tool calls.
-pub fn[Output : ToJson + Show] Agent::add_tool(
+pub fn Agent::add_tool(
   agent : Agent,
-  tool : @tool.Tool[Output],
+  tool : @tool.Tool,
   enabled? : Bool = true,
 ) -> Unit {
   agent.add_agent_tool(tool.to_agent_tool(), enabled~)

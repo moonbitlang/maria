@@ -66,7 +66,12 @@ pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
 }
 
 ///|
-pub fn new(cwd : String) -> @tool.Tool[Result] {
+impl @tool.ToolOutput for Result with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
+pub fn new(cwd : String) -> @tool.Tool {
   @tool.new(
     description=(
       $|Write content to a file at the specified path. 
@@ -85,7 +90,7 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
     schema~,
     args => {
       let { path, separator, content } : Params = @json.from_json(args) catch {
-        error => return @tool.error("Invalid arguments: \{error}")
+        error => return @tool.failed("Invalid arguments: \{error}")
       }
       let path = if Path::is_absolute(path) {
         path
@@ -95,10 +100,10 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
       let separator = separator.unwrap_or("\n")
       let content_to_append = if (@fsx.exists(path) catch {
           error =>
-            return @tool.error("Failed to check if file exists: \{error}")
+            return @tool.failed("Failed to check if file exists: \{error}")
         }) {
         let existing_content = @fsx.read_file(path) catch {
-          error => return @tool.error("Failed to read existing file: \{error}")
+          error => return @tool.failed("Failed to read existing file: \{error}")
         }
         if existing_content.is_empty() {
           content
@@ -110,13 +115,13 @@ pub fn new(cwd : String) -> @tool.Tool[Result] {
       }
       let _ = @fsx.write_to_file(path, content_to_append) catch {
         @os_error.OSError(_, ..) as error if error.is_EACCES() =>
-          return @tool.error(
+          return @tool.failed(
             "Permission denied: Cannot write to file \{path}. The file does not have write permissions.",
           )
-        error => return @tool.error("Failed to write to file: \{error}")
+        error => return @tool.failed("Failed to write to file: \{error}")
       }
       let result = Result::{ path, }
-      @tool.ok(result)
+      @tool.success(result)
     },
   )
 }

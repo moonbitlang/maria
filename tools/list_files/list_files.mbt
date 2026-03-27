@@ -98,20 +98,25 @@ async fn execute_list_files(
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool[ListFilesResult] {
+impl @tool.ToolOutput for ListFilesResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
+pub fn new(manager : @file.Manager) -> @tool.Tool {
   @tool.new(
     description="List files in a directory",
     name="list_files",
     schema~,
-    async fn(args) -> @tool.ToolResult[ListFilesResult] noraise {
+    async fn(args) -> @tool.ToolResult noraise {
       let { path } : InputPath = @json.from_json(args) catch {
         // TODO(upstream): weird error when missing `_ => `
-        _ => return @tool.error("Error: 'path' parameter is required")
+        _ => return @tool.failed("Error: 'path' parameter is required")
       }
       let result = execute_list_files(manager, path) catch {
-        error => return @tool.error("Error listing files: \{error}")
+        error => return @tool.failed("Error listing files: \{error}")
       }
-      @tool.ok(result)
+      @tool.success(result)
     },
   )
 }

@@ -33,10 +33,10 @@ async test "maria/resume" (t : @test.Test) {
         }),
         ToolFn(args => {
           guard args is { "name": String(name), .. } else {
-            return @tool.error("Invalid arguments")
+            return @tool.failed("Invalid arguments")
           }
           result = Some(name)
-          @tool.ok("Name submitted successfully")
+          @tool.success("Name submitted successfully")
         }),
       ),
     )
