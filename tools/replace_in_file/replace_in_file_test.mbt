@@ -8,9 +8,10 @@ async test "replace_in_file/create" (t : @test.Test) {
     let args : Json = { "path": "nonexistent.txt" }
     let result = @replace_in_file.new(manager).call(args)
     json_inspect(result, content=[
-      "Error",
-      ["JsonDecodeError", ["", "Missing field replace"]],
-      "Error: Invalid arguments provided to replace_in_file tool: JsonDecodeError((, \"Missing field replace\"))",
+      "Failed",
+      [
+        "ToolFailure", "Error: Invalid arguments provided to replace_in_file tool: JsonDecodeError((, \"Missing field replace\"))",
+      ],
     ])
   })
 }
@@ -21,13 +22,7 @@ async test "replace_in_file/replace" (t : @test.Test) {
     let manager = @file.manager(cwd=mock.cwd.path())
     mock.add_json_tree({ "file.txt": "Old content" })
     json_inspect(@read_file.new(manager).call({ "path": "file.txt" }), content=[
-      "Ok",
-      {
-        "path": "file.txt",
-        "content": "Old content",
-        "start_line": 1,
-        "end_line": 1,
-      },
+      "Success", "File: file.txt (lines 1-1 (1 lines))\n L1 | Old content",
     ])
     let args : Json = {
       "path": "file.txt",
@@ -35,17 +30,7 @@ async test "replace_in_file/replace" (t : @test.Test) {
       "replace": "New content",
     }
     let result = @replace_in_file.new(manager).call(args)
-    json_inspect(result, content=[
-      "Ok",
-      {
-        "path": "file.txt",
-        "operation": "Updated",
-        "bytes_written": 11,
-        "search_used": true,
-        "message": "Changes applied to file.txt",
-        "content": "New content",
-      },
-    ])
+    json_inspect(result, content=["Success", "Changes applied to file.txt"])
   })
 }
 
@@ -56,19 +41,12 @@ async test "replace_in_file/search-is-required" (t : @test.Test) {
     mock.add_json_tree({ "file.txt": "Old content" })
     let args : Json = { "path": "file.txt", "replace": "New content" }
     let result = @replace_in_file.new(manager).call(args)
-    json_inspect(result, content=[
-      "Ok",
-      {
-        "path": "file.txt",
-        "operation": "Replaced",
-        "bytes_written": 11,
-        "search_used": false,
-        "message": "Changes applied to file.txt",
-        "content": "New content",
-      },
-    ])
-    guard result is Ok(result) else { fail("Expected Ok result") }
-    inspect(result, content="Changes applied to file.txt")
+    json_inspect(result, content=["Success", "Changes applied to file.txt"])
+    guard result is Success(result) else { fail("Expected Ok result") }
+    inspect(
+      result.to_message().content(),
+      content="Changes applied to file.txt",
+    )
   })
 }
 
@@ -120,17 +98,7 @@ async test "replace_in_file/search-replace" (t : @test.Test) {
       "replace": "line 2 modified",
     }
     let result = @replace_in_file.new(manager).call(args)
-    json_inspect(result, content=[
-      "Ok",
-      {
-        "path": "file.txt",
-        "operation": "Updated",
-        "bytes_written": 36,
-        "search_used": true,
-        "message": "Changes applied to file.txt",
-        "content": "line 1\nline 2 modified\nline 3\nline 4",
-      },
-    ])
+    json_inspect(result, content=["Success", "Changes applied to file.txt"])
   })
 }
 
@@ -203,7 +171,7 @@ async test "replace_in_file/no-write-permission" (t : @test.Test) {
     }
     let result = @replace_in_file.new(manager).call(args)
     // Verify that an error is returned
-    guard result is Error(_) else {
+    guard result is Failed(_) else {
       fail("Expected Error result but got: \{result}")
     }
     inspect(

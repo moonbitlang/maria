@@ -6,7 +6,9 @@ async test "todo_read/empty" (t : @test.Test) {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let tool = @todo.new_tool(todo_list)
     let result = tool.call({ "action": "read" })
-    json_inspect(result, content=["Ok", ["Read", { "todos": [] }]])
+    json_inspect(result, content=[
+      "Success", "=== Current Session Todo List ===\n\n\n📊 Summary: Total: 0",
+    ])
     inspect(
       result,
       content=(
@@ -35,19 +37,7 @@ async test "todo_read/single_task" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "A sample task",
-                "priority": "Medium",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. ⏳ 🟡 [ac8a366d] A sample task\n\n📊 Summary: Total: 1 | ⏳ Pending: 1",
       ],
     )
     inspect(
@@ -91,29 +81,7 @@ async test "todo_read/multiple_tasks_mixed_status" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "Task one",
-                "priority": "High",
-                "status": "InProgress",
-              },
-              {
-                "content": "Task two",
-                "priority": "High",
-                "status": "Completed",
-              },
-              {
-                "content": "Task three",
-                "priority": "High",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. 🔄 🔴 [ac8a366d] Task one\n2. ✅ 🔴 [1ea1417c] Task two\n3. ⏳ 🔴 [f378dd8d] Task three\n\n📊 Summary: Total: 3 | ✅ Completed: 1 | 🔄 In Progress: 1 | ⏳ Pending: 1",
       ],
     )
     inspect(
@@ -165,29 +133,7 @@ async test "todo_read/different_priorities" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "High priority task",
-                "priority": "High",
-                "status": "Pending",
-              },
-              {
-                "content": "Medium priority task",
-                "priority": "Medium",
-                "status": "Pending",
-              },
-              {
-                "content": "Low priority task",
-                "priority": "Low",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. ⏳ 🔴 [ac8a366d] High priority task\n2. ⏳ 🟡 [1ea1417c] Medium priority task\n3. ⏳ 🟢 [f378dd8d] Low priority task\n\n📊 Summary: Total: 3 | ⏳ Pending: 3",
       ],
     )
     inspect(
@@ -238,25 +184,7 @@ async test "todo_read/with_notes" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "Task with notes",
-                "notes": "This is an important detail to remember",
-                "priority": "Medium",
-                "status": "Pending",
-              },
-              {
-                "content": "Task without notes",
-                "priority": "Low",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. ⏳ 🟡 [ac8a366d] Task with notes\n   └─ 📝 This is an important detail to remember\n2. ⏳ 🟢 [1ea1417c] Task without notes\n\n📊 Summary: Total: 2 | ⏳ Pending: 2",
       ],
     )
     inspect(
@@ -299,29 +227,7 @@ async test "todo_read/all_completed" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "Completed task 1",
-                "priority": "High",
-                "status": "Completed",
-              },
-              {
-                "content": "Completed task 2",
-                "priority": "High",
-                "status": "Completed",
-              },
-              {
-                "content": "Completed task 3",
-                "priority": "High",
-                "status": "Completed",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. ✅ 🔴 [ac8a366d] Completed task 1\n2. ✅ 🔴 [1ea1417c] Completed task 2\n3. ✅ 🔴 [f378dd8d] Completed task 3\n\n📊 Summary: Total: 3 | ✅ Completed: 3",
       ],
     )
     inspect(
@@ -362,24 +268,7 @@ async test "todo_read/all_in_progress" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "In progress task 1",
-                "priority": "Medium",
-                "status": "InProgress",
-              },
-              {
-                "content": "In progress task 2",
-                "priority": "Medium",
-                "status": "InProgress",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. 🔄 🟡 [ac8a366d] In progress task 1\n2. 🔄 🟡 [1ea1417c] In progress task 2\n\n📊 Summary: Total: 2 | 🔄 In Progress: 2",
       ],
     )
     inspect(
@@ -441,36 +330,7 @@ async test "todo_read/complex_scenario" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "Critical bug fix",
-                "notes": "Blocking production release",
-                "priority": "Medium",
-                "status": "InProgress",
-              },
-              {
-                "content": "Code review",
-                "priority": "Medium",
-                "status": "Completed",
-              },
-              {
-                "content": "Update documentation",
-                "notes": "Add examples for new API",
-                "priority": "Low",
-                "status": "Pending",
-              },
-              {
-                "content": "Write unit tests",
-                "priority": "High",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. 🔄 🟡 [ac8a366d] Critical bug fix\n   └─ 📝 Blocking production release\n2. ✅ 🟡 [1ea1417c] Code review\n3. ⏳ 🟢 [f378dd8d] Update documentation\n   └─ 📝 Add examples for new API\n4. ⏳ 🔴 [42858c8d] Write unit tests\n\n📊 Summary: Total: 4 | ✅ Completed: 1 | 🔄 In Progress: 1 | ⏳ Pending: 2",
       ],
     )
     inspect(
@@ -518,20 +378,7 @@ async test "todo_read/updated_task_content" (t : @test.Test) {
       .to_json()
       .transform(@json.Replacer::exclude(["created_at", "updated_at", "id"])),
       content=[
-        "Ok",
-        [
-          "Read",
-          {
-            "todos": [
-              {
-                "content": "Updated task content",
-                "notes": "Added some context",
-                "priority": "High",
-                "status": "Pending",
-              },
-            ],
-          },
-        ],
+        "Success", "=== Current Session Todo List ===\n\n1. ⏳ 🔴 [ac8a366d] Updated task content\n   └─ 📝 Added some context\n\n📊 Summary: Total: 1 | ⏳ Pending: 1",
       ],
     )
     inspect(
@@ -563,56 +410,13 @@ async test "todo_write/create/plain" (t : @test.Test) {
       "priority": "high",
     })
     json_inspect(result, content=[
-      "Ok",
-      [
-        "Write",
-        {
-          "todos": [
-            {
-              "content": "Test todo item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Another test item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "message": "Created 2 new todo items",
-          "updated_todos": [
-            {
-              "content": "Test todo item",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Another test item",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-          ],
-          "is_new_creation": true,
-        },
-      ],
+      "Success", "✅ Operation completed: Created 2 new todo items\n\n📝 Newly created todos:\n  🔴 ⏳ [ac8a366d] Test todo item\n  🔴 ⏳ [1ea1417c] Another test item\n\n📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0",
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -643,136 +447,13 @@ async test "todo_write/create/<task>" (t : @test.Test) {
       ),
     })
     json_inspect(result, content=[
-      "Ok",
-      [
-        "Write",
-        {
-          "todos": [
-            {
-              "content": "Examine reference repository structure at .moonagent/repos/ini",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Examine current MoonBit project structure",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Analyze source files in ini repository",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Plan migration strategy preserving original structure",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Translate C/C++ files to MoonBit file-by-file",
-              "created_at": "Tick:7",
-              "id": "1258fdc0",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:7",
-            },
-            {
-              "content": "Create appropriate MoonBit module structure",
-              "created_at": "Tick:8",
-              "id": "aaa2f959",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:8",
-            },
-            {
-              "content": "Test migrated functionality",
-              "created_at": "Tick:9",
-              "id": "8f0ff2dc",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:9",
-            },
-          ],
-          "message": "Created 7 new todo items",
-          "updated_todos": [
-            {
-              "content": "Examine reference repository structure at .moonagent/repos/ini",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Examine current MoonBit project structure",
-              "created_at": "Tick:4",
-              "id": "1ea1417c",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:4",
-            },
-            {
-              "content": "Analyze source files in ini repository",
-              "created_at": "Tick:5",
-              "id": "f378dd8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-            {
-              "content": "Plan migration strategy preserving original structure",
-              "created_at": "Tick:6",
-              "id": "42858c8d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:6",
-            },
-            {
-              "content": "Translate C/C++ files to MoonBit file-by-file",
-              "created_at": "Tick:7",
-              "id": "1258fdc0",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:7",
-            },
-            {
-              "content": "Create appropriate MoonBit module structure",
-              "created_at": "Tick:8",
-              "id": "aaa2f959",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:8",
-            },
-            {
-              "content": "Test migrated functionality",
-              "created_at": "Tick:9",
-              "id": "8f0ff2dc",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:9",
-            },
-          ],
-          "is_new_creation": true,
-        },
-      ],
+      "Success", "✅ Operation completed: Created 7 new todo items\n\n📝 Newly created todos:\n  🟡 ⏳ [ac8a366d] Examine reference repository structure at .moonagent/repos/ini\n  🟡 ⏳ [1ea1417c] Examine current MoonBit project structure\n  🟡 ⏳ [f378dd8d] Analyze source files in ini repository\n  🟡 ⏳ [42858c8d] Plan migration strategy preserving original structure\n  🟡 ⏳ [1258fdc0] Translate C/C++ files to MoonBit file-by-file\n  🟡 ⏳ [aaa2f959] Create appropriate MoonBit module structure\n  🟡 ⏳ [8f0ff2dc] Test migrated functionality\n\n📊 Current summary: Total 7 items | Pending 7 | In Progress 0 | Completed 0",
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 7 new todo items
         #|
@@ -803,11 +484,11 @@ async test "todo_write/update" (t : @test.Test) {
       ),
       "priority": "medium",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -825,11 +506,11 @@ async test "todo_write/update" (t : @test.Test) {
       "priority": "high",
       "content": "Updated first item",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Updated task: Updated first item
         #|
@@ -858,11 +539,11 @@ async test "todo_write/mark_completed" (t : @test.Test) {
       ),
       "priority": "medium",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -878,19 +559,18 @@ async test "todo_write/mark_completed" (t : @test.Test) {
       "task_id": "nonexistent",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
-      "Error: Task with ID 'nonexistent' not found.",
     ])
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Marked task as completed: First item
         #|
@@ -919,11 +599,11 @@ async test "todo_write/mark_progress" (t : @test.Test) {
       ),
       "priority": "medium",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 2 new todo items
         #|
@@ -939,20 +619,19 @@ async test "todo_write/mark_progress" (t : @test.Test) {
       "task_id": "nonexistent",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error: Task with ID 'nonexistent' not found."],
-      "Error: Task with ID 'nonexistent' not found.",
     ])
     inspect(result, content="Error: Task with ID 'nonexistent' not found.")
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_progress",
       "task_id": "ac8a366d",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Marked task as in progress: First item
         #|
@@ -979,7 +658,9 @@ async test "todo_write/add_task" (t : @test.Test) {
       "content": "Initial task",
       "priority": "medium",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Add a new task
     let result = @todo.new_tool(todo_list).call({
       "action": "add_task",
@@ -989,50 +670,13 @@ async test "todo_write/add_task" (t : @test.Test) {
       "notes": "This is a very important task",
     })
     json_inspect(result, content=[
-      "Ok",
-      [
-        "Write",
-        {
-          "todos": [
-            {
-              "content": "Initial task",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:3",
-            },
-            {
-              "content": "Additional task to be added",
-              "created_at": "Tick:5",
-              "id": "1ea1417c",
-              "notes": "This is a very important task",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "message": "Added new task: Additional task to be added",
-          "updated_todos": [
-            {
-              "content": "Additional task to be added",
-              "created_at": "Tick:5",
-              "id": "1ea1417c",
-              "notes": "This is a very important task",
-              "priority": "High",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "is_new_creation": false,
-        },
-      ],
+      "Success", "✅ Operation completed: Added new task: Additional task to be added\n\n📝 Current todo list:\n  🟡 ⏳ [ac8a366d] Initial task\n  🔴 ⏳ [1ea1417c] Additional task to be added\n\n✨ Updated items:\n  🔴 ⏳ [1ea1417c] Additional task to be added\n\n📊 Current summary: Total 2 items | Pending 2 | In Progress 0 | Completed 0",
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Added new task: Additional task to be added
         #|
@@ -1062,11 +706,11 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
       ),
       "priority": "high",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 3 new todo items
         #|
@@ -1084,17 +728,19 @@ async test "todo_write/multiple_priority_levels" (t : @test.Test) {
       "task_id": "1ea1417c",
       "priority": "medium",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     let result = @todo.new_tool(todo_list).call({
       "action": "update",
       "task_id": "f378dd8d",
       "priority": "low",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Updated task: Low priority task
         #|
@@ -1127,35 +773,43 @@ async test "todo_write/workflow_complete_cycle" (t : @test.Test) {
       ),
       "priority": "high",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Start first task
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_progress",
       "task_id": "ac8a366d",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Complete first task
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Start second task
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_progress",
       "task_id": "1ea1417c",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Complete second task
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_completed",
       "task_id": "1ea1417c",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Marked task as completed: Implement backend logic
         #|
@@ -1183,11 +837,10 @@ async test "todo_write/error_invalid_action" (t : @test.Test) {
       "content": "Test task",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       [
         "ToolFailure", "Error: Invalid action 'invalid_action'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
       ],
-      "Error: Invalid action 'invalid_action'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.",
     ])
     inspect(
       result,
@@ -1202,9 +855,8 @@ async test "todo_write/error_missing_content_for_create" (t : @test.Test) {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({ "action": "create" })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error: Content is required for creating todos."],
-      "Error: Content is required for creating todos.",
     ])
     inspect(result, content="Error: Content is required for creating todos.")
   })
@@ -1216,9 +868,8 @@ async test "todo_write/error_missing_content_for_add_task" (t : @test.Test) {
     let todo_list = new(clock=mock.clock, uuid=mock.uuid, cwd=mock.cwd.path())
     let result = @todo.new_tool(todo_list).call({ "action": "add_task" })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error: Content is required for adding a task."],
-      "Error: Content is required for adding a task.",
     ])
     inspect(result, content="Error: Content is required for adding a task.")
   })
@@ -1233,9 +884,8 @@ async test "todo_write/error_missing_task_id_for_update" (t : @test.Test) {
       "content": "New content",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error: Task ID is required for update operations."],
-      "Error: Task ID is required for update operations.",
     ])
     inspect(result, content="Error: Task ID is required for update operations.")
   })
@@ -1251,11 +901,10 @@ async test "todo_write/error_invalid_priority" (t : @test.Test) {
       "priority": "urgent",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       [
         "ToolFailure", "Error: Invalid priority 'String(\"urgent\")'. Must be 'high', 'medium', or 'low'.",
       ],
-      "Error: Invalid priority 'String(\"urgent\")'. Must be 'high', 'medium', or 'low'.",
     ])
     inspect(
       result,
@@ -1276,11 +925,10 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
       "status": "done",
     })
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       [
         "ToolFailure", "Error: Invalid status 'String(\"done\")'. Must be 'pending', 'in_progress', or 'completed'.",
       ],
-      "Error: Invalid status 'String(\"done\")'. Must be 'pending', 'in_progress', or 'completed'.",
     ])
     inspect(
       result,
@@ -1301,7 +949,9 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
       "content": "Implement feature X",
       "priority": "high",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Update with notes
     let result = @todo.new_tool(todo_list).call({
       "action": "update",
@@ -1310,42 +960,13 @@ async test "todo_write/update_with_notes" (t : @test.Test) {
       "status": "in_progress",
     })
     json_inspect(result, content=[
-      "Ok",
-      [
-        "Write",
-        {
-          "todos": [
-            {
-              "content": "Implement feature X",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "notes": "Need to consider edge cases and backward compatibility",
-              "priority": "Medium",
-              "status": "InProgress",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "message": "Updated task: Implement feature X",
-          "updated_todos": [
-            {
-              "content": "Implement feature X",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "notes": "Need to consider edge cases and backward compatibility",
-              "priority": "Medium",
-              "status": "InProgress",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "is_new_creation": false,
-        },
-      ],
+      "Success", "✅ Operation completed: Updated task: Implement feature X\n\n📝 Current todo list:\n  🟡 🔄 [ac8a366d] Implement feature X\n\n✨ Updated items:\n  🟡 🔄 [ac8a366d] Implement feature X\n\n📊 Current summary: Total 1 items | Pending 0 | In Progress 1 | Completed 0",
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Updated task: Implement feature X
         #|
@@ -1371,7 +992,9 @@ async test "todo_write/update_content_only" (t : @test.Test) {
       "content": "Original task description",
       "priority": "medium",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Update content only
     let result = @todo.new_tool(todo_list).call({
       "action": "update",
@@ -1379,40 +1002,13 @@ async test "todo_write/update_content_only" (t : @test.Test) {
       "content": "Updated task description with more details",
     })
     json_inspect(result, content=[
-      "Ok",
-      [
-        "Write",
-        {
-          "todos": [
-            {
-              "content": "Updated task description with more details",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "message": "Updated task: Updated task description with more details",
-          "updated_todos": [
-            {
-              "content": "Updated task description with more details",
-              "created_at": "Tick:3",
-              "id": "ac8a366d",
-              "priority": "Medium",
-              "status": "Pending",
-              "updated_at": "Tick:5",
-            },
-          ],
-          "is_new_creation": false,
-        },
-      ],
+      "Success", "✅ Operation completed: Updated task: Updated task description with more details\n\n📝 Current todo list:\n  🟡 ⏳ [ac8a366d] Updated task description with more details\n\n✨ Updated items:\n  🟡 ⏳ [ac8a366d] Updated task description with more details\n\n📊 Current summary: Total 1 items | Pending 1 | In Progress 0 | Completed 0",
     ])
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Updated task: Updated task description with more details
         #|
@@ -1438,7 +1034,9 @@ async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
       "content": "First task",
       "priority": "medium",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Add a new task directly as in-progress
     let result = @todo.new_tool(todo_list).call({
       "action": "add_task",
@@ -1446,11 +1044,11 @@ async test "todo_write/add_task_with_in_progress_status" (t : @test.Test) {
       "priority": "high",
       "status": "in-progress",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Added new task: Urgent task to start immediately
         #|
@@ -1480,11 +1078,11 @@ async test "todo_write/create_with_low_priority" (t : @test.Test) {
       ),
       "priority": "low",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Created 3 new todo items
         #|
@@ -1509,13 +1107,17 @@ async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
       "content": "Task that needs rework",
       "priority": "high",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Mark as completed
     let result = @todo.new_tool(todo_list).call({
       "action": "mark_completed",
       "task_id": "ac8a366d",
     })
-    guard result is Ok(_) else { fail("Expected Ok result but got: \{result}") }
+    guard result is Success(_) else {
+      fail("Expected Success result but got: \{result}")
+    }
     // Reopen task by updating status back to pending
     let result = @todo.new_tool(todo_list).call({
       "action": "update",
@@ -1523,11 +1125,11 @@ async test "todo_write/mark_completed_then_reopen" (t : @test.Test) {
       "status": "pending",
       "notes": "Found issues, needs rework",
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|✅ Operation completed: Updated task: Task that needs rework
         #|

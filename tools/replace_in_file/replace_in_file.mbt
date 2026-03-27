@@ -25,16 +25,20 @@ pub impl Show for WriteResult with output(self : WriteResult, logger : &Logger) 
 }
 
 ///|
+impl @tool.ToolOutput for WriteResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
 /// Main execution function for the replace_in_file tool
 async fn @file.Manager::execute_replace_in_file(
   self : @file.Manager,
   args : Json,
-) -> @tool.ToolResult[WriteResult] noraise {
+) -> @tool.ToolResult noraise {
   let { path, replace, search } : Input = @json.from_json(args) catch {
     error =>
-      return @tool.error(
+      return @tool.failed(
         "Error: Invalid arguments provided to replace_in_file tool: \{error}",
-        error~,
       )
   }
   try {
@@ -65,7 +69,7 @@ async fn @file.Manager::execute_replace_in_file(
         message: "New file created and content written to \{path}",
         content: replace,
       }
-      @tool.ok(result)
+      @tool.success(result)
     }
 
     // Read existing file content
@@ -78,7 +82,7 @@ async fn @file.Manager::execute_replace_in_file(
         // Search and replace operation
         match @fuzzy.find_match(content, search_content) {
           None =>
-            return @tool.error(
+            return @tool.failed(
               (
                 $|Search content not found in file (tried all matching strategies)
                 $|
@@ -117,23 +121,23 @@ async fn @file.Manager::execute_replace_in_file(
       message: "Changes applied to \{path}",
       content,
     }
-    @tool.ok(result)
+    @tool.success(result)
   } catch {
     @os_error.OSError(_, ..) as error if error.is_EACCES() =>
-      @tool.error(
+      @tool.failed(
         "Permission denied: Cannot write to file \{path}. The file does not have write permissions.",
       )
-    error => @tool.error("Error writing to file: \{error}", error~)
+    error => @tool.failed("Error writing to file: \{error}")
   }
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool[WriteResult] {
+pub fn new(manager : @file.Manager) -> @tool.Tool {
   @tool.new(
     description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
     name="replace_in_file",
     schema~,
-    async fn(args) -> @tool.ToolResult[WriteResult] noraise {
+    async fn(args) -> @tool.ToolResult noraise {
       manager.execute_replace_in_file(args)
     },
   )

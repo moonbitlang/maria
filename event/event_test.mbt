@@ -282,7 +282,7 @@ async test "Event::ToJson/ToolAdded" (t : @test.Test) {
         description="A sample tool for demonstration.",
         name="sample_tool",
         schema="{\"type\": \"object\", \"properties\": {\"param\": {\"type\": \"string\"}}}",
-        _ => @tool.ToolResult::ok("Sample output"),
+        _ => @tool.success("Sample output"),
       )
       emitter.emit(ToolAdded(tool.desc))
     })

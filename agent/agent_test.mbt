@@ -84,11 +84,11 @@ async test "agent/single_tool_call" (t : @test.Test) {
       args => {
         tool_called = true
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error("Invalid arguments")
+          return @tool.failed("Invalid arguments")
         }
         let sum = a + b
         result.push(sum)
-        @tool.ok({ "result": sum })
+        @tool.success(({ "result": sum } : Json))
       },
     )
     agent.add_tools([calculator_tool.to_agent_tool()])
@@ -134,9 +134,9 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
       schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error("Invalid arguments")
+          return @tool.failed("Invalid arguments")
         }
-        @tool.ok({ "result": a + b })
+        @tool.success(({ "result": a + b } : Json))
       }),
     )
     let multiply_tool = @tool.new(
@@ -145,9 +145,9 @@ async test "agent/multiple_tool_calls" (t : @test.Test) {
       schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error("Invalid arguments")
+          return @tool.failed("Invalid arguments")
         }
-        @tool.ok({ "result": a * b })
+        @tool.success(({ "result": a * b } : Json))
       }),
     )
     agent.add_tools([add_tool.to_agent_tool(), multiply_tool.to_agent_tool()])
@@ -310,12 +310,12 @@ async test "agent/tool_error_handling" (t : @test.Test) {
       schema=binary_op_schema,
       ToolFn(args => {
         guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-          return @tool.error("Invalid arguments")
+          return @tool.failed("Invalid arguments")
         }
         if b == 0.0 {
-          return @tool.error("Division by zero")
+          return @tool.failed("Division by zero")
         }
-        @tool.ok({ "result": a / b })
+        @tool.success(({ "result": a / b } : Json))
       }),
     )
     agent.add_tools([failing_tool.to_agent_tool()])
@@ -364,19 +364,19 @@ async test "agent/batch_tool_registration" (t : @test.Test) {
         name="tool1",
         description="First tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool1" })),
+        ToolFn(_ => @tool.success(({ "result": "tool1" } : Json))),
       ),
       @tool.new(
         name="tool2",
         description="Second tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool2" })),
+        ToolFn(_ => @tool.success(({ "result": "tool2" } : Json))),
       ),
       @tool.new(
         name="tool3",
         description="Third tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool3" })),
+        ToolFn(_ => @tool.success(({ "result": "tool3" } : Json))),
       ),
     ]
 
@@ -513,19 +513,19 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
         name="tool1",
         description="First tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool1" })),
+        ToolFn(_ => @tool.success(({ "result": "tool1" } : Json))),
       ).to_agent_tool(),
       @tool.new(
         name="tool2",
         description="Second tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool2" })),
+        ToolFn(_ => @tool.success(({ "result": "tool2" } : Json))),
       ).to_agent_tool(),
       @tool.new(
         name="tool3",
         description="Third tool",
         schema=empty_schema,
-        ToolFn(_ => @tool.ok({ "result": "tool3" })),
+        ToolFn(_ => @tool.success(({ "result": "tool3" } : Json))),
       ).to_agent_tool(),
       @tool.new(
         name="submit_available_tools",
@@ -539,7 +539,7 @@ async test "agent/set_enabled_tools" (t : @test.Test) {
         }),
         ToolFn(args => {
           result = args
-          @tool.ok("Tools submitted successfully")
+          @tool.success("Tools submitted successfully")
         }),
       ).to_agent_tool(),
     ])
@@ -579,7 +579,7 @@ async test "agent/web_search" (t : @test.Test) {
         },
         args => {
           result = args
-          @tool.ok("Year submitted successfully")
+          @tool.success("Year submitted successfully")
         },
       ),
     )
@@ -638,10 +638,10 @@ async test "agent/resume" (t : @test.Test) {
         }),
         ToolFn(args => {
           guard args is { "name": String(name), .. } else {
-            return @tool.error("Invalid arguments")
+            return @tool.failed("Invalid arguments")
           }
           result = Some(name)
-          @tool.ok("Name submitted successfully")
+          @tool.success("Name submitted successfully")
         }),
       ),
     )

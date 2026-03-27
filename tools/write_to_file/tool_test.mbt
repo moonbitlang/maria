@@ -16,10 +16,15 @@ async test "write_to_file" (t : @test.Test) {
     let args = json_input(path="file.txt", content="Line 3", separator="\n")
     let tool = new(mock.cwd.path())
     let result = tool.call(args)
-    guard result is Ok(output) else {
+    guard result is Success(output) else {
       fail("Expected Ok result but got: \{result}")
     }
-    json_inspect(mock.json(output), content={ "path": "(mock:cwd)/file.txt" })
+    inspect(
+      mock.show(output.to_message().content()),
+      content=(
+        #|Content written to file at path: (mock:cwd)/file.txt
+      ),
+    )
     let final_content = @fsx.read_file(
       Path::join(mock.cwd.path(), "file.txt").to_string(),
     )
@@ -45,7 +50,7 @@ async test "write_to_file/no-write-permission" (t : @test.Test) {
     let tool = new(mock.cwd.path())
     let result = tool.call(args)
     // Verify that an error is returned
-    guard result is Error(_) else {
+    guard result is Failed(_) else {
       fail("Expected Err result but got: \{result}")
     }
     inspect(

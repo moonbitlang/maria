@@ -63,15 +63,15 @@ let add_numbers_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
 })
 
 ///|
-let add_numbers_tool : @tool.Tool[String] = @tool.new(
+let add_numbers_tool : @tool.Tool = @tool.new(
   name="add_numbers",
   description="Add two numbers together",
   schema=add_numbers_schema,
   ToolFn(args => {
     guard args is { "a": Number(a, ..), "b": Number(b, ..), .. } else {
-      return @tool.error("Invalid arguments")
+      return @tool.failed("Invalid arguments")
     }
-    @tool.ok("The result of \{a} + \{b} is \{a + b}")
+    @tool.success(({ "result": a + b } : Json))
   }),
 )
 

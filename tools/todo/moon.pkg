@@ -1,5 +1,6 @@
 import {
   "moonbitlang/x/path" @path,
+  "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/clock",

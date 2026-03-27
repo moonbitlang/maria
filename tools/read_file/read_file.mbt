@@ -10,6 +10,11 @@ struct ReadFileToolResult {
 } derive(ToJson, FromJson)
 
 ///|
+impl @tool.ToolOutput for ReadFileToolResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
 const MaxReadFileTokens : Int = 25000
 
 ///|
@@ -80,13 +85,12 @@ test "ReadFileInput::from_json" {
 async fn execute_read_file_tool(
   manager : @file.Manager,
   args : Json,
-) -> @tool.ToolResult[ReadFileToolResult] noraise {
+) -> @tool.ToolResult noraise {
   // Parse required path parameter
   let { path, start_line, end_line } : ReadFileInput = @json.from_json(args) catch {
     error =>
-      return @tool.error(
+      return @tool.failed(
         "Error: Invalid arguments provided to read_file tool: \{error}",
-        error~,
       )
   }
   try {
@@ -100,10 +104,10 @@ async fn execute_read_file_tool(
 
     // Check if file exists
     if !@fsx.exists(resolved_path) {
-      return @tool.error("Error reading file: File not found: \{path}")
+      return @tool.failed("Error reading file: File not found: \{path}")
     }
     if @fsx.kind(resolved_path) is Directory {
-      return @tool.error("Error reading file: Path is a directory: \{path}")
+      return @tool.failed("Error reading file: Path is a directory: \{path}")
     }
 
     // Open and read the file
@@ -128,9 +132,9 @@ async fn execute_read_file_tool(
     let start_line = match start_line {
       Some(n) =>
         if n < 1 {
-          return @tool.error("Error: start_line must be >= 1, got \{n}")
+          return @tool.failed("Error: start_line must be >= 1, got \{n}")
         } else if n > lines.length() {
-          return @tool.error(
+          return @tool.failed(
             "Error: start_line (\{n}) must be <= total lines (\{lines.length()}), got \{n}",
           )
         } else {
@@ -141,10 +145,10 @@ async fn execute_read_file_tool(
     let end_line = match end_line {
       Some(end_line) => {
         if end_line < 1 {
-          return @tool.error("Error: end_line must be >= 1, got \{end_line}")
+          return @tool.failed("Error: end_line must be >= 1, got \{end_line}")
         }
         if end_line <= start_line {
-          return @tool.error(
+          return @tool.failed(
             "Error: end_line (\{end_line}) must be greater than start_line (\{start_line})",
           )
         }
@@ -159,10 +163,7 @@ async fn execute_read_file_tool(
     let selected_content = lines[start_line - 1:end_line].join("\n")
     let selected_token_count = count_file_tokens(selected_content) catch {
       error =>
-        return @tool.error(
-          "Error: Failed to count tokens for file: \{error}",
-          error~,
-        )
+        return @tool.failed("Error: Failed to count tokens for file: \{error}")
     }
     if selected_token_count > MaxReadFileTokens {
       let error_message = if has_range {
@@ -170,16 +171,16 @@ async fn execute_read_file_tool(
       } else {
         "Error: File content is too large (> 25000 tokens). Use start_line and end_line to read a smaller range of the file, or use <search_files> to find a specific part of the file to read."
       }
-      return @tool.error(error_message)
+      return @tool.failed(error_message)
     }
-    return @tool.ok({ path, content, start_line, end_line })
+    return @tool.success({ path, content, start_line, end_line })
   } catch {
-    error => @tool.error("Error reading file: \{error}", error~)
+    error => @tool.failed("Error reading file: \{error}")
   }
 }
 
 ///|
-pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
+pub fn new(manager : @file.Manager) -> @tool.Tool {
   @tool.new(
     description=(
       #|Read the contents of a file at the specified path.
@@ -194,9 +195,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool[ReadFileToolResult] {
     ),
     name="read_file",
     schema~,
-    @tool.ToolFn(async fn(
-      args,
-    ) -> @tool.ToolResult[ReadFileToolResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       execute_read_file_tool(manager, args)
     }),
   )

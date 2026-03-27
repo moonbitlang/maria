@@ -51,6 +51,11 @@ fn render_output(
 }
 
 ///|
+impl @tool.ToolOutput for CommandResult with to_message(self) {
+  @ai.tool_message(content=self.to_string(), tool_call_id="")
+}
+
+///|
 pub impl Show for CommandResult with output(
   self : CommandResult,
   logger : &Logger,
@@ -86,22 +91,22 @@ pub impl Show for CommandResult with output(
 }
 
 ///|
-pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
+pub fn new(ctx : @job.Manager) -> @tool.Tool {
   @tool.new(
     description="Execute an shell command with arguments and capture its output.",
     name="execute_command",
     schema~,
-    @tool.ToolFn(async fn(args) -> @tool.ToolResult[CommandResult] noraise {
+    @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       guard args is { "command": String(command), .. } else {
-        return @tool.error("Error: 'command' parameters is required")
+        return @tool.failed("Error: 'command' parameters is required")
       }
       let timeout = if args is { "timeout": timeout, .. } {
         let timeout = match timeout {
           Number(timeout, ..) => timeout
-          _ => return @tool.error("'timeout' must be a number")
+          _ => return @tool.failed("'timeout' must be a number")
         }
         if timeout <= 0 {
-          return @tool.error("'timeout' must be a positive integer")
+          return @tool.failed("'timeout' must be a positive integer")
         }
         timeout
       } else {
@@ -110,7 +115,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
       let max_output_lines = if args
         is { "max_output_lines": Number(max_output_lines, ..), .. } {
         if max_output_lines <= 0 {
-          return @tool.error("'max_output_lines' must be a positive integer")
+          return @tool.failed("'max_output_lines' must be a positive integer")
         }
         max_output_lines.to_int()
       } else {
@@ -130,25 +135,25 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
         match background {
           True => true
           False => false
-          _ => return @tool.error("'background' must be a boolean")
+          _ => return @tool.failed("'background' must be a boolean")
         }
       } else {
         false
       }
       // FIXME: enable background execution when supported
       guard background is false else {
-        @tool.error(
+        @tool.failed(
           "Background execution is not supported in this environment.",
         )
       }
       if background {
         let job = ctx.spawn(name=command, command~) catch {
           error =>
-            return @tool.error(
+            return @tool.failed(
               "Failed to start background job for command '\{command}': \{error}",
             )
         }
-        @tool.ok(CommandResult::Background(command~, job_id=job.id))
+        @tool.success(CommandResult::Background(command~, job_id=job.id))
       } else {
         let timeout = timeout.to_int()
         let process = @spawn.spawn(
@@ -158,7 +163,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
           cwd=working_directory,
         ) catch {
           @spawn.TimedOut(timeout~, stdout~, stderr~) =>
-            return @tool.ok(
+            return @tool.success(
               CommandResult::TimedOut(
                 command~,
                 timeout~,
@@ -168,12 +173,11 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool[CommandResult] {
               ),
             )
           error =>
-            return @tool.error(
+            return @tool.failed(
               "Failed to execute command '\{command}': \{error}",
-              error~,
             )
         }
-        return @tool.ok(
+        return @tool.success(
           CommandResult::Completed(
             command~,
             status=process.status,

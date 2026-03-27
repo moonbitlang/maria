@@ -14,30 +14,21 @@ async test "search_files" (t : @test.Test) {
     )
     let args : Json = { "path": ".", "regex": "search files", "kind": "regex" }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    json_inspect(output, content=[
-      "SearchResultData",
-      {
-        "kind": "Regex",
-        "query": "search files",
-        "path": ".",
-        "file_pattern": "*",
-        "context_lines": 2,
-        "total_matches": 1,
-        "results": [
-          {
-            "context": "1: These are some notes about the project.\n2: We need to implement a feature to search files.\n3: The search should be efficient and accurate.",
-            "line_number": 2,
-            "match_line": "We need to implement a feature to search files.",
-            "path": "notes.txt",
-          },
-        ],
-        "truncated": false,
-        "message": "Search completed. Found 1 matches. Note: gitignore rules were not fully respected during the search as \"git check-ignore\" fails to execute properly.",
-      },
-    ])
+    inspect(
+      output.to_message().content(),
+      content=(
+        #|Search completed. Found 1 matches. Note: gitignore rules were not fully respected during the search as "git check-ignore" fails to execute properly.
+        #|
+        #|notes.txt:2
+        #|1: These are some notes about the project.
+        #|2: We need to implement a feature to search files.
+        #|3: The search should be efficient and accurate.
+        #|
+      ),
+    )
   })
 }
 
@@ -64,8 +55,8 @@ async test "search_files-moon-definition" (t : @test.Test) {
       "kind": "moonbit_definition",
     }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     json_inspect(mock.json(output), content=[
       "MoonbitToolResult",
@@ -109,8 +100,8 @@ async test "search_files-moon-references" (t : @test.Test) {
       "kind": "moonbit_references",
     }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     json_inspect(mock.json(output), content=[
       "MoonbitToolResult",
@@ -186,10 +177,10 @@ async test "search_files/with tilde expansion" (t : @test.Test) {
       "file_pattern": "*.mbti",
     }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    let result = output.to_string()
+    let result = output.to_message().content()
     assert_true(result.contains("parse_decimal"))
     assert_true(result.contains("parse_double"))
     assert_true(result.contains("parse_int"))
@@ -213,10 +204,10 @@ async test "search_files/gitignore" (t : @test.Test) {
     })
     let args : Json = { "path": ".", "regex": "file", "kind": "regex" }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    let result = output.to_string()
+    let result = output.to_message().content()
     inspect(
       result,
       content=(
@@ -247,10 +238,10 @@ async test "search_files/gitignore-without-git" (t : @test.Test) {
     let args : Json = { "path": ".", "regex": "file", "kind": "regex" }
     let tool = @search_files.new(mock.cwd.path())
     let result = tool.call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    let result = output.to_string()
+    let result = output.to_message().content()
     inspect(
       result,
       content=(
@@ -289,10 +280,10 @@ async test "search_files/does-not-respect-gitignore" (t : @test.Test) {
       "respect_gitignore": false,
     }
     let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    let result = output.to_string()
+    let result = output.to_message().content()
     inspect(
       result,
       content=(

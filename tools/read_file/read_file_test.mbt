@@ -10,9 +10,8 @@ async test "nonexistent" (t : @test.Test) {
       content="Error reading file: File not found: nonexistent.txt",
     )
     json_inspect(result, content=[
-      "Error",
+      "Failed",
       ["ToolFailure", "Error reading file: File not found: nonexistent.txt"],
-      "Error reading file: File not found: nonexistent.txt",
     ])
   })
 }
@@ -41,17 +40,29 @@ async test "content" (t : @test.Test) {
     let args : Json = { "path": "test.txt" }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    json_inspect(output, content={
-      "path": "test.txt",
-      "content": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12",
-      "start_line": 1,
-      "end_line": 12,
-    })
     inspect(
-      output,
+      output.to_message().content(),
+      content=(
+        #|File: test.txt (lines 1-12 (12 lines))
+        #| L01 | line 1
+        #| L02 | line 2
+        #| L03 | line 3
+        #| L04 | line 4
+        #| L05 | line 5
+        #| L06 | line 6
+        #| L07 | line 7
+        #| L08 | line 8
+        #| L09 | line 9
+        #| L10 | line 10
+        #| L11 | line 11
+        #| L12 | line 12
+      ),
+    )
+    inspect(
+      output.to_message().content(),
       content=(
         #|File: test.txt (lines 1-12 (12 lines))
         #| L01 | line 1
@@ -125,11 +136,11 @@ async test "large_file_with_valid_range" (t : @test.Test) {
       "start_line": 100,
       "end_line": 110,
     })
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
     inspect(
-      output,
+      output.to_message().content(),
       content=(
         #|File: large.txt (lines 100-110 (11 lines))
         #| L100 | Line 100: some content here
@@ -165,17 +176,20 @@ async test "line_range" (t : @test.Test) {
     let args : Json = { "path": "lines.txt", "start_line": 2, "end_line": 4 }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    json_inspect(output, content={
-      "path": "lines.txt",
-      "content": "line 1\nline 2\nline 3\nline 4\nline 5",
-      "start_line": 2,
-      "end_line": 4,
-    })
     inspect(
-      output,
+      output.to_message().content(),
+      content=(
+        #|File: lines.txt (lines 2-4 (3 lines))
+        #| L2 | line 2
+        #| L3 | line 3
+        #| L4 | line 4
+      ),
+    )
+    inspect(
+      output.to_message().content(),
       content=(
         #|File: lines.txt (lines 2-4 (3 lines))
         #| L2 | line 2
@@ -198,10 +212,13 @@ async test "directory" (t : @test.Test) {
     let args : Json = { "path": "." }
     let tool = @read_file.new(manager)
     let result = tool.call(args)
-    guard result is Error(_, s) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Failed(_) else {
+      fail("Expected Failed result but got: \{result}")
     }
-    inspect(s, content="Error reading file: Path is a directory: .")
+    inspect(
+      result.to_string(),
+      content="Error reading file: Path is a directory: .",
+    )
   })
 }
 
@@ -244,17 +261,19 @@ async test "invalid-range" (t : @test.Test) {
     let args : Json = { "path": "test.txt", "start_line": 2, "end_line": 1024 }
     let tool = new(manager)
     let result = tool.call(args)
-    guard result is Ok(output) else {
-      fail("Expected Ok result but got: \{result}")
+    guard result is Success(output) else {
+      fail("Expected Success result but got: \{result}")
     }
-    json_inspect(output, content={
-      "path": "test.txt",
-      "content": "line 1\nline 2\nline 3",
-      "start_line": 2,
-      "end_line": 3,
-    })
     inspect(
-      output,
+      output.to_message().content(),
+      content=(
+        #|File: test.txt (lines 2-3 (2 lines))
+        #| L2 | line 2
+        #| L3 | line 3
+      ),
+    )
+    inspect(
+      output.to_message().content(),
       content=(
         #|File: test.txt (lines 2-3 (2 lines))
         #| L2 | line 2

@@ -8,7 +8,7 @@ import {
 // Values
 pub async fn apply_hunks(ArrayView[Hunk], String) -> ApplyResult raise ApplyError
 
-pub fn new(String) -> @tool.Tool[String]
+pub fn new(String) -> @tool.Tool
 
 pub fn parse_patch(String) -> ParsedPatch raise ParseError
 
