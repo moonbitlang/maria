@@ -109,6 +109,149 @@ async test "json" (t : @test.Test) {
 }
 
 ///|
+async test "streaming" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      w.header().set("Content-Type", "text/event-stream")
+      w.write_header(200)
+      w.write(
+        "data: {\"id\":\"chatcmpl-1\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"Hello\"},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-1\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\", World!\"},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-1\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\n",
+      )
+      w.flush()
+      w.write("data: [DONE]\n\n")
+      w.flush()
+      w.close()
+    })
+    let chat_completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[user_message(content="Say hello")],
+        stream=true,
+      ),
+    )
+    guard chat_completion.choices[0].message.content is Some(content) else {
+      fail("Expected message content")
+    }
+    json_inspect(content.contains("Hello, World!"), content=true)
+  })
+}
+
+///|
+async test "streaming_tool_call" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      w.header().set("Content-Type", "text/event-stream")
+      w.write_header(200)
+      w.write(
+        "data: {\"id\":\"chatcmpl-2\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_001\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-2\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"location\\\": \\\"San Francisco\\\"}\"}}]},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-2\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\n",
+      )
+      w.flush()
+      w.write("data: [DONE]\n\n")
+      w.flush()
+      w.close()
+    })
+    let chat_completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[user_message(content="What is the weather?")],
+        stream=true,
+      ),
+    )
+    let tool_calls = chat_completion.choices[0].message.tool_calls
+    json_inspect(tool_calls[0].function.name, content="get_weather")
+    guard tool_calls[0].function.arguments is Some(arguments) else {
+      fail("Expected arguments")
+    }
+    json_inspect(@json.parse(arguments), content={ "location": "San Francisco" })
+  })
+}
+
+///|
+async test "streaming_parallel_tool_call" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      w.header().set("Content-Type", "text/event-stream")
+      w.write_header(200)
+      w.write(
+        "data: {\"id\":\"chatcmpl-3\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"tool_calls\":[{\"index\":0,\"id\":\"call_001\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}},{\"index\":1,\"id\":\"call_002\",\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"arguments\":\"\"}}]},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-3\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"location\\\": \\\"San Francisco\\\"}\"}}]},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-3\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"{\\\"location\\\": \\\"Boston\\\"}\"}}]},\"finish_reason\":null}]}\n\n",
+      )
+      w.flush()
+      w.write(
+        "data: {\"id\":\"chatcmpl-3\",\"object\":\"chat.completion.chunk\",\"created\":1000,\"model\":\"mock-model\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\n",
+      )
+      w.flush()
+      w.write("data: [DONE]\n\n")
+      w.flush()
+      w.close()
+    })
+    let chat_completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[user_message(content="What is the weather?")],
+        stream=true,
+      ),
+    )
+    let tool_calls : Array[ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
+    let tool_calls = tool_calls.map(tc => {
+      guard tc.to_json() is Object(tc_object)
+      tc_object.remove("id")
+      if tc.function.arguments is Some(arguments) {
+        let function = tc_object["function"]
+        guard function is Object(function_object) else {
+          fail("Expected function object")
+        }
+        function_object["arguments"] = @json.parse(arguments)
+      }
+      tc_object.to_json()
+    })
+    tool_calls.sort_by((a, b) => a.stringify().compare(b.stringify()))
+    json_inspect(tool_calls, content=[
+      {
+        "function": {
+          "name": "get_weather",
+          "arguments": { "location": "Boston" },
+        },
+        "type": "function",
+      },
+      {
+        "function": {
+          "name": "get_weather",
+          "arguments": { "location": "San Francisco" },
+        },
+        "type": "function",
+      },
+    ])
+  })
+}
+
+///|
 /// Test tool definition
 test "tool_definition" {
   let tool_def = tool(
