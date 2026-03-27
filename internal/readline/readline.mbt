@@ -117,7 +117,7 @@ pub fn interface(
     output,
     prompt: "",
     old_prompt: "",
-    tab_size: 4,
+    tab_size: DefaultTabSize,
     cursor: 0,
     previous_cursor: 0,
     previous_cursor_cols: 0,
@@ -134,11 +134,11 @@ pub fn interface(
     history_index: -1,
     previous_key: None,
     events: Events::new(),
-    history_manager: HistoryManager::new(1000),
+    history_manager: HistoryManager::new(DefaultHistorySize),
     saw_return_at: 0,
     previous_line: "",
     last_command_errored: false,
-    crlf_delay: 500,
+    crlf_delay: DefaultCrlfDelay,
     is_completion_enabled: false,
     completer: None,
   }
@@ -423,7 +423,7 @@ fn Interface::push_to_undo_stack(
   cursor : Int,
 ) -> Unit {
   self.undo_stack.push_back({ text, cursor })
-  if self.undo_stack.length() > 2048 {
+  if self.undo_stack.length() > MaxUndoStackSize {
     self.undo_stack.pop_front() |> ignore()
   }
 }
@@ -484,6 +484,34 @@ async fn Interface::delete_line_right(self : Interface) -> Unit {
 
 ///|
 const MaxLengthOfKillRing = 32
+
+///|
+/// Maximum number of undo states remembered.
+const MaxUndoStackSize = 2048
+
+///|
+/// Default maximum number of history entries.
+const DefaultHistorySize = 1000
+
+///|
+/// Default delay in milliseconds between CR and LF for CRLF detection.
+const DefaultCrlfDelay : UInt64 = 500
+
+///|
+/// Default number of columns per tab stop.
+const DefaultTabSize = 4
+
+///|
+/// Bit mask for Ctrl modifier in ANSI escape modifier byte.
+const ModifierCtrl = 4
+
+///|
+/// Bit mask for Meta (Alt) modifier in ANSI escape modifier byte.
+const ModifierMeta = 10
+
+///|
+/// Bit mask for Shift modifier in ANSI escape modifier byte.
+const ModifierShift = 1
 
 ///|
 fn Interface::push_to_kill_ring(
@@ -982,9 +1010,9 @@ async fn Interface::emit_keypress(self : Interface) -> Unit {
     }
 
     // Parse the key modifier
-    key.ctrl = (modifier & 4) != 0
-    key.meta = (modifier & 10) != 0
-    key.shift = (modifier & 1) != 0
+    key.ctrl = (modifier & ModifierCtrl) != 0
+    key.meta = (modifier & ModifierMeta) != 0
+    key.shift = (modifier & ModifierShift) != 0
     let code = code.to_bytes()
     match code {
       // xterm/gnome ESC [ letter (with modifier)
