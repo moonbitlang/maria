@@ -35,7 +35,6 @@ test "response_format" {
   }
 }
 
-
 ///|
 #skip
 async test "deepseek" {
@@ -126,4 +125,3 @@ async test "dashscope" {
   }
   json_inspect(content.contains("Hello"), content=true)
 }
-
