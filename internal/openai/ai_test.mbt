@@ -252,6 +252,35 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
 }
 
 ///|
+async test "reasoning_effort_high" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = with_mock_server(mock.group, (_, w) => {
+      let body =
+        #|{"id":"chatcmpl-mock","object":"chat.completion","created":1700000000,"model":"mock-model","choices":[{"index":0,"message":{"role":"assistant","content":"Hello"},"finish_reason":"stop"}]}
+      w.write_header(200)
+      w.write(body)
+      w.close()
+    })
+    let completion = chat(
+      model~,
+      chat_completion(
+        model=model.model_name,
+        messages=[
+          system_message(content="You are a helpful assistant."),
+          user_message(content="Say 'Hello' and nothing else."),
+        ],
+        max_tokens=50,
+        reasoning_effort=High,
+      ),
+    )
+    guard completion.choices[0].message.content is Some(content) else {
+      fail("Expected message content")
+    }
+    json_inspect(content.contains("Hello"), content=true)
+  })
+}
+
+///|
 /// Test tool definition
 test "tool_definition" {
   let tool_def = tool(
