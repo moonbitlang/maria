@@ -297,6 +297,9 @@ fn display_position(
   is_multiline~ : Bool,
   tab_size~ : Int,
 ) -> Position {
+  if col <= 0 {
+    return { cols: 0, rows: 0 }
+  }
   let mut offset = 0
   let mut rows = 0
   loop str[:] {
@@ -604,6 +607,7 @@ async fn Interface::yank_pop(self : Interface) -> Unit {
   if self.yanking && self.kill_ring.length() > 1 {
     self.before_edit(self.line, self.cursor)
     let current = self.kill_ring[self.kill_ring_cursor]
+    guard self.cursor >= current.length() else { return }
     let buffer = @buffer.new()
     buffer.write_bytesview(self.line[:self.cursor - current.length()])
     self.kill_ring_cursor = (self.kill_ring_cursor + 1) %
@@ -807,6 +811,10 @@ async fn Interface::multiline_move(
 ) -> Unit {
   let rows = cursor_pos.rows
   let cols = cursor_pos.cols
+  guard rows >= 0 && rows < split_lines.length() else { return }
+  guard rows + direction >= 0 && rows + direction < split_lines.length() else {
+    return
+  }
   let curr = split_lines[rows]
   let down = direction == 1
   let adj = split_lines[rows + direction]
