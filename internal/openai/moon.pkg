@@ -15,6 +15,7 @@ import {
 import {
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/mock",
+  "moonbitlang/maria/internal/httpx",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/tool",
 } for "test"

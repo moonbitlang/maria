@@ -5,8 +5,3 @@ import {
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
 }
-
-import {
-  "moonbitlang/maria/internal/mock",
-  "moonbitlang/async",
-} for "test"

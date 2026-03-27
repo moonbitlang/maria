@@ -30,10 +30,6 @@ import {
   "moonbitlang/maria/tools/read_file",
   "moonbitlang/x/path" @path,
   "moonbitlang/maria/internal/os",
-  "moonbitlang/maria/job",
-  "moonbitlang/maria/tools/todo",
-  "moonbitlang/maria/tools/list_files",
-  "moonbitlang/maria/tools/execute_command",
 } for "test"
 
 import {
