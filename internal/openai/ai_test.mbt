@@ -1,4 +1,19 @@
 ///|
+fn with_mock_server(
+  group : @async.TaskGroup[Unit],
+  handler : @httpx.Handler,
+) -> @model.Model raise {
+  let server = @httpx.Server::new("127.0.0.1", 0)
+  group.spawn_bg(() => server.serve(handler), no_wait=true)
+  @model.new(
+    api_key="test-key",
+    base_url="http://127.0.0.1:\{server.port()}",
+    name="mock-model",
+    safe_zone_tokens=100000,
+  )
+}
+
+///|
 /// Test tool definition
 test "tool_definition" {
   let tool_def = tool(
