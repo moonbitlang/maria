@@ -1,4 +1,5 @@
 ///|
+/// Manages command history with navigation, size limits, and event notification.
 priv struct HistoryManager {
   history : @deque.Deque[BytesView]
   mut index : Int
@@ -7,6 +8,7 @@ priv struct HistoryManager {
 }
 
 ///|
+/// Create a history manager with the given maximum entry count.
 fn HistoryManager::new(size : Int) -> HistoryManager {
   HistoryManager::{
     history: @deque.new(),
@@ -17,16 +19,19 @@ fn HistoryManager::new(size : Int) -> HistoryManager {
 }
 
 ///|
+/// Whether forward navigation (toward newer entries) is possible.
 fn HistoryManager::can_navigate_to_next(self : HistoryManager) -> Bool {
   self.index > -1 && self.history.length() > 0
 }
 
 ///|
+/// Whether backward navigation (toward older entries) is possible.
 fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
   self.index < self.history.length() - 1
 }
 
 ///|
+/// Remove leading spaces.
 fn BytesView::trim_start(self : BytesView) -> BytesView {
   loop self {
     [' ', .. rest] => continue rest
@@ -35,6 +40,7 @@ fn BytesView::trim_start(self : BytesView) -> BytesView {
 }
 
 ///|
+/// Remove trailing spaces.
 fn BytesView::trim_end(self : BytesView) -> BytesView {
   loop self {
     [.. rest, ' '] => continue rest
@@ -43,11 +49,13 @@ fn BytesView::trim_end(self : BytesView) -> BytesView {
 }
 
 ///|
+/// Remove leading and trailing spaces.
 fn BytesView::trim(self : BytesView) -> BytesView {
   self.trim_start().trim_end()
 }
 
 ///|
+/// Split on `from`, reverse the parts, and rejoin with `to`.
 fn reverse_string(
   line : BytesView,
   from? : Byte = '\r',
@@ -77,6 +85,7 @@ fn reverse_string(
 }
 
 ///|
+/// Add a line to history, returning the normalized form stored.
 fn HistoryManager::add_history(
   self : HistoryManager,
   line : BytesView,
@@ -135,6 +144,7 @@ fn HistoryManager::add_history(
 }
 
 ///|
+/// Move forward in history, skipping entries matching the search prefix.
 fn HistoryManager::navigate_to_next(
   self : HistoryManager,
   substring_search : BytesView,
@@ -155,6 +165,7 @@ fn HistoryManager::navigate_to_next(
 }
 
 ///|
+/// Move backward in history, skipping entries matching the search prefix.
 fn HistoryManager::navigate_to_previous(
   self : HistoryManager,
   substring_search : BytesView,
