@@ -170,7 +170,7 @@ async test "search_files/agentic" (t : @test.Test) {
 ///|
 async test "search_files/with tilde expansion" (t : @test.Test) {
   @mock.run(t, mock => {
-    let home = mock.add_directory("_home")
+    let home = mock.cwd
     home.add_json_tree({
       "test-core": {
         "strconv": {
