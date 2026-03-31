@@ -14,6 +14,7 @@ import {
 
 import {
   "moonbitlang/async",
+  "moonbitlang/async/fs" @fs,
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/file",
