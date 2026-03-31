@@ -15,8 +15,7 @@ pub fn window_size() -> Size raise
 pub struct Size {
   row : Int
   col : Int
-}
-pub impl ToJson for Size
+} derive(ToJson)
 
 // Type aliases
 

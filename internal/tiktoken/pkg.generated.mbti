@@ -5,8 +5,7 @@ package "moonbitlang/maria/internal/tiktoken"
 pub fn cl100k_base() -> Encoding raise
 
 // Errors
-type DecodingError
-pub impl Show for DecodingError
+type DecodingError derive(Show)
 
 // Types and methods
 type Encoding

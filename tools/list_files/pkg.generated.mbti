@@ -13,10 +13,8 @@ pub fn new(@file.Manager) -> @tool.Tool
 // Errors
 
 // Types and methods
-type ListFilesResult
+type ListFilesResult derive(ToJson, @json.FromJson)
 pub impl Show for ListFilesResult
-pub impl ToJson for ListFilesResult
-pub impl @json.FromJson for ListFilesResult
 
 // Type aliases
 

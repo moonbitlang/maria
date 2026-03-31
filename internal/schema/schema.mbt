@@ -73,7 +73,7 @@ pub fn Schema::to_json(self : Schema) -> Map[String, Json] {
       if required is Some(required) {
         result["required"] = Json::array(required.map(Json::string))
       }
-      if !(additional_properties) {
+      if !additional_properties {
         result["additionalProperties"] = false
       }
       result
@@ -101,7 +101,7 @@ pub fn Schema::verify(self : Schema, json : Json) -> Bool {
       let required = @sorted_set.from_array(required.unwrap_or([]))
       for key, value in map {
         if json.get(key) is Some(json) {
-          if !(value.verify(json)) {
+          if !value.verify(json) {
             return false
           }
         } else if required.contains(key) {
@@ -109,7 +109,7 @@ pub fn Schema::verify(self : Schema, json : Json) -> Bool {
         }
       }
       for key, _ in json {
-        if !(map.contains(key)) && !(additionalProperties) {
+        if !map.contains(key) && !additionalProperties {
           return false
         }
       }

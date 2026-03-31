@@ -6,9 +6,7 @@ package "moonbitlang/maria/cmd/main/argument"
 // Errors
 pub(all) suberror InvalidArgument {
   InvalidArgument(String)
-}
-pub impl Show for InvalidArgument
-pub impl ToJson for InvalidArgument
+} derive(Show, ToJson)
 
 // Types and methods
 

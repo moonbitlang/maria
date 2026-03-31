@@ -119,7 +119,7 @@ pub async fn save_credentials(credentials : Credentials) -> Unit {
 ///|
 async fn try_load_from_codex() -> Credentials? {
   let codex_path = get_codex_auth_path()
-  if !(@fsx.exists_as_file(codex_path)) {
+  if !@fsx.exists_as_file(codex_path) {
     return None
   }
   try {

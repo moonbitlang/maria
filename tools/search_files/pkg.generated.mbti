@@ -14,10 +14,8 @@ pub let prompt : String
 // Errors
 
 // Types and methods
-type SearchFilesResult
+type SearchFilesResult derive(ToJson, @json.FromJson)
 pub impl Show for SearchFilesResult
-pub impl ToJson for SearchFilesResult
-pub impl @json.FromJson for SearchFilesResult
 
 // Type aliases
 

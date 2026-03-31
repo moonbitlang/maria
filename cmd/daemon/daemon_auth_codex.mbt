@@ -134,7 +134,7 @@ async fn Daemon::spawn_codex_callback_server(self : Daemon) -> Unit {
     group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
     // Wait for callback or timeout after 5 minutes
     @async.with_timeout(300_000, () => {
-      while !(done.val) {
+      while !done.val {
         @async.sleep(100)
       }
     }) catch {

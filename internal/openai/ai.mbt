@@ -155,7 +155,7 @@ async fn chat_codex(
         current_account_id.val,
         codex_request,
       ) catch {
-        HttpError(code=401, ..) as err if !(has_refreshed.val) => {
+        HttpError(code=401, ..) as err if !has_refreshed.val => {
           logger.info("Received 401, attempting to refresh token")
           has_refreshed.val = true // Mark as refreshed to prevent infinite loop
           // Try refresh first, then re-login if refresh fails
@@ -268,7 +268,7 @@ async fn chat_copilot(
       guard response.code is (200..=299) else {
         let error_body = client.read_all().text()
         // Try to refresh token on 401
-        if response.code == 401 && !(has_refreshed.val) {
+        if response.code == 401 && !has_refreshed.val {
           has_refreshed.val = true // Mark as refreshed to prevent infinite loop
           logger.info("Received 401, attempting to refresh Copilot token")
           let refresh_result : @copilot.Credentials? = Some(

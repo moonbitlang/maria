@@ -73,12 +73,12 @@ fn format_message_content(
       format_content_parts(user_msg.content, lines)
     @openai.ChatCompletionMessageParam::Assistant(assistant_msg) => {
       // Add assistant content
-      if !(assistant_msg.content.is_empty()) {
+      if !assistant_msg.content.is_empty() {
         format_content_parts(assistant_msg.content, lines)
       }
 
       // Handle tool calls
-      if !(assistant_msg.tool_calls.is_empty()) {
+      if !assistant_msg.tool_calls.is_empty() {
         for tool_call in assistant_msg.tool_calls {
           lines.push("")
           let tool_name = tool_call.function.name
@@ -133,7 +133,7 @@ fn format_content_parts(
   for part in content_parts {
     match part {
       @openai.ChatCompletionContentPartParam::Text(text_part) =>
-        if !(text_part.text.is_empty()) {
+        if !text_part.text.is_empty() {
           lines.push(text_part.text)
         }
     }

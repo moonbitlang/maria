@@ -26,36 +26,28 @@ pub enum Message {
   System(String)
   Assistant(String, tool_calls~ : Array[ToolCall])
   Tool(String, tool_call_id~ : String)
-}
+} derive(Eq, Show, ToJson)
 pub fn Message::content(Self) -> String
 pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
 pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
 pub fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
-pub impl Eq for Message
-pub impl Show for Message
-pub impl ToJson for Message
 
 pub struct ToolCall {
   id : String
   name : String
   arguments : String?
-}
+} derive(Eq, Show, ToJson)
 pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
 pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
-pub impl Eq for ToolCall
-pub impl Show for ToolCall
-pub impl ToJson for ToolCall
 
 pub struct Usage {
   input_tokens : Int
   output_tokens : Int
   total_tokens : Int
   cache_read_tokens : Int?
-}
+} derive(Eq, Show)
 pub fn Usage::from_openai(@openai.CompletionUsage) -> Self
 pub fn Usage::to_openai(Self) -> @openai.CompletionUsage
-pub impl Eq for Usage
-pub impl Show for Usage
 
 // Type aliases
 

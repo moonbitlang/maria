@@ -29,24 +29,19 @@ pub async fn start_oauth_flow() -> Credentials
 // Errors
 
 // Types and methods
-type AccessTokenResponse
-pub impl Show for AccessTokenResponse
+type AccessTokenResponse derive(Show)
 
 pub struct CopilotTokenResponse {
   token : String
   expires_at : Int64
-}
-pub impl Show for CopilotTokenResponse
+} derive(Show)
 
 pub(all) struct Credentials {
   github_token : String
   copilot_token : String
   copilot_token_expires_at : Int64
-}
+} derive(Show, ToJson, @json.FromJson)
 pub fn Credentials::is_token_valid(Self, Int64) -> Bool
-pub impl Show for Credentials
-pub impl ToJson for Credentials
-pub impl @json.FromJson for Credentials
 
 pub struct DeviceCodeResponse {
   device_code : String
@@ -54,8 +49,7 @@ pub struct DeviceCodeResponse {
   verification_uri : String
   expires_in : Int
   interval : Int
-}
-pub impl Show for DeviceCodeResponse
+} derive(Show)
 
 // Type aliases
 

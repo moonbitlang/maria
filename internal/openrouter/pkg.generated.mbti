@@ -23,8 +23,7 @@ pub struct Architecture {
   output_modalities : Array[String]
   tokenizer : String
   instruct_type : String?
-}
-pub impl ToJson for Architecture
+} derive(ToJson)
 pub impl @json.FromJson for Architecture
 
 pub struct Model {
@@ -39,8 +38,7 @@ pub struct Model {
   top_provider : TopProvider
   per_request_limits : Json?
   supported_parameters : Array[String]
-}
-pub impl ToJson for Model
+} derive(ToJson)
 pub impl @json.FromJson for Model
 
 pub struct Pricing {
@@ -52,16 +50,14 @@ pub struct Pricing {
   internal_reasoning : String?
   input_cache_read : String?
   input_cache_write : String?
-}
-pub impl ToJson for Pricing
+} derive(ToJson)
 pub impl @json.FromJson for Pricing
 
 pub struct TopProvider {
   context_length : Int?
   max_completion_tokens : Int?
   is_moderated : Bool
-}
-pub impl ToJson for TopProvider
+} derive(ToJson)
 pub impl @json.FromJson for TopProvider
 
 // Type aliases

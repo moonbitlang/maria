@@ -29,7 +29,7 @@ async fn apply_one_hunk(
     AddFile(path~, contents~) => {
       let full_path = resolve_path(cwd, path)
       let parent = Path::dirname(full_path).to_string()
-      if !(parent.is_empty()) {
+      if !parent.is_empty() {
         @fsx.make_directory(parent, recursive=true, exists_ok=true) catch {
           err =>
             raise ApplyError("Failed to create directory \{parent}: \{err}")
@@ -59,7 +59,7 @@ async fn apply_one_hunk(
       }
       if move_path is Some(_) {
         let parent = Path::dirname(dest_path).to_string()
-        if !(parent.is_empty()) {
+        if !parent.is_empty() {
           @fsx.make_directory(parent, recursive=true, exists_ok=true) catch {
             err =>
               raise ApplyError("Failed to create directory \{parent}: \{err}")
@@ -147,7 +147,7 @@ fn apply_chunks(
       lines.insert(start_idx + j, new_line)
     }
   }
-  if lines.length() == 0 || !(lines[lines.length() - 1].is_empty()) {
+  if lines.length() == 0 || !lines[lines.length() - 1].is_empty() {
     lines.push("")
   }
   lines.join("\n")
@@ -218,7 +218,7 @@ fn matches_at_fuzzy(
     return false
   }
   for j in 0..<pattern.length() {
-    if !(fuzzy_equals(lines[pos + j], pattern[j])) {
+    if !fuzzy_equals(lines[pos + j], pattern[j]) {
       return false
     }
   }

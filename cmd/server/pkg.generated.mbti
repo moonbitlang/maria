@@ -38,14 +38,10 @@ pub struct RegisterRequest {
   cwd : String
   web_search : Bool
   model : String
-}
-pub impl ToJson for RegisterRequest
-pub impl @json.FromJson for RegisterRequest
+} derive(ToJson, @json.FromJson)
 
 pub(all) struct RegisterResponse {
-}
-pub impl ToJson for RegisterResponse
-pub impl @json.FromJson for RegisterResponse
+} derive(ToJson, @json.FromJson)
 
 type Server
 pub async fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid) -> Self

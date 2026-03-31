@@ -40,34 +40,27 @@ pub(all) struct Credentials {
   accessToken : String
   refreshToken : String
   accountId : String
-}
-pub impl Show for Credentials
-pub impl ToJson for Credentials
-pub impl @json.FromJson for Credentials
+} derive(Show, ToJson, @json.FromJson)
 
 pub struct IdTokenClaims {
   email : String
   chatgptAccountId : String
   chatgptPlanType : String
-}
-pub impl Show for IdTokenClaims
+} derive(Show)
 
 pub struct PkceCodes {
   code_verifier : String
   code_challenge : String
-}
+} derive(Show)
 pub fn PkceCodes::new(code_verifier~ : String, code_challenge~ : String) -> Self
-pub impl Show for PkceCodes
 
-type RefreshResponse
-pub impl Show for RefreshResponse
+type RefreshResponse derive(Show)
 
 pub struct TokenResponse {
   id_token : String
   access_token : String
   refresh_token : String
-}
-pub impl Show for TokenResponse
+} derive(Show)
 
 // Type aliases
 
