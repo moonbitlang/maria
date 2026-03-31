@@ -10,20 +10,18 @@ pub let version : Version
 pub struct Build {
   number : Int
   commit : String
-}
-pub impl ToJson for Build
+} derive(ToJson)
 
 pub struct Version {
   major : Int
   minor : Int
   patch : Int
   build : Build?
-}
+} derive(ToJson)
 pub fn Version::parse(String) -> Self raise
 pub impl Compare for Version
 pub impl Eq for Version
 pub impl Show for Version
-pub impl ToJson for Version
 
 // Type aliases
 

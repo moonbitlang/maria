@@ -17,47 +17,39 @@ pub let tool_instructions : String
 // Errors
 pub(all) suberror ApplyError {
   ApplyError(String)
-}
-pub impl Show for ApplyError
+} derive(Show)
 
 pub(all) suberror ParseError {
   InvalidPatch(String)
   InvalidHunk(message~ : String, line_number~ : Int)
-}
-pub impl Show for ParseError
+} derive(Show)
 
 // Types and methods
 pub struct ApplyResult {
   added : Array[String]
   modified : Array[String]
   deleted : Array[String]
-}
+} derive(Show)
 pub fn ApplyResult::new() -> Self
 pub fn ApplyResult::summary(Self) -> String
-pub impl Show for ApplyResult
 
 pub(all) enum Hunk {
   AddFile(path~ : String, contents~ : String)
   DeleteFile(path~ : String)
   UpdateFile(path~ : String, move_path~ : String?, chunks~ : Array[UpdateFileChunk])
-}
-pub impl Eq for Hunk
-pub impl Show for Hunk
+} derive(Eq, Show)
 
 pub struct ParsedPatch {
   patch : String
   hunks : Array[Hunk]
-}
-pub impl Show for ParsedPatch
+} derive(Show)
 
 pub struct UpdateFileChunk {
   change_context : String?
   old_lines : Array[String]
   new_lines : Array[String]
   is_end_of_file : Bool
-}
-pub impl Eq for UpdateFileChunk
-pub impl Show for UpdateFileChunk
+} derive(Eq, Show)
 
 // Type aliases
 

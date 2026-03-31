@@ -27,7 +27,7 @@ test "int64/small" {
 ///|
 test "int64/min" {
   inspect(
-    @jsonx.int64(@int64.min_value).stringify(),
+    @jsonx.int64(@int64.MIN_VALUE).stringify(),
     content="-9223372036854775808",
   )
 }
@@ -35,7 +35,7 @@ test "int64/min" {
 ///|
 test "int64/max" {
   inspect(
-    @jsonx.int64(@int64.max_value).stringify(),
+    @jsonx.int64(@int64.MAX_VALUE).stringify(),
     content="9223372036854775807",
   )
 }
@@ -118,7 +118,7 @@ test "int64/round-trip" {
 
 ///|
 test "int64/round-trip-max" {
-  let original : Int64 = @int64.max_value
+  let original : Int64 = @int64.MAX_VALUE
   let json = @jsonx.int64(original)
   let data : Int64Data = @json.from_json({ "value": json })
   inspect(data.value, content="9223372036854775807")

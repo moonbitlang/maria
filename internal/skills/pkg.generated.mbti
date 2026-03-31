@@ -25,9 +25,7 @@ pub struct Skill {
   allowed_tools : Array[String]
   metadata : Json?
   location : String
-}
-pub impl Show for Skill
-pub impl ToJson for Skill
+} derive(Show, ToJson)
 
 // Type aliases
 

@@ -47,12 +47,7 @@ pub struct DirectoryEntry {
   path : String
   name : String
   kind : FileKind
-}
-pub impl Compare for DirectoryEntry
-pub impl Eq for DirectoryEntry
-pub impl Hash for DirectoryEntry
-pub impl Show for DirectoryEntry
-pub impl ToJson for DirectoryEntry
+} derive(Compare, Eq, Hash, Show, ToJson)
 
 pub enum FileKind {
   Unknown
@@ -63,12 +58,7 @@ pub enum FileKind {
   Pipe
   BlockDevice
   CharDevice
-}
-pub impl Compare for FileKind
-pub impl Eq for FileKind
-pub impl Hash for FileKind
-pub impl Show for FileKind
-pub impl ToJson for FileKind
+} derive(Compare, Eq, Hash, Show, ToJson)
 
 type FileRead
 pub fn FileRead::close(Self) -> Unit

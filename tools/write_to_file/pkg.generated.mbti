@@ -14,10 +14,8 @@ pub fn new(String) -> @tool.Tool
 // Errors
 
 // Types and methods
-type Result
+type Result derive(ToJson, @json.FromJson)
 pub impl Show for Result
-pub impl ToJson for Result
-pub impl @json.FromJson for Result
 
 // Type aliases
 

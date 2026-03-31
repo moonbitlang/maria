@@ -18,25 +18,17 @@ pub fn parse_todo_args(Json) -> TodoArgs raise TodoArgsError
 pub let prompt : String
 
 // Errors
-type TodoArgsError
-pub impl Show for TodoArgsError
+type TodoArgsError derive(Show)
 
 // Types and methods
-type Items
-pub impl Eq for Items
-pub impl ToJson for Items
-pub impl @json.FromJson for Items
+type Items derive(Eq, ToJson, @json.FromJson)
 
 type Todo
 
-type TodoArgs
-pub impl Show for TodoArgs
-pub impl ToJson for TodoArgs
+type TodoArgs derive(Show, ToJson)
 
-type TodoResult
+type TodoResult derive(ToJson, @json.FromJson)
 pub impl Show for TodoResult
-pub impl ToJson for TodoResult
-pub impl @json.FromJson for TodoResult
 
 // Type aliases
 

@@ -12,6 +12,7 @@ import {
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
+  "moonbitlang/core/string",
 } for "test"
 
 options(

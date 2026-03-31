@@ -30,10 +30,9 @@ pub async fn JsonError::write(Self, ResponseWriter) -> Unit
 pub struct Event {
   event : String?
   data : String
-}
+} derive(ToJson)
 pub fn Event::new(event? : String, data~ : String) -> Self
 pub impl Show for Event
-pub impl ToJson for Event
 
 type EventStreamReader
 pub fn EventStreamReader::new(&@io.Reader) -> Self
@@ -89,13 +88,9 @@ pub(all) enum Method {
   Options
   Trace
   Patch
-}
+} derive(Compare, Eq, Hash, ToJson)
 pub fn Method::to_http(Self) -> @http.RequestMethod
-pub impl Compare for Method
-pub impl Eq for Method
-pub impl Hash for Method
 pub impl Show for Method
-pub impl ToJson for Method
 
 pub(all) struct Middleware((Handler) -> Handler)
 pub fn Middleware::chain(Self, Self) -> Self

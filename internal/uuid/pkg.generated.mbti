@@ -16,24 +16,19 @@ pub let nil : Uuid
 pub fn parse(StringView) -> Uuid raise ParseError
 
 // Errors
-type ParseError
-pub impl Show for ParseError
-pub impl ToJson for ParseError
+type ParseError derive(Show, ToJson)
 
 // Types and methods
 type Generator
 pub fn Generator::v4(Self) -> Uuid
 
-type Uuid
+type Uuid derive(Compare, Eq, Hash)
 #as_free_fn
 pub fn Uuid::of_bytes(Bytes) -> Self
 pub fn Uuid::to_bytes(Self) -> Bytes
 pub fn Uuid::to_string(Self) -> String
 pub fn Uuid::variant(Self) -> Variant
 pub fn Uuid::version(Self) -> Version?
-pub impl Compare for Uuid
-pub impl Eq for Uuid
-pub impl Hash for Uuid
 pub impl Show for Uuid
 pub impl ToJson for Uuid
 pub impl @json.FromJson for Uuid
@@ -43,9 +38,7 @@ pub enum Variant {
   RFC9562(Version)
   ReservedMicrosoft
   ReservedFuture
-}
-pub impl Show for Variant
-pub impl ToJson for Variant
+} derive(Show, ToJson)
 
 pub(all) enum Version {
   V0
@@ -64,9 +57,7 @@ pub(all) enum Version {
   V13
   V14
   V15
-}
-pub impl Show for Version
-pub impl ToJson for Version
+} derive(Show, ToJson)
 
 // Type aliases
 

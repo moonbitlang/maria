@@ -22,16 +22,12 @@ pub struct Rule {
   always_apply : Bool
   content : String
   source : Source
-}
-pub impl Show for Rule
-pub impl ToJson for Rule
+} derive(Show, ToJson)
 
 pub enum Source {
   Global
   Local
-}
-pub impl Show for Source
-pub impl ToJson for Source
+} derive(Show, ToJson)
 
 // Type aliases
 

@@ -180,7 +180,7 @@ async fn Loader::load_codex_model(
 ) -> Model? {
   let credentials = @codex.load_credentials() catch {
     _ => {
-      if not(allow_auto_login) {
+      if !allow_auto_login {
         return None
       }
       logger.info("Codex OAuth credentials not found, starting login...")
@@ -218,7 +218,7 @@ async fn Loader::load_copilot_model(
 ) -> Model? {
   let credentials = @copilot.get_valid_credentials() catch {
     _ => {
-      if not(allow_auto_login) {
+      if !allow_auto_login {
         return None
       }
       logger.info("Copilot credentials not found, starting login...")

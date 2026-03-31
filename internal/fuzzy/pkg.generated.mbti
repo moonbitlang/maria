@@ -12,8 +12,7 @@ pub struct MatchResult {
   length : Int
   start_line : Int
   end_line : Int
-}
-pub impl ToJson for MatchResult
+} derive(ToJson)
 
 // Type aliases
 

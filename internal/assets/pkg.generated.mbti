@@ -14,9 +14,7 @@ pub async fn install_assets(String, Array[Asset], String, String, @pino.Logger) 
 pub(all) struct Asset {
   path : String
   content : String
-}
-pub impl Show for Asset
-pub impl ToJson for Asset
+} derive(Show, ToJson)
 
 // Type aliases
 

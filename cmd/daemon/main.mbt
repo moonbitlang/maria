@@ -135,7 +135,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut to_detach = false
   loop args {
     ["-p" | "--port", p, .. args] => {
-      port = @strconv.parse_int(p)
+      port = @string.parse_int(p)
       continue args
     }
     ["-s" | "--serve", s, .. args] => {

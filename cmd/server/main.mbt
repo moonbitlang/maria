@@ -35,7 +35,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         continue args
       }
     ["-p" | "--port", p, .. args] => {
-      port = @strconv.parse_int(p)
+      port = @string.parse_int(p)
       continue args
     }
     ["--register-host", d, .. args] =>
@@ -46,7 +46,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         continue args
       }
     ["--register-port", dp, .. args] => {
-      register_port = Some(@strconv.parse_int(dp))
+      register_port = Some(@string.parse_int(dp))
       continue args
     }
     ["--register-id", du, .. args] =>

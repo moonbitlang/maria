@@ -46,7 +46,7 @@ async test "exit" (t : @test.Test) {
         json_inspect(@spawn.spawn(exec, [args, "42"]).status, content=42)
       }
       [_, _, exit_code] => {
-        @os.exit(@strconv.parse_int(exit_code))
+        @os.exit(@string.parse_int(exit_code))
         fail("unreachable")
       }
       _ => fail("Invalid arguments")

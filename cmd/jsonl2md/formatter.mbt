@@ -275,13 +275,13 @@ fn recover_diagnostics(content : String) -> String raise {
           ":[[:space:]]+",
           _
         ) => {
-          let line = @strconv.parse_int(line) - 1
+          let line = @string.parse_int(line) - 1
           let context_start = @cmp.maximum(0, line - ContextLines)
           let context_end = @cmp.minimum(
             source_lines.length() - 1,
             line + ContextLines,
           )
-          let column = @strconv.parse_int(column)
+          let column = @string.parse_int(column)
           let line_number = (line + 1).to_string()
           let line_number_width = (line + 1).to_string().length()
           let indent = " ".repeat(line_number_width)

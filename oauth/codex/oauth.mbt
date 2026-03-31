@@ -275,7 +275,7 @@ pub async fn start_oauth_flow() -> Credentials raise Error {
   @async.with_task_group(group => {
     group.spawn_bg(() => server.serve(router.handler()), no_wait=true)
     @async.with_timeout(300_000, error=OAuthError("Login timeout"), () => {
-      while not(done.val) {
+      while !done.val {
         @async.sleep(100)
       }
     })

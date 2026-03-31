@@ -16,12 +16,10 @@ type AgentTool
 pub async fn AgentTool::call(Self, Json) -> ToolResult noraise
 pub fn AgentTool::desc(Self) -> ToolDesc
 
-pub(all) struct JsonSchema(Json)
+pub(all) struct JsonSchema(Json) derive(Eq, Show)
 pub fn JsonSchema::from_json(Json) -> Self
 #deprecated
 pub fn JsonSchema::inner(Self) -> Json
-pub impl Eq for JsonSchema
-pub impl Show for JsonSchema
 pub impl ToJson for JsonSchema
 
 pub struct Tool {
@@ -38,11 +36,8 @@ pub struct ToolDesc {
   description : String
   name : String
   schema : JsonSchema
-}
+} derive(Eq, Show, ToJson)
 pub fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
-pub impl Eq for ToolDesc
-pub impl Show for ToolDesc
-pub impl ToJson for ToolDesc
 
 pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
 #deprecated

@@ -29,6 +29,7 @@ import {
   "moonbitlang/maria/oauth/copilot",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
+  "moonbitlang/core/string",
   "moonbitlang/core/strconv",
   "moonbitlang/core/test",
   "moonbitlang/maria/internal/pino",

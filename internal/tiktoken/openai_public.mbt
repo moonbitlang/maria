@@ -7,7 +7,7 @@ pub fn cl100k_base() -> Encoding raise {
     }
     guard line.split(" ").collect() is [token, rank]
     let token = @base64.decode(token.to_string())
-    mergeable_ranks[token] = @strconv.parse_int(rank)
+    mergeable_ranks[token] = @string.parse_int(rank)
   }
   let special_tokens = {
     "<|endoftext|>": 100257,

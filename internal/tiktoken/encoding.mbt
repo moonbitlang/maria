@@ -45,7 +45,7 @@ pub fn Encoding::special_tokens(self : Encoding, piece : String) -> Int? {
 
 ///|
 fn arg_min(vec : Array[Int]) -> Int {
-  let mut value = @int.max_value
+  let mut value = @int.MAX_VALUE
   let mut index = -1
   for i = 0; i < vec.length(); i = i + 1 {
     if vec[i] < value {
@@ -65,7 +65,7 @@ fn Encoding::lookup(
   for b in piece {
     let token = match self.encoder.get([b]) {
       Some(index) => index
-      None => @int.max_value
+      None => @int.MAX_VALUE
     }
     tokens.push(token)
   }
@@ -74,7 +74,7 @@ fn Encoding::lookup(
 ///|
 fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
   let pieces = tokens.map(t => self.decoder[t])
-  let rank = Array::make(pieces.length() - 1, @int.max_value)
+  let rank = Array::make(pieces.length() - 1, @int.MAX_VALUE)
   for i = 0; i < pieces.length() - 1; i = i + 1 {
     let l = pieces[i]
     let r = pieces[i + 1]
@@ -98,7 +98,7 @@ fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
       if self.encoder.get(l + r) is Some(token) {
         rank[index - 1] = token
       } else {
-        rank[index - 1] = @int.max_value
+        rank[index - 1] = @int.MAX_VALUE
       }
     }
     // merge right
@@ -108,7 +108,7 @@ fn Encoding::merge(self : Encoding, tokens : Array[Int]) -> Unit {
       if self.encoder.get(l + r) is Some(token) {
         rank[index] = token
       } else {
-        rank[index] = @int.max_value
+        rank[index] = @int.MAX_VALUE
       }
     }
     index = arg_min(rank)

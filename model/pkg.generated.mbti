@@ -91,27 +91,20 @@ pub struct Model {
   account_id : String?
   refresh_token : String?
   id_token : String?
-}
+} derive(Eq, Show, ToJson)
 #as_free_fn
 pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool, access_token? : String, account_id? : String, refresh_token? : String, id_token? : String) -> Self
-pub impl Eq for Model
-pub impl Show for Model
-pub impl ToJson for Model
 pub impl @json.FromJson for Model
 
 pub(all) enum Provider {
   OpenAI
   CodexOAuth
   Copilot
-}
-pub impl Eq for Provider
-pub impl Show for Provider
+} derive(Eq, Show)
 
 pub(all) enum Type {
   SaaS(Provider)
-}
-pub impl Eq for Type
-pub impl Show for Type
+} derive(Eq, Show)
 pub impl ToJson for Type
 pub impl @json.FromJson for Type
 

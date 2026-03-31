@@ -237,8 +237,8 @@ fn WidthInfo::set_emoji_presentation(self : WidthInfo) -> WidthInfo {
     (self.0 & 0b1001_0000_0000_0000) == 0b0001_0000_0000_0000 {
     WidthInfo(
       (self.0 | variation_selector_16_width_info.0) &
-      (variation_selector_15_width_info.0 ^ @uint16.max_value) &
-      (variation_selector_1_or_2_width_info.0 ^ @uint16.max_value),
+      (variation_selector_15_width_info.0 ^ @uint16.MAX_VALUE) &
+      (variation_selector_1_or_2_width_info.0 ^ @uint16.MAX_VALUE),
     )
   } else {
     variation_selector_16_width_info
@@ -248,7 +248,7 @@ fn WidthInfo::set_emoji_presentation(self : WidthInfo) -> WidthInfo {
 ///|
 fn WidthInfo::unset_emoji_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
-    WidthInfo(self.0 & (variation_selector_16_width_info.0 ^ @uint16.max_value))
+    WidthInfo(self.0 & (variation_selector_16_width_info.0 ^ @uint16.MAX_VALUE))
   } else {
     default_width_info
   }
@@ -265,8 +265,8 @@ fn WidthInfo::set_text_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
       (self.0 | variation_selector_15_width_info.0) &
-      (variation_selector_16_width_info.0 ^ @uint16.max_value) &
-      (variation_selector_1_or_2_width_info.0 ^ @uint16.max_value),
+      (variation_selector_16_width_info.0 ^ @uint16.MAX_VALUE) &
+      (variation_selector_1_or_2_width_info.0 ^ @uint16.MAX_VALUE),
     )
   } else {
     variation_selector_15_width_info
@@ -276,7 +276,7 @@ fn WidthInfo::set_text_presentation(self : WidthInfo) -> WidthInfo {
 ///|
 fn WidthInfo::unset_text_presentation(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
-    WidthInfo(self.0 & (variation_selector_15_width_info.0 ^ @uint16.max_value))
+    WidthInfo(self.0 & (variation_selector_15_width_info.0 ^ @uint16.MAX_VALUE))
   } else {
     default_width_info
   }
@@ -293,8 +293,8 @@ fn WidthInfo::set_vs1_2(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
       (self.0 | variation_selector_1_or_2_width_info.0) &
-      (variation_selector_15_width_info.0 ^ @uint16.max_value) &
-      (variation_selector_16_width_info.0 ^ @uint16.max_value),
+      (variation_selector_15_width_info.0 ^ @uint16.MAX_VALUE) &
+      (variation_selector_16_width_info.0 ^ @uint16.MAX_VALUE),
     )
   } else {
     variation_selector_1_or_2_width_info
@@ -305,7 +305,7 @@ fn WidthInfo::set_vs1_2(self : WidthInfo) -> WidthInfo {
 fn WidthInfo::unset_vs1_2(self : WidthInfo) -> WidthInfo {
   if (self.0 & ligature_transparent_mask) == ligature_transparent_mask {
     WidthInfo(
-      self.0 & (variation_selector_1_or_2_width_info.0 ^ @uint16.max_value),
+      self.0 & (variation_selector_1_or_2_width_info.0 ^ @uint16.MAX_VALUE),
     )
   } else {
     default_width_info

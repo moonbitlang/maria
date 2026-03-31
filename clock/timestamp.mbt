@@ -85,7 +85,7 @@ pub impl @json.FromJson for Timestamp with from_json(
     }
     Number(_, repr=Some(num_str)) | String(num_str) =>
       Timestamp(
-        @strconv.parse_int64(num_str) catch {
+        @string.parse_int64(num_str) catch {
           error =>
             raise @json.JsonDecodeError(
               (

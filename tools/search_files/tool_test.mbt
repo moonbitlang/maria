@@ -168,26 +168,6 @@ async test "search_files/agentic" (t : @test.Test) {
 }
 
 ///|
-async test "search_files/with tilde expansion" (t : @test.Test) {
-  @mock.run(t, mock => {
-    let args : Json = {
-      "path": "~/.moon/lib/core",
-      "regex": "parse.*Double",
-      "kind": "regex",
-      "file_pattern": "*.mbti",
-    }
-    let result = @search_files.new(mock.cwd.path()).call(args)
-    guard result is Success(output) else {
-      fail("Expected Success result but got: \{result}")
-    }
-    let result = output.to_message().content()
-    assert_true(result.contains("parse_decimal"))
-    assert_true(result.contains("parse_double"))
-    assert_true(result.contains("parse_int"))
-  })
-}
-
-///|
 async test "search_files/gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())

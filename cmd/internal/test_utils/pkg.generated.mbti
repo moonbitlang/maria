@@ -20,9 +20,8 @@ pub fn redact_events(Array[ServerEvent]) -> Array[ServerEvent]
 pub(all) enum ServerEvent {
   MariaQueuedMessagesSynchronized(Array[Json])
   Maria(@event.Event)
-}
+} derive(ToJson)
 pub async fn ServerEvent::collect_events(@http.Client, stop_at_cancel? : Bool) -> Array[Self]
-pub impl ToJson for ServerEvent
 pub impl @httpx.FromEvent for ServerEvent
 
 // Type aliases

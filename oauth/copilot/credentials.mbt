@@ -34,7 +34,7 @@ pub async fn save_credentials(credentials : Credentials) -> Unit {
 ///|
 pub async fn load_credentials() -> Credentials raise Error {
   let path = get_credentials_path()
-  if not(@fsx.exists_as_file(path)) {
+  if !@fsx.exists_as_file(path) {
     raise ParseError("Copilot credentials file not found")
   }
   let content = @fsx.read_file(path)

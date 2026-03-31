@@ -13,11 +13,9 @@ pub suberror InvalidJobId {
 }
 
 // Types and methods
-pub(all) struct Id(Int)
+pub(all) struct Id(Int) derive(Eq, Hash)
 #deprecated
 pub fn Id::inner(Self) -> Int
-pub impl Eq for Id
-pub impl Hash for Id
 pub impl Show for Id
 pub impl ToJson for Id
 pub impl @json.FromJson for Id
