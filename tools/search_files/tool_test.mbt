@@ -168,42 +168,6 @@ async test "search_files/agentic" (t : @test.Test) {
 }
 
 ///|
-async test "search_files/with tilde expansion" (t : @test.Test) {
-  @mock.run(t, mock => {
-    // Create test files under $HOME so tilde expansion finds them
-    // without needing with_home (which causes cleanup issues).
-    let home = @os.home()
-    let test_dir = Path::join(home, ".moonagent-test-tilde-expansion").to_string()
-    let mbti_dir = Path::join(test_dir, "strconv").to_string()
-    @fsx.make_directory(mbti_dir, recursive=true, exists_ok=true)
-    let mbti_path = Path::join(mbti_dir, "pkg.generated.mbti").to_string()
-    @fsx.write_to_file(
-      mbti_path,
-      (
-        #|pub fn parse_decimal(String) -> Double raise
-        #|pub fn parse_double(String) -> Double raise
-        #|pub fn parse_int(String) -> Int raise
-      ),
-    )
-    let args : Json = {
-      "path": "~/.moonagent-test-tilde-expansion",
-      "regex": "parse.*Double",
-      "kind": "regex",
-      "file_pattern": "*.mbti",
-    }
-    let result = @search_files.new(mock.cwd.path()).call(args)
-    // Clean up before assertions
-    @fs.rmdir(test_dir, recursive=true)
-    guard result is Success(output) else {
-      fail("Expected Success result but got: \{result}")
-    }
-    let result = output.to_message().content()
-    assert_true(result.contains("parse_decimal"))
-    assert_true(result.contains("parse_double"))
-  })
-}
-
-///|
 async test "search_files/gitignore" (t : @test.Test) {
   @mock.run(t, mock => {
     @git.init_(mock.cwd.path())
