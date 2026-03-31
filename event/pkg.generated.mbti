@@ -46,6 +46,7 @@ pub(all) enum EventDesc {
   Cancelled
   Failed(Json)
   Pruned(id~ : @uuid.Uuid)
+  ContextCompacted(summary~ : String)
 }
 pub impl Eq for EventDesc
 pub impl Show for EventDesc
