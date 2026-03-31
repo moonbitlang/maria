@@ -38,7 +38,7 @@ pub fn as_int64(
   match json {
     Number(number, repr=None) => number.to_int64()
     Number(_, repr=Some(str)) =>
-      @strconv.parse_int64(str) catch {
+      @string.parse_int64(str) catch {
         error =>
           raise @json.JsonDecodeError(
             (path, "Int64::as_int64: parsing failure \{error}"),

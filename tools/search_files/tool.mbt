@@ -352,7 +352,7 @@ async fn search_files_impl(
         let path_result = check_path(absolute_search_path)
         let exists = path_result.0
         let is_file = path_result.1
-        if not(exists) {
+        if !(exists) {
           @tool.failed("Error: Directory not found: \{search_path}")
         } else if is_file {
           @tool.failed(
@@ -384,7 +384,7 @@ async fn search_files_impl(
         let path_result = check_path(absolute_search_path)
         let exists = path_result.0
         let is_file = path_result.1
-        if not(exists) {
+        if !(exists) {
           @tool.failed("Error: Directory not found: \{search_path}")
         } else if is_file {
           @tool.failed(
@@ -417,7 +417,7 @@ async fn search_files_impl(
         let path_result = check_path(absolute_search_path)
         let exists = path_result.0
         let is_file = path_result.1
-        if not(exists) {
+        if !(exists) {
           @tool.failed("Error: Search path not found: \{search_path}")
         } else {
           // Compile regex

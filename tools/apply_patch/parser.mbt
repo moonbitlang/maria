@@ -125,7 +125,7 @@ fn parse_one_hunk(
         parsed_lines += 1
         continue
       }
-      if line.has_prefix("***") && not(line.has_prefix(EOF_MARKER)) {
+      if line.has_prefix("***") && !(line.has_prefix(EOF_MARKER)) {
         break
       }
       let (chunk, chunk_lines) = parse_update_chunk(
@@ -138,7 +138,7 @@ fn parse_one_hunk(
       i += chunk_lines
       parsed_lines += chunk_lines
     }
-    guard not(chunks.is_empty()) else {
+    guard !(chunks.is_empty()) else {
       raise InvalidHunk(
         message="Update file hunk for path '\{path}' is empty",
         line_number~,

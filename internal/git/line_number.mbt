@@ -111,10 +111,10 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
           "[[:space:]]+@@",
           _
         ) => {
-          let original_start = @strconv.parse_int(os)
-          let original_count = @strconv.parse_int(oc)
-          let modified_start = @strconv.parse_int(ms)
-          let modified_count = @strconv.parse_int(mc)
+          let original_start = @string.parse_int(os)
+          let original_count = @string.parse_int(oc)
+          let modified_start = @string.parse_int(ms)
+          let modified_count = @string.parse_int(mc)
           state = Some({
             original_start,
             original_line: original_start,

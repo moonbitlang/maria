@@ -21,7 +21,7 @@ pub impl @json.FromJson for Model with from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Model raise @json.JsonDecodeError {
-  guard json is @json.Object(json) else {
+  guard json is Object(json) else {
     raise @json.JsonDecodeError(
       (path, "\{PackageName}.Model::from_json: expected object"),
     )
@@ -70,7 +70,7 @@ pub impl @json.FromJson for Model with from_json(
     }
     match created_json {
       Number(_, repr=Some(created_repr)) =>
-        @strconv.parse_int64(created_repr) catch {
+        @string.parse_int64(created_repr) catch {
           error =>
             raise @json.JsonDecodeError(
               (
@@ -80,7 +80,7 @@ pub impl @json.FromJson for Model with from_json(
             )
         }
       Number(created_number, repr=None) =>
-        @strconv.parse_int64(created_number.to_string()) catch {
+        @string.parse_int64(created_number.to_string()) catch {
           error =>
             raise @json.JsonDecodeError(
               (
@@ -196,7 +196,7 @@ pub impl @json.FromJson for Architecture with from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Architecture raise @json.JsonDecodeError {
-  guard json is @json.Object(json) else {
+  guard json is Object(json) else {
     raise @json.JsonDecodeError(
       (path, "\{PackageName}.Architecture::from_json: expected object"),
     )
@@ -273,7 +273,7 @@ pub impl @json.FromJson for Pricing with from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Pricing raise @json.JsonDecodeError {
-  guard json is @json.Object(json) else {
+  guard json is Object(json) else {
     raise @json.JsonDecodeError(
       (path, "\{PackageName}.Pricing::from_json: expected object"),
     )
@@ -375,7 +375,7 @@ pub impl @json.FromJson for TopProvider with from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> TopProvider raise @json.JsonDecodeError {
-  guard json is @json.Object(json) else {
+  guard json is Object(json) else {
     raise @json.JsonDecodeError(
       (path, "\{PackageName}.TopProvider::from_json: expected object"),
     )
