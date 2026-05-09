@@ -27,7 +27,7 @@ pub let version : Version = try! Version::parse(version_string)
 
 ///|
 pub fn Version::parse(string : String) -> Version raise {
-  lexmatch string {
+  lexmatch string with longest {
     (
       ("[[:digit:]]+" as major)
       "\."
