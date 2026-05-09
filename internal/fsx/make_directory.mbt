@@ -12,7 +12,7 @@ pub async fn make_directory(
 ) -> Unit {
   let dirs = []
   for dir = path {
-    let dir = dir.to_string()
+    let dir = dir.to_owned()
     if dir == "." || dir == "" || @fs.exists(dir) {
       break
     }

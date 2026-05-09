@@ -8,7 +8,7 @@ fn Todo::todos(self : Todo) -> ArrayView[Item] {
 
 ///|
 fn Config::uuid(self : Config) -> String {
-  self.uuid.v4().to_string()[:8].to_string()
+  self.uuid.v4().to_string()[:8].to_owned()
 }
 
 ///|
@@ -63,7 +63,7 @@ pub fn new(
   cwd~ : StringView,
 ) -> Todo {
   Todo::{
-    config: { uuid, clock, cwd: cwd.to_string() },
+    config: { uuid, clock, cwd: cwd.to_owned() },
     items: {
       todos: [],
       created_at: clock.now_str(),
@@ -245,7 +245,7 @@ fn Items::parse(
       let trimmed = task_content.trim(char_set=" \t\r\n")
       if trimmed.length() > 0 {
         let todo = Item::new(
-          content=trimmed.to_string(),
+          content=trimmed.to_owned(),
           notes?,
           priority~,
           status=Pending,
@@ -268,7 +268,7 @@ fn Items::parse(
       let clean_line = remove_list_prefixes(trimmed_line)
       if clean_line.length() > 0 {
         let todo = Item::new(
-          content=clean_line.to_string(),
+          content=clean_line.to_owned(),
           notes?,
           priority~,
           status=Pending,

@@ -90,7 +90,7 @@ fn apply_chunks(
 ) -> String raise ApplyError {
   let lines : Array[String] = original
     .split("\n")
-    .map(fn(sv) { sv.to_string() })
+    .map(fn(sv) { sv.to_owned() })
     .collect()
   if lines.length() > 0 && lines[lines.length() - 1].is_empty() {
     let _ = lines.pop()

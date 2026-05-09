@@ -72,7 +72,7 @@ pub async fn detach(
   }
   if serve is Some(serve) {
     args.push("--serve")
-    args.push(serve.to_string())
+    args.push(serve.to_owned())
   }
   if exec_path is Some(exec_path) {
     args.push(exec_path)

@@ -520,7 +520,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
     (event : @event.Event) =>
       match event.desc {
         AssistantMessage(content, tool_calls~, ..) => {
-          let content = content.trim(char_set=" \n\r\t").to_string()
+          let content = content.trim(char_set=" \n\r\t").to_owned()
           let title = content
             .split("\n")
             .drop_while(line => line.is_blank())

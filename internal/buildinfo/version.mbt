@@ -59,7 +59,7 @@ pub fn Version::parse(string : String) -> Version raise {
         major,
         minor,
         patch,
-        build: Some({ number: build_number, commit: commit.to_string() }),
+        build: Some({ number: build_number, commit: commit.to_owned() }),
       }
     }
     _ => fail("Invalid version string format: " + string)

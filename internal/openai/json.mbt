@@ -104,7 +104,7 @@ pub impl ToChatCompletionMessageParamContent for String with to_chat_completion_
 pub impl ToChatCompletionMessageParamContent for StringView with to_chat_completion_message_param_content(
   self : StringView,
 ) -> Array[ChatCompletionContentPartParam] {
-  [text_content_part(self.to_string())]
+  [text_content_part(self.to_owned())]
 }
 
 ///|

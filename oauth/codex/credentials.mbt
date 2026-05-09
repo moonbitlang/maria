@@ -37,7 +37,7 @@ fn parse_jwt(token : String) -> Json raise Error {
   if parts.length() != 3 {
     raise ParseError("Invalid JWT format")
   }
-  let padded = add_base64_padding(parts[1].to_string())
+  let padded = add_base64_padding(parts[1].to_owned())
   let payload = @base64.decode(padded, url_safe=true) catch {
     err => {
       println("ERROR in base64.decode: \{err}")

@@ -30,7 +30,7 @@
 /// FIXME: Make this private. This function is currently marked as public
 /// because it is used by `cmd/test-to-be-killed` for testing.
 pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
-  let path = Path::join(home.to_string(), ".moonagent")
+  let path = Path::join(home.to_owned(), ".moonagent")
     .join("daemon.json")
     .to_string()
   let dir = Path::dirname(path).to_string()

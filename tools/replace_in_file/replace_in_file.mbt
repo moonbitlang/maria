@@ -99,8 +99,8 @@ async fn @file.Manager::execute_replace_in_file(
             )
           Some(match_result) => {
             // Replace at the exact position to maintain formatting
-            let before = content[0:match_result.position].to_string()
-            let after = content[match_result.position + match_result.length:].to_string()
+            let before = content[0:match_result.position].to_owned()
+            let after = content[match_result.position + match_result.length:].to_owned()
             before + replace + after
           }
         }

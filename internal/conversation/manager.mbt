@@ -21,7 +21,7 @@ pub async fn Manager::new(
   ),
 ) -> Manager {
   let cache = @lru.cache(max_size=100)
-  let conversations = Path::join(home.to_string(), ".moonagent")
+  let conversations = Path::join(home.to_owned(), ".moonagent")
     .join("conversations")
     .to_string()
   if !@fsx.exists(conversations) {
@@ -35,7 +35,7 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
   if self.cache.get(id) is Some(id) {
     return Some(id)
   }
-  let path = Path::join(self.home.to_string(), ".moonagent")
+  let path = Path::join(self.home.to_owned(), ".moonagent")
     .join("conversations")
     .join("\{id}.json")
     .to_string()
@@ -60,7 +60,7 @@ pub async fn Manager::load(self : Manager, id : @uuid.Uuid) -> Conversation? {
 
 ///|
 pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit {
-  let path = Path::join(self.home.to_string(), ".moonagent")
+  let path = Path::join(self.home.to_owned(), ".moonagent")
     .join("conversations")
     .join("\{conversation.id}.json")
     .to_string()
@@ -72,7 +72,7 @@ pub async fn Manager::save(self : Manager, conversation : Conversation) -> Unit 
 
 ///|
 pub async fn Manager::list(self : Manager) -> Array[@uuid.Uuid] {
-  let path = Path::join(self.home.to_string(), ".moonagent")
+  let path = Path::join(self.home.to_owned(), ".moonagent")
     .join("conversations")
     .to_string()
   let entries = @fsx.list_directory(path)

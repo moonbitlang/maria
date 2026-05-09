@@ -644,7 +644,7 @@ fn word_size_left(string : BytesView, index : Int) -> Int {
     return 0
   }
   let reversed = string[:index]
-    .to_bytes()
+    .to_owned()
     .to_fixedarray()
     .rev()
     .unsafe_reinterpret_as_bytes()
@@ -661,7 +661,7 @@ fn word_right_left(string : BytesView, index : Int) -> Int {
     return 0
   }
   let forward = string[index:]
-    .to_bytes()
+    .to_owned()
     .to_fixedarray()
     .unsafe_reinterpret_as_bytes()
   lexmatch forward with longest {
@@ -677,7 +677,7 @@ async fn Interface::delete_word_left(self : Interface) -> Unit {
     self.before_edit(self.line, self.cursor)
     let leading = self.line[:self.cursor]
     let reversed = leading
-      .to_bytes()
+      .to_owned()
       .to_fixedarray()
       .rev()
       .unsafe_reinterpret_as_bytes()

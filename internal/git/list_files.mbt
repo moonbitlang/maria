@@ -6,5 +6,5 @@ pub async fn list_files(cwd? : StringView) -> Array[String] {
   if output.is_empty() {
     return []
   }
-  output.split("\n").map(line => line.to_string()).collect()
+  output.split("\n").map(line => line.to_owned()).collect()
 }

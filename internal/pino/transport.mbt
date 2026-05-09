@@ -63,7 +63,7 @@ pub fn Transport::parse(transport : StringView) -> Transport raise {
 async fn mkdir(path : String) -> Unit {
   let dirs = []
   for dir = path.view() {
-    let dir = dir.to_string()
+    let dir = dir.to_owned()
     if dir == "." || dir == "" || @fs.exists(dir) {
       break
     }
@@ -150,7 +150,7 @@ pub fn Transport::console() -> Transport {
 /// # Returns
 /// A Transport configured for file output
 pub fn Transport::file(path : StringView) -> Transport {
-  Transport::File(path=path.to_string(), file=None)
+  Transport::File(path=path.to_owned(), file=None)
 }
 
 ///|

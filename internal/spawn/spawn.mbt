@@ -82,9 +82,9 @@ pub async fn spawn(
   cwd? : StringView,
   env? : Map[String, String],
 ) -> CompletedProcess {
-  let command = command.to_string()
-  let arguments = arguments.map(arg => arg.to_string())
-  let cwd = cwd.map(cwd => cwd.to_string())
+  let command = command.to_owned()
+  let arguments = arguments.map(arg => arg.to_owned())
+  let cwd = cwd.map(cwd => cwd.to_owned())
   @async.with_task_group(group => {
     fn redirect_input(content : String) -> &@process.ProcessInput raise {
       let (input, pipe) = @process.write_to_process()

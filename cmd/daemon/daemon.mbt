@@ -59,7 +59,7 @@ pub async fn Daemon::new(
 ) -> Daemon? {
   let home = match home {
     None => @os.home()
-    Some(home) => home.to_string()
+    Some(home) => home.to_owned()
   }
   // Validate exec_path points to an existing file.
   if !@fsx.exists(exec_path) {
@@ -100,7 +100,7 @@ pub async fn Daemon::new(
     None => @uuid.generator(@rand.chacha8())
   }
   let cwd = match cwd {
-    Some(cwd) => cwd.to_string()
+    Some(cwd) => cwd.to_owned()
     None => @os.cwd()
   }
   let daemon = Daemon::{

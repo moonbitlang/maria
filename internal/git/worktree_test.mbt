@@ -53,7 +53,7 @@ async test "add_worktree/new-branch" (t : @test.Test) {
 pub async fn rev_parse(commit : String, cwd? : StringView) -> String {
   let process = @spawn.spawn("git", ["rev-parse", commit], cwd?)
   process.check()
-  return process.stdout.trim().to_string()
+  return process.stdout.trim().to_owned()
 }
 
 ///|

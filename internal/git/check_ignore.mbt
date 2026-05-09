@@ -13,11 +13,11 @@ pub async fn check_ignore(
   if output.is_empty() {
     return []
   }
-  output.split("\n").map(line => line.to_string()).collect()
+  output.split("\n").map(line => line.to_owned()).collect()
 }
 
 ///|
 pub async fn is_ignored(path : StringView, cwd? : StringView) -> Bool {
   let ignored_paths = check_ignore([path], cwd?)
-  return ignored_paths.contains(path.to_string())
+  return ignored_paths.contains(path.to_owned())
 }

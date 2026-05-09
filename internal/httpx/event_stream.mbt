@@ -171,13 +171,13 @@ pub async fn EventStreamReader::read_event(self : EventStreamReader) -> Event? {
   while self.r.read_until("\n") is Some(line) {
     match line {
       [.. "event: ", .. event] => {
-        self.last_event = Some(event.to_string())
+        self.last_event = Some(event.to_owned())
         continue
       }
       [.. "data: ", .. data] => {
         let event = self.last_event
         self.last_event = None
-        return Some(Event::{ event, data: data.to_string() })
+        return Some(Event::{ event, data: data.to_owned() })
       }
       _ => continue
     }

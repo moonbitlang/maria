@@ -106,7 +106,7 @@ fn parse_skill_from_content(
     _ => None
   }
   let allowed_tools : Array[String] = match meta.get("allowed-tools") {
-    Some(String(s)) => s.split(" ").map(tool => tool.to_string()).collect()
+    Some(String(s)) => s.split(" ").map(tool => tool.to_owned()).collect()
     Some(s) =>
       @json.from_json(s) catch {
         _ =>

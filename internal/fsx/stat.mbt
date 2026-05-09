@@ -50,7 +50,7 @@ pub fn Stat::atime(self : Stat) -> Int64 {
 ///|
 /// Inspect the `FileKind` of the entry at `path`.
 pub async fn kind(path : StringView) -> FileKind {
-  FileKind::of_fs_file_kind(@fs.kind(path.to_string()))
+  FileKind::of_fs_file_kind(@fs.kind(path.to_owned()))
 }
 
 ///|
