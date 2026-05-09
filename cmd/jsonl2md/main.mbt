@@ -12,24 +12,26 @@ async fn main {
   let mut input_path = None
   let mut output_path = None
   let mut recover_diagnostics = false
-  loop args {
-    ["--output" | "-o", path, .. args] => {
-      output_path = Some(path)
-      continue args
+  for args = args {
+    match args {
+      ["--output" | "-o", path, .. args] => {
+        output_path = Some(path)
+        continue args
+      }
+      ["--recover-diagnostics", .. args] => {
+        recover_diagnostics = true
+        continue args
+      }
+      [['-', ..] as option, ..] => {
+        println("Error: Unknown argument: \{option}")
+        return
+      }
+      [log_file, .. args] => {
+        input_path = Some(log_file)
+        continue args
+      }
+      [] => break
     }
-    ["--recover-diagnostics", .. args] => {
-      recover_diagnostics = true
-      continue args
-    }
-    [['-', ..] as option, ..] => {
-      println("Error: Unknown argument: \{option}")
-      return
-    }
-    [log_file, .. args] => {
-      input_path = Some(log_file)
-      continue args
-    }
-    [] => ()
   }
   guard input_path is Some(input_path) else {
     println("Error: <log-file> is required")

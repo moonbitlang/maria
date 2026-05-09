@@ -47,11 +47,13 @@ pub fn[T] Broadcast::put(self : Broadcast[T], data : T) -> Unit {
 ///
 /// Returns the value at the specified index in the broadcast history.
 pub async fn[T] Broadcast::read(self : Broadcast[T], index : Int) -> T {
-  loop self.values.get(index) {
-    Some(value) => return value
-    None => {
-      self.read.wait()
-      continue self.values.get(index)
+  for state = self.values.get(index) {
+    match state {
+      Some(value) => return value
+      None => {
+        self.read.wait()
+        continue self.values.get(index)
+      }
     }
   }
 }

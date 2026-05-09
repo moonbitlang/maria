@@ -19,65 +19,68 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut web_search = false
   let mut resume_id = None
   let mut name = None
-  loop args {
-    ["--name", n, .. args] =>
-      if n.has_prefix("-") {
-        fail("Expected name after \{args[0]}")
-      } else {
-        name = Some(n)
+  for args = args {
+    match args {
+      ["--name", n, .. args] =>
+        if n.has_prefix("-") {
+          fail("Expected name after \{args[0]}")
+        } else {
+          name = Some(n)
+          continue args
+        }
+      ["-m" | "--model", m, .. args] =>
+        if m.has_prefix("-") {
+          fail("Expected model name after \{args[0]}")
+        } else {
+          model = Some(m)
+          continue args
+        }
+      ["-p" | "--port", p, .. args] => {
+        port = @string.parse_int(p)
         continue args
       }
-    ["-m" | "--model", m, .. args] =>
-      if m.has_prefix("-") {
-        fail("Expected model name after \{args[0]}")
-      } else {
-        model = Some(m)
+      ["--register-host", d, .. args] =>
+        if d.has_prefix("-") {
+          fail("Expected daemon host after \{args[0]}")
+        } else {
+          register_host = Some(d)
+          continue args
+        }
+      ["--register-port", dp, .. args] => {
+        register_port = Some(@string.parse_int(dp))
         continue args
       }
-    ["-p" | "--port", p, .. args] => {
-      port = @string.parse_int(p)
-      continue args
-    }
-    ["--register-host", d, .. args] =>
-      if d.has_prefix("-") {
-        fail("Expected daemon host after \{args[0]}")
-      } else {
-        register_host = Some(d)
+      ["--register-id", du, .. args] =>
+        if du.has_prefix("-") {
+          fail("Expected register id after \{args[0]}")
+        } else {
+          register_id = Some(du)
+          continue args
+        }
+      ["--serve", s, .. args] =>
+        if s.has_prefix("-") {
+          fail("Expected serve path after \{args[0]}")
+        } else {
+          serve = s
+          continue args
+        }
+      ["--web-search", .. args] => {
+        web_search = true
         continue args
       }
-    ["--register-port", dp, .. args] => {
-      register_port = Some(@string.parse_int(dp))
-      continue args
-    }
-    ["--register-id", du, .. args] =>
-      if du.has_prefix("-") {
-        fail("Expected register id after \{args[0]}")
-      } else {
-        register_id = Some(du)
+      ["--resume", rid, .. args] => {
+        resume_id = Some(@uuid.parse(rid))
         continue args
       }
-    ["--serve", s, .. args] =>
-      if s.has_prefix("-") {
-        fail("Expected serve path after \{args[0]}")
-      } else {
-        serve = s
-        continue args
+      [unknown, ..] => {
+        let error : Json = {
+          "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
+        }
+        println(error.stringify())
+        break
       }
-    ["--web-search", .. args] => {
-      web_search = true
-      continue args
+      [] => break
     }
-    ["--resume", rid, .. args] => {
-      resume_id = Some(@uuid.parse(rid))
-      continue args
-    }
-    [unknown, ..] => {
-      let error : Json = {
-        "error": { "code": -1, "message": "Unknown argument: \{unknown}" },
-      }
-      println(error.stringify())
-    }
-    [] => break
   }
   let register = match (register_host, register_port, register_id) {
     (Some(host), Some(port), Some(id)) => Some({ host, port, id })

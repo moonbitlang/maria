@@ -19,10 +19,12 @@ pub fn basename(path : StringView) -> StringView {
     [.. path, '/'] => path
     path => path
   }
-  loop path.view() {
-    [] => path
-    [.., '/'] as view => path.view(start_offset=view.end_offset())
-    [.. view, _] => continue view
+  for v = path.view() {
+    match v {
+      [] => break path
+      [.., '/'] as view => break path.view(start_offset=view.end_offset())
+      [.. view, _] => continue view
+    }
   }
 }
 
@@ -95,66 +97,74 @@ pub fn split(view : StringView) -> Iter[StringView] {
   let mut state : State = State::Root
   let mut last = view
   Iter::new(() => {
-    state~: loop state {
-      Root =>
-        match view {
-          // More than 3 slashes are treated as single slash.
-          [.. "///", .. rest] => {
-            // Skip all redundant slashes.
-            skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => {
-                state = Segment
-                last = rest
-                break
+    state~: for s = state {
+      match s {
+        Root =>
+          match view {
+            // More than 3 slashes are treated as single slash.
+            [.. "///", .. rest] => {
+              // Skip all redundant slashes.
+              for r = rest {
+                match r {
+                  ['/', .. rest] => continue rest
+                  rest => {
+                    state = Segment
+                    last = rest
+                    break
+                  }
+                }
               }
+              break state~ Some("/")
             }
-            Some("/")
-          }
-          [.. "//", .. rest] => {
-            state = Segment
-            last = rest
-            Some("//")
-          }
-          ['/', .. rest] => {
-            state = Segment
-            last = rest
-            Some("/")
-          }
-          rest => {
-            state = Segment
-            last = rest
-            continue state~ Segment
-          }
-        }
-      Segment =>
-        loop last.view() {
-          ['/', .. rest] as view => {
-            // Slice out the part before slash.
-            let part = last
-              .data()
-              .view(
-                start_offset=last.start_offset(),
-                end_offset=view.start_offset(),
-              )
-            // Skip redundant slashes.
-            let rest = skip~: loop rest {
-              ['/', .. rest] => continue skip~ rest
-              rest => rest
+            [.. "//", .. rest] => {
+              state = Segment
+              last = rest
+              break state~ Some("//")
             }
-            last = rest
-            Some(part)
-          }
-          [_, .. rest] => continue rest
-          [] as view =>
-            if last.is_empty() {
-              return None
-            } else {
-              let part = last
-              last = view
-              Some(part)
+            ['/', .. rest] => {
+              state = Segment
+              last = rest
+              break state~ Some("/")
             }
-        }
+            rest => {
+              state = Segment
+              last = rest
+              continue state~ Segment
+            }
+          }
+        Segment =>
+          for v = last.view() {
+            match v {
+              ['/', .. rest] as view => {
+                // Slice out the part before slash.
+                let part = last
+                  .data()
+                  .view(
+                    start_offset=last.start_offset(),
+                    end_offset=view.start_offset(),
+                  )
+                // Skip redundant slashes.
+                let rest = for r = rest {
+                  match r {
+                    ['/', .. rest] => continue rest
+                    rest => break rest
+                  }
+                }
+                last = rest
+                break state~ Some(part)
+              }
+              [_, .. rest] => continue rest
+              [] as view =>
+                if last.is_empty() {
+                  return None
+                } else {
+                  let part = last
+                  last = view
+                  break state~ Some(part)
+                }
+            }
+          }
+      }
     }
   })
 }

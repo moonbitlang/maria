@@ -82,26 +82,28 @@ fn Layer::route(
 ) -> (MethodMap[Route], Array[StringView])? {
   let mut curr : Array[(Layer, Array[StringView])] = [(self, [])]
   let mut next : Array[(Layer, Array[StringView])] = []
-  loop segments {
-    [] =>
-      for r in curr {
-        break Some((r.0.routes, r.1))
-      } nobreak {
-        None
-      }
-    [segment, .. segments] => {
-      for r in curr {
-        if r.0.matches.get(segment) is Some(child) {
-          next.push((child, r.1))
-        } else if r.0.default is Some(child) {
-          let values = r.1
-          values.push(segment)
-          next.push((child, values))
+  for segments = segments {
+    match segments {
+      [] =>
+        break for r in curr {
+          break Some((r.0.routes, r.1))
+        } nobreak {
+          None
         }
+      [segment, .. segments] => {
+        for r in curr {
+          if r.0.matches.get(segment) is Some(child) {
+            next.push((child, r.1))
+          } else if r.0.default is Some(child) {
+            let values = r.1
+            values.push(segment)
+            next.push((child, values))
+          }
+        }
+        curr = next
+        next = []
+        continue segments
       }
-      curr = next
-      next = []
-      continue segments
     }
   }
 }

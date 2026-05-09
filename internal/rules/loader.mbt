@@ -55,9 +55,11 @@ pub fn Loader::apply(self : Loader, messages : Array[@ai.Message]) -> Unit {
     return
   }
   let usr_msg = @ai.user_message(content=self.format())
-  let ins_pos : ArrayView[@ai.Message] = loop messages[:] {
-    [System(_), .. rest] => continue rest
-    msgs => break msgs
+  let ins_pos : ArrayView[@ai.Message] = for msgs = messages[:] {
+    match msgs {
+      [System(_), .. rest] => continue rest
+      msgs => break msgs
+    }
   }
   messages.insert(ins_pos.start_offset(), usr_msg)
 }

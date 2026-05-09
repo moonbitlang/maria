@@ -10,26 +10,28 @@ fn ExecOptions::parse(args : ArrayView[String]) -> ExecOptions raise {
   let mut prompt_file : String? = None
   let mut log_file : String = "logs.jsonl"
   let mut model : String? = None
-  loop args {
-    ["--prompt-file", pf, .. rest] => {
-      if pf is ['-', ..] {
-        raise @argument.InvalidArgument(
-          "--prompt-file requires a file path, got '\{pf}'",
-        )
+  for args = args {
+    match args {
+      ["--prompt-file", pf, .. rest] => {
+        if pf is ['-', ..] {
+          raise @argument.InvalidArgument(
+            "--prompt-file requires a file path, got '\{pf}'",
+          )
+        }
+        prompt_file = Some(pf)
+        continue rest
       }
-      prompt_file = Some(pf)
-      continue rest
+      ["--log-file", lf, .. rest] => {
+        log_file = lf
+        continue rest
+      }
+      ["--model" | "-m", m, .. rest] => {
+        model = Some(m)
+        continue rest
+      }
+      [unknown, ..] => raise @argument.InvalidArgument(unknown)
+      [] => break
     }
-    ["--log-file", lf, .. rest] => {
-      log_file = lf
-      continue rest
-    }
-    ["--model" | "-m", m, .. rest] => {
-      model = Some(m)
-      continue rest
-    }
-    [unknown, ..] => raise @argument.InvalidArgument(unknown)
-    [] => break
   }
   guard prompt_file is Some(prompt_file) else {
     raise @argument.InvalidArgument("--prompt-file is required")
