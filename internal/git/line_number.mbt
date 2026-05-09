@@ -98,7 +98,7 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
         "\{state.marker} \{original_line_number} \{modified_line_number} \\\{line}",
       )
     } else {
-      lexmatch line {
+      lexmatch line with longest {
         (
           "@@[[:space:]]+-"
           ("[[:digit:]]+" as os)
