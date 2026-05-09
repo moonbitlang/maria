@@ -49,7 +49,7 @@ async fn configure_server(
 ) -> @server.Server {
   let cwd = @os.cwd()
   let serve = match serve {
-    Some(serve) => serve.to_string()
+    Some(serve) => serve.to_owned()
     None => Path::join(cwd, "cmd/server").to_string()
   }
   configure_models(mock)

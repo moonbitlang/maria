@@ -85,7 +85,7 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
             "\{state.marker} \{original_line_number} \{modified_line_number} \\\{line}",
           )
         }
-        line => numbered_lines.push(line.to_string())
+        line => numbered_lines.push(line.to_owned())
       }
     } else if last_state is Some(state) && line is ['\\', .. line] {
       let number_width = @cmp.maximum(
@@ -124,9 +124,9 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
             modified_count,
             marker: ' ',
           })
-          numbered_lines.push(line.to_string())
+          numbered_lines.push(line.to_owned())
         }
-        line => numbered_lines.push(line.to_string())
+        line => numbered_lines.push(line.to_owned())
       }
     }
   }

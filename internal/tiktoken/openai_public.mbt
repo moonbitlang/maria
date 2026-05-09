@@ -6,7 +6,7 @@ pub fn cl100k_base() -> Encoding raise {
       continue
     }
     guard line.split(" ").collect() is [token, rank]
-    let token = @base64.decode(token.to_string())
+    let token = @base64.decode(token.to_owned())
     mergeable_ranks[token] = @string.parse_int(rank)
   }
   let special_tokens = {

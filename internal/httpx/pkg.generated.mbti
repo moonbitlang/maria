@@ -54,8 +54,6 @@ pub fn FileServer::path(Self) -> StringView
 pub fn FileServer::set_not_found_handler(Self, Handler) -> Unit
 
 pub(all) struct Handler(async (RequestReader, ResponseWriter) -> Unit)
-#deprecated
-pub fn Handler::inner(Self) -> async (RequestReader, ResponseWriter) -> Unit
 
 type Header
 pub fn Header::add(Self, String, String) -> Unit
@@ -66,8 +64,6 @@ pub impl Show for Header
 pub impl ToJson for Header
 
 pub struct JsonRequestReader(RequestReader)
-#deprecated
-pub fn JsonRequestReader::inner(Self) -> RequestReader
 pub fn JsonRequestReader::new(RequestReader) -> Self
 pub async fn[T : @json.FromJson] JsonRequestReader::read(Self) -> T
 pub async fn JsonRequestReader::read_json(Self) -> Json
@@ -96,8 +92,6 @@ pub(all) struct Middleware((Handler) -> Handler)
 pub fn Middleware::chain(Self, Self) -> Self
 pub async fn Middleware::handle(Self, RequestReader, ResponseWriter) -> Unit
 pub fn Middleware::handler(Self) -> Handler
-#deprecated
-pub fn Middleware::inner(Self) -> (Handler) -> Handler
 
 pub struct RequestReader {
   body : &@io.Reader

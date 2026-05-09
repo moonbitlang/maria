@@ -18,8 +18,6 @@ pub fn AgentTool::desc(Self) -> ToolDesc
 
 pub(all) struct JsonSchema(Json) derive(Eq, Show)
 pub fn JsonSchema::from_json(Json) -> Self
-#deprecated
-pub fn JsonSchema::inner(Self) -> Json
 pub impl ToJson for JsonSchema
 
 pub struct Tool {
@@ -40,8 +38,6 @@ pub struct ToolDesc {
 pub fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
 
 pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
-#deprecated
-pub fn ToolFn::inner(Self) -> async (Json) -> ToolResult noraise
 
 pub enum ToolResult {
   Success(&ToolOutput)

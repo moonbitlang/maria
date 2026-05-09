@@ -60,7 +60,7 @@ async fn Daemon::forward_to_task(
           "error": {
             "code": -1,
             "message": "Cannot resume conversation: working directory has been removed",
-            "metadata": { "cwd": cwd, "task_id": id.to_string() },
+            "metadata": { "cwd": cwd, "task_id": id.to_owned() },
           },
         })
       }

@@ -11,7 +11,7 @@ fn try_exact_match(haystack : String, needle : String) -> MatchResult? {
   match haystack.find(needle) {
     Some(position) => {
       // Calculate line numbers for the match
-      let before_match = haystack[0:position].to_string()
+      let before_match = haystack[0:position].to_owned()
       let start_line = before_match.split("\n").to_array().length() - 1
       let needle_lines = needle.split("\n").to_array().length()
       let end_line = start_line + needle_lines - 1
@@ -39,10 +39,10 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
   let haystack_lines = haystack.split("\n").to_array()
   let needle_lines = needle.split("\n").to_array()
   let trimmed_haystack_lines = haystack_lines.map(fn(line) {
-    line.trim(char_set=" \t\r\n").to_string()
+    line.trim(char_set=" \t\r\n").to_owned()
   })
   let trimmed_needle_lines = needle_lines.map(fn(line) {
-    line.trim(char_set=" \t\r\n").to_string()
+    line.trim(char_set=" \t\r\n").to_owned()
   })
 
   // Filter out empty lines for comparison

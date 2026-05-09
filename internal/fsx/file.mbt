@@ -8,7 +8,7 @@ struct FileRead(@fs.File)
 /// The file is created with permission `0o644` and truncated if it
 /// already exists.
 pub async fn FileRead::create(path : StringView) -> FileRead {
-  @fs.create(path.to_string(), permission=0o644)
+  @fs.create(path.to_owned(), permission=0o644)
 }
 
 ///|

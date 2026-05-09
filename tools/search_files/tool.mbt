@@ -93,7 +93,7 @@ fn matches_pattern(filename : String, pattern : String) -> Bool {
 
   // Handle simple *.ext patterns
   if pattern.has_prefix("*.") {
-    let extension = pattern[2:].to_string()
+    let extension = pattern[2:].to_owned()
     return filename.has_suffix(".\{extension}")
   }
 
@@ -138,7 +138,7 @@ async fn search_in_file(
       let result = SearchResult::{
         context: context_lines_arr.join("\n"),
         line_number: i + 1,
-        match_line: line.to_string(), // Convert StringView to String
+        match_line: line.to_owned(), // Convert StringView to String
         path: relative_path,
       }
       results.push(result)

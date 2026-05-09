@@ -377,7 +377,7 @@ pub async fn new(
   history? : @conversation.Conversation,
 ) -> Agent {
   let home = match home {
-    Some(home) => home.to_string()
+    Some(home) => home.to_owned()
     None => @os.home()
   }
   // FIXME:(upstream) function with error not allowed in optional expression
@@ -386,7 +386,7 @@ pub async fn new(
     None => @uuid.generator(@rand.chacha8())
   }
   let session_manager = @conversation.Manager::new(uuid~, home~)
-  let rules = @rules.Loader::new(cwd.to_string(), logger~)
+  let rules = @rules.Loader::new(cwd.to_owned(), logger~)
   let event_target : @broadcast.Broadcast[@event.Event] = @broadcast.Broadcast::new()
   event_target.add_listener(event => {
     logger.info("Received event", data={ "event": event.to_json() })
@@ -404,7 +404,7 @@ pub async fn new(
     None =>
       session_manager.new_conversation(
         name=name.unwrap_or("New Conversation"),
-        cwd=cwd.to_string(),
+        cwd=cwd.to_owned(),
         web_search~,
       )
   }
@@ -412,12 +412,12 @@ pub async fn new(
     Some(queue) => queue
     None => @event.ExternalEventQueue::new()
   }
-  let skills = @skills.Loader::new(cwd=cwd.to_string(), logger~)
+  let skills = @skills.Loader::new(cwd=cwd.to_owned(), logger~)
   let agent = Agent::{
     logger,
     uuid,
     history,
-    cwd: cwd.to_string(),
+    cwd: cwd.to_owned(),
     model,
     tools: {},
     input_queue: [],

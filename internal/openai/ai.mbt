@@ -411,7 +411,7 @@ async fn ResponseStreamEventReader::read(
   for ;; {
     guard self.0.read_until("\n") is Some(line) else { return None }
     guard line is [.. "data: ", .. rest] else { continue }
-    let data = rest.trim().to_string()
+    let data = rest.trim().to_owned()
     if data == "[DONE]" {
       return Some(Completed)
     }
@@ -618,7 +618,7 @@ fn extract_first_json_block(content : String) -> String? {
     .split("```")
     .take(1)
     .next()
-    .map(s => s.trim(char_set=" \r\n\t").to_string())
+    .map(s => s.trim(char_set=" \r\n\t").to_owned())
   })
 }
 

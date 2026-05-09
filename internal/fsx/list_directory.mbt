@@ -52,11 +52,11 @@ pub struct DirectoryEntry {
 /// The returned entries are sorted by their derived ordering and include
 /// the full path, basename and file kind for each item.
 pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
-  let dir : @fs.Directory = @fs.opendir(path.to_string())
+  let dir : @fs.Directory = @fs.opendir(path.to_owned())
   defer dir.close()
   let entries = []
   for basename in dir.read_all() {
-    let filename = Path::join(path.to_string(), basename).to_string()
+    let filename = Path::join(path.to_owned(), basename).to_string()
     let kind = @fs.kind(filename, follow_symlink=false)
     entries.push(DirectoryEntry::{
       path: filename,

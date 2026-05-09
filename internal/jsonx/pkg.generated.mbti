@@ -17,8 +17,6 @@ pub fn int64(Int64) -> Json
 // Types and methods
 pub(all) struct Object(Map[String, Json])
 pub fn Object::get(Self, String) -> Json?
-#deprecated
-pub fn Object::inner(Self) -> Map[String, Json]
 pub fn Object::iter2(Self) -> Iter2[String, Json]
 pub fn[T : @json.FromJson] Object::optional(Self, String, path~ : @json.JsonPath) -> T? raise @json.JsonDecodeError
 pub fn Object::optional_int64(Self, String, path~ : @json.JsonPath) -> Int64? raise @json.JsonDecodeError

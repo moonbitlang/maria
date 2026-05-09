@@ -36,7 +36,7 @@ pub fn FileServer::path(self : FileServer) -> StringView {
 /// The resulting middleware only serves `GET` requests and falls back to the
 /// downstream handler when a file does not exist.
 pub fn FileServer::new(path : StringView) -> FileServer {
-  let self_path = path.to_string()
+  let self_path = path.to_owned()
   let middleware : Middleware = k => {
     (r, w) => {
       guard r.method_ is Get else {
@@ -45,7 +45,7 @@ pub fn FileServer::new(path : StringView) -> FileServer {
       }
       let path = match r.path {
         "/" => Path::join(self_path, "index.html").to_string()
-        ['/', .. path] => Path::join(self_path, path.to_string()).to_string()
+        ['/', .. path] => Path::join(self_path, path.to_owned()).to_string()
         _ => {
           w.write_header(@status.BadRequest)
           return
@@ -84,7 +84,7 @@ pub fn FileServer::new(path : StringView) -> FileServer {
     }
   }
   FileServer::{
-    path: path.to_string(),
+    path: path.to_owned(),
     middleware,
     handler: middleware(not_found),
   }

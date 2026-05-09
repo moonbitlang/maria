@@ -31,7 +31,7 @@ pub fn basename(path : StringView) -> StringView {
 ///
 /// property: `stem(path) + ext(path) == basename(path)`
 fn ext(path : StringView) -> StringView {
-  Path::extname(path.to_string())
+  Path::extname(path.to_owned())
 }
 
 ///|
@@ -53,9 +53,9 @@ fn ext(path : StringView) -> StringView {
 pub fn replace_ext(path : StringView, ext : StringView) -> String {
   let basename = basename(path)
   match basename {
-    "" => return path.to_string()
-    "." => return path.to_string()
-    ".." => return path.to_string()
+    "" => return path.to_owned()
+    "." => return path.to_owned()
+    ".." => return path.to_owned()
     _ => {
       let old_ext_len = match basename.rev_find(".") {
         None => 0
