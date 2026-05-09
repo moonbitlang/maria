@@ -1,0 +1,55 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/service"
+
+import {
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn detect(ServiceConfig) -> ServiceManager
+
+// Errors
+
+// Types and methods
+pub(all) enum Backend {
+  Launchd
+  Systemd
+  Detach
+}
+pub impl Eq for Backend
+pub impl Show for Backend
+pub impl ToJson for Backend
+pub impl @json.FromJson for Backend
+
+pub(all) struct ServiceConfig {
+  exec_path : String
+  port : Int
+  serve : String
+  home : String
+}
+
+pub(all) enum ServiceManager {
+  Launchd(ServiceConfig)
+  Systemd(ServiceConfig)
+  Detach(ServiceConfig)
+}
+pub fn ServiceManager::backend(Self) -> Backend
+pub fn ServiceManager::config(Self) -> ServiceConfig
+pub async fn ServiceManager::ensure_running(Self) -> Int
+pub async fn ServiceManager::install(Self) -> Unit
+pub async fn ServiceManager::restart(Self) -> Unit
+pub async fn ServiceManager::status(Self) -> ServiceStatus
+pub async fn ServiceManager::stop(Self) -> Unit
+pub async fn ServiceManager::uninstall(Self) -> Unit
+
+pub enum ServiceStatus {
+  Running(port~ : Int, pid~ : Int, version~ : String)
+  Stopped
+  NotInstalled
+}
+pub impl Show for ServiceStatus
+
+// Type aliases
+
+// Traits
+

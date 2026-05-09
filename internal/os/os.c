@@ -130,3 +130,15 @@ moonbit_maria_os_executable(moonbit_bytes_t buf) {
   }
 #endif
 }
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_os_platform(void) {
+#if defined(__APPLE__)
+  return 1;
+#elif defined(__linux__)
+  return 2;
+#else
+  return 0;
+#endif
+}

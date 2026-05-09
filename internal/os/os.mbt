@@ -78,6 +78,11 @@ pub fn cwd() -> String raise {
 extern "c" fn os_getuid() -> UInt = "moonbit_maria_os_getuid"
 
 ///|
+pub fn getuid() -> UInt {
+  os_getuid()
+}
+
+///|
 #borrow(pwd, result)
 extern "c" fn os_getpwuid_r(
   uid : UInt,
@@ -228,3 +233,29 @@ pub fn executable() -> String raise {
 /// * `f` : The function to be called at program exit. This function takes no
 ///   parameters and returns no value.
 pub extern "c" fn atexit(f : FuncRef[() -> Unit]) = "atexit"
+
+///|
+pub enum Platform {
+  Unknown
+  MacOS
+  Linux
+} derive(Show, Eq)
+
+///|
+extern "c" fn os_platform() -> Int = "moonbit_maria_os_platform"
+
+///|
+/// Returns the platform this binary was compiled for.
+///
+/// Implementations:
+///
+/// - macOS: returns `MacOS`
+/// - Linux: returns `Linux`
+/// - Other: returns `Unknown`
+pub fn platform() -> Platform {
+  match os_platform() {
+    1 => MacOS
+    2 => Linux
+    _ => Unknown
+  }
+}
