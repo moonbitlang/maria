@@ -1,6 +1,6 @@
 ///|
 test "char_width_left" {
-  let string : Bytes = "aあ𠮷👋🌍🙂‍↕️"
+  let string : Bytes = b"aあ𠮷👋🌍🙂‍↕️"
   json_inspect(@unicode.char_width_left(string, 0), content=0)
   json_inspect(@unicode.char_width_left(string, 4), content=2)
   json_inspect(@unicode.char_width_left(string, 8), content=2)
@@ -11,7 +11,7 @@ test "char_width_left" {
 
 ///|
 test "char_width_right" {
-  let string : Bytes = "aあ𠮷👋🌍🙂‍↕️"
+  let string : Bytes = b"aあ𠮷👋🌍🙂‍↕️"
   json_inspect(@unicode.char_width_right(string, 0), content=1)
   json_inspect(@unicode.char_width_right(string, 1), content=2)
   json_inspect(@unicode.char_width_right(string, 4), content=2)

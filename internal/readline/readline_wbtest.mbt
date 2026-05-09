@@ -48,7 +48,7 @@ test "display_position_zero_col_returns_zero" {
 
 ///|
 test "display_position_empty_string" {
-  let bytes : Bytes = ""
+  let bytes : Bytes = b""
   let pos = display_position(bytes, col=80, is_multiline=false, tab_size=4)
   assert_eq(pos.cols, 0)
   assert_eq(pos.rows, 0)
@@ -100,12 +100,12 @@ test "display_position_4byte_utf8_emoji" {
 test "history_manager_add_and_navigate" {
   let hm = HistoryManager::new(10)
   let _ = hm.add_history(
-    "first",
+    b"first",
     is_multiline=false,
     last_command_errored=false,
   )
   let _ = hm.add_history(
-    "second",
+    b"second",
     is_multiline=false,
     last_command_errored=false,
   )
@@ -117,24 +117,24 @@ test "history_manager_add_and_navigate" {
 test "history_manager_navigate_previous_and_next" {
   let hm = HistoryManager::new(10)
   let _ = hm.add_history(
-    "first",
+    b"first",
     is_multiline=false,
     last_command_errored=false,
   )
   let _ = hm.add_history(
-    "second",
+    b"second",
     is_multiline=false,
     last_command_errored=false,
   )
   // With empty prefix, all entries match has_prefix("") and are skipped.
   // First call: skips all entries, returns the search string itself.
-  let r1 = hm.navigate_to_previous("")
+  let r1 = hm.navigate_to_previous(b"")
   assert_true(r1 == Some(b""))
   // Second call: can_navigate_to_prev is false (index == length), returns None.
-  let r2 = hm.navigate_to_previous("")
+  let r2 = hm.navigate_to_previous(b"")
   assert_true(r2 is None)
   // Navigate forward: returns the search string.
-  let r3 = hm.navigate_to_next("")
+  let r3 = hm.navigate_to_next(b"")
   assert_true(r3 == Some(b""))
 }
 
@@ -142,11 +142,11 @@ test "history_manager_navigate_previous_and_next" {
 test "history_manager_navigate_next_at_start" {
   let hm = HistoryManager::new(10)
   let _ = hm.add_history(
-    "first",
+    b"first",
     is_multiline=false,
     last_command_errored=false,
   )
-  let result = hm.navigate_to_next("")
+  let result = hm.navigate_to_next(b"")
   assert_true(result is None)
 }
 
@@ -154,18 +154,18 @@ test "history_manager_navigate_next_at_start" {
 test "history_manager_empty_line_not_added" {
   let hm = HistoryManager::new(10)
   let result = hm.add_history(
-    "",
+    b"",
     is_multiline=false,
     last_command_errored=false,
   )
-  assert_true(result == "")
+  assert_true(result == b"")
   assert_false(hm.can_navigate_to_prev())
 }
 
 ///|
 test "history_manager_whitespace_only_not_added" {
   let hm = HistoryManager::new(10)
-  let _ = hm.add_history("   ", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(b"   ", is_multiline=false, last_command_errored=false)
   assert_false(hm.can_navigate_to_prev())
 }
 
@@ -173,17 +173,17 @@ test "history_manager_whitespace_only_not_added" {
 test "history_manager_size_limit" {
   let hm = HistoryManager::new(2)
   let _ = hm.add_history(
-    "first",
+    b"first",
     is_multiline=false,
     last_command_errored=false,
   )
   let _ = hm.add_history(
-    "second",
+    b"second",
     is_multiline=false,
     last_command_errored=false,
   )
   let _ = hm.add_history(
-    "third",
+    b"third",
     is_multiline=false,
     last_command_errored=false,
   )
@@ -193,8 +193,16 @@ test "history_manager_size_limit" {
 ///|
 test "history_manager_duplicate_not_added" {
   let hm = HistoryManager::new(10)
-  let _ = hm.add_history("same", is_multiline=false, last_command_errored=false)
-  let _ = hm.add_history("same", is_multiline=false, last_command_errored=false)
+  let _ = hm.add_history(
+    b"same",
+    is_multiline=false,
+    last_command_errored=false,
+  )
+  let _ = hm.add_history(
+    b"same",
+    is_multiline=false,
+    last_command_errored=false,
+  )
   assert_eq(hm.history.length(), 1)
 }
 
@@ -202,17 +210,17 @@ test "history_manager_duplicate_not_added" {
 test "history_manager_zero_size" {
   let hm = HistoryManager::new(0)
   let result = hm.add_history(
-    "test",
+    b"test",
     is_multiline=false,
     last_command_errored=false,
   )
-  assert_true(result == "test")
+  assert_true(result == b"test")
   assert_false(hm.can_navigate_to_prev())
 }
 
 ///|
 test "word_size_left_at_start" {
-  let result = word_size_left("hello world", 0)
+  let result = word_size_left(b"hello world", 0)
   assert_eq(result, 0)
 }
 
@@ -220,21 +228,21 @@ test "word_size_left_at_start" {
 test "word_size_left_after_word" {
   // word_size_left returns the unmatched-suffix length of the reversed prefix.
   // "hello" reversed = "olleh", fully matched → rest.length() = 0
-  let s : BytesView = "hello world"
+  let s : BytesView = b"hello world"
   let result = word_size_left(s, 5)
   assert_eq(result, 0)
 }
 
 ///|
 test "word_size_left_at_end" {
-  let s : BytesView = "hello"
+  let s : BytesView = b"hello"
   let result = word_size_left(s, 5)
   assert_eq(result, 0)
 }
 
 ///|
 test "word_right_left_at_end" {
-  let s : BytesView = "hello"
+  let s : BytesView = b"hello"
   let result = word_right_left(s, 5)
   assert_eq(result, 0)
 }
@@ -242,7 +250,7 @@ test "word_right_left_at_end" {
 ///|
 test "word_right_left_at_start" {
   // "hello world" → matches "hello " (word + trailing space), rest = "world" (len 5)
-  let s : BytesView = "hello world"
+  let s : BytesView = b"hello world"
   let result = word_right_left(s, 0)
   assert_eq(result, 5)
 }
@@ -279,93 +287,93 @@ test "common_prefix_identical" {
 
 ///|
 test "bytesview_split_basic" {
-  let input : BytesView = "a\nb\nc"
-  let parts = input.split('\n')
+  let input : BytesView = b"a\nb\nc"
+  let parts = input.split(b'\n')
   assert_eq(parts.length(), 3)
-  assert_true(parts[0] == "a")
-  assert_true(parts[1] == "b")
-  assert_true(parts[2] == "c")
+  assert_true(parts[0] == b"a")
+  assert_true(parts[1] == b"b")
+  assert_true(parts[2] == b"c")
 }
 
 ///|
 test "bytesview_split_no_separator" {
-  let input : BytesView = "hello"
-  let parts = input.split('\n')
+  let input : BytesView = b"hello"
+  let parts = input.split(b'\n')
   assert_eq(parts.length(), 1)
-  assert_true(parts[0] == "hello")
+  assert_true(parts[0] == b"hello")
 }
 
 ///|
 test "bytesview_split_empty" {
-  let input : BytesView = ""
-  let parts = input.split('\n')
+  let input : BytesView = b""
+  let parts = input.split(b'\n')
   assert_eq(parts.length(), 1)
 }
 
 ///|
 test "bytesview_split_trailing_separator" {
-  let input : BytesView = "a\nb\n"
-  let parts = input.split('\n')
+  let input : BytesView = b"a\nb\n"
+  let parts = input.split(b'\n')
   assert_eq(parts.length(), 3)
-  assert_true(parts[0] == "a")
-  assert_true(parts[1] == "b")
+  assert_true(parts[0] == b"a")
+  assert_true(parts[1] == b"b")
   assert_eq(parts[2].length(), 0)
 }
 
 ///|
 test "bytesview_trim_start" {
-  let input : BytesView = "  hello"
+  let input : BytesView = b"  hello"
   let result = input.trim_start()
-  assert_true(result == "hello")
+  assert_true(result == b"hello")
 }
 
 ///|
 test "bytesview_trim_end" {
-  let input : BytesView = "hello  "
+  let input : BytesView = b"hello  "
   let result = input.trim_end()
-  assert_true(result == "hello")
+  assert_true(result == b"hello")
 }
 
 ///|
 test "bytesview_trim_both" {
-  let input : BytesView = "  hello  "
+  let input : BytesView = b"  hello  "
   let result = input.trim()
-  assert_true(result == "hello")
+  assert_true(result == b"hello")
 }
 
 ///|
 test "bytesview_trim_empty" {
-  let input : BytesView = ""
+  let input : BytesView = b""
   let result = input.trim()
-  assert_true(result == "")
+  assert_true(result == b"")
 }
 
 ///|
 test "bytesview_trim_all_spaces" {
-  let input : BytesView = "   "
+  let input : BytesView = b"   "
   let result = input.trim()
-  assert_true(result == "")
+  assert_true(result == b"")
 }
 
 ///|
 test "reverse_string_three_parts" {
-  let input : BytesView = "line1\nline2\nline3"
-  let result = reverse_string(input, from='\n', to='\r')
-  assert_true(result == "line3\rline2\rline1")
+  let input : BytesView = b"line1\nline2\nline3"
+  let result = reverse_string(input, from=b'\n', to=b'\r')
+  assert_true(result == b"line3\rline2\rline1")
 }
 
 ///|
 test "reverse_string_no_separator" {
-  let input : BytesView = "hello"
-  let result = reverse_string(input, from='\n', to='\r')
-  assert_true(result == "hello")
+  let input : BytesView = b"hello"
+  let result = reverse_string(input, from=b'\n', to=b'\r')
+  assert_true(result == b"hello")
 }
 
 ///|
 test "reverse_string_single_separator" {
-  let input : BytesView = "a\nb"
-  let result = reverse_string(input, from='\n', to='\r')
-  assert_true(result == "b\ra")
+  let input : BytesView = b"a\nb"
+  let result = reverse_string(input, from=b'\n', to=b'\r')
+  assert_true(result == b"b\ra")
 }
 
 ///|

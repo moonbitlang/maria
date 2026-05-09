@@ -88,7 +88,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
     ) -> Unit {
       let qms = maria.agent.clear_inputs()
       for qm in qms {
-        rl.set_prompt("$ ")
+        rl.set_prompt(b"$ ")
         rl.set_line(@encoding/utf8.encode(qm.message.content()))
         rl.prompt()
         break
@@ -107,9 +107,9 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
             } else {
               // Clear the current input line
               println("")
-              rl.set_line("")
+              rl.set_line(b"")
               // Re-prompt the user
-              rl.set_prompt("$ ")
+              rl.set_prompt(b"$ ")
               rl.prompt()
               continue
             }
@@ -139,7 +139,7 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
       }
     }
     while true {
-      rl.set_prompt("$ ")
+      rl.set_prompt(b"$ ")
       rl.prompt()
       let prompt = rl.read_line()
       let round = group.spawn(

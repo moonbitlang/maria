@@ -103,7 +103,7 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
       let content = content.to_json().stringify()
       let buffer = @buffer.new()
       buffer.write_bytes(@encoding/utf8.encode(content))
-      buffer.write_byte('\n')
+      buffer.write_byte(b'\n')
       file.write(buffer.to_bytes())
     }
     Channel(channel) => channel.put(content)
