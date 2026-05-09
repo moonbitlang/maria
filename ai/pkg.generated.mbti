@@ -2,6 +2,7 @@
 package "moonbitlang/maria/ai"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/maria/internal/openai",
 }
 
@@ -26,7 +27,7 @@ pub enum Message {
   System(String)
   Assistant(String, tool_calls~ : Array[ToolCall])
   Tool(String, tool_call_id~ : String)
-} derive(Eq, Show, ToJson)
+} derive(Eq, ToJson, @debug.Debug)
 pub fn Message::content(Self) -> String
 pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
 pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
@@ -36,7 +37,7 @@ pub struct ToolCall {
   id : String
   name : String
   arguments : String?
-} derive(Eq, Show, ToJson)
+} derive(Eq, ToJson, @debug.Debug)
 pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
 pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
 
@@ -45,7 +46,7 @@ pub struct Usage {
   output_tokens : Int
   total_tokens : Int
   cache_read_tokens : Int?
-} derive(Eq, Show)
+} derive(Eq, @debug.Debug)
 pub fn Usage::from_openai(@openai.CompletionUsage) -> Self
 pub fn Usage::to_openai(Self) -> @openai.CompletionUsage
 

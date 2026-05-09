@@ -96,7 +96,7 @@ impl @json.FromJson for Running with from_json(
           raise @json.JsonDecodeError(
             (
               json_path.add_key("id"),
-              "Task::from_json: invalid UUID string: \{error}",
+              "Task::from_json: invalid UUID string: " + @debug.to_string(error),
             ),
           )
       }

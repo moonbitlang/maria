@@ -6,7 +6,7 @@ pub(all) enum ChatCompletionChoiceFinishReason {
   ToolCalls
   ContentFilter
   FunctionCall
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl ToJson for ChatCompletionChoiceFinishReason with to_json(

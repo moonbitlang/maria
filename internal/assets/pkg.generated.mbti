@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/assets"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/maria/internal/pino",
 }
 
@@ -14,7 +15,7 @@ pub async fn install_assets(String, Array[Asset], String, String, @pino.Logger) 
 pub(all) struct Asset {
   path : String
   content : String
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 // Type aliases
 

@@ -3,7 +3,7 @@ pub struct ToolDesc {
   description : String
   name : String
   schema : JsonSchema
-} derive(ToJson, Eq, Show)
+} derive(ToJson, Eq, Debug)
 
 ///|
 pub fn ToolDesc::to_openai(

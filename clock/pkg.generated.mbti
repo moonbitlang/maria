@@ -2,6 +2,7 @@
 package "moonbitlang/maria/clock"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
 }
 
@@ -21,6 +22,7 @@ pub fn Timestamp::ms_since(Self, Self) -> Int64
 pub fn Timestamp::truncate_to_s(Self) -> Int64
 pub impl Show for Timestamp
 pub impl ToJson for Timestamp
+pub impl @debug.Debug for Timestamp
 pub impl @json.FromJson for Timestamp
 
 // Type aliases

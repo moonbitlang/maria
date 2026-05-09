@@ -1,11 +1,15 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/internal/tiktoken"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn cl100k_base() -> Encoding raise
 
 // Errors
-type DecodingError derive(Show)
+type DecodingError derive(@debug.Debug)
 
 // Types and methods
 type Encoding

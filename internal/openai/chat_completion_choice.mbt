@@ -4,7 +4,7 @@ pub struct ChatCompletionChoice {
   finish_reason : ChatCompletionChoiceFinishReason?
   index : Int
   message : ChatCompletionMessage
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ChatCompletionChoice::new(

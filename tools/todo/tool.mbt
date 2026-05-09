@@ -141,7 +141,7 @@ priv enum Action {
   Update
   MarkProgress
   MarkCompleted
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 /// Parsed arguments from JSON input for todo operations
@@ -152,13 +152,13 @@ struct TodoArgs {
   priority : Priority
   status : Status
   notes : String?
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 /// Parse error type for todo arguments
 suberror TodoArgsError {
   TodoArgsError(String)
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Parse JSON arguments into TodoArgs

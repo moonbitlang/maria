@@ -15,7 +15,7 @@ pub enum FileKind {
   Pipe
   BlockDevice
   CharDevice
-} derive(Show, Hash, Eq, Compare, ToJson)
+} derive(Debug, Hash, Eq, Compare, ToJson)
 
 ///|
 fn FileKind::of_fs_file_kind(file_kind : @fs.FileKind) -> FileKind {
@@ -44,7 +44,7 @@ pub struct DirectoryEntry {
   name : String
   /// File-system kind of the entry.
   kind : FileKind
-} derive(Show, Hash, Eq, Compare, ToJson)
+} derive(Debug, Hash, Eq, Compare, ToJson)
 
 ///|
 /// List all entries in the directory at `path`.

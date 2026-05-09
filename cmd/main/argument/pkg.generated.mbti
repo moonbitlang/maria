@@ -1,12 +1,16 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/maria/cmd/main/argument"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 
 // Errors
 pub(all) suberror InvalidArgument {
   InvalidArgument(String)
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 // Types and methods
 

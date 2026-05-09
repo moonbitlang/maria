@@ -15,7 +15,7 @@ priv struct SearchResult {
 priv suberror SearchError {
   FileReadError(path~ : String, error~ : String)
   MoonAnalysisError(query~ : String, error~ : String)
-} derive(ToJson, Show)
+} derive(ToJson, Debug)
 
 ///|
 /// Search kind enumeration

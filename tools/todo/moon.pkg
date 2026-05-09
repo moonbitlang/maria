@@ -5,6 +5,7 @@ import {
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/clock",
   "moonbitlang/maria/tool",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }

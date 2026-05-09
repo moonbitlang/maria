@@ -9,7 +9,7 @@ pub struct Skill {
   allowed_tools : Array[String]
   metadata : Json?
   location : String
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 fn validate_name(
@@ -46,7 +46,7 @@ fn validate_description(desc : String) -> Unit raise SkillFormatError {
 ///|
 priv suberror SkillFormatError {
   SkillFormatError(String)
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 /// Parses a skill definition from YAML frontmatter content and creates a

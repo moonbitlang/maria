@@ -5,7 +5,7 @@ pub struct ChatCompletionMessage {
   refusal : String?
   role : ChatCompletionMessageRole
   tool_calls : Array[ChatCompletionMessageToolCall]
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 pub fn ChatCompletionMessage::new(

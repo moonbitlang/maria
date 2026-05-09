@@ -5,7 +5,7 @@ pub struct DeviceCodeResponse {
   verification_uri : String
   expires_in : Int
   interval : Int
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @json.FromJson for DeviceCodeResponse with from_json(
@@ -54,7 +54,7 @@ impl @json.FromJson for DeviceCodeResponse with from_json(
 struct AccessTokenResponse {
   access_token : String?
   error : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @json.FromJson for AccessTokenResponse with from_json(
@@ -79,7 +79,7 @@ impl @json.FromJson for AccessTokenResponse with from_json(
 pub struct CopilotTokenResponse {
   token : String
   expires_at : Int64
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @json.FromJson for CopilotTokenResponse with from_json(

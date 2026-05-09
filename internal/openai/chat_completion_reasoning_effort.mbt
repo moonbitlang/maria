@@ -7,7 +7,7 @@ pub(all) enum ChatCompletionReasoningEffort {
   Medium
   High
   Xhigh
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl ToJson for ChatCompletionReasoningEffort with to_json(

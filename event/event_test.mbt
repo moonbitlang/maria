@@ -600,7 +600,7 @@ test "Event::Roundtrip/AssistantMessage/WithUsage" {
     },
   })
   let roundtripped : @event.EventDesc = @json.from_json(json)
-  assert_eq(roundtripped, event)
+  @debug.assert_eq(roundtripped, event)
 }
 
 ///|
@@ -614,7 +614,7 @@ test "Event::Roundtrip/AssistantMessage/NoUsage" {
   )
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
-  assert_eq(roundtripped, event)
+  @debug.assert_eq(roundtripped, event)
 }
 
 ///|
@@ -709,6 +709,6 @@ test "Event::Roundtrip" {
   for event in events {
     let event = @event.Event::new(id=uuid.v4(), event)
     let roundtripped : @event.Event = @json.from_json(event.to_json())
-    assert_eq(roundtripped, event)
+    @debug.assert_eq(roundtripped, event)
   }
 }

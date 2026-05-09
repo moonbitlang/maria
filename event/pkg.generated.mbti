@@ -2,6 +2,7 @@
 package "moonbitlang/maria/event"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/clock",
@@ -18,7 +19,7 @@ pub struct Event {
   id : @uuid.Uuid
   created : @clock.Timestamp
   desc : EventDesc
-} derive(Eq, Show)
+} derive(Eq, @debug.Debug)
 pub fn Event::is_cancellation(Self) -> Bool
 pub fn Event::is_incoming(Self) -> Bool
 pub fn Event::is_starting(Self) -> Bool
@@ -44,7 +45,7 @@ pub(all) enum EventDesc {
   Cancelled
   Failed(Json)
   Pruned(id~ : @uuid.Uuid)
-} derive(Eq, Show)
+} derive(Eq, @debug.Debug)
 pub impl ToJson for EventDesc
 pub impl @json.FromJson for EventDesc
 

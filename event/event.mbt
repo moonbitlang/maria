@@ -31,7 +31,7 @@ pub struct Event {
   id : @uuid.Uuid
   created : @clock.Timestamp
   desc : EventDesc
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Creates a new `Event` with the specified parameters.
@@ -114,7 +114,7 @@ pub(all) enum EventDesc {
   /// Event triggered when a PostToolCall event is pruned from context.
   /// The `id` field references the pruned PostToolCall event's id.
   Pruned(id~ : @uuid.Uuid)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {

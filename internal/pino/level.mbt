@@ -21,7 +21,7 @@ pub(all) enum Level {
   Warn
   Error
   Fatal
-} derive(Show, Eq, Compare, ToJson)
+} derive(Debug, Eq, Compare, ToJson)
 
 ///|
 test {

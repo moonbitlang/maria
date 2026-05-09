@@ -2,7 +2,7 @@
 /// Token usage details for the model-completion segment.
 pub struct CompletionTokensDetails {
   reasoning_tokens : Int?
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 impl @json.FromJson for CompletionTokensDetails with from_json(

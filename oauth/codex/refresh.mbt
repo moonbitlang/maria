@@ -3,7 +3,7 @@ struct RefreshResponse {
   id_token : String?
   access_token : String?
   refresh_token : String?
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @json.FromJson for RefreshResponse with from_json(

@@ -8,7 +8,7 @@ pub struct ChatCompletion {
   usage : CompletionUsage?
   system_fingerprint : String?
   service_tier : ChatCompletionServiceTier?
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn ChatCompletion::new(

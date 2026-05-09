@@ -7,7 +7,7 @@ pub(all) enum ChatCompletionServiceTier {
   Flex
   Scale
   Priority
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @json.FromJson for ChatCompletionServiceTier with from_json(

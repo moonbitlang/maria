@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tools/todo"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/maria/clock",
   "moonbitlang/maria/internal/uuid",
@@ -18,14 +19,14 @@ pub fn parse_todo_args(Json) -> TodoArgs raise TodoArgsError
 pub let prompt : String
 
 // Errors
-type TodoArgsError derive(Show)
+type TodoArgsError derive(@debug.Debug)
 
 // Types and methods
 type Items derive(Eq, ToJson, @json.FromJson)
 
 type Todo
 
-type TodoArgs derive(Show, ToJson)
+type TodoArgs derive(ToJson, @debug.Debug)
 
 type TodoResult derive(ToJson, @json.FromJson)
 pub impl Show for TodoResult

@@ -2,6 +2,7 @@
 package "moonbitlang/maria/oauth/codex"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
 }
 
@@ -40,27 +41,27 @@ pub(all) struct Credentials {
   accessToken : String
   refreshToken : String
   accountId : String
-} derive(Show, ToJson, @json.FromJson)
+} derive(ToJson, @debug.Debug, @json.FromJson)
 
 pub struct IdTokenClaims {
   email : String
   chatgptAccountId : String
   chatgptPlanType : String
-} derive(Show)
+} derive(@debug.Debug)
 
 pub struct PkceCodes {
   code_verifier : String
   code_challenge : String
-} derive(Show)
+} derive(@debug.Debug)
 pub fn PkceCodes::new(code_verifier~ : String, code_challenge~ : String) -> Self
 
-type RefreshResponse derive(Show)
+type RefreshResponse derive(@debug.Debug)
 
 pub struct TokenResponse {
   id_token : String
   access_token : String
   refresh_token : String
-} derive(Show)
+} derive(@debug.Debug)
 
 // Type aliases
 

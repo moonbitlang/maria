@@ -6,7 +6,7 @@ using @path {type Path}
 pub(all) struct Asset {
   path : String
   content : String
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 /// Installs embedded assets into `root`, guarded by a marker fingerprint.

@@ -2,6 +2,7 @@
 package "moonbitlang/maria/tool"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/openai",
 }
@@ -16,7 +17,7 @@ type AgentTool
 pub async fn AgentTool::call(Self, Json) -> ToolResult noraise
 pub fn AgentTool::desc(Self) -> ToolDesc
 
-pub(all) struct JsonSchema(Json) derive(Eq, Show)
+pub(all) struct JsonSchema(Json) derive(Eq, @debug.Debug)
 pub fn JsonSchema::from_json(Json) -> Self
 pub impl ToJson for JsonSchema
 
@@ -34,7 +35,7 @@ pub struct ToolDesc {
   description : String
   name : String
   schema : JsonSchema
-} derive(Eq, Show, ToJson)
+} derive(Eq, ToJson, @debug.Debug)
 pub fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
 
 pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
