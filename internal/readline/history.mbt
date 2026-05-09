@@ -34,7 +34,7 @@ fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
 /// Remove leading spaces.
 fn BytesView::trim_start(self : BytesView) -> BytesView {
   loop self {
-    [' ', .. rest] => continue rest
+    [b' ', .. rest] => continue rest
     [.. rest] => break rest
   }
 }
@@ -43,7 +43,7 @@ fn BytesView::trim_start(self : BytesView) -> BytesView {
 /// Remove trailing spaces.
 fn BytesView::trim_end(self : BytesView) -> BytesView {
   loop self {
-    [.. rest, ' '] => continue rest
+    [.. rest, b' '] => continue rest
     [.. rest] => break rest
   }
 }
@@ -58,8 +58,8 @@ fn BytesView::trim(self : BytesView) -> BytesView {
 /// Split on `from`, reverse the parts, and rejoin with `to`.
 fn reverse_string(
   line : BytesView,
-  from? : Byte = '\r',
-  to? : Byte = '\r',
+  from? : Byte = b'\r',
+  to? : Byte = b'\r',
 ) -> BytesView {
   let parts = []
   let mut start = 0
@@ -93,7 +93,7 @@ fn HistoryManager::add_history(
   last_command_errored~ : Bool,
 ) -> BytesView {
   if line.length() == 0 {
-    return ""
+    return b""
   }
   if self.size == 0 {
     return line
@@ -106,7 +106,7 @@ fn HistoryManager::add_history(
   } else if last_command_errored {
     self.history.pop_back() |> ignore()
   }
-  let normalized_line = reverse_string(line, from='\n', to='\r')
+  let normalized_line = reverse_string(line, from=b'\n', to=b'\r')
   if self.history.length() == 0 || self.history.back() != Some(normalized_line) {
     // if self.remove_history_duplicates {
     //   for i, entry in self.history {
