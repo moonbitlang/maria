@@ -1031,7 +1031,7 @@ let system_assets : Array[@assets.Asset] = [
       #|  // Map literal syntax
       #|  let map : Map[String, Int] = { "a": 1, "b": 2, "c": 3 }  
       #|  let empty : Map[String, Int] = {} // Empty map, preferred
-      #|  let also_empty : Map[String, Int] = Map::new()
+      #|  let also_empty : Map[String, Int] = Map([])
       #|  // From array of pairs
       #|  let from_pairs : Map[String, Int] = Map::from_array([("x", 1), ("y", 2)])
       #|
@@ -1958,7 +1958,7 @@ let system_assets : Array[@assets.Asset] = [
       #|  // Map literal syntax
       #|  let map : Map[String, Int] = { "a": 1, "b": 2, "c": 3 }  
       #|  let empty : Map[String, Int] = {} // Empty map, preferred
-      #|  let also_empty : Map[String, Int] = Map::new()
+      #|  let also_empty : Map[String, Int] = Map([])
       #|  // From array of pairs
       #|  let from_pairs : Map[String, Int] = Map::from_array([("x", 1), ("y", 2)])
       #|

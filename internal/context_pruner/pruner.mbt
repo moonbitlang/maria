@@ -111,7 +111,7 @@ pub async fn Pruner::calculate_pruning(
   tools? : Array[@openai.ChatCompletionToolParam] = [],
 ) -> PruneResult {
   // Build set of already-pruned IDs
-  let already_pruned : Set[@uuid.Uuid] = Set::new()
+  let already_pruned : Set[@uuid.Uuid] = Set([])
   for e in conversation.events() {
     match e.desc {
       Pruned(id~) => already_pruned.add(id)

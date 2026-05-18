@@ -651,7 +651,7 @@ test "recover_diagnostics" {
       #|  self.expect_char('{')
       #|  self.skip_whitespace()
       #|  
-      #|  let mut object : Map[String, Json] = Map::new()
+      #|  let mut object : Map[String, Json] = Map([])
       #|  
       #|  // Check for empty object
       #|  match self.peek_char() {
@@ -1225,7 +1225,7 @@ test "recover_diagnostics" {
       #|  self.expect_char('{')
       #|  self.skip_whitespace()
       #|  
-      #|  let mut object : Map[String, Json] = Map::new()
+      #|  let mut object : Map[String, Json] = Map([])
       #|  
       #|  // Check for empty object
       #|  match self.peek_char() {

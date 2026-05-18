@@ -11,7 +11,7 @@ priv struct HistoryManager {
 /// Create a history manager with the given maximum entry count.
 fn HistoryManager::new(size : Int) -> HistoryManager {
   HistoryManager::{
-    history: @deque.new(),
+    history: @deque.Deque([]),
     index: -1,
     size,
     events: @aqueue.Queue::new(kind=Unbounded),
