@@ -107,7 +107,10 @@ async fn Daemon::create_task(
   // Load model
   guard self.models.get_model(name?=request.model) is Some(model) else {
     raise json_error(404, "Not Found", {
-      "error": { "code": -1, "message": "Model not found: \{request.model}" },
+      "error": {
+        "code": -1,
+        "message": "Model not found: " + @debug.to_string(request.model),
+      },
     })
   }
   // Create temporary working directory if not specified

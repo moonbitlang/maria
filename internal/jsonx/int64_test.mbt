@@ -113,7 +113,7 @@ test "int64/round-trip" {
   let json = @jsonx.int64(original)
   let data : Int64Data = @json.from_json({ "value": json })
   inspect(data.value, content="1234567890123456789")
-  assert_eq(data.value, original)
+  @debug.assert_eq(data.value, original)
 }
 
 ///|
@@ -122,7 +122,7 @@ test "int64/round-trip-max" {
   let json = @jsonx.int64(original)
   let data : Int64Data = @json.from_json({ "value": json })
   inspect(data.value, content="9223372036854775807")
-  assert_eq(data.value, original)
+  @debug.assert_eq(data.value, original)
 }
 
 ///|
@@ -141,19 +141,19 @@ impl @json.FromJson for OptionalInt64Data with from_json(json, path) {
 test "optional_int64/present" {
   let json : Json = { "value": Json::number(0.0, repr="1234567890") }
   let data : OptionalInt64Data = @json.from_json(json)
-  inspect(data.value, content="Some(1234567890)")
+  @debug.assert_eq(data.value, Some(1234567890))
 }
 
 ///|
 test "optional_int64/missing" {
   let json : Json = { "other": 123.0 }
   let data : OptionalInt64Data = @json.from_json(json)
-  inspect(data.value, content="None")
+  @debug.assert_eq(data.value, None)
 }
 
 ///|
 test "optional_int64/null" {
   let json : Json = { "value": null }
   let data : OptionalInt64Data = @json.from_json(json)
-  inspect(data.value, content="None")
+  @debug.assert_eq(data.value, None)
 }

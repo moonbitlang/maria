@@ -29,7 +29,7 @@ pub impl @json.FromJson for Timestamp
 
 // Traits
 pub(open) trait Clock {
-  now(Self) -> Timestamp
-  now_str(Self) -> String
+  fn now(Self) -> Timestamp
+  fn now_str(Self) -> String
 }
 

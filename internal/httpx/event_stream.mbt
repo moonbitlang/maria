@@ -140,7 +140,7 @@ pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
 /// Implementors can define custom parsing logic to convert SSE events
 /// into domain-specific types.
 pub(open) trait FromEvent {
-  from_event(Event) -> Self raise
+  fn from_event(Event) -> Self raise
 }
 
 ///|
@@ -156,7 +156,7 @@ pub(open) trait FromEvent {
 /// * `to_event(self: Self) -> Event`: Converts the instance to an SSE `Event`
 ///   with appropriate event type and data payload.
 pub(open) trait ToEvent {
-  to_event(self : Self) -> Event
+  fn to_event(self : Self) -> Event
 }
 
 ///|

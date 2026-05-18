@@ -197,7 +197,9 @@ pub fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
         "low" => Low
         _ =>
           raise TodoArgsError(
-            "Error: Invalid priority '\{p}'. Must be 'high', 'medium', or 'low'.",
+            "Error: Invalid priority '" +
+            @debug.to_string(p) +
+            "'. Must be 'high', 'medium', or 'low'.",
           )
       }
     _ => Medium
@@ -210,7 +212,9 @@ pub fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
         "completed" => Completed
         _ =>
           raise TodoArgsError(
-            "Error: Invalid status '\{s}'. Must be 'pending', 'in_progress', or 'completed'.",
+            "Error: Invalid status '" +
+            @debug.to_string(s) +
+            "'. Must be 'pending', 'in_progress', or 'completed'.",
           )
       }
     _ => Pending

@@ -1,6 +1,6 @@
 import {
   "moonbitlang/maria/internal/pathx",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/async/fs",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async",
@@ -14,6 +14,7 @@ import {
   "moonbitlang/async/process",
   "moonbitlang/async/os_error",
   "moonbitlang/async/stdio",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/random",
   "moonbitlang/core/test",

@@ -429,11 +429,9 @@ test "Event::Roundtrip/PreToolCall" {
     PreToolCall(tc) => {
       inspect(tc.id, content="tool_call_1")
       inspect(tc.name, content="example_tool")
-      inspect(
+      @debug.assert_eq(
         tc.arguments,
-        content=(
-          #|Some({"param1": "value1", "param2": 123})
-        ),
+        Some("{\"param1\": \"value1\", \"param2\": 123}"),
       )
     }
     _ => fail("Expected PreToolCall")
@@ -458,12 +456,7 @@ test "Event::Roundtrip/PostToolCall/Ok" {
     PostToolCall(tc, result~, rendered~) => {
       inspect(tc.id, content="tool_call_1")
       inspect(tc.name, content="example_tool")
-      inspect(
-        result,
-        content=(
-          #|Ok(Object({output: String(success)}))
-        ),
-      )
+      @debug.assert_eq(result, Ok({ "output": "success" }))
       inspect(rendered, content="Tool output: success")
     }
     _ => fail("Expected PostToolCall")
@@ -487,12 +480,7 @@ test "Event::Roundtrip/PostToolCall/Err" {
   match roundtripped {
     PostToolCall(tc, result~, rendered~) => {
       inspect(tc.id, content="tool_call_2")
-      inspect(
-        result,
-        content=(
-          #|Err(Object({error: String(Something went wrong)}))
-        ),
-      )
+      @debug.assert_eq(result, Err({ "error": "Something went wrong" }))
       inspect(rendered, content="Error occurred")
     }
     _ => fail("Expected PostToolCall")
@@ -508,12 +496,7 @@ test "Event::Roundtrip/SystemPromptSet/Some" {
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
     SystemPromptSet(msg) =>
-      inspect(
-        msg,
-        content=(
-          #|Some(You are a helpful assistant.)
-        ),
-      )
+      @debug.assert_eq(msg, Some("You are a helpful assistant."))
     _ => fail("Expected SystemPromptSet")
   }
 }
@@ -524,7 +507,7 @@ test "Event::Roundtrip/SystemPromptSet/None" {
   let json = event.to_json()
   let roundtripped : @event.EventDesc = @json.from_json(json)
   match roundtripped {
-    SystemPromptSet(msg) => inspect(msg, content="None")
+    SystemPromptSet(msg) => @debug.assert_eq(msg, None)
     _ => fail("Expected SystemPromptSet")
   }
 }
@@ -569,12 +552,7 @@ test "Event::Roundtrip/ToolAdded" {
     ToolAdded(desc) => {
       inspect(desc.name, content="sample_tool")
       inspect(desc.description, content="A sample tool")
-      inspect(
-        desc.schema.to_json(),
-        content=(
-          #|Object({type: String(object)})
-        ),
-      )
+      @debug.assert_eq(desc.schema.to_json(), { "type": "object" })
     }
     _ => fail("Expected ToolAdded")
   }

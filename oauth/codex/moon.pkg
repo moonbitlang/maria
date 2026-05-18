@@ -1,7 +1,7 @@
 import {
   "moonbitlang/maria/internal/rand",
   "moonbitlang/maria/internal/os",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/internal/httpx",
   "moonbitlang/maria/internal/spawn",

@@ -1,6 +1,6 @@
 import {
   "moonbitlang/async/fs",
   "moonbitlang/maria/internal/fsx",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/internal/pino",
 }

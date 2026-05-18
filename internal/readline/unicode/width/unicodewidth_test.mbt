@@ -13,7 +13,7 @@ fn assert_str_width(
   cjk : Int,
   loc~ : SourceLoc,
 ) -> Unit raise {
-  assert_eq(
+  @debug.assert_eq(
     (@width.string(s, cjk=false), @width.string(s, cjk=true)),
     (nocjk, cjk),
     loc~,
@@ -28,7 +28,7 @@ fn assert_char_width(
   cjk : Int?,
   loc~ : SourceLoc,
 ) -> Unit raise {
-  assert_eq(
+  @debug.assert_eq(
     (@width.char(c, cjk=false), @width.char(c, cjk=true)),
     (nocjk, cjk),
     loc~,
@@ -234,11 +234,11 @@ test "test_control_line_break" {
 test "char_str_consistent" {
   for i in 0..<=0x10FFFF {
     let c = i.unsafe_to_char()
-    assert_eq(
+    @debug.assert_eq(
       @width.char(c, cjk=false).unwrap_or(1),
       @width.string(c.to_string(), cjk=false),
     )
-    assert_eq(
+    @debug.assert_eq(
       @width.char(c, cjk=true).unwrap_or(1),
       @width.string(c.to_string(), cjk=true),
     )
@@ -540,11 +540,11 @@ test "test_vs1_vs2" {
       continue
     }
     for cjk in [false, true] {
-      assert_eq(
+      @debug.assert_eq(
         @width.string("\{c}\u{FE00}", cjk~),
         @width.char(c, cjk~).unwrap_or(1),
       )
-      assert_eq(
+      @debug.assert_eq(
         @width.string("\{c}\u{FE01}", cjk~),
         @width.char(c, cjk~).unwrap_or(1),
       )

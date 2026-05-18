@@ -71,10 +71,13 @@ test "Task::from_json for Running variant with idle status" {
   }
   let task : Task = @json.from_json(json)
   guard task is Running(running) else { fail("Expected Running variant") }
-  assert_eq(running.name, Some("running-task"))
-  assert_eq(running.id, @uuid.parse("123e4567-e89b-12d3-a456-426614174000"))
-  assert_eq(running.cwd, "/tmp/running")
-  assert_eq(running.port, 8080)
+  @debug.assert_eq(running.name, Some("running-task"))
+  @debug.assert_eq(
+    running.id,
+    @uuid.parse("123e4567-e89b-12d3-a456-426614174000"),
+  )
+  @debug.assert_eq(running.cwd, "/tmp/running")
+  @debug.assert_eq(running.port, 8080)
   assert_true(running.status is @server.Idle)
 }
 
@@ -94,7 +97,7 @@ test "Task::from_json for Running variant with generating status" {
   }
   let task : Task = @json.from_json(json)
   guard task is Running(running) else { fail("Expected Running variant") }
-  assert_eq(running.name, Some("generating-task"))
+  @debug.assert_eq(running.name, Some("generating-task"))
   assert_true(running.status is @server.Busy)
 }
 
@@ -111,10 +114,13 @@ test "Task::from_json for Stopped variant" {
   }
   let task : Task = @json.from_json(json)
   guard task is Stopped(stopped) else { fail("Expected Stopped variant") }
-  assert_eq(stopped.name, Some("stopped-task"))
-  assert_eq(stopped.id, @uuid.parse("223e4567-e89b-12d3-a456-426614174000"))
-  assert_eq(stopped.cwd, "/tmp/stopped")
-  assert_eq(stopped.web_search, true)
+  @debug.assert_eq(stopped.name, Some("stopped-task"))
+  @debug.assert_eq(
+    stopped.id,
+    @uuid.parse("223e4567-e89b-12d3-a456-426614174000"),
+  )
+  @debug.assert_eq(stopped.cwd, "/tmp/stopped")
+  @debug.assert_eq(stopped.web_search, true)
 }
 
 ///|
@@ -138,14 +144,14 @@ test "Task roundtrip: Running -> JSON -> Task" {
   guard restored is Running(restored_running) else {
     fail("Expected Running variant after roundtrip")
   }
-  assert_eq(restored_running.name, Some("roundtrip-running"))
-  assert_eq(
+  @debug.assert_eq(restored_running.name, Some("roundtrip-running"))
+  @debug.assert_eq(
     restored_running.id,
     @uuid.parse("323e4567-e89b-12d3-a456-426614174000"),
   )
-  assert_eq(restored_running.cwd, "/tmp/roundtrip")
-  assert_eq(restored_running.port, 7070)
-  assert_eq(restored_running.web_search, true)
+  @debug.assert_eq(restored_running.cwd, "/tmp/roundtrip")
+  @debug.assert_eq(restored_running.port, 7070)
+  @debug.assert_eq(restored_running.web_search, true)
 }
 
 ///|
@@ -165,13 +171,13 @@ test "Task roundtrip: Stopped -> JSON -> Task" {
   guard restored is Stopped(restored_stopped) else {
     fail("Expected Stopped variant after roundtrip")
   }
-  assert_eq(restored_stopped.name, Some("roundtrip-stopped"))
-  assert_eq(
+  @debug.assert_eq(restored_stopped.name, Some("roundtrip-stopped"))
+  @debug.assert_eq(
     restored_stopped.id,
     @uuid.parse("423e4567-e89b-12d3-a456-426614174000"),
   )
-  assert_eq(restored_stopped.cwd, "/tmp/roundtrip-stopped")
-  assert_eq(restored_stopped.web_search, false)
+  @debug.assert_eq(restored_stopped.cwd, "/tmp/roundtrip-stopped")
+  @debug.assert_eq(restored_stopped.web_search, false)
 }
 
 ///|

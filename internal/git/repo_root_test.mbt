@@ -2,11 +2,11 @@
 async test "find_repo_root" (t : @test.Test) {
   @mock.run(t, mock => {
     // Not in a git repo
-    inspect(mock.show(@git.find_repo_root(mock.cwd.path())), content="None")
+    inspect(mock.debug(@git.find_repo_root(mock.cwd.path())), content="None")
 
     // Non-existent path
     inspect(
-      mock.show(
+      mock.debug(
         @git.find_repo_root(Path::join(mock.cwd.path(), "nope").to_string()),
       ),
       content="None",
@@ -15,18 +15,18 @@ async test "find_repo_root" (t : @test.Test) {
     // In a git repo
     @git.init_(mock.cwd.path())
     inspect(
-      mock.show(@git.find_repo_root(mock.cwd.path())),
+      mock.debug(@git.find_repo_root(mock.cwd.path())),
       content=(
-        #|Some((mock:cwd))
+        #|Some("(mock:cwd)")
       ),
     )
 
     // Subdirectory in a git repo
     let sub = mock.cwd.add_directory("sub")
     inspect(
-      mock.show(@git.find_repo_root(sub.path())),
+      mock.debug(@git.find_repo_root(sub.path())),
       content=(
-        #|Some((mock:cwd))
+        #|Some("(mock:cwd)")
       ),
     )
 
@@ -34,9 +34,9 @@ async test "find_repo_root" (t : @test.Test) {
     let file = sub.add_file("hello.txt")
     file.write_string("hello")
     inspect(
-      mock.show(@git.find_repo_root(file.path())),
+      mock.debug(@git.find_repo_root(file.path())),
       content=(
-        #|Some((mock:cwd))
+        #|Some("(mock:cwd)")
       ),
     )
   })

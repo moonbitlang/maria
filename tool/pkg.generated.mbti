@@ -55,7 +55,7 @@ pub impl ToJson for ToolResult
 
 // Traits
 pub(open) trait ToolOutput {
-  to_message(Self) -> @ai.Message
+  fn to_message(Self) -> @ai.Message
 }
 pub impl ToolOutput for String
 pub impl ToolOutput for Json

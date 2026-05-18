@@ -12,7 +12,7 @@ pub impl @httpx.FromEvent for ServerEvent with from_event(event : @httpx.Event) 
     Some("maria.queued_messages.synchronized") =>
       ServerEvent::MariaQueuedMessagesSynchronized(@json.from_json(data))
     Some("maria") => ServerEvent::Maria(@json.from_json(data))
-    _ => fail("unrecognized event type: \{event}")
+    _ => fail("unrecognized event type: " + @debug.to_string(event))
   }
 }
 

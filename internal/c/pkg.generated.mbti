@@ -37,7 +37,7 @@ pub impl[T] Eq for Pointer[T]
 
 // Traits
 pub(open) trait Load {
-  load(Pointer[Self], Int) -> Self
+  fn load(Pointer[Self], Int) -> Self
 }
 pub impl Load for Byte
 pub impl Load for Int

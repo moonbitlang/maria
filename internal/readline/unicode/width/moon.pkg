@@ -6,5 +6,6 @@ import {
 import {
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async",
+  "moonbitlang/core/debug",
   "moonbitlang/core/string",
 } for "test"

@@ -88,7 +88,7 @@ pub fn text_content_part(
 
 ///|
 trait ToChatCompletionMessageParamContent {
-  to_chat_completion_message_param_content(self : Self) -> Array[
+  fn to_chat_completion_message_param_content(self : Self) -> Array[
     ChatCompletionContentPartParam,
   ]
 }

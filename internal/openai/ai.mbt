@@ -685,9 +685,9 @@ pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
 /// and JSON schema, allowing the model to generate responses that conform to
 /// the expected structure.
 pub(open) trait Structural: @json.FromJson {
-  name() -> String
-  description() -> String
-  schema() -> @schema.Schema
+  fn name() -> String
+  fn description() -> String
+  fn schema() -> @schema.Schema
 }
 
 ///|

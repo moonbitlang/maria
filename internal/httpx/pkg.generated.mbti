@@ -4,6 +4,7 @@ package "moonbitlang/maria/internal/httpx"
 import {
   "moonbitlang/async/http",
   "moonbitlang/async/io",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
 }
 
@@ -62,6 +63,7 @@ pub fn Header::new() -> Self
 pub fn Header::set(Self, String, String) -> Unit
 pub impl Show for Header
 pub impl ToJson for Header
+pub impl @debug.Debug for Header
 
 pub struct JsonRequestReader(RequestReader)
 pub fn JsonRequestReader::new(RequestReader) -> Self
@@ -125,10 +127,10 @@ pub async fn Server::serve(Self, Handler) -> Unit
 
 // Traits
 pub(open) trait FromEvent {
-  from_event(Event) -> Self raise
+  fn from_event(Event) -> Self raise
 }
 
 pub(open) trait ToEvent {
-  to_event(Self) -> Event
+  fn to_event(Self) -> Event
 }
 

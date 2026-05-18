@@ -42,7 +42,7 @@ struct Generator(&Source)
 
 ///|
 pub(open) trait Source {
-  uint64(self : Self) -> UInt64
+  fn uint64(self : Self) -> UInt64
 }
 
 ///|

@@ -1,6 +1,6 @@
 import {
   "moonbitlang/maria/internal/spawn",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/core/json",
   "moonbitlang/core/test",

@@ -319,16 +319,16 @@ test {
     ),
     content="",
   )
-  assert_eq(uri.scheme, "http")
+  @debug.assert_eq(uri.scheme, "http")
   let authority = uri.authority.unwrap_or_error(
     Failure::Failure("Missing authority"),
   )
-  assert_eq(authority.userinfo, Some("username:password"))
-  assert_eq(authority.host, "example.com")
-  assert_eq(authority.port, Some(8443))
-  assert_eq(uri.path, ["path", "to", "resource"])
-  assert_eq(uri.query, Some("query=parameter"))
-  assert_eq(uri.fragment, Some("fragment"))
+  @debug.assert_eq(authority.userinfo, Some("username:password"))
+  @debug.assert_eq(authority.host, "example.com")
+  @debug.assert_eq(authority.port, Some(8443))
+  @debug.assert_eq(uri.path, ["path", "to", "resource"])
+  @debug.assert_eq(uri.query, Some("query=parameter"))
+  @debug.assert_eq(uri.fragment, Some("fragment"))
 }
 
 ///|
@@ -344,14 +344,14 @@ test {
     parse_uri(uri, "http://username:password@example.com:8443/path/to/resource"),
     content="",
   )
-  assert_eq(uri.scheme, "http")
+  @debug.assert_eq(uri.scheme, "http")
   let authority = uri.authority.unwrap_or_error(
     Failure::Failure("Missing authority"),
   )
-  assert_eq(authority.userinfo, Some("username:password"))
-  assert_eq(authority.host, "example.com")
-  assert_eq(authority.port, Some(8443))
-  assert_eq(uri.path, ["path", "to", "resource"])
-  assert_eq(uri.query, None)
-  assert_eq(uri.fragment, None)
+  @debug.assert_eq(authority.userinfo, Some("username:password"))
+  @debug.assert_eq(authority.host, "example.com")
+  @debug.assert_eq(authority.port, Some(8443))
+  @debug.assert_eq(uri.path, ["path", "to", "resource"])
+  @debug.assert_eq(uri.query, None)
+  @debug.assert_eq(uri.fragment, None)
 }

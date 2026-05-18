@@ -18,6 +18,6 @@ pub impl Clock for Epoch with now_str(clock : Epoch) -> String {
 
 ///|
 pub(open) trait Clock {
-  now(self : Self) -> Timestamp
-  now_str(self : Self) -> String
+  fn now(self : Self) -> Timestamp
+  fn now_str(self : Self) -> String
 }
