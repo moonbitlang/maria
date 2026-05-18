@@ -122,9 +122,9 @@ async fn chat_codex(
           )
       }
   }
-  let has_refreshed = Ref::new(false)
-  let current_access_token = Ref::new(access_token)
-  let current_account_id = Ref::new(account_id)
+  let has_refreshed = Ref(false)
+  let current_access_token = Ref(access_token)
+  let current_account_id = Ref(account_id)
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,
@@ -220,8 +220,8 @@ async fn chat_copilot(
         body="Failed to get Copilot credentials: \{err}",
       )
   }
-  let has_refreshed = Ref::new(false)
-  let current_token = Ref::new(credentials.copilot_token)
+  let has_refreshed = Ref(false)
+  let current_token = Ref(credentials.copilot_token)
   @async.retry(
     ExponentialDelay(initial=1000, factor=2.0, maximum=16000),
     max_retry=5,

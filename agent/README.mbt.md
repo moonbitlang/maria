@@ -130,7 +130,7 @@ async test "track-conversation" {
 ///|
 async test "track-tool-calls" {
   let agent = @agent.new(model, cwd=@os.cwd())
-  let tool_calls = Ref::new([])
+  let tool_calls = Ref([])
   agent.add_listener(event => {
     match event.desc {
       PreToolCall(tool_call) => {
