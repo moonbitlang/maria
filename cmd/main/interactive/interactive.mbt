@@ -10,35 +10,37 @@ pub async fn interactive(args : ArrayView[String]) -> Unit {
   let mut web_search : Bool = false
   let mut log_file : String? = None
   let mut resume_id : @uuid.Uuid? = None
-  loop args {
-    ["--prompt" | "-p", value, .. rest] => {
-      prompt = Some(value)
-      continue rest
-    }
-    ["--model" | "-m", value, .. rest] => {
-      model = Some(value)
-      continue rest
-    }
-    ["--web-search", .. rest] => {
-      web_search = true
-      continue rest
-    }
-    ["--log-file", value, .. rest] => {
-      log_file = Some(value)
-      continue rest
-    }
-    ["--resume" | "-r", value, .. rest] => {
-      let value = @uuid.parse(value) catch {
-        _ =>
-          raise @argument.InvalidArgument(
-            "Invalid resume ID: '\{value}' is not a valid UUID.",
-          )
+  for args = args {
+    match args {
+      ["--prompt" | "-p", value, .. rest] => {
+        prompt = Some(value)
+        continue rest
       }
-      resume_id = Some(value)
-      continue rest
+      ["--model" | "-m", value, .. rest] => {
+        model = Some(value)
+        continue rest
+      }
+      ["--web-search", .. rest] => {
+        web_search = true
+        continue rest
+      }
+      ["--log-file", value, .. rest] => {
+        log_file = Some(value)
+        continue rest
+      }
+      ["--resume" | "-r", value, .. rest] => {
+        let value = @uuid.parse(value) catch {
+          _ =>
+            raise @argument.InvalidArgument(
+              "Invalid resume ID: '\{value}' is not a valid UUID.",
+            )
+        }
+        resume_id = Some(value)
+        continue rest
+      }
+      [unknown, ..] => raise @argument.InvalidArgument(unknown)
+      [] => break
     }
-    [unknown, ..] => raise @argument.InvalidArgument(unknown)
-    [] => break
   }
   let logger = match log_file {
     Some(log_file) =>

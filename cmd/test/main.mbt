@@ -46,28 +46,30 @@ async fn main {
   let mut prompt_file = None
   let mut log_file = "logs.jsonl"
   let mut model = None
-  loop args {
-    ["--prompt-file", pf, .. args] => {
-      if pf is ['-', ..] {
-        println("Error: --prompt-file takes a file path")
+  for args = args {
+    match args {
+      ["--prompt-file", pf, .. args] => {
+        if pf is ['-', ..] {
+          println("Error: --prompt-file takes a file path")
+          return
+        }
+        prompt_file = Some(pf)
+        continue args
+      }
+      ["--log-file", lf, .. args] => {
+        log_file = lf
+        continue args
+      }
+      ["--model", m, .. args] => {
+        model = Some(m)
+        continue args
+      }
+      [unknown, ..] => {
+        println("Error: Unknown option: \{unknown}")
         return
       }
-      prompt_file = Some(pf)
-      continue args
+      [] => break
     }
-    ["--log-file", lf, .. args] => {
-      log_file = lf
-      continue args
-    }
-    ["--model", m, .. args] => {
-      model = Some(m)
-      continue args
-    }
-    [unknown, ..] => {
-      println("Error: Unknown option: \{unknown}")
-      return
-    }
-    [] => ()
   }
   guard prompt_file is Some(prompt_file) else {
     println("Error: --prompt-file is required")

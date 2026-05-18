@@ -159,13 +159,15 @@ pub fn Interface::close(_ : Interface) -> Unit {
 /// Replace the current line buffer and update multiline state.
 pub fn Interface::set_line(self : Interface, line : BytesView) -> Unit {
   self.line = line
-  loop line[:] {
-    [] => break
-    [b'\n', ..] => {
-      self.is_multiline = true
-      break
+  for v = line[:] {
+    match v {
+      [] => break
+      [b'\n', ..] => {
+        self.is_multiline = true
+        break
+      }
+      [_, .. rest] => continue rest
     }
-    [_, .. rest] => continue rest
   }
 }
 
@@ -249,15 +251,17 @@ async fn Interface::refresh_line(self : Interface) -> Unit {
   self.output.clear_screen_down()
   if self.is_multiline {
     let lines = []
-    loop self.line[:] {
-      [b'\n', .. rest] as view => {
-        lines.push(self.line[:view.start_offset()])
-        continue rest
-      }
-      [_, .. rest] => continue rest
-      [] => {
-        lines.push(self.line)
-        break
+    for v = self.line[:] {
+      match v {
+        [b'\n', .. rest] as view => {
+          lines.push(self.line[:view.start_offset()])
+          continue rest
+        }
+        [_, .. rest] => continue rest
+        [] => {
+          lines.push(self.line)
+          break
+        }
       }
     }
     self.output.write(self.prompt)
@@ -309,74 +313,76 @@ fn display_position(
   }
   let mut offset = 0
   let mut rows = 0
-  loop str[:] {
-    [] => break
-    [b'\n', .. rest] => {
-      rows += (offset + col - 1) / col
-      offset = if is_multiline { MultilinePrompt.length() } else { 0 }
-      continue rest
-    }
-    [b'\t', .. rest] => {
-      offset += tab_size - offset % tab_size
-      continue rest
-    }
-    [0x00..=0x7F, .. rest] => {
-      offset += 1
-      continue rest
-    }
-    [0xC2..=0xDF as b0, 0x80..=0xBF as b1, .. rest] => {
-      let b0 = b0.to_int()
-      let b1 = b1.to_int()
-      let char = (((b0 & 0x1F) << 6) | (b1 & 0x3F)).unsafe_to_char()
-      offset += @unicode/width.char(char).unwrap_or(1)
-      continue rest
-    }
-    [0xE0 as b0, 0xA0..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
-    | [0xE1..=0xEC as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
-    | [0xED as b0, 0x80..=0x9F as b1, 0x80..=0xBF as b2, .. rest]
-    | [0xEE..=0xEF as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest] => {
-      let b0 = b0.to_int()
-      let b1 = b1.to_int()
-      let b2 = b2.to_int()
-      let char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F)).unsafe_to_char()
-      offset += @unicode/width.char(char).unwrap_or(1)
-      continue rest
-    }
-    [
-      0xF0 as b0,
-      0x90..=0xBF as b1,
-      0x80..=0xBF as b2,
-      0x80..=0xBF as b3,
-      .. rest,
-    ]
-    | [
-      0xF1..=0xF3 as b0,
-      0x80..=0xBF as b1,
-      0x80..=0xBF as b2,
-      0x80..=0xBF as b3,
-      .. rest,
-    ]
-    | [
-      0xF4 as b0,
-      0x80..=0x8F as b1,
-      0x80..=0xBF as b2,
-      0x80..=0xBF as b3,
-      .. rest,
-    ] => {
-      let b0 = b0.to_int()
-      let b1 = b1.to_int()
-      let b2 = b2.to_int()
-      let b3 = b3.to_int()
-      let char = (((b0 & 0x07) << 18) |
-      ((b1 & 0x3F) << 12) |
-      ((b2 & 0x3F) << 6) |
-      (b3 & 0x3F)).unsafe_to_char()
-      offset += @unicode/width.char(char).unwrap_or(1)
-      continue rest
-    }
-    [_, .. rest] => {
-      offset += 1
-      continue rest
+  for s = str[:] {
+    match s {
+      [] => break
+      [b'\n', .. rest] => {
+        rows += (offset + col - 1) / col
+        offset = if is_multiline { MultilinePrompt.length() } else { 0 }
+        continue rest
+      }
+      [b'\t', .. rest] => {
+        offset += tab_size - offset % tab_size
+        continue rest
+      }
+      [0x00..=0x7F, .. rest] => {
+        offset += 1
+        continue rest
+      }
+      [0xC2..=0xDF as b0, 0x80..=0xBF as b1, .. rest] => {
+        let b0 = b0.to_int()
+        let b1 = b1.to_int()
+        let char = (((b0 & 0x1F) << 6) | (b1 & 0x3F)).unsafe_to_char()
+        offset += @unicode/width.char(char).unwrap_or(1)
+        continue rest
+      }
+      [0xE0 as b0, 0xA0..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
+      | [0xE1..=0xEC as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest]
+      | [0xED as b0, 0x80..=0x9F as b1, 0x80..=0xBF as b2, .. rest]
+      | [0xEE..=0xEF as b0, 0x80..=0xBF as b1, 0x80..=0xBF as b2, .. rest] => {
+        let b0 = b0.to_int()
+        let b1 = b1.to_int()
+        let b2 = b2.to_int()
+        let char = (((b0 & 0x0F) << 12) | ((b1 & 0x3F) << 6) | (b2 & 0x3F)).unsafe_to_char()
+        offset += @unicode/width.char(char).unwrap_or(1)
+        continue rest
+      }
+      [
+        0xF0 as b0,
+        0x90..=0xBF as b1,
+        0x80..=0xBF as b2,
+        0x80..=0xBF as b3,
+        .. rest,
+      ]
+      | [
+        0xF1..=0xF3 as b0,
+        0x80..=0xBF as b1,
+        0x80..=0xBF as b2,
+        0x80..=0xBF as b3,
+        .. rest,
+      ]
+      | [
+        0xF4 as b0,
+        0x80..=0x8F as b1,
+        0x80..=0xBF as b2,
+        0x80..=0xBF as b3,
+        .. rest,
+      ] => {
+        let b0 = b0.to_int()
+        let b1 = b1.to_int()
+        let b2 = b2.to_int()
+        let b3 = b3.to_int()
+        let char = (((b0 & 0x07) << 18) |
+        ((b1 & 0x3F) << 12) |
+        ((b2 & 0x3F) << 6) |
+        (b3 & 0x3F)).unsafe_to_char()
+        offset += @unicode/width.char(char).unwrap_or(1)
+        continue rest
+      }
+      [_, .. rest] => {
+        offset += 1
+        continue rest
+      }
     }
   }
   let cols = offset % col
@@ -816,17 +822,19 @@ async fn Interface::line(self : Interface) -> Unit {
 fn BytesView::split(self : BytesView, sep : Byte) -> Array[BytesView] {
   let parts = []
   let mut start = 0
-  loop self[:] {
-    [] => {
-      parts.push(self[start:])
-      break
+  for v = self[:] {
+    match v {
+      [] => {
+        parts.push(self[start:])
+        break
+      }
+      [b, .. rest] as view if b == sep => {
+        parts.push(self[start:view.start_offset()])
+        start = rest.start_offset()
+        continue rest
+      }
+      [_, .. rest] => continue rest
     }
-    [b, .. rest] as view if b == sep => {
-      parts.push(self[start:view.start_offset()])
-      start = rest.start_offset()
-      continue rest
-    }
-    [_, .. rest] => continue rest
   }
   return parts
 }
@@ -1320,12 +1328,14 @@ fn common_prefix(array : Array[StringView]) -> StringView {
     [string] => string
     [min, .., max] => {
       let prefix = StringBuilder::new()
-      loop (min, max) {
-        ([min_c, .. min], [max_c, .. max]) if min_c == max_c => {
-          prefix.write_char(min_c)
-          continue (min, max)
+      for i = min, j = max {
+        match (i, j) {
+          ([min_c, .. min], [max_c, .. max]) if min_c == max_c => {
+            prefix.write_char(min_c)
+            continue min, max
+          }
+          _ => return prefix.to_string()
         }
-        _ => return prefix.to_string()
       }
     }
   }

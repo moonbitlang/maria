@@ -39,12 +39,14 @@ priv suberror InvalidTransport {
 /// ```
 pub fn Transport::parse(transport : StringView) -> Transport raise {
   let schema = StringBuilder::new()
-  let path : StringView = loop transport {
-    [] as path => break path
-    [':', .. rest] => break rest
-    [c, .. rest] => {
-      schema.write_char(c)
-      continue rest
+  let path : StringView = for t = transport {
+    match t {
+      [] as path => break path
+      [':', .. rest] => break rest
+      [c, .. rest] => {
+        schema.write_char(c)
+        continue rest
+      }
     }
   }
   match schema.to_string() {

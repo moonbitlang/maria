@@ -110,25 +110,27 @@ async fn Todo::save(self : Todo) -> Unit {
 fn extract_task_tags(content : String) -> Array[String] {
   let tasks = []
   let mut task = None
-  loop content[:] {
-    [.. "<task>", .. rest] => {
-      task = Some(StringBuilder::new())
-      continue rest
-    }
-    [.. "</task>", .. rest] => {
-      if task is Some(t) {
-        tasks.push(t.to_string())
-        task = None
+  for state = content[:] {
+    match state {
+      [.. "<task>", .. rest] => {
+        task = Some(StringBuilder::new())
+        continue rest
       }
-      continue rest
-    }
-    [c, .. rest] => {
-      if task is Some(t) {
-        t.write_char(c)
+      [.. "</task>", .. rest] => {
+        if task is Some(t) {
+          tasks.push(t.to_string())
+          task = None
+        }
+        continue rest
       }
-      continue rest
+      [c, .. rest] => {
+        if task is Some(t) {
+          t.write_char(c)
+        }
+        continue rest
+      }
+      [] => break
     }
-    [] => break
   }
   tasks
 }

@@ -23,18 +23,20 @@ pub fn readlink(path : String, bufsize? : UInt64 = 1024) -> String raise {
   let bytes = @encoding/utf8.encode(path)
   let mut buf : FixedArray[Byte] = FixedArray::make(bufsize.to_int(), 0)
   let mut bufsize : UInt64 = bufsize
-  loop fs_readlink(bytes, buf, bufsize) {
-    _..<0 => raise @errno.Errno(@errno.get())
-    n =>
-      // If the buffer was too small, try again with a larger buffer
-      if n.reinterpret_as_uint64() == bufsize {
-        bufsize = bufsize * 2
-        buf = FixedArray::make(bufsize.to_int(), 0)
-        continue fs_readlink(bytes, buf, bufsize)
-      } else {
-        return @encoding/utf8.decode(
-          buf.unsafe_reinterpret_as_bytes()[0:n.to_int()],
-        )
-      }
+  for state = fs_readlink(bytes, buf, bufsize) {
+    match state {
+      _..<0 => raise @errno.Errno(@errno.get())
+      n =>
+        // If the buffer was too small, try again with a larger buffer
+        if n.reinterpret_as_uint64() == bufsize {
+          bufsize = bufsize * 2
+          buf = FixedArray::make(bufsize.to_int(), 0)
+          continue fs_readlink(bytes, buf, bufsize)
+        } else {
+          return @encoding/utf8.decode(
+            buf.unsafe_reinterpret_as_bytes()[0:n.to_int()],
+          )
+        }
+    }
   }
 }

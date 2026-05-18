@@ -3,16 +3,18 @@ async fn main {
   let args = @os.args()
   let mut path = None
   let mut stdin = false
-  loop args[1:] {
-    ["--stdin", .. args] => {
-      stdin = true
-      continue args
+  for args = args[1:] {
+    match args {
+      ["--stdin", .. args] => {
+        stdin = true
+        continue args
+      }
+      [p, .. args] => {
+        path = Some(p)
+        continue args
+      }
+      [] => break
     }
-    [p, .. args] => {
-      path = Some(p)
-      continue args
-    }
-    [] => break
   }
   guard path is Some(path) else {
     println("usage: test-lock <file-path> [--sleep-forever]")

@@ -33,18 +33,22 @@ fn HistoryManager::can_navigate_to_prev(self : HistoryManager) -> Bool {
 ///|
 /// Remove leading spaces.
 fn BytesView::trim_start(self : BytesView) -> BytesView {
-  loop self {
-    [b' ', .. rest] => continue rest
-    [.. rest] => break rest
+  for s = self {
+    match s {
+      [b' ', .. rest] => continue rest
+      [.. rest] => break rest
+    }
   }
 }
 
 ///|
 /// Remove trailing spaces.
 fn BytesView::trim_end(self : BytesView) -> BytesView {
-  loop self {
-    [.. rest, b' '] => continue rest
-    [.. rest] => break rest
+  for s = self {
+    match s {
+      [.. rest, b' '] => continue rest
+      [.. rest] => break rest
+    }
   }
 }
 
@@ -63,17 +67,19 @@ fn reverse_string(
 ) -> BytesView {
   let parts = []
   let mut start = 0
-  loop line[:] {
-    [] => {
-      parts.push(line[start:])
-      break
+  for v = line[:] {
+    match v {
+      [] => {
+        parts.push(line[start:])
+        break
+      }
+      [c, .. rest] as view if c == from => {
+        parts.push(line[start:view.start_offset()])
+        start = rest.start_offset()
+        continue rest
+      }
+      [_, .. rest] => continue rest
     }
-    [c, .. rest] as view if c == from => {
-      parts.push(line[start:view.start_offset()])
-      start = rest.start_offset()
-      continue rest
-    }
-    [_, .. rest] => continue rest
   }
   let buffer = @buffer.new()
   for i = parts.length() - 1; i > 0; i = i - 1 {

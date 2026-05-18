@@ -133,32 +133,34 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut serve = @os.cwd()
   let mut exec_path = None
   let mut to_detach = false
-  loop args {
-    ["-p" | "--port", p, .. args] => {
-      port = @string.parse_int(p)
-      continue args
-    }
-    ["-s" | "--serve", s, .. args] => {
-      serve = if Path::is_absolute(s) {
-        s
-      } else {
-        Path::join(@os.cwd(), s).to_string()
+  for args = args {
+    match args {
+      ["-p" | "--port", p, .. args] => {
+        port = @string.parse_int(p)
+        continue args
       }
-      continue args
-    }
-    ["-d" | "--detach", .. args] => {
-      to_detach = true
-      continue args
-    }
-    [e, .. args] => {
-      exec_path = if Path::is_absolute(e) {
-        Some(e)
-      } else {
-        Some(Path::join(@os.cwd(), e).to_string())
+      ["-s" | "--serve", s, .. args] => {
+        serve = if Path::is_absolute(s) {
+          s
+        } else {
+          Path::join(@os.cwd(), s).to_string()
+        }
+        continue args
       }
-      continue args
+      ["-d" | "--detach", .. args] => {
+        to_detach = true
+        continue args
+      }
+      [e, .. args] => {
+        exec_path = if Path::is_absolute(e) {
+          Some(e)
+        } else {
+          Some(Path::join(@os.cwd(), e).to_string())
+        }
+        continue args
+      }
+      [] => break
     }
-    [] => break
   }
   guard @model.load(home=@os.home(), cwd=@os.cwd()) is Some(_) else {
     @os.exit(-1)

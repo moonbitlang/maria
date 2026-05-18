@@ -92,43 +92,48 @@ async fn main {
   let args = @os.args()
   let mut prompt = None
   let mut model = None
-  loop args[1:] {
-    ["exec" | "execute" | "-p" | "--prompt", p, .. args] =>
-      if p.has_prefix("-") {
+  for args = args[1:] {
+    match args {
+      ["exec" | "execute" | "-p" | "--prompt", p, .. args] =>
+        if p.has_prefix("-") {
+          let error : Json = {
+            "error": {
+              "code": -1,
+              "message": Failure::Failure("Expect <prompt> after -p/--prompt").to_string(),
+            },
+          }
+          println(error.stringify())
+          break
+        } else {
+          prompt = Some(p)
+          continue args
+        }
+      ["-m" | "--model", m, .. args] =>
+        if m.has_prefix("-") {
+          let error : Json = {
+            "error": {
+              "code": -1,
+              "message": Failure::Failure("Expect <model> after -m/--model").to_string(),
+            },
+          }
+          println(error.stringify())
+          break
+        } else {
+          model = Some(m)
+          continue args
+        }
+      [unknown, ..] => {
         let error : Json = {
           "error": {
             "code": -1,
-            "message": Failure::Failure("Expect <prompt> after -p/--prompt").to_string(),
+            "message": Failure::Failure("Unknown argument: \{unknown}").to_string(),
           },
         }
         println(error.stringify())
-      } else {
-        prompt = Some(p)
-        continue args
+        break
       }
-    ["-m" | "--model", m, .. args] =>
-      if m.has_prefix("-") {
-        let error : Json = {
-          "error": {
-            "code": -1,
-            "message": Failure::Failure("Expect <model> after -m/--model").to_string(),
-          },
-        }
-        println(error.stringify())
-      } else {
-        model = Some(m)
-        continue args
-      }
-    [unknown, ..] => {
-      let error : Json = {
-        "error": {
-          "code": -1,
-          "message": Failure::Failure("Unknown argument: \{unknown}").to_string(),
-        },
-      }
-      println(error.stringify())
+      [] => break
     }
-    [] => break
   }
   guard prompt is Some(prompt) else {
     let error : Json = {
