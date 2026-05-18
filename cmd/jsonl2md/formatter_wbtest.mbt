@@ -311,7 +311,7 @@ test "recover_diagnostics" {
       #|fn new_parser(text : String) -> Parser {
       #|  Parser {
       #|    text: text,
-      #|    pos: Ref::new(0)
+      #|    pos: Ref(0)
       #|  }
       #|}
       #|
@@ -885,7 +885,7 @@ test "recover_diagnostics" {
       #|fn new_parser(text : String) -> Parser {
       #|  Parser {
       #|    text: text,
-      #|    pos: Ref::new(0)
+      #|    pos: Ref(0)
       #|  }
       #|}
       #|

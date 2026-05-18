@@ -164,7 +164,7 @@ pub async fn Manager::start(self : Manager) -> Unit {
       let spawn = self.spawn.get()
       try {
         let pid = self.new_pid()
-        let refer_status = Ref::new(None)
+        let refer_status = Ref(None)
         let stderr = redirect_output(spawn.stderr)
         let stdout = redirect_output(spawn.stdout)
         let task = group.spawn(() => {

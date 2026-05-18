@@ -424,7 +424,7 @@ async fn search_files_impl(
           let regex_result = @regexp.compile(search_pattern) catch {
             error => return @tool.failed("Invalid regex pattern: \{error}")
           }
-          let does_respect_gitignore = Ref::new(true)
+          let does_respect_gitignore = Ref(true)
 
           // Collect files to search
           let files_to_search = if is_file {

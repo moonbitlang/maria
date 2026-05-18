@@ -35,7 +35,7 @@ async fn Daemon::start_codex_auth(
 /// Spawns a temporary HTTP server on port 1455 to handle the OAuth callback
 /// from OpenAI. The server shuts down after handling one callback.
 async fn Daemon::spawn_codex_callback_server(self : Daemon) -> Unit {
-  let done = Ref::new(false)
+  let done = Ref(false)
   let pending_auth = self.pending_codex_auth
   let events = self.events
   let router = @httpx.Router::new()
