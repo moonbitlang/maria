@@ -7,7 +7,7 @@ test "header" {
   inspect(
     header,
     content=(
-      #|{"Content-Type": "application/json", "Set-Cookie": "sessionid=abc123, theme=dark"}
+      #|{Content-Type: application/json, Set-Cookie: sessionid=abc123, theme=dark}
     ),
   )
   json_inspect(header, content={

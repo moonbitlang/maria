@@ -16,14 +16,18 @@ async test "find_repo_root" (t : @test.Test) {
     @git.init_(mock.cwd.path())
     inspect(
       mock.show(@git.find_repo_root(mock.cwd.path())),
-      content="Some(\"(mock:cwd)\")",
+      content=(
+        #|Some((mock:cwd))
+      ),
     )
 
     // Subdirectory in a git repo
     let sub = mock.cwd.add_directory("sub")
     inspect(
       mock.show(@git.find_repo_root(sub.path())),
-      content="Some(\"(mock:cwd)\")",
+      content=(
+        #|Some((mock:cwd))
+      ),
     )
 
     // File path in a git repo
@@ -31,7 +35,9 @@ async test "find_repo_root" (t : @test.Test) {
     file.write_string("hello")
     inspect(
       mock.show(@git.find_repo_root(file.path())),
-      content="Some(\"(mock:cwd)\")",
+      content=(
+        #|Some((mock:cwd))
+      ),
     )
   })
 }
