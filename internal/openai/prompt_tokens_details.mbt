@@ -3,7 +3,7 @@
 pub struct PromptTokensDetails {
   cached_tokens : Int?
   audio_tokens : Int?
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 pub fn PromptTokensDetails::new(

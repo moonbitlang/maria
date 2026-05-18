@@ -5,7 +5,7 @@ pub struct Authority {
   mut userinfo : StringView?
   mut host : StringView
   mut port : Int?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub struct Uri {
@@ -14,7 +14,7 @@ pub struct Uri {
   path : Array[StringView]
   mut query : StringView?
   mut fragment : StringView?
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 suberror ParseError {

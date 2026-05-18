@@ -7,14 +7,14 @@ pub(all) struct Credentials {
   accessToken : String
   refreshToken : String
   accountId : String
-} derive(Show, ToJson, FromJson)
+} derive(Debug, ToJson, FromJson)
 
 ///|
 pub struct IdTokenClaims {
   email : String
   chatgptAccountId : String
   chatgptPlanType : String
-} derive(Show)
+} derive(Debug)
 
 ///|
 fn add_base64_padding(s : String) -> String {

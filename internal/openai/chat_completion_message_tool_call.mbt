@@ -4,7 +4,7 @@
 pub struct ChatCompletionMessageToolCall {
   id : String
   function : ChatCompletionMessageToolCallFunction
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub impl ToJson for ChatCompletionMessageToolCall with to_json(

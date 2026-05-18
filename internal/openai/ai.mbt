@@ -1,7 +1,7 @@
 ///|
 priv suberror HttpError {
   HttpError(code~ : Int, body~ : String)
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 /// Execute a chat completion request with the OpenAI API.

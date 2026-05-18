@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/openai/responses"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
 }
 
@@ -16,7 +17,7 @@ pub fn message_input(role~ : String, content~ : String) -> ResponseInputItem
 pub struct ContentPart {
   type_ : ContentType
   text : String
-} derive(Show)
+} derive(@debug.Debug)
 pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> Self
 pub impl ToJson for ContentPart
 pub impl @json.FromJson for ContentPart
@@ -25,7 +26,7 @@ pub(all) enum ContentType {
   InputText
   OutputText
   Text
-} derive(Show)
+} derive(@debug.Debug)
 pub impl ToJson for ContentType
 pub impl @json.FromJson for ContentType
 
@@ -33,13 +34,13 @@ pub(all) enum ResponseInputItem {
   Message(role~ : String, content~ : Array[ContentPart])
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
   FunctionCallOutput(call_id~ : String, output~ : String)
-} derive(Show)
+} derive(@debug.Debug)
 pub impl ToJson for ResponseInputItem
 
 pub(all) enum ResponseItem {
   Message(role~ : String, content~ : Array[ContentPart])
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
-} derive(Show)
+} derive(@debug.Debug)
 pub impl @json.FromJson for ResponseItem
 
 pub struct ResponsesRequest {
@@ -50,7 +51,7 @@ pub struct ResponsesRequest {
   tool_choice : String
   stream : Bool?
   store : Bool?
-} derive(Show)
+} derive(@debug.Debug)
 pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItem], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
 pub impl ToJson for ResponsesRequest
 

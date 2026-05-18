@@ -4,7 +4,7 @@ using @path {type Path}
 ///|
 pub(all) suberror ApplyError {
   ApplyError(String)
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub async fn apply_hunks(

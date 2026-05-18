@@ -1,7 +1,7 @@
 ///|
 priv suberror OAuthError {
   OAuthError(String)
-} derive(Show)
+} derive(Debug)
 
 ///|
 priv suberror ParseError {

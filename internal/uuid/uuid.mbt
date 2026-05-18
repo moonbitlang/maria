@@ -31,7 +31,9 @@ pub impl @json.FromJson for Uuid with from_json(json, json_path) -> Uuid raise {
   }
   parse(string) catch {
     error =>
-      raise @json.JsonDecodeError((json_path, "Uuid::from_json: \{error}"))
+      raise @json.JsonDecodeError(
+        (json_path, "Uuid::from_json: " + @debug.to_string(error)),
+      )
   }
 }
 
@@ -121,7 +123,7 @@ suberror ParseError {
   InvalidOctet(StringView)
   MissingDash(StringView)
   ExtraContent(StringView)
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 pub fn parse(hex : StringView) -> Uuid raise ParseError {
@@ -218,12 +220,17 @@ pub impl Show for Uuid with output(self : Uuid, logger : &Logger) -> Unit {
 }
 
 ///|
+pub impl @debug.Debug for Uuid with to_repr(self : Uuid) -> @debug.Repr {
+  @debug.Repr::string(self.to_string())
+}
+
+///|
 pub enum Variant {
   ReservedNCS
   RFC9562(Version)
   ReservedMicrosoft
   ReservedFuture
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 pub(all) enum Version {
@@ -243,7 +250,7 @@ pub(all) enum Version {
   V13 = 13
   V14 = 14
   V15 = 15
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 fn Version::from_uint64_unchecked(value : UInt64) -> Version = "%identity"

@@ -7,6 +7,7 @@ import {
   "moonbitlang/maria/internal/rand",
   "moonbitlang/maria/clock",
   "moonbitlang/maria/internal/jsonx",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }

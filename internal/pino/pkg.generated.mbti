@@ -3,6 +3,7 @@ package "moonbitlang/maria/internal/pino"
 
 import {
   "moonbitlang/async/aqueue",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -18,7 +19,7 @@ pub(all) enum Level {
   Warn
   Error
   Fatal
-} derive(Compare, Eq, Show, ToJson)
+} derive(Compare, Eq, ToJson, @debug.Debug)
 
 type Logger
 pub fn Logger::child(Self, Map[String, Json]) -> Self

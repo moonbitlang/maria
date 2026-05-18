@@ -3,7 +3,7 @@
 pub struct ChatCompletionMessageToolCallFunction {
   arguments : String?
   name : String
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl ToJson for ChatCompletionMessageToolCallFunction with to_json(

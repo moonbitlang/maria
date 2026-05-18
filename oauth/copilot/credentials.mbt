@@ -6,7 +6,7 @@ pub(all) struct Credentials {
   github_token : String
   copilot_token : String
   copilot_token_expires_at : Int64
-} derive(Show, ToJson, FromJson)
+} derive(Debug, ToJson, FromJson)
 
 ///|
 fn get_home() -> String {

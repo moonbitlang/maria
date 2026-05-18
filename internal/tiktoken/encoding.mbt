@@ -217,7 +217,7 @@ pub fn Encoding::encode(self : Encoding, piece : StringView) -> Array[Int] {
 suberror DecodingError {
   InvalidToken(Int)
   MalformedUtf8(Bytes)
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn Encoding::decode(

@@ -9,6 +9,11 @@ pub impl Show for Timestamp with output(self : Timestamp, logger : &Logger) -> U
 }
 
 ///|
+pub impl @debug.Debug for Timestamp with to_repr(self : Timestamp) -> @debug.Repr {
+  @debug.Repr::integer(self.0.to_string())
+}
+
+///|
 /// Creates a new timestamp from the given number of milliseconds since the Unix
 /// epoch.
 ///

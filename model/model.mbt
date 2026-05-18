@@ -14,19 +14,19 @@ pub struct Model {
   account_id : String?
   refresh_token : String?
   id_token : String?
-} derive(ToJson, Eq, Show)
+} derive(ToJson, Eq, Debug)
 
 ///|
 pub(all) enum Provider {
   OpenAI
   CodexOAuth
   Copilot
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 pub(all) enum Type {
   SaaS(Provider)
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 /// Create a new model configuration describing how to reach a provider

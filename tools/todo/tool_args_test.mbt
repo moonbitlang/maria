@@ -166,7 +166,7 @@ test "parse_todo_args/error_missing_action" {
   let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
     e => Err(e)
   }
-  inspect(
+  @debug.debug_inspect(
     result,
     content="Err(TodoArgsError(\"Error: 'action' parameter is required\"))",
   )
@@ -178,7 +178,7 @@ test "parse_todo_args/error_invalid_action" {
   let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
     e => Err(e)
   }
-  inspect(
+  @debug.debug_inspect(
     result,
     content="Err(TodoArgsError(\"Error: Invalid action 'invalid'. Supported actions: read, create, add_task, update, mark_progress, mark_completed.\"))",
   )
@@ -194,7 +194,7 @@ test "parse_todo_args/error_invalid_priority" {
   let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
     e => Err(e)
   }
-  inspect(
+  @debug.debug_inspect(
     result,
     content="Err(TodoArgsError(\"Error: Invalid priority 'String(\\\"urgent\\\")'. Must be 'high', 'medium', or 'low'.\"))",
   )
@@ -206,7 +206,7 @@ test "parse_todo_args/error_invalid_status" {
   let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
     e => Err(e)
   }
-  inspect(
+  @debug.debug_inspect(
     result,
     content="Err(TodoArgsError(\"Error: Invalid status 'String(\\\"done\\\")'. Must be 'pending', 'in_progress', or 'completed'.\"))",
   )

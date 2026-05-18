@@ -25,14 +25,14 @@ priv enum Priority {
   High
   Medium
   Low
-} derive(ToJson, FromJson, Show, Eq)
+} derive(ToJson, FromJson, Debug, Eq)
 
 ///|
 priv enum Status {
   Pending
   InProgress
   Completed
-} derive(ToJson, FromJson, Show, Eq)
+} derive(ToJson, FromJson, Debug, Eq)
 
 ///|
 priv struct Item {

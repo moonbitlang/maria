@@ -1,4 +1,4 @@
 ///|
 pub(all) suberror InvalidArgument {
   InvalidArgument(String)
-} derive(Show, ToJson)
+} derive(Debug, ToJson)

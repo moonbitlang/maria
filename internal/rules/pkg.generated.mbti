@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/rules"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/pino",
 }
@@ -22,12 +23,12 @@ pub struct Rule {
   always_apply : Bool
   content : String
   source : Source
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 pub enum Source {
   Global
   Local
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 // Type aliases
 

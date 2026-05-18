@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/uuid"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/random",
 }
@@ -16,7 +17,7 @@ pub let nil : Uuid
 pub fn parse(StringView) -> Uuid raise ParseError
 
 // Errors
-type ParseError derive(Show, ToJson)
+type ParseError derive(ToJson, @debug.Debug)
 
 // Types and methods
 type Generator
@@ -31,6 +32,7 @@ pub fn Uuid::variant(Self) -> Variant
 pub fn Uuid::version(Self) -> Version?
 pub impl Show for Uuid
 pub impl ToJson for Uuid
+pub impl @debug.Debug for Uuid
 pub impl @json.FromJson for Uuid
 
 pub enum Variant {
@@ -38,7 +40,7 @@ pub enum Variant {
   RFC9562(Version)
   ReservedMicrosoft
   ReservedFuture
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 pub(all) enum Version {
   V0
@@ -57,7 +59,7 @@ pub(all) enum Version {
   V13
   V14
   V15
-} derive(Show, ToJson)
+} derive(ToJson, @debug.Debug)
 
 // Type aliases
 

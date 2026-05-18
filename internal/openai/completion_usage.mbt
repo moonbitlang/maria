@@ -8,7 +8,7 @@ pub struct CompletionUsage {
   prompt_tokens : Int
   prompt_tokens_details : PromptTokensDetails?
   total_tokens : Int
-} derive(Show, ToJson)
+} derive(Debug, ToJson)
 
 ///|
 pub fn CompletionUsage::new(

@@ -13,7 +13,7 @@ enum Transport {
 ///|
 priv suberror InvalidTransport {
   InvalidTransport(StringView)
-} derive(Show)
+} derive(Debug)
 
 ///|
 /// Parses a transport string and creates the corresponding Transport instance.

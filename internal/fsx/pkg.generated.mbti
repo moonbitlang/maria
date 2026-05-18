@@ -3,6 +3,7 @@ package "moonbitlang/maria/internal/fsx"
 
 import {
   "moonbitlang/async/fs",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -47,7 +48,7 @@ pub struct DirectoryEntry {
   path : String
   name : String
   kind : FileKind
-} derive(Compare, Eq, Hash, Show, ToJson)
+} derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 
 pub enum FileKind {
   Unknown
@@ -58,7 +59,7 @@ pub enum FileKind {
   Pipe
   BlockDevice
   CharDevice
-} derive(Compare, Eq, Hash, Show, ToJson)
+} derive(Compare, Eq, Hash, ToJson, @debug.Debug)
 
 type FileRead
 pub fn FileRead::close(Self) -> Unit

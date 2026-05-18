@@ -27,6 +27,7 @@ import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/oauth/codex",
   "moonbitlang/maria/oauth/copilot",
+  "moonbitlang/core/debug",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/string",
