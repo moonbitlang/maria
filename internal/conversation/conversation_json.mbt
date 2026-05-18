@@ -67,7 +67,7 @@ pub impl @json.FromJson for Conversation with from_json(
         path=json_path.add_key("messages"),
       )
       let events = []
-      let pending_tool_calls : Map[String, @ai.ToolCall] = Map::new()
+      let pending_tool_calls : Map[String, @ai.ToolCall] = Map([])
       let uuid = Some(@uuid.generator(@rand.chacha8())) catch { _ => None }
       for message in messages {
         let id = if uuid is Some(uuid) {

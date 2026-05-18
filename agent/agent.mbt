@@ -421,7 +421,7 @@ pub async fn new(
     model,
     tools: {},
     input_queue: [],
-    pending_queue: @deque.Deque::new(),
+    pending_queue: @deque.Deque([]),
     event_target,
     token_counter: @token_counter.Counter::new(logger~),
     context_pruner: @context_pruner.Pruner::new(

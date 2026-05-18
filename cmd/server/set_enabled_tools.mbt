@@ -23,7 +23,7 @@ async fn Server::set_enabled_tools(
     @json.JsonDecodeError(_) as error =>
       raise @httpx.JsonError::from_error(@status.BadRequest, error)
   }
-  let tools = Set::new()
+  let tools = Set([])
   for tool_name in request.0 {
     if tools.contains(tool_name) {
       raise @httpx.JsonError::new(@status.BadRequest, "Duplicate tool name")

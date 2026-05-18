@@ -89,7 +89,7 @@ pub fn Conversation::messages(
   include_system? : Bool = true,
 ) -> Array[@ai.Message] {
   // First pass: collect pruned event IDs
-  let pruned_ids : Set[@uuid.Uuid] = Set::new()
+  let pruned_ids : Set[@uuid.Uuid] = Set([])
   for e in self.events() {
     match e.desc {
       Pruned(id~) => pruned_ids.add(id)
