@@ -432,7 +432,7 @@ test "Event::Roundtrip/PreToolCall" {
       inspect(
         tc.arguments,
         content=(
-          #|Some("{\"param1\": \"value1\", \"param2\": 123}")
+          #|Some({"param1": "value1", "param2": 123})
         ),
       )
     }
@@ -461,7 +461,7 @@ test "Event::Roundtrip/PostToolCall/Ok" {
       inspect(
         result,
         content=(
-          #|Ok(Object({"output": String("success")}))
+          #|Ok(Object({output: String(success)}))
         ),
       )
       inspect(rendered, content="Tool output: success")
@@ -490,7 +490,7 @@ test "Event::Roundtrip/PostToolCall/Err" {
       inspect(
         result,
         content=(
-          #|Err(Object({"error": String("Something went wrong")}))
+          #|Err(Object({error: String(Something went wrong)}))
         ),
       )
       inspect(rendered, content="Error occurred")
@@ -511,7 +511,7 @@ test "Event::Roundtrip/SystemPromptSet/Some" {
       inspect(
         msg,
         content=(
-          #|Some("You are a helpful assistant.")
+          #|Some(You are a helpful assistant.)
         ),
       )
     _ => fail("Expected SystemPromptSet")
@@ -572,7 +572,7 @@ test "Event::Roundtrip/ToolAdded" {
       inspect(
         desc.schema.to_json(),
         content=(
-          #|Object({"type": String("object")})
+          #|Object({type: String(object)})
         ),
       )
     }

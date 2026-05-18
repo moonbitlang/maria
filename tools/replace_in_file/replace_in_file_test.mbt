@@ -10,7 +10,7 @@ async test "replace_in_file/create" (t : @test.Test) {
     json_inspect(result, content=[
       "Failed",
       [
-        "ToolFailure", "Error: Invalid arguments provided to replace_in_file tool: JsonDecodeError((, \"Missing field replace\"))",
+        "ToolFailure", "Error: Invalid arguments provided to replace_in_file tool: JsonDecodeError((, Missing field replace))",
       ],
     ])
   })

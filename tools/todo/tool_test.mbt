@@ -903,13 +903,13 @@ async test "todo_write/error_invalid_priority" (t : @test.Test) {
     json_inspect(result, content=[
       "Failed",
       [
-        "ToolFailure", "Error: Invalid priority 'String(\"urgent\")'. Must be 'high', 'medium', or 'low'.",
+        "ToolFailure", "Error: Invalid priority 'String(urgent)'. Must be 'high', 'medium', or 'low'.",
       ],
     ])
     inspect(
       result,
       content=(
-        #|Error: Invalid priority 'String("urgent")'. Must be 'high', 'medium', or 'low'.
+        #|Error: Invalid priority 'String(urgent)'. Must be 'high', 'medium', or 'low'.
       ),
     )
   })
@@ -927,13 +927,13 @@ async test "todo_write/error_invalid_status" (t : @test.Test) {
     json_inspect(result, content=[
       "Failed",
       [
-        "ToolFailure", "Error: Invalid status 'String(\"done\")'. Must be 'pending', 'in_progress', or 'completed'.",
+        "ToolFailure", "Error: Invalid status 'String(done)'. Must be 'pending', 'in_progress', or 'completed'.",
       ],
     ])
     inspect(
       result,
       content=(
-        #|Error: Invalid status 'String("done")'. Must be 'pending', 'in_progress', or 'completed'.
+        #|Error: Invalid status 'String(done)'. Must be 'pending', 'in_progress', or 'completed'.
       ),
     )
   })

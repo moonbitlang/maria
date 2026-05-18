@@ -196,7 +196,9 @@ test "parse_todo_args/error_invalid_priority" {
   }
   @debug.debug_inspect(
     result,
-    content="Err(TodoArgsError(\"Error: Invalid priority 'String(\\\"urgent\\\")'. Must be 'high', 'medium', or 'low'.\"))",
+    content=(
+      #|Err(TodoArgsError("Error: Invalid priority 'String(urgent)'. Must be 'high', 'medium', or 'low'."))
+    ),
   )
 }
 
@@ -208,7 +210,9 @@ test "parse_todo_args/error_invalid_status" {
   }
   @debug.debug_inspect(
     result,
-    content="Err(TodoArgsError(\"Error: Invalid status 'String(\\\"done\\\")'. Must be 'pending', 'in_progress', or 'completed'.\"))",
+    content=(
+      #|Err(TodoArgsError("Error: Invalid status 'String(done)'. Must be 'pending', 'in_progress', or 'completed'."))
+    ),
   )
 }
 
