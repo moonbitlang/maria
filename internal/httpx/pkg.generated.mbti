@@ -127,10 +127,10 @@ pub async fn Server::serve(Self, Handler) -> Unit
 
 // Traits
 pub(open) trait FromEvent {
-  fn from_event(Event) -> Self raise
+  from_event(Event) -> Self raise
 }
 
 pub(open) trait ToEvent {
-  fn to_event(Self) -> Event
+  to_event(Self) -> Event
 }
 

@@ -27,7 +27,7 @@ fn Filter::add(self : Filter, key : String, value : String) -> Unit {
 ///|
 /// Internal hook that lets the filter operate on multiple value types.
 priv trait Filterable {
-  fn filter(self : Filter, value : Self) -> Self
+  filter(self : Filter, value : Self) -> Self
 }
 
 ///|

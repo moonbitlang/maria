@@ -330,9 +330,9 @@ pub impl ToJson for ResponseFormat
 
 // Traits
 pub(open) trait Structural : @json.FromJson {
-  fn name() -> String
-  fn description() -> String
-  fn schema() -> @schema.Schema
+  name() -> String
+  description() -> String
+  schema() -> @schema.Schema
 }
 
 trait ToChatCompletionMessageParamContent

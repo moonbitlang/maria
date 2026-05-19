@@ -86,7 +86,7 @@ pub fn[T : Store] Pointer::store(
 /// Implementations of `Load` define how to read a value of the given type
 /// from a `Pointer[Self]` at a specific element offset.
 pub(open) trait Load {
-  fn load(Pointer[Self], Int) -> Self
+  load(Pointer[Self], Int) -> Self
 }
 
 ///|
@@ -256,7 +256,7 @@ extern "c" fn moonbit_c_store_double(
 /// Implementations of `Store` define how to write a value of the given type
 /// into a `Pointer[Self]` at a specific element offset.
 trait Store {
-  fn store(Pointer[Self], Int, Self) -> Unit
+  store(Pointer[Self], Int, Self) -> Unit
 }
 
 ///|

@@ -27,7 +27,7 @@ pub fn tool_desc(
 
 ///|
 pub(open) trait ToolOutput {
-  fn to_message(Self) -> @ai.Message
+  to_message(Self) -> @ai.Message
 }
 
 ///|
