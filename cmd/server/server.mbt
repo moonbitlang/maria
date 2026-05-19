@@ -58,7 +58,12 @@ pub async fn Server::new(
   let broadcast = @broadcast.Broadcast::new()
   let uuid = @uuid.generator(@rand.chacha8())
   guard @model.load(home~, name?=model) is Some(model) else {
-    fail("Failed to load model '\{model}' from cwd '\{cwd}'")
+    fail(
+      "Failed to load model " +
+      @debug.to_string(model) +
+      " from cwd " +
+      @debug.to_string(cwd),
+    )
   }
   let maria = if resume_id is Some(resume_id) {
     @maria.Maria::resume_(model~, resume_id, web_search~)
@@ -174,7 +179,7 @@ async fn Server::start_maria(self : Server) -> Unit {
           logger.info("Starting Maria task...")
           self.maria.agent.start() catch {
             error => {
-              logger.error("Maria task failed: \{error}")
+              logger.error("Maria task failed: " + @debug.to_string(error))
               if !@async.is_being_cancelled() {
                 self.broadcast.put(
                   @event.Event::new(id=self.uuid.v4(), Failed(error.to_json())),
@@ -252,7 +257,7 @@ pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
     Some("maria.queued_messages.synchronized") =>
       ServerStreamEvent::MariaQueuedMessagesSynchronized(@json.from_json(data))
     Some("maria") => ServerStreamEvent::Maria(@json.from_json(data))
-    _ => fail("unrecognized event type: \{event}")
+    _ => fail("unrecognized event type: " + @debug.to_string(event))
   }
 }
 

@@ -1,4 +1,15 @@
 ///|
+priv struct LineNumberState {
+  original_start : Int
+  mut original_line : Int
+  original_count : Int
+  modified_start : Int
+  mut modified_line : Int
+  modified_count : Int
+  mut marker : Char
+}
+
+///|
 /// Adds line numbers to unified diff output, displaying both original and
 /// modified line numbers side by side. This function should only be used for
 /// displaying diffs for human consumption. It is not sure if the output can be
@@ -15,18 +26,9 @@
 /// Throws an error if the diff text contains malformed hunk headers that cannot
 /// be parsed.
 fn add_line_number_to_diff(diff_text : String) -> String raise {
-  struct State {
-    original_start : Int
-    mut original_line : Int
-    original_count : Int
-    modified_start : Int
-    mut modified_line : Int
-    modified_count : Int
-    mut marker : Char
-  }
   let lines = diff_text.split("\n")
-  let mut last_state : State? = None
-  let mut state : State? = None
+  let mut last_state : LineNumberState? = None
+  let mut state : LineNumberState? = None
   let numbered_lines = []
   for line in lines {
     if state is Some(s) {

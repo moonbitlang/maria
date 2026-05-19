@@ -140,7 +140,8 @@ async test "track-tool-calls" {
       PostToolCall(tool_call, result~, ..) =>
         match result {
           Ok(_) => println("Tool \{tool_call.name} succeeded")
-          Err(error) => println("Tool \{tool_call.name} failed: \{error}")
+          Err(error) =>
+            println("Tool \{tool_call.name} failed: " + @debug.to_string(error))
         }
       _ => ()
     }

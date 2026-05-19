@@ -3,6 +3,7 @@ package "moonbitlang/maria/internal/mock"
 
 import {
   "moonbitlang/async",
+  "moonbitlang/core/debug",
   "moonbitlang/core/random",
   "moonbitlang/core/test",
   "moonbitlang/maria/clock",
@@ -34,6 +35,7 @@ pub async fn Context::add_file(Self, String, content? : String) -> File
 pub async fn Context::add_files(Self, Map[String, String]) -> Unit
 pub async fn Context::add_json_tree(Self, Map[String, Json]) -> Unit
 pub async fn Context::add_symlink(Self, String, to~ : String) -> Unit
+pub fn[T : @debug.Debug] Context::debug(Self, T) -> String
 pub fn Context::getenv(Self, String, allow_empty? : Bool) -> String raise
 pub fn[T : ToJson] Context::json(Self, T) -> Json
 pub fn Context::model(Self, name? : @model.CommonModels) -> @model.Model raise

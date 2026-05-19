@@ -16,6 +16,7 @@ import {
   "moonbitlang/maria/internal/httpx/status",
   "moonbitlang/maria/event",
   "moonbitlang/maria/model",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/string",
   "moonbitlang/core/strconv",
@@ -25,7 +26,7 @@ import {
 
 import {
   "moonbitlang/maria/internal/mock",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/async/socket",
   "moonbitlang/maria/cmd/internal/test_utils",
 } for "test"

@@ -11,8 +11,32 @@ pub impl ToJson for Header with to_json(self : Header) -> Json {
 }
 
 ///|
+pub impl @debug.Debug for Header with to_repr(self : Header) -> @debug.Repr {
+  @debug.Repr::map(
+    self.0
+    .to_array()
+    .map(pair => {
+      let (key, value) = pair
+      (@debug.Repr::string(key), @debug.Repr::string(value))
+    }),
+  )
+}
+
+///|
 pub impl Show for Header with output(self : Header, logger : &Logger) -> Unit {
-  self.0.output(logger)
+  logger.write_string("{")
+  let mut first = true
+  for key, value in self.0 {
+    if first {
+      first = false
+    } else {
+      logger.write_string(", ")
+    }
+    logger.write_string(key)
+    logger.write_string(": ")
+    logger.write_string(value)
+  }
+  logger.write_string("}")
 }
 
 ///|

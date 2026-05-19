@@ -1,7 +1,7 @@
 import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/tool",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async/os_error",
   "moonbitlang/core/json",

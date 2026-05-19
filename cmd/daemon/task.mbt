@@ -49,7 +49,10 @@ pub impl @json.FromJson for Task with from_json(
     }
     _ =>
       raise @json.JsonDecodeError(
-        (json_path.add_key("status"), "Unknown Task status '\{type_}'"),
+        (
+          json_path.add_key("status"),
+          "Unknown Task status '" + @debug.to_string(type_) + "'",
+        ),
       )
   }
 }

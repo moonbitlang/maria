@@ -119,6 +119,12 @@ pub fn[T : Show] Context::show(self : Context, value : T) -> String {
 }
 
 ///|
+/// Formats a debug representation into a filtered string suited for deterministic snapshots.
+pub fn[T : @debug.Debug] Context::debug(self : Context, value : T) -> String {
+  self.filter.apply_string(@debug.to_string(value))
+}
+
+///|
 let home_lock : @semaphore.Semaphore = @semaphore.Semaphore::new(1)
 
 ///|
@@ -216,7 +222,8 @@ pub async fn Directory::add_json_tree(
       }
       _ =>
         fail(
-          "Invalid JSON tree: expected String (file content) or Object (directory), got \{value}",
+          "Invalid JSON tree: expected String (file content) or Object (directory), got " +
+          @debug.to_string(value),
         )
     }
   }
@@ -332,7 +339,7 @@ async fn eprintln(msg : String) -> Unit {
 ///|
 fn init {
   if (try? @os.getenv("CI")) is Ok(Some("1" | "true")) {
-    @os.atexit(() => println("\{os_args} exited"))
+    @os.atexit(() => println(@debug.to_string(os_args) + " exited"))
   }
 }
 

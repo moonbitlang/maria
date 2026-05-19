@@ -2,7 +2,7 @@ import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/tool",
   "moonbitlang/maria/internal/spawn",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/job",
   "moonbitlang/core/json",
   "moonbitlang/core/test",

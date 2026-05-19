@@ -97,7 +97,7 @@ fn format_message_content(
                 for key, value in args_map {
                   let value_str = match value {
                     Json::String(s) => s
-                    other => other.to_string()
+                    other => @debug.to_string(other)
                   }
                   lines.push("- **\{key}:** \{value_str}")
                 }

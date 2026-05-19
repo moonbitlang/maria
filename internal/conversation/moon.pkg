@@ -1,7 +1,7 @@
 import {
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/internal/lru",
-  "moonbitlang/x/path" @path,
+  "moonbitlang/x/path",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/maria/internal/jsonx",
   "moonbitlang/x/time",
@@ -13,6 +13,7 @@ import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/rand",
   "moonbitlang/core/buffer",
+  "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/test",
 }
