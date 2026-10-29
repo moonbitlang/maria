@@ -323,8 +323,13 @@ let semaphore : @semaphore.Semaphore = @semaphore.Semaphore(16)
 
 ///|
 async fn eprintln(msg : String) -> Unit {
+  stderr_lock.acquire()
+  defer stderr_lock.release()
   @stdio.stderr.write(msg + "\n")
 }
+
+///|
+let stderr_lock : @semaphore.Semaphore = @semaphore.Semaphore(1)
 
 ///|
 fn init {

@@ -27,3 +27,12 @@ test "Version::compare" {
   json_inspect(v1 < v5, content=true)
   json_inspect(v5 < v6, content=true)
 }
+
+///|
+test "generated module version parses in source archives" {
+  assert_eq(
+    @buildinfo.Version::parse(@buildinfo.version.to_string()) ==
+    @buildinfo.version,
+    true,
+  )
+}

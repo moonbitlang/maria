@@ -85,10 +85,10 @@ async fn mkdir(path : String) -> Unit {
 async fn Transport::write(self : Transport, content : Json) -> Unit {
   match self {
     Console => println(content.stringify())
-    File(path~, file~, lock~) as transport => {
+    File(path~, lock~, ..) as transport => {
       lock.acquire()
       defer lock.release()
-      let file = match file {
+      let file = match transport.file {
         Some(file) => file
         None => {
           let dir : String = [..Path::dirname(path).to_string()]

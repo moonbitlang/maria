@@ -13,11 +13,14 @@ import re
 from pathlib import Path
 
 
-def get_commit_count():
+def get_commit_count(project_root):
     """Get the total number of commits from the beginning of history to HEAD."""
+    if not (project_root / ".git").exists():
+        return 0
     try:
         result = subprocess.run(
             ["git", "rev-list", "--count", "HEAD"],
+            cwd=project_root,
             capture_output=True,
             text=True,
             check=True,
@@ -31,11 +34,14 @@ def get_commit_count():
         return 0
 
 
-def get_commit_sha():
-    """Get the short commit SHA of HEAD."""
+def get_commit_sha(project_root):
+    """Get the short commit SHA of HEAD, or None for a source archive."""
+    if not (project_root / ".git").exists():
+        return None
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
+            cwd=project_root,
             capture_output=True,
             text=True,
             check=True,
@@ -43,7 +49,7 @@ def get_commit_sha():
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error getting commit SHA: {e}", file=sys.stderr)
-        return "unknown"
+        return None
 
 
 def get_version_from_moon_mod(project_root):
@@ -86,16 +92,18 @@ def generate_buildinfo():
     buildinfo_dir.mkdir(parents=True, exist_ok=True)
 
     # Get commit count, SHA, and version
-    commit_count = get_commit_count()
-    commit_sha = get_commit_sha()
+    commit_count = get_commit_count(project_root)
+    commit_sha = get_commit_sha(project_root)
     version = get_version_from_moon_mod(project_root)
+
+    version_string = f"{version}+{commit_count}.{commit_sha}" if commit_sha else version
 
     # Generate buildinfo.mbt
     version_string_mbt = buildinfo_dir / "version_string.mbt"
 
     # Check if file exists and has the same commit SHA
     existing_sha = extract_commit_sha_from_file(version_string_mbt)
-    if existing_sha == commit_sha and f'"{version}+' in version_string_mbt.read_text():
+    if version_string_mbt.exists() and f'"{version_string}"' in version_string_mbt.read_text():
         print(
             f"Buildinfo already up-to-date (commit {commit_sha}), skipping regeneration"
         )
@@ -109,7 +117,7 @@ def generate_buildinfo():
 ///|
 /// Version string following semver format with build metadata
 /// Format: MAJOR.MINOR.PATCH+BUILD_NUMBER.COMMIT_SHA
-let version_string : String = "{version}+{commit_count}.{commit_sha}"
+let version_string : String = "{version_string}"
 """
 
     with open(version_string_mbt, "w") as f:

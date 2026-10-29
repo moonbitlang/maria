@@ -71,7 +71,9 @@ jobs:
       - name: Build native executables
         run: moon build --target native
       - name: Test without live model calls
-        run: python3 scripts/test_offline.py
+        run: |
+          python3 scripts/test_offline.py
+          python3 scripts/test_offline.py --release
       - name: Verify native abort diagnostics
         run: python3 scripts/test_abort.py
 
