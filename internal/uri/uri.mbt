@@ -4,7 +4,7 @@
 pub struct Authority {
   mut userinfo : StringView?
   mut host : StringView
-  mut port : Int?
+  mut port : Int32?
 } derive(Eq, Debug)
 
 ///|
@@ -33,10 +33,10 @@ fn Uri::parse_scheme(
   source : StringView,
 ) -> StringView raise ParseError {
   match source {
-    ['a'..='z' | 'A'..='Z', .. s] =>
+    ['a'..<='z' | 'A'..<='Z', .. s] =>
       for state = s {
         match state {
-          ['a'..='z' | 'A'..='Z' | '0'..='9' | '+' | '-' | '.', .. s] =>
+          ['a'..<='z' | 'A'..<='Z' | '0'..<='9' | '+' | '-' | '.', .. s] =>
             continue s
           [':', .. rest] as view => {
             uri.scheme = source
@@ -83,7 +83,7 @@ fn parse_authority(
   source : StringView,
   uri : Uri,
 ) -> StringView raise ParseError {
-  let authority = Authority::{ userinfo: None, host: "", port: None }
+  let authority = Authority::{ userinfo: None, host: "", port: None, }
   uri.authority = Some(authority)
   fn parse_port(source : StringView) -> StringView raise ParseError {
     if source is [] {
@@ -96,7 +96,7 @@ fn parse_authority(
           authority.port = Some(port)
           return parse_path_abempty(k, uri)
         }
-        (port, ['0'..='9' as c, .. k]) =>
+        (port, ['0'..<='9' as c, .. k]) =>
           continue port * 10 + c.to_int() - '0', k
         (port, [] as s) => {
           authority.port = Some(port)
@@ -129,7 +129,7 @@ fn parse_authority(
   }
 
   let s = source
-  let host = @buffer.new()
+  let host = Buffer()
   let mut port_k = None
   for state = s {
     match state {
@@ -156,22 +156,22 @@ fn parse_authority(
       ['%', .. k] => {
         let mut b = 0
         let k = match k {
-          ['0'..='9' as c0, .. k] => {
+          ['0'..<='9' as c0, .. k] => {
             b = (c0.to_int() - '0') * 16
             k
           }
-          ['A'..='F' as c0, .. k] => {
+          ['A'..<='F' as c0, .. k] => {
             b = (c0.to_int() - 'A' + 10) * 16
             k
           }
           _ => raise ParseError::InvalidPercentEncoding(k)
         }
         let k = match k {
-          ['0'..='9' as c1, .. k] => {
+          ['0'..<='9' as c1, .. k] => {
             b = b + (c1.to_int() - '0')
             k
           }
-          ['A'..='F' as c1, .. k] => {
+          ['A'..<='F' as c1, .. k] => {
             b = b + (c1.to_int() - 'A' + 10)
             k
           }
@@ -181,7 +181,7 @@ fn parse_authority(
         continue k
       }
       [c, .. s] => {
-        host.write_char(c)
+        host.write_char_utf8(c)
         continue s
       }
     }
@@ -279,10 +279,10 @@ fn parse_uri(uri : Uri, source : StringView) -> StringView raise ParseError {
     k : StringView,
   ) -> StringView raise ParseError {
     match k {
-      ['a'..='z' | 'A'..='Z', .. s] =>
+      ['a'..<='z' | 'A'..<='Z', .. s] =>
         for state = s {
           match state {
-            ['a'..='z' | 'A'..='Z' | '0'..='9' | '+' | '-' | '.', .. s] =>
+            ['a'..<='z' | 'A'..<='Z' | '0'..<='9' | '+' | '-' | '.', .. s] =>
               continue s
             [':', .. k] as s => {
               uri.scheme = source.slice_until(s)
@@ -298,7 +298,7 @@ fn parse_uri(uri : Uri, source : StringView) -> StringView raise ParseError {
   }
 
   match source {
-    ['a'..='z' | 'A'..='Z', .. s] => return parse_scheme(source, s)
+    ['a'..<='z' | 'A'..<='Z', .. s] => return parse_scheme(source, s)
     [_, ..] as s => raise ParseError::InvalidScheme(s)
     [] => raise ParseError::MissingScheme
   }
@@ -355,3 +355,15 @@ test {
   @debug.assert_eq(uri.query, None)
   @debug.assert_eq(uri.fragment, None)
 }
+
+///|
+pub extend Authority with Eq::{not_equal, equal}
+
+///|
+pub extend Authority with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Uri with Eq::{not_equal, equal}
+
+///|
+pub extend Uri with @moonbitlang/core/debug.Debug::{to_repr}

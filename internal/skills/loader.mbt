@@ -56,13 +56,13 @@ struct Loader {
 pub fn Loader::new(
   home? : String,
   cwd~ : String,
-  logger? : @pino.Logger = @pino.logger("skills", @pino.Transport::console()),
+  logger~ : @pino.Logger = @pino.logger("skills", @pino.Transport::console()),
 ) -> Loader raise {
   let home = match home {
     Some(home) => home
     None => @os.home()
   }
-  Loader::{ home, cwd, logger, skills: {} }
+  Loader::{ home, cwd, logger, skills: {}, }
 }
 
 ///|
@@ -217,7 +217,7 @@ pub async fn Loader::load(self : Loader) -> Unit {
 /// wrapped in `<skill>` tags containing `<name>`, `<description>`, and
 /// `<location>` elements, all enclosed within `<available_skills>` root tags.
 fn Loader::format_prompt(self : Loader) -> String {
-  let sb = StringBuilder::new()
+  let sb = StringBuilder()
   sb.write_string(
     (
       #|====

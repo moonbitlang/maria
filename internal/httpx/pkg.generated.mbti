@@ -17,14 +17,14 @@ pub let not_found : Handler
 
 pub async fn post_json(String, Json) -> (@http.Response, &@io.Data)
 
-pub fn reason(Int) -> String
+pub fn reason(Int32) -> String
 
 // Errors
 pub suberror JsonError {
-  JsonError(code~ : Int, message~ : String, data~ : Json)
+  JsonError(code~ : Int32, message~ : String, data~ : Json)
 }
-pub fn JsonError::from_error(Int, Error, message? : String, data? : Json) -> Self
-pub fn JsonError::new(Int, String, data? : Json) -> Self
+pub fn JsonError::from_error(Int32, Error, message? : String, data? : Json) -> Self
+pub fn JsonError::new(Int32, String, data? : Json) -> Self
 pub async fn JsonError::write(Self, ResponseWriter) -> Unit
 
 // Types and methods
@@ -33,6 +33,9 @@ pub struct Event {
   data : String
 } derive(ToJson)
 pub fn Event::new(event? : String, data~ : String) -> Self
+pub fn Event::output(Self, &Logger) -> Unit
+pub fn Event::to_json(Self) -> Json
+pub fn Event::to_string(Self) -> String
 pub impl Show for Event
 
 type EventStreamReader
@@ -44,7 +47,7 @@ type EventStreamWriter
 pub fn EventStreamWriter::new(ResponseWriter) -> Self
 pub async fn[T : ToEvent] EventStreamWriter::write(Self, T, flush? : Bool) -> Unit
 pub async fn EventStreamWriter::write_event(Self, id? : String, event? : String, data? : &@io.Data, flush? : Bool) -> Unit
-pub async fn EventStreamWriter::write_header(Self, Int) -> Unit
+pub async fn EventStreamWriter::write_header(Self, Int32) -> Unit
 
 type FileServer
 pub async fn FileServer::handle(Self, RequestReader, ResponseWriter) -> Unit
@@ -60,7 +63,11 @@ type Header
 pub fn Header::add(Self, String, String) -> Unit
 pub fn Header::config(Self, Map[String, String]) -> Unit
 pub fn Header::new() -> Self
+pub fn Header::output(Self, &Logger) -> Unit
 pub fn Header::set(Self, String, String) -> Unit
+pub fn Header::to_json(Self) -> Json
+pub fn Header::to_repr(Self) -> @debug.Repr
+pub fn Header::to_string(Self) -> String
 pub impl Show for Header
 pub impl ToJson for Header
 pub impl @debug.Debug for Header
@@ -73,7 +80,7 @@ pub async fn JsonRequestReader::read_json(Self) -> Json
 type JsonResponseWriter
 pub fn JsonResponseWriter::new(ResponseWriter) -> Self
 pub async fn[T : ToJson] JsonResponseWriter::write(Self, T) -> Unit
-pub async fn JsonResponseWriter::write_header(Self, Int) -> Unit
+pub async fn JsonResponseWriter::write_header(Self, Int32) -> Unit
 pub async fn JsonResponseWriter::write_json(Self, Json) -> Unit
 
 pub(all) enum Method {
@@ -87,7 +94,19 @@ pub(all) enum Method {
   Trace
   Patch
 } derive(Compare, Eq, Hash, ToJson)
+pub fn Method::compare(Self, Self) -> Int32
+pub fn Method::equal(Self, Self) -> Bool
+pub fn Method::hash(Self) -> Int32
+pub fn Method::hash_combine(Self, Hasher) -> Unit
+pub fn Method::not_equal(Self, Self) -> Bool
+pub fn Method::op_ge(Self, Self) -> Bool
+pub fn Method::op_gt(Self, Self) -> Bool
+pub fn Method::op_le(Self, Self) -> Bool
+pub fn Method::op_lt(Self, Self) -> Bool
+pub fn Method::output(Self, &Logger) -> Unit
 pub fn Method::to_http(Self) -> @http.RequestMethod
+pub fn Method::to_json(Self) -> Json
+pub fn Method::to_string(Self) -> String
 pub impl Show for Method
 
 pub(all) struct Middleware((Handler) -> Handler)
@@ -106,7 +125,10 @@ type ResponseWriter
 pub async fn ResponseWriter::close(Self) -> Unit
 pub async fn ResponseWriter::flush(Self) -> Unit
 pub fn ResponseWriter::header(Self) -> Header
-pub async fn ResponseWriter::write_header(Self, Int, reason? : String) -> Unit
+pub async fn ResponseWriter::write(Self, &@io.Data) -> Unit
+pub async fn ResponseWriter::write_header(Self, Int32, reason? : String) -> Unit
+pub async fn ResponseWriter::write_once(Self, Bytes, offset~ : Int32, len~ : Int32) -> Int32
+pub async fn ResponseWriter::write_reader(Self, &@io.Reader) -> Unit
 pub impl @io.Writer for ResponseWriter
 
 type Router
@@ -119,18 +141,17 @@ pub fn Router::set_not_found_handler(Self, Handler) -> Unit
 
 type Server
 pub fn Server::close(Self) -> Unit
-pub fn Server::new(String, Int, dual_stack? : Bool, reuse_addr? : Bool) -> Self raise
-pub fn Server::port(Self) -> Int
+pub async fn Server::new(String, Int32, dual_stack? : Bool, reuse_addr? : Bool) -> Self
+pub fn Server::port(Self) -> Int32
 pub async fn Server::serve(Self, Handler) -> Unit
 
 // Type aliases
 
 // Traits
 pub(open) trait FromEvent {
-  from_event(Event) -> Self raise
+  fn from_event(Event) -> Self raise
 }
 
 pub(open) trait ToEvent {
-  to_event(Self) -> Event
+  fn to_event(Self) -> Event
 }
-

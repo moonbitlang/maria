@@ -1,14 +1,23 @@
 import {
   "moonbitlang/async/fs",
   "moonbitlang/x/path",
-  "moonbitlang/async/io",
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/async",
   "moonbitlang/async/os_error",
   "moonbitlang/maria/internal/errno",
   "moonbitlang/async/aqueue",
-  "moonbitlang/core/buffer",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
-  "moonbitlang/core/json",
 }
+
+import {
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/async/semaphore",
+}
+
+import {
+  "moonbitlang/core/json",
+} for "wbtest"

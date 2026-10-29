@@ -1,13 +1,10 @@
 import {
   "moonbitlang/async/process",
-  "moonbitlang/async/io",
   "moonbitlang/maria/internal/errno",
   "moonbitlang/async/aqueue",
   "moonbitlang/async",
   "moonbitlang/maria/clock",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
-  "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -17,3 +14,11 @@ import {
 options(
   "native-stub": [ "spawn.c" ],
 )
+
+import {
+  "moonbitlang/core/json",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
+} for "test"

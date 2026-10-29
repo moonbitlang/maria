@@ -31,3 +31,15 @@ test {
   assert_true(Warn < Error)
   assert_true(Error < Fatal)
 }
+
+///|
+pub extend Level with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Level with Eq::{not_equal, equal}
+
+///|
+pub extend Level with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend Level with ToJson::{to_json}

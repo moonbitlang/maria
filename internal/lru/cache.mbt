@@ -1,24 +1,24 @@
 ///|
 priv struct Entry[T] {
-  mut accessed : Int
+  mut accessed : Int32
   value : T
 }
 
 ///|
-impl[T : ToJson] ToJson for Entry[T] with to_json(self : Entry[T]) -> Json {
+impl[T : ToJson] ToJson for Entry[T] with fn to_json(self : Entry[T]) -> Json {
   self.value.to_json()
 }
 
 ///|
 struct Cache[K, V] {
-  mut timestamp : Int
+  mut timestamp : Int32
   cache : Map[K, Entry[V]]
-  max_size : Int
+  max_size : Int32
 }
 
 ///|
-pub fn[K : Eq + Hash, V] cache(max_size? : Int = 100) -> Cache[K, V] {
-  Cache::{ timestamp: 0, cache: {}, max_size }
+pub fn[K : Eq + Hash, V] cache(max_size~ : Int32 = 100) -> Cache[K, V] {
+  Cache::{ timestamp: 0, cache: {}, max_size, }
 }
 
 ///|
@@ -34,7 +34,8 @@ pub fn[K : Eq + Hash, V] Cache::get(self : Cache[K, V], key : K) -> V? {
 }
 
 ///|
-pub fn[K : Eq + Hash, V] Cache::op_get(self : Cache[K, V], key : K) -> V {
+#alias("_[_]")
+pub fn[K : Eq + Hash, V] Cache::get_exn(self : Cache[K, V], key : K) -> V {
   self.get(key).unwrap()
 }
 
@@ -48,7 +49,7 @@ pub fn[K : Eq + Hash, V] Cache::set(
   if self.cache.length() >= self.max_size {
     self.evict()
   }
-  self.cache[key] = Entry::{ accessed: self.timestamp, value }
+  self.cache[key] = Entry::{ accessed: self.timestamp, value, }
   self.timestamp += 1
 }
 
@@ -67,8 +68,11 @@ fn[K : Eq + Hash, V] Cache::evict(self : Cache[K, V]) -> Unit {
 }
 
 ///|
-pub impl[K : Show, V : ToJson] ToJson for Cache[K, V] with to_json(
+pub impl[K : Show, V : ToJson] ToJson for Cache[K, V] with fn to_json(
   self : Cache[K, V],
 ) -> Json {
-  self.cache.to_json()
+  Json(self.cache)
 }
+
+///|
+pub extend Cache with ToJson::{to_json}

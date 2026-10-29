@@ -24,8 +24,9 @@ async fn generate(
     try! @pino.Transport::parse("file:\{log_file}"),
   )
   let maria = @maria.Maria::new(logger~, model~, cwd~, user_message=prompt)
-  maria.start() catch {
-    error => {
+  match (Ok(maria.start()) catch { error => Err(error) }) {
+    Ok(value) => value
+    Err(error) => {
       logger.error("MariaFailed", data={ "error": error.to_string() })
       raise error
     }

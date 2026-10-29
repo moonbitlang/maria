@@ -2,7 +2,7 @@
 struct Pruner {
   logger : @pino.Logger
   token_counter : @token_counter.Counter
-  safe_zone_tokens : Int
+  safe_zone_tokens : Int32
 }
 
 ///|
@@ -11,14 +11,14 @@ pub struct PruneResult {
   /// Event IDs that should be pruned
   pruned_ids : Array[@uuid.Uuid]
   /// Original token count before pruning
-  origin_token_count : Int
+  origin_token_count : Int32
   /// Token count after pruning
-  pruned_token_count : Int
+  pruned_token_count : Int32
 }
 
 ///|
 pub fn Pruner::new(
-  safe_zone_tokens~ : Int,
+  safe_zone_tokens~ : Int32,
   logger~ : @pino.Logger,
 ) -> Pruner raise {
   Pruner::{
@@ -50,7 +50,7 @@ const ClearedToolOutputPlaceholder : String = "[Cleared: tool output. If you wan
 pub async fn Pruner::prune_messages(
   pruner : Pruner,
   messages : Array[@openai.ChatCompletionMessageParam],
-  tools? : Array[@openai.ChatCompletionToolParam] = [],
+  tools~ : Array[@openai.ChatCompletionToolParam] = [],
 ) -> Unit {
   let tokens = pruner.token_counter.count_param(messages~, tools~)
   if tokens <= pruner.safe_zone_tokens {
@@ -108,7 +108,7 @@ pub async fn Pruner::prune_messages(
 pub async fn Pruner::calculate_pruning(
   pruner : Pruner,
   conversation : @conversation.Conversation,
-  tools? : Array[@openai.ChatCompletionToolParam] = [],
+  tools~ : Array[@openai.ChatCompletionToolParam] = [],
 ) -> PruneResult {
   // Build set of already-pruned IDs
   let already_pruned : Set[@uuid.Uuid] = Set([])
@@ -172,5 +172,5 @@ pub async fn Pruner::calculate_pruning(
     pruned_ids.push(event_id)
     current_tokens -= savings
   }
-  { pruned_ids, origin_token_count, pruned_token_count: current_tokens }
+  { pruned_ids, origin_token_count, pruned_token_count: current_tokens, }
 }

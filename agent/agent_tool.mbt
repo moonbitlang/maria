@@ -5,8 +5,8 @@ struct Tool {
 }
 
 ///|
-fn Tool::new(tool : @tool.AgentTool, enabled? : Bool = true) -> Tool {
-  Tool::{ enabled, tool }
+fn Tool::new(tool : @tool.AgentTool, enabled~ : Bool = true) -> Tool {
+  Tool::{ enabled, tool, }
 }
 
 ///|
@@ -95,7 +95,7 @@ async fn Agent::execute_tool(
     Some(arguments) =>
       @json.parse(arguments) catch {
         error => {
-          let result = Err(error.to_json())
+          let result = Err(@json.to_json(error))
           let rendered = "Error parsing tool arguments: \{error}, arguments: \{arguments}"
           agent.emit(PostToolCall(tool_call, result~, rendered~))
           return @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
@@ -106,9 +106,9 @@ async fn Agent::execute_tool(
   let (result, rendered) = match tool_result {
     Success(output) => {
       let content = output.to_message().content()
-      (Ok(content.to_json()), content)
+      (Ok(ToJson::to_json(content)), content)
     }
-    Failed(error) => (Err(error.to_json()), tool_result.to_string())
+    Failed(error) => (Err(ToJson::to_json(error)), tool_result.to_string())
   }
   agent.emit(PostToolCall(tool_call, result~, rendered~))
   @ai.tool_message(content=rendered, tool_call_id=tool_call.id)
@@ -143,7 +143,7 @@ pub fn Agent::add_tools(agent : Agent, tools : Array[@tool.AgentTool]) -> Unit {
 fn Agent::add_agent_tool(
   agent : Agent,
   tool : @tool.AgentTool,
-  enabled? : Bool = true,
+  enabled~ : Bool = true,
 ) -> Unit {
   let desc = tool.desc()
   agent.tools[desc.name] = Tool::new(tool, enabled~)
@@ -161,7 +161,7 @@ fn Agent::add_agent_tool(
 pub fn Agent::add_tool(
   agent : Agent,
   tool : @tool.Tool,
-  enabled? : Bool = true,
+  enabled~ : Bool = true,
 ) -> Unit {
   agent.add_agent_tool(tool.to_agent_tool(), enabled~)
 }

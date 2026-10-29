@@ -22,10 +22,10 @@ struct Logger {
 /// ```
 pub fn logger(
   tag : String,
-  level? : Level = Info,
+  level~ : Level = Info,
   transport : Transport,
 ) -> Logger {
-  Logger::{ properties: { "tag": tag }, level, transport }
+  Logger::{ properties: { "tag": tag }, level, transport, }
 }
 
 ///|
@@ -67,7 +67,7 @@ pub async fn Logger::log(
     "msg": message,
   }
   try {
-    object["hostname"] = @os.gethostname().to_json()
+    object["hostname"] = Json(@os.gethostname())
   } catch {
     _ => ()
   }
@@ -81,7 +81,7 @@ pub async fn Logger::log(
       object[k] = v
     }
   }
-  self.transport.write(object.to_json())
+  self.transport.write(Json(object))
 }
 
 ///|
@@ -164,5 +164,5 @@ pub fn Logger::child(self : Logger, properties : Map[String, Json]) -> Logger {
   for k, v in properties {
     child_properties[k] = v
   }
-  { ..self, properties: child_properties }
+  { ..self, properties: child_properties, }
 }

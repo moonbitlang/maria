@@ -1,11 +1,11 @@
 ///|
 pub fn cl100k_base() -> Encoding raise {
-  let mergeable_ranks = {}
+  let mergeable_ranks = Map([])
   for line in cl100k_base_mergeable_ranks.split("\n") {
     if line is "" {
       continue
     }
-    guard line.split(" ").collect() is [token, rank]
+    guard! line.split(" ").collect() is [token, rank]
     let token = @base64.decode(token.to_owned())
     mergeable_ranks[token] = @string.parse_int(rank)
   }

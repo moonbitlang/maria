@@ -1,11 +1,11 @@
 ///|
 /// Token usage details for the model-completion segment.
 pub struct CompletionTokensDetails {
-  reasoning_tokens : Int?
+  reasoning_tokens : Int32?
 } derive(Debug, ToJson)
 
 ///|
-impl @json.FromJson for CompletionTokensDetails with from_json(
+impl @json.FromJson for CompletionTokensDetails with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CompletionTokensDetails {
@@ -23,3 +23,9 @@ impl @json.FromJson for CompletionTokensDetails with from_json(
   }
   CompletionTokensDetails::{ reasoning_tokens, }
 }
+
+///|
+pub extend CompletionTokensDetails with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CompletionTokensDetails with ToJson::{to_json}

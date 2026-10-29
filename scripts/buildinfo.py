@@ -47,15 +47,12 @@ def get_commit_sha():
 
 
 def get_version_from_moon_mod(project_root):
-    """Read version from moon.mod.json."""
-    moon_mod_path = project_root / "moon.mod.json"
-    try:
-        with open(moon_mod_path, "r") as f:
-            moon_mod = json.load(f)
-            return moon_mod.get("version", "0.0.0")
-    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-        print(f"Error reading version from moon.mod.json: {e}", file=sys.stderr)
-        return "0.0.0"
+    """Read the canonical version assignment from moon.mod."""
+    text = (project_root / "moon.mod").read_text()
+    match = re.search(r'^version\s*=\s*"([^"]+)"\s*$', text, re.MULTILINE)
+    if match is None:
+        raise ValueError("moon.mod has no version assignment")
+    return match.group(1)
 
 
 def extract_commit_sha_from_file(buildinfo_mbt):
@@ -98,7 +95,7 @@ def generate_buildinfo():
 
     # Check if file exists and has the same commit SHA
     existing_sha = extract_commit_sha_from_file(version_string_mbt)
-    if existing_sha == commit_sha:
+    if existing_sha == commit_sha and f'"{version}+' in version_string_mbt.read_text():
         print(
             f"Buildinfo already up-to-date (commit {commit_sha}), skipping regeneration"
         )

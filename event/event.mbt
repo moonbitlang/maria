@@ -47,10 +47,10 @@ pub struct Event {
 /// Returns a new `Event` instance.
 pub fn Event::new(
   id~ : @uuid.Uuid,
-  created? : @clock.Timestamp = @clock.epoch.now(),
+  created~ : @clock.Timestamp = @clock.epoch.now(),
   desc : EventDesc,
 ) -> Event {
-  Event::{ id, created, desc }
+  Event::{ id, created, desc, }
 }
 
 ///|
@@ -92,12 +92,12 @@ pub(all) enum EventDesc {
   ///    determine when to stop.
   ///
   /// FIXME: Currently this event is triggered multiple times in a row.
-  TokenCounted(Int)
+  TokenCounted(Int32)
   /// Event triggered when context pruning is performed.
   ///
   /// FIXME: Currently this event is triggered even if the context is with-in
   /// the limit and no pruning is performed.
-  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
+  ContextPruned(origin_token_count~ : Int32, pruned_token_count~ : Int32)
   /// Event triggered when a assistant message is received from the model.
   AssistantMessage(
     usage~ : @ai.Usage?,
@@ -117,9 +117,10 @@ pub(all) enum EventDesc {
 } derive(Eq, Debug)
 
 ///|
-pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
+pub impl ToJson for EventDesc with fn to_json(self : EventDesc) -> Json {
   match self {
-    ModelLoaded(name~) => { "msg": "ModelLoaded", "name": name.to_json() }
+    ModelLoaded(name~) =>
+      { "msg": "ModelLoaded", "name": ToJson::to_json(name) }
     TokenCounted(token_count) =>
       { "msg": "TokenCounted", "token_count": token_count }
     ContextPruned(origin_token_count~, pruned_token_count~) =>
@@ -215,7 +216,7 @@ pub impl ToJson for EventDesc with to_json(self : EventDesc) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for EventDesc with from_json(
+pub impl @json.FromJson for EventDesc with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> EventDesc raise @json.JsonDecodeError {
@@ -227,15 +228,15 @@ pub impl @json.FromJson for EventDesc with from_json(
       ModelLoaded(name~)
     }
     "TokenCounted" => {
-      let token_count : Int = object.required("token_count", path=json_path)
+      let token_count : Int32 = object.required("token_count", path=json_path)
       TokenCounted(token_count)
     }
     "ContextPruned" => {
-      let origin_token_count : Int = object.required(
+      let origin_token_count : Int32 = object.required(
         "origin_token_count",
         path=json_path,
       )
-      let pruned_token_count : Int = object.required(
+      let pruned_token_count : Int32 = object.required(
         "pruned_token_count",
         path=json_path,
       )
@@ -369,7 +370,7 @@ pub impl @json.FromJson for EventDesc with from_json(
 ///
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
-pub impl ToJson for Event with to_json(self : Event) -> Json {
+pub impl ToJson for Event with fn to_json(self : Event) -> Json {
   { "id": self.id.to_json(), "created": self.created, "desc": self.desc }
 }
 
@@ -378,7 +379,7 @@ pub impl ToJson for Event with to_json(self : Event) -> Json {
 ///
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
-pub impl @json.FromJson for Event with from_json(
+pub impl @json.FromJson for Event with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Event raise @json.JsonDecodeError {
@@ -388,7 +389,7 @@ pub impl @json.FromJson for Event with from_json(
     .optional("created", path=json_path)
     .unwrap_or_else(() => @clock.Timestamp::from_ms(0))
   let desc : EventDesc = object.required("desc", path=json_path)
-  { id, created, desc }
+  { id, created, desc, }
 }
 
 ///|
@@ -427,3 +428,27 @@ pub fn Event::is_cancellation(self : Event) -> Bool {
     _ => false
   }
 }
+
+///|
+pub extend Event with Eq::{not_equal, equal}
+
+///|
+pub extend Event with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend EventDesc with Eq::{not_equal, equal}
+
+///|
+pub extend EventDesc with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend EventDesc with ToJson::{to_json}
+
+///|
+pub extend EventDesc with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend Event with ToJson::{to_json}
+
+///|
+pub extend Event with @moonbitlang/core/json.FromJson::{from_json}

@@ -14,8 +14,11 @@ type ParseError
 pub struct Authority {
   mut userinfo : StringView?
   mut host : StringView
-  mut port : Int?
+  mut port : Int32?
 } derive(Eq, @debug.Debug)
+pub fn Authority::equal(Self, Self) -> Bool
+pub fn Authority::not_equal(Self, Self) -> Bool
+pub fn Authority::to_repr(Self) -> @debug.Repr
 
 pub struct Uri {
   mut scheme : StringView
@@ -24,9 +27,11 @@ pub struct Uri {
   mut query : StringView?
   mut fragment : StringView?
 } derive(Eq, @debug.Debug)
+pub fn Uri::equal(Self, Self) -> Bool
+pub fn Uri::not_equal(Self, Self) -> Bool
 pub fn Uri::parse(StringView) -> Self raise ParseError
+pub fn Uri::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

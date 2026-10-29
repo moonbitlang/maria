@@ -6,7 +6,7 @@ pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with from_json(
+impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunkChoiceDeltaToolCallFunction {
@@ -27,5 +27,8 @@ impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with from
     Some(_) =>
       raise @json.JsonDecodeError((json_path, "Expected 'name' to be a string"))
   }
-  ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name }
+  ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name, }
 }
+
+///|
+pub extend ChatCompletionChunkChoiceDeltaToolCallFunction with ToJson::{to_json}

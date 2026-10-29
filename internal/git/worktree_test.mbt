@@ -9,7 +9,9 @@ async test "add_worktree" (t : @test.Test) {
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     @git.add_worktree("worktree", cwd=mock.cwd.path())
     mock.group.add_defer(() => {
-      @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      @async.protect_from_cancel(() => {
+        @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      })
     })
     json_inspect(
       Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
@@ -27,7 +29,9 @@ async test "add_worktree/new-branch" (t : @test.Test) {
     @git.commit("Initial commit", ["file.txt"], cwd=mock.cwd.path())
     @git.add_worktree("worktree", new_branch="new-branch", cwd=mock.cwd.path())
     mock.group.add_defer(() => {
-      @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      @async.protect_from_cancel(() => {
+        @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      })
     })
     json_inspect(
       Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()
@@ -72,7 +76,9 @@ async test "add_worktree/new-branch-with-commit" (t : @test.Test) {
       cwd=mock.cwd.path(),
     )
     mock.group.add_defer(() => {
-      @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      @async.protect_from_cancel(() => {
+        @git.remove_worktree("worktree", force=true, cwd=mock.cwd.path())
+      })
     })
     json_inspect(
       Path::join(mock.cwd.path(), "worktree").join("file.txt").to_string()

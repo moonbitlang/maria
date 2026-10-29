@@ -23,7 +23,7 @@ fn Item::new(
 ) -> Item {
   let now = created_at
   let id = id
-  { content, created_at: now, id, notes, priority, status, updated_at: now }
+  { content, created_at: now, id, notes, priority, status, updated_at: now, }
 }
 
 ///|
@@ -59,11 +59,11 @@ fn Todo::now(self : Todo) -> String {
 ///|
 pub fn new(
   uuid~ : @uuid.Generator,
-  clock? : &@clock.Clock = @clock.epoch,
+  clock~ : &@clock.Clock = @clock.epoch,
   cwd~ : StringView,
 ) -> Todo {
   Todo::{
-    config: { uuid, clock, cwd: cwd.to_owned() },
+    config: { uuid, clock, cwd: cwd.to_owned(), },
     items: {
       todos: [],
       created_at: clock.now_str(),
@@ -113,7 +113,7 @@ fn extract_task_tags(content : String) -> Array[String] {
   for state = content[:] {
     match state {
       [.. "<task>", .. rest] => {
-        task = Some(StringBuilder::new())
+        task = Some(StringBuilder())
         continue rest
       }
       [.. "</task>", .. rest] => {
@@ -150,9 +150,9 @@ test "extract_task_tags" {
 fn Todo::add_task(
   self : Todo,
   content : String,
-  status? : Status = Pending,
-  priority? : Priority = Medium,
-  notes? : String? = None,
+  status~ : Status = Pending,
+  priority~ : Priority = Medium,
+  notes~ : String? = None,
 ) -> Item {
   let content = match extract_task_tags(content) {
     [] => content
@@ -172,13 +172,13 @@ fn Todo::add_task(
 }
 
 ///|
-fn Todo::update_task(self : Todo, index : Int, item : Item) -> Unit {
+fn Todo::update_task(self : Todo, index : Int32, item : Item) -> Unit {
   self.items.todos[index] = item
   self.items.updated_at = self.config.now()
 }
 
 ///|
-fn Todo::find(self : Todo, id : String) -> Int? {
+fn Todo::find(self : Todo, id : String) -> Int32? {
   for i, todo in self.items.todos {
     if todo.id == id {
       return Some(i)
@@ -188,7 +188,7 @@ fn Todo::find(self : Todo, id : String) -> Int? {
 }
 
 ///|
-fn Todo::get(self : Todo, index : Int) -> Item {
+fn Todo::get(self : Todo, index : Int32) -> Item {
   self.items.todos[index]
 }
 
@@ -196,9 +196,9 @@ fn Todo::get(self : Todo, index : Int) -> Item {
 /// Remove common list prefixes from a line
 fn remove_list_prefixes(line : StringView) -> StringView {
   lexmatch line with longest {
-    ("[0-9]+\.[[:space:]]*", rest) => rest
-    ("-[[:space:]]*", rest) => rest
-    ("\*[[:space:]]*", rest) => rest
+    (re"^[0-9]+\.[[:space:]]*", after=rest) => rest
+    (re"^-[[:space:]]*", after=rest) => rest
+    (re"^\*[[:space:]]*", after=rest) => rest
     _ => line
   }
 }
@@ -210,7 +210,7 @@ test "remove_list_prefixes" {
     "2.   Second task", "- Bullet point", "* Another bullet", "No prefix here", "-  Indented bullet",
     "*\tTabbed bullet", "3.\tTabbed numbered",
   ]
-  let output = {}
+  let output = Map([])
   for d in data {
     output[d] = remove_list_prefixes(d)
   }
@@ -238,7 +238,7 @@ fn Items::parse(
   config~ : Config,
 ) -> Items {
   let now = config.now()
-  let items = Items::{ todos: [], created_at: now, updated_at: now }
+  let items = Items::{ todos: [], created_at: now, updated_at: now, }
   // First, try to parse <task> tags
   let task_matches = extract_task_tags(content)
   if task_matches.length() > 0 {

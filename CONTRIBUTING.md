@@ -218,3 +218,23 @@ Browse the [issue tracker](https://github.com/moonbitlang/maria/issues) and look
 - **Pull Requests**: Don't hesitate to ask for help in your PR if you're stuck
 
 Thank you for contributing to Maria! 🚀
+
+### Current toolchain validation
+
+`python3 scripts/test_offline.py` runs the native deterministic suite without
+provider credentials. It supplies a clearly synthetic OpenAI key only for
+model-loader serialization fixtures. Live-model agent examples and integration
+files are listed explicitly in the script and remain in the existing credentialed
+`moon test --include-skipped` CI job. The offline job is mandatory on Linux and
+macOS, using stable and nightly toolchains; the integration job retains its
+existing advisory status. An offline pass does not certify live providers.
+
+`python3 scripts/test_abort.py` verifies that native built-in `abort` retains its
+message and source-level stack trace. Current MoonBit removed `core/abort`, so
+executables no longer override that virtual package. The internal diagnostic
+helper and explicit backtrace initialization remain available.
+
+The async HTTP server constructor is now async, matching the upstream async
+library. Generated interfaces also spell `Int` as `Int32` and expose previously
+implicit trait methods explicitly. The old named pointer/cache indexing aliases
+remain available alongside their new bracket aliases.

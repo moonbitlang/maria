@@ -40,17 +40,17 @@ fn parse_jwt(token : String) -> Json raise Error {
   let padded = add_base64_padding(parts[1].to_owned())
   let payload = @base64.decode(padded, url_safe=true) catch {
     err => {
-      println("ERROR in base64.decode: \{err}")
+      println("ERROR in base64.decode: \{@debug.to_string(err)}")
       println("Input: \{padded}")
-      raise ParseError("Base64 decode failed: \{err}")
+      raise ParseError("Base64 decode failed: \{@debug.to_string(err)}")
     }
   }
   let payload_str = @encoding/utf8.decode(payload)
   @json.parse(payload_str) catch {
     err => {
-      println("ERROR in @json.parse: \{err}")
+      println("ERROR in @json.parse: \{@debug.to_string(err)}")
       println("Decoded payload: \{payload_str}")
-      raise ParseError("JSON parse failed: \{err}")
+      raise ParseError("JSON parse failed: \{@debug.to_string(err)}")
     }
   }
 }
@@ -92,7 +92,7 @@ pub fn extract_token_claims(token : String) -> IdTokenClaims raise Error {
 fn get_home() -> String {
   @os.home() catch {
     err => {
-      println("ERROR in @os.home(): \{err}")
+      println("ERROR in @os.home(): \{@debug.to_string(err)}")
       abort("Failed to get home directory")
     }
   }
@@ -190,3 +190,15 @@ pub async fn delete_credentials() -> Unit {
     @fsx.remove(path)
   }
 }
+
+///|
+pub extend Credentials with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Credentials with ToJson::{to_json}
+
+///|
+pub extend Credentials with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend IdTokenClaims with @moonbitlang/core/debug.Debug::{to_repr}

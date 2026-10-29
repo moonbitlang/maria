@@ -1,8 +1,8 @@
 ///|
 priv struct ReadFileInput {
   path : String
-  start_line : Int?
-  end_line : Int?
+  start_line : Int32?
+  end_line : Int32?
 } derive(FromJson, ToJson)
 
 ///|

@@ -39,7 +39,7 @@ fn ExecOptions::parse(args : ArrayView[String]) -> ExecOptions raise {
   guard model is Some(model) else {
     raise @argument.InvalidArgument("--model is required")
   }
-  ExecOptions::{ prompt_file, log_file, model }
+  ExecOptions::{ prompt_file, log_file, model, }
 }
 
 ///|
@@ -59,8 +59,9 @@ async fn ExecOptions::run(self : ExecOptions, cwd~ : String) -> Unit {
     try! @pino.Transport::parse("file:\{self.log_file}"),
   )
   let maria = @maria.Maria::new(logger~, model~, cwd~, user_message=prompt)
-  maria.start() catch {
-    error => {
+  match (Ok(maria.start()) catch { error => Err(error) }) {
+    Ok(value) => value
+    Err(error) => {
       logger.error("ExecFailed", data={ "error": error.to_string() })
       raise error
     }

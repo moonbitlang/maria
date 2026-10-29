@@ -2,7 +2,7 @@
 /// Connection details used to register the local server with a daemon.
 pub(all) struct RegisterInfo {
   host : String
-  port : Int
+  port : Int32
   id : String
 }
 
@@ -83,7 +83,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
     }
   }
   let register = match (register_host, register_port, register_id) {
-    (Some(host), Some(port), Some(id)) => Some({ host, port, id })
+    (Some(host), Some(port), Some(id)) => Some({ host, port, id, })
     (None, None, None) => None
     _ =>
       fail(

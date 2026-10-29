@@ -35,7 +35,7 @@ test "Input FromJson/ToJson" {
   ]
   fn round_trip(x : Json) raise {
     let input : Input = @json.from_json(x)
-    input.to_json()
+    ToJson::to_json(input)
   }
 
   json_inspect(json_input.map(round_trip), content=[

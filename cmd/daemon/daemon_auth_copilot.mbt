@@ -59,7 +59,7 @@ async fn Daemon::start_copilot_auth(
   }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
-  w.write(response.to_json().stringify())
+  w.write(ToJson::to_json(response).stringify())
 }
 
 ///|

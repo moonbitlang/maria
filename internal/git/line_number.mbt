@@ -1,11 +1,11 @@
 ///|
 priv struct LineNumberState {
-  original_start : Int
-  mut original_line : Int
-  original_count : Int
-  modified_start : Int
-  mut modified_line : Int
-  modified_count : Int
+  original_start : Int32
+  mut original_line : Int32
+  original_count : Int32
+  modified_start : Int32
+  mut modified_line : Int32
+  modified_count : Int32
   mut marker : Char
 }
 
@@ -102,16 +102,16 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
     } else {
       lexmatch line with longest {
         (
-          "@@[[:space:]]+-"
-          ("[[:digit:]]+" as os)
-          ","
-          ("[[:digit:]]+" as oc)
-          "[[:space:]]+\+"
-          ("[[:digit:]]+" as ms)
-          ","
-          ("[[:digit:]]+" as mc)
-          "[[:space:]]+@@",
-          _
+          re"^@@[[:space:]]+-" +
+          (re"[[:digit:]]+" as os) +
+          re"," +
+          (re"[[:digit:]]+" as oc) +
+          re"[[:space:]]+\+" +
+          (re"[[:digit:]]+" as ms) +
+          re"," +
+          (re"[[:digit:]]+" as mc) +
+          re"[[:space:]]+@@",
+          after=_,
         ) => {
           let original_start = @string.parse_int(os)
           let original_count = @string.parse_int(oc)
@@ -128,7 +128,7 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
           })
           numbered_lines.push(line.to_owned())
         }
-        line => numbered_lines.push(line.to_owned())
+        _ => numbered_lines.push(line.to_owned())
       }
     }
   }

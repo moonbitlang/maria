@@ -1,5 +1,5 @@
 ///|
-extern "c" fn fsx_lock_file(fd : Int) -> Int = "moonbit_maria_fsx_lock_file"
+extern "c" fn fsx_lock_file(fd : Int32) -> Int32 = "moonbit_maria_fsx_lock_file"
 
 ///|
 /// Acquire an advisory lock on `file`.
@@ -14,7 +14,7 @@ pub fn lock_file(file : @fs.File) -> Unit raise {
 }
 
 ///|
-extern "c" fn fsx_get_lock_owner(fd : Int) -> Int = "moonbit_maria_fsx_get_lock_owner"
+extern "c" fn fsx_get_lock_owner(fd : Int32) -> Int32 = "moonbit_maria_fsx_get_lock_owner"
 
 ///|
 /// Return the process id that currently holds the lock for `file`.
@@ -22,7 +22,7 @@ extern "c" fn fsx_get_lock_owner(fd : Int) -> Int = "moonbit_maria_fsx_get_lock_
 /// - Returns `Some(pid)` when the file is locked.
 /// - Returns `None` when the file is currently unlocked.
 /// - Raises `@errno.Errno` on error.
-pub fn get_lock_owner(file : @fs.File) -> Int? raise {
+pub fn get_lock_owner(file : @fs.File) -> Int32? raise {
   let fd = file.fd()
   let pid = fsx_get_lock_owner(fd)
   if pid == -1 {

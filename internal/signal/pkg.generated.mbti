@@ -2,11 +2,11 @@
 package "moonbitlang/maria/internal/signal"
 
 // Values
-pub let sigkill : Int
+pub let sigkill : Int32
 
-pub let sigterm : Int
+pub let sigterm : Int32
 
-pub let sigtstp : Int
+pub let sigtstp : Int32
 
 // Errors
 
@@ -15,4 +15,3 @@ pub let sigtstp : Int
 // Type aliases
 
 // Traits
-

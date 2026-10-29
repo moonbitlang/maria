@@ -1,20 +1,20 @@
 ///|
 /// Token usage details for the prompt segment.
 pub struct PromptTokensDetails {
-  cached_tokens : Int?
-  audio_tokens : Int?
+  cached_tokens : Int32?
+  audio_tokens : Int32?
 } derive(Debug, ToJson)
 
 ///|
 pub fn PromptTokensDetails::new(
-  cached_tokens? : Int,
-  audio_tokens? : Int,
+  cached_tokens? : Int32,
+  audio_tokens? : Int32,
 ) -> PromptTokensDetails {
-  { cached_tokens, audio_tokens }
+  { cached_tokens, audio_tokens, }
 }
 
 ///|
-impl @json.FromJson for PromptTokensDetails with from_json(
+impl @json.FromJson for PromptTokensDetails with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> PromptTokensDetails {
@@ -39,5 +39,11 @@ impl @json.FromJson for PromptTokensDetails with from_json(
       )
     None => None
   }
-  PromptTokensDetails::{ cached_tokens, audio_tokens }
+  PromptTokensDetails::{ cached_tokens, audio_tokens, }
 }
+
+///|
+pub extend PromptTokensDetails with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend PromptTokensDetails with ToJson::{to_json}

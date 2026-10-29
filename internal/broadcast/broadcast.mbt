@@ -18,14 +18,14 @@ struct Broadcast[T] {
 
 ///|
 priv struct Reader[T] {
-  mut index : Int
+  mut index : Int32
   f : async (T) -> Unit
 }
 
 ///|
 /// Creates an empty broadcast with no buffered events or listeners.
 pub fn[T] Broadcast::new() -> Broadcast[T] {
-  { values: [], read: @cond_var.Cond::new(), readers: [] }
+  { values: [], read: @cond_var.Cond(), readers: [], }
 }
 
 ///|
@@ -46,7 +46,7 @@ pub fn[T] Broadcast::put(self : Broadcast[T], data : T) -> Unit {
 /// * `index` : The zero-based position in the broadcast history to read from.
 ///
 /// Returns the value at the specified index in the broadcast history.
-pub async fn[T] Broadcast::read(self : Broadcast[T], index : Int) -> T {
+pub async fn[T] Broadcast::read(self : Broadcast[T], index : Int32) -> T {
   for state = self.values.get(index) {
     match state {
       Some(value) => return value
@@ -71,11 +71,11 @@ pub async fn[T] Broadcast::read(self : Broadcast[T], index : Int) -> T {
 ///   broadcasted values before receiving new ones. Defaults to `true`.
 pub fn[T] Broadcast::add_listener(
   self : Broadcast[T],
-  include_history? : Bool = true,
+  include_history~ : Bool = true,
   f : async (T) -> Unit,
 ) -> Unit {
   let initial = if include_history { 0 } else { self.values.length() }
-  self.readers.push(Reader::{ index: initial, f })
+  self.readers.push(Reader::{ index: initial, f, })
 }
 
 ///|
@@ -112,14 +112,14 @@ pub fn Session::stop(self : Session) -> Unit {
 /// A simple barrier synchronization primitive that allows multiple tasks to
 /// wait until a specified number of arrivals have occurred.
 priv struct Barrier {
-  mut count : Int
-  target : Int
+  mut count : Int32
+  target : Int32
   cond : @cond_var.Cond
 }
 
 ///|
-fn Barrier::new(target : Int) -> Barrier {
-  { count: 0, target, cond: @cond_var.Cond::new() }
+fn Barrier::new(target : Int32) -> Barrier {
+  { count: 0, target, cond: @cond_var.Cond(), }
 }
 
 ///|
@@ -154,7 +154,7 @@ pub async fn[T, G] Broadcast::spawn_in(
   self : Broadcast[T],
   group : @async.TaskGroup[G],
 ) -> Session {
-  let stop = @cond_var.Cond::new()
+  let stop = @cond_var.Cond()
   // Works even if there are no readers. Consider:
   // 1. There is no reader, which means self.readers.length() == 0
   // 2. There will be no calls to Barrier::arrive, so the count will remain 0
@@ -162,7 +162,7 @@ pub async fn[T, G] Broadcast::spawn_in(
   let start = Barrier::new(self.readers.length())
   group.spawn_bg(
     () => {
-      group.add_defer(() => self.flush())
+      group.add_defer(() => @async.protect_from_cancel(() => self.flush()))
       @async.with_task_group(group => {
         for reader in self.readers {
           group.spawn_bg(
@@ -240,7 +240,7 @@ pub async fn[T] Broadcast::flush(self : Broadcast[T]) -> Unit {
 /// Never returns. Note that calling `Session::stop` WON'T stop this listener.
 pub async fn[T] Broadcast::listen_forever(
   self : Broadcast[T],
-  include_history? : Bool = true,
+  include_history~ : Bool = true,
   f : async (T) -> Unit,
 ) -> Unit {
   let initial = if include_history { 0 } else { self.values.length() }

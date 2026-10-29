@@ -23,15 +23,15 @@ priv struct Clock {
 }
 
 ///|
-impl @clock.Clock for Clock with now(self : Clock) -> @clock.Timestamp {
+impl @clock.Clock for Clock with fn now(self : Clock) -> @clock.Timestamp {
   let ts = self.timestamp
   self.timestamp += 1
   @clock.Timestamp::from_ms(ts)
 }
 
 ///|
-impl @clock.Clock for Clock with now_str(self : Clock) -> String {
-  let t = self.now()
+impl @clock.Clock for Clock with fn now_str(self : Clock) -> String {
+  let t = @clock.Clock::now(self)
   "Tick:\{t.ms()}"
 }
 
@@ -125,7 +125,7 @@ pub fn[T : @debug.Debug] Context::debug(self : Context, value : T) -> String {
 }
 
 ///|
-let home_lock : @semaphore.Semaphore = @semaphore.Semaphore::new(1)
+let home_lock : @semaphore.Semaphore = @semaphore.Semaphore(1)
 
 ///|
 /// Temporarily points `HOME` to the provided directory while running `f`.
@@ -133,19 +133,9 @@ pub async fn[T] with_home(directory : Directory, f : async () -> T) -> T {
   home_lock.acquire()
   let home = @os.home()
   @os.setenv("HOME", directory.path(), overwrite=true)
-  try f() catch {
-    error => {
-      @os.setenv("HOME", home, overwrite=true)
-      home_lock.release()
-      raise error
-    }
-  } noraise {
-    value => {
-      @os.setenv("HOME", home, overwrite=true)
-      home_lock.release()
-      value
-    }
-  }
+  defer home_lock.release()
+  defer @os.setenv("HOME", home, overwrite=true)
+  f()
 }
 
 ///|
@@ -153,10 +143,10 @@ pub async fn[T] with_home(directory : Directory, f : async () -> T) -> T {
 pub async fn Directory::add_file(
   self : Directory,
   name : String,
-  content? : String = "",
+  content~ : String = "",
 ) -> File {
   let path = Path::join(self.0, name).to_string()
-  @fs.write_file(path, content, truncate=true, create=0o644)
+  @fs.write_file(path, content, create_mode=CreateOrTruncate, permission=0o644)
   File(path)
 }
 
@@ -308,7 +298,7 @@ let os_args : Array[String] = @os.args()
 pub fn Context::getenv(
   self : Context,
   key : String,
-  allow_empty? : Bool = false,
+  allow_empty~ : Bool = false,
 ) -> String raise {
   guard @os.getenv(key) is Some(value) else {
     fail("Environment variable '\{key}' not set")
@@ -323,13 +313,13 @@ pub fn Context::getenv(
 ///|
 pub fn Context::model(
   self : Context,
-  name? : @model.CommonModels = @model.Qwen3CoderPlus,
+  name~ : @model.CommonModels = @model.Qwen3CoderPlus,
 ) -> @model.Model raise {
   @model.open_router_model(api_key=self.getenv("OPENROUTER_API_KEY"), name~)
 }
 
 ///|
-let semaphore : @semaphore.Semaphore = @semaphore.Semaphore::new(16)
+let semaphore : @semaphore.Semaphore = @semaphore.Semaphore(16)
 
 ///|
 async fn eprintln(msg : String) -> Unit {
@@ -338,7 +328,8 @@ async fn eprintln(msg : String) -> Unit {
 
 ///|
 fn init {
-  if (try? @os.getenv("CI")) is Ok(Some("1" | "true")) {
+  if (Ok(@os.getenv("CI")) catch { error => Err(error) })
+    is Ok(Some("1" | "true")) {
     @os.atexit(() => println(@debug.to_string(os_args) + " exited"))
   }
 }
@@ -379,8 +370,8 @@ fn init {
 /// ```
 pub async fn run(
   t : @test.Test,
-  timeout? : Int = 600_000,
-  retry? : Int,
+  timeout~ : Int32 = 600_000,
+  retry? : Int32,
   action : async (Context) -> Unit,
 ) -> Unit {
   semaphore.acquire()
@@ -410,7 +401,11 @@ pub async fn run(
         @async.with_task_group(group => {
           if @os.getenv("CI") is Some("1" | "true") {
             let test_name = "\{pkg_path}.\{t.name()}"
-            group.add_defer(() => eprintln("[\{test_name}] Completed."))
+            group.add_defer(() => {
+              @async.protect_from_cancel(() => {
+                eprintln("[\{test_name}] Completed.")
+              })
+            })
             group.spawn_bg(
               () => {
                 eprintln("[\{test_name}] Started.")
@@ -426,7 +421,7 @@ pub async fn run(
             )
           }
           let mangled = {
-            let builder = StringBuilder::new()
+            let builder = StringBuilder()
             for c in t.name() {
               if c.is_ascii_alphabetic() || c.is_ascii_digit() {
                 builder.write_char(c)
@@ -443,7 +438,7 @@ pub async fn run(
           }
           let logged = Path::join(log_dir, "\{mangled}.jsonl").to_string()
           let logger = @pino.logger(mangled, @pino.Transport::file(logged))
-          let clock = Clock::{ timestamp: 0 }
+          let clock = Clock::{ timestamp: 0, }
           let rand = @random.Rand::chacha8(seed=Bytes::make(32, 0))
           let uuid = @uuid.generator(rand)
           // setup filter
@@ -468,7 +463,7 @@ pub async fn run(
             group,
             moon_home,
           }
-          group.add_defer(() => ctx.close())
+          group.add_defer(() => @async.protect_from_cancel(() => ctx.close()))
           action(ctx)
         })
       })

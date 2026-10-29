@@ -24,20 +24,25 @@ async fn Running::sync(task : Running) -> Unit {
 /// Throws an error if the HTTP request fails or if the response body cannot be
 /// parsed as JSON.
 async fn Running::sync_status(task : Running) -> Unit {
-  let (r, b) = @http.get("http://localhost:\{task.port}/v1/status") catch {
-    error => {
+  let (r, b) = match
+    (Ok(@http.get("http://localhost:\{task.port}/v1/status")) catch {
+      error => Err(error)
+    }) {
+    Ok(value) => value
+    Err(error) => {
       logger.warn("Failed to sync status from task \{task.id}: \{error}")
       raise error
     }
   }
-  guard r.code is (200..=299) else {
+  guard r.code is (200..<=299) else {
     logger.warn(
       "Failed to sync status from task \{task.id}: \{r.code} \{r.reason}",
     )
     return
   }
-  let b = b.json() catch {
-    error => {
+  let b = match (Ok(b.json()) catch { error => Err(error) }) {
+    Ok(value) => value
+    Err(error) => {
       logger.warn("Failed to parse status JSON from task \{task.id}: \{error}")
       raise error
     }
@@ -73,11 +78,11 @@ async fn Running::sync_queued_messages(task : Running) -> Unit {
         "error": {
           "code": -1,
           "message": "Failed to get queued messages from task: \{error}",
-          "metadata": error.to_json(),
+          "metadata": ToJson::to_json(error),
         },
       })
   }
-  guard r.code is (200..=299) else {
+  guard r.code is (200..<=299) else {
     raise json_error(500, "Internal Server Error", {
       "error": {
         "code": r.code,
@@ -92,7 +97,7 @@ async fn Running::sync_queued_messages(task : Running) -> Unit {
         "error": {
           "code": -1,
           "message": "Failed to parse queued messages JSON from task: \{error}",
-          "metadata": error.to_json(),
+          "metadata": ToJson::to_json(error),
         },
       })
   }
@@ -107,6 +112,6 @@ async fn Running::sync_queued_messages(task : Running) -> Unit {
   }
   for m in queued_messages {
     guard m is { "id": String(id), "message": message, .. } else { continue }
-    task.queued_messages.push({ id, message })
+    task.queued_messages.push({ id, message, })
   }
 }

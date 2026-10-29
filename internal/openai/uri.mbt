@@ -18,5 +18,5 @@ fn Uri::parse(string : String) -> Uri raise InvalidUri {
   } else {
     (uri.to_owned(), "/".to_string())
   }
-  { schema, host, path: if path == "" { "/" } else { path } }
+  { schema, host, path: if path == "" { "/" } else { path }, }
 }

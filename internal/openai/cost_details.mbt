@@ -5,7 +5,7 @@ pub struct CostDetails {
 } derive(Debug, ToJson)
 
 ///|
-impl @json.FromJson for CostDetails with from_json(
+impl @json.FromJson for CostDetails with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CostDetails {
@@ -23,3 +23,9 @@ impl @json.FromJson for CostDetails with from_json(
   }
   CostDetails::{ upstream_inference_cost, }
 }
+
+///|
+pub extend CostDetails with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CostDetails with ToJson::{to_json}

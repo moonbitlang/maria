@@ -4,25 +4,25 @@ using @path {type Path}
 ///|
 pub struct CommandOutput {
   text : String
-  truncated_lines : Int
-  original_lines : Int
+  truncated_lines : Int32
+  original_lines : Int32
 } derive(ToJson, @json.FromJson)
 
 ///|
 pub enum CommandResult {
   Completed(
     command~ : String,
-    status~ : Int,
+    status~ : Int32,
     stdout~ : String,
     stderr~ : String,
-    max_output_lines~ : Int
+    max_output_lines~ : Int32
   )
   TimedOut(
     command~ : String,
-    timeout~ : Int,
+    timeout~ : Int32,
     stdout~ : String,
     stderr~ : String,
-    max_output_lines~ : Int
+    max_output_lines~ : Int32
   )
   Background(command~ : String, job_id~ : @job.Id)
 } derive(@json.FromJson, ToJson)
@@ -31,9 +31,9 @@ pub enum CommandResult {
 fn render_output(
   name~ : String,
   output : String,
-  max_output_lines~ : Int,
+  max_output_lines~ : Int32,
 ) -> String {
-  let formatted = StringBuilder::new()
+  let formatted = StringBuilder()
   let lines = output.split("\n").collect()
   if lines.length() >= max_output_lines {
     formatted.write_string(
@@ -51,12 +51,12 @@ fn render_output(
 }
 
 ///|
-impl @tool.ToolOutput for CommandResult with to_message(self) {
+impl @tool.ToolOutput for CommandResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for CommandResult with output(
+pub impl Show for CommandResult with fn output(
   self : CommandResult,
   logger : &Logger,
 ) -> Unit {
@@ -190,3 +190,18 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
     }),
   )
 }
+
+///|
+pub extend CommandOutput with ToJson::{to_json}
+
+///|
+pub extend CommandOutput with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend CommandResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend CommandResult with ToJson::{to_json}
+
+///|
+pub extend CommandResult with Show::{to_string, output}

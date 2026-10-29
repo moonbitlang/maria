@@ -16,7 +16,7 @@ extern "c" fn fs_readlink(
 /// The `bufsize` parameter controls the initial buffer size used when
 /// calling the underlying `readlink`; it is automatically grown when
 /// needed. On error this raises an `@errno.Errno`.
-pub fn readlink(path : String, bufsize? : UInt64 = 1024) -> String raise {
+pub fn readlink(path : String, bufsize~ : UInt64 = 1024) -> String raise {
   guard bufsize > 0 else {
     abort("bufsize must be greater than 0, got \{bufsize}")
   }

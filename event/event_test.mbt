@@ -211,7 +211,7 @@ async test "Event::ToJson/PostToolCall error" (t : @test.Test) {
             name="failing_tool",
             arguments="{\"paramA\": \"valueA\"}",
           ),
-          result=Err(Failure::Failure("Tool call error").to_json()),
+          result=Err(ToJson::to_json(Failure::Failure("Tool call error"))),
           rendered="Tool call error output",
         ),
       )
@@ -642,7 +642,7 @@ test "ExternalEvent::Roundtrip/UserMessage" {
 ///|
 test "Event::Roundtrip" {
   let uuid = @uuid.generator(@rand.chacha8())
-  let events : Array[EventDesc] = [
+  let events : Array[@event.EventDesc] = [
     PreConversation,
     PostConversation,
     TokenCounted(42),
@@ -682,7 +682,7 @@ test "Event::Roundtrip" {
     ModelLoaded(name="test_model"),
     Cancelled,
     UserMessage("Stop the current task"),
-    Failed(Failure::Failure("An error occurred").to_json()),
+    Failed(ToJson::to_json(Failure::Failure("An error occurred"))),
   ]
   for event in events {
     let event = @event.Event::new(id=uuid.v4(), event)

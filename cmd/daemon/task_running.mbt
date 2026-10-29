@@ -8,7 +8,7 @@ priv struct Running {
   /// Working directory where the task is executing.
   cwd : String
   /// HTTP port number where the task's server is listening.
-  port : Int
+  port : Int32
   /// Current execution status of the task (idle or busy).
   mut status : @server.Status
   /// Messages waiting to be processed by the task.
@@ -55,9 +55,9 @@ fn Running::new(
   name? : String,
   id~ : @uuid.Uuid,
   cwd~ : String,
-  port~ : Int,
+  port~ : Int32,
   created~ : @clock.Timestamp,
-  updated? : @clock.Timestamp = created,
+  updated~ : @clock.Timestamp = created,
   web_search~ : Bool,
   model~ : String,
   broadcast~ : @broadcast.Broadcast[@server.ServerStreamEvent],
@@ -78,7 +78,7 @@ fn Running::new(
 }
 
 ///|
-impl @json.FromJson for Running with from_json(
+impl @json.FromJson for Running with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Running {
@@ -150,7 +150,7 @@ impl @json.FromJson for Running with from_json(
   }
   let queued_messages = match map.get("queued_messages") {
     Some(Array(qms)) => {
-      let ms = Array::new()
+      let ms = Array()
       for i, qm_json in qms {
         let qm : QueuedMessage = @json.from_json(
           qm_json,
@@ -192,7 +192,7 @@ impl @json.FromJson for Running with from_json(
 }
 
 ///|
-impl ToJson for Running with to_json(self : Running) -> Json {
+impl ToJson for Running with fn to_json(self : Running) -> Json {
   let object : Map[String, Json] = {
     "id": self.id.to_string(),
     "cwd": self.cwd,
@@ -205,7 +205,7 @@ impl ToJson for Running with to_json(self : Running) -> Json {
     "model": self.model,
   }
   if self.name is Some(name) {
-    object["name"] = name.to_json()
+    object["name"] = ToJson::to_json(name)
   }
   Json::object(object)
 }
@@ -219,7 +219,7 @@ async fn Running::create_message(
     "http://localhost:\{self.port}/v1/message",
     request.to_json(),
   )
-  guard r.code is (200..=299) else {
+  guard r.code is (200..<=299) else {
     raise json_error(500, "Internal Server Error", {
       "error": {
         "code": r.code,
@@ -240,3 +240,6 @@ async fn Running::create_message(
   }
   msg_ret
 }
+
+///|
+extend Running with ToJson::{to_json}

@@ -8,8 +8,8 @@ priv enum DaemonEvent {
 } derive(ToJson)
 
 ///|
-impl @httpx.FromEvent for DaemonEvent with from_event(event : @httpx.Event) -> DaemonEvent raise {
-  let { event, data } = event
+impl @httpx.FromEvent for DaemonEvent with fn from_event(event : @httpx.Event) -> DaemonEvent raise {
+  let { event, data, } = event
   let data = @json.parse(data)
   match event {
     Some("daemon.task.changed") => {
@@ -65,7 +65,7 @@ async fn configure_models(mock : @mock.Context) -> Unit {
 }
 
 ///|
-async fn configure_daemon(mock : @mock.Context) -> Daemon {
+async fn configure_daemon(mock : @mock.Context) -> @daemon.Daemon {
   let os_cwd = @os.cwd()
   configure_models(mock)
   @daemon.Daemon::new(
@@ -91,15 +91,22 @@ async test "GET /v1/tasks" (t : @test.Test) {
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/tasks")
       json_inspect(r.code, content=200)
-      guard r.headers
-        is {
-          "content-type": "application/json",
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "*",
-          "access-control-allow-headers": "*",
-          "transfer-encoding": "chunked",
-          ..
-        } else {
+      guard r.headers.get(@http.CaseInsensitiveString("content-type")) ==
+        Some("application/json") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-origin"),
+        ) ==
+        Some("*") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-methods"),
+        ) ==
+        Some("*") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-headers"),
+        ) ==
+        Some("*") &&
+        r.headers.get(@http.CaseInsensitiveString("transfer-encoding")) ==
+        Some("chunked") else {
         fail("Unexpected response headers: " + @debug.to_string(r.headers))
       }
       json_inspect(b.json(), content={ "tasks": [] })
@@ -176,15 +183,22 @@ async test "GET /v1/models" (t : @test.Test) {
       @async.pause()
       let (r, b) = @http.get("http://localhost:\{daemon.port()}/v1/models")
       json_inspect(r.code, content=200)
-      guard r.headers
-        is {
-          "content-type": "application/json",
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "*",
-          "access-control-allow-headers": "*",
-          "transfer-encoding": "chunked",
-          ..
-        } else {
+      guard r.headers.get(@http.CaseInsensitiveString("content-type")) ==
+        Some("application/json") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-origin"),
+        ) ==
+        Some("*") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-methods"),
+        ) ==
+        Some("*") &&
+        r.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-headers"),
+        ) ==
+        Some("*") &&
+        r.headers.get(@http.CaseInsensitiveString("transfer-encoding")) ==
+        Some("chunked") else {
         fail("Unexpected response headers: " + @debug.to_string(r.headers))
       }
       let b = b.json()

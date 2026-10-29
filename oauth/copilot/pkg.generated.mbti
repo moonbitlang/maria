@@ -17,7 +17,7 @@ pub async fn get_valid_credentials() -> Credentials
 
 pub async fn load_credentials() -> Credentials
 
-pub async fn poll_for_access_token(String, Int, Int) -> String
+pub async fn poll_for_access_token(String, Int32, Int32) -> String
 
 pub async fn refresh_and_save_credentials() -> Credentials
 
@@ -31,28 +31,33 @@ pub async fn start_oauth_flow() -> Credentials
 
 // Types and methods
 type AccessTokenResponse derive(@debug.Debug)
+pub fn AccessTokenResponse::to_repr(Self) -> @debug.Repr
 
 pub struct CopilotTokenResponse {
   token : String
   expires_at : Int64
 } derive(@debug.Debug)
+pub fn CopilotTokenResponse::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Credentials {
   github_token : String
   copilot_token : String
   copilot_token_expires_at : Int64
 } derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Credentials::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Credentials::is_token_valid(Self, Int64) -> Bool
+pub fn Credentials::to_json(Self) -> Json
+pub fn Credentials::to_repr(Self) -> @debug.Repr
 
 pub struct DeviceCodeResponse {
   device_code : String
   user_code : String
   verification_uri : String
-  expires_in : Int
-  interval : Int
+  expires_in : Int32
+  interval : Int32
 } derive(@debug.Debug)
+pub fn DeviceCodeResponse::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

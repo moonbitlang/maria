@@ -10,13 +10,14 @@ pub fn cl100k_base() -> Encoding raise
 
 // Errors
 type DecodingError derive(@debug.Debug)
+pub fn DecodingError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 type Encoding
-pub fn Encoding::decode(Self, ArrayView[Int]) -> String raise DecodingError
-pub fn Encoding::encode(Self, StringView) -> Array[Int]
-pub fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int], special_tokens~ : Map[String, Int], pattern~ : Pattern) -> Self
-pub fn Encoding::special_tokens(Self, String) -> Int?
+pub fn Encoding::decode(Self, ArrayView[Int32]) -> String raise DecodingError
+pub fn Encoding::encode(Self, StringView) -> Array[Int32]
+pub fn Encoding::new(mergeable_ranks~ : Map[Bytes, Int32], special_tokens~ : Map[String, Int32], pattern~ : Pattern) -> Self
+pub fn Encoding::special_tokens(Self, String) -> Int32?
 
 pub enum Pattern {
   Cl100kBase
@@ -26,4 +27,3 @@ pub fn Pattern::cl100k_base() -> Self
 // Type aliases
 
 // Traits
-

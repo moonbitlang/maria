@@ -3,12 +3,12 @@ pub struct DeviceCodeResponse {
   device_code : String
   user_code : String
   verification_uri : String
-  expires_in : Int
-  interval : Int
+  expires_in : Int32
+  interval : Int32
 } derive(Debug)
 
 ///|
-impl @json.FromJson for DeviceCodeResponse with from_json(
+impl @json.FromJson for DeviceCodeResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> DeviceCodeResponse raise @json.JsonDecodeError {
@@ -47,7 +47,7 @@ impl @json.FromJson for DeviceCodeResponse with from_json(
     Some(Number(n, ..)) => n.to_int()
     _ => 5
   }
-  { device_code, user_code, verification_uri, expires_in, interval }
+  { device_code, user_code, verification_uri, expires_in, interval, }
 }
 
 ///|
@@ -57,7 +57,7 @@ struct AccessTokenResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for AccessTokenResponse with from_json(
+impl @json.FromJson for AccessTokenResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> AccessTokenResponse raise @json.JsonDecodeError {
@@ -72,7 +72,7 @@ impl @json.FromJson for AccessTokenResponse with from_json(
     Some(String(s)) => Some(s)
     _ => None
   }
-  { access_token, error }
+  { access_token, error, }
 }
 
 ///|
@@ -82,7 +82,7 @@ pub struct CopilotTokenResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for CopilotTokenResponse with from_json(
+impl @json.FromJson for CopilotTokenResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> CopilotTokenResponse raise @json.JsonDecodeError {
@@ -103,7 +103,7 @@ impl @json.FromJson for CopilotTokenResponse with from_json(
         (path, "CopilotTokenResponse: missing 'expires_at'"),
       )
   }
-  { token, expires_at }
+  { token, expires_at, }
 }
 
 ///|
@@ -114,7 +114,7 @@ pub async fn request_device_code() -> DeviceCodeResponse raise Error {
     "Content-Type": "application/json",
     "User-Agent": "GitHubCopilotChat/0.35.0",
   })
-  guard response.code is (200..=299) else {
+  guard response.code is (200..<=299) else {
     let error_text = data.text()
     raise CopilotOAuthError(
       "Failed to get device code: \{response.code} - \{error_text}",
@@ -126,8 +126,8 @@ pub async fn request_device_code() -> DeviceCodeResponse raise Error {
 ///|
 pub async fn poll_for_access_token(
   device_code : String,
-  interval : Int,
-  timeout_seconds : Int,
+  interval : Int32,
+  timeout_seconds : Int32,
 ) -> String raise Error {
   let start_time = @async.now()
   let timeout_ms = timeout_seconds.to_int64() * 1000L
@@ -144,7 +144,7 @@ pub async fn poll_for_access_token(
       "Content-Type": "application/json",
       "User-Agent": "GitHubCopilotChat/0.35.0",
     })
-    guard response.code is (200..=299) else { continue }
+    guard response.code is (200..<=299) else { continue }
     let result : AccessTokenResponse = @json.from_json(data.json())
     match (result.access_token, result.error) {
       (Some(token), _) => return token
@@ -173,7 +173,7 @@ pub async fn get_copilot_token(
     "Editor-Plugin-Version": "copilot-chat/0.32.4",
     "Copilot-Integration-Id": "vscode-chat",
   })
-  guard response.code is (200..=299) else {
+  guard response.code is (200..<=299) else {
     let error_text = data.text()
     raise CopilotOAuthError(
       "Failed to get Copilot token: \{response.code} - \{error_text}",
@@ -222,3 +222,12 @@ async fn open_browser(url : String) -> Unit raise Error {
   }
   ()
 }
+
+///|
+pub extend DeviceCodeResponse with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend AccessTokenResponse with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CopilotTokenResponse with @moonbitlang/core/debug.Debug::{to_repr}

@@ -5,7 +5,7 @@ pub(all) enum Status {
 }
 
 ///|
-pub impl ToJson for Status with to_json(self) {
+pub impl ToJson for Status with fn to_json(self) {
   match self {
     Idle => "idle"
     Busy => "generating"
@@ -13,7 +13,7 @@ pub impl ToJson for Status with to_json(self) {
 }
 
 ///|
-pub impl @json.FromJson for Status with from_json(json, path) {
+pub impl @json.FromJson for Status with fn from_json(json, path) {
   guard json is String(s) else {
     raise @json.JsonDecodeError(
       (
@@ -45,3 +45,9 @@ test "Status::FromJson" {
   json_inspect(@json.from_json("idle") is Idle, content=true)
   json_inspect(@json.from_json("generating") is Busy, content=true)
 }
+
+///|
+pub extend Status with ToJson::{to_json}
+
+///|
+pub extend Status with @moonbitlang/core/json.FromJson::{from_json}

@@ -11,7 +11,7 @@ pub async fn exists(StringView) -> Bool
 
 pub async fn exists_as_file(StringView) -> Bool
 
-pub fn get_lock_owner(@fs.File) -> Int? raise
+pub fn get_lock_owner(@fs.File) -> Int32? raise
 
 pub async fn kind(StringView) -> FileKind
 
@@ -37,9 +37,9 @@ pub fn truncate(@fs.File, Int64) -> Unit raise
 
 pub async fn[T] with_temporary_directory(String, async (String) -> T) -> T
 
-pub async fn write_bytes_to_file(StringView, Bytes, create? : Int) -> Unit
+pub async fn write_bytes_to_file(StringView, Bytes, create? : Int32) -> Unit
 
-pub async fn write_to_file(StringView, StringView, create? : Int) -> Unit
+pub async fn write_to_file(StringView, StringView, create? : Int32) -> Unit
 
 // Errors
 
@@ -49,6 +49,17 @@ pub struct DirectoryEntry {
   name : String
   kind : FileKind
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
+pub fn DirectoryEntry::compare(Self, Self) -> Int32
+pub fn DirectoryEntry::equal(Self, Self) -> Bool
+pub fn DirectoryEntry::hash(Self) -> Int32
+pub fn DirectoryEntry::hash_combine(Self, Hasher) -> Unit
+pub fn DirectoryEntry::not_equal(Self, Self) -> Bool
+pub fn DirectoryEntry::op_ge(Self, Self) -> Bool
+pub fn DirectoryEntry::op_gt(Self, Self) -> Bool
+pub fn DirectoryEntry::op_le(Self, Self) -> Bool
+pub fn DirectoryEntry::op_lt(Self, Self) -> Bool
+pub fn DirectoryEntry::to_json(Self) -> Json
+pub fn DirectoryEntry::to_repr(Self) -> @debug.Repr
 
 pub enum FileKind {
   Unknown
@@ -60,6 +71,17 @@ pub enum FileKind {
   BlockDevice
   CharDevice
 } derive(Compare, Eq, Hash, ToJson, @debug.Debug)
+pub fn FileKind::compare(Self, Self) -> Int32
+pub fn FileKind::equal(Self, Self) -> Bool
+pub fn FileKind::hash(Self) -> Int32
+pub fn FileKind::hash_combine(Self, Hasher) -> Unit
+pub fn FileKind::not_equal(Self, Self) -> Bool
+pub fn FileKind::op_ge(Self, Self) -> Bool
+pub fn FileKind::op_gt(Self, Self) -> Bool
+pub fn FileKind::op_le(Self, Self) -> Bool
+pub fn FileKind::op_lt(Self, Self) -> Bool
+pub fn FileKind::to_json(Self) -> Json
+pub fn FileKind::to_repr(Self) -> @debug.Repr
 
 type FileRead
 pub fn FileRead::close(Self) -> Unit
@@ -73,4 +95,3 @@ pub fn Stat::mtime(Self) -> Int64
 // Type aliases
 
 // Traits
-

@@ -21,39 +21,102 @@ async test "@moonbitlang/maria/internal/httpx.cors" (t : @test.Test) {
         () => server.serve(@httpx.cors(router.handler())),
         no_wait=true,
       )
-      let client = @http.Client::new("http://localhost:\{server.port()}")
+      let client = @http.Client("http://localhost:\{server.port()}")
       client.request(Options, "*")
       let response = client.end_request()
       json_inspect(response.code, content=204)
       json_inspect(response.reason, content="No Content")
-      json_inspect(response.headers, content={
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "content-length": "0",
-      })
-      let client = @http.Client::new("http://localhost:\{server.port()}")
+      // Header names are case-insensitive. A 204 response has no body framing.
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-origin"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-methods"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-headers"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("content-length")),
+        None,
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("transfer-encoding")),
+        None,
+      )
+      let client = @http.Client("http://localhost:\{server.port()}")
       client.request(Options, "/task")
       let response = client.end_request()
       json_inspect(response.code, content=204)
       json_inspect(response.reason, content="No Content")
-      json_inspect(response.headers, content={
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "content-length": "0",
-      })
-      let client = @http.Client::new("http://localhost:\{server.port()}")
+      // Header names are case-insensitive. A 204 response has no body framing.
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-origin"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-methods"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-headers"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("content-length")),
+        None,
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("transfer-encoding")),
+        None,
+      )
+      let client = @http.Client("http://localhost:\{server.port()}")
       client.request(Options, "/tasks")
       let response = client.end_request()
       json_inspect(response.code, content=204)
       json_inspect(response.reason, content="No Content")
-      json_inspect(response.headers, content={
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "content-length": "0",
-      })
+      // Header names are case-insensitive. A 204 response has no body framing.
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-origin"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-methods"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(
+          @http.CaseInsensitiveString("access-control-allow-headers"),
+        ),
+        Some("*"),
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("content-length")),
+        None,
+      )
+      assert_eq(
+        response.headers.get(@http.CaseInsensitiveString("transfer-encoding")),
+        None,
+      )
       let (response, body) = @http.get(
         "http://localhost:\{server.port()}/task/42",
       )

@@ -1,7 +1,7 @@
 ///|
 pub struct RegisterRequest {
   id : String
-  port : Int
+  port : Int32
   new_id : @uuid.Uuid
   cwd : String
   web_search : Bool
@@ -16,7 +16,7 @@ pub(all) struct RegisterResponse {} derive(ToJson, FromJson)
 /// `/v1/task/register`.
 async fn RegisterInfo::register(
   register : RegisterInfo,
-  port~ : Int,
+  port~ : Int32,
   new_id~ : @uuid.Uuid,
   web_search~ : Bool,
   cwd~ : String,
@@ -38,7 +38,7 @@ async fn RegisterInfo::register(
     "http://\{register.host}:\{register.port}/v1/task/register",
     req.to_json(),
   )
-  guard r.code is (200..=299) else {
+  guard r.code is (200..<=299) else {
     raise @httpx.JsonError::new(
       @status.InternalServerError,
       "Failed to register server with daemon",
@@ -57,7 +57,7 @@ async fn RegisterInfo::register(
         @status.InternalServerError,
         "Failed to parse registration response: \{error}",
         data={
-          "error": error.to_json(),
+          "error": ToJson::to_json(error),
           "body": b.text() catch {
             _ => b.binary()
           },
@@ -65,3 +65,15 @@ async fn RegisterInfo::register(
       )
   }
 }
+
+///|
+pub extend RegisterRequest with ToJson::{to_json}
+
+///|
+pub extend RegisterRequest with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend RegisterResponse with ToJson::{to_json}
+
+///|
+pub extend RegisterResponse with @moonbitlang/core/json.FromJson::{from_json}

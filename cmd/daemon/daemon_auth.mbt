@@ -25,8 +25,8 @@ priv struct StartCodexAuthResponse {
 priv struct StartCopilotAuthResponse {
   user_code : String
   verification_uri : String
-  expires_in : Int
-  interval : Int
+  expires_in : Int32
+  interval : Int32
 } derive(ToJson)
 
 ///|
@@ -37,10 +37,10 @@ async fn Daemon::get_auth_status(
 ) -> Unit {
   let codex_status = self.get_codex_auth_status()
   let copilot_status = self.get_copilot_auth_status()
-  let status : AllAuthStatus = { codex: codex_status, copilot: copilot_status }
+  let status : AllAuthStatus = { codex: codex_status, copilot: copilot_status, }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
-  w.write(status.to_json().stringify())
+  w.write(ToJson::to_json(status).stringify())
 }
 
 ///|
@@ -48,7 +48,7 @@ async fn Daemon::get_auth_status(
 async fn Daemon::get_codex_auth_status(self : Daemon) -> ProviderAuthStatus {
   ignore(self)
   if !@codex.credentials_exist() {
-    return { authenticated: false, email: None, plan: None }
+    return { authenticated: false, email: None, plan: None, }
   }
   try {
     let credentials = @codex.load_credentials()
@@ -59,7 +59,7 @@ async fn Daemon::get_codex_auth_status(self : Daemon) -> ProviderAuthStatus {
       plan: Some(claims.chatgptPlanType),
     }
   } catch {
-    _ => { authenticated: false, email: None, plan: None }
+    _ => { authenticated: false, email: None, plan: None, }
   }
 }
 
@@ -68,8 +68,8 @@ async fn Daemon::get_codex_auth_status(self : Daemon) -> ProviderAuthStatus {
 async fn Daemon::get_copilot_auth_status(self : Daemon) -> ProviderAuthStatus {
   ignore(self)
   if !@copilot.credentials_exist() {
-    return { authenticated: false, email: None, plan: None }
+    return { authenticated: false, email: None, plan: None, }
   }
   // Copilot doesn't provide email/plan info in the token
-  { authenticated: true, email: None, plan: None }
+  { authenticated: true, email: None, plan: None, }
 }

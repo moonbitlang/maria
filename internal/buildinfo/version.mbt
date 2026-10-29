@@ -1,13 +1,13 @@
 ///|
 pub struct Version {
-  major : Int
-  minor : Int
-  patch : Int
+  major : Int32
+  minor : Int32
+  patch : Int32
   build : Build?
 } derive(ToJson)
 
 ///|
-pub impl Show for Version with output(self : Version, logger : &Logger) -> Unit {
+pub impl Show for Version with fn output(self : Version, logger : &Logger) -> Unit {
   let string = if self.build is Some(build) {
     "\{self.major}.\{self.minor}.\{self.patch}+\{build.number}.\{build.commit}"
   } else {
@@ -18,7 +18,7 @@ pub impl Show for Version with output(self : Version, logger : &Logger) -> Unit 
 
 ///|
 pub struct Build {
-  number : Int
+  number : Int32
   commit : String
 } derive(ToJson)
 
@@ -28,29 +28,27 @@ pub let version : Version = try! Version::parse(version_string)
 ///|
 pub fn Version::parse(string : String) -> Version raise {
   lexmatch string with longest {
-    (
-      ("[[:digit:]]+" as major)
-      "\."
-      ("([[:digit:]]+)" as minor)
-      "\."
-      ("([[:digit:]]+)" as patch)
-    ) => {
+    (re"^[[:digit:]]+" as major) +
+    re"\." +
+    (re"([[:digit:]]+)" as minor) +
+    re"\." +
+    (re"([[:digit:]]+)" as patch) +
+    re"$" => {
       let major = @string.parse_int(major)
       let minor = @string.parse_int(minor)
       let patch = @string.parse_int(patch)
-      Version::{ major, minor, patch, build: None }
+      Version::{ major, minor, patch, build: None, }
     }
-    (
-      ("[[:digit:]]+" as major)
-      "\."
-      ("([[:digit:]]+)" as minor)
-      "\."
-      ("([[:digit:]]+)" as patch)
-      "\+"
-      ("([0-9]+)" as build_number)
-      "\."
-      ("([0-9a-fA-F]+)" as commit)
-    ) => {
+    (re"^[[:digit:]]+" as major) +
+    re"\." +
+    (re"([[:digit:]]+)" as minor) +
+    re"\." +
+    (re"([[:digit:]]+)" as patch) +
+    re"\+" +
+    (re"([0-9]+)" as build_number) +
+    re"\." +
+    (re"([0-9a-fA-F]+)" as commit) +
+    re"$" => {
       let major = @string.parse_int(major)
       let minor = @string.parse_int(minor)
       let patch = @string.parse_int(patch)
@@ -59,7 +57,7 @@ pub fn Version::parse(string : String) -> Version raise {
         major,
         minor,
         patch,
-        build: Some({ number: build_number, commit: commit.to_owned() }),
+        build: Some({ number: build_number, commit: commit.to_owned(), }),
       }
     }
     _ => fail("Invalid version string format: " + string)
@@ -67,7 +65,7 @@ pub fn Version::parse(string : String) -> Version raise {
 }
 
 ///|
-pub impl Compare for Version with compare(self, other) -> Int {
+pub impl Compare for Version with fn compare(self, other) -> Int32 {
   if self.major != other.major {
     return self.major.compare(other.major)
   }
@@ -86,7 +84,7 @@ pub impl Compare for Version with compare(self, other) -> Int {
 }
 
 ///|
-pub impl Eq for Version with equal(self, other) -> Bool {
+pub impl Eq for Version with fn equal(self, other) -> Bool {
   self.major == other.major &&
   self.minor == other.minor &&
   self.patch == other.patch &&
@@ -96,3 +94,18 @@ pub impl Eq for Version with equal(self, other) -> Bool {
     _ => false
   })
 }
+
+///|
+pub extend Version with ToJson::{to_json}
+
+///|
+pub extend Version with Show::{to_string, output}
+
+///|
+pub extend Build with ToJson::{to_json}
+
+///|
+pub extend Version with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend Version with Eq::{not_equal, equal}

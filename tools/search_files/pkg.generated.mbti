@@ -15,9 +15,12 @@ pub let prompt : String
 
 // Types and methods
 type SearchFilesResult derive(ToJson, @json.FromJson)
+pub fn SearchFilesResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn SearchFilesResult::output(Self, &Logger) -> Unit
+pub fn SearchFilesResult::to_json(Self) -> Json
+pub fn SearchFilesResult::to_string(Self) -> String
 pub impl Show for SearchFilesResult
 
 // Type aliases
 
 // Traits
-

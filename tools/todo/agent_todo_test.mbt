@@ -13,8 +13,8 @@ async test "agent/todo/create_and_add_tasks" (t : @test.Test) {
     // Track tool calls
     let mut write_called = false
     let mut read_called = false
-    let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
-    agent.add_tools([new_tool(todo_list).to_agent_tool()])
+    let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
+    agent.add_tools([@todo.new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => {
       match event.desc {
         @event.PreToolCall(tool_call) =>
@@ -51,7 +51,7 @@ async test "agent/todo/create_and_add_tasks" (t : @test.Test) {
     inspect(read_called, content="true")
 
     // Verify tasks were added using tool.call with read action
-    let result = new_tool(todo_list).call({ "action": "read" })
+    let result = @todo.new_tool(todo_list).call({ "action": "read" })
     guard result is Success(_) else { return }
     let content = result.to_string()
     // The Show output contains "Total: N" — verify at least 2 tasks
@@ -76,8 +76,8 @@ async test "agent/todo/read_empty_list" (t : @test.Test) {
 
     // Track tool calls
     let mut read_called = false
-    let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
-    agent.add_tools([new_tool(todo_list).to_agent_tool()])
+    let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
+    agent.add_tools([@todo.new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => {
       match event.desc {
         @event.PreToolCall(tool_call) =>
@@ -123,8 +123,8 @@ async test "agent/todo/priority_handling" (t : @test.Test) {
 
     // Track tool calls
     let tool_calls : Array[String] = []
-    let todo_list = new(uuid=agent.uuid, cwd=agent.cwd)
-    agent.add_tools([new_tool(todo_list).to_agent_tool()])
+    let todo_list = @todo.new(uuid=agent.uuid, cwd=agent.cwd)
+    agent.add_tools([@todo.new_tool(todo_list).to_agent_tool()])
     agent.add_listener(event => {
       match event.desc {
         @event.PreToolCall(tool_call) =>
@@ -138,7 +138,7 @@ async test "agent/todo/priority_handling" (t : @test.Test) {
     agent.start()
 
     // Verify tasks were created using tool.call with read action
-    let result = new_tool(todo_list).call({ "action": "read" })
+    let result = @todo.new_tool(todo_list).call({ "action": "read" })
     guard result is Success(_) else { return }
     let content = result.to_string()
     // The Show output contains "Total: N" — verify at least 3 tasks

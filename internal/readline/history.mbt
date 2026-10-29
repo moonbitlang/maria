@@ -2,19 +2,19 @@
 /// Manages command history with navigation, size limits, and event notification.
 priv struct HistoryManager {
   history : @deque.Deque[BytesView]
-  mut index : Int
-  size : Int
+  mut index : Int32
+  size : Int32
   events : @aqueue.Queue[@deque.Deque[BytesView]]
 }
 
 ///|
 /// Create a history manager with the given maximum entry count.
-fn HistoryManager::new(size : Int) -> HistoryManager {
+fn HistoryManager::new(size : Int32) -> HistoryManager {
   HistoryManager::{
     history: @deque.Deque([]),
     index: -1,
     size,
-    events: @aqueue.Queue::new(kind=Unbounded),
+    events: @aqueue.Queue(kind=Unbounded),
   }
 }
 
@@ -62,8 +62,8 @@ fn BytesView::trim(self : BytesView) -> BytesView {
 /// Split on `from`, reverse the parts, and rejoin with `to`.
 fn reverse_string(
   line : BytesView,
-  from? : Byte = b'\r',
-  to? : Byte = b'\r',
+  from~ : Byte = b'\r',
+  to~ : Byte = b'\r',
 ) -> BytesView {
   let parts = []
   let mut start = 0
@@ -81,7 +81,7 @@ fn reverse_string(
       [_, .. rest] => continue rest
     }
   }
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   for i = parts.length() - 1; i > 0; i = i - 1 {
     buffer.write_bytesview(parts[i])
     buffer.write_byte(to)

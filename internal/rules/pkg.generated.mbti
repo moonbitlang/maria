@@ -24,13 +24,16 @@ pub struct Rule {
   content : String
   source : Source
 } derive(ToJson, @debug.Debug)
+pub fn Rule::to_json(Self) -> Json
+pub fn Rule::to_repr(Self) -> @debug.Repr
 
 pub enum Source {
   Global
   Local
 } derive(ToJson, @debug.Debug)
+pub fn Source::to_json(Self) -> Json
+pub fn Source::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

@@ -7,7 +7,6 @@ import {
   "moonbitlang/maria/internal/fuzzy",
   "moonbitlang/async/os_error",
   "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -15,9 +14,9 @@ import {
   "moonbitlang/maria/tools/read_file",
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/agent",
-  "moonbitlang/maria/model",
-  "moonbitlang/maria/internal/pino",
-  "moonbitlang/maria/event",
-  "moonbitlang/maria/ai",
   "moonbitlang/async/fs",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

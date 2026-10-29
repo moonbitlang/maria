@@ -2,11 +2,11 @@
 pub struct CompletedProcess {
   exec : String
   args : Array[String]
-  status : Int
+  status : Int32
   stdout : String
   stderr : String
-  elapsed : Int
-  timeout : Int?
+  elapsed : Int32
+  timeout : Int32?
 } derive(ToJson)
 
 ///|
@@ -22,7 +22,7 @@ pub suberror Failed {
 } derive(ToJson)
 
 ///|
-pub impl Show for Failed with output(self : Failed, logger : &Logger) -> Unit {
+pub impl Show for Failed with fn output(self : Failed, logger : &Logger) -> Unit {
   let Failed(self) = self
   logger.write_string("Process ")
   logger.write_string(self.exec.escape())
@@ -31,7 +31,7 @@ pub impl Show for Failed with output(self : Failed, logger : &Logger) -> Unit {
     logger.write_string(arg.escape())
   }
   logger.write_string(" failed with status ")
-  self.status.output(logger)
+  Show::output(self.status, logger)
   logger.write_string(".\n")
   if !self.stdout.is_blank() {
     logger.write_string("Standard Output:\n")
@@ -47,7 +47,7 @@ pub impl Show for Failed with output(self : Failed, logger : &Logger) -> Unit {
 
 ///|
 pub suberror TimedOut {
-  TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
+  TimedOut(timeout~ : Int32, stdout~ : String, stderr~ : String)
 }
 
 ///|
@@ -70,7 +70,7 @@ pub suberror TimedOut {
 /// Example:
 ///
 /// ```moonbit async
-/// let output = StringBuilder::new()
+/// let output = StringBuilder()
 /// let status = spawn("echo", ["Hello, World!"], stdout=output)
 /// json_inspect(status, content=0)
 /// ```
@@ -78,7 +78,7 @@ pub async fn spawn(
   command : StringView,
   arguments : Array[StringView],
   stdin? : String,
-  timeout? : Int,
+  timeout? : Int32,
   cwd? : StringView,
   env? : Map[String, String],
 ) -> CompletedProcess {
@@ -107,7 +107,7 @@ pub async fn spawn(
 
     let stdout = redirect_output()
     let stderr = redirect_output()
-    async fn run() -> Int {
+    async fn run() -> Int32 {
       @process.run(
         command,
         arguments,
@@ -149,18 +149,27 @@ pub async fn spawn(
 }
 
 ///|
-pub extern "c" fn getpid() -> Int = "moonbit_maria_process_getpid"
+pub extern "c" fn getpid() -> Int32 = "moonbit_maria_process_getpid"
 
 ///|
-pub extern "c" fn getppid() -> Int = "moonbit_maria_process_getppid"
+pub extern "c" fn getppid() -> Int32 = "moonbit_maria_process_getppid"
 
 ///|
-extern "c" fn process_kill(pid : Int, sig : Int) -> Int = "moonbit_maria_process_kill"
+extern "c" fn process_kill(pid : Int32, sig : Int32) -> Int32 = "moonbit_maria_process_kill"
 
 ///|
-pub fn kill(pid : Int, sig : Int) -> Unit raise @errno.Errno {
+pub fn kill(pid : Int32, sig : Int32) -> Unit raise @errno.Errno {
   let status = process_kill(pid, sig)
   if status != 0 {
     raise @errno.Errno(status)
   }
 }
+
+///|
+pub extend CompletedProcess with ToJson::{to_json}
+
+///|
+pub extend Failed with ToJson::{to_json}
+
+///|
+pub extend Failed with Show::{to_string, output}

@@ -13,7 +13,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
     schema~,
     @tool.ToolFn(fn(_args) -> @tool.ToolResult noraise {
       let jobs = manager.list()
-      let output = StringBuilder::new()
+      let output = StringBuilder()
       for job in jobs {
         output.write_string("- [\{job.id}] \{job.name}\n")
         output.write_string("  Command: \{job.command}\n")

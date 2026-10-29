@@ -19,10 +19,10 @@ priv struct Stopped {
 }
 
 ///|
-impl ToJson for Stopped with to_json(self : Stopped) -> Json {
-  let object : Map[String, Json] = {}
+impl ToJson for Stopped with fn to_json(self : Stopped) -> Json {
+  let object : Map[String, Json] = Map([])
   if self.name is Some(name) {
-    object["name"] = name.to_json()
+    object["name"] = ToJson::to_json(name)
   }
   object.merge_in_place({
     "id": self.id,
@@ -36,7 +36,7 @@ impl ToJson for Stopped with to_json(self : Stopped) -> Json {
 }
 
 ///|
-impl @json.FromJson for Stopped with from_json(
+impl @json.FromJson for Stopped with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Stopped raise @json.JsonDecodeError {
@@ -106,3 +106,6 @@ impl @json.FromJson for Stopped with from_json(
     broadcast: @broadcast.Broadcast::new(),
   }
 }
+
+///|
+extend Stopped with ToJson::{to_json}

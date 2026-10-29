@@ -1,4 +1,7 @@
 import {
+  "moonbitlang/core/debug",
+}
+
+import {
   "moonbitlang/maria/internal/openai",
-  "moonbitlang/core/json",
 }

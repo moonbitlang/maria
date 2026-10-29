@@ -1,7 +1,3 @@
 import {
   "moonbitlang/maria/internal/backtrace",
 }
-
-options(
-  implement: "moonbitlang/core/abort",
-)

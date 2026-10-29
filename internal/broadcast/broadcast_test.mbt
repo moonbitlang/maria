@@ -1,9 +1,9 @@
 ///|
 async test "Broadcast::spawn_in" {
-  let broadcast : Broadcast[Int] = Broadcast::new()
+  let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
   broadcast.put(10)
   let results0 = []
-  broadcast.add_listener((value : Int) => results0.push(value))
+  broadcast.add_listener((value : Int32) => results0.push(value))
   broadcast.put(20)
   let results1 = []
   @async.with_task_group(group => {
@@ -12,14 +12,14 @@ async test "Broadcast::spawn_in" {
     broadcast.put(30)
     @async.pause()
     broadcast.put(40)
-    broadcast.add_listener((value : Int) => results1.push(value))
+    broadcast.add_listener((value : Int32) => results1.push(value))
     broadcast.put(50)
   })
   json_inspect(results0, content=[10, 20, 30, 40, 50])
   json_inspect(results1, content=[10, 20, 30, 40, 50])
   json_inspect(broadcast.values(), content=[10, 20, 30, 40, 50])
   let results2 = []
-  broadcast.add_listener((value : Int) => results2.push(value))
+  broadcast.add_listener((value : Int32) => results2.push(value))
   @async.with_task_group(group => {
     let session = broadcast.spawn_in(group)
     defer session.stop()
@@ -34,13 +34,13 @@ async test "Broadcast::spawn_in" {
 
 ///|
 async test "Broadcast::add_listener" {
-  let broadcast : Broadcast[Int] = Broadcast::new()
+  let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
   broadcast.put(0)
   let results0 = []
-  broadcast.add_listener((value : Int) => results0.push(value))
+  broadcast.add_listener((value : Int32) => results0.push(value))
   broadcast.put(10)
   let results1 = []
-  broadcast.add_listener((value : Int) => results1.push(value))
+  broadcast.add_listener((value : Int32) => results1.push(value))
   broadcast.put(20)
   broadcast.flush()
   json_inspect(results0, content=[0, 10, 20])
@@ -48,12 +48,12 @@ async test "Broadcast::add_listener" {
   json_inspect(broadcast.values(), content=[0, 10, 20])
   let results2 = []
   broadcast.add_listener(
-    (value : Int) => results2.push(value),
+    (value : Int32) => results2.push(value),
     include_history=true,
   )
   let result3 = []
   broadcast.add_listener(
-    (value : Int) => result3.push(value),
+    (value : Int32) => result3.push(value),
     include_history=false,
   )
   broadcast.put(30)
@@ -66,11 +66,11 @@ async test "Broadcast::add_listener" {
 
 ///|
 async test "Broadcast::stop" {
-  let broadcast : Broadcast[Int] = Broadcast::new()
+  let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
   let results0 = []
-  broadcast.add_listener((value : Int) => results0.push(value))
+  broadcast.add_listener((value : Int32) => results0.push(value))
   let results1 = []
-  broadcast.add_listener((value : Int) => results1.push(value))
+  broadcast.add_listener((value : Int32) => results1.push(value))
   @async.with_task_group(group => {
     let session = broadcast.spawn_in(group)
     defer session.stop()
@@ -85,16 +85,16 @@ async test "Broadcast::stop" {
 ///|
 async test "Broadcast::flush" (t : @test.Test) {
   @mock.run(t, _ => {
-    let broadcast : Broadcast[Int] = Broadcast::new()
+    let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
     let results0 = []
-    broadcast.add_listener((value : Int) => results0.push(value))
+    broadcast.add_listener((value : Int32) => results0.push(value))
     broadcast.put(1)
     broadcast.put(2)
     broadcast.put(3)
     broadcast.flush()
     json_inspect(results0, content=[1, 2, 3])
     let results1 = []
-    broadcast.add_listener((value : Int) => results1.push(value))
+    broadcast.add_listener((value : Int32) => results1.push(value))
     broadcast.put(4)
     broadcast.put(5)
     broadcast.flush()
@@ -105,7 +105,7 @@ async test "Broadcast::flush" (t : @test.Test) {
 
 ///|
 async test "Broadcast::listen_forever" {
-  let broadcast : Broadcast[Int] = Broadcast::new()
+  let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
   let results0 = []
   let results1 = []
   let results2 = []
@@ -143,4 +143,21 @@ async test "Broadcast::listen_forever" {
   json_inspect(results0, content=[1, 2, 3, 4, 5, 6])
   json_inspect(results1, content=[1, 2, 3, 4, 5, 6])
   assert_true(results2 is [.., 5, 6])
+}
+
+///|
+async test "group cancellation flushes queued broadcast values" {
+  let broadcast : @broadcast.Broadcast[Int32] = @broadcast.Broadcast::new()
+  let received = []
+  broadcast.add_listener(value => {
+    @async.pause()
+    received.push(value)
+  })
+  @async.with_task_group(group => {
+    ignore(broadcast.spawn_in(group))
+    broadcast.put(41)
+    broadcast.put(42)
+    group.return_immediately(())
+  })
+  json_inspect(received, content=[41, 42])
 }

@@ -5,8 +5,10 @@ pub(all) enum ServerEvent {
 } derive(ToJson)
 
 ///|
-pub impl @httpx.FromEvent for ServerEvent with from_event(event : @httpx.Event) -> ServerEvent raise {
-  let { event, data } = event
+pub impl @httpx.FromEvent for ServerEvent with fn from_event(
+  event : @httpx.Event,
+) -> ServerEvent raise {
+  let { event, data, } = event
   let data = @json.parse(data)
   match event {
     Some("maria.queued_messages.synchronized") =>
@@ -19,7 +21,7 @@ pub impl @httpx.FromEvent for ServerEvent with from_event(event : @httpx.Event) 
 ///|
 pub async fn ServerEvent::collect_events(
   s : @http.Client,
-  stop_at_cancel? : Bool = true,
+  stop_at_cancel~ : Bool = true,
 ) -> Array[ServerEvent] {
   collect_events(s, stop_at=event => {
     if event is Maria(event) {
@@ -116,4 +118,12 @@ pub fn extract_events_for_message(
     }
     false
   })
+}
+
+///|
+pub extend ServerEvent with ToJson::{to_json}
+
+///|
+pub extend ServerEvent with @moonbitlang/maria/internal/httpx.FromEvent::{
+  from_event,
 }

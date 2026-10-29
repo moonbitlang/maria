@@ -1,12 +1,12 @@
 ///|
 priv struct Params {
-  job_id : Int
-  timeout : Int
-  max_output_lines : Int
+  job_id : Int32
+  timeout : Int32
+  max_output_lines : Int32
 } derive(@json.FromJson)
 
 ///|
-fn truncate_output(output : String, max_output_lines~ : Int) -> String {
+fn truncate_output(output : String, max_output_lines~ : Int32) -> String {
   let lines = output.split("\n").collect()
   if lines.length() <= max_output_lines {
     output
@@ -47,7 +47,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
       let params : Params = @json.from_json(args) catch {
         error => return @tool.failed("Invalid parameters: \{error}")
       }
-      let { job_id, timeout, max_output_lines } = params
+      let { job_id, timeout, max_output_lines, } = params
       guard manager.get(@job.Id(job_id)) is Some(job) else {
         return @tool.failed("Job with ID \{job_id} does not exist")
       }
@@ -58,7 +58,7 @@ pub fn new(manager : @job.Manager) -> @tool.Tool {
       guard status is Some(status) else {
         return @tool.failed("Timeout waiting for job \{job_id} to complete")
       }
-      let output = StringBuilder::new()
+      let output = StringBuilder()
       output.write_string("Job \{job_id} completed with exit code \{status}\n")
       let stdout = @fsx.read_file(job.stdout) catch {
         error =>

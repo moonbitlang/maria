@@ -10,7 +10,7 @@ struct Loader {
 
 ///|
 pub fn Loader::new(cwd : String, logger~ : @pino.Logger) -> Loader {
-  return Loader::{ cwd, logger, rules: {} }
+  return Loader::{ cwd, logger, rules: {}, }
 }
 
 ///|
@@ -104,7 +104,7 @@ fn Rule::parse(content : String, source~ : Source) -> Rule raise {
     Some(False) => false
     _ => false
   }
-  Rule::{ description, globs, always_apply, content: doc.text, source }
+  Rule::{ description, globs, always_apply, content: doc.text, source, }
 }
 
 ///|
@@ -152,7 +152,7 @@ fn Loader::format(self : Loader) -> String {
       conditional.push((name, rule))
     }
   }
-  let content = StringBuilder::new()
+  let content = StringBuilder()
   content.write_string(
     (
       $|# Project Rules
@@ -231,3 +231,15 @@ fn Loader::format(self : Loader) -> String {
   }
   content.to_string()
 }
+
+///|
+pub extend Source with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Source with ToJson::{to_json}
+
+///|
+pub extend Rule with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Rule with ToJson::{to_json}

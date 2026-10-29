@@ -18,3 +18,21 @@ async test "mkdtemp" {
   @fs.rmdir(dir, recursive=true)
   json_inspect(@fsx.exists(dir), content=false)
 }
+
+///|
+async test "temporary directory is removed when its task is cancelled" {
+  let mut directory = None
+  @async.with_task_group(group => {
+    group.spawn_bg(no_wait=true, () => {
+      @fsx.with_temporary_directory("maria-cancel-XXXXXX", path => {
+        directory = Some(path)
+        @async.sleep(60_000)
+      })
+    })
+    while directory is None {
+      @async.pause()
+    }
+  })
+  guard directory is Some(path) else { fail("task did not start") }
+  assert_eq(@fsx.exists(path), false)
+}

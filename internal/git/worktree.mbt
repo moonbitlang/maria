@@ -2,7 +2,7 @@
 pub async fn add_worktree(
   path : String,
   new_branch? : String,
-  force_new_branch? : Bool = false,
+  force_new_branch~ : Bool = false,
   commit? : String,
   cwd? : StringView,
 ) -> Unit {
@@ -25,7 +25,7 @@ pub async fn add_worktree(
 ///|
 pub async fn remove_worktree(
   path : String,
-  force? : Bool = false,
+  force~ : Bool = false,
   cwd? : StringView,
 ) -> Unit {
   let arguments : Array[StringView] = ["worktree", "remove", path]
@@ -46,7 +46,9 @@ pub async fn[T] with_worktree(
 ) -> T {
   @async.with_task_group(group => {
     add_worktree(path, new_branch?, force_new_branch?, commit?, cwd?)
-    group.add_defer(() => remove_worktree(path, force=true, cwd?))
+    group.add_defer(() => {
+      @async.protect_from_cancel(() => remove_worktree(path, force=true, cwd?))
+    })
     f()
   })
 }

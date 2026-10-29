@@ -3,7 +3,7 @@
 extern "c" fn os_getenv(key : Bytes) -> @c.Pointer[Byte] = "moonbit_maria_os_getenv"
 
 ///|
-fn buflen(buf : FixedArray[Byte]) -> Int {
+fn buflen(buf : FixedArray[Byte]) -> Int32 {
   for i = 0; i < FixedArray::length(buf); i = i + 1 {
     if buf[i] == 0 {
       return i
@@ -28,7 +28,7 @@ pub fn getenv(key : StringView) -> String? raise {
 
 ///|
 #borrow(key)
-extern "c" fn os_unsetenv(key : Bytes) -> Int = "moonbit_maria_os_unsetenv"
+extern "c" fn os_unsetenv(key : Bytes) -> Int32 = "moonbit_maria_os_unsetenv"
 
 ///|
 pub fn unsetenv(key : StringView) -> Unit raise {
@@ -40,13 +40,13 @@ pub fn unsetenv(key : StringView) -> Unit raise {
 
 ///|
 #borrow(key, value)
-extern "c" fn os_setenv(key : Bytes, value : Bytes, overwrite : Int) -> Int = "moonbit_maria_os_setenv"
+extern "c" fn os_setenv(key : Bytes, value : Bytes, overwrite : Int32) -> Int32 = "moonbit_maria_os_setenv"
 
 ///|
 pub fn setenv(
   key : StringView,
   value : StringView,
-  overwrite? : Bool = true,
+  overwrite~ : Bool = true,
 ) -> Unit raise {
   let result = os_setenv(
     @encoding/utf8.encode(key),
@@ -75,27 +75,27 @@ pub fn cwd() -> String raise {
 }
 
 ///|
-extern "c" fn os_getuid() -> UInt = "moonbit_maria_os_getuid"
+extern "c" fn os_getuid() -> UInt32 = "moonbit_maria_os_getuid"
 
 ///|
 #borrow(pwd, result)
 extern "c" fn os_getpwuid_r(
-  uid : UInt,
+  uid : UInt32,
   pwd : FixedArray[Byte],
   buf : @c.Pointer[Byte],
   buf_len : UInt64,
   result : Ref[@c.Pointer[Unit]],
-) -> Int = "moonbit_maria_os_getpwuid_r"
+) -> Int32 = "moonbit_maria_os_getpwuid_r"
 
 ///|
-extern "c" fn os_passwd_sizeof() -> Int = "moonbit_maria_os_passwd_sizeof"
+extern "c" fn os_passwd_sizeof() -> Int32 = "moonbit_maria_os_passwd_sizeof"
 
 ///|
 #borrow(passwd)
 extern "c" fn os_passwd_get_dir(passwd : Bytes) -> @c.Pointer[Byte] = "moonbit_maria_os_passwd_get_dir"
 
 ///|
-extern "c" fn sysconf_SC_GETPW_R_SIZE_MAX() -> Int = "moonbit_maria_sysconf_SC_GETPW_R_SIZE_MAX"
+extern "c" fn sysconf_SC_GETPW_R_SIZE_MAX() -> Int32 = "moonbit_maria_sysconf_SC_GETPW_R_SIZE_MAX"
 
 ///|
 pub fn home() -> String raise {
@@ -143,7 +143,7 @@ extern "c" fn sysconf_SC_HOST_NAME_MAX() -> Int64 = "moonbit_maria_sysconf_SC_HO
 
 ///|
 #borrow(name)
-extern "c" fn os_gethostname(name : FixedArray[Byte]) -> Int = "moonbit_maria_os_gethostname"
+extern "c" fn os_gethostname(name : FixedArray[Byte]) -> Int32 = "moonbit_maria_os_gethostname"
 
 ///|
 pub fn gethostname() -> String raise {
@@ -166,7 +166,7 @@ pub fn gethostname() -> String raise {
 
 ///|
 #borrow(path)
-extern "c" fn os_chdir(path : Bytes) -> Int = "moonbit_maria_os_chdir"
+extern "c" fn os_chdir(path : Bytes) -> Int32 = "moonbit_maria_os_chdir"
 
 ///|
 pub fn chdir(path : StringView) -> Unit raise {
@@ -177,17 +177,17 @@ pub fn chdir(path : StringView) -> Unit raise {
 }
 
 ///|
-extern "c" fn os_exit(code : Int) = "exit"
+extern "c" fn os_exit(code : Int32) = "exit"
 
 ///|
-pub fn[X] exit(code : Int) -> X {
+pub fn[X] exit(code : Int32) -> X {
   os_exit(code)
   panic()
 }
 
 ///|
 #borrow(buf)
-extern "c" fn os_executable(buf : FixedArray[Byte]) -> Int = "moonbit_maria_os_executable"
+extern "c" fn os_executable(buf : FixedArray[Byte]) -> Int32 = "moonbit_maria_os_executable"
 
 ///|
 /// Returns the path of the current executable. Note that the returned path

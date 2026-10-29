@@ -20,12 +20,12 @@ struct Uuid {
 } derive(Eq, Compare, Hash)
 
 ///|
-pub impl ToJson for Uuid with to_json(self : Uuid) -> Json {
-  self.to_string().to_json()
+pub impl ToJson for Uuid with fn to_json(self : Uuid) -> Json {
+  Json(self.to_string())
 }
 
 ///|
-pub impl @json.FromJson for Uuid with from_json(json, json_path) -> Uuid raise {
+pub impl @json.FromJson for Uuid with fn from_json(json, json_path) -> Uuid raise {
   guard json is String(string) else {
     raise @json.JsonDecodeError((json_path, "Uuid::from_json: expected string"))
   }
@@ -42,7 +42,7 @@ struct Generator(&Source)
 
 ///|
 pub(open) trait Source {
-  uint64(self : Self) -> UInt64
+  fn uint64(self : Self) -> UInt64
 }
 
 ///|
@@ -51,11 +51,11 @@ pub fn Generator::v4(self : Generator) -> Uuid {
   let lo = self.0.uint64()
   let hi = (hi & 0xFFFF_FFFF_FFFF_0FFF_UL) | 0x0000_0000_0000_4000_UL
   let lo = (lo & 0x0FFF_FFFF_FFFF_FFFF_UL) | 0x8000_0000_0000_0000_UL
-  { hi, lo }
+  { hi, lo, }
 }
 
 ///|
-pub impl Source for @random.Rand with uint64(self : @random.Rand) -> UInt64 {
+pub impl Source for @random.Rand with fn uint64(self : @random.Rand) -> UInt64 {
   self.uint64()
 }
 
@@ -65,7 +65,7 @@ pub fn[Source : Source] generator(source : Source) -> Generator {
 }
 
 ///|
-pub let nil : Uuid = { hi: 0UL, lo: 0UL }
+pub let nil : Uuid = { hi: 0UL, lo: 0UL, }
 
 ///|
 pub let max : Uuid = {
@@ -92,7 +92,7 @@ pub fn Uuid::of_bytes(bytes : Bytes) -> Uuid {
     (bytes[13].to_uint64() << 16) |
     (bytes[14].to_uint64() << 8) |
     bytes[15].to_uint64()
-  { hi, lo }
+  { hi, lo, }
 }
 
 ///|
@@ -128,19 +128,19 @@ suberror ParseError {
 ///|
 pub fn parse(hex : StringView) -> Uuid raise ParseError {
   let mut view = hex.view()
-  fn parse_hex_octet(count : Int, value : UInt64) -> UInt64 raise ParseError {
+  fn parse_hex_octet(count : Int32, value : UInt64) -> UInt64 raise ParseError {
     let mut value = value
     for _ in 0..<(count * 2) {
       match view {
-        ['0'..='9' as c, .. rest] => {
+        ['0'..<='9' as c, .. rest] => {
           value = (value << 4) | (c.to_uint() - '0'.to_uint()).to_uint64()
           view = rest
         }
-        ['a'..='f' as c, .. rest] => {
+        ['a'..<='f' as c, .. rest] => {
           value = (value << 4) | (c.to_uint() - 'a'.to_uint() + 10).to_uint64()
           view = rest
         }
-        ['A'..='F' as c, .. rest] => {
+        ['A'..<='F' as c, .. rest] => {
           value = (value << 4) | (c.to_uint() - 'A'.to_uint() + 10).to_uint64()
           view = rest
         }
@@ -168,7 +168,7 @@ pub fn parse(hex : StringView) -> Uuid raise ParseError {
   parse_dash()
   let lo = parse_hex_octet(6, lo)
   guard view.is_empty() else { raise ExtraContent(view) }
-  { hi, lo }
+  { hi, lo, }
 }
 
 ///|
@@ -179,7 +179,7 @@ let hex_table : Bytes = b"0123456789abcdef"
 
 ///|
 pub fn Uuid::to_string(self : Uuid) -> String {
-  let builder = StringBuilder::new(size_hint=36)
+  let builder = StringBuilder(size_hint=36)
   let mut hi = self.hi
   for _ in 0..<8 {
     builder.write_char(hex_table[(hi >> 60).to_int()].to_char())
@@ -215,12 +215,12 @@ test {
 }
 
 ///|
-pub impl Show for Uuid with output(self : Uuid, logger : &Logger) -> Unit {
+pub impl Show for Uuid with fn output(self : Uuid, logger : &Logger) -> Unit {
   logger.write_string(self.to_string())
 }
 
 ///|
-pub impl @debug.Debug for Uuid with to_repr(self : Uuid) -> @debug.Repr {
+pub impl @debug.Debug for Uuid with fn to_repr(self : Uuid) -> @debug.Repr {
   @debug.Repr::string(self.to_string())
 }
 
@@ -253,7 +253,27 @@ pub(all) enum Version {
 } derive(Debug, ToJson)
 
 ///|
-fn Version::from_uint64_unchecked(value : UInt64) -> Version = "%identity"
+fn Version::from_uint64_unchecked(value : UInt64) -> Version {
+  match value {
+    0UL => V0
+    1UL => V1
+    2UL => V2
+    3UL => V3
+    4UL => V4
+    5UL => V5
+    6UL => V6
+    7UL => V7
+    8UL => V8
+    9UL => V9
+    10UL => V10
+    11UL => V11
+    12UL => V12
+    13UL => V13
+    14UL => V14
+    15UL => V15
+    _ => abort("Invalid UUID version nibble")
+  }
+}
 
 ///|
 pub fn Uuid::variant(self : Uuid) -> Variant {
@@ -275,3 +295,42 @@ pub fn Uuid::version(self : Uuid) -> Version? {
     _ => None
   }
 }
+
+///|
+pub extend Uuid with Eq::{not_equal, equal}
+
+///|
+pub extend Uuid with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend Uuid with Hash::{hash, hash_combine}
+
+///|
+pub extend Uuid with ToJson::{to_json}
+
+///|
+pub extend Uuid with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend ParseError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ParseError with ToJson::{to_json}
+
+///|
+pub extend Uuid with Show::{output}
+
+///|
+pub extend Uuid with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Variant with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Variant with ToJson::{to_json}
+
+///|
+pub extend Version with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Version with ToJson::{to_json}

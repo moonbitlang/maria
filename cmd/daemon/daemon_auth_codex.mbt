@@ -25,10 +25,10 @@ async fn Daemon::start_codex_auth(
   group.spawn_bg(() => self.spawn_codex_callback_server(), no_wait=true)
 
   // Return auth URL to client
-  let response : StartCodexAuthResponse = { auth_url, state }
+  let response : StartCodexAuthResponse = { auth_url, state, }
   w.header().set("Content-Type", "application/json")
   w.write_header(200)
-  w.write(response.to_json().stringify())
+  w.write(ToJson::to_json(response).stringify())
 }
 
 ///|
@@ -166,7 +166,7 @@ async fn serve_success_page(
     Some(e) => "Logged in as \{e}"
     None => "Login successful"
   }
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_string("<!DOCTYPE html>\n")
   buf.write_string("<html>\n")
   buf.write_string("<head><title>Login Successful</title></head>\n")
@@ -190,7 +190,7 @@ async fn serve_success_page(
 
 ///|
 async fn serve_error_page(w : @httpx.ResponseWriter, message : String) -> Unit {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   buf.write_string("<!DOCTYPE html>\n")
   buf.write_string("<html>\n")
   buf.write_string("<head><title>Login Failed</title></head>\n")

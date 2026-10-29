@@ -4,17 +4,17 @@ using @path {type Path}
 ///|
 priv struct DaemonInfo {
   version : @buildinfo.Version
-  pid : Int
-  port : Int
+  pid : Int32
+  port : Int32
 }
 
 ///|
-impl ToJson for DaemonInfo with to_json(self) {
+impl ToJson for DaemonInfo with fn to_json(self) {
   { "version": self.version.to_string(), "pid": self.pid, "port": self.port }
 }
 
 ///|
-impl @json.FromJson for DaemonInfo with from_json(
+impl @json.FromJson for DaemonInfo with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> DaemonInfo raise {
@@ -52,7 +52,7 @@ impl @json.FromJson for DaemonInfo with from_json(
         (json_path, "Missing field 'port' in DaemonInfo"),
       )
   }
-  DaemonInfo::{ version, pid, port }
+  DaemonInfo::{ version, pid, port, }
 }
 
 ///|
@@ -61,9 +61,9 @@ impl @json.FromJson for DaemonInfo with from_json(
 /// file, which can belong to the new child or an already running daemon.
 pub async fn detach(
   exec_path? : String,
-  port? : Int,
+  port? : Int32,
   serve? : StringView,
-) -> Int {
+) -> Int32 {
   let home = @os.home()
   let args = ["daemon"]
   if port is Some(port) {
@@ -91,7 +91,7 @@ pub async fn detach(
             let text = info_file.read_all().text()
             let json = @json.parse(text)
             if json is { "pid": info_pid, .. } {
-              let info_pid : Int = @json.from_json(info_pid)
+              let info_pid : Int32 = @json.from_json(info_pid)
               if info_pid == pid {
                 break pid
               } else {
@@ -181,3 +181,6 @@ pub async fn start(args : ArrayView[String]) -> Unit {
     daemon.serve()
   }
 }
+
+///|
+extend DaemonInfo with ToJson::{to_json}

@@ -13,7 +13,15 @@ pub suberror InvalidJobId {
 }
 
 // Types and methods
-pub(all) struct Id(Int) derive(Eq, Hash)
+pub(all) struct Id(Int32) derive(Eq, Hash)
+pub fn Id::equal(Self, Self) -> Bool
+pub fn Id::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Id::hash(Self) -> Int32
+pub fn Id::hash_combine(Self, Hasher) -> Unit
+pub fn Id::not_equal(Self, Self) -> Bool
+pub fn Id::output(Self, &Logger) -> Unit
+pub fn Id::to_json(Self) -> Json
+pub fn Id::to_string(Self) -> String
 pub impl Show for Id
 pub impl ToJson for Id
 pub impl @json.FromJson for Id
@@ -28,8 +36,9 @@ pub struct Job {
   stderr : String
   // private fields
 }
-pub fn Job::status(Self) -> Int?
-pub async fn Job::wait(Self) -> Int
+pub fn Job::status(Self) -> Int32?
+pub fn Job::to_json(Self) -> Json
+pub async fn Job::wait(Self) -> Int32
 pub impl ToJson for Job
 
 pub struct Manager {
@@ -41,9 +50,8 @@ pub fn Manager::list(Self) -> Array[Job]
 pub fn Manager::new(cwd~ : String) -> Self
 pub async fn Manager::spawn(Self, name~ : String, description? : String, command~ : String, cwd? : String) -> Job
 pub async fn Manager::start(Self) -> Unit
-pub async fn Manager::wait(Self, Id) -> Int
+pub async fn Manager::wait(Self, Id) -> Int32
 
 // Type aliases
 
 // Traits
-

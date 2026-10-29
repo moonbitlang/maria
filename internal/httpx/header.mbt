@@ -6,12 +6,12 @@
 struct Header(Map[String, String])
 
 ///|
-pub impl ToJson for Header with to_json(self : Header) -> Json {
-  self.0.to_json()
+pub impl ToJson for Header with fn to_json(self : Header) -> Json {
+  Json(self.0)
 }
 
 ///|
-pub impl @debug.Debug for Header with to_repr(self : Header) -> @debug.Repr {
+pub impl @debug.Debug for Header with fn to_repr(self : Header) -> @debug.Repr {
   @debug.Repr::map(
     self.0
     .to_array()
@@ -23,7 +23,7 @@ pub impl @debug.Debug for Header with to_repr(self : Header) -> @debug.Repr {
 }
 
 ///|
-pub impl Show for Header with output(self : Header, logger : &Logger) -> Unit {
+pub impl Show for Header with fn output(self : Header, logger : &Logger) -> Unit {
   logger.write_string("{")
   let mut first = true
   for key, value in self.0 {
@@ -70,3 +70,12 @@ pub fn Header::add(self : Header, key : String, value : String) -> Unit {
     None => self.0[key] = value
   }
 }
+
+///|
+pub extend Header with ToJson::{to_json}
+
+///|
+pub extend Header with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Header with Show::{to_string, output}

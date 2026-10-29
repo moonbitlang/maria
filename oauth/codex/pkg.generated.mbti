@@ -42,28 +42,34 @@ pub(all) struct Credentials {
   refreshToken : String
   accountId : String
 } derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn Credentials::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Credentials::to_json(Self) -> Json
+pub fn Credentials::to_repr(Self) -> @debug.Repr
 
 pub struct IdTokenClaims {
   email : String
   chatgptAccountId : String
   chatgptPlanType : String
 } derive(@debug.Debug)
+pub fn IdTokenClaims::to_repr(Self) -> @debug.Repr
 
 pub struct PkceCodes {
   code_verifier : String
   code_challenge : String
 } derive(@debug.Debug)
 pub fn PkceCodes::new(code_verifier~ : String, code_challenge~ : String) -> Self
+pub fn PkceCodes::to_repr(Self) -> @debug.Repr
 
 type RefreshResponse derive(@debug.Debug)
+pub fn RefreshResponse::to_repr(Self) -> @debug.Repr
 
 pub struct TokenResponse {
   id_token : String
   access_token : String
   refresh_token : String
 } derive(@debug.Debug)
+pub fn TokenResponse::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

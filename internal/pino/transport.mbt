@@ -4,7 +4,7 @@ using @path {type Path}
 ///|
 enum Transport {
   Console
-  File(path~ : String, mut file~ : @fs.File?)
+  File(path~ : String, mut file~ : @fs.File?, lock~ : @semaphore.Semaphore)
   Channel(@aqueue.Queue[Json])
   Sink
   Callback((Json) -> Unit)
@@ -38,7 +38,7 @@ priv suberror InvalidTransport {
 /// let _t2 = Transport::parse("file:/var/log/app.log")
 /// ```
 pub fn Transport::parse(transport : StringView) -> Transport raise {
-  let schema = StringBuilder::new()
+  let schema = StringBuilder()
   let path : StringView = for t = transport {
     match t {
       [] as path => break path
@@ -85,7 +85,9 @@ async fn mkdir(path : String) -> Unit {
 async fn Transport::write(self : Transport, content : Json) -> Unit {
   match self {
     Console => println(content.stringify())
-    File(path~, file~) as transport => {
+    File(path~, file~, lock~) as transport => {
+      lock.acquire()
+      defer lock.release()
       let file = match file {
         Some(file) => file
         None => {
@@ -94,7 +96,13 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
             mkdir(dir)
           }
           let file = if @fs.exists(path) {
-            @fs.open(path, mode=WriteOnly, append=true, create=0o644)
+            @fs.open(
+              path,
+              mode=WriteOnly,
+              append=true,
+              create_mode=OpenOrCreate,
+              permission=0o644,
+            )
           } else {
             @fs.create(path, permission=0o644)
           }
@@ -102,8 +110,8 @@ async fn Transport::write(self : Transport, content : Json) -> Unit {
           file
         }
       }
-      let content = content.to_json().stringify()
-      let buffer = @buffer.new()
+      let content = content.stringify()
+      let buffer = Buffer()
       buffer.write_bytes(@encoding/utf8.encode(content))
       buffer.write_byte(b'\n')
       file.write(buffer.to_bytes())
@@ -152,7 +160,7 @@ pub fn Transport::console() -> Transport {
 /// # Returns
 /// A Transport configured for file output
 pub fn Transport::file(path : StringView) -> Transport {
-  Transport::File(path=path.to_owned(), file=None)
+  Transport::File(path=path.to_owned(), file=None, lock=@semaphore.Semaphore(1))
 }
 
 ///|

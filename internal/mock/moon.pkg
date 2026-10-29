@@ -5,7 +5,6 @@ import {
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async",
   "moonbitlang/maria/internal/os",
-  "moonbitlang/async/io",
   "moonbitlang/async/semaphore",
   "moonbitlang/maria/internal/pino",
   "moonbitlang/maria/clock",
@@ -15,7 +14,6 @@ import {
   "moonbitlang/async/os_error",
   "moonbitlang/async/stdio",
   "moonbitlang/core/debug",
-  "moonbitlang/core/json",
   "moonbitlang/core/random",
   "moonbitlang/core/test",
 }

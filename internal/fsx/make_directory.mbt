@@ -7,8 +7,8 @@
 ///   an error.
 pub async fn make_directory(
   path : StringView,
-  recursive? : Bool = false,
-  exists_ok? : Bool = false,
+  recursive~ : Bool = false,
+  exists_ok~ : Bool = false,
 ) -> Unit {
   let dirs = []
   for dir = path {

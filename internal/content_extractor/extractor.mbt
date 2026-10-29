@@ -3,10 +3,10 @@
 /// spans of a file given the ongoing conversation history.
 struct Extractor {
   model : @model.Model
-  window_size : Int
-  overlap : Int
+  window_size : Int32
+  overlap : Int32
   token_counter : @token_counter.Counter
-  safe_zone_tokens : Int
+  safe_zone_tokens : Int32
 }
 
 ///|
@@ -15,9 +15,9 @@ struct Extractor {
 /// chunked before calling into the model.
 pub fn Extractor::new(
   model~ : @model.Model,
-  safe_zone_tokens~ : Int,
-  window_size? : Int = 100,
-  overlap? : Int = 20,
+  safe_zone_tokens~ : Int32,
+  window_size~ : Int32 = 100,
+  overlap~ : Int32 = 20,
   logger~ : @pino.Logger,
 ) -> Extractor raise {
   Extractor::{
@@ -34,11 +34,11 @@ pub fn Extractor::new(
 /// context when the file exceeds the safe token budget.
 fn split_content_with_sliding_window(
   content : String,
-  window_size~ : Int,
-  overlap~ : Int,
+  window_size~ : Int32,
+  overlap~ : Int32,
 ) -> Array[String] {
   let lines = content.split("\n").collect()
-  let chunks = Array::new()
+  let chunks = Array()
   for i = 0; i < lines.length(); i = i + 1 {
     let start = i
     let end = i + window_size
@@ -101,7 +101,7 @@ async fn Extractor::extract_code_snippets_from_chunk(
   self : Extractor,
   content : String,
   history~ : Array[@openai.ChatCompletionMessageParam],
-  partial? : Bool = false,
+  partial~ : Bool = false,
 ) -> Json {
   let prompts = [ExtractorRolePrompt]
   if partial {
@@ -115,7 +115,7 @@ async fn Extractor::extract_code_snippets_from_chunk(
   prompts.push("2. Conversation history:")
   prompts.push("<conversation_history>")
   fn content(parts : Array[@openai.ChatCompletionContentPartParam]) -> String {
-    let builder = StringBuilder::new()
+    let builder = StringBuilder()
     for part in parts {
       match part {
         Text(text) => builder.write_string(text.text)
@@ -142,14 +142,14 @@ async fn Extractor::extract_code_snippets_from_chunk(
 ///|
 /// Internal representation of a snippet range emitted by the model.
 priv struct Range {
-  start_line : Int
-  end_line : Int
+  start_line : Int32
+  end_line : Int32
 }
 
 ///|
 /// Decode `{ "start_line": .., "end_line": .. }` objects produced by the
 /// model, surfacing useful path info in error messages when parsing fails.
-impl @json.FromJson for Range with from_json(
+impl @json.FromJson for Range with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Range raise {
@@ -158,15 +158,15 @@ impl @json.FromJson for Range with from_json(
       (json_path, "Expected object with start_line and end_line"),
     )
   }
-  let start_line : Int = @json.from_json(
+  let start_line : Int32 = @json.from_json(
     start_line,
     path=json_path.add_key("start_line"),
   )
-  let end_line : Int = @json.from_json(
+  let end_line : Int32 = @json.from_json(
     end_line,
     path=json_path.add_key("end_line"),
   )
-  Range::{ start_line, end_line }
+  Range::{ start_line, end_line, }
 }
 
 ///|
@@ -176,7 +176,7 @@ fn merge_overlapping_snippets(snippets : Array[Range]) -> Array[Range] {
     return snippets
   }
   snippets.sort_by((a, b) => a.start_line - b.start_line)
-  let merged = Array::new()
+  let merged = Array()
   let mut current = snippets[0]
   for i in 1..<snippets.length() {
     let snippet = snippets[i]
@@ -198,7 +198,7 @@ fn merge_overlapping_snippets(snippets : Array[Range]) -> Array[Range] {
 /// Renders the chosen line ranges back into a human-readable snippet block.
 fn build_snippet_content(content : String, snippets : Array[Range]) -> String {
   let lines = content.split("\n").collect()
-  let builder = StringBuilder::new()
+  let builder = StringBuilder()
   builder.write_string("Snippets:\n")
   for snippet in snippets {
     let start = @cmp.maximum(0, snippet.start_line - 1)

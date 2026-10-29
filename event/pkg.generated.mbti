@@ -20,11 +20,16 @@ pub struct Event {
   created : @clock.Timestamp
   desc : EventDesc
 } derive(Eq, @debug.Debug)
+pub fn Event::equal(Self, Self) -> Bool
+pub fn Event::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Event::is_cancellation(Self) -> Bool
 pub fn Event::is_incoming(Self) -> Bool
 pub fn Event::is_starting(Self) -> Bool
 pub fn Event::is_stopping(Self) -> Bool
 pub fn Event::new(id~ : @uuid.Uuid, created? : @clock.Timestamp, EventDesc) -> Self
+pub fn Event::not_equal(Self, Self) -> Bool
+pub fn Event::to_json(Self) -> Json
+pub fn Event::to_repr(Self) -> @debug.Repr
 pub impl ToJson for Event
 pub impl @json.FromJson for Event
 
@@ -38,14 +43,19 @@ pub(all) enum EventDesc {
   ToolAdded(@tool.ToolDesc)
   PreToolCall(@ai.ToolCall)
   PostToolCall(@ai.ToolCall, result~ : Result[Json, Json], rendered~ : String)
-  TokenCounted(Int)
-  ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
+  TokenCounted(Int32)
+  ContextPruned(origin_token_count~ : Int32, pruned_token_count~ : Int32)
   AssistantMessage(usage~ : @ai.Usage?, tool_calls~ : Array[@ai.ToolCall], String)
   UserMessage(String)
   Cancelled
   Failed(Json)
   Pruned(id~ : @uuid.Uuid)
 } derive(Eq, @debug.Debug)
+pub fn EventDesc::equal(Self, Self) -> Bool
+pub fn EventDesc::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn EventDesc::not_equal(Self, Self) -> Bool
+pub fn EventDesc::to_json(Self) -> Json
+pub fn EventDesc::to_repr(Self) -> @debug.Repr
 pub impl ToJson for EventDesc
 pub impl @json.FromJson for EventDesc
 
@@ -64,4 +74,3 @@ pub fn ExternalEventQueue::send(Self, EventDesc) -> Unit
 // Type aliases
 
 // Traits
-

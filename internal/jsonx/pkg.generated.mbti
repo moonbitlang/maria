@@ -26,4 +26,3 @@ pub fn Object::required_int64(Self, String, path~ : @json.JsonPath) -> Int64 rai
 // Type aliases
 
 // Traits
-

@@ -11,24 +11,24 @@ pub fn CreateMessageRequest::new(
   message~ : @ai.Message,
   web_search? : Bool,
 ) -> CreateMessageRequest {
-  CreateMessageRequest::{ message, web_search }
+  CreateMessageRequest::{ message, web_search, }
 }
 
 ///|
-pub impl ToJson for CreateMessageRequest with to_json(
+pub impl ToJson for CreateMessageRequest with fn to_json(
   self : CreateMessageRequest,
 ) -> Json {
   let object : Map[String, Json] = {
     "message": self.message.to_openai().to_json(),
   }
   if self.web_search is Some(ws) {
-    object["web_search"] = ws.to_json()
+    object["web_search"] = ToJson::to_json(ws)
   }
   Json::object(object)
 }
 
 ///|
-impl @json.FromJson for CreateMessageRequest with from_json(
+impl @json.FromJson for CreateMessageRequest with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateMessageRequest raise @json.JsonDecodeError {
@@ -42,7 +42,7 @@ impl @json.FromJson for CreateMessageRequest with from_json(
     { "web_search": ws, .. } => Some(@json.from_json(ws))
     _ => None
   }
-  { message: @ai.Message::from_openai(message), web_search }
+  { message: @ai.Message::from_openai(message), web_search, }
 }
 
 ///|
@@ -67,18 +67,18 @@ pub fn CreateMessageResponse::new(
   id~ : @uuid.Uuid,
   queued~ : Bool,
 ) -> CreateMessageResponse {
-  CreateMessageResponse::{ id, queued }
+  CreateMessageResponse::{ id, queued, }
 }
 
 ///|
-pub impl ToJson for CreateMessageResponse with to_json(
+pub impl ToJson for CreateMessageResponse with fn to_json(
   self : CreateMessageResponse,
 ) -> Json {
   { "id": self.id, "queued": self.queued }
 }
 
 ///|
-pub impl @json.FromJson for CreateMessageResponse with from_json(
+pub impl @json.FromJson for CreateMessageResponse with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateMessageResponse raise @json.JsonDecodeError {
@@ -89,7 +89,7 @@ pub impl @json.FromJson for CreateMessageResponse with from_json(
   }
   let id : @uuid.Uuid = @json.from_json(id)
   let queued : Bool = @json.from_json(queued)
-  CreateMessageResponse::{ id, queued }
+  CreateMessageResponse::{ id, queued, }
 }
 
 ///|
@@ -104,10 +104,21 @@ async fn Server::create_message(
   let r = @httpx.JsonRequestReader::new(r)
   let request : CreateMessageRequest = r.read()
   let (id, queued) = {
-    let idq = @aqueue.new(kind=Unbounded)
+    let idq = @aqueue.Queue(kind=Unbounded)
     self.message_queue.put((request, idq))
     idq.get()
   }
-  let response : CreateMessageResponse = CreateMessageResponse::{ id, queued }
+  let response : CreateMessageResponse = CreateMessageResponse::{ id, queued, }
   w.send_json(code=200, response.to_json())
+}
+
+///|
+pub extend CreateMessageRequest with ToJson::{to_json}
+
+///|
+pub extend CreateMessageResponse with ToJson::{to_json}
+
+///|
+pub extend CreateMessageResponse with @moonbitlang/core/json.FromJson::{
+  from_json,
 }

@@ -23,7 +23,7 @@ pub fn EventStreamWriter::new(w : ResponseWriter) -> EventStreamWriter {
 /// Writes the HTTP status line and headers for the event stream response.
 pub async fn EventStreamWriter::write_header(
   self : EventStreamWriter,
-  status : Int,
+  status : Int32,
 ) -> Unit {
   self.w.write_header(status)
 }
@@ -42,7 +42,7 @@ pub async fn EventStreamWriter::write_event(
   id? : String,
   event? : String,
   data? : &@io.Data,
-  flush? : Bool = true,
+  flush~ : Bool = true,
 ) -> Unit {
   if event is Some(event) {
     self.w.write("event: \{event}\n")
@@ -75,7 +75,7 @@ pub async fn EventStreamWriter::write_event(
 pub async fn[T : ToEvent] EventStreamWriter::write(
   self : EventStreamWriter,
   event : T,
-  flush? : Bool = true,
+  flush~ : Bool = true,
 ) -> Unit {
   let sse_event = event.to_event()
   self.write_event(event?=sse_event.event, data=sse_event.data, flush~)
@@ -98,7 +98,7 @@ struct EventStreamReader {
 ///
 /// * `r` : The underlying reader to parse SSE events from.
 pub fn EventStreamReader::new(r : &@io.Reader) -> EventStreamReader {
-  EventStreamReader::{ last_event: None, r }
+  EventStreamReader::{ last_event: None, r, }
 }
 
 ///|
@@ -123,11 +123,11 @@ pub struct Event {
 ///
 /// Returns a new `Event` instance with the provided event type and data.
 pub fn Event::new(event? : String, data~ : String) -> Event {
-  Event::{ event, data }
+  Event::{ event, data, }
 }
 
 ///|
-pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
+pub impl Show for Event with fn output(self : Event, w : &Logger) -> Unit {
   if self.event is Some(event) {
     w.write_string("event: \{event}\n")
   }
@@ -140,7 +140,7 @@ pub impl Show for Event with output(self : Event, w : &Logger) -> Unit {
 /// Implementors can define custom parsing logic to convert SSE events
 /// into domain-specific types.
 pub(open) trait FromEvent {
-  from_event(Event) -> Self raise
+  fn from_event(Event) -> Self raise
 }
 
 ///|
@@ -156,7 +156,7 @@ pub(open) trait FromEvent {
 /// * `to_event(self: Self) -> Event`: Converts the instance to an SSE `Event`
 ///   with appropriate event type and data payload.
 pub(open) trait ToEvent {
-  to_event(self : Self) -> Event
+  fn to_event(self : Self) -> Event
 }
 
 ///|
@@ -177,7 +177,7 @@ pub async fn EventStreamReader::read_event(self : EventStreamReader) -> Event? {
       [.. "data: ", .. data] => {
         let event = self.last_event
         self.last_event = None
-        return Some(Event::{ event, data: data.to_owned() })
+        return Some(Event::{ event, data: data.to_owned(), })
       }
       _ => continue
     }
@@ -197,3 +197,9 @@ pub async fn[T : FromEvent] EventStreamReader::read(
   let event = self.read_event()
   event.map(T::from_event)
 }
+
+///|
+pub extend Event with ToJson::{to_json}
+
+///|
+pub extend Event with Show::{to_string, output}

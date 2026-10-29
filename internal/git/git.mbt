@@ -3,7 +3,7 @@ pub async fn clone(
   url : String,
   to~ : StringView,
   cwd? : StringView,
-  depth? : Int,
+  depth? : Int32,
 ) -> Unit {
   let arguments : Array[StringView] = ["clone"]
   if depth is Some(d) {
@@ -35,7 +35,7 @@ pub async fn commit(
 pub async fn generate_git_diff(
   original~ : String,
   modified~ : String,
-  line_number? : Bool = false,
+  line_number~ : Bool = false,
 ) -> String {
   @fsx.with_temporary_directory("maria-git-diff-XXXXXXX", tmpdir => {
     let original_path = Path::join(tmpdir, "original").to_string()

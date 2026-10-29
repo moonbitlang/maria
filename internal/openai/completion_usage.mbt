@@ -1,24 +1,24 @@
 ///|
 /// Aggregated usage information for a completion response.
 pub struct CompletionUsage {
-  completion_tokens : Int
+  completion_tokens : Int32
   completion_tokens_details : CompletionTokensDetails?
   cost : Double?
   cost_details : CostDetails?
-  prompt_tokens : Int
+  prompt_tokens : Int32
   prompt_tokens_details : PromptTokensDetails?
-  total_tokens : Int
+  total_tokens : Int32
 } derive(Debug, ToJson)
 
 ///|
 pub fn CompletionUsage::new(
-  completion_tokens~ : Int,
+  completion_tokens~ : Int32,
   completion_tokens_details? : CompletionTokensDetails,
   cost? : Double,
   cost_details? : CostDetails,
-  prompt_tokens~ : Int,
+  prompt_tokens~ : Int32,
   prompt_tokens_details? : PromptTokensDetails,
-  total_tokens~ : Int,
+  total_tokens~ : Int32,
 ) -> CompletionUsage {
   {
     completion_tokens,
@@ -32,7 +32,7 @@ pub fn CompletionUsage::new(
 }
 
 ///|
-pub impl @json.FromJson for CompletionUsage with from_json(
+pub impl @json.FromJson for CompletionUsage with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CompletionUsage {
@@ -100,3 +100,12 @@ pub impl @json.FromJson for CompletionUsage with from_json(
     total_tokens: total_tokens.to_int(),
   }
 }
+
+///|
+pub extend CompletionUsage with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CompletionUsage with ToJson::{to_json}
+
+///|
+pub extend CompletionUsage with @moonbitlang/core/json.FromJson::{from_json}

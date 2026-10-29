@@ -13,7 +13,7 @@ fn ChatCompletionMessageToolCallBuilder::new(
   ChatCompletionMessageToolCallBuilder::{
     id,
     name,
-    arguments: StringBuilder::new(),
+    arguments: StringBuilder(),
   }
 }
 
@@ -43,7 +43,11 @@ priv struct ChatCompletionMessageBuilder {
 
 ///|
 fn ChatCompletionMessageBuilder::new() -> ChatCompletionMessageBuilder {
-  ChatCompletionMessageBuilder::{ content: None, refusal: None, tool_calls: [] }
+  ChatCompletionMessageBuilder::{
+    content: None,
+    refusal: None,
+    tool_calls: [],
+  }
 }
 
 ///|
@@ -55,7 +59,7 @@ fn ChatCompletionMessageBuilder::add_delta(
     if self.content is Some(builder) {
       builder.write_string(content)
     } else {
-      let builder = StringBuilder::new()
+      let builder = StringBuilder()
       builder.write_string(content)
       self.content = Some(builder)
     }
@@ -64,7 +68,7 @@ fn ChatCompletionMessageBuilder::add_delta(
     if self.refusal is Some(builder) {
       builder.write_string(refusal)
     } else {
-      let builder = StringBuilder::new()
+      let builder = StringBuilder()
       builder.write_string(refusal)
       self.refusal = Some(builder)
     }
@@ -109,12 +113,14 @@ fn ChatCompletionMessageBuilder::to_message(
 ///|
 priv struct ChatCompletionChoiceBuilder {
   mut finish_reason : ChatCompletionChoiceFinishReason?
-  index : Int
+  index : Int32
   message : ChatCompletionMessageBuilder
 }
 
 ///|
-fn ChatCompletionChoiceBuilder::new(index : Int) -> ChatCompletionChoiceBuilder {
+fn ChatCompletionChoiceBuilder::new(
+  index : Int32,
+) -> ChatCompletionChoiceBuilder {
   ChatCompletionChoiceBuilder::{
     finish_reason: None,
     index,
@@ -148,7 +154,7 @@ fn ChatCompletionChoiceBuilder::to_choice(
 priv struct ChatCompletionBuilder {
   mut id : String?
   choices : Array[ChatCompletionChoiceBuilder?]
-  mut created : Int?
+  mut created : Int32?
   mut model : String?
   mut usage : CompletionUsage?
   mut system_fingerprint : String?

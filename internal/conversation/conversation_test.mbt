@@ -57,7 +57,7 @@ async test "Conversation::FromJson" (t : @test.Test) {
     event_target.emit(UserMessage("Hello"))
     event_target.flush()
     json_inspect(
-      events.to_json().transform(@json.Replacer::exclude(["created"])),
+      ToJson::to_json(events).transform(@json.Replacer::exclude(["created"])),
       content=[
         {
           "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",
@@ -128,7 +128,7 @@ async test "Conversation::display" (t : @test.Test) {
     )
     event_target.flush()
     json_inspect(
-      events.to_json().transform(@json.Replacer::exclude(["created"])),
+      ToJson::to_json(events).transform(@json.Replacer::exclude(["created"])),
       content=[
         {
           "id": "ac8a366d-ce7e-47d9-8bc7-27c69e416f1a",

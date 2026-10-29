@@ -12,8 +12,8 @@ fn tokenize_markdown_with_yaml_front_matter(
   content : StringView,
 ) -> (StringView, StringView) {
   let lines = content.split("\n").collect()
-  let mut open_index : Int? = None
-  let mut close_index : Int? = None
+  let mut open_index : Int32? = None
+  let mut close_index : Int32? = None
   for i = 0; i < lines.length(); i = i + 1 {
     let line = lines[i].trim()
     if line == "---" {
@@ -43,13 +43,13 @@ fn tokenize_markdown_with_yaml_front_matter(
 pub fn parse(content : String) -> Document raise @yaml.YamlError {
   let (front_matter, text) = tokenize_markdown_with_yaml_front_matter(content)
   if front_matter.is_empty() {
-    Document::{ meta: {}, text: text.to_owned() }
+    Document::{ meta: {}, text: text.to_owned(), }
   } else {
     let yaml_value = Yaml::load_from_string(front_matter.to_owned())[0]
     guard yaml_value.to_json() is Object(meta) else {
       abort("assume yaml value must be Map")
     }
     let text = text.to_owned()
-    Document::{ meta, text }
+    Document::{ meta, text, }
   }
 }

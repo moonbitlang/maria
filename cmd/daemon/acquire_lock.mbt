@@ -3,16 +3,19 @@
 /// the opened lock file. On failure returns the `DaemonInfo` of the currently
 /// running daemon that holds the lock.
 async fn acquire_lock(path : String) -> Result[@fs.File, DaemonInfo] {
-  let file = @fs.open(path, mode=WriteOnly, create=0o644)
+  let file = @fs.open(
+    path,
+    mode=WriteOnly,
+    create_mode=OpenOrCreate,
+    permission=0o644,
+  )
   @fsx.lock_file(file) catch {
     @errno.Errno(errno) if errno == @errno.eacces || errno == @errno.eagain => {
       file.close()
       let file = @fs.open(path, mode=ReadOnly)
-      let pid = @fsx.get_lock_owner(file) catch {
-        error => {
-          file.close()
-          raise error
-        }
+      let pid = {
+        errdefer file.close()
+        @fsx.get_lock_owner(file)
       }
       guard pid is Some(_) else {
         file.close()

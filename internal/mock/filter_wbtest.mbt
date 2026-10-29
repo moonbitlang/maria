@@ -46,7 +46,7 @@ test "Filter::honors insertion order" {
 async test "Context::json uses filter" (t : @test.Test) {
   run(t, ctx => {
     let cwd = ctx.cwd.path()
-    let payload : Map[String, Json] = {}
+    let payload : Map[String, Json] = Map([])
     payload[cwd] = Json::string(cwd)
     payload["items"] = Json::array([
       Json::string(cwd),

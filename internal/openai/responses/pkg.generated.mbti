@@ -18,7 +18,10 @@ pub struct ContentPart {
   type_ : ContentType
   text : String
 } derive(@debug.Debug)
+pub fn ContentPart::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> Self
+pub fn ContentPart::to_json(Self) -> Json
+pub fn ContentPart::to_repr(Self) -> @debug.Repr
 pub impl ToJson for ContentPart
 pub impl @json.FromJson for ContentPart
 
@@ -27,6 +30,9 @@ pub(all) enum ContentType {
   OutputText
   Text
 } derive(@debug.Debug)
+pub fn ContentType::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ContentType::to_json(Self) -> Json
+pub fn ContentType::to_repr(Self) -> @debug.Repr
 pub impl ToJson for ContentType
 pub impl @json.FromJson for ContentType
 
@@ -35,12 +41,16 @@ pub(all) enum ResponseInputItem {
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
   FunctionCallOutput(call_id~ : String, output~ : String)
 } derive(@debug.Debug)
+pub fn ResponseInputItem::to_json(Self) -> Json
+pub fn ResponseInputItem::to_repr(Self) -> @debug.Repr
 pub impl ToJson for ResponseInputItem
 
 pub(all) enum ResponseItem {
   Message(role~ : String, content~ : Array[ContentPart])
   FunctionCall(call_id~ : String, name~ : String, arguments~ : String)
 } derive(@debug.Debug)
+pub fn ResponseItem::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ResponseItem::to_repr(Self) -> @debug.Repr
 pub impl @json.FromJson for ResponseItem
 
 pub struct ResponsesRequest {
@@ -53,9 +63,10 @@ pub struct ResponsesRequest {
   store : Bool?
 } derive(@debug.Debug)
 pub fn ResponsesRequest::new(model~ : String, input~ : Array[ResponseInputItem], instructions~ : String, tools? : Array[Json], tool_choice? : String, stream? : Bool, store? : Bool) -> Self
+pub fn ResponsesRequest::to_json(Self) -> Json
+pub fn ResponsesRequest::to_repr(Self) -> @debug.Repr
 pub impl ToJson for ResponsesRequest
 
 // Type aliases
 
 // Traits
-

@@ -1,28 +1,28 @@
 ///|
-pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
+pub impl ToJson for Conversation with fn to_json(self : Conversation) -> Json {
   let object : Map[String, Json] = { "name": self.name, "id": self.id }
-  object["events"] = self.events.to_json()
+  object["events"] = ToJson::to_json(self.events)
   object["created_at"] = self.created_at.to_json()
   object["updated_at"] = self.updated_at.to_json()
   if self.description is Some(description) {
-    object["description"] = description.to_json()
+    object["description"] = ToJson::to_json(description)
   }
-  object["cwd"] = self.cwd.to_json()
-  object["web_search"] = self.web_search.to_json()
-  object.to_json()
+  object["cwd"] = ToJson::to_json(self.cwd)
+  object["web_search"] = ToJson::to_json(self.web_search)
+  ToJson::to_json(object)
 }
 
 ///|
 /// Create UUID from timestamp
 fn uuid_from_timestamp(ts : @clock.Timestamp) -> @uuid.Uuid {
-  let buf = @buffer.new()
+  let buf = Buffer()
   buf.write_bytes(Bytes::make(8, 0))
   buf.write_int64_le(ts.ms())
   @uuid.of_bytes(buf.to_bytes())
 }
 
 ///|
-pub impl @json.FromJson for Conversation with from_json(
+pub impl @json.FromJson for Conversation with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Conversation raise @json.JsonDecodeError {
@@ -118,7 +118,7 @@ pub impl @json.FromJson for Conversation with from_json(
                   id~,
                   @event.EventDesc::PostToolCall(
                     tc,
-                    result=Ok(content.to_json()),
+                    result=Ok(ToJson::to_json(content)),
                     rendered=content,
                   ),
                 )
@@ -181,7 +181,7 @@ pub impl @json.FromJson for Conversation with from_json(
 ///|
 pub fn Conversation::display(
   self : Conversation,
-  show_messages? : Bool = false,
+  show_messages~ : Bool = false,
 ) -> Array[String] {
   let lines = []
   lines.push("Name: \{self.name}")
@@ -225,3 +225,9 @@ pub fn Conversation::display(
   lines.push("Updated: \{show_time(self.updated_at)}")
   lines
 }
+
+///|
+pub extend Conversation with ToJson::{to_json}
+
+///|
+pub extend Conversation with @moonbitlang/core/json.FromJson::{from_json}

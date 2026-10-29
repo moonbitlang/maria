@@ -5,11 +5,14 @@ import {
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/async/os_error",
   "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
   "moonbitlang/async/fs",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

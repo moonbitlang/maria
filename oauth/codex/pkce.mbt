@@ -9,7 +9,7 @@ pub fn PkceCodes::new(
   code_verifier~ : String,
   code_challenge~ : String,
 ) -> PkceCodes {
-  { code_verifier, code_challenge }
+  { code_verifier, code_challenge, }
 }
 
 ///|
@@ -19,7 +19,7 @@ fn gen_byte(randomer : @random.Rand) -> Byte {
 }
 
 ///|
-fn generate_random_bytes(length : Int) -> Bytes {
+fn generate_random_bytes(length : Int32) -> Bytes {
   let randomer = @rand.chacha8() catch {
     _ => abort("Failed to create random generator")
   }
@@ -32,7 +32,7 @@ fn generate_random_bytes(length : Int) -> Bytes {
 
 ///|
 fn strip_padding(s : String) -> String {
-  let buf = StringBuilder::new()
+  let buf = StringBuilder()
   for c in s {
     if c != '=' {
       buf.write_char(c)
@@ -51,7 +51,7 @@ pub fn generate_pkce() -> PkceCodes {
       url_safe=true,
     ),
   )
-  { code_verifier, code_challenge }
+  { code_verifier, code_challenge, }
 }
 
 ///|
@@ -61,3 +61,6 @@ test "generate_pkce produces valid codes" {
   assert_true(pkce.code_challenge.length() > 40)
   assert_true(pkce.code_verifier != pkce.code_challenge)
 }
+
+///|
+pub extend PkceCodes with @moonbitlang/core/debug.Debug::{to_repr}

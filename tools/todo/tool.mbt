@@ -5,12 +5,12 @@ enum TodoResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for TodoResult with to_message(self) {
+impl @tool.ToolOutput for TodoResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
+pub impl Show for TodoResult with fn output(self : TodoResult, logger : &Logger) -> Unit {
   match self {
     Read(result) => result.output(logger)
     Write(result) => result.output(logger)
@@ -24,7 +24,7 @@ priv struct TodoReadResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl Show for TodoReadResult with output(
+impl Show for TodoReadResult with fn output(
   self : TodoReadResult,
   logger : &Logger,
 ) -> Unit {
@@ -83,7 +83,7 @@ priv struct TodoWriteResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl Show for TodoWriteResult with output(
+impl Show for TodoWriteResult with fn output(
   self : TodoWriteResult,
   logger : &Logger,
 ) -> Unit {
@@ -223,7 +223,7 @@ pub fn parse_todo_args(args : Json) -> TodoArgs raise TodoArgsError {
     { "notes": String(n), .. } => Some(n)
     _ => None
   }
-  { action, content, task_id, priority, status, notes }
+  { action, content, task_id, priority, status, notes, }
 }
 
 ///|
@@ -239,9 +239,9 @@ async fn Todo::execute_todo(
   }
   // Handle read action
   if todo_args.action is Read {
-    return @tool.success(TodoResult::Read({ todos: self.todos() }))
+    return @tool.success(TodoResult::Read({ todos: self.todos(), }))
   }
-  let { action, content, task_id, priority, status, notes } = todo_args
+  let { action, content, task_id, priority, status, notes, } = todo_args
   match action {
     Read => abort("unreachable") // Already handled above
     Create =>
@@ -345,3 +345,27 @@ async fn Todo::execute_todo(
     }
   }
 }
+
+///|
+pub extend TodoResult with ToJson::{to_json}
+
+///|
+pub extend TodoResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend TodoResult with Show::{to_string, output}
+
+///|
+pub extend TodoArgs with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend TodoArgs with ToJson::{to_json}
+
+///|
+pub extend TodoArgsError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+extend TodoReadResult with Show::{output}
+
+///|
+extend TodoWriteResult with Show::{output}

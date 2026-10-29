@@ -45,7 +45,7 @@ async fn configure_server(
   mock : @mock.Context,
   register? : @server.RegisterInfo,
   serve? : StringView,
-  model? : String = "mock:claude-haiku-4.5",
+  model~ : String = "mock:claude-haiku-4.5",
 ) -> @server.Server {
   let cwd = @os.cwd()
   let serve = match serve {
@@ -68,12 +68,12 @@ async fn configure_server(
 async test "register" (t : @test.Test) {
   @mock.run(t, mock => {
     let addr = @socket.Addr::parse("0.0.0.0:0")
-    let daemon = @socket.TcpServer::new(addr, dual_stack=true, reuse_addr=true)
+    let daemon = @socket.TcpServer(addr, dual_stack=true, reuse_addr=true)
     defer daemon.close()
     let server_task = mock.group.spawn(() => {
       configure_server(mock, register=@server.RegisterInfo::{
         host: "localhost",
-        port: daemon.addr().port(),
+        port: daemon.addr.port(),
         id: "test-server",
       })
     })
@@ -82,7 +82,7 @@ async test "register" (t : @test.Test) {
     let r = conn.read_request()
     guard r.path is "/v1/task/register" else { return }
     let rb = conn.read_all()
-    let res : @server.RegisterResponse = @server.RegisterResponse::{  }
+    let res : @server.RegisterResponse = @server.RegisterResponse::{ }
     conn.send_response(200, "OK", extra_headers={
       "Content-Type": "application/json",
     })
@@ -263,7 +263,7 @@ async test "CORS" (t : @test.Test) {
   @mock.run(t, mock => {
     let server = configure_server(mock)
     mock.group.spawn_bg(() => server.start(), no_wait=true)
-    let c = @http.Client::new("http://localhost:\{server.port()}")
+    let c = @http.Client("http://localhost:\{server.port()}")
     defer c.close()
     c.request(Options, "/v1/message")
     let r = c.end_request()

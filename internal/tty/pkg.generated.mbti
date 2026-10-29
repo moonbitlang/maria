@@ -3,9 +3,9 @@ package "moonbitlang/maria/internal/tty"
 
 // Values
 #callsite(autofill(loc))
-pub fn isatty(Int, loc~ : SourceLoc) -> Bool raise
+pub fn isatty(Int32, loc~ : SourceLoc) -> Bool raise
 
-pub fn set_raw_mode(Int) -> Unit raise
+pub fn set_raw_mode(Int32) -> Unit raise
 
 pub fn window_size() -> Size raise
 
@@ -13,11 +13,11 @@ pub fn window_size() -> Size raise
 
 // Types and methods
 pub struct Size {
-  row : Int
-  col : Int
+  row : Int32
+  col : Int32
 } derive(ToJson)
+pub fn Size::to_json(Self) -> Json
 
 // Type aliases
 
 // Traits
-

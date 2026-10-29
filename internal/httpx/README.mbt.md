@@ -130,13 +130,14 @@ async test "CORS Middleware" {
     guard r.code is @status.Ok else {
       fail("Unexpected response code: \{r.code}")
     }
-    guard r.headers
-      is {
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        ..
-      } else {
+    guard r.headers.get(
+        @http.CaseInsensitiveString("access-control-allow-origin"),
+      ) ==
+      Some("*") &&
+      r.headers.get(@http.CaseInsensitiveString("access-control-allow-methods")) ==
+      Some("*") &&
+      r.headers.get(@http.CaseInsensitiveString("access-control-allow-headers")) ==
+      Some("*") else {
       fail("CORS headers missing or incorrect")
     }
     guard b.text() is "Hello, world! from Router Handler\n" else {

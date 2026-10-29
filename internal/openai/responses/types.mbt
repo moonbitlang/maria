@@ -24,7 +24,7 @@ pub(all) enum ContentType {
 } derive(Debug)
 
 ///|
-pub impl ToJson for ContentType with to_json(self : ContentType) -> Json {
+pub impl ToJson for ContentType with fn to_json(self : ContentType) -> Json {
   match self {
     InputText => "input_text"
     OutputText => "output_text"
@@ -33,7 +33,7 @@ pub impl ToJson for ContentType with to_json(self : ContentType) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for ContentType with from_json(
+pub impl @json.FromJson for ContentType with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> ContentType raise @json.JsonDecodeError {
@@ -57,16 +57,16 @@ pub struct ContentPart {
 
 ///|
 pub fn ContentPart::new(type_~ : ContentType, text~ : String) -> ContentPart {
-  { type_, text }
+  { type_, text, }
 }
 
 ///|
-pub impl ToJson for ContentPart with to_json(self : ContentPart) -> Json {
+pub impl ToJson for ContentPart with fn to_json(self : ContentPart) -> Json {
   { "type": self.type_, "text": self.text }
 }
 
 ///|
-pub impl @json.FromJson for ContentPart with from_json(
+pub impl @json.FromJson for ContentPart with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> ContentPart raise @json.JsonDecodeError {
@@ -83,7 +83,7 @@ pub impl @json.FromJson for ContentPart with from_json(
       raise @json.JsonDecodeError((path, "ContentPart: 'text' must be string"))
     None => raise @json.JsonDecodeError((path, "ContentPart: missing 'text'"))
   }
-  { type_, text }
+  { type_, text, }
 }
 
 ///|
@@ -91,28 +91,28 @@ pub fn ResponsesRequest::new(
   model~ : String,
   input~ : Array[ResponseInputItem],
   instructions~ : String,
-  tools? : Array[Json] = [],
-  tool_choice? : String = "auto",
+  tools~ : Array[Json] = [],
+  tool_choice~ : String = "auto",
   stream? : Bool,
   store? : Bool,
 ) -> ResponsesRequest {
-  { model, input, instructions, tools, tool_choice, stream, store }
+  { model, input, instructions, tools, tool_choice, stream, store, }
 }
 
 ///|
-pub impl ToJson for ResponsesRequest with to_json(self : ResponsesRequest) -> Json {
+pub impl ToJson for ResponsesRequest with fn to_json(self : ResponsesRequest) -> Json {
   let obj = {
-    "model": self.model.to_json(),
-    "input": self.input.to_json(),
-    "instructions": self.instructions.to_json(),
-    "tools": self.tools.to_json(),
-    "tool_choice": self.tool_choice.to_json(),
+    "model": Json(self.model),
+    "input": Json(self.input),
+    "instructions": Json(self.instructions),
+    "tools": Json(self.tools),
+    "tool_choice": Json(self.tool_choice),
   }
   if self.stream is Some(v) {
-    obj["stream"] = v.to_json()
+    obj["stream"] = Json(v)
   }
   if self.store is Some(v) {
-    obj["store"] = v.to_json()
+    obj["store"] = Json(v)
   }
   Json::object(obj)
 }
@@ -125,10 +125,10 @@ pub(all) enum ResponseInputItem {
 } derive(Debug)
 
 ///|
-pub impl ToJson for ResponseInputItem with to_json(self : ResponseInputItem) -> Json {
+pub impl ToJson for ResponseInputItem with fn to_json(self : ResponseInputItem) -> Json {
   match self {
     Message(role~, content~) =>
-      { "type": "message", "role": role, "content": content.to_json() }
+      { "type": "message", "role": role, "content": Json(content) }
     FunctionCall(call_id~, name~, arguments~) =>
       {
         "type": "function_call",
@@ -148,7 +148,7 @@ pub(all) enum ResponseItem {
 } derive(Debug)
 
 ///|
-pub impl @json.FromJson for ResponseItem with from_json(
+pub impl @json.FromJson for ResponseItem with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> ResponseItem raise @json.JsonDecodeError {
@@ -215,3 +215,39 @@ pub fn function_call_output(
 ) -> ResponseInputItem {
   FunctionCallOutput(call_id~, output~)
 }
+
+///|
+pub extend ResponsesRequest with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ContentType with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ContentType with ToJson::{to_json}
+
+///|
+pub extend ContentType with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend ContentPart with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ContentPart with ToJson::{to_json}
+
+///|
+pub extend ContentPart with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend ResponsesRequest with ToJson::{to_json}
+
+///|
+pub extend ResponseInputItem with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ResponseInputItem with ToJson::{to_json}
+
+///|
+pub extend ResponseItem with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ResponseItem with @moonbitlang/core/json.FromJson::{from_json}

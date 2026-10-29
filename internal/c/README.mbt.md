@@ -20,7 +20,7 @@ pointer validity.
 ///|
 test {
   // Allocate space for a single Int
-  let ptr : @c.Pointer[Int] = @c.malloc(8)
+  let ptr : @c.Pointer[Int32] = @c.malloc(8)
   // Write a value through the pointer
   ptr.store(42)
   // Read the value back
@@ -46,14 +46,14 @@ terminating `0` byte:
 ```mbt check
 ///|
 test {
-  let s : Pointer[Byte] = @c.malloc(6)
+  let s : @c.Pointer[Byte] = @c.malloc(6)
   s[0] = b'h'
   s[1] = b'e'
   s[2] = b'l'
   s[3] = b'l'
   s[4] = b'o'
   s[5] = 0
-  json_inspect(strlen(s), content="5")
+  json_inspect(@c.strlen(s), content="5")
   @c.free(s)
 }
 ```
@@ -66,8 +66,8 @@ regions must **not** overlap:
 ```mbt check
 ///|
 test {
-  let src : Pointer[Byte] = malloc(4)
-  let dst : Pointer[Byte] = malloc(4)
+  let src : @c.Pointer[Byte] = @c.malloc(4)
+  let dst : @c.Pointer[Byte] = @c.malloc(4)
   src[0] = 1
   src[1] = 2
   src[2] = 3

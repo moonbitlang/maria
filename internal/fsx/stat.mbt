@@ -6,11 +6,11 @@
 struct Stat(Bytes)
 
 ///|
-extern "c" fn fs_stat_sizeof() -> Int = "moonbit_maria_fs_stat_sizeof"
+extern "c" fn fs_stat_sizeof() -> Int32 = "moonbit_maria_fs_stat_sizeof"
 
 ///|
 #borrow(path, stat)
-extern "c" fn fs_stat_sync(path : Bytes, stat : FixedArray[Byte]) -> Int = "moonbit_maria_fs_stat_sync"
+extern "c" fn fs_stat_sync(path : Bytes, stat : FixedArray[Byte]) -> Int32 = "moonbit_maria_fs_stat_sync"
 
 ///|
 /// Retrieve file metadata for `path`.

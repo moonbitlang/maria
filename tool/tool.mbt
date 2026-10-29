@@ -22,21 +22,21 @@ pub fn tool_desc(
   name~ : String,
   schema~ : JsonSchema,
 ) -> ToolDesc {
-  ToolDesc::{ description, name, schema }
+  ToolDesc::{ description, name, schema, }
 }
 
 ///|
 pub(open) trait ToolOutput {
-  to_message(Self) -> @ai.Message
+  fn to_message(Self) -> @ai.Message
 }
 
 ///|
-pub impl ToolOutput for String with to_message(self) {
+pub impl ToolOutput for String with fn to_message(self) {
   @ai.tool_message(content=self, tool_call_id="")
 }
 
 ///|
-pub impl ToolOutput for Json with to_message(self) {
+pub impl ToolOutput for Json with fn to_message(self) {
   @ai.tool_message(content=self.stringify(), tool_call_id="")
 }
 
@@ -62,19 +62,21 @@ pub fn ToolResult::success(output : &ToolOutput) -> ToolResult {
 }
 
 ///|
-pub impl ToJson for ToolResult with to_json(self) {
+pub impl ToJson for ToolResult with fn to_json(self) {
   match self {
-    Success(output) => ["Success", output.to_message().content().to_json()]
-    Failed(error) => ["Failed", error.to_json()]
+    Success(output) =>
+      ["Success", ToJson::to_json(output.to_message().content())]
+    Failed(error) => ["Failed", ToJson::to_json(error)]
   }
 }
 
 ///|
-pub impl Show for ToolResult with output(self : ToolResult, logger : &Logger) -> Unit {
+pub impl Show for ToolResult with fn output(self : ToolResult, logger : &Logger) -> Unit {
   match self {
     Success(output) => logger.write_string(output.to_message().content())
     Failed(ToolFailure(message)) => logger.write_string(message)
-    Failed(error) => logger.write_string(error.to_json().stringify(indent=2))
+    Failed(error) =>
+      logger.write_string(ToJson::to_json(error).stringify(indent=2))
   }
 }
 
@@ -104,7 +106,7 @@ pub fn Tool::new(
   schema~ : JsonSchema,
   f : ToolFn,
 ) -> Tool {
-  Tool::{ desc: { description, name, schema }, f }
+  Tool::{ desc: { description, name, schema, }, f, }
 }
 
 ///|
@@ -133,3 +135,18 @@ pub async fn AgentTool::call(
 pub fn Tool::to_agent_tool(self : Tool) -> AgentTool {
   AgentTool(self)
 }
+
+///|
+pub extend ToolDesc with ToJson::{to_json}
+
+///|
+pub extend ToolDesc with Eq::{not_equal, equal}
+
+///|
+pub extend ToolDesc with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ToolResult with ToJson::{to_json}
+
+///|
+pub extend ToolResult with Show::{to_string, output}

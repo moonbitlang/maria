@@ -5,10 +5,13 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/maria/job",
   "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

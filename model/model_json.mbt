@@ -1,5 +1,5 @@
 ///|
-pub impl @json.FromJson for Model with from_json(
+pub impl @json.FromJson for Model with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Model {
@@ -29,7 +29,7 @@ pub impl @json.FromJson for Model with from_json(
         @json.from_json(description_json, path=json_path.add_key("description")),
       )
   }
-  let safe_zone_tokens : Int = match object.get("safe_zone_tokens") {
+  let safe_zone_tokens : Int32 = match object.get("safe_zone_tokens") {
     None => 128_000
     Some(safe_zone_tokens_json) =>
       @json.from_json(
@@ -108,7 +108,7 @@ pub impl @json.FromJson for Model with from_json(
 }
 
 ///|
-pub impl @json.FromJson for Type with from_json(
+pub impl @json.FromJson for Type with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Type {
@@ -139,10 +139,19 @@ pub impl @json.FromJson for Type with from_json(
 }
 
 ///|
-pub impl ToJson for Type with to_json(self) {
+pub impl ToJson for Type with fn to_json(self) {
   match self {
     SaaS(OpenAI) => "saas/openai"
     SaaS(CodexOAuth) => "saas/codex_oauth"
     SaaS(Copilot) => "saas/copilot"
   }
 }
+
+///|
+pub extend Model with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend Type with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend Type with ToJson::{to_json}

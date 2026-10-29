@@ -10,7 +10,7 @@ import {
 // Values
 pub async fn get_models(api_key~ : StringView) -> Array[Model]
 
-pub async fn get_models_count(api_key~ : StringView) -> Int
+pub async fn get_models_count(api_key~ : StringView) -> Int32
 
 // Errors
 pub suberror InvalidResponse {
@@ -24,6 +24,8 @@ pub struct Architecture {
   tokenizer : String
   instruct_type : String?
 } derive(ToJson)
+pub fn Architecture::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Architecture::to_json(Self) -> Json
 pub impl @json.FromJson for Architecture
 
 pub struct Model {
@@ -32,13 +34,15 @@ pub struct Model {
   name : String
   created : Int64
   description : String
-  context_length : Int
+  context_length : Int32
   architecture : Architecture
   pricing : Pricing
   top_provider : TopProvider
   per_request_limits : Json?
   supported_parameters : Array[String]
 } derive(ToJson)
+pub fn Model::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Model::to_json(Self) -> Json
 pub impl @json.FromJson for Model
 
 pub struct Pricing {
@@ -51,16 +55,19 @@ pub struct Pricing {
   input_cache_read : String?
   input_cache_write : String?
 } derive(ToJson)
+pub fn Pricing::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Pricing::to_json(Self) -> Json
 pub impl @json.FromJson for Pricing
 
 pub struct TopProvider {
-  context_length : Int?
-  max_completion_tokens : Int?
+  context_length : Int32?
+  max_completion_tokens : Int32?
   is_moderated : Bool
 } derive(ToJson)
+pub fn TopProvider::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TopProvider::to_json(Self) -> Json
 pub impl @json.FromJson for TopProvider
 
 // Type aliases
 
 // Traits
-

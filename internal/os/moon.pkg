@@ -3,9 +3,6 @@ import {
   "moonbitlang/maria/internal/c",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/env",
-  "moonbitlang/core/json",
-  "moonbitlang/core/strconv",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -22,3 +19,7 @@ options(
     "os_release_test.mbt": [ "release" ],
   },
 )
+
+import {
+  "moonbitlang/core/test",
+} for "test"

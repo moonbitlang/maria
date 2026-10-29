@@ -49,6 +49,32 @@ jobs:
         run: |
           moon check --deny-warn
 
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        channel: [latest, nightly]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: ./.github/actions/install-moonbit
+        with:
+          channel: ${{ matrix.channel }}
+      - name: Configure Git fixtures
+        run: |
+          git config --global user.name "maria-ci"
+          git config --global user.email "maria-ci@example.com"
+      - name: Build native executables
+        run: moon build --target native
+      - name: Test without live model calls
+        run: python3 scripts/test_offline.py
+      - name: Verify native abort diagnostics
+        run: python3 scripts/test_abort.py
+
   test:
     strategy:
       matrix:
@@ -112,7 +138,6 @@ jobs:
 
       - name: Generate `pkg.generated.mbti`
         run: |
-          moon install
           moon info
           if [ -n "$(git status --porcelain)" ]; then
             echo "Error: 'pkg.generated.mbti' is not up to date. Please run 'moon info' locally and commit the changes."
@@ -145,6 +170,5 @@ jobs:
 
       - name: Check code format
         run: |
-          moon install
           moon fmt
           git diff --exit-code

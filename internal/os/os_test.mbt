@@ -18,7 +18,7 @@ test "cwd" {
 test "home" {
   if @os.getenv("HOME") is Some(home) {
     @os.unsetenv("HOME")
-    json_inspect(@os.home(), content=home.to_json())
+    json_inspect(@os.home(), content=ToJson::to_json(home))
   } else {
     ignore(@os.home())
   }

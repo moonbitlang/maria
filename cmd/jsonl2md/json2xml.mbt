@@ -9,7 +9,7 @@
 /// * `output` : The array to append the XML lines to.
 ///
 /// Returns nothing as this function writes directly to the `output` array.
-fn json2xml(json : Json, indent? : Int = 0, output : Array[String]) -> Unit {
+fn json2xml(json : Json, indent~ : Int32 = 0, output : Array[String]) -> Unit {
   match json {
     Object(object) =>
       for key, value in object {

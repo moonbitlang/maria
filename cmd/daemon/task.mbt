@@ -18,7 +18,7 @@ pub fn Task::is_idle(self : Task) -> Bool {
 }
 
 ///|
-pub impl ToJson for Task with to_json(self : Task) -> Json {
+pub impl ToJson for Task with fn to_json(self : Task) -> Json {
   match self {
     Running(running) => running.to_json()
     Stopped(stopped) => stopped.to_json()
@@ -26,7 +26,7 @@ pub impl ToJson for Task with to_json(self : Task) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for Task with from_json(
+pub impl @json.FromJson for Task with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Task raise @json.JsonDecodeError {
@@ -56,3 +56,9 @@ pub impl @json.FromJson for Task with from_json(
       )
   }
 }
+
+///|
+pub extend Task with ToJson::{to_json}
+
+///|
+pub extend Task with @moonbitlang/core/json.FromJson::{from_json}

@@ -10,7 +10,7 @@ pub(all) enum ChatCompletionReasoningEffort {
 } derive(Debug)
 
 ///|
-impl ToJson for ChatCompletionReasoningEffort with to_json(
+impl ToJson for ChatCompletionReasoningEffort with fn to_json(
   self : ChatCompletionReasoningEffort,
 ) -> Json {
   match self {
@@ -22,3 +22,11 @@ impl ToJson for ChatCompletionReasoningEffort with to_json(
     Xhigh => "xhigh"
   }
 }
+
+///|
+pub extend ChatCompletionReasoningEffort with @moonbitlang/core/debug.Debug::{
+  to_repr,
+}
+
+///|
+extend ChatCompletionReasoningEffort with ToJson::{to_json}
