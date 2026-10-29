@@ -152,7 +152,7 @@ options(
             f.write(pkg_content)
 
     print(
-        f"Generated buildinfo package with version = {version}+{commit_count}.{commit_sha}"
+        f"Generated buildinfo package with version = {version_string}"
     )
 
 
