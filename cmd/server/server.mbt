@@ -177,22 +177,25 @@ async fn Server::start_maria(self : Server) -> Unit {
       let task = group.spawn(
         () => {
           logger.info("Starting Maria task...")
-          match (Ok(self.maria.agent.start()) catch { error => Err(error) }) {
-            Ok(value) => value
+          // Cancellation is a separate control signal in the current async
+          // runtime, so a catch-all error handler cannot observe it.
+          match
+            (Ok(@async.handle_cancellation(() => self.maria.agent.start())) catch {
+              error => Err(error)
+            }) {
+            Ok(Some(value)) => value
+            Ok(None) =>
+              self.broadcast.put(
+                @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
+              )
             Err(error) => {
+              self.broadcast.put(
+                @event.Event::new(
+                  id=self.uuid.v4(),
+                  Failed(ToJson::to_json(error)),
+                ),
+              )
               logger.error("Maria task failed: " + @debug.to_string(error))
-              if !@async.is_being_cancelled() {
-                self.broadcast.put(
-                  @event.Event::new(
-                    id=self.uuid.v4(),
-                    Failed(ToJson::to_json(error)),
-                  ),
-                )
-              } else {
-                self.broadcast.put(
-                  @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
-                )
-              }
               raise error
             }
           }
