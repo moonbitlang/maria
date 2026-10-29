@@ -41,7 +41,7 @@ fn setup_agent(agent : @agent.Agent, cwd~ : String) -> Unit {
 #as_free_fn
 pub async fn Maria::new(
   name? : String,
-  logger? : @pino.Logger = @pino.logger(
+  logger~ : @pino.Logger = @pino.logger(
     "maria",
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
@@ -49,7 +49,7 @@ pub async fn Maria::new(
   home? : String,
   cwd? : String,
   user_message? : String,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
 ) -> Maria {
   let cwd = match cwd {
     Some(cwd) => cwd
@@ -69,7 +69,7 @@ pub async fn Maria::new(
     web_search~,
   )
   setup_agent(agent, cwd~)
-  { logger, agent }
+  { logger, agent, }
 }
 
 ///|
@@ -111,7 +111,7 @@ pub async fn Maria::start(self : Maria, prompt? : String) -> Unit {
 /// Fails if the conversation with the given id cannot be found.
 #as_free_fn
 pub async fn Maria::resume_(
-  logger? : @pino.Logger = @pino.logger(
+  logger~ : @pino.Logger = @pino.logger(
     "maria",
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
@@ -140,5 +140,5 @@ pub async fn Maria::resume_(
     web_search~,
   )
   setup_agent(agent, cwd=conversation.cwd())
-  { logger, agent }
+  { logger, agent, }
 }

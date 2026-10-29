@@ -7,14 +7,15 @@ import {
   "moonbitlang/maria/tool",
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/agent",
-  "moonbitlang/maria/model",
   "moonbitlang/maria/event",
-  "moonbitlang/maria/ai",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

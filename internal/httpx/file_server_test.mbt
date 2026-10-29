@@ -19,8 +19,8 @@ async test "FileServer" (t : @test.Test) {
     .add_file("style.css")
     .write_string("body { background-color: #f0f0f0; }")
     mock.add_file("script.js").write_string("console.log('Hello, World!');")
-    let f = FileServer::new(mock.cwd.path())
-    let s = Server::new("[::1]", 0)
+    let f = @httpx.FileServer::new(mock.cwd.path())
+    let s = @httpx.Server::new("[::1]", 0)
     mock.group.spawn_bg(() => s.serve((r, w) => f.handle(r, w)), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{s.port()}")
     json_inspect(r.code, content=200)
@@ -55,18 +55,18 @@ async test "FileServer" (t : @test.Test) {
 async test "Router+FileServer" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_file("index.html").write_string("<h1>Home Page</h1>")
-    let f = FileServer::new(mock.cwd.path())
+    let f = @httpx.FileServer::new(mock.cwd.path())
     f.set_not_found_handler((_, w) => {
       w.write_header(@status.NotFound)
       w.write("<h1>Custom 404 Not Found</h1>")
     })
-    let mux = Router::new()
+    let mux = @httpx.Router::new()
     mux.add_handler(Get, "/hello", (_, w) => {
       w.write_header(@status.Ok)
       w.write("Hello, world! from Router Handler\n")
     })
     mux.set_not_found_handler((r, w) => f.handle(r, w))
-    let s = Server::new("[::1]", 0)
+    let s = @httpx.Server::new("[::1]", 0)
     mock.group.spawn_bg(() => s.serve(mux.handler()), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{s.port()}/hello")
     json_inspect(r.code, content=200)
@@ -84,8 +84,8 @@ async test "Router+FileServer" (t : @test.Test) {
 async test "FileServer+Router" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_file("index.html").write_string("<h1>Home Page</h1>")
-    let f = FileServer::new(mock.cwd.path())
-    let mux = Router::new()
+    let f = @httpx.FileServer::new(mock.cwd.path())
+    let mux = @httpx.Router::new()
     mux.add_handler(Get, "/hello", (_, w) => {
       w.write_header(@status.Ok)
       w.write("Hello, world! from Router Handler\n")
@@ -95,7 +95,7 @@ async test "FileServer+Router" (t : @test.Test) {
       w.write("404 Not Found from Router\n")
     })
     f.set_not_found_handler(mux.handler())
-    let s = Server::new("[::1]", 0)
+    let s = @httpx.Server::new("[::1]", 0)
     mock.group.spawn_bg(() => s.serve(f.handler()), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{s.port()}/hello")
     json_inspect(r.code, content=200)
@@ -119,14 +119,14 @@ async test "FileServer+Router" (t : @test.Test) {
 async test "CORS+Router+FileServer" (t : @test.Test) {
   @mock.run(t, mock => {
     mock.add_file("index.html").write_string("<h1>Home Page</h1>")
-    let f = FileServer::new(mock.cwd.path())
-    let mux = Router::new()
+    let f = @httpx.FileServer::new(mock.cwd.path())
+    let mux = @httpx.Router::new()
     mux.add_handler(Get, "/hello", (_, w) => {
       w.write_header(@status.Ok)
       w.write("Hello, world! from Router Handler\n")
     })
     mux.set_not_found_handler((r, w) => f.handle(r, w))
-    let s = Server::new("[::1]", 0)
+    let s = @httpx.Server::new("[::1]", 0)
     mock.group.spawn_bg(() => s.serve(@httpx.cors(mux.handler())), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{s.port()}/hello")
     json_inspect(r.code, content=200)

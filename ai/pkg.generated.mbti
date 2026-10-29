@@ -15,7 +15,7 @@ pub fn tool_call(id~ : String, name~ : String, arguments? : String) -> ToolCall
 
 pub fn tool_message(content~ : String, tool_call_id~ : String) -> Message
 
-pub fn usage(input_tokens~ : Int, output_tokens~ : Int, total_tokens? : Int, cache_read_tokens? : Int) -> Usage
+pub fn usage(input_tokens~ : Int32, output_tokens~ : Int32, total_tokens? : Int32, cache_read_tokens? : Int32) -> Usage
 
 pub fn user_message(content~ : String) -> Message
 
@@ -29,28 +29,38 @@ pub enum Message {
   Tool(String, tool_call_id~ : String)
 } derive(Eq, ToJson, @debug.Debug)
 pub fn Message::content(Self) -> String
+pub fn Message::equal(Self, Self) -> Bool
 pub fn Message::from_openai(@openai.ChatCompletionMessageParam) -> Self
 pub fn Message::from_openai_response(@openai.ChatCompletionMessage) -> Self
+pub fn Message::not_equal(Self, Self) -> Bool
+pub fn Message::to_json(Self) -> Json
 pub fn Message::to_openai(Self) -> @openai.ChatCompletionMessageParam
+pub fn Message::to_repr(Self) -> @debug.Repr
 
 pub struct ToolCall {
   id : String
   name : String
   arguments : String?
 } derive(Eq, ToJson, @debug.Debug)
+pub fn ToolCall::equal(Self, Self) -> Bool
 pub fn ToolCall::from_openai_tool_call(@openai.ChatCompletionMessageToolCall) -> Self
+pub fn ToolCall::not_equal(Self, Self) -> Bool
+pub fn ToolCall::to_json(Self) -> Json
 pub fn ToolCall::to_openai(Self) -> @openai.ChatCompletionMessageToolCall
+pub fn ToolCall::to_repr(Self) -> @debug.Repr
 
 pub struct Usage {
-  input_tokens : Int
-  output_tokens : Int
-  total_tokens : Int
-  cache_read_tokens : Int?
+  input_tokens : Int32
+  output_tokens : Int32
+  total_tokens : Int32
+  cache_read_tokens : Int32?
 } derive(Eq, @debug.Debug)
+pub fn Usage::equal(Self, Self) -> Bool
 pub fn Usage::from_openai(@openai.CompletionUsage) -> Self
+pub fn Usage::not_equal(Self, Self) -> Bool
 pub fn Usage::to_openai(Self) -> @openai.CompletionUsage
+pub fn Usage::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

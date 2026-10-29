@@ -380,3 +380,15 @@ test "reverse_string_single_separator" {
 test "kill_ring_max_length_constant" {
   assert_eq(MaxLengthOfKillRing, 32)
 }
+
+///|
+test "word prefix scanning keeps byte-oriented punctuation and whitespace" {
+  assert_eq(
+    word_prefix_length(b" \tword!! tail"[:], leading_space=true),
+    Some(6),
+  )
+  assert_eq(word_prefix_length(b"!! \tword"[:], leading_space=false), Some(4))
+  assert_eq(word_prefix_length(b"_a09!"[:], leading_space=true), Some(4))
+  assert_eq(word_prefix_length(b"\xFF\x80a"[:], leading_space=true), Some(2))
+  assert_eq(word_prefix_length(b" \t"[:], leading_space=true), None)
+}

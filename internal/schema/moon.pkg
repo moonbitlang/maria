@@ -1,4 +1,3 @@
 import {
-  "moonbitlang/core/json",
   "moonbitlang/core/sorted_set",
 }

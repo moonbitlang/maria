@@ -13,9 +13,9 @@ struct Manager {
 ///|
 pub async fn Manager::new(
   uuid~ : @uuid.Generator,
-  clock? : &@clock.Clock = @clock.epoch,
+  clock~ : &@clock.Clock = @clock.epoch,
   home~ : StringView,
-  logger? : @pino.Logger = @pino.logger(
+  logger~ : @pino.Logger = @pino.logger(
     "conversation_manager",
     @pino.Transport::console(),
   ),
@@ -27,7 +27,7 @@ pub async fn Manager::new(
   if !@fsx.exists(conversations) {
     @fsx.make_directory(conversations, recursive=true, exists_ok=true)
   }
-  Manager::{ uuid, clock, home, cache, logger }
+  Manager::{ uuid, clock, home, cache, logger, }
 }
 
 ///|
@@ -98,7 +98,7 @@ pub fn Manager::new_conversation(
   name~ : String,
   description? : String,
   cwd~ : String,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
 ) -> Conversation {
   {
     clock: self.clock,

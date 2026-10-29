@@ -9,7 +9,7 @@ pub(all) enum ChatCompletionChoiceFinishReason {
 } derive(Debug)
 
 ///|
-impl ToJson for ChatCompletionChoiceFinishReason with to_json(
+impl ToJson for ChatCompletionChoiceFinishReason with fn to_json(
   self : ChatCompletionChoiceFinishReason,
 ) -> Json {
   match self {
@@ -22,7 +22,7 @@ impl ToJson for ChatCompletionChoiceFinishReason with to_json(
 }
 
 ///|
-impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
+impl @json.FromJson for ChatCompletionChoiceFinishReason with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChoiceFinishReason {
@@ -41,3 +41,11 @@ impl @json.FromJson for ChatCompletionChoiceFinishReason with from_json(
       )
   }
 }
+
+///|
+pub extend ChatCompletionChoiceFinishReason with @moonbitlang/core/debug.Debug::{
+  to_repr,
+}
+
+///|
+extend ChatCompletionChoiceFinishReason with ToJson::{to_json}

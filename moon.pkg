@@ -11,18 +11,23 @@ import {
   "moonbitlang/maria/tools/search_files",
   "moonbitlang/maria/prompt",
   "moonbitlang/maria/job",
-  "moonbitlang/maria/tool",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/tools/apply_patch",
   "moonbitlang/maria/tools/write_to_file",
   "moonbitlang/maria/internal/conversation",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/internal/rand",
-  "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
+} for "test"
+
+import {
+  "moonbitlang/maria/tool",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

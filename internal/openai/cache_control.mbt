@@ -5,14 +5,14 @@ pub(all) enum CacheControl {
 }
 
 ///|
-pub impl ToJson for CacheControl with to_json(self : CacheControl) -> Json {
+pub impl ToJson for CacheControl with fn to_json(self : CacheControl) -> Json {
   match self {
     Ephemeral => { "type": "ephemeral" }
   }
 }
 
 ///|
-impl @json.FromJson for CacheControl with from_json(
+impl @json.FromJson for CacheControl with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CacheControl {
@@ -30,3 +30,6 @@ impl @json.FromJson for CacheControl with from_json(
       )
   }
 }
+
+///|
+pub extend CacheControl with ToJson::{to_json}

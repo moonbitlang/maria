@@ -21,6 +21,8 @@ pub fn open_router_model(api_key~ : String, name? : CommonModels) -> Model
 pub(all) enum CodexModels {
   Gpt5_2
 }
+pub fn CodexModels::output(Self, &Logger) -> Unit
+pub fn CodexModels::to_string(Self) -> String
 pub impl Show for CodexModels
 
 pub(all) enum CommonModels {
@@ -40,6 +42,8 @@ pub(all) enum CommonModels {
   MinimaxM2
   DeepseekV3_2
 }
+pub fn CommonModels::output(Self, &Logger) -> Unit
+pub fn CommonModels::to_string(Self) -> String
 pub impl Show for CommonModels
 
 pub(all) enum CopilotModels {
@@ -71,6 +75,8 @@ pub(all) enum CopilotModels {
   Gemini3ProPreview
   GrokCodeFast1
 }
+pub fn CopilotModels::output(Self, &Logger) -> Unit
+pub fn CopilotModels::to_string(Self) -> String
 pub impl Show for CopilotModels
 
 type Loader
@@ -85,7 +91,7 @@ pub struct Model {
   model_type : Type
   api_key : String
   base_url : String
-  safe_zone_tokens : Int
+  safe_zone_tokens : Int32
   supports_anthropic_prompt_caching : Bool
   supports_apply_patch : Bool
   access_token : String?
@@ -93,8 +99,13 @@ pub struct Model {
   refresh_token : String?
   id_token : String?
 } derive(Eq, ToJson, @debug.Debug)
+pub fn Model::equal(Self, Self) -> Bool
+pub fn Model::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 #as_free_fn
-pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool, access_token? : String, account_id? : String, refresh_token? : String, id_token? : String) -> Self
+pub fn Model::new(api_key~ : String, base_url~ : String, name~ : String, safe_zone_tokens~ : Int32, model_name? : String, model_type? : Type, description? : String, supports_anthropic_prompt_caching? : Bool, access_token? : String, account_id? : String, refresh_token? : String, id_token? : String) -> Self
+pub fn Model::not_equal(Self, Self) -> Bool
+pub fn Model::to_json(Self) -> Json
+pub fn Model::to_repr(Self) -> @debug.Repr
 pub impl @json.FromJson for Model
 
 pub(all) enum Provider {
@@ -102,14 +113,21 @@ pub(all) enum Provider {
   CodexOAuth
   Copilot
 } derive(Eq, @debug.Debug)
+pub fn Provider::equal(Self, Self) -> Bool
+pub fn Provider::not_equal(Self, Self) -> Bool
+pub fn Provider::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Type {
   SaaS(Provider)
 } derive(Eq, @debug.Debug)
+pub fn Type::equal(Self, Self) -> Bool
+pub fn Type::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Type::not_equal(Self, Self) -> Bool
+pub fn Type::to_json(Self) -> Json
+pub fn Type::to_repr(Self) -> @debug.Repr
 pub impl ToJson for Type
 pub impl @json.FromJson for Type
 
 // Type aliases
 
 // Traits
-

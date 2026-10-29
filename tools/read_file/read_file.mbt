@@ -5,33 +5,33 @@ using @path {type Path}
 struct ReadFileToolResult {
   path : String
   content : String
-  start_line : Int
-  end_line : Int
+  start_line : Int32
+  end_line : Int32
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for ReadFileToolResult with to_message(self) {
+impl @tool.ToolOutput for ReadFileToolResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-const MaxReadFileTokens : Int = 25000
+const MaxReadFileTokens : Int32 = 25000
 
 ///|
-fn count_file_tokens(content : String) -> Int raise {
+fn count_file_tokens(content : String) -> Int32 raise {
   let encoding = @tiktoken.cl100k_base()
   encoding.encode(content).length()
 }
 
 ///|
-pub impl Show for ReadFileToolResult with output(
+pub impl Show for ReadFileToolResult with fn output(
   self : ReadFileToolResult,
   logger : &Logger,
 ) -> Unit {
   match self {
     // ReadDirectoryResult({ path, display, .. }) =>
     //   logger.write_string("Directory: \{path}\nEntries:\n\{display}")
-    { path, content, start_line, end_line } => {
+    { path, content, start_line, end_line, } => {
       let lines = content.split("\n").to_array()
       let expected_lines = end_line - start_line + 1
       // When content field has been trimmed to only contain the selected range
@@ -87,7 +87,7 @@ async fn execute_read_file_tool(
   args : Json,
 ) -> @tool.ToolResult noraise {
   // Parse required path parameter
-  let { path, start_line, end_line } : ReadFileInput = @json.from_json(args) catch {
+  let { path, start_line, end_line, } : ReadFileInput = @json.from_json(args) catch {
     error =>
       return @tool.failed(
         "Error: Invalid arguments provided to read_file tool: \{error}",
@@ -173,7 +173,7 @@ async fn execute_read_file_tool(
       }
       return @tool.failed(error_message)
     }
-    return @tool.success({ path, content, start_line, end_line })
+    return @tool.success({ path, content, start_line, end_line, })
   } catch {
     error => @tool.failed("Error reading file: \{error}")
   }
@@ -200,3 +200,12 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     }),
   )
 }
+
+///|
+pub extend ReadFileToolResult with ToJson::{to_json}
+
+///|
+pub extend ReadFileToolResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend ReadFileToolResult with Show::{to_string, output}

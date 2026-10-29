@@ -51,7 +51,7 @@ async fn Daemon::forward_to_task(
             "error": {
               "code": -1,
               "message": "Failed to check existence of 'cwd' path: \{error}",
-              "metadata": { "cwd": cwd, "error": error.to_json() },
+              "metadata": { "cwd": cwd, "error": ToJson::to_json(error) },
             },
           })
       }
@@ -93,7 +93,7 @@ async fn Daemon::forward_to_task(
     }
   }
   let path = paths.join("/")
-  let c = @http.Client::new("http://localhost:\{task.port}")
+  let c = @http.Client("http://localhost:\{task.port}")
   c.request(method_.to_http(), "/v1/\{path}")
   c.write_reader(r.body)
   let r = c.end_request()

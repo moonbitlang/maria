@@ -18,40 +18,49 @@ pub async fn start(ArrayView[String]) -> Unit
 // Types and methods
 type CreateMessageRequest
 pub fn CreateMessageRequest::new(message~ : @ai.Message, web_search? : Bool) -> Self
+pub fn CreateMessageRequest::to_json(Self) -> Json
 pub impl ToJson for CreateMessageRequest
 
 type CreateMessageResponse
+pub fn CreateMessageResponse::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn CreateMessageResponse::new(id~ : @uuid.Uuid, queued~ : Bool) -> Self
+pub fn CreateMessageResponse::to_json(Self) -> Json
 pub impl ToJson for CreateMessageResponse
 pub impl @json.FromJson for CreateMessageResponse
 
 pub(all) struct RegisterInfo {
   host : String
-  port : Int
+  port : Int32
   id : String
 }
 
 pub struct RegisterRequest {
   id : String
-  port : Int
+  port : Int32
   new_id : @uuid.Uuid
   cwd : String
   web_search : Bool
   model : String
 } derive(ToJson, @json.FromJson)
+pub fn RegisterRequest::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn RegisterRequest::to_json(Self) -> Json
 
 pub(all) struct RegisterResponse {
 } derive(ToJson, @json.FromJson)
+pub fn RegisterResponse::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn RegisterResponse::to_json(Self) -> Json
 
 type Server
-pub async fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid) -> Self
-pub fn Server::port(Self) -> Int
+pub async fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int32, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid) -> Self
+pub fn Server::port(Self) -> Int32
 pub async fn Server::start(Self) -> Unit
 
 pub(all) enum ServerStreamEvent {
   MariaQueuedMessagesSynchronized(Array[@agent.QueuedMessage])
   Maria(@event.Event)
 }
+pub fn ServerStreamEvent::from_event(@httpx.Event) -> Self raise
+pub fn ServerStreamEvent::to_event(Self) -> @httpx.Event
 pub impl @httpx.FromEvent for ServerStreamEvent
 pub impl @httpx.ToEvent for ServerStreamEvent
 
@@ -59,10 +68,11 @@ pub(all) enum Status {
   Idle
   Busy
 }
+pub fn Status::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Status::to_json(Self) -> Json
 pub impl ToJson for Status
 pub impl @json.FromJson for Status
 
 // Type aliases
 
 // Traits
-

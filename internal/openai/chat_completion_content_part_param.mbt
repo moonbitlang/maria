@@ -9,11 +9,11 @@ pub fn ChatCompletionContentPartParam::new(
   text~ : String,
   cache_control? : CacheControl,
 ) -> ChatCompletionContentPartParam {
-  ChatCompletionContentPartParam::Text({ text, cache_control })
+  ChatCompletionContentPartParam::Text({ text, cache_control, })
 }
 
 ///|
-pub impl ToJson for ChatCompletionContentPartParam with to_json(
+pub impl ToJson for ChatCompletionContentPartParam with fn to_json(
   self : ChatCompletionContentPartParam,
 ) -> Json {
   match self {
@@ -28,7 +28,7 @@ pub impl ToJson for ChatCompletionContentPartParam with to_json(
 }
 
 ///|
-impl @json.FromJson for ChatCompletionContentPartParam with from_json(
+impl @json.FromJson for ChatCompletionContentPartParam with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionContentPartParam raise {
@@ -64,3 +64,6 @@ impl @json.FromJson for ChatCompletionContentPartParam with from_json(
       )
   }
 }
+
+///|
+pub extend ChatCompletionContentPartParam with ToJson::{to_json}

@@ -8,17 +8,28 @@ pub let version : Version
 
 // Types and methods
 pub struct Build {
-  number : Int
+  number : Int32
   commit : String
 } derive(ToJson)
+pub fn Build::to_json(Self) -> Json
 
 pub struct Version {
-  major : Int
-  minor : Int
-  patch : Int
+  major : Int32
+  minor : Int32
+  patch : Int32
   build : Build?
 } derive(ToJson)
+pub fn Version::compare(Self, Self) -> Int32
+pub fn Version::equal(Self, Self) -> Bool
+pub fn Version::not_equal(Self, Self) -> Bool
+pub fn Version::op_ge(Self, Self) -> Bool
+pub fn Version::op_gt(Self, Self) -> Bool
+pub fn Version::op_le(Self, Self) -> Bool
+pub fn Version::op_lt(Self, Self) -> Bool
+pub fn Version::output(Self, &Logger) -> Unit
 pub fn Version::parse(String) -> Self raise
+pub fn Version::to_json(Self) -> Json
+pub fn Version::to_string(Self) -> String
 pub impl Compare for Version
 pub impl Eq for Version
 pub impl Show for Version
@@ -26,4 +37,3 @@ pub impl Show for Version
 // Type aliases
 
 // Traits
-

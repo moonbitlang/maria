@@ -65,11 +65,15 @@ test "parse_skill_from_content/invalid-allowed-tools" {
     #|---
     #|
     #|This is a sample skill.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="sample-skill",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="sample-skill",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'allowed-tools' must be a space-delimited string or array of strings, got {\"tool1\":true,\"tool2\":false}",
@@ -86,11 +90,15 @@ test "parse_skill_from_content/empty-description" {
     #|---
     #|
     #|This skill has an invalid description.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="invalid-skill",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="invalid-skill",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'description' must be a non-empty string",
@@ -107,11 +115,15 @@ test "parse_skill_from_content/invalid-name" {
     #|---
     #|
     #|This skill has an invalid name.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="invalid--name",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="invalid--name",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot contain consecutive hyphens"],
   })
@@ -126,11 +138,15 @@ test "parse_skill_from_content/name-mismatches-directory" {
     #|---
     #|
     #|This skill has a mismatched directory name.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="different-directory",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="different-directory",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Directory name must match skill name"],
   })
@@ -146,11 +162,15 @@ test "parse_skill_from_content/long-name" {
     $|---
     $|
     $|This skill has a name that is too long.
-  let result = try? parse_skill_from_content(
-    content,
-    directory=long_skill_name,
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory=long_skill_name,
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name exceeds 64 character limit"],
   })
@@ -166,11 +186,15 @@ test "parse_skill_from_content/long-description" {
     $|---
     $|
     $|This skill has a description that is too long.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="long-description-skill",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="long-description-skill",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Description exceeds 1024 character limit"],
   })
@@ -185,11 +209,15 @@ test "parse_skill_from_content/empty-name" {
     #|---
     #|
     #|This skill has an empty name.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Field 'name' must be a non-empty string"],
   })
@@ -204,11 +232,15 @@ test "parse_skill_from_content/name-starts-with-hyphen" {
     #|---
     #|
     #|This skill has a name that starts with a hyphen.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="-invalidname",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="-invalidname",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot start or end with a hyphen"],
   })
@@ -223,11 +255,15 @@ test "parse_skill_from_content/name-ends-with-hyphen" {
     #|---
     #|
     #|This skill has a name that ends with a hyphen.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="invalidname-",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="invalidname-",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Skill name cannot start or end with a hyphen"],
   })
@@ -241,11 +277,15 @@ test "parse_skill_from_content/missing-name" {
     #|---
     #|
     #|This skill is missing the name field.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="missing-name",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="missing-name",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'name'"],
   })
@@ -259,11 +299,15 @@ test "parse_skill_from_content/missing-description" {
     #|---
     #|
     #|This skill is missing the description field.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="missing-description",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="missing-description",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'description'"],
   })
@@ -273,11 +317,15 @@ test "parse_skill_from_content/missing-description" {
 test "parse_skill_from_content/missing-frontmatter" {
   let content =
     #|This skill file is missing frontmatter.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="missing-frontmatter",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="missing-frontmatter",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Missing field 'name'"],
   })
@@ -292,11 +340,15 @@ test "parse_skill_from_content/non-string-name" {
     #|---
     #|
     #|This skill has a non-string name.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="12345",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="12345",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": ["SkillFormatError", "Field 'name' must be a string, got 12345"],
   })
@@ -311,11 +363,15 @@ test "parse_skill_from_content/non-string-description" {
     #|---
     #|
     #|This skill has a non-string description.
-  let result = try? parse_skill_from_content(
-    content,
-    directory="non-string-description",
-    location="/tmp/skill/SKILL.md",
-  )
+  let result = Ok(
+    parse_skill_from_content(
+      content,
+      directory="non-string-description",
+      location="/tmp/skill/SKILL.md",
+    ),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(result, content={
     "Err": [
       "SkillFormatError", "Field 'description' must be a string, got 67890",

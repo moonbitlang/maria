@@ -4,12 +4,12 @@
 struct Timestamp(Int64) derive(Eq)
 
 ///|
-pub impl Show for Timestamp with output(self : Timestamp, logger : &Logger) -> Unit {
-  self.0.output(logger)
+pub impl Show for Timestamp with fn output(self : Timestamp, logger : &Logger) -> Unit {
+  Show::output(self.0, logger)
 }
 
 ///|
-pub impl @debug.Debug for Timestamp with to_repr(self : Timestamp) -> @debug.Repr {
+pub impl @debug.Debug for Timestamp with fn to_repr(self : Timestamp) -> @debug.Repr {
   @debug.Repr::integer(self.0.to_string())
 }
 
@@ -70,12 +70,12 @@ pub fn Timestamp::ms_since(self : Timestamp, other : Timestamp) -> Int64 {
 }
 
 ///|
-pub impl ToJson for Timestamp with to_json(self : Timestamp) -> Json {
+pub impl ToJson for Timestamp with fn to_json(self : Timestamp) -> Json {
   Json::number(self.0.to_double(), repr=self.0.to_string())
 }
 
 ///|
-pub impl @json.FromJson for Timestamp with from_json(
+pub impl @json.FromJson for Timestamp with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Timestamp {
@@ -106,3 +106,18 @@ pub impl @json.FromJson for Timestamp with from_json(
       )
   }
 }
+
+///|
+pub extend Timestamp with Eq::{not_equal, equal}
+
+///|
+pub extend Timestamp with Show::{to_string, output}
+
+///|
+pub extend Timestamp with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Timestamp with ToJson::{to_json}
+
+///|
+pub extend Timestamp with @moonbitlang/core/json.FromJson::{from_json}

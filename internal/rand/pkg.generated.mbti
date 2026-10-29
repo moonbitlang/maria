@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub fn bytes(Int) -> Bytes raise @errno.Errno
+pub fn bytes(Int32) -> Bytes raise @errno.Errno
 
 pub fn chacha8() -> @random.Rand raise @errno.Errno
 
@@ -18,4 +18,3 @@ pub fn chacha8() -> @random.Rand raise @errno.Errno
 // Type aliases
 
 // Traits
-

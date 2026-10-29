@@ -131,7 +131,7 @@ test {
 ///|
 test {
   // Text alignment in terminal
-  fn align_text(text : String, width : Int, align : String) -> String {
+  fn align_text(text : String, width : Int32, align : String) -> String {
     let text_width = @width.string(text)
     match align {
       "left" => text + " ".repeat(width - text_width)
@@ -159,7 +159,7 @@ test {
 ///|
 test {
   // Truncate text to fit display width
-  fn truncate_to_width(text : String, max_width : Int) -> String {
+  fn truncate_to_width(text : String, max_width : Int32) -> String {
     let mut result = ""
     let mut current_width = 0
     for c in text {

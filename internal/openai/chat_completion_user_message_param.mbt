@@ -10,5 +10,5 @@ pub fn ChatCompletionUserMessageParam::new(
   content~ : Array[ChatCompletionContentPartParam],
   name? : String,
 ) -> ChatCompletionUserMessageParam {
-  { content, name }
+  { content, name, }
 }

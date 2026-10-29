@@ -51,6 +51,8 @@ pub struct QueuedMessage {
   message : @ai.Message
   web_search : Bool
 }
+pub fn QueuedMessage::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn QueuedMessage::to_json(Self) -> Json
 pub impl ToJson for QueuedMessage
 pub impl @json.FromJson for QueuedMessage
 
@@ -61,4 +63,3 @@ pub fn Tool::enabled(Self) -> Bool
 // Type aliases
 
 // Traits
-

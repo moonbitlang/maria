@@ -44,3 +44,12 @@ priv struct Item {
   status : Status
   updated_at : String
 } derive(ToJson, FromJson, Eq)
+
+///|
+pub extend Items with ToJson::{to_json}
+
+///|
+pub extend Items with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend Items with Eq::{not_equal, equal}

@@ -14,9 +14,12 @@ pub fn new(@file.Manager) -> @tool.Tool
 
 // Types and methods
 type ReadFileToolResult derive(ToJson, @json.FromJson)
+pub fn ReadFileToolResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ReadFileToolResult::output(Self, &Logger) -> Unit
+pub fn ReadFileToolResult::to_json(Self) -> Json
+pub fn ReadFileToolResult::to_string(Self) -> String
 pub impl Show for ReadFileToolResult
 
 // Type aliases
 
 // Traits
-

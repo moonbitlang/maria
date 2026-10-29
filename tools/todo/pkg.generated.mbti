@@ -20,18 +20,28 @@ pub let prompt : String
 
 // Errors
 type TodoArgsError derive(@debug.Debug)
+pub fn TodoArgsError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 type Items derive(Eq, ToJson, @json.FromJson)
+pub fn Items::equal(Self, Self) -> Bool
+pub fn Items::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Items::not_equal(Self, Self) -> Bool
+pub fn Items::to_json(Self) -> Json
 
 type Todo
 
 type TodoArgs derive(ToJson, @debug.Debug)
+pub fn TodoArgs::to_json(Self) -> Json
+pub fn TodoArgs::to_repr(Self) -> @debug.Repr
 
 type TodoResult derive(ToJson, @json.FromJson)
+pub fn TodoResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TodoResult::output(Self, &Logger) -> Unit
+pub fn TodoResult::to_json(Self) -> Json
+pub fn TodoResult::to_string(Self) -> String
 pub impl Show for TodoResult
 
 // Type aliases
 
 // Traits
-

@@ -95,7 +95,7 @@ fn apply_chunks(
   if lines.length() > 0 && lines[lines.length() - 1].is_empty() {
     let _ = lines.pop()
   }
-  let replacements : Array[(Int, Int, Array[String])] = []
+  let replacements : Array[(Int32, Int32, Array[String])] = []
   let mut line_index = 0
   for chunk in chunks {
     if chunk.change_context is Some(ctx) {
@@ -154,7 +154,11 @@ fn apply_chunks(
 }
 
 ///|
-fn seek_line(lines : ArrayView[String], target : String, start : Int) -> Int? {
+fn seek_line(
+  lines : ArrayView[String],
+  target : String,
+  start : Int32,
+) -> Int32? {
   for i in start..<lines.length() {
     if lines[i].contains(target) {
       return Some(i)
@@ -167,9 +171,9 @@ fn seek_line(lines : ArrayView[String], target : String, start : Int) -> Int? {
 fn seek_sequence(
   lines : ArrayView[String],
   pattern : ArrayView[String],
-  start : Int,
+  start : Int32,
   is_eof : Bool,
-) -> Int? {
+) -> Int32? {
   if pattern.length() == 0 {
     return Some(start)
   }
@@ -195,7 +199,7 @@ fn seek_sequence(
 fn matches_at(
   lines : ArrayView[String],
   pattern : ArrayView[String],
-  pos : Int,
+  pos : Int32,
 ) -> Bool {
   if pos + pattern.length() > lines.length() {
     return false
@@ -212,7 +216,7 @@ fn matches_at(
 fn matches_at_fuzzy(
   lines : ArrayView[String],
   pattern : ArrayView[String],
-  pos : Int,
+  pos : Int32,
 ) -> Bool {
   if pos + pattern.length() > lines.length() {
     return false
@@ -235,7 +239,7 @@ fn fuzzy_equals(a : String, b : String) -> Bool {
 
 ///|
 fn normalize_punctuation(s : String) -> String {
-  let result = StringBuilder::new()
+  let result = StringBuilder()
   for c in s {
     let normalized = match c {
       '\u{2013}' | '\u{2014}' | '\u{2011}' => '-' // en-dash, em-dash, non-breaking hyphen
@@ -257,3 +261,6 @@ fn resolve_path(cwd : String, path : String) -> String {
     Path::join(cwd, path).to_string()
   }
 }
+
+///|
+pub extend ApplyError with @moonbitlang/core/debug.Debug::{to_repr}

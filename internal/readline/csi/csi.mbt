@@ -21,7 +21,7 @@ pub const ClearScreenDown : Bytes = b"\x1b[0J"
 ///|
 /// Build a CSI escape sequence from a command payload.
 pub fn csi(command : Bytes) -> Bytes {
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   buffer.write_byte(Escape)
   buffer.write_byte(b'[')
   buffer.write_bytes(command)

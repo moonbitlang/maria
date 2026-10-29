@@ -7,14 +7,14 @@ pub struct ChatCompletionMessageToolCall {
 } derive(Debug)
 
 ///|
-pub impl ToJson for ChatCompletionMessageToolCall with to_json(
+pub impl ToJson for ChatCompletionMessageToolCall with fn to_json(
   self : ChatCompletionMessageToolCall,
 ) -> Json {
   { "id": self.id, "function": self.function, "type": "function" }
 }
 
 ///|
-pub impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
+pub impl @json.FromJson for ChatCompletionMessageToolCall with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageToolCall {
@@ -29,5 +29,18 @@ pub impl @json.FromJson for ChatCompletionMessageToolCall with from_json(
     function,
     path=json_path.add_key("function"),
   )
-  ChatCompletionMessageToolCall::{ id, function }
+  ChatCompletionMessageToolCall::{ id, function, }
+}
+
+///|
+pub extend ChatCompletionMessageToolCall with @moonbitlang/core/debug.Debug::{
+  to_repr,
+}
+
+///|
+pub extend ChatCompletionMessageToolCall with ToJson::{to_json}
+
+///|
+pub extend ChatCompletionMessageToolCall with @moonbitlang/core/json.FromJson::{
+  from_json,
 }

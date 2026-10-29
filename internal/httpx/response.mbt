@@ -11,7 +11,7 @@ struct ResponseWriter {
 
 ///|
 fn ResponseWriter::new(conn : @http.ServerConnection) -> ResponseWriter {
-  ResponseWriter::{ sent: false, header: Header({}), conn }
+  ResponseWriter::{ sent: false, header: Header({}), conn, }
 }
 
 ///|
@@ -31,23 +31,27 @@ pub fn ResponseWriter::header(self : ResponseWriter) -> Header {
 /// * `reason` : Optional reason phrase, defaults to `httpx::reason(code)`.
 pub async fn ResponseWriter::write_header(
   self : ResponseWriter,
-  code : Int,
-  reason? : String = reason(code),
+  code : Int32,
+  reason~ : String = reason(code),
 ) -> Unit {
   guard self.sent is false else {
     println("@httpx.ResponseWriter::write_header called multiple times")
   }
-  self.conn.send_response(code, reason, extra_headers=self.header.0)
+  let headers : Map[@http.CaseInsensitiveString, String] = Map([])
+  for key, value in self.header.0 {
+    headers[@http.CaseInsensitiveString(key)] = value
+  }
+  self.conn.send_response(code, reason, extra_headers=headers)
   self.sent = true
 }
 
 ///|
-pub impl @io.Writer for ResponseWriter with write_once(
+pub impl @io.Writer for ResponseWriter with fn write_once(
   self : ResponseWriter,
   bytes : Bytes,
-  offset~ : Int,
-  len~ : Int,
-) -> Int {
+  offset~ : Int32,
+  len~ : Int32,
+) -> Int32 {
   if !self.sent {
     self.write_header(@status.Ok)
     self.sent = true
@@ -56,7 +60,7 @@ pub impl @io.Writer for ResponseWriter with write_once(
 }
 
 ///|
-pub impl @io.Writer for ResponseWriter with write_reader(
+pub impl @io.Writer for ResponseWriter with fn write_reader(
   self : ResponseWriter,
   reader : &@io.Reader,
 ) -> Unit {
@@ -84,4 +88,11 @@ pub async fn ResponseWriter::flush(self : ResponseWriter) -> Unit {
 /// on the HTTP version and connection headers.
 pub async fn ResponseWriter::close(self : ResponseWriter) -> Unit {
   self.conn.end_response()
+}
+
+///|
+pub extend ResponseWriter with @moonbitlang/async/io.Writer::{
+  write_once,
+  write,
+  write_reader,
 }

@@ -4,7 +4,7 @@
 priv struct PostSystemPromptRequest(String?)
 
 ///|
-impl @json.FromJson for PostSystemPromptRequest with from_json(
+impl @json.FromJson for PostSystemPromptRequest with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> PostSystemPromptRequest raise @json.JsonDecodeError {

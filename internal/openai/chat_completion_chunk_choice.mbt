@@ -1,13 +1,13 @@
 ///|
 /// Streaming choice wrapper returned by the API.
 pub struct ChatCompletionChunkChoice {
-  index : Int
+  index : Int32
   delta : ChatCompletionChunkChoiceDelta
   finish_reason : ChatCompletionChoiceFinishReason?
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for ChatCompletionChunkChoice with from_json(
+impl @json.FromJson for ChatCompletionChunkChoice with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunkChoice {
@@ -35,5 +35,8 @@ impl @json.FromJson for ChatCompletionChunkChoice with from_json(
     }
     None => None
   }
-  ChatCompletionChunkChoice::{ index: index.to_int(), delta, finish_reason }
+  ChatCompletionChunkChoice::{ index: index.to_int(), delta, finish_reason, }
 }
+
+///|
+pub extend ChatCompletionChunkChoice with ToJson::{to_json}

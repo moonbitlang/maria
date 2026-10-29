@@ -15,9 +15,12 @@ pub fn new(String) -> @tool.Tool
 
 // Types and methods
 type Result derive(ToJson, @json.FromJson)
+pub fn Result::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Result::output(Self, &Logger) -> Unit
+pub fn Result::to_json(Self) -> Json
+pub fn Result::to_string(Self) -> String
 pub impl Show for Result
 
 // Type aliases
 
 // Traits
-

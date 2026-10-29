@@ -123,7 +123,7 @@ async test "large_file_with_valid_range" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
     // Create a large file with many lines
-    let lines = Array::new(capacity=30000)
+    let lines = Array(capacity=30000)
     for i = 1; i <= 30000; i = i + 1 {
       lines.push("Line \{i}: some content here")
     }
@@ -235,16 +235,16 @@ async test "invalid-range" (t : @test.Test) {
       ),
     )
     let args : Json = { "path": "test.txt", "start_line": 3, "end_line": 2 }
-    let result = new(manager).call(args)
+    let result = @read_file.new(manager).call(args)
     inspect(
       result,
       content="Error: end_line (2) must be greater than start_line (3)",
     )
     let args : Json = { "path": "test.txt", "start_line": 0 }
-    let result = new(manager).call(args)
+    let result = @read_file.new(manager).call(args)
     inspect(result, content="Error: start_line must be >= 1, got 0")
     let args : Json = { "path": "test.txt", "start_line": 3, "end_line": 4 }
-    let result = new(manager).call(args)
+    let result = @read_file.new(manager).call(args)
     inspect(
       result,
       content=(
@@ -253,13 +253,13 @@ async test "invalid-range" (t : @test.Test) {
       ),
     )
     let args : Json = { "path": "test.txt", "start_line": 4, "end_line": 10 }
-    let result = new(manager).call(args)
+    let result = @read_file.new(manager).call(args)
     inspect(
       result,
       content="Error: start_line (4) must be <= total lines (3), got 4",
     )
     let args : Json = { "path": "test.txt", "start_line": 2, "end_line": 1024 }
-    let tool = new(manager)
+    let tool = @read_file.new(manager)
     let result = tool.call(args)
     guard result is Success(output) else {
       fail("Expected Success result but got: \{result}")

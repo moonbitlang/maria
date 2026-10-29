@@ -31,7 +31,7 @@ priv struct Params {
 
 ///|
 fn params(content~ : String, path~ : String, separator? : String) -> Params {
-  Params::{ content, path, separator }
+  Params::{ content, path, separator, }
 }
 
 ///|
@@ -40,7 +40,7 @@ pub fn json_input(
   path~ : String,
   separator? : String,
 ) -> Json {
-  params(content~, path~, separator?).to_json()
+  ToJson::to_json(params(content~, path~, separator?))
 }
 
 ///|
@@ -61,12 +61,12 @@ struct Result {
 } derive(FromJson, ToJson)
 
 ///|
-pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
+pub impl Show for Result with fn output(self : Result, logger : &Logger) -> Unit {
   logger.write_string("Content written to file at path: \{self.path}")
 }
 
 ///|
-impl @tool.ToolOutput for Result with to_message(self) {
+impl @tool.ToolOutput for Result with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
@@ -89,7 +89,7 @@ pub fn new(cwd : String) -> @tool.Tool {
     name="write_to_file",
     schema~,
     args => {
-      let { path, separator, content } : Params = @json.from_json(args) catch {
+      let { path, separator, content, } : Params = @json.from_json(args) catch {
         error => return @tool.failed("Invalid arguments: \{error}")
       }
       let path = if Path::is_absolute(path) {
@@ -125,3 +125,12 @@ pub fn new(cwd : String) -> @tool.Tool {
     },
   )
 }
+
+///|
+pub extend Result with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend Result with ToJson::{to_json}
+
+///|
+pub extend Result with Show::{to_string, output}

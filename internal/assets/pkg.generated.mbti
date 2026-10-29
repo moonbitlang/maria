@@ -16,8 +16,9 @@ pub(all) struct Asset {
   path : String
   content : String
 } derive(ToJson, @debug.Debug)
+pub fn Asset::to_json(Self) -> Json
+pub fn Asset::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

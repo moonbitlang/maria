@@ -14,17 +14,17 @@ pub struct Job {
 }
 
 ///|
-pub fn Job::status(self : Job) -> Int? {
+pub fn Job::status(self : Job) -> Int32? {
   self.process.status()
 }
 
 ///|
-pub async fn Job::wait(self : Job) -> Int {
+pub async fn Job::wait(self : Job) -> Int32 {
   self.process.wait()
 }
 
 ///|
-pub impl ToJson for Job with to_json(self : Job) -> Json {
+pub impl ToJson for Job with fn to_json(self : Job) -> Json {
   let json : Map[String, Json] = {
     "id": self.id.0,
     "name": self.name,
@@ -34,7 +34,7 @@ pub impl ToJson for Job with to_json(self : Job) -> Json {
     "stderr": self.stderr,
   }
   if self.description is Some(desc) {
-    json["description"] = desc.to_json()
+    json["description"] = Json(desc)
   }
   Json::object(json)
 }
@@ -42,36 +42,36 @@ pub impl ToJson for Job with to_json(self : Job) -> Json {
 ///|
 pub struct Manager {
   cwd : String
-  priv mut id : Int
+  priv mut id : Int32
   priv process : @spawn.Manager
   priv jobs : Map[Id, Job]
 }
 
 ///|
-pub(all) struct Id(Int) derive(Hash, Eq)
+pub(all) struct Id(Int32) derive(Hash, Eq)
 
 ///|
-pub impl Show for Id with output(self : Id, logger : &Logger) -> Unit {
+pub impl Show for Id with fn output(self : Id, logger : &Logger) -> Unit {
   Show::output(self.0, logger)
 }
 
 ///|
-pub impl ToJson for Id with to_json(self : Id) -> Json {
-  self.0.to_json()
+pub impl ToJson for Id with fn to_json(self : Id) -> Json {
+  Json(self.0)
 }
 
 ///|
-pub impl @json.FromJson for Id with from_json(
+pub impl @json.FromJson for Id with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Id {
-  let value : Int = @json.FromJson::from_json(json, json_path)
+  let value : Int32 = @json.FromJson::from_json(json, json_path)
   Id(value)
 }
 
 ///|
 pub fn Manager::new(cwd~ : String) -> Manager {
-  Manager::{ cwd, id: 0, process: @spawn.Manager::new(cwd~), jobs: {} }
+  Manager::{ cwd, id: 0, process: @spawn.Manager::new(cwd~), jobs: {}, }
 }
 
 ///|
@@ -130,7 +130,7 @@ pub suberror InvalidJobId {
 }
 
 ///|
-pub async fn Manager::wait(self : Manager, id : Id) -> Int {
+pub async fn Manager::wait(self : Manager, id : Id) -> Int32 {
   guard self.jobs.get(id) is Some(job) else { raise InvalidJobId(id) }
   job.wait()
 }
@@ -149,3 +149,21 @@ pub fn Manager::list(self : Manager) -> Array[Job] {
 pub fn Manager::get(self : Manager, id : Id) -> Job? {
   self.jobs.get(id)
 }
+
+///|
+pub extend Job with ToJson::{to_json}
+
+///|
+pub extend Id with Hash::{hash, hash_combine}
+
+///|
+pub extend Id with Eq::{not_equal, equal}
+
+///|
+pub extend Id with Show::{to_string, output}
+
+///|
+pub extend Id with ToJson::{to_json}
+
+///|
+pub extend Id with @moonbitlang/core/json.FromJson::{from_json}

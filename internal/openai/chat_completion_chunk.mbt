@@ -2,7 +2,7 @@
 pub struct ChatCompletionChunk {
   id : String
   choices : Array[ChatCompletionChunkChoice]
-  created : Int
+  created : Int32
   model : String
   usage : CompletionUsage?
   system_fingerprint : String?
@@ -11,7 +11,7 @@ pub struct ChatCompletionChunk {
 } derive(ToJson)
 
 ///|
-pub impl @json.FromJson for ChatCompletionChunk with from_json(
+pub impl @json.FromJson for ChatCompletionChunk with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunk {
@@ -87,3 +87,9 @@ pub impl @json.FromJson for ChatCompletionChunk with from_json(
     error,
   }
 }
+
+///|
+pub extend ChatCompletionChunk with ToJson::{to_json}
+
+///|
+pub extend ChatCompletionChunk with @moonbitlang/core/json.FromJson::{from_json}

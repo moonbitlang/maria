@@ -7,7 +7,7 @@ test {
     #|alwaysApply: true
     #|---
     #|Content of rule A
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={
     "description": "This is rule A",
     "globs": null,
@@ -25,7 +25,7 @@ test {
     #|alwaysApply: false
     #|---
     #|Content of rule B
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={
     "description": "This is rule B",
     "globs": ["*.txt", "*.md"],
@@ -43,7 +43,7 @@ test {
     #|alwaysApply: false
     #|---
     #|Content of rule C
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={
     "description": "This is rule C",
     "globs": ["*.txt"],
@@ -63,7 +63,7 @@ test {
     #|
     #|console.log("Hello, world!");
     #|
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={
     "description": "This is a test rule",
     "globs": ["**/*.js", "**/*.ts"],
@@ -83,7 +83,7 @@ test {
 test {
   let content =
     #|# No front matter
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={})
   inspect(text, content="")
 }
@@ -102,7 +102,7 @@ test {
     #|```
     #|
     #|Body.
-  let { meta, text } = @yamd.parse(content)
+  let { meta, text, } = @yamd.parse(content)
   json_inspect(meta, content={ "description": "Outer frontmatter" })
   inspect(
     text,

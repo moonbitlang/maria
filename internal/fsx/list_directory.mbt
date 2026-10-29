@@ -67,3 +67,33 @@ pub async fn list_directory(path : StringView) -> Array[DirectoryEntry] {
   entries.sort()
   entries
 }
+
+///|
+pub extend FileKind with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend FileKind with Hash::{hash, hash_combine}
+
+///|
+pub extend FileKind with Eq::{not_equal, equal}
+
+///|
+pub extend FileKind with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend FileKind with ToJson::{to_json}
+
+///|
+pub extend DirectoryEntry with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend DirectoryEntry with Hash::{hash, hash_combine}
+
+///|
+pub extend DirectoryEntry with Eq::{not_equal, equal}
+
+///|
+pub extend DirectoryEntry with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend DirectoryEntry with ToJson::{to_json}

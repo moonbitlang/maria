@@ -11,10 +11,10 @@ pub struct ChatCompletionMessage {
 pub fn ChatCompletionMessage::new(
   content? : String,
   refusal? : String,
-  role? : ChatCompletionMessageRole = Assistant,
-  tool_calls? : Array[ChatCompletionMessageToolCall] = [],
+  role~ : ChatCompletionMessageRole = Assistant,
+  tool_calls~ : Array[ChatCompletionMessageToolCall] = [],
 ) -> ChatCompletionMessage {
-  { content, refusal, role, tool_calls }
+  { content, refusal, role, tool_calls, }
 }
 
 ///|
@@ -25,11 +25,11 @@ pub fn ChatCompletionMessage::to_param(
   if self.content is Some(content) {
     parts.push(text_content_part(content))
   }
-  Assistant({ content: parts, name: None, tool_calls: self.tool_calls })
+  Assistant({ content: parts, name: None, tool_calls: self.tool_calls, })
 }
 
 ///|
-pub impl @json.FromJson for ChatCompletionMessage with from_json(
+pub impl @json.FromJson for ChatCompletionMessage with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessage {
@@ -68,5 +68,16 @@ pub impl @json.FromJson for ChatCompletionMessage with from_json(
     }
     None => []
   }
-  ChatCompletionMessage::{ content, refusal, role: Assistant, tool_calls }
+  ChatCompletionMessage::{ content, refusal, role: Assistant, tool_calls, }
+}
+
+///|
+pub extend ChatCompletionMessage with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ChatCompletionMessage with ToJson::{to_json}
+
+///|
+pub extend ChatCompletionMessage with @moonbitlang/core/json.FromJson::{
+  from_json,
 }

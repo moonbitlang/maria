@@ -12,14 +12,24 @@ test "parse" {
     @uuid.parse("12345678-1234-1234-1234-ABCDEF098765"),
     content="12345678-1234-1234-1234-abcdef098765",
   )
-  json_inspect(try? @uuid.parse("13cb"), content={ "Err": "UnexpectedEnd" })
-  json_inspect(try? @uuid.parse("13cb501c-99a8-c889-3234"), content={
-    "Err": ["MissingDash", ""],
+  json_inspect(Ok(@uuid.parse("13cb")) catch { error => Err(error) }, content={
+    "Err": "UnexpectedEnd",
   })
-  json_inspect(try? @uuid.parse("g"), content={ "Err": ["InvalidOctet", "g"] })
-  json_inspect(try? @uuid.parse("13cb501c-1234-5678-9034-abcdef937e20g"), content={
-    "Err": ["ExtraContent", "g"],
+  json_inspect(
+    Ok(@uuid.parse("13cb501c-99a8-c889-3234")) catch {
+      error => Err(error)
+    },
+    content={ "Err": ["MissingDash", ""] },
+  )
+  json_inspect(Ok(@uuid.parse("g")) catch { error => Err(error) }, content={
+    "Err": ["InvalidOctet", "g"],
   })
+  json_inspect(
+    Ok(@uuid.parse("13cb501c-1234-5678-9034-abcdef937e20g")) catch {
+      error => Err(error)
+    },
+    content={ "Err": ["ExtraContent", "g"] },
+  )
 }
 
 ///|
@@ -93,4 +103,34 @@ test "hash" {
   let v4 = uuid.v4()
   json_inspect(v4.hash() == v4.hash(), content=true)
   json_inspect(uuid.v4().hash() != uuid.v4().hash(), content=true)
+}
+
+///|
+test "all UUID version nibbles preserve their enum values" {
+  let versions : Array[@uuid.Version] = [
+    @uuid.V0,
+    @uuid.V1,
+    @uuid.V2,
+    @uuid.V3,
+    @uuid.V4,
+    @uuid.V5,
+    @uuid.V6,
+    @uuid.V7,
+    @uuid.V8,
+    @uuid.V9,
+    @uuid.V10,
+    @uuid.V11,
+    @uuid.V12,
+    @uuid.V13,
+    @uuid.V14,
+    @uuid.V15,
+  ]
+  for i, version in versions {
+    let nibble = [
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e",
+        "f",
+      ][i]
+    let uuid = @uuid.parse("00000000-0000-\{nibble}000-8000-000000000000")
+    assert_eq(@debug.to_string(uuid.version()), @debug.to_string(Some(version)))
+  }
 }

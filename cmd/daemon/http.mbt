@@ -1,19 +1,19 @@
 ///|
 /// HTTP error wrapper used to bubble failures to the HTTP layer.
 priv suberror HttpError {
-  HttpError(code~ : Int, reason~ : String, body~ : String)
+  HttpError(code~ : Int32, reason~ : String, body~ : String)
 }
 
 ///|
 /// Constructs an `HttpError` carrying a JSON body that will be stringified.
 /// Use for structured error responses in handlers.
-fn json_error(code : Int, reason : String, body : Json) -> HttpError {
+fn json_error(code : Int32, reason : String, body : Json) -> HttpError {
   HttpError(code~, reason~, body=body.stringify())
 }
 
 ///|
 /// Constructs an `HttpError` with a plain-text body.
-fn text_error(code : Int, reason : String, body : String) -> HttpError {
+fn text_error(code : Int32, reason : String, body : String) -> HttpError {
   HttpError(code~, reason~, body~)
 }
 
@@ -44,7 +44,7 @@ async fn serve_static_file(
   path~ : String,
 ) -> Unit {
   if Path::join(serve, path).to_string() is path &&
-    (try? @fsx.exists_as_file(path)) is Ok(true) {
+    (Ok(@fsx.exists_as_file(path)) catch { error => Err(error) }) is Ok(true) {
     let content_type = match Path::extname(path) {
       ".js" => "application/javascript"
       ".css" => "text/css"
@@ -64,7 +64,7 @@ async fn serve_static_file(
       "error": {
         "code": -1,
         "message": "Unknown endpoint: \{path}",
-        "metadata": { "method": @http.Get.to_string(), "path": path },
+        "metadata": { "method": @debug.to_string(@http.Get), "path": path },
       },
     })
   }

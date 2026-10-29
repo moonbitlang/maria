@@ -48,7 +48,7 @@ struct EventTarget {
 /// ```
 pub fn EventTarget::new(
   uuid? : @uuid.Generator,
-  clock? : &@clock.Clock = @clock.epoch,
+  clock~ : &@clock.Clock = @clock.epoch,
 ) -> EventTarget raise {
   let uuid = match uuid {
     None => @uuid.generator(@rand.chacha8())
@@ -57,7 +57,7 @@ pub fn EventTarget::new(
   EventTarget::{
     uuid,
     clock,
-    queue: @aqueue.Queue::new(kind=Unbounded),
+    queue: @aqueue.Queue(kind=Unbounded),
     listeners: [],
   }
 }
@@ -91,9 +91,9 @@ pub fn EventTarget::new(
 pub fn EventTarget::emit(
   self : EventTarget,
   desc : EventDesc,
-  id? : @uuid.Uuid = self.uuid.v4(),
+  id~ : @uuid.Uuid = self.uuid.v4(),
 ) -> Unit {
-  let success = self.queue.try_put({ id, created: self.clock.now(), desc }) catch {
+  let success = self.queue.try_put({ id, created: self.clock.now(), desc, }) catch {
     _ => abort("Event queue is closed, cannot emit event")
   }
   guard success else { abort("Event queue is full, cannot emit event") }

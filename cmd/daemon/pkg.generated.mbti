@@ -8,7 +8,7 @@ import {
 }
 
 // Values
-pub async fn detach(exec_path? : String, port? : Int, serve? : StringView) -> Int
+pub async fn detach(exec_path? : String, port? : Int32, serve? : StringView) -> Int32
 
 pub async fn lock_daemon_file(home~ : StringView) -> @fs.File?
 
@@ -18,16 +18,17 @@ pub async fn start(ArrayView[String]) -> Unit
 
 // Types and methods
 type Daemon
-pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
-pub fn Daemon::port(Self) -> Int
+pub async fn Daemon::new(uuid? : @uuid.Generator, exec_path~ : String, port~ : Int32, serve~ : String, cwd? : StringView, home? : StringView, lock? : Bool) -> Self?
+pub fn Daemon::port(Self) -> Int32
 pub async fn Daemon::serve(Self) -> Unit
 
 type Task
+pub fn Task::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Task::is_idle(Self) -> Bool
+pub fn Task::to_json(Self) -> Json
 pub impl ToJson for Task
 pub impl @json.FromJson for Task
 
 // Type aliases
 
 // Traits
-

@@ -20,6 +20,15 @@ pub(all) enum Level {
   Error
   Fatal
 } derive(Compare, Eq, ToJson, @debug.Debug)
+pub fn Level::compare(Self, Self) -> Int32
+pub fn Level::equal(Self, Self) -> Bool
+pub fn Level::not_equal(Self, Self) -> Bool
+pub fn Level::op_ge(Self, Self) -> Bool
+pub fn Level::op_gt(Self, Self) -> Bool
+pub fn Level::op_le(Self, Self) -> Bool
+pub fn Level::op_lt(Self, Self) -> Bool
+pub fn Level::to_json(Self) -> Json
+pub fn Level::to_repr(Self) -> @debug.Repr
 
 type Logger
 pub fn Logger::child(Self, Map[String, Json]) -> Self
@@ -42,4 +51,3 @@ pub fn Transport::sink() -> Self
 // Type aliases
 
 // Traits
-

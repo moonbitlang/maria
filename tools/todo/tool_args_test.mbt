@@ -3,7 +3,7 @@
 ///|
 test "parse_todo_args/read_action" {
   let args : Json = { "action": "read" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "Read",
     "priority": "Medium",
@@ -20,7 +20,7 @@ test "parse_todo_args/create_action_with_all_params" {
     "status": "pending",
     "notes": "Some notes",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "Create",
     "content": "Test task",
@@ -33,7 +33,7 @@ test "parse_todo_args/create_action_with_all_params" {
 ///|
 test "parse_todo_args/add_task_action" {
   let args : Json = { "action": "add_task", "content": "New task" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "AddTask",
     "content": "New task",
@@ -50,7 +50,7 @@ test "parse_todo_args/update_action_with_task_id" {
     "content": "Updated content",
     "priority": "low",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "Update",
     "content": "Updated content",
@@ -63,7 +63,7 @@ test "parse_todo_args/update_action_with_task_id" {
 ///|
 test "parse_todo_args/mark_progress_action" {
   let args : Json = { "action": "mark_progress", "task_id": "task-1" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "MarkProgress",
     "task_id": "task-1",
@@ -75,7 +75,7 @@ test "parse_todo_args/mark_progress_action" {
 ///|
 test "parse_todo_args/mark_completed_action" {
   let args : Json = { "action": "mark_completed", "task_id": "task-2" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "MarkCompleted",
     "task_id": "task-2",
@@ -87,7 +87,7 @@ test "parse_todo_args/mark_completed_action" {
 ///|
 test "parse_todo_args/case_insensitive_action" {
   let args : Json = { "action": "CREATE", "content": "Task" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "Create",
     "content": "Task",
@@ -103,7 +103,7 @@ test "parse_todo_args/status_in_progress_hyphen" {
     "content": "Task",
     "status": "in-progress",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "AddTask",
     "content": "Task",
@@ -119,7 +119,7 @@ test "parse_todo_args/status_in_progress_underscore" {
     "content": "Task",
     "status": "in_progress",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "AddTask",
     "content": "Task",
@@ -135,7 +135,7 @@ test "parse_todo_args/status_completed" {
     "content": "Task",
     "status": "completed",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "AddTask",
     "content": "Task",
@@ -151,7 +151,7 @@ test "parse_todo_args/priority_medium" {
     "content": "Task",
     "priority": "medium",
   }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   json_inspect(result, content={
     "action": "Create",
     "content": "Task",
@@ -163,7 +163,9 @@ test "parse_todo_args/priority_medium" {
 ///|
 test "parse_todo_args/error_missing_action" {
   let args : Json = { "content": "Test task" }
-  let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
+  let result : Result[@todo.TodoArgs, @todo.TodoArgsError] = Ok(
+    @todo.parse_todo_args(args),
+  ) catch {
     e => Err(e)
   }
   @debug.debug_inspect(
@@ -175,7 +177,9 @@ test "parse_todo_args/error_missing_action" {
 ///|
 test "parse_todo_args/error_invalid_action" {
   let args : Json = { "action": "invalid" }
-  let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
+  let result : Result[@todo.TodoArgs, @todo.TodoArgsError] = Ok(
+    @todo.parse_todo_args(args),
+  ) catch {
     e => Err(e)
   }
   @debug.debug_inspect(
@@ -191,7 +195,9 @@ test "parse_todo_args/error_invalid_priority" {
     "content": "Task",
     "priority": "urgent",
   }
-  let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
+  let result : Result[@todo.TodoArgs, @todo.TodoArgsError] = Ok(
+    @todo.parse_todo_args(args),
+  ) catch {
     e => Err(e)
   }
   @debug.debug_inspect(
@@ -205,7 +211,9 @@ test "parse_todo_args/error_invalid_priority" {
 ///|
 test "parse_todo_args/error_invalid_status" {
   let args : Json = { "action": "create", "content": "Task", "status": "done" }
-  let result : Result[TodoArgs, TodoArgsError] = Ok(parse_todo_args(args)) catch {
+  let result : Result[@todo.TodoArgs, @todo.TodoArgsError] = Ok(
+    @todo.parse_todo_args(args),
+  ) catch {
     e => Err(e)
   }
   @debug.debug_inspect(
@@ -219,7 +227,7 @@ test "parse_todo_args/error_invalid_status" {
 ///|
 test "parse_todo_args/defaults_without_optional_params" {
   let args : Json = { "action": "read" }
-  let result = parse_todo_args(args)
+  let result = @todo.parse_todo_args(args)
   // Verify defaults
   json_inspect(result, content={
     "action": "Read",

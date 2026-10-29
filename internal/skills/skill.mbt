@@ -127,3 +127,9 @@ fn parse_skill_from_content(
     location,
   }
 }
+
+///|
+pub extend Skill with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Skill with ToJson::{to_json}

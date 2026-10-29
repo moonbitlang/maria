@@ -6,7 +6,7 @@ pub struct QueuedMessage {
 }
 
 ///|
-pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
+pub impl ToJson for QueuedMessage with fn to_json(self : QueuedMessage) -> Json {
   {
     "id": self.id.to_string(),
     "message": self.message.to_openai().to_json(),
@@ -15,7 +15,7 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for QueuedMessage with from_json(
+pub impl @json.FromJson for QueuedMessage with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> QueuedMessage raise @json.JsonDecodeError {
@@ -27,7 +27,7 @@ pub impl @json.FromJson for QueuedMessage with from_json(
   )
   let message = @ai.Message::from_openai(message)
   let web_search : Bool = object.optional("web_search", path~).unwrap_or(false)
-  QueuedMessage::{ id, message, web_search }
+  QueuedMessage::{ id, message, web_search, }
 }
 
 ///|
@@ -76,10 +76,10 @@ priv suberror EmptyChoices
 pub fn Agent::queue_message(
   agent : Agent,
   message : @ai.Message,
-  web_search? : Bool = agent.web_search,
+  web_search~ : Bool = agent.web_search,
 ) -> @uuid.Uuid {
   let id = agent.uuid.v4()
-  agent.pending_queue.push_back(QueuedMessage::{ id, message, web_search })
+  agent.pending_queue.push_back(QueuedMessage::{ id, message, web_search, })
   agent.emit(MessageQueued(id~))
   id
 }
@@ -121,7 +121,7 @@ pub fn Agent::close(_ : Agent) -> Unit {
 async fn Agent::prepare_messages_for_request(
   agent : Agent,
   tools~ : Array[@tool.ToolDesc],
-) -> (Array[@openai.ChatCompletionMessageParam], Int) {
+) -> (Array[@openai.ChatCompletionMessageParam], Int32) {
   let tools_openai = tools.map(x => x.to_openai())
 
   // Calculate which events need to be pruned (does not modify conversation)
@@ -262,7 +262,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       )
 
       // Enable web search plugin if configured
-      let extra_body : Map[String, Json] = {}
+      let extra_body : Map[String, Json] = Map([])
       if web_search {
         // We only support web search plugin for OpenRouter models for now.
         //
@@ -364,7 +364,7 @@ pub async fn new(
   name? : String,
   model : @model.Model,
   uuid? : @uuid.Generator,
-  logger? : @pino.Logger = @pino.logger(
+  logger~ : @pino.Logger = @pino.logger(
     "agent",
     try! @pino.Transport::parse("file:.moonagent/log.jsonl"),
   ),
@@ -372,7 +372,7 @@ pub async fn new(
   user_message? : String,
   home? : StringView,
   cwd~ : StringView,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
   external_events? : @event.ExternalEventQueue,
   history? : @conversation.Conversation,
 ) -> Agent {
@@ -475,7 +475,7 @@ pub async fn load(
   logger? : @pino.Logger,
   home? : StringView,
   user_message? : String,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
   external_events? : @event.ExternalEventQueue,
 ) -> Agent {
   new(
@@ -513,3 +513,9 @@ pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
 pub fn Agent::id(agent : Agent) -> @uuid.Uuid {
   agent.history.id()
 }
+
+///|
+pub extend QueuedMessage with ToJson::{to_json}
+
+///|
+pub extend QueuedMessage with @moonbitlang/core/json.FromJson::{from_json}

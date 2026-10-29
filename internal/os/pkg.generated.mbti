@@ -12,7 +12,7 @@ pub fn cwd() -> String raise
 
 pub fn executable() -> String raise
 
-pub fn[X] exit(Int) -> X
+pub fn[X] exit(Int32) -> X
 
 pub fn getenv(StringView) -> String? raise
 
@@ -33,4 +33,3 @@ pub fn unsetenv(StringView) -> Unit raise
 // Type aliases
 
 // Traits
-

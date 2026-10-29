@@ -19,7 +19,7 @@ async test "event-stream" (t : @test.Test) {
         },
         no_wait=true,
       )
-      let c = @http.Client::new("http://localhost:\{s.port()}")
+      let c = @http.Client("http://localhost:\{s.port()}")
       defer c.close()
       c.request(Get, "/")
       let r = c.end_request()
@@ -32,7 +32,7 @@ async test "event-stream" (t : @test.Test) {
         es.push(event)
       }
       inspect(
-        es.map(Event::to_string).join(""),
+        es.map(@httpx.Event::to_string).join(""),
         content=(
           #|event: message
           #|data: {"count":0}

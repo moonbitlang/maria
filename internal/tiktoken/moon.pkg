@@ -1,13 +1,17 @@
 import {
   "moonbitlang/x/codec/base64",
   "moonbitlang/regexp",
-  "moonbitlang/core/buffer",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/int",
-  "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "moonbitlang/core/strconv",
-  "moonbitlang/core/test",
 }
 
 warnings = "-2-33"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "wbtest"

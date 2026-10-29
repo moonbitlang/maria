@@ -5,7 +5,7 @@ using @path {type Path}
 /// Search result structure matching Python version
 priv struct SearchResult {
   context : String
-  line_number : Int
+  line_number : Int32
   match_line : String
   path : String
 } derive(ToJson, FromJson)
@@ -42,7 +42,7 @@ async fn collect_files_recursive(
   directory : String,
   file_pattern : String,
   base_dir : String,
-  want_respect_gitignore? : Bool = true,
+  want_respect_gitignore~ : Bool = true,
   does_respect_gitignore~ : Ref[Bool],
 ) -> Array[String] {
   let results = []
@@ -52,7 +52,10 @@ async fn collect_files_recursive(
       if entry.name is ".git" {
         continue
       }
-      if (try? @git.is_ignored(entry.path, cwd=base_dir)) is Ok(ignored) {
+      if (Ok(@git.is_ignored(entry.path, cwd=base_dir)) catch {
+          error => Err(error)
+        })
+        is Ok(ignored) {
         if ignored {
           continue
         }
@@ -106,7 +109,7 @@ fn matches_pattern(filename : String, pattern : String) -> Bool {
 async fn search_in_file(
   file_path : String,
   regex : @regexp.Regexp,
-  context_lines : Int,
+  context_lines : Int32,
   base_dir : String,
 ) -> Array[SearchResult] raise SearchError {
   let content = @fsx.read_file(file_path) catch {
@@ -129,8 +132,8 @@ async fn search_in_file(
     let match_result = regex.execute(line)
     if match_result.matched() { // Use execute and check matched()
       // Generate context
-      let context_start = Int::max(0, i - context_lines)
-      let context_end = Int::min(lines.length(), i + context_lines + 1)
+      let context_start = Int32::max(0, i - context_lines)
+      let context_end = Int32::min(lines.length(), i + context_lines + 1)
       let context_lines_arr = []
       for j = context_start; j < context_end; j = j + 1 {
         context_lines_arr.push("\{j + 1}: \{lines[j]}")
@@ -222,8 +225,8 @@ priv struct SearchResultData {
   query : String
   path : String
   file_pattern : String
-  context_lines : Int
-  total_matches : Int
+  context_lines : Int32
+  total_matches : Int32
   results : Array[SearchResult]
   truncated : Bool
   message : String
@@ -247,12 +250,12 @@ enum SearchFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for SearchFilesResult with to_message(self) {
+impl @tool.ToolOutput for SearchFilesResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for SearchFilesResult with output(
+pub impl Show for SearchFilesResult with fn output(
   self : SearchFilesResult,
   logger : &Logger,
 ) -> Unit {
@@ -308,7 +311,7 @@ async fn search_files_impl(
     )
   }
   let context_lines = match args {
-    { "context_lines": Number(cl, ..), .. } => Int::max(0, cl.to_int())
+    { "context_lines": Number(cl, ..), .. } => Int32::max(0, cl.to_int())
     _ => 2
   }
   let file_pattern = match args {
@@ -668,3 +671,12 @@ pub let prompt : String =
   #|
   #|Search results omit for brevity.
   #|
+
+///|
+pub extend SearchFilesResult with ToJson::{to_json}
+
+///|
+pub extend SearchFilesResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend SearchFilesResult with Show::{to_string, output}

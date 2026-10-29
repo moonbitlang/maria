@@ -64,7 +64,7 @@ fn try_line_by_line_match(haystack : String, needle : String) -> MatchResult? {
   /// * `end`: Ending line index in the haystack (inclusive)
   ///
   /// Returns match result with position and length
-  fn fuzzy_match_from_line(start : Int, end : Int) -> MatchResult {
+  fn fuzzy_match_from_line(start : Int32, end : Int32) -> MatchResult {
     let matched_lines = []
     for i = start; i <= end; i = i + 1 {
       matched_lines.push(haystack_lines[i])

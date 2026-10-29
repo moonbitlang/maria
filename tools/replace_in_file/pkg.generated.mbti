@@ -14,9 +14,12 @@ pub fn new(@file.Manager) -> @tool.Tool
 
 // Types and methods
 type WriteResult derive(ToJson, @json.FromJson)
+pub fn WriteResult::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn WriteResult::output(Self, &Logger) -> Unit
+pub fn WriteResult::to_json(Self) -> Json
+pub fn WriteResult::to_string(Self) -> String
 pub impl Show for WriteResult
 
 // Type aliases
 
 // Traits
-

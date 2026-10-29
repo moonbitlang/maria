@@ -4,13 +4,18 @@ import {
   "moonbitlang/maria/internal/token_counter",
   "moonbitlang/maria/internal/conversation",
   "moonbitlang/maria/internal/uuid",
-  "moonbitlang/maria/event",
   "moonbitlang/maria/ai",
-  "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
+} for "test"
+
+import {
+  "moonbitlang/maria/event",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

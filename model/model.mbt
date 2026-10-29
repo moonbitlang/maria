@@ -6,7 +6,7 @@ pub struct Model {
   model_type : Type
   api_key : String
   base_url : String
-  safe_zone_tokens : Int
+  safe_zone_tokens : Int32
   supports_anthropic_prompt_caching : Bool
   supports_apply_patch : Bool
   // OAuth credentials for CodexOAuth provider
@@ -49,11 +49,11 @@ pub fn Model::new(
   api_key~ : String,
   base_url~ : String,
   name~ : String,
-  safe_zone_tokens~ : Int,
-  model_name? : String = name,
-  model_type? : Type = SaaS(OpenAI),
+  safe_zone_tokens~ : Int32,
+  model_name~ : String = name,
+  model_type~ : Type = SaaS(OpenAI),
   description? : String,
-  supports_anthropic_prompt_caching? : Bool = false,
+  supports_anthropic_prompt_caching~ : Bool = false,
   access_token? : String,
   account_id? : String,
   refresh_token? : String,
@@ -146,7 +146,7 @@ pub(all) enum CommonModels {
 }
 
 ///|
-pub impl Show for CommonModels with output(
+pub impl Show for CommonModels with fn output(
   self : CommonModels,
   logger : &Logger,
 ) -> Unit {
@@ -170,7 +170,7 @@ pub impl Show for CommonModels with output(
 }
 
 ///|
-fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int {
+fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int32 {
   match self {
     Qwen3CoderPlus => 128_000
     Qwen3CoderFlash => 128_000
@@ -198,7 +198,7 @@ fn CommonModels::safe_zone_tokens(self : CommonModels) -> Int {
 /// for testing
 pub fn open_router_model(
   api_key~ : String,
-  name? : CommonModels = Qwen3CoderPlus,
+  name~ : CommonModels = Qwen3CoderPlus,
 ) -> Model {
   Model::new(
     api_key~,
@@ -214,14 +214,17 @@ pub(all) enum CodexModels {
 }
 
 ///|
-pub impl Show for CodexModels with output(self : CodexModels, logger : &Logger) -> Unit {
+pub impl Show for CodexModels with fn output(
+  self : CodexModels,
+  logger : &Logger,
+) -> Unit {
   match self {
     Gpt5_2 => logger.write_string("gpt-5.2")
   }
 }
 
 ///|
-fn CodexModels::safe_zone_tokens(self : CodexModels) -> Int {
+fn CodexModels::safe_zone_tokens(self : CodexModels) -> Int32 {
   match self {
     Gpt5_2 => 400_000
   }
@@ -233,7 +236,7 @@ pub fn codex_oauth_model(
   account_id~ : String,
   refresh_token~ : String,
   id_token? : String,
-  name? : CodexModels = Gpt5_2,
+  name~ : CodexModels = Gpt5_2,
 ) -> Model {
   Model::new(
     api_key="", // Not used for CodexOAuth
@@ -312,7 +315,7 @@ pub(all) enum CopilotModels {
 }
 
 ///|
-pub impl Show for CopilotModels with output(
+pub impl Show for CopilotModels with fn output(
   self : CopilotModels,
   logger : &Logger,
 ) -> Unit {
@@ -348,7 +351,7 @@ pub impl Show for CopilotModels with output(
 }
 
 ///|
-fn CopilotModels::safe_zone_tokens(self : CopilotModels) -> Int {
+fn CopilotModels::safe_zone_tokens(self : CopilotModels) -> Int32 {
   match self {
     Gpt4_1 => 1_000_000
     Gpt4o => 128_000
@@ -384,7 +387,7 @@ fn CopilotModels::safe_zone_tokens(self : CopilotModels) -> Int {
 pub fn copilot_model(
   copilot_token~ : String,
   github_token~ : String,
-  name? : CopilotModels = Gpt4_1,
+  name~ : CopilotModels = Gpt4_1,
 ) -> Model {
   Model::new(
     api_key=copilot_token,
@@ -396,3 +399,33 @@ pub fn copilot_model(
     refresh_token=github_token, // Store github_token as refresh_token for refreshing
   )
 }
+
+///|
+pub extend Model with ToJson::{to_json}
+
+///|
+pub extend Model with Eq::{not_equal, equal}
+
+///|
+pub extend Model with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Provider with Eq::{not_equal, equal}
+
+///|
+pub extend Provider with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Type with Eq::{not_equal, equal}
+
+///|
+pub extend Type with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CommonModels with Show::{to_string, output}
+
+///|
+pub extend CodexModels with Show::{to_string, output}
+
+///|
+pub extend CopilotModels with Show::{to_string, output}

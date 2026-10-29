@@ -96,12 +96,12 @@ pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
 ///
 /// This function has a 10-second timeout, in case of a non-responsive daemon
 /// or a old version daemon that does not support the shutdown endpoint.
-async fn request_shutdown(pid : Int, port : Int) -> Bool {
+async fn request_shutdown(pid : Int32, port : Int32) -> Bool {
   try {
     let (r, _) = @async.with_timeout(10_000, () => {
       @httpx.post_json("http://localhost:\{port}/v1/shutdown", Json::object({}))
     })
-    return r.code is (200..=299)
+    return r.code is (200..<=299)
   } catch {
     error =>
       if @async.is_being_cancelled() {

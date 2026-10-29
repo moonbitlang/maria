@@ -1,4 +1,8 @@
 import {
+  "moonbitlang/core/debug",
+}
+
+import {
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/pino",
   "moonbitlang/maria/internal/fsx",
@@ -6,8 +10,6 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/yamd",
-  "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -18,4 +20,12 @@ import {
 import {
   "moonbitlang/async",
   "moonbitlang/maria/internal/mock",
+} for "wbtest"
+
+import {
+  "moonbitlang/core/test",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "wbtest"

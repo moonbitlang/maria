@@ -3,7 +3,7 @@
 pub struct ChatCompletion {
   id : String
   choices : Array[ChatCompletionChoice]
-  created : Int
+  created : Int32
   model : String
   usage : CompletionUsage?
   system_fingerprint : String?
@@ -14,17 +14,17 @@ pub struct ChatCompletion {
 pub fn ChatCompletion::new(
   id~ : String,
   choices~ : Array[ChatCompletionChoice],
-  created~ : Int,
+  created~ : Int32,
   model~ : String,
   usage? : CompletionUsage,
   system_fingerprint? : String,
   service_tier? : ChatCompletionServiceTier,
 ) -> ChatCompletion {
-  { id, choices, created, model, usage, system_fingerprint, service_tier }
+  { id, choices, created, model, usage, system_fingerprint, service_tier, }
 }
 
 ///|
-pub impl ToJson for ChatCompletion with to_json(self : ChatCompletion) -> Json {
+pub impl ToJson for ChatCompletion with fn to_json(self : ChatCompletion) -> Json {
   let json : Map[String, Json] = {
     "id": self.id,
     "choices": self.choices,
@@ -44,7 +44,7 @@ pub impl ToJson for ChatCompletion with to_json(self : ChatCompletion) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for ChatCompletion with from_json(
+pub impl @json.FromJson for ChatCompletion with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletion {
@@ -110,3 +110,12 @@ pub impl @json.FromJson for ChatCompletion with from_json(
     service_tier,
   }
 }
+
+///|
+pub extend ChatCompletion with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ChatCompletion with ToJson::{to_json}
+
+///|
+pub extend ChatCompletion with @moonbitlang/core/json.FromJson::{from_json}

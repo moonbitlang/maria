@@ -13,7 +13,7 @@ pub(all) enum Method {
 } derive(Eq, Compare, Hash, ToJson)
 
 ///|
-pub impl Show for Method with to_string(self : Method) -> String {
+pub impl Show for Method with fn to_string(self : Method) -> String {
   match self {
     Method::Get => "GET"
     Method::Head => "HEAD"
@@ -28,7 +28,7 @@ pub impl Show for Method with to_string(self : Method) -> String {
 }
 
 ///|
-pub impl Show for Method with output(self : Method, out : &Logger) -> Unit {
+pub impl Show for Method with fn output(self : Method, out : &Logger) -> Unit {
   out.write_string(self.to_string())
 }
 
@@ -76,3 +76,18 @@ pub fn Method::to_http(self : Method) -> @http.RequestMethod {
     Method::Patch => @http.RequestMethod::Patch
   }
 }
+
+///|
+pub extend Method with Eq::{not_equal, equal}
+
+///|
+pub extend Method with Compare::{op_lt, op_le, op_ge, compare, op_gt}
+
+///|
+pub extend Method with Hash::{hash, hash_combine}
+
+///|
+pub extend Method with ToJson::{to_json}
+
+///|
+pub extend Method with Show::{to_string, output}

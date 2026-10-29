@@ -4,7 +4,7 @@
 /// For known codes this uses the mappings from `httpx/status` and
 /// `httpx/reason`. For unknown codes it falls back to a generic description
 /// based on the status class.
-pub fn reason(status : Int) -> String {
+pub fn reason(status : Int32) -> String {
   match status {
     @status.Continue => @reason.Continue
     @status.SwitchingProtocols => @reason.SwitchingProtocols

@@ -36,11 +36,11 @@ test "split" {
 ///|
 test "replace_ext" {
   let path = "main.mbt"
-  inspect(replace_ext(path, ".c"), content="main.c")
+  inspect(@pathx.replace_ext(path, ".c"), content="main.c")
   let path = "main"
-  inspect(replace_ext(path, ".mbt"), content="main.mbt")
+  inspect(@pathx.replace_ext(path, ".mbt"), content="main.mbt")
   let path = "main.com/file"
-  inspect(replace_ext(path, ".c"), content="main.com/file.c")
+  inspect(@pathx.replace_ext(path, ".c"), content="main.com/file.c")
 }
 
 ///|
@@ -51,13 +51,13 @@ test "replace_ext: failed cases" {
   // some input would disappear when path is resolved and normalized.
   let ext = ".md"
   // empty file name.
-  inspect(replace_ext("", ext), content="")
+  inspect(@pathx.replace_ext("", ext), content="")
   // special file name.
-  inspect(replace_ext(".", ext), content=".")
-  inspect(replace_ext("..", ext), content="..")
+  inspect(@pathx.replace_ext(".", ext), content=".")
+  inspect(@pathx.replace_ext("..", ext), content="..")
   // POSIX platform specific cases
-  inspect(replace_ext("//", ext), content="//")
+  inspect(@pathx.replace_ext("//", ext), content="//")
   // root cases
-  inspect(replace_ext("/", ext), content="/")
-  inspect(replace_ext("///", ext), content="///")
+  inspect(@pathx.replace_ext("/", ext), content="/")
+  inspect(@pathx.replace_ext("///", ext), content="///")
 }

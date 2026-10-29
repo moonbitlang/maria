@@ -91,7 +91,9 @@ fn format_message_content(
             lines.push("**Parameters:**")
 
             // Try to parse arguments as JSON and format nicely
-            let args_result = try? @json.parse(arguments)
+            let args_result = Ok(@json.parse(arguments)) catch {
+              error => Err(error)
+            }
             match args_result {
               Ok(Json::Object(args_map)) =>
                 for key, value in args_map {

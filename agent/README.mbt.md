@@ -22,7 +22,7 @@ An `Agent` is an autonomous entity that:
 ```moonbit check
 ///|
 let model : @model.Model = {
-  guard (try? @os.getenv("OPENAI_API_KEY")) is Ok(Some(api_key)) else {
+  guard (try! @os.getenv("OPENAI_API_KEY")) is Some(api_key) else {
     println("OPENAI_API_KEY not set, unable to run tests")
     @os.exit(1)
   }

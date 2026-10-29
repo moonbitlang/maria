@@ -16,7 +16,7 @@ pub fn stream_options(
   include_obfuscation? : Bool,
   include_usage? : Bool,
 ) -> ChatCompletionStreamOptionsParam {
-  ChatCompletionStreamOptionsParam::{ include_obfuscation, include_usage }
+  ChatCompletionStreamOptionsParam::{ include_obfuscation, include_usage, }
 }
 
 ///|
@@ -41,10 +41,10 @@ pub fn stream_options(
 pub fn chat_completion(
   model~ : String,
   messages~ : Array[ChatCompletionMessageParam],
-  tools? : Array[ChatCompletionToolParam] = [],
+  tools~ : Array[ChatCompletionToolParam] = [],
   usage? : CompletionUsageParam,
   user? : String,
-  max_tokens? : Int,
+  max_tokens? : Int32,
   temperature? : Double,
   reasoning_effort? : ChatCompletionReasoningEffort,
   response_format? : ResponseFormat,
@@ -83,32 +83,32 @@ pub fn text_content_part(
   text : String,
   cache_control? : CacheControl,
 ) -> ChatCompletionContentPartParam {
-  ChatCompletionContentPartParam::Text({ text, cache_control })
+  ChatCompletionContentPartParam::Text({ text, cache_control, })
 }
 
 ///|
 trait ToChatCompletionMessageParamContent {
-  to_chat_completion_message_param_content(self : Self) -> Array[
+  fn to_chat_completion_message_param_content(self : Self) -> Array[
     ChatCompletionContentPartParam,
   ]
 }
 
 ///|
-pub impl ToChatCompletionMessageParamContent for String with to_chat_completion_message_param_content(
+pub impl ToChatCompletionMessageParamContent for String with fn to_chat_completion_message_param_content(
   self : String,
 ) -> Array[ChatCompletionContentPartParam] {
   [text_content_part(self)]
 }
 
 ///|
-pub impl ToChatCompletionMessageParamContent for StringView with to_chat_completion_message_param_content(
+pub impl ToChatCompletionMessageParamContent for StringView with fn to_chat_completion_message_param_content(
   self : StringView,
 ) -> Array[ChatCompletionContentPartParam] {
   [text_content_part(self.to_owned())]
 }
 
 ///|
-pub impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam with to_chat_completion_message_param_content(
+pub impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam with fn to_chat_completion_message_param_content(
   self : ChatCompletionContentPartParam,
 ) -> Array[ChatCompletionContentPartParam] {
   [self]
@@ -117,7 +117,7 @@ pub impl ToChatCompletionMessageParamContent for ChatCompletionContentPartParam 
 ///|
 pub impl[T : ToChatCompletionMessageParamContent] ToChatCompletionMessageParamContent for Array[
   T,
-] with to_chat_completion_message_param_content(self : Array[T]) -> Array[
+] with fn to_chat_completion_message_param_content(self : Array[T]) -> Array[
   ChatCompletionContentPartParam,
 ] {
   let parts = []
@@ -143,7 +143,7 @@ pub fn[T : ToChatCompletionMessageParamContent] system_message(
   content~ : T,
   name? : String,
 ) -> ChatCompletionMessageParam {
-  System({ content: content.to_chat_completion_message_param_content(), name })
+  System({ content: content.to_chat_completion_message_param_content(), name, })
 }
 
 ///|
@@ -161,7 +161,7 @@ pub fn[T : ToChatCompletionMessageParamContent] user_message(
   content~ : T,
   name? : String,
 ) -> ChatCompletionMessageParam {
-  User({ content: content.to_chat_completion_message_param_content(), name })
+  User({ content: content.to_chat_completion_message_param_content(), name, })
 }
 
 ///|
@@ -207,7 +207,7 @@ pub fn tool(
   parameters~ : Json,
   strict? : Bool,
 ) -> ChatCompletionToolParam {
-  Function(FunctionDefinition::{ name, description, parameters, strict })
+  Function(FunctionDefinition::{ name, description, parameters, strict, })
 }
 
 ///|
@@ -225,7 +225,7 @@ pub fn tool(
 /// Returns a ChatCompletionMessageParam with role "assistant".
 pub fn[T : ToChatCompletionMessageParamContent] assistant_message(
   content? : T,
-  tool_calls? : Array[ChatCompletionMessageToolCall] = [],
+  tool_calls~ : Array[ChatCompletionMessageToolCall] = [],
   name? : String,
 ) -> ChatCompletionMessageParam {
   let content = match content {
@@ -259,7 +259,7 @@ pub fn json_schema(
   description? : String,
   strict? : Bool,
 ) -> ResponseFormat {
-  JsonSchema(JsonSchema::{ name, description, schema, strict })
+  JsonSchema(JsonSchema::{ name, description, schema, strict, })
 }
 
 ///|
@@ -270,7 +270,7 @@ pub fn tool_call(
 ) -> ChatCompletionMessageToolCall {
   ChatCompletionMessageToolCall::{
     id,
-    function: ChatCompletionMessageToolCallFunction::{ name, arguments },
+    function: ChatCompletionMessageToolCallFunction::{ name, arguments, },
   }
 }
 
@@ -278,7 +278,7 @@ pub fn tool_call(
 pub fn chunk(
   id~ : String,
   choices~ : Array[ChatCompletionChunkChoice],
-  created~ : Int,
+  created~ : Int32,
   model~ : String,
   usage? : CompletionUsage,
   system_fingerprint? : String,
@@ -302,16 +302,16 @@ pub fn chunk_choice_delta_tool_call_function(
   arguments? : String,
   name? : String,
 ) -> ChatCompletionChunkChoiceDeltaToolCallFunction {
-  ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name }
+  ChatCompletionChunkChoiceDeltaToolCallFunction::{ arguments, name, }
 }
 
 ///|
 pub fn chunk_choice_delta_tool_call(
-  index~ : Int,
+  index~ : Int32,
   id? : String,
   function~ : ChatCompletionChunkChoiceDeltaToolCallFunction,
 ) -> ChatCompletionChunkChoiceDeltaToolCall {
-  ChatCompletionChunkChoiceDeltaToolCall::{ index, id, function }
+  ChatCompletionChunkChoiceDeltaToolCall::{ index, id, function, }
 }
 
 ///|
@@ -321,14 +321,14 @@ pub fn chunk_choice_delta(
   role? : ChatCompletionRole,
   tool_calls? : Array[ChatCompletionChunkChoiceDeltaToolCall],
 ) -> ChatCompletionChunkChoiceDelta {
-  ChatCompletionChunkChoiceDelta::{ content, refusal, role, tool_calls }
+  ChatCompletionChunkChoiceDelta::{ content, refusal, role, tool_calls, }
 }
 
 ///|
 pub fn chunk_choice(
-  index~ : Int,
+  index~ : Int32,
   delta~ : ChatCompletionChunkChoiceDelta,
   finish_reason? : ChatCompletionChoiceFinishReason,
 ) -> ChatCompletionChunkChoice {
-  ChatCompletionChunkChoice::{ index, delta, finish_reason }
+  ChatCompletionChunkChoice::{ index, delta, finish_reason, }
 }

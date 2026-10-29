@@ -1,9 +1,9 @@
 ///|
 #borrow(buf)
-extern "c" fn rand_bytes(buf : Bytes) -> Int = "moonbit_maria_rand_bytes"
+extern "c" fn rand_bytes(buf : Bytes) -> Int32 = "moonbit_maria_rand_bytes"
 
 ///|
-pub fn bytes(n : Int) -> Bytes raise @errno.Errno {
+pub fn bytes(n : Int32) -> Bytes raise @errno.Errno {
   let buf = Bytes::make(n, 0)
   let errno = rand_bytes(buf)
   if errno != 0 {

@@ -40,7 +40,7 @@ async test "Loader::apply" (t : @test.Test) {
           #|of the rule is solely determined by the file name.
         ),
       })
-      let rules = Loader::new(project.path(), logger=mock.logger)
+      let rules = @rules.Loader::new(project.path(), logger=mock.logger)
       // Load rules
       rules.load()
       let messages = [

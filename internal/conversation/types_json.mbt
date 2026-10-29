@@ -30,7 +30,7 @@ test "Message to_json" {
 }
 
 ///|
-impl @json.FromJson for Message with from_json(
+impl @json.FromJson for Message with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Message raise @json.JsonDecodeError {
@@ -59,12 +59,12 @@ impl @json.FromJson for Message with from_json(
       @json.from_json(content, path=json_path.add_key("content"))
     }
   }
-  Message::{ timestamp, usage, message: @ai.Message::from_openai(message) }
+  Message::{ timestamp, usage, message: @ai.Message::from_openai(message), }
 }
 
 ///|
-impl ToJson for Message with to_json(self : Message) -> Json {
-  let object : Map[String, Json] = {}
+impl ToJson for Message with fn to_json(self : Message) -> Json {
+  let object : Map[String, Json] = Map([])
   object["timestamp"] = self.timestamp.to_json()
   if self.usage is Some(usage) {
     object["usage"] = usage.to_openai().to_json()

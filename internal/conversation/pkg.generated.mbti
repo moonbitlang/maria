@@ -23,10 +23,12 @@ pub fn Conversation::cwd(Self) -> String
 pub fn Conversation::display(Self, show_messages? : Bool) -> Array[String]
 pub fn Conversation::events(Self) -> ArrayView[@event.Event]
 pub fn Conversation::export_to_markdown(Self) -> String
+pub fn Conversation::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Conversation::id(Self) -> @uuid.Uuid
 pub fn Conversation::messages(Self, include_system? : Bool) -> Array[@ai.Message]
 pub fn Conversation::name(Self) -> String
 pub fn Conversation::system_prompt(Self) -> String?
+pub fn Conversation::to_json(Self) -> Json
 pub fn Conversation::updated(Self) -> @clock.Timestamp
 pub fn Conversation::web_search(Self) -> Bool
 pub impl ToJson for Conversation
@@ -42,4 +44,3 @@ pub async fn Manager::save(Self, Conversation) -> Unit
 // Type aliases
 
 // Traits
-

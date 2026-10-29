@@ -27,10 +27,10 @@ async fn Daemon::spawn_task(
   group~ : @async.TaskGroup[Unit],
   name? : String,
   model? : @model.Model,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
   resume_id? : @uuid.Uuid,
   cwd~ : String,
-  broadcast? : @broadcast.Broadcast[@server.ServerStreamEvent] = @broadcast.Broadcast::new(),
+  broadcast~ : @broadcast.Broadcast[@server.ServerStreamEvent] = @broadcast.Broadcast::new(),
 ) -> Running {
   let id = self.uuid.v4()
   let args = ["server"]
@@ -60,7 +60,7 @@ async fn Daemon::spawn_task(
     args.push("--web-search")
   }
   logger.info(
-    "Spawning task (\{self.exec_path}) process at \{cwd.to_json().stringify(indent=2)} with args: " +
+    "Spawning task (\{self.exec_path}) process at \{ToJson::to_json(cwd).stringify(indent=2)} with args: " +
     @debug.to_string(args),
   )
   let process = self.process.spawn(self.exec_path, args, cwd~, env={
@@ -78,7 +78,7 @@ async fn Daemon::spawn_task(
   logger.info(
     "Spawned task process with PID \{process.pid} and ID \{id} at '\{cwd}'",
   )
-  let rq = @aqueue.Queue::new(kind=Unbounded)
+  let rq = @aqueue.Queue(kind=Unbounded)
   self.rqs[id.to_string()] = rq
   let reg : @server.RegisterRequest = @async.with_timeout(300_000, () => {
     rq.get()

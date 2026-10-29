@@ -19,7 +19,7 @@ priv struct CreateTaskRequest {
 }
 
 ///|
-impl @json.FromJson for CreateTaskRequest with from_json(
+impl @json.FromJson for CreateTaskRequest with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateTaskRequest raise @json.JsonDecodeError {
@@ -61,7 +61,7 @@ impl @json.FromJson for CreateTaskRequest with from_json(
       )
     None => None
   }
-  CreateTaskRequest::{ name, model, message, cwd, web_search }
+  CreateTaskRequest::{ name, model, message, cwd, web_search, }
 }
 
 ///|
@@ -160,7 +160,7 @@ async fn Daemon::create_task(
   }
   w.header().set("Content-Type", "application/json")
   w.write_header(201, reason="Created")
-  let response = CreateTaskResponse::{ task, message }
+  let response = CreateTaskResponse::{ task, message, }
   w.write(response.to_json().stringify(indent=2))
 }
 
@@ -178,7 +178,7 @@ priv struct CreateTaskResponse {
 }
 
 ///|
-impl ToJson for CreateTaskResponse with to_json(self : CreateTaskResponse) -> Json {
+impl ToJson for CreateTaskResponse with fn to_json(self : CreateTaskResponse) -> Json {
   let object : Map[String, Json] = { "task": self.task.to_json() }
   if self.message is Some(message) {
     object["message"] = message.to_json()
@@ -226,7 +226,7 @@ async fn check_working_directory(cwd : String?) -> String {
         "error": {
           "code": -1,
           "message": "Failed to check existence of 'cwd' path: \{error}",
-          "metadata": { "cwd": cwd, "error": error.to_json() },
+          "metadata": { "cwd": cwd, "error": ToJson::to_json(error) },
         },
       })
   }
@@ -241,3 +241,6 @@ async fn check_working_directory(cwd : String?) -> String {
   }
   cwd
 }
+
+///|
+extend CreateTaskResponse with ToJson::{to_json}

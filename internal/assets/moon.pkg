@@ -4,3 +4,7 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/maria/internal/pino",
 }
+
+import {
+  "moonbitlang/core/debug",
+}

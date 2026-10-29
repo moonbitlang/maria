@@ -2,21 +2,23 @@
 /// Single choice returned in a chat completion response.
 pub struct ChatCompletionChoice {
   finish_reason : ChatCompletionChoiceFinishReason?
-  index : Int
+  index : Int32
   message : ChatCompletionMessage
 } derive(Debug)
 
 ///|
 pub fn ChatCompletionChoice::new(
   finish_reason? : ChatCompletionChoiceFinishReason,
-  index~ : Int,
+  index~ : Int32,
   message~ : ChatCompletionMessage,
 ) -> ChatCompletionChoice {
-  { finish_reason, index, message }
+  { finish_reason, index, message, }
 }
 
 ///|
-impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -> Json {
+impl ToJson for ChatCompletionChoice with fn to_json(
+  self : ChatCompletionChoice,
+) -> Json {
   let json : Map[String, Json] = {
     "index": self.index,
     "message": self.message,
@@ -28,7 +30,7 @@ impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -
 }
 
 ///|
-impl @json.FromJson for ChatCompletionChoice with from_json(
+impl @json.FromJson for ChatCompletionChoice with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChoice {
@@ -58,5 +60,8 @@ impl @json.FromJson for ChatCompletionChoice with from_json(
     message,
     path=json_path.add_key("message"),
   )
-  ChatCompletionChoice::{ finish_reason, index, message }
+  ChatCompletionChoice::{ finish_reason, index, message, }
 }
+
+///|
+pub extend ChatCompletionChoice with @moonbitlang/core/debug.Debug::{to_repr}

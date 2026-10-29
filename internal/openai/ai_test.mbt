@@ -1,8 +1,8 @@
 ///|
-fn with_mock_server(
+async fn with_mock_server(
   group : @async.TaskGroup[Unit],
   handler : @httpx.Handler,
-) -> @model.Model raise {
+) -> @model.Model {
   let server = @httpx.Server::new("127.0.0.1", 0)
   group.spawn_bg(() => server.serve(handler), no_wait=true)
   @model.new(
@@ -23,13 +23,13 @@ async test "chat" (t : @test.Test) {
       w.write(body)
       w.close()
     })
-    let completion = chat(
+    let completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
         messages=[
-          system_message(content="You are a helpful assistant."),
-          user_message(content="Say hello."),
+          @openai.system_message(content="You are a helpful assistant."),
+          @openai.user_message(content="Say hello."),
         ],
         max_tokens=50,
         temperature=0.7,
@@ -52,15 +52,15 @@ async test "chat_with_usage" (t : @test.Test) {
       w.write(body)
       w.close()
     })
-    let completion = chat(
+    let completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
         messages=[
-          system_message(content="You are a helpful assistant."),
-          user_message(content="Say hello."),
+          @openai.system_message(content="You are a helpful assistant."),
+          @openai.user_message(content="Say hello."),
         ],
-        usage=usage(include_=true),
+        usage=@openai.usage(include_=true),
         max_tokens=50,
         temperature=0.7,
       ),
@@ -82,7 +82,7 @@ async test "text" (t : @test.Test) {
       w.write(body)
       w.close()
     })
-    let result = text(model~, prompt="Say hello.")
+    let result = @openai.text(model~, prompt="Say hello.")
     json_inspect(result.contains("Hello"), content=true)
   })
 }
@@ -97,7 +97,7 @@ async test "json" (t : @test.Test) {
       w.write(body)
       w.close()
     })
-    let result = json(
+    let result = @openai.json(
       model~,
       prompt="Return a JSON object with a message field.",
     )
@@ -130,11 +130,11 @@ async test "streaming" (t : @test.Test) {
       w.flush()
       w.close()
     })
-    let chat_completion = chat(
+    let chat_completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
-        messages=[user_message(content="Say hello")],
+        messages=[@openai.user_message(content="Say hello")],
         stream=true,
       ),
     )
@@ -167,11 +167,11 @@ async test "streaming_tool_call" (t : @test.Test) {
       w.flush()
       w.close()
     })
-    let chat_completion = chat(
+    let chat_completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
-        messages=[user_message(content="What is the weather?")],
+        messages=[@openai.user_message(content="What is the weather?")],
         stream=true,
       ),
     )
@@ -210,17 +210,17 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
       w.flush()
       w.close()
     })
-    let chat_completion = chat(
+    let chat_completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
-        messages=[user_message(content="What is the weather?")],
+        messages=[@openai.user_message(content="What is the weather?")],
         stream=true,
       ),
     )
-    let tool_calls : Array[ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
+    let tool_calls : Array[@openai.ChatCompletionMessageToolCall] = chat_completion.choices[0].message.tool_calls
     let tool_calls = tool_calls.map(tc => {
-      guard tc.to_json() is Object(tc_object)
+      guard! tc.to_json() is Object(tc_object)
       tc_object.remove("id")
       if tc.function.arguments is Some(arguments) {
         let function = tc_object["function"]
@@ -229,7 +229,7 @@ async test "streaming_parallel_tool_call" (t : @test.Test) {
         }
         function_object["arguments"] = @json.parse(arguments)
       }
-      tc_object.to_json()
+      ToJson::to_json(tc_object)
     })
     tool_calls.sort_by((a, b) => a.stringify().compare(b.stringify()))
     json_inspect(tool_calls, content=[
@@ -261,13 +261,13 @@ async test "reasoning_effort_high" (t : @test.Test) {
       w.write(body)
       w.close()
     })
-    let completion = chat(
+    let completion = @openai.chat(
       model~,
-      chat_completion(
+      @openai.chat_completion(
         model=model.model_name,
         messages=[
-          system_message(content="You are a helpful assistant."),
-          user_message(content="Say 'Hello' and nothing else."),
+          @openai.system_message(content="You are a helpful assistant."),
+          @openai.user_message(content="Say 'Hello' and nothing else."),
         ],
         max_tokens=50,
         reasoning_effort=High,
@@ -283,7 +283,7 @@ async test "reasoning_effort_high" (t : @test.Test) {
 ///|
 /// Test tool definition
 test "tool_definition" {
-  let tool_def = tool(
+  let tool_def = @openai.tool(
     name="get_weather",
     description="Get the current weather in a location",
     parameters={
@@ -301,13 +301,13 @@ test "tool_definition" {
 ///|
 /// Test response format helpers
 test "response_format" {
-  let text_format = ResponseFormat::Text
+  let text_format = @openai.ResponseFormat::Text
   let json = text_format.to_json()
   guard json is Object(obj) else { fail("Expected JSON object") }
   guard obj.get("type") is Some(String("text")) else {
     fail("Expected type 'text'")
   }
-  let json_schema_format = json_schema(name="test_schema", schema={
+  let json_schema_format = @openai.json_schema(name="test_schema", schema={
     "type": "object",
     "properties": { "message": { "type": "string" } },
   })
@@ -329,13 +329,13 @@ async test "deepseek" {
     name="deepseek-chat",
     safe_zone_tokens=128_000,
   )
-  let completion = chat(
+  let completion = @openai.chat(
     model~,
-    chat_completion(
+    @openai.chat_completion(
       model=model.model_name,
       messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content="Say 'Hello' and nothing else."),
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,
@@ -390,13 +390,13 @@ async test "dashscope" {
     name="qwen3-coder-plus",
     safe_zone_tokens=997_952,
   )
-  let completion = chat(
+  let completion = @openai.chat(
     model~,
-    chat_completion(
+    @openai.chat_completion(
       model=model.model_name,
       messages=[
-        system_message(content="You are a helpful assistant."),
-        user_message(content="Say 'Hello' and nothing else."),
+        @openai.system_message(content="You are a helpful assistant."),
+        @openai.user_message(content="Say 'Hello' and nothing else."),
       ],
       max_tokens=50,
       temperature=0.7,

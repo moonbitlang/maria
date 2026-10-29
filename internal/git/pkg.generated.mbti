@@ -6,7 +6,7 @@ pub async fn add_worktree(String, new_branch? : String, force_new_branch? : Bool
 
 pub async fn check_ignore(Array[StringView], cwd? : StringView) -> Array[String]
 
-pub async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int) -> Unit
+pub async fn clone(String, to~ : StringView, cwd? : StringView, depth? : Int32) -> Unit
 
 pub async fn commit(StringView, Array[StringView], cwd? : StringView) -> Unit
 
@@ -31,4 +31,3 @@ pub async fn[T] with_worktree(String, new_branch? : String, force_new_branch? : 
 // Type aliases
 
 // Traits
-

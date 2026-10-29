@@ -6,9 +6,9 @@
 pub async fn write_bytes_to_file(
   path : StringView,
   content : Bytes,
-  create? : Int = 0o644,
+  create~ : Int32 = 0o644,
 ) -> Unit {
-  @fs.write_file(path.to_owned(), content, create~, truncate=true)
+  @fs.write_file(path, content, create_mode=CreateOrTruncate, permission=create)
 }
 
 ///|
@@ -19,7 +19,7 @@ pub async fn write_bytes_to_file(
 pub async fn write_to_file(
   path : StringView,
   content : StringView,
-  create? : Int = 0o644,
+  create~ : Int32 = 0o644,
 ) -> Unit {
   write_bytes_to_file(path, @encoding/utf8.encode(content), create~)
 }

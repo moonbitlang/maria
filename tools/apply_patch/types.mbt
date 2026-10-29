@@ -26,7 +26,7 @@ pub struct ParsedPatch {
 ///|
 pub(all) suberror ParseError {
   InvalidPatch(String)
-  InvalidHunk(message~ : String, line_number~ : Int)
+  InvalidHunk(message~ : String, line_number~ : Int32)
 } derive(Debug)
 
 ///|
@@ -38,7 +38,7 @@ pub struct ApplyResult {
 
 ///|
 pub fn ApplyResult::new() -> ApplyResult {
-  ApplyResult::{ added: [], modified: [], deleted: [] }
+  ApplyResult::{ added: [], modified: [], deleted: [], }
 }
 
 ///|
@@ -56,3 +56,24 @@ pub fn ApplyResult::summary(self : ApplyResult) -> String {
   }
   lines.join("\n")
 }
+
+///|
+pub extend Hunk with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Hunk with Eq::{not_equal, equal}
+
+///|
+pub extend UpdateFileChunk with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend UpdateFileChunk with Eq::{not_equal, equal}
+
+///|
+pub extend ParsedPatch with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ParseError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ApplyResult with @moonbitlang/core/debug.Debug::{to_repr}

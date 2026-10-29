@@ -64,3 +64,9 @@ pub async fn install_assets(
       logger.warn("Failed to write assets marker '\{marker_path}': \{error}")
   }
 }
+
+///|
+pub extend Asset with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Asset with ToJson::{to_json}

@@ -1,23 +1,23 @@
 ///|
 priv struct People {
   name : String
-  age : Int
+  age : Int32
   active : Bool
   /// Optional field for testing purposes
   nickname : String?
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for People with from_json(
+impl @json.FromJson for People with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) {
   let object = @jsonx.as_object(json, path~)
   let name : String = object.required("name", path~)
-  let age : Int = object.required("age", path~)
+  let age : Int32 = object.required("age", path~)
   let active : Bool = object.required("active", path~)
   let nickname : String? = object.optional("nickname", path~)
-  People::{ name, age, active, nickname }
+  People::{ name, age, active, nickname, }
 }
 
 ///|
@@ -40,9 +40,11 @@ test "@jsonx.Object::required" {
 ///|
 test "@jsonx.Object::required/missing-field" {
   let object : Json = { "name": "Bob" }
-  let people : Result[People, @json.JsonDecodeError] = try? @json.from_json(
-    object,
-  )
+  let people : Result[People, @json.JsonDecodeError] = Ok(
+    @json.from_json(object),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(people, content={
     "Err": ["JsonDecodeError", ["/age", "field 'age' is required"]],
   })
@@ -75,9 +77,11 @@ test "@jsonx.Object::optional/invalid-type" {
     "active": true,
     "nickname": 123.0,
   }
-  let people : Result[People, @json.JsonDecodeError] = try? @json.from_json(
-    object,
-  )
+  let people : Result[People, @json.JsonDecodeError] = Ok(
+    @json.from_json(object),
+  ) catch {
+    error => Err(error)
+  }
   json_inspect(people, content={
     "Err": [
       "JsonDecodeError",
@@ -92,7 +96,7 @@ priv struct KeyValues {
 }
 
 ///|
-impl @json.FromJson for KeyValues with from_json(json, path) {
+impl @json.FromJson for KeyValues with fn from_json(json, path) {
   let object = @jsonx.as_object(json, path~)
   let keys : Array[String] = []
   for key, _ in object.iter2() {

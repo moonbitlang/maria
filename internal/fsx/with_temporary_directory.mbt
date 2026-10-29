@@ -4,7 +4,7 @@
 /// This is a thin wrapper around the platform `mkdtemp` implementation
 /// and is not exposed directly to callers.
 #borrow(template)
-extern "c" fn fs_mkdtemp(template : FixedArray[Byte]) -> Int = "moonbit_maria_fs_mkdtemp"
+extern "c" fn fs_mkdtemp(template : FixedArray[Byte]) -> Int32 = "moonbit_maria_fs_mkdtemp"
 
 ///|
 /// Create a temporary directory based on the provided byte template.
@@ -42,19 +42,6 @@ pub async fn[T] with_temporary_directory(
   let os_tmpdir = @os.tmpdir()
   let template = Path::join(os_tmpdir, template).to_string()
   let template = mkdtemp(template)
-  try f(template) catch {
-    error => {
-      @fs.rmdir(template, recursive=true) catch {
-        _ => ()
-      }
-      raise error
-    }
-  } noraise {
-    value => {
-      @fs.rmdir(template, recursive=true) catch {
-        _ => ()
-      }
-      value
-    }
-  }
+  defer (@fs.rmdir(template, recursive=true) catch { _ => () })
+  f(template)
 }

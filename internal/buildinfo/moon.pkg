@@ -1,7 +1,5 @@
 import {
-  "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "moonbitlang/core/strconv",
 }
 
 options(

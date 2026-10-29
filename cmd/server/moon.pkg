@@ -1,7 +1,5 @@
 import {
-  "moonbitlang/async/http",
   "moonbitlang/async",
-  "moonbitlang/async/io",
   "moonbitlang/maria",
   "moonbitlang/maria/ai",
   "moonbitlang/maria/internal/os",
@@ -19,8 +17,6 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "moonbitlang/core/strconv",
-  "moonbitlang/core/test",
   "moonbitlang/maria/internal/pino",
 }
 
@@ -29,4 +25,12 @@ import {
   "moonbitlang/x/path",
   "moonbitlang/async/socket",
   "moonbitlang/maria/cmd/internal/test_utils",
+} for "test"
+
+import {
+  "moonbitlang/async/http",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

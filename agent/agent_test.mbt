@@ -442,7 +442,7 @@ async test "load-model-name" (t : @test.Test) {
       .add_directory(".moonagent")
       .add_directory("models")
       .add_file("models.json")
-    models_file.write_string(models.to_json().stringify(indent=2))
+    models_file.write_string(ToJson::to_json(models).stringify(indent=2))
     json_inspect(mock.json(@json.parse(models_file.read())), content=[
       {
         "name": "haiku",

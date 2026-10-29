@@ -13,7 +13,7 @@ test "CreateTaskRequest::from_json" {
     { "role": "user", "content": "Hello, world!" },
   ])
   json_inspect(request.cwd, content=["/tmp/task"])
-  let json : Json = {}
+  let json : Json = Json::empty_object()
   let request : CreateTaskRequest = @json.from_json(json)
   json_inspect(request.name, content=null)
   json_inspect(request.model, content=null)
@@ -45,7 +45,7 @@ test "CreateTaskResponse::to_json" {
     port: 8080,
     status: @server.Idle,
     queued_messages: [
-      QueuedMessage::{ id: "msg1", message: { "text": "Hello" } },
+      QueuedMessage::{ id: "msg1", message: { "text": "Hello" }, },
     ],
     created: @clock.Timestamp::from_ms(0),
     updated: @clock.Timestamp::from_ms(0),

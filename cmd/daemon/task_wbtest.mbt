@@ -187,7 +187,8 @@ test "Task::from_json with missing status field" {
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "cwd": "/tmp/no-status",
   }
-  guard (try? (@json.from_json(json) : Task)) is Err(_) else {
+  guard (Ok((@json.from_json(json) : Task)) catch { error => Err(error) })
+    is Err(_) else {
     fail("Expected JsonDecodeError for missing status field")
   }
 }
@@ -202,7 +203,8 @@ test "Task::from_json with unknown status" {
     "created": 1000,
     "updated": 2000,
   }
-  guard (try? (@json.from_json(json) : Task)) is Err(_) else {
+  guard (Ok((@json.from_json(json) : Task)) catch { error => Err(error) })
+    is Err(_) else {
     fail("Expected JsonDecodeError for unknown status")
   }
 }

@@ -63,7 +63,7 @@ pub async fn Daemon::serve(self : Daemon) -> Unit {
             (Post, ["", "v1", "shutdown"]) => {
               w.header().set("Content-Type", "application/json")
               w.write_header(200)
-              let response : Json = {}
+              let response : Json = Json::empty_object()
               w.write(response.stringify())
               w.flush()
               // We need to close the writer before shutting down to ensure the

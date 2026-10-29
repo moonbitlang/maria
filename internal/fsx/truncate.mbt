@@ -1,5 +1,5 @@
 ///|
-extern "c" fn fsx_ftruncate(fd : Int, length : Int64) -> Int = "moonbit_maria_fsx_ftruncate"
+extern "c" fn fsx_ftruncate(fd : Int32, length : Int64) -> Int32 = "moonbit_maria_fsx_ftruncate"
 
 ///|
 /// Truncate `file` to the given `length` in bytes.

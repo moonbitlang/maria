@@ -1,6 +1,6 @@
 ///|
 priv suberror HttpError {
-  HttpError(code~ : Int, body~ : String)
+  HttpError(code~ : Int32, body~ : String)
 } derive(Debug, ToJson)
 
 ///|
@@ -20,8 +20,8 @@ priv suberror HttpError {
 pub async fn chat(
   model~ : @model.Model,
   request : Request,
-  logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
-  extra_body? : Map[String, Json] = {},
+  logger~ : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
+  extra_body~ : Map[String, Json] = {},
 ) -> ChatCompletion {
   // Dispatch based on model type
   match model.model_type {
@@ -55,7 +55,7 @@ async fn chat_openai(
       })
       let url = "\{model.base_url}/chat/completions"
       let uri = Uri::parse(url)
-      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+      let client = @http.Client("\{uri.schema}://\{uri.host}", headers={
         "Authorization": "Bearer \{model.api_key}",
         "Content-Type": "application/json",
         "Connection": "close",
@@ -69,7 +69,7 @@ async fn chat_openai(
         body[k] = v
       }
       let response = client.post(uri.path, Json::object(body))
-      guard response.code is (200..=299) else {
+      guard response.code is (200..<=299) else {
         raise HttpError(code=response.code, body=client.read_all().text())
       }
       if request.stream is Some(true) {
@@ -247,7 +247,7 @@ async fn chat_copilot(
             _ => false
           }
         })
-      let client = @http.Client::new("\{uri.schema}://\{uri.host}", headers={
+      let client = @http.Client("\{uri.schema}://\{uri.host}", headers={
         "Authorization": "Bearer \{current_token.val}",
         "Content-Type": "application/json",
         "Connection": "close",
@@ -265,7 +265,7 @@ async fn chat_copilot(
       defer client.close()
       let body = request.to_json()
       let response = client.post(uri.path, body)
-      guard response.code is (200..=299) else {
+      guard response.code is (200..<=299) else {
         let error_body = client.read_all().text()
         // Try to refresh token on 401
         if response.code == 401 && !has_refreshed.val {
@@ -349,7 +349,7 @@ async fn do_codex_stream_request(
   account_id : String,
   request : @responses.ResponsesRequest,
 ) -> CodexStreamResult raise Error {
-  let client = @http.Client::new("https://chatgpt.com", headers={
+  let client = @http.Client("https://chatgpt.com", headers={
     "Authorization": "Bearer \{access_token}",
     "ChatGPT-Account-ID": account_id,
     "Content-Type": "application/json",
@@ -367,7 +367,7 @@ async fn do_codex_stream_request(
     "/backend-api/codex/responses",
     Json::object(body_obj),
   )
-  guard response.code is (200..=299) else {
+  guard response.code is (200..<=299) else {
     let error_text = client.read_all().text()
     raise HttpError(
       code=response.code,
@@ -384,7 +384,7 @@ async fn do_codex_stream_request(
       Completed => break
     }
   }
-  { text_chunks, output_items }
+  { text_chunks, output_items, }
 }
 
 ///|
@@ -685,9 +685,9 @@ pub async fn json(model~ : @model.Model, prompt~ : String) -> Json {
 /// and JSON schema, allowing the model to generate responses that conform to
 /// the expected structure.
 pub(open) trait Structural: @json.FromJson {
-  name() -> String
-  description() -> String
-  schema() -> @schema.Schema
+  fn name() -> String
+  fn description() -> String
+  fn schema() -> @schema.Schema
 }
 
 ///|

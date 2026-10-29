@@ -52,7 +52,7 @@ async test "load" (t : @test.Test) {
       .add_directory("models")
       .add_file(
         "models.json",
-        content=home_models.to_json().stringify(indent=2),
+        content=@json.to_json(home_models).stringify(indent=2),
       )
     let project = home.add_directory("project")
     let project_models : Json = [
@@ -88,7 +88,7 @@ async test "load" (t : @test.Test) {
       .add_directory("models")
       .add_file(
         "models.json",
-        content=project_models.to_json().stringify(indent=2),
+        content=@json.to_json(project_models).stringify(indent=2),
       )
     let loader = Loader::new(home=home.path(), cwd=project.path())
     json_inspect(mock.json(loader.get_model()), content=[

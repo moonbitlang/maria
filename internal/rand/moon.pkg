@@ -1,6 +1,5 @@
 import {
   "moonbitlang/maria/internal/errno",
-  "moonbitlang/core/json",
   "moonbitlang/core/random",
 }
 

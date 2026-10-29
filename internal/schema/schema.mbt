@@ -38,7 +38,7 @@ pub fn string() -> Schema {
 ///|
 pub fn object(
   object : Map[String, Schema],
-  additional_properties? : Bool = true,
+  additional_properties~ : Bool = true,
   required? : Array[String],
 ) -> Schema {
   Schema::Object(object, required~, additional_properties~)
@@ -82,8 +82,8 @@ pub fn Schema::to_json(self : Schema) -> Map[String, Json] {
 }
 
 ///|
-pub impl ToJson for Schema with to_json(self) {
-  self.to_json().to_json()
+pub impl ToJson for Schema with fn to_json(self) {
+  Json(self.to_json())
 }
 
 ///|

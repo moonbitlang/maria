@@ -27,7 +27,8 @@ fn[T] MethodMap::get(self : MethodMap[T], method_ : Method) -> T? {
 }
 
 ///|
-fn[T] MethodMap::op_get(self : MethodMap[T], method_ : Method) -> T {
+#alias("_[_]")
+fn[T] MethodMap::get_exn(self : MethodMap[T], method_ : Method) -> T {
   guard self.get(method_) is Some(value) else {
     abort("MethodMap: no value for method \{method_}")
   }
@@ -35,11 +36,8 @@ fn[T] MethodMap::op_get(self : MethodMap[T], method_ : Method) -> T {
 }
 
 ///|
-fn[T] MethodMap::op_set(
-  self : MethodMap[T],
-  method_ : Method,
-  value : T,
-) -> Unit {
+#alias("_[_]=_")
+fn[T] MethodMap::set(self : MethodMap[T], method_ : Method, value : T) -> Unit {
   match method_ {
     Method::Get => self.get = Some(value)
     Method::Head => self.head = Some(value)

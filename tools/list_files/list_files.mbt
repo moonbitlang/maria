@@ -6,7 +6,7 @@ using @path {type Path}
 priv struct FileEntry {
   name : String
   kind : String // "file", "directory", "symlink", etc.
-  size : Int? // Size in bytes for files, None for directories
+  size : Int32? // Size in bytes for files, None for directories
   is_hidden : Bool
 } derive(ToJson, FromJson)
 
@@ -15,13 +15,13 @@ priv struct FileEntry {
 struct ListFilesResult {
   path : String
   entries : Array[FileEntry]
-  total_count : Int
-  file_count : Int
-  directory_count : Int
+  total_count : Int32
+  file_count : Int32
+  directory_count : Int32
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for ListFilesResult with output(
+pub impl Show for ListFilesResult with fn output(
   result : ListFilesResult,
   logger : &Logger,
 ) -> Unit {
@@ -98,7 +98,7 @@ async fn execute_list_files(
 }
 
 ///|
-impl @tool.ToolOutput for ListFilesResult with to_message(self) {
+impl @tool.ToolOutput for ListFilesResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
@@ -109,7 +109,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     name="list_files",
     schema~,
     async fn(args) -> @tool.ToolResult noraise {
-      let { path } : InputPath = @json.from_json(args) catch {
+      let { path, } : InputPath = @json.from_json(args) catch {
         // TODO(upstream): weird error when missing `_ => `
         _ => return @tool.failed("Error: 'path' parameter is required")
       }
@@ -120,3 +120,12 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     },
   )
 }
+
+///|
+pub extend ListFilesResult with ToJson::{to_json}
+
+///|
+pub extend ListFilesResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend ListFilesResult with Show::{to_string, output}

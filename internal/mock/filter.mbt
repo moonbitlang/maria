@@ -12,7 +12,7 @@ struct Filter {
 ///|
 /// Creates an empty filter with no registered keywords.
 fn Filter::new() -> Filter {
-  Filter::{ keywords: [] }
+  Filter::{ keywords: [], }
 }
 
 ///|
@@ -27,7 +27,7 @@ fn Filter::add(self : Filter, key : String, value : String) -> Unit {
 ///|
 /// Internal hook that lets the filter operate on multiple value types.
 priv trait Filterable {
-  filter(self : Filter, value : Self) -> Self
+  fn filter(self : Filter, value : Self) -> Self
 }
 
 ///|
@@ -45,7 +45,7 @@ fn Filter::apply_json(self : Filter, value : Json) -> Json {
 ///|
 /// Applies keyword replacements to plain strings, swapping every literal match
 /// with the `(mock:<key>)` token.
-impl Filterable for String with filter(self : Filter, content : String) -> String {
+impl Filterable for String with fn filter(self : Filter, content : String) -> String {
   let mut content = content
   for keyword in self.keywords {
     let (key, value) = keyword
@@ -58,12 +58,12 @@ impl Filterable for String with filter(self : Filter, content : String) -> Strin
 /// Walks through JSON structures, masking both string values and object keys
 /// using the same keyword replacements. Non-string JSON values are passed
 /// through untouched.
-impl Filterable for Json with filter(self : Filter, value : Json) -> Json {
+impl Filterable for Json with fn filter(self : Filter, value : Json) -> Json {
   match value {
     String(string) => Json::string(Filterable::filter(self, string))
     Array(array) => Json::array(array.map(e => Filterable::filter(self, e)))
     Object(old_object) => {
-      let new_object = {}
+      let new_object = Map([])
       for k, v in old_object {
         new_object[Filterable::filter(self, k)] = Filterable::filter(self, v)
       }

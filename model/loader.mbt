@@ -36,7 +36,7 @@ pub async fn Loader::new(home? : StringView, cwd? : StringView) -> Loader {
     Some(cwd) => cwd
     None => @os.cwd()
   }
-  let loader = Loader::{ home, cwd, models: [] }
+  let loader = Loader::{ home, cwd, models: [], }
   loader.load()
   loader
 }

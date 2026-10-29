@@ -18,9 +18,7 @@ import {
   "moonbitlang/maria/internal/broadcast",
   "moonbitlang/maria/internal/jsonx",
   "moonbitlang/core/deque",
-  "moonbitlang/core/debug",
   "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -35,4 +33,16 @@ import {
 
 import {
   "moonbitlang/maria/internal/mock",
+} for "wbtest"
+
+import {
+  "moonbitlang/core/debug",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "wbtest"

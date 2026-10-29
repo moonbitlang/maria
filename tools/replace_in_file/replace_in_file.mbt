@@ -13,19 +13,22 @@ priv enum WriteResultOperation {
 struct WriteResult {
   path : String
   operation : WriteResultOperation
-  bytes_written : Int
+  bytes_written : Int32
   search_used : Bool
   message : String
   content : String
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for WriteResult with output(self : WriteResult, logger : &Logger) -> Unit {
+pub impl Show for WriteResult with fn output(
+  self : WriteResult,
+  logger : &Logger,
+) -> Unit {
   logger.write_string(self.message)
 }
 
 ///|
-impl @tool.ToolOutput for WriteResult with to_message(self) {
+impl @tool.ToolOutput for WriteResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
@@ -35,7 +38,7 @@ async fn @file.Manager::execute_replace_in_file(
   self : @file.Manager,
   args : Json,
 ) -> @tool.ToolResult noraise {
-  let { path, replace, search } : Input = @json.from_json(args) catch {
+  let { path, replace, search, } : Input = @json.from_json(args) catch {
     error =>
       return @tool.failed(
         "Error: Invalid arguments provided to replace_in_file tool: \{error}",
@@ -142,3 +145,12 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     },
   )
 }
+
+///|
+pub extend WriteResult with ToJson::{to_json}
+
+///|
+pub extend WriteResult with @moonbitlang/core/json.FromJson::{from_json}
+
+///|
+pub extend WriteResult with Show::{to_string, output}

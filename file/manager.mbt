@@ -6,5 +6,5 @@ pub struct Manager {
 
 ///|
 pub fn manager(cwd~ : String) -> Manager {
-  Manager::{ cwd, access: {} }
+  Manager::{ cwd, access: {}, }
 }

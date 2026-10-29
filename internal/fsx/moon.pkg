@@ -1,13 +1,10 @@
 import {
   "moonbitlang/async/fs",
   "moonbitlang/x/path",
-  "moonbitlang/async/io",
   "moonbitlang/maria/internal/errno",
   "moonbitlang/maria/internal/os",
   "moonbitlang/async/os_error",
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
-  "moonbitlang/core/json",
-  "moonbitlang/core/test",
 }
 
 import {
@@ -21,3 +18,11 @@ import {
 options(
   "native-stub": [ "stat.c", "mkdtemp.c", "readlink.c", "lock.c", "truncate.c" ],
 )
+
+import {
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "test"

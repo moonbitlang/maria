@@ -6,7 +6,7 @@ struct RefreshResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for RefreshResponse with from_json(
+impl @json.FromJson for RefreshResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> RefreshResponse raise @json.JsonDecodeError {
@@ -25,7 +25,7 @@ impl @json.FromJson for RefreshResponse with from_json(
     Some(String(s)) => Some(s)
     _ => None
   }
-  { id_token, access_token, refresh_token }
+  { id_token, access_token, refresh_token, }
 }
 
 ///|
@@ -39,7 +39,7 @@ async fn refresh_tokens(refresh_token : String) -> RefreshResponse raise Error {
   let (response, data) = @http.post(REFRESH_TOKEN_URL, body, headers={
     "Content-Type": "application/json",
   })
-  guard response.code is (200..=299) else {
+  guard response.code is (200..<=299) else {
     let error_text = data.text()
     raise OAuthError("Token refresh failed: \{response.code} - \{error_text}")
   }
@@ -59,7 +59,7 @@ pub async fn refresh_and_save_credentials() -> Credentials raise Error {
   }
   let final_credentials = if refreshed.id_token is Some(new_id_token) {
     let claims = extract_token_claims(new_id_token)
-    { ..updated, accountId: claims.chatgptAccountId }
+    { ..updated, accountId: claims.chatgptAccountId, }
   } else {
     updated
   }
@@ -67,3 +67,6 @@ pub async fn refresh_and_save_credentials() -> Credentials raise Error {
   println("Tokens refreshed")
   final_credentials
 }
+
+///|
+pub extend RefreshResponse with @moonbitlang/core/debug.Debug::{to_repr}

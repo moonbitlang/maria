@@ -1,7 +1,9 @@
 import {
-  "moonbitlang/core/debug",
-  "moonbitlang/core/int64",
   "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "moonbitlang/core/strconv",
 }
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/int64",
+} for "test"

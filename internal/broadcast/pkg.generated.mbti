@@ -16,7 +16,7 @@ pub async fn[T] Broadcast::flush(Self[T]) -> Unit
 pub async fn[T] Broadcast::listen_forever(Self[T], include_history? : Bool, async (T) -> Unit) -> Unit
 pub fn[T] Broadcast::new() -> Self[T]
 pub fn[T] Broadcast::put(Self[T], T) -> Unit
-pub async fn[T] Broadcast::read(Self[T], Int) -> T
+pub async fn[T] Broadcast::read(Self[T], Int32) -> T
 pub async fn[T, G] Broadcast::spawn_in(Self[T], @async.TaskGroup[G]) -> Session
 pub fn[T] Broadcast::values(Self[T]) -> ArrayView[T]
 
@@ -26,4 +26,3 @@ pub fn Session::stop(Self) -> Unit
 // Type aliases
 
 // Traits
-

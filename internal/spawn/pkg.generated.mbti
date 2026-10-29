@@ -6,22 +6,25 @@ import {
 }
 
 // Values
-pub fn getpid() -> Int
+pub fn getpid() -> Int32
 
-pub fn getppid() -> Int
+pub fn getppid() -> Int32
 
-pub fn kill(Int, Int) -> Unit raise @errno.Errno
+pub fn kill(Int32, Int32) -> Unit raise @errno.Errno
 
-pub async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
+pub async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int32, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
 
 // Errors
 pub suberror Failed {
   Failed(CompletedProcess)
 } derive(ToJson)
+pub fn Failed::output(Self, &Logger) -> Unit
+pub fn Failed::to_json(Self) -> Json
+pub fn Failed::to_string(Self) -> String
 pub impl Show for Failed
 
 pub suberror TimedOut {
-  TimedOut(timeout~ : Int, stdout~ : String, stderr~ : String)
+  TimedOut(timeout~ : Int32, stdout~ : String, stderr~ : String)
 }
 
 // Types and methods
@@ -32,16 +35,17 @@ pub fn Buffer::to_string(Self) -> String
 pub struct CompletedProcess {
   exec : String
   args : Array[String]
-  status : Int
+  status : Int32
   stdout : String
   stderr : String
-  elapsed : Int
-  timeout : Int?
+  elapsed : Int32
+  timeout : Int32?
 } derive(ToJson)
 pub fn CompletedProcess::check(Self) -> Unit raise Failed
+pub fn CompletedProcess::to_json(Self) -> Json
 
 pub struct Manager {
-  mut id : Int
+  mut id : Int32
   cwd : String
   process : Map[Pid, Process]
   // private fields
@@ -51,9 +55,16 @@ pub fn Manager::list(Self) -> Array[Process]
 pub fn Manager::new(cwd~ : String) -> Self
 pub async fn Manager::spawn(Self, String, Array[String], stderr? : RedirectOutput, stdout? : RedirectOutput, cwd? : String, env? : Map[String, String]) -> Process
 pub async fn Manager::start(Self) -> Unit
-pub async fn Manager::wait(Self, Pid) -> Int
+pub async fn Manager::wait(Self, Pid) -> Int32
 
 type Pid derive(Eq, Hash)
+pub fn Pid::equal(Self, Self) -> Bool
+pub fn Pid::hash(Self) -> Int32
+pub fn Pid::hash_combine(Self, Hasher) -> Unit
+pub fn Pid::not_equal(Self, Self) -> Bool
+pub fn Pid::output(Self, &Logger) -> Unit
+pub fn Pid::to_json(Self) -> Json
+pub fn Pid::to_string(Self) -> String
 pub impl Show for Pid
 pub impl ToJson for Pid
 
@@ -63,8 +74,8 @@ pub struct Process {
   stderr : RedirectOutput
   // private fields
 }
-pub fn Process::status(Self) -> Int?
-pub async fn Process::wait(Self) -> Int
+pub fn Process::status(Self) -> Int32?
+pub async fn Process::wait(Self) -> Int32
 
 pub(all) enum RedirectOutput {
   Inherit
@@ -76,4 +87,3 @@ pub(all) enum RedirectOutput {
 // Type aliases
 
 // Traits
-

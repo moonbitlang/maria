@@ -8,7 +8,7 @@ pub struct FunctionDefinition {
 }
 
 ///|
-impl ToJson for FunctionDefinition with to_json(self : FunctionDefinition) -> Json {
+impl ToJson for FunctionDefinition with fn to_json(self : FunctionDefinition) -> Json {
   let json : Map[String, Json] = {
     "name": Json::string(self.name),
     "description": Json::string(self.description),

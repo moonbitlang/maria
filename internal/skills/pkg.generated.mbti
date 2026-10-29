@@ -27,8 +27,9 @@ pub struct Skill {
   metadata : Json?
   location : String
 } derive(ToJson, @debug.Debug)
+pub fn Skill::to_json(Self) -> Json
+pub fn Skill::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
-

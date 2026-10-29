@@ -1,7 +1,6 @@
 import {
   "moonbitlang/async",
   "moonbitlang/async/http",
-  "moonbitlang/async/io",
   "moonbitlang/maria/internal/os",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/internal/spawn",
@@ -19,7 +18,6 @@ import {
   "moonbitlang/maria/internal/errno",
   "moonbitlang/async/fs",
   "moonbitlang/async/process",
-  "moonbitlang/maria/event",
   "moonbitlang/maria/internal/buildinfo",
   "moonbitlang/maria/internal/signal",
   "moonbitlang/maria/internal/conversation",
@@ -31,12 +29,14 @@ import {
   "moonbitlang/core/encoding/utf8" @encoding/utf8,
   "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "moonbitlang/core/strconv",
-  "moonbitlang/core/test",
   "moonbitlang/maria/internal/pino",
 }
 
 import {
   "moonbitlang/maria/internal/mock",
   "moonbitlang/maria/cmd/internal/test_utils",
+} for "test"
+
+import {
+  "moonbitlang/core/test",
 } for "test"

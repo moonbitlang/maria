@@ -2,7 +2,7 @@
 using @xpath {type Path}
 
 ///|
-fn StringView::end_offset(self : StringView) -> Int {
+fn StringView::end_offset(self : StringView) -> Int32 {
   self.start_offset() + self.length()
 }
 
@@ -67,7 +67,7 @@ pub fn replace_ext(path : StringView, ext : StringView) -> String {
         start_offset=0,
         end_offset=path.length() - old_ext_len,
       )
-      let buffer = StringBuilder::new(
+      let buffer = StringBuilder(
         size_hint=(directory_stem.length() + ext.length()) << 1,
       )
       buffer.write_stringview(directory_stem)

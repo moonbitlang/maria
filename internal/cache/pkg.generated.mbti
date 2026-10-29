@@ -15,4 +15,3 @@ pub fn cache_messages(ArrayView[@openai.ChatCompletionMessageParam]) -> Array[@o
 // Type aliases
 
 // Traits
-

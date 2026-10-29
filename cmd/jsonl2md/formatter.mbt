@@ -6,7 +6,7 @@ priv struct Formatter {
   /// Tool ID if this is a sub-formatter.
   id : String?
   /// Number of messages in this log.
-  mut count : Int
+  mut count : Int32
   /// Formatted lines.
   lines : Array[String]
   /// Tool-specific logs are formatted using sub-formatters.
@@ -19,7 +19,7 @@ priv struct Formatter {
 ///|
 fn Formatter::new(
   path : String,
-  recover_diagnostics? : Bool = false,
+  recover_diagnostics~ : Bool = false,
 ) -> Formatter {
   Formatter::{
     recover_diagnostics,
@@ -48,8 +48,8 @@ fn Formatter::to_string(self : Formatter) -> String raise {
 fn Formatter::push_title(
   self : Formatter,
   title : String,
-  level? : Int,
-  numbered? : Bool = false,
+  level? : Int32,
+  numbered~ : Bool = false,
   timestamp? : @clock.Timestamp,
 ) -> Unit raise {
   let prefix = "#".repeat(level.unwrap_or(1))
@@ -228,7 +228,7 @@ const ContextLines = 1
 fn recover_diagnostics(content : String) -> String raise {
   let lines = content.split("\n").collect()
   // 1. Collect source
-  let source = StringBuilder::new()
+  let source = StringBuilder()
   // Matches lines like this
   //
   // `````
@@ -271,16 +271,16 @@ fn recover_diagnostics(content : String) -> String raise {
         // error[<code>]: <file>:<line>:<column>: ...
         lexmatch line with longest {
           (
-            "error\["
-            "[[:digit:]]{4}"
-            "\]:[[:space:]]+"
-            "[^:]*"
-            ":"
-            ("[[:digit:]]+" as line)
-            ":"
-            ("[[:digit:]]+" as column)
-            ":[[:space:]]+",
-            _
+            re"^error\[" +
+            re"[[:digit:]]{4}" +
+            re"\]:[[:space:]]+" +
+            re"[^:]*" +
+            re":" +
+            (re"[[:digit:]]+" as line) +
+            re":" +
+            (re"[[:digit:]]+" as column) +
+            re":[[:space:]]+",
+            after=_,
           ) => {
             let line = @string.parse_int(line) - 1
             let context_start = @cmp.maximum(0, line - ContextLines)

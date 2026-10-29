@@ -7,7 +7,7 @@ test "Running::ToJson" {
     port: 8080,
     status: @server.Idle,
     queued_messages: [
-      QueuedMessage::{ id: "msg1", message: { "text": "Hello" } },
+      QueuedMessage::{ id: "msg1", message: { "text": "Hello" }, },
     ],
     created: @clock.Timestamp::from_ms(0),
     updated: @clock.Timestamp::from_ms(0),

@@ -18,7 +18,7 @@ struct Server {
   /// Directory served as static assets (usually `cmd/server`).
   serve : String
   /// TCP port bound by the underlying HTTP server.
-  port : Int
+  port : Int32
   /// Underlying HTTP listener that dispatches all endpoints.
   http_server : @httpx.Server
 }
@@ -32,7 +32,7 @@ fn Server::status(self : Server) -> Status {
 }
 
 ///|
-pub fn Server::port(self : Server) -> Int {
+pub fn Server::port(self : Server) -> Int32 {
   self.port
 }
 
@@ -45,10 +45,10 @@ pub async fn Server::new(
   model? : String,
   register? : RegisterInfo,
   serve~ : String,
-  port~ : Int,
+  port~ : Int32,
   home? : String,
   cwd? : String,
-  web_search? : Bool = false,
+  web_search~ : Bool = false,
   resume_id? : @uuid.Uuid,
 ) -> Server {
   let home = match home {
@@ -94,7 +94,7 @@ pub async fn Server::new(
     uuid,
     maria,
     broadcast,
-    message_queue: @aqueue.new(kind=Unbounded),
+    message_queue: @aqueue.Queue(kind=Unbounded),
     task: None,
     serve,
     port,
@@ -177,18 +177,25 @@ async fn Server::start_maria(self : Server) -> Unit {
       let task = group.spawn(
         () => {
           logger.info("Starting Maria task...")
-          self.maria.agent.start() catch {
-            error => {
+          // Cancellation is a separate control signal in the current async
+          // runtime, so a catch-all error handler cannot observe it.
+          match
+            (Ok(@async.handle_cancellation(() => self.maria.agent.start())) catch {
+              error => Err(error)
+            }) {
+            Ok(Some(value)) => value
+            Ok(None) =>
+              self.broadcast.put(
+                @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
+              )
+            Err(error) => {
+              self.broadcast.put(
+                @event.Event::new(
+                  id=self.uuid.v4(),
+                  Failed(ToJson::to_json(error)),
+                ),
+              )
               logger.error("Maria task failed: " + @debug.to_string(error))
-              if !@async.is_being_cancelled() {
-                self.broadcast.put(
-                  @event.Event::new(id=self.uuid.v4(), Failed(error.to_json())),
-                )
-              } else {
-                self.broadcast.put(
-                  @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
-                )
-              }
               raise error
             }
           }
@@ -209,7 +216,7 @@ async fn Server::start_maria(self : Server) -> Unit {
 ///|
 async fn @httpx.ResponseWriter::send_json(
   self : Self,
-  code~ : Int,
+  code~ : Int32,
   json : Json,
 ) -> Unit {
   self.header().set("Content-Type", "application/json")
@@ -228,7 +235,7 @@ async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit 
   }
   task.cancel()
   let pms = self.maria.agent.clear_inputs()
-  w.send_json(code=200, { "pending_messages": pms.to_json() })
+  w.send_json(code=200, { "pending_messages": ToJson::to_json(pms) })
 }
 
 ///|
@@ -248,10 +255,10 @@ pub(all) enum ServerStreamEvent {
 }
 
 ///|
-pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
+pub impl @httpx.FromEvent for ServerStreamEvent with fn from_event(
   event : @httpx.Event,
 ) -> ServerStreamEvent raise {
-  let { event, data } = event
+  let { event, data, } = event
   let data = @json.parse(data)
   match event {
     Some("maria.queued_messages.synchronized") =>
@@ -262,14 +269,14 @@ pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
 }
 
 ///|
-pub impl @httpx.ToEvent for ServerStreamEvent with to_event(
+pub impl @httpx.ToEvent for ServerStreamEvent with fn to_event(
   self : ServerStreamEvent,
 ) -> @httpx.Event {
   match self {
     ServerStreamEvent::MariaQueuedMessagesSynchronized(queued_messages) =>
       @httpx.Event::new(
         event="maria.queued_messages.synchronized",
-        data=queued_messages.to_json().stringify(),
+        data=ToJson::to_json(queued_messages).stringify(),
       )
     ServerStreamEvent::Maria(event) =>
       @httpx.Event::new(event="maria", data=event.to_json().stringify())
@@ -305,14 +312,14 @@ async fn Server::get_queued_messages(
   let queued_messages : Array[Json] = self.maria.agent
     .queued_messages()
     .map(m => { "id": m.id, "message": m.message.to_openai() })
-  w.send_json(code=200, queued_messages.to_json())
+  w.send_json(code=200, ToJson::to_json(queued_messages))
 }
 
 ///|
 /// Lists the registered tools and whether each one is currently enabled.
 async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let tools = self.maria.agent.tools()
-  let tools_json : Map[String, Json] = {}
+  let tools_json : Map[String, Json] = Map([])
   for name, tool in tools {
     tools_json[name] = { "enabled": tool.enabled() }
   }
@@ -326,7 +333,7 @@ async fn Server::get_system_prompt(
   w : @httpx.ResponseWriter,
 ) -> Unit {
   let res : Json = match self.maria.agent.system_prompt() {
-    Some(sys) => sys.to_json()
+    Some(sys) => ToJson::to_json(sys)
     None => Json::null()
   }
   w.send_json(code=200, res)
@@ -408,4 +415,14 @@ async fn Server::send_cancellation_event(
 ) -> Unit {
   self.maria.agent.external_events().send(Cancelled)
   w.send_json(code=200, { "success": true })
+}
+
+///|
+pub extend ServerStreamEvent with @moonbitlang/maria/internal/httpx.FromEvent::{
+  from_event,
+}
+
+///|
+pub extend ServerStreamEvent with @moonbitlang/maria/internal/httpx.ToEvent::{
+  to_event,
 }

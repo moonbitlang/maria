@@ -1,5 +1,5 @@
 ///|
-fn count_maximum_contiguous_backticks(content : String) -> Int raise {
+fn count_maximum_contiguous_backticks(content : String) -> Int32 raise {
   let regexp = @regexp.compile("(`+)")
   let mut maximum_backticks = 0
   for matched = regexp.execute(content) {

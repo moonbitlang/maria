@@ -4,9 +4,6 @@ import {
   "moonbitlang/maria/internal/os",
   "moonbitlang/async/fs",
   "moonbitlang/async/stdio",
-  "moonbitlang/async/io",
 }
 
-options(
-  "is-main": true,
-)
+pkgtype(kind: "executable")

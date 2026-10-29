@@ -8,13 +8,13 @@ pub fn find_match(String, String) -> MatchResult?
 
 // Types and methods
 pub struct MatchResult {
-  position : Int
-  length : Int
-  start_line : Int
-  end_line : Int
+  position : Int32
+  length : Int32
+  start_line : Int32
+  end_line : Int32
 } derive(ToJson)
+pub fn MatchResult::to_json(Self) -> Json
 
 // Type aliases
 
 // Traits
-

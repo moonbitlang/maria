@@ -40,7 +40,7 @@ async test "system/install-marker-skips" (t : @test.Test) {
     let home = mock.cwd.path()
     let logger = @pino.logger("skills-system", @pino.Transport::console())
     let assets = [
-      @assets.Asset::{ path: "demo/SKILL.md", content: "original\n" },
+      @assets.Asset::{ path: "demo/SKILL.md", content: "original\n", },
     ]
     let fingerprint = "skip-fingerprint"
     let root = system_skills_root(home)

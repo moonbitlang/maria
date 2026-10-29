@@ -18,7 +18,11 @@ pub async fn AgentTool::call(Self, Json) -> ToolResult noraise
 pub fn AgentTool::desc(Self) -> ToolDesc
 
 pub(all) struct JsonSchema(Json) derive(Eq, @debug.Debug)
+pub fn JsonSchema::equal(Self, Self) -> Bool
 pub fn JsonSchema::from_json(Json) -> Self
+pub fn JsonSchema::not_equal(Self, Self) -> Bool
+pub fn JsonSchema::to_json(Self) -> Json
+pub fn JsonSchema::to_repr(Self) -> @debug.Repr
 pub impl ToJson for JsonSchema
 
 pub struct Tool {
@@ -36,7 +40,11 @@ pub struct ToolDesc {
   name : String
   schema : JsonSchema
 } derive(Eq, ToJson, @debug.Debug)
+pub fn ToolDesc::equal(Self, Self) -> Bool
+pub fn ToolDesc::not_equal(Self, Self) -> Bool
+pub fn ToolDesc::to_json(Self) -> Json
 pub fn ToolDesc::to_openai(Self) -> @openai.ChatCompletionToolParam
+pub fn ToolDesc::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ToolFn(async (Json) -> ToolResult noraise)
 
@@ -46,8 +54,11 @@ pub enum ToolResult {
 }
 #as_free_fn
 pub fn ToolResult::failed(String) -> Self
+pub fn ToolResult::output(Self, &Logger) -> Unit
 #as_free_fn
 pub fn ToolResult::success(&ToolOutput) -> Self
+pub fn ToolResult::to_json(Self) -> Json
+pub fn ToolResult::to_string(Self) -> String
 pub impl Show for ToolResult
 pub impl ToJson for ToolResult
 
@@ -55,8 +66,7 @@ pub impl ToJson for ToolResult
 
 // Traits
 pub(open) trait ToolOutput {
-  to_message(Self) -> @ai.Message
+  fn to_message(Self) -> @ai.Message
 }
 pub impl ToolOutput for String
 pub impl ToolOutput for Json
-
